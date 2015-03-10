@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53894 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754020AbbCIPqD (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:32848 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751921AbbCJN0J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:46:03 -0400
+	Tue, 10 Mar 2015 09:26:09 -0400
+Message-ID: <54FEF0E9.9070804@xs4all.nl>
+Date: Tue, 10 Mar 2015 14:26:01 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/29] vivid-tpg: don't add offset when switching to monochrome
-Date: Mon,  9 Mar 2015 16:44:29 +0100
-Message-Id: <1425915891-1017-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com
+Subject: Re: em38xx locking question
+References: <54FEEF38.6060506@vanguardiasur.com.ar>
+In-Reply-To: <54FEEF38.6060506@vanguardiasur.com.ar>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/10/2015 02:18 PM, Ezequiel Garcia wrote:
+> Mauro,
+> 
+> Function drivers/media/usb/em28xx/em28xx-video.c:get_next_buf
+> (copy pasted below for reference) does not take the list spinlock,
+> yet it modifies the list. Is that correct?
 
-The grayscale values are still full range sRGB, so don't add the
-limited range offset.
+That looks wrong to me. You really need spinlocks here.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-tpg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index e2af384..c1476a2 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -530,7 +530,7 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 	if (tpg->qual == TPG_QUAL_GRAY) {
- 		/* Rec. 709 Luma function */
- 		/* (0.2126, 0.7152, 0.0722) * (255 * 256) */
--		r = g = b = ((13879 * r + 46688 * g + 4713 * b) >> 16) + (16 << 4);
-+		r = g = b = (13879 * r + 46688 * g + 4713 * b) >> 16;
- 	}
- 
- 	/*
--- 
-2.1.4
+	Hans
+
+> 
+> static inline struct em28xx_buffer *get_next_buf(struct em28xx *dev,
+>                                                  struct em28xx_dmaqueue *dma_q)
+> {
+>         struct em28xx_buffer *buf;
+> 
+>         if (list_empty(&dma_q->active)) {
+>                 em28xx_isocdbg("No active queue to serve\n");
+>                 return NULL;
+>         }
+>  
+>         /* Get the next buffer */
+>         buf = list_entry(dma_q->active.next, struct em28xx_buffer, list);
+>         /* Cleans up buffer - Useful for testing for frame/URB loss */
+>         list_del(&buf->list);
+>         buf->pos = 0; 
+>         buf->vb_buf = buf->mem;
+>  
+>         return buf;
+> }
+> 
+> Thanks!
+> 
 
