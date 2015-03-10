@@ -1,56 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56377 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752464AbbCYW6h (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:35572 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280AbbCJPnM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:37 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 02/15] omap3isp: Avoid a BUG_ON() in media_entity_create_link()
-Date: Thu, 26 Mar 2015 00:57:26 +0200
-Message-Id: <1427324259-18438-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 10 Mar 2015 11:43:12 -0400
+Date: Tue, 10 Mar 2015 15:42:53 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Andrew Morton <akpm@linux-foundation.org>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Darren Etheridge <detheridge@ti.com>, kernel@pengutronix.de,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-media@vger.kernel.org,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [GIT PULL v2] of: Add of-graph helpers to loop over endpoints
+ and find ports by id
+Message-ID: <20150310154253.GO8656@n2100.arm.linux.org.uk>
+References: <1425369592.3146.14.camel@pengutronix.de>
+ <1426001087.3141.46.camel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1426001087.3141.46.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If an uninitialised v4l2_subdev struct was passed to
-media_entity_create_link(), one of the BUG_ON()'s in the function will be
-hit since media_entity.num_pads will be zero. Avoid this by checking whether
-the num_pads field is non-zero for the interface.
+On Tue, Mar 10, 2015 at 04:24:47PM +0100, Philipp Zabel wrote:
+> Hi Grant, Rob,
+> 
+> Am Dienstag, den 03.03.2015, 08:59 +0100 schrieb Philipp Zabel:
+> > Hi Grant, Rob,
+> > 
+> > this series has been around for quite some time now, basically unchanged
+> > except for adding fixes for new users of the API that keep appearing
+> > over time in different subsystems.
+> > 
+> > It would be really helpful to get this merged for v4.0. Could you still
+> > make this happen?
+> >
+> > Alternatively, could I please get your ack to allow this tag to be
+> > merged into the other subsystem trees for v4.1 so that patches that
+> > depend on it don't have to wait for yet another merge window?
+> 
+> The question still stands. It would be great to hear from you and maybe
+> get this change in at least in time for v4.1.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Let's look at the history.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index fb193b6..4ab674d 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1946,6 +1946,19 @@ static int isp_register_entities(struct isp_device *isp)
- 			goto done;
- 		}
- 
-+		/*
-+		 * Not all interfaces are available on all revisions
-+		 * of the ISP. The sub-devices of those interfaces
-+		 * aren't initialised in such a case. Check this by
-+		 * ensuring the num_pads is non-zero.
-+		 */
-+		if (!input->num_pads) {
-+			dev_err(isp->dev, "%s: invalid input %u\n",
-+				entity->name, subdevs->interface);
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+
- 		for (i = 0; i < sensor->entity.num_pads; i++) {
- 			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
- 				break;
+10-03-2015: This reminder
+03-03-2015: Pull request (ignored from what can be seen)
+01-03-2015: Request from Laurent about what's happening
+27-02-2015: Reminder
+23-02-2015: Re-base (and version 8) due to conflicts
+11-02-2015: Reminder
+22-01-2015: Pull request
+23-12-2014: Version 7
+
+During that time, there's not been one peep from Rob or Grant on this.
+At what point has there been enough pestering that it's sufficient to
+bypass an apparently uninterested maintainer, who can't be bothered to
+say yes or no to a set of patches?
+
+For such a key subsystem in the kernel, this is bad.  If Grant isn't
+interested in performing a maintainer role, I'd be willing to pick up
+that function (which'll be ironic, because that's the kind of thing
+that Linaro's been doing to me over the last few years... picking
+stuff off my plate without any discussion or agreement with me first,
+leaving me with almost nothing to do.  No, I'm not pissed at that...
+not much.)
+
+I guess if you were to submit patches to Andrew, Andrew may take them
+in this circumstance and eventually send them on to Linus.  Andrew?
+
 -- 
-1.7.10.4
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
