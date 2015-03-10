@@ -1,54 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35131 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237AbbCGXRk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:17:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 01/18] omap3isp: Fix error handling in probe
-Date: Sun, 08 Mar 2015 01:17:40 +0200
-Message-ID: <2008156.hkDykbnpAV@avalon>
-In-Reply-To: <1425764475-27691-2-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-2-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-ig0-f173.google.com ([209.85.213.173]:37547 "EHLO
+	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933AbbCJAda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 20:33:30 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <54F80C2B.20705@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+ <1425485680-8417-5-git-send-email-j.anaszewski@samsung.com> <54F80C2B.20705@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Mon, 9 Mar 2015 17:33:08 -0700
+Message-ID: <CAK5ve-K15jV0Mvkqkg4dAdBs91iu_iPeuDU3RjYNBOfzNLRmow@mail.gmail.com>
+Subject: Re: [PATCH/RFC v12 04/19] dt-binding: leds: Add common LED DT
+ bindings macros
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Wed, Mar 4, 2015 at 11:56 PM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> On 03/04/2015 05:14 PM, Jacek Anaszewski wrote:
+>>
+>> Add macros for defining boost mode and trigger type properties
+>> of flash LED devices.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> ---
+>>   include/dt-bindings/leds/max77693.h |   21 +++++++++++++++++++++
+>>   1 file changed, 21 insertions(+)
+>>   create mode 100644 include/dt-bindings/leds/max77693.h
+>
+>
+> This should be obviously include/dt-bindings/leds/common.h.
+> It will affect also max77693-led bindings documentation patch.
+> I'll send the update after receiving review remarks related to the
+> remaining part of the mentioned patches.
+>
 
-Thank you for the patch.
+OK, please update them then I will merge this patch.
 
-On Saturday 07 March 2015 23:40:58 Sakari Ailus wrote:
-> The mutex was not destroyed correctly if dma_coerce_mask_and_coherent()
-> failed for some reason.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Thanks,
+-Bryan
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/omap3isp/isp.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index deca809..fb193b6 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2252,7 +2252,7 @@ static int isp_probe(struct platform_device *pdev)
-> 
->  	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
->  	if (ret)
-> -		return ret;
-> +		goto error;
-> 
->  	platform_set_drvdata(pdev, isp);
-
--- 
-Regards,
-
-Laurent Pinchart
-
+>
+>>
+>> diff --git a/include/dt-bindings/leds/max77693.h
+>> b/include/dt-bindings/leds/max77693.h
+>> new file mode 100644
+>> index 0000000..79fcef7
+>> --- /dev/null
+>> +++ b/include/dt-bindings/leds/max77693.h
+>> @@ -0,0 +1,21 @@
+>> +/*
+>> + * This header provides macros for the common LEDs device tree bindings.
+>> + *
+>> + * Copyright (C) 2015, Samsung Electronics Co., Ltd.
+>> + *
+>> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> + */
+>> +
+>> +#ifndef __DT_BINDINGS_LEDS_H__
+>> +#define __DT_BINDINGS_LEDS_H
+>> +
+>> +/* External trigger type */
+>> +#define LEDS_TRIG_TYPE_EDGE    0
+>> +#define LEDS_TRIG_TYPE_LEVEL   1
+>> +
+>> +/* Boost modes */
+>> +#define LEDS_BOOST_OFF         0
+>> +#define LEDS_BOOST_ADAPTIVE    1
+>> +#define LEDS_BOOST_FIXED       2
+>> +
+>> +#endif /* __DT_BINDINGS_LEDS_H */
+>>
+>
+>
+> --
+> Best Regards,
+> Jacek Anaszewski
