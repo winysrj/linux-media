@@ -1,91 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:49707 "EHLO butterbrot.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:34964 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752655AbbC0JJH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 05:09:07 -0400
-Message-ID: <55151E30.60305@butterbrot.org>
-Date: Fri, 27 Mar 2015 10:09:04 +0100
-From: Florian Echtler <floe@butterbrot.org>
+	id S1751337AbbCJHxG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2015 03:53:06 -0400
+Message-ID: <54FEA2E0.8090405@iki.fi>
+Date: Tue, 10 Mar 2015 09:53:04 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race condition)?
-References: <550FFFB2.9020400@butterbrot.org>	<55103587.3080901@butterbrot.org>	<43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>	<DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>	<5512C1E4.7060903@butterbrot.org> <20150326221000.86b9c2181e699915ba91d009@ao2.it>
-In-Reply-To: <20150326221000.86b9c2181e699915ba91d009@ao2.it>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="QXWwIt54DhPplekmpV1IccCoqxXmM6lDI"
+To: Dirk Nehring <dnehring@gmx.net>, linux-media@vger.kernel.org
+CC: "nibble.max" <nibble.max@gmail.com>
+Subject: Re: [PATCH 1/1] Fix DVBsky rc-keymap
+References: <1425938573-7107-1-git-send-email-dnehring@gmx.net>
+In-Reply-To: <1425938573-7107-1-git-send-email-dnehring@gmx.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QXWwIt54DhPplekmpV1IccCoqxXmM6lDI
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-Hello Antonio,
-
-On 26.03.2015 22:10, Antonio Ospite wrote:
-> On Wed, 25 Mar 2015 15:10:44 +0100
-> Florian Echtler <floe@butterbrot.org> wrote:
->>
->> Thanks - any other suggestions how to debug such a complete freeze? I
->> have the following options enabled in my kernel config:
->>
->> Unfortunately, even after the system is frozen for several minutes, I
->> never get to see a panic message. Maybe it's there on the console
->> somewhere, but the screen never switches away from X (and as mentioned=
-
->> earlier, I think this bug can only be triggered from within X). Networ=
-k
->> also freezes, so I don't think netconsole will help?
->=20
-> PSTORE + some EFI/ACPI mechanism, maybe?
-> http://lwn.net/Articles/434821/
->=20
-> However I have never tried that myself and I don't know if all the
-> needed bits are in linux already.
->=20
-> JFTR, on some embedded system I worked on in the past the RAM content
-> was preserved across resets and, after a crash, we used to dump the RAM=
-
-> from a second stage bootloader (i.e. before lading another linux
-> instance) and then scrape the dump to look for the kernel messages, but=
-
-> AFAIK this is not going to be reliable =E2=80=94or even possible=E2=80=94=
- on a more
-> complex system.
-
-thanks for your suggestions - however, this is a regular x86 system, so
-what I will try next is to reproduce the crash in a Virtualbox instance
-with the SUR40 device routed to the guest using USB passthrough and the
-serial console routed to the host. Hope this will give some clues.
-
-One more general question: what are possible reasons for a complete
-freeze? Only a spinlock being held with interrupts disabled, or are
-there other possibilities?
-
-Best, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
 
 
---QXWwIt54DhPplekmpV1IccCoqxXmM6lDI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On 03/10/2015 12:02 AM, Dirk Nehring wrote:
+> Signed-off-by: Dirk Nehring <dnehring@gmx.net>
+> ---
+>   drivers/media/rc/keymaps/rc-dvbsky.c | 12 ++++++------
+>   1 file changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
+> index c5115a1..b942b16 100644
+> --- a/drivers/media/rc/keymaps/rc-dvbsky.c
+> +++ b/drivers/media/rc/keymaps/rc-dvbsky.c
+> @@ -33,16 +33,16 @@ static struct rc_map_table rc5_dvbsky[] = {
+>   	{ 0x000b, KEY_STOP },
+>   	{ 0x000c, KEY_EXIT },
+>   	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
+> -	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
+> -	{ 0x0010, KEY_VOLUMEUP },
+> -	{ 0x0011, KEY_VOLUMEDOWN },
+> +	{ 0x000f, KEY_TV2 }, /*PIP*/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I don't know what kind of layout there really is, but according to 
+comment that button is PIP which should be KEY_NEW. I wonder if you 
+mapped those UP/DOWN buttons also badly...
 
-iEYEARECAAYFAlUVHjAACgkQ7CzyshGvatgv9QCg0pzqsjbtdlQBfKIT20UrVqdh
-4mQAoJCmjIwTmNX7A3Amy7Df/jnbI/fH
-=xAdi
------END PGP SIGNATURE-----
+http://linuxtv.org/wiki/index.php/Remote_Controllers
 
---QXWwIt54DhPplekmpV1IccCoqxXmM6lDI--
+
+
+> +	{ 0x0010, KEY_RIGHT },
+> +	{ 0x0011, KEY_LEFT },
+>   	{ 0x0012, KEY_FAVORITES },
+> -	{ 0x0013, KEY_LIST }, /*Info*/
+> +	{ 0x0013, KEY_INFO },
+>   	{ 0x0016, KEY_PAUSE },
+>   	{ 0x0017, KEY_PLAY },
+>   	{ 0x001f, KEY_RECORD },
+> -	{ 0x0020, KEY_CHANNELDOWN },
+> -	{ 0x0021, KEY_CHANNELUP },
+> +	{ 0x0020, KEY_UP },
+> +	{ 0x0021, KEY_DOWN },
+>   	{ 0x0025, KEY_POWER2 },
+>   	{ 0x0026, KEY_REWIND },
+>   	{ 0x0027, KEY_FASTFORWARD },
+>
+
+-- 
+http://palosaari.fi/
