@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f170.google.com ([209.85.216.170]:33991 "EHLO
-	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689AbbCKQgY (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39303 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751083AbbCJP4q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 12:36:24 -0400
-Received: by qcvp6 with SMTP id p6so11658496qcv.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 09:36:23 -0700 (PDT)
-Message-ID: <55006E71.9020403@vanguardiasur.com.ar>
-Date: Wed, 11 Mar 2015 13:33:53 -0300
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+	Tue, 10 Mar 2015 11:56:46 -0400
+Message-ID: <54FF1437.1050206@xs4all.nl>
+Date: Tue, 10 Mar 2015 16:56:39 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Dale Hamel <dale.hamel@srvthe.net>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
-	"michael@stegemann.it" <michael@stegemann.it>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add framescaling support to stk1160
-References: <1424799211-26488-1-git-send-email-dale.hamel@srvthe.net> <CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>
-In-Reply-To: <CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+To: linux-media@vger.kernel.org
+CC: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 18/18] marvell-ccic: fix Y'CbCr ordering
+References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl> <1425936143-5658-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1425936143-5658-19-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael, Dale,
-
-On 03/10/2015 12:26 AM, Ezequiel Garcia wrote:
-> Dale,
+On 03/09/2015 10:22 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Don't forget to Cc the media mailing list. See below.
+> Various formats had their byte ordering implemented incorrectly, and
+> the V4L2_PIX_FMT_UYVY is actually impossible to create, instead you
+> get V4L2_PIX_FMT_YVYU.
 > 
+> This was working before commit ad6ac452227b7cb93ac79beec092850d178740b1
+> ("add new formats support for marvell-ccic driver"). That commit broke
+> the original format support and the OLPC XO-1 laptop showed wrong
+> colors ever since (if you are crazy enough to attempt to run the latest
+> kernel on it, like I did).
 
-If you are OK with it, I'll rework this patch (mostly cleaning the
-style) and then post it back so everyone can comment.
+I tried to contact the original authors of that commit but I couldn't reach
+them. So I've added the following to the commit log of this patch:
 
-BTW, my datasheet doesn't have the DMCTRL register documented, and I'm
-really glad that we can finally support hardware decimation.
+"The email addresses of the authors of that patch are no longer valid,
+so without a way to reach them and ask them about their test setup
+I am going with what I can test on the OLPC laptop.
 
-Thanks!
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+If this breaks something for someone on their non-OLPC setup, then
+contact the linux-media mailinglist. My suspicion however is that
+that commit went in untested."
+
+Regards,
+
+	Hans
