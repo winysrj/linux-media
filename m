@@ -1,86 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:49420 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755179AbbCFU0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2015 15:26:12 -0500
-Date: Fri, 6 Mar 2015 21:25:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 3/3] media: atmel-isi: remove mck back compatiable code
- as we don't need it
-In-Reply-To: <54F97DDF.7010403@atmel.com>
-Message-ID: <Pine.LNX.4.64.1503062124450.20271@axis700.grange>
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com>
- <1425531661-20040-4-git-send-email-josh.wu@atmel.com> <3743731.I7IKcDRdB6@avalon>
- <54F97DDF.7010403@atmel.com>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:41787 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbbCJAXh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 20:23:37 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1425485680-8417-4-git-send-email-j.anaszewski@samsung.com>
+References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com> <1425485680-8417-4-git-send-email-j.anaszewski@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Mon, 9 Mar 2015 17:23:16 -0700
+Message-ID: <CAK5ve-J16Ee-HvE=pVsWC88_KUcRr0UA+f8CtXieVuTMBqxyYw@mail.gmail.com>
+Subject: Re: [PATCH/RFC v12 03/19] Documentation: leds: Add description of LED
+ Flash class extension
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh, Laurent,
+On Wed, Mar 4, 2015 at 8:14 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> The documentation being added contains overall description of the
+> LED Flash Class and the related sysfs attributes.
+>
 
-On Fri, 6 Mar 2015, Josh Wu wrote:
+Thanks, merged!
+-Bryan
 
-> On 3/5/2015 6:41 PM, Laurent Pinchart wrote:
-> > Hi Josh,
-> > 
-> > Thank you for the patch.
-> > 
-> > On Thursday 05 March 2015 13:01:01 Josh Wu wrote:
-> > > The master clock should handled by sensor itself.
-> > I like that :-)
-> > 
-> > > Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > > ---
-> > > 
-> > >   drivers/media/platform/soc_camera/atmel-isi.c | 32
-> > > ------------------------
-> > >   1 file changed, 32 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> > > b/drivers/media/platform/soc_camera/atmel-isi.c index 4a384f1..50375ce
-> > > 100644
-> > > --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> > > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> > > @@ -83,8 +83,6 @@ struct atmel_isi {
-> > >   	struct completion		complete;
-> > >   	/* ISI peripherial clock */
-> > >   	struct clk			*pclk;
-> > > -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-> > > -	struct clk			*mck;
-> > >   	unsigned int			irq;
-> > > 
-> > >   	struct isi_platform_data	pdata;
-> > > @@ -725,26 +723,12 @@ static void isi_camera_remove_device(struct
-> > > soc_camera_device *icd) /* Called with .host_lock held */
-> > >   static int isi_camera_clock_start(struct soc_camera_host *ici)
-> > >   {
-> > > -	struct atmel_isi *isi = ici->priv;
-> > > -	int ret;
-> > > -
-> > > -	if (!IS_ERR(isi->mck)) {
-> > > -		ret = clk_prepare_enable(isi->mck);
-> > > -		if (ret) {
-> > > -			return ret;
-> > > -		}
-> > > -	}
-> > > -
-> > >   	return 0;
-> > Would it make sense to make the clock_start and clock_stop operations
-> > optional
-> > in the soc-camera core ?
-> I agree. For those camera host which don't provide master clock for sensor,
-> clock_start and clock_stop should be optional.
-> 
-> Hi, Guennadi
-> 
-> Do you agree with this?
 
-Yes, sure, we can do this. Would anyone like to prepare a patch?
-
-Thanks
-Guennadi
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  Documentation/leds/leds-class-flash.txt |   22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>  create mode 100644 Documentation/leds/leds-class-flash.txt
+>
+> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+> new file mode 100644
+> index 0000000..19bb673
+> --- /dev/null
+> +++ b/Documentation/leds/leds-class-flash.txt
+> @@ -0,0 +1,22 @@
+> +
+> +Flash LED handling under Linux
+> +==============================
+> +
+> +Some LED devices provide two modes - torch and flash. In the LED subsystem
+> +those modes are supported by LED class (see Documentation/leds/leds-class.txt)
+> +and LED Flash class respectively. The torch mode related features are enabled
+> +by default and the flash ones only if a driver declares it by setting
+> +LED_DEV_CAP_FLASH flag.
+> +
+> +In order to enable the support for flash LEDs CONFIG_LEDS_CLASS_FLASH symbol
+> +must be defined in the kernel config. A LED Flash class driver must be
+> +registered in the LED subsystem with led_classdev_flash_register function.
+> +
+> +Following sysfs attributes are exposed for controlling flash LED devices:
+> +(see Documentation/ABI/testing/sysfs-class-led-flash)
+> +       - flash_brightness
+> +       - max_flash_brightness
+> +       - flash_timeout
+> +       - max_flash_timeout
+> +       - flash_strobe
+> +       - flash_fault
+> --
+> 1.7.9.5
+>
