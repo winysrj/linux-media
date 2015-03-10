@@ -1,173 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43235 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754186AbbCQL5C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 07:57:02 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
-	David Airlie <airlied@linux.ie>, Jan Kara <jack@suse.cz>
-Subject: [PATCH 8/9] media: vb2: Remove unused functions
-Date: Tue, 17 Mar 2015 12:56:38 +0100
-Message-Id: <1426593399-6549-9-git-send-email-jack@suse.cz>
-In-Reply-To: <1426593399-6549-1-git-send-email-jack@suse.cz>
-References: <1426593399-6549-1-git-send-email-jack@suse.cz>
+Received: from mail-qc0-f175.google.com ([209.85.216.175]:44715 "EHLO
+	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545AbbCJOJ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2015 10:09:28 -0400
+Received: by qcwr17 with SMTP id r17so1977766qcw.11
+        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 07:09:27 -0700 (PDT)
+Message-ID: <54FEFA83.2080205@vanguardiasur.com.ar>
+Date: Tue, 10 Mar 2015 11:06:59 -0300
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com, hans.verkuil@cisco.com
+Subject: Re: em38xx locking question
+References: <54FEEF38.6060506@vanguardiasur.com.ar> <54FEF0E9.9070804@xs4all.nl> <54FEF1D1.3000909@vanguardiasur.com.ar> <54FEF5B4.1060209@xs4all.nl>
+In-Reply-To: <54FEF5B4.1060209@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion to the use of pinned pfns made some functions unused. Remove
-them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
- include/media/videobuf2-memops.h           |   6 --
- 2 files changed, 120 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index 80ade22b920c..08daaa5c4e2d 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -23,120 +23,6 @@
- #include <media/videobuf2-memops.h>
- 
- /**
-- * vb2_get_vma() - acquire and lock the virtual memory area
-- * @vma:	given virtual memory area
-- *
-- * This function attempts to acquire an area mapped in the userspace for
-- * the duration of a hardware operation. The area is "locked" by performing
-- * the same set of operation that are done when process calls fork() and
-- * memory areas are duplicated.
-- *
-- * Returns a copy of a virtual memory region on success or NULL.
-- */
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
--{
--	struct vm_area_struct *vma_copy;
--
--	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
--	if (vma_copy == NULL)
--		return NULL;
--
--	if (vma->vm_ops && vma->vm_ops->open)
--		vma->vm_ops->open(vma);
--
--	if (vma->vm_file)
--		get_file(vma->vm_file);
--
--	memcpy(vma_copy, vma, sizeof(*vma));
--
--	vma_copy->vm_mm = NULL;
--	vma_copy->vm_next = NULL;
--	vma_copy->vm_prev = NULL;
--
--	return vma_copy;
--}
--EXPORT_SYMBOL_GPL(vb2_get_vma);
--
--/**
-- * vb2_put_userptr() - release a userspace virtual memory area
-- * @vma:	virtual memory region associated with the area to be released
-- *
-- * This function releases the previously acquired memory area after a hardware
-- * operation.
-- */
--void vb2_put_vma(struct vm_area_struct *vma)
--{
--	if (!vma)
--		return;
--
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--
--	kfree(vma);
--}
--EXPORT_SYMBOL_GPL(vb2_put_vma);
--
--/**
-- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
-- * @vaddr:	starting virtual address of the area to be verified
-- * @size:	size of the area
-- * @res_paddr:	will return physical address for the given vaddr
-- * @res_vma:	will return locked copy of struct vm_area for the given area
-- *
-- * This function will go through memory area of size @size mapped at @vaddr and
-- * verify that the underlying physical pages are contiguous. If they are
-- * contiguous the virtual memory area is locked and a @res_vma is filled with
-- * the copy and @res_pa set to the physical address of the buffer.
-- *
-- * Returns 0 on success.
-- */
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
--{
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	unsigned long offset, start, end;
--	unsigned long this_pfn, prev_pfn;
--	dma_addr_t pa = 0;
--
--	start = vaddr;
--	offset = start & ~PAGE_MASK;
--	end = start + size;
--
--	vma = find_vma(mm, start);
--
--	if (vma == NULL || vma->vm_end < end)
--		return -EFAULT;
--
--	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
--		int ret = follow_pfn(vma, start, &this_pfn);
--		if (ret)
--			return ret;
--
--		if (prev_pfn == 0)
--			pa = this_pfn << PAGE_SHIFT;
--		else if (this_pfn != prev_pfn + 1)
--			return -EFAULT;
--
--		prev_pfn = this_pfn;
--	}
--
--	/*
--	 * Memory is contigous, lock vma and return to the caller
--	 */
--	*res_vma = vb2_get_vma(vma);
--	if (*res_vma == NULL)
--		return -ENOMEM;
--
--	*res_pa = pa + offset;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
--
--/**
-  * vb2_create_pfnvec() - map virtual addresses to pfns
-  * @start:	Virtual user address where we start mapping
-  * @length:	Length of a range to map
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 868f9c1cd92d..01b4325947f1 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -31,12 +31,6 @@ struct vb2_vmarea_handler {
- 
- extern const struct vm_operations_struct vb2_common_vm_ops;
- 
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
--
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
--void vb2_put_vma(struct vm_area_struct *vma);
--
- struct pinned_pfns *vb2_create_pfnvec(unsigned long start, unsigned long length,
- 				      bool write);
- void vb2_destroy_pfnvec(struct pinned_pfns *pfns);
+On 03/10/2015 10:46 AM, Hans Verkuil wrote:
+> On 03/10/2015 02:29 PM, Ezequiel Garcia wrote:
+>>
+>>
+>> On 03/10/2015 10:26 AM, Hans Verkuil wrote:
+>>> On 03/10/2015 02:18 PM, Ezequiel Garcia wrote:
+>>>> Mauro,
+>>>>
+>>>> Function drivers/media/usb/em28xx/em28xx-video.c:get_next_buf
+>>>> (copy pasted below for reference) does not take the list spinlock,
+>>>> yet it modifies the list. Is that correct?
+>>>
+>>> That looks wrong to me. You really need spinlocks here.
+>>>
+>>
+>> OK, second question then. Is there any way to guarantee the URBs irq handler
+>> is *not* running, when vb2_ops are called (e.g. stop_streaming)?
+> 
+> That depends on the op. But stop_streaming is the op that is supposed to
+> turn off the streaming (and thus the irq), so it depends on the order
+> of how things are done in that function.
+> 
+
+Ah, right. As long as you kill the urbs before you try to access the
+current buffer, everything is OK.
+
+>> Otherwise, given stop_streaming will return the current buffer to vb2
+>> (dev->usb_ctl.vid_buf), I believe that will race against the irq handler,
+>> which is processing it.
+>>
+
+>> It seems that's currently racy as well.
+> 
+> Hmm, the stop_streaming code looks fine at first sight, but I think there
+> is a race if you start streaming both video and vbi, and then stop streaming
+> one of the two. I think the code might keep calling get_next_buf() in that
+> case, even if for that stream the streaming was stopped.
+> 
+> This is a problem anyway: get_next_buf() should do this check at the beginning:
+> 
+> 	if (!vb2_start_streaming_called(vb2_queue))
+> 		return NULL;
+> 
+> to prevent it from using buffer before start_streaming was actually called.
+> 
+
+I'd say get_next_buf() is called only in the URB complete handler path,
+and hence only after start_streaming. However, maybe there's a subtle
+issue here: URB complete handler can be called _while_ start_streaming
+is still running.
+
 -- 
-2.1.4
-
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
