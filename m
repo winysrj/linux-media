@@ -1,119 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58867 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbbCLDqq (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:48209 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbbCJMDB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 23:46:46 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1AF622A0097
-	for <linux-media@vger.kernel.org>; Thu, 12 Mar 2015 04:46:38 +0100 (CET)
-Date: Thu, 12 Mar 2015 04:46:38 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150312034638.1AF622A0097@tschai.lan>
+	Tue, 10 Mar 2015 08:03:01 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Bastien Nocera' <hadess@hadess.net>
+Cc: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+ <1421942679-23609-3-git-send-email-k.debski@samsung.com>
+ <20150308112033.7d807164@recife.lan>
+ <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
+ <1425919423.1421.14.camel@hadess.net>
+In-reply-to: <1425919423.1421.14.camel@hadess.net>
+Subject: RE: [RFC v2 2/7] media: rc: Add cec protocol handling
+Date: Tue, 10 Mar 2015 13:02:57 +0100
+Message-id: <001a01d05b2a$26c71640$745542c0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Bastien,
 
-Results of the daily build of media_tree:
+From: Bastien Nocera [mailto:hadess@hadess.net]
+Sent: Monday, March 09, 2015 5:44 PM
+> 
+> On Mon, 2015-03-09 at 17:22 +0100, Kamil Debski wrote:
+> > Hi Mauro,
+> >
+> > From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+> > Sent: Sunday, March 08, 2015 3:21 PM
+> >
+> > > Em Thu, 22 Jan 2015 17:04:34 +0100
+> > > Kamil Debski <k.debski@samsung.com> escreveu:
+> > >
+> > > (c/c linux-input ML)
+> > >
+> > > > Add cec protocol handling the RC framework.
+> > >
+> > > I added some comments, that reflects my understanding from what's
+> > > there at the keymap definitions found at:
+> > >         http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
+> >
+> > Thank you very much for the review, Mauro. Your comments are very
+> much
+> > appreciated.
+> 
+> How does one use this new support? If I plug in my laptop to my TV,
+> will using the TV's remote automatically send those key events to the
+> laptop?
 
-date:		Thu Mar 12 04:00:17 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+It depends on the hardware that is used in your laptop to handle HDMI.
+If there is hardware support for CEC then this framework can be used
+to create a driver for the laptop's HDMI hardware. Then the laptop will
+be able to communicate with the TV over CEC - this includes receiving
+key events from the TV.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Currently there are some CEC devices (and drivers) that enable Linux to
+use CEC, but there is no generic framework for CEC in the Linux kernel.
+My goal is to introduce such a framework, such that userspace
+application could work with different hardware using the same interface.
 
-Detailed results are available here:
+Getting back to your question - using this framework. There should be
+some initialization done by a user space application:
+- enabling CEC (if needed by the hardware/driver)
+- configuring the connection (e.g. what kind of device should the
+  laptop appear as, request the TV to pass remote control keys, etc.)
+- the TV will also send other CEC messages to the laptop, hence the
+  application should listen for such messages and act accordingly
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+How this should be done userspace? Definitely, it would be a good idea
+to use a library. Maybe a deamon that does the steps mentioned above
+would be a good idea? I am working on a simple library implementation
+that would wrap the kernel ioctls and provide a more user friendly API.
 
-Full logs are available here:
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
