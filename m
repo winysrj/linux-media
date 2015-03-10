@@ -1,53 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38233 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753041AbbC3VSD (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63100 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbbCJPkR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 17:18:03 -0400
-Date: Tue, 31 Mar 2015 00:17:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sebastian Reichel <sre@kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, pali.rohar@gmail.com
-Subject: Re: [PATCH v2 14/15] omap3isp: Add support for the Device Tree
-Message-ID: <20150330211727.GE18321@valkosipuli.retiisi.org.uk>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
- <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
- <20150330174123.GA2658@earth>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150330174123.GA2658@earth>
+	Tue, 10 Mar 2015 11:40:17 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Bastien Nocera' <hadess@hadess.net>
+Cc: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+ <1421942679-23609-3-git-send-email-k.debski@samsung.com>
+ <20150308112033.7d807164@recife.lan>
+ <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
+ <1425919423.1421.14.camel@hadess.net>
+ <001a01d05b2a$26c71640$745542c0$%debski@samsung.com>
+ <1425996895.11726.3.camel@hadess.net>
+In-reply-to: <1425996895.11726.3.camel@hadess.net>
+Subject: RE: [RFC v2 2/7] media: rc: Add cec protocol handling
+Date: Tue, 10 Mar 2015 16:40:13 +0100
+Message-id: <002e01d05b48$80c19e90$8244dbb0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
-
-On Mon, Mar 30, 2015 at 07:41:23PM +0200, Sebastian Reichel wrote:
-> Hi,
+From: Bastien Nocera [mailto:hadess@hadess.net]
+Sent: Tuesday, March 10, 2015 3:15 PM
 > 
-> The code crashed for me on Nokia N900. I found the following
-> problem:
+> On Tue, 2015-03-10 at 13:02 +0100, Kamil Debski wrote:
+> > Hi Bastien,
+> >
+> > From: Bastien Nocera [mailto:hadess@hadess.net]
+> > Sent: Monday, March 09, 2015 5:44 PM
+> > >
+> > > On Mon, 2015-03-09 at 17:22 +0100, Kamil Debski wrote:
+> > > > Hi Mauro,
+> > > >
+> > > > From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+> > > > Sent: Sunday, March 08, 2015 3:21 PM
+> > > >
+> > > > > Em Thu, 22 Jan 2015 17:04:34 +0100 Kamil Debski
+> > > > > <k.debski@samsung.com> escreveu:
+> > > > >
+> > > > > (c/c linux-input ML)
+> > > > >
+> > > > > > Add cec protocol handling the RC framework.
+> > > > >
+> > > > > I added some comments, that reflects my understanding from
+> > > > > what's there at the keymap definitions found at:
+> > > > >         http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
+> > > >
+> > > > Thank you very much for the review, Mauro. Your comments are very
+> > > much
+> > > > appreciated.
+> > >
+> > > How does one use this new support? If I plug in my laptop to my TV,
+> > > will using the TV's remote automatically send those key events to
+> > > the laptop?
+> >
+> > It depends on the hardware that is used in your laptop to handle HDMI.
+> > If there is hardware support for CEC then this framework can be used
+> > to create a driver for the laptop's HDMI hardware. Then the laptop
+> > will be able to communicate with the TV over CEC - this includes
+> > receiving key events from the TV.
+> >
+> > Currently there are some CEC devices (and drivers) that enable Linux
+> > to use CEC, but there is no generic framework for CEC in the Linux
+> > kernel. My goal is to introduce such a framework, such that userspace
+> > application could work with different hardware using the same
+> > interface.
+> >
+> > Getting back to your question - using this framework. There should be
+> > some initialization done by a user space application:
+> > - enabling CEC (if needed by the hardware/driver)
 > 
-> On Thu, Mar 26, 2015 at 12:57:38AM +0200, Sakari Ailus wrote:
-> > [...]
-> > +static int isp_of_parse_nodes(struct device *dev,
-> > +			      struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct device_node *node;
+> I have 2 machines that this could work on, a Intel Baytrail tablet, and
+> a laptop with Intel Haswell. Is that part going to be covered by your
+> library, or will there be a drm API for that?
+
+Enabling CEC is done by the CEC framework. The idea is to have it
+independent of other frameworks (such as drm, or v4l2).
+
 > 
-> struct device_node *node = NULL;
+> > - configuring the connection (e.g. what kind of device should the
+> >   laptop appear as, request the TV to pass remote control keys, etc.)
 > 
-> to avoid feeding a random pointer into of_graph_get_next_endpoint():
+> That's done through the CEC API as well?
 
-Good catch!
+Yes.
 
-Laurent, could you use a new version of this patch, and send a new pull
-request, or would you prefer an additional patch to fix this?
+> 
+> > - the TV will also send other CEC messages to the laptop, hence the
+> >   application should listen for such messages and act accordingly
+> 
+> That's easier to deal with :)
+> 
+> Something like LIRC can be used in the short-term.
+> 
+> > How this should be done userspace? Definitely, it would be a good
+> idea
+> > to use a library. Maybe a deamon that does the steps mentioned above
+> > would be a good idea? I am working on a simple library implementation
+> > that would wrap the kernel ioctls and provide a more user friendly
+> > API.
+> 
+> Great. Do drop me a mail when you have something that I could test.
 
+Will do.
+ 
+> Cheers
+
+Best wishes,
 -- 
-Kind regards,
+Kamil Debski
+Samsung R&D Institute Poland
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
