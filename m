@@ -1,46 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f43.google.com ([209.85.192.43]:34649 "EHLO
-	mail-qg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437AbbC0MQj (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55912 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753263AbbCJOuF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 08:16:39 -0400
-Received: by qgep97 with SMTP id p97so131257970qge.1
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 05:16:39 -0700 (PDT)
+	Tue, 10 Mar 2015 10:50:05 -0400
+Message-ID: <54FF0494.9060703@xs4all.nl>
+Date: Tue, 10 Mar 2015 15:49:56 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5515496A.4050600@iki.fi>
-References: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
-	<1427457439-1493-5-git-send-email-olli.salonen@iki.fi>
-	<CALzAhNX+covLWsgpUdW5sOfHtka6B93wK6y8o6A2+qt6PGkWug@mail.gmail.com>
-	<5515496A.4050600@iki.fi>
-Date: Fri, 27 Mar 2015 08:16:38 -0400
-Message-ID: <CALzAhNUndjd7NscMSeDRNDWxt2Kadd8p451025+t4OC7JiUdSA@mail.gmail.com>
-Subject: Re: [PATCH 5/5] saa7164: Hauppauge HVR-2205 and HVR-2215 DVB-C/T/T2 tuners
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Olli Salonen <olli.salonen@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Jonathan Corbet <corbet@lwn.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/18] marvell-ccic + ov7670 fixes
+References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl> <20150310103000.7d79bb7f@lwn.net>
+In-Reply-To: <20150310103000.7d79bb7f@lwn.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I did not require any 2168/2157 driver changes to make these devices
->> work. (Antti please note).
->
->
-> There seems to be only minor TS config change (which is not even needed if
-> you set that bit to existing TS mode config value) for gapped/variable
-> length TS clock (which is in my understanding to leave TS valid line
-> unconnected).
+On 03/10/2015 03:30 PM, Jonathan Corbet wrote:
+> On Mon,  9 Mar 2015 22:22:05 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>> This patch series makes loads of fixes and improvements to the marvell-ccic
+>> and ov7670 drivers. This has been tested on an OLPC XO-1 laptop.
+> 
+> So I'm traveling and even shorter on time than usual.  I've had a quick
+> look over these patches, and they generally seem OK.  Just don't ding me
+> for not using a bunch of infrastructure that wasn't there when I wrote
+> this thing! :)
+> 
+> Ideally it would be nice to see patch 9 split - locking changes separate
+> from use of helpers - but that's a quibble.
+> 
+> Out of curiosity, is there a use driving this work, or are you just
+> making things cleaner?
 
-Its not required for the HVR2205 or the HVR2255, these are the only
-two models of the hardware shipping in production volumes to
-customers. Any other cards were advanced prototypes, that's my
-understanding.
+I needed to test my earlier subdev patch series, and since I finally had the
+OLPC in a testable state again I thought that was a good opportunity to run
+the v4l2-compliance test suite over it. That always generates a lot of failures
+when it is run for the first time on a driver. I'm biased since I wrote that
+tool, but v4l2-compliance is awesome :-)
 
-I'm not suggesting the gapped clock 2168 patch isn't useful for other
-bridges, you might want to pull Olli's patch for that, but its not
-required for the HVR2205/2255 support.
+As an added bonus this driver is now also converted to the new frameworks.
+Eventually all drivers will be converted and we can drop legacy support in the
+v4l2 core.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+And as a second bonus this was a good reason for me to add support for the
+4:2:0 planar formats to the vivid driver, which helped me test the marvell driver.
+
+I've tested all the supported formats and I can confirm that they all work
+after this patch series is applied.
+
+> Regardless, it clearly improves the drivers; thanks for doing this.
+> 
+> Acked-by: Jonathan Corbet <corbet@lwn.net>
+> 
+>> I do need to check the last patch with Libin Yang since his patch from mid-2013
+>> broke the driver for the OLPC laptop. Nobody noticed since the latest released
+>> kernel from the OLPC project for that laptop is 3.3, which didn't have his patch.
+> 
+> Libin seems to have vanished, and I think that whatever interest Marvell
+> had in supporting this driver has vanished with him, unfortunately.  I'm
+> still tempted to revert much of that work, since I'm not sure it has ever
+> worked on a real system...
+
+OK, good to know. I'll try to contact him and if I haven't heard from him by
+Monday (or if the email is no longer valid), then I'll make a pull request for
+this series to get it in 4.1.
+
+Regards,
+
+	Hans
