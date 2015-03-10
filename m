@@ -1,76 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39310 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbbCKSWF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 14:22:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4] media: i2c: add support for omnivision's ov2659 sensor
-Date: Wed, 11 Mar 2015 20:22:06 +0200
-Message-ID: <2415294.49LTQe4m32@avalon>
-In-Reply-To: <20150310013556.GF11954@valkosipuli.retiisi.org.uk>
-References: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com> <20150310013556.GF11954@valkosipuli.retiisi.org.uk>
+Received: from smtp.logicpd.com ([174.46.170.145]:51780 "HELO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752756AbbCJThf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2015 15:37:35 -0400
+From: Tim Nordell <tim.nordell@logicpd.com>
+To: <linux-media@vger.kernel.org>
+CC: <laurent.pinchart@ideasonboard.com>, <sakari.ailus@iki.fi>,
+	Tim Nordell <tim.nordell@logicpd.com>
+Subject: [PATCH 0/3] *** Updates against OMAP3ISP and BT.656
+Date: Tue, 10 Mar 2015 14:24:51 -0500
+Message-ID: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 March 2015 03:35:57 Sakari Ailus wrote:
-> On Sun, Mar 08, 2015 at 11:33:27AM +0000, Lad Prabhakar wrote:
-> ...
-> 
-> > +static struct ov2659_platform_data *
-> > +ov2659_get_pdata(struct i2c_client *client)
-> > +{
-> > +	struct ov2659_platform_data *pdata;
-> > +	struct device_node *endpoint;
-> > +	int ret;
-> > +
-> > +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
-> > +		dev_err(&client->dev, "ov2659_get_pdata: DT Node found\n");
-> > +		return client->dev.platform_data;
-> > +	}
-> > +
-> > +	endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
-> > +	if (!endpoint)
-> > +		return NULL;
-> > +
-> > +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> > +	if (!pdata)
-> > +		goto done;
-> > +
-> > +	ret = of_property_read_u32(endpoint, "link-frequencies",
-> > +				   &pdata->link_frequency);
-> 
-> This is actually documented as being a 64-bit array.
+I've been doing some testing for a client's system that has a ADV7180 
+attached to the omap3isp and integrating it with kernel v3.19 on a 
+DM3730 platform.  I had some stability problems with the driver (it 
+would crash sometimes upon stream startup or shutdown) as well as the 
+ISR causing the system to lockup.  Additionally, for the system I've 
+described everything with device tree (except for the omap3isp of course 
+since those bindings aren't available yet), and I discovered that the 
+omap3isp was starting before I2C in this case and it needed to support 
+the deferral of probing the I2C client.
 
-The main purpose of link-frequencies is to restrict the link frequencies 
-acceptable in the system due to EMI requirements. One link frequency should be 
-selected in the array based on the desired format and frame rate. This is 
-usually done by exposing the frequency to userspace through a writable 
-V4L2_CID_LINK_FREQ control, and exposing the resulting pixel rate as a read-
-only V4L2_CID_PIXEL_RATE control.
+I also encountered the ISP getting in a state where the interrupts were 
+enabled and firing, but it wasn't actually processing it since the 
+pipeline state wasn't correct yet.  I added mitigation to this by 
+modifying when the VD0 and VD1 interrupt trigger levels are setup, and 
+causing these trigger levels to be high enough not to occur when the 
+pipeline is disabled.
 
-V4L2_CID_PIXEL_RATE is mandatory to use the sensor with several drivers 
-(including omap3isp and omap4iss), so it should really be implemented.
+The other issues I encountered I believe are due to the interaction of 
+the ISP on the OMAP3 and BT.656 in part.  It appears that the timing is 
+critical for the ISR when entering since the current design busywaits in 
+the ISR waiting for the ISP to no longer be busy, and it appears that it 
+can end up missing its opportunity.  Thus I added some code to have a 
+delayed buffering mode for BT.656 that causes it to hold onto buffers a 
+bit longer than it otherwise would have and rely on the VSYNC latching 
+for the buffers in the CCDC.
 
-> The smiapp wasn't even reading it from the endpoint node. Oh well...
+Tim Nordell (3):
+  omap3isp: Defer probing when subdev isn't available
+  omap3isp: Disable CCDC's VD0 and VD1 interrupts when stream is not
+    enabled
+  omap3isp: Add a delayed buffers for frame mode
+
+ drivers/media/platform/omap3isp/isp.c      |   6 +-
+ drivers/media/platform/omap3isp/ispccdc.c  |  43 ++++++--
+ drivers/media/platform/omap3isp/ispvideo.c | 163 ++++++++++++++++++++++++-----
+ drivers/media/platform/omap3isp/ispvideo.h |   3 +
+ 4 files changed, 178 insertions(+), 37 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.4
 
