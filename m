@@ -1,101 +1,350 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:12193 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221AbbCFKQe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:16:34 -0500
-Message-ID: <54F97E7E.1000109@atmel.com>
-Date: Fri, 6 Mar 2015 18:16:30 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from mail-ig0-f173.google.com ([209.85.213.173]:41286 "EHLO
+	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbbCJD0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 23:26:20 -0400
+Received: by igal13 with SMTP id l13so27556502iga.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2015 20:26:19 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH 1/3] media: atmel-isi: move the peripheral clock to start/stop_stream()
- function
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <1425531661-20040-2-git-send-email-josh.wu@atmel.com> <16387779.aQaQKCyNOp@avalon>
-In-Reply-To: <16387779.aQaQKCyNOp@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1424799211-26488-1-git-send-email-dale.hamel@srvthe.net>
+References: <1424799211-26488-1-git-send-email-dale.hamel@srvthe.net>
+Date: Tue, 10 Mar 2015 00:26:19 -0300
+Message-ID: <CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>
+Subject: Re: [PATCH] Add framescaling support to stk1160
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Dale Hamel <dale.hamel@srvthe.net>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
+	"michael@stegemann.it" <michael@stegemann.it>,
+	ezequiel@vanguardiasur.com.ar,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/5/2015 6:39 PM, Laurent Pinchart wrote:
-> Hi Josh,
+Dale,
+
+Don't forget to Cc the media mailing list. See below.
+
+On Tue, Feb 24, 2015 at 2:33 PM, Dale Hamel <dale.hamel@srvthe.net> wrote:
+> From: Michael Stegemann <michael@stegemann.it>
 >
-> Thank you for the patch.
+> Implements frame scaling support for stk1160 to support format changes instead of a static frame size.
 >
-> On Thursday 05 March 2015 13:00:59 Josh Wu wrote:
->> As the clock_start/stop() use to control the mclk for the sensor not the
->> ISI peripheral clock.
->> So we move them to start/stop_stream() function.
-> Then the driver will access registers with the peripheral clock disabled, for
-> instance in isi_camera_set_fmt() (calling configure_geometry),
-> isi_camera_set_bus_param() or atmel_isi_probe(). Isn't that a problem ? Or are
-> all registers guaranteed to be accessible (and retained) when the clock is
-> disabled ?
-
-So far, I don't see any problem yet. But I'd like to be sure of that. 
-I'll give you the feedback after more test.
-Thanks for make me head up.
-
-Best Regards,
-Josh Wu
-
+> This is effectively a dumb sampling, and could perhaps benefit from being an averaging instead.
 >
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c | 12 ++++++------
->>   1 file changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->> b/drivers/media/platform/soc_camera/atmel-isi.c index 1208818..eb179e7
->> 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -386,6 +386,10 @@ static int start_streaming(struct vb2_queue *vq,
->> unsigned int count) struct atmel_isi *isi = ici->priv;
->>   	int ret;
->>
->> +	ret = clk_prepare_enable(isi->pclk);
->> +	if (ret)
->> +		return ret;
->> +
->>   	/* Reset ISI */
->>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
->>   	if (ret < 0) {
->> @@ -445,6 +449,8 @@ static void stop_streaming(struct vb2_queue *vq)
->>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
->>   	if (ret < 0)
->>   		dev_err(icd->parent, "Disable ISI timed out\n");
->> +
->> +	clk_disable_unprepare(isi->pclk);
->>   }
->>
->>   static struct vb2_ops isi_video_qops = {
->> @@ -723,14 +729,9 @@ static int isi_camera_clock_start(struct
->> soc_camera_host *ici) struct atmel_isi *isi = ici->priv;
->>   	int ret;
->>
->> -	ret = clk_prepare_enable(isi->pclk);
->> -	if (ret)
->> -		return ret;
->> -
->>   	if (!IS_ERR(isi->mck)) {
->>   		ret = clk_prepare_enable(isi->mck);
->>   		if (ret) {
->> -			clk_disable_unprepare(isi->pclk);
->>   			return ret;
->>   		}
->>   	}
->> @@ -745,7 +746,6 @@ static void isi_camera_clock_stop(struct soc_camera_host
->> *ici)
->>
->>   	if (!IS_ERR(isi->mck))
->>   		clk_disable_unprepare(isi->mck);
->> -	clk_disable_unprepare(isi->pclk);
->>   }
->>
->>   static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+> This was a requested "TO DO" for this driver, and allows support for userspace programs like Hyperion and Boblight.
+>
+> Submitted on behalf of the original author, Michael Stegemann <michael@stegemann.it>
+>
+> Signed-off-by: Michael Stegemann <michael@stegemann.it>
+> Signed-off-by: Dale Hamel <dale.hamel@srvthe.net>
+> ---
+>  drivers/media/usb/stk1160/stk1160-core.c  |   1 +
+>  drivers/media/usb/stk1160/stk1160-reg.h   |  26 +++++++
+>  drivers/media/usb/stk1160/stk1160-v4l.c   | 112 +++++++++++++++++++++++-------
+>  drivers/media/usb/stk1160/stk1160-video.c |  17 ++++-
+>  drivers/media/usb/stk1160/stk1160.h       |   1 +
+>  5 files changed, 130 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+> index 03504dc..1881770 100644
+> --- a/drivers/media/usb/stk1160/stk1160-core.c
+> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+> @@ -418,6 +418,7 @@ static void stk1160_disconnect(struct usb_interface *interface)
+>         stk1160_ac97_unregister(dev);
+>
+>         stk1160_clear_queue(dev);
+> +       vb2_queue_release(&dev->vb_vidq);
+>
 
+Is this fixing a real bug? Wasn't aware of any leaks in this driver,
+but who knows...
+
+>         video_unregister_device(&dev->vdev);
+>         v4l2_device_disconnect(&dev->v4l2_dev);
+> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb/stk1160/stk1160-reg.h
+> index 3e49da6..b1fa11d 100644
+> --- a/drivers/media/usb/stk1160/stk1160-reg.h
+> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
+> @@ -33,6 +33,32 @@
+>   */
+>  #define STK1160_DCTRL                  0x100
+>
+> +/*
+> + * Decimation Control Register:
+> + * Byte 104:
+> + * Horizontal Decimation Line Unit Count
+> + * Byte 105:
+> + * Vertical   Decimation Line Unit Count
+> + * Byte 106:
+> + * Bit 0 - Horizontal Decimation Control
+> + *      0 Horizontal decimation is disabled.
+> + *      1 Horizontal decimation is enabled.
+> + * Bit 1 - Decimates Half or More Column
+> + *   0 Decimates less than half from original column,
+> + *     -> send count unit (0x105) before each unit skipped.
+> + *   1 Decimates half or more from original column,
+> + *     -> skip count unit (0x105) before each unit sent.
+> + * Bit 2 - Vertical Decimation Control
+> + *      see Bit 0, only vertical
+> + * Bit 3 - Vertical Greater or Equal to Half
+> + *      see Bit 1, only vertical
+> + * Bit 4 - Decimation Unit
+> + *     0 Decimation will work with 2 rows or columns per unit.
+> + *     1 Decimation will work with 4 rows or columns per unit.
+> + */
+> +#define STK1160_DMCTRL                 0x104
+> +
+
+Great, thanks for documenting this fully.
+
+> +
+>  /* Capture Frame Start Position */
+>  #define STK116_CFSPO                   0x110
+>  #define STK116_CFSPO_STX_L             0x110
+> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+> index 65a326c..94dafeb 100644
+> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+> @@ -106,6 +106,76 @@ static void stk1160_set_std(struct stk1160 *dev)
+>
+>  }
+>
+> +static void stk1160_try_fmt(struct stk1160 *dev, struct v4l2_format *f, bool try)
+> +{
+> +       int base_width, base_height;
+> +
+> +       if (dev->norm & V4L2_STD_525_60){
+> +               base_width = 720;
+> +               base_height = 480;
+> +       } else {
+> +               base_width = 720;
+> +               base_height = 576;
+> +       }
+> +
+> +       if (f->fmt.pix.width <= (base_width / 3)
+> +           || f->fmt.pix.height <= (base_height / 3)){
+> +               f->fmt.pix.width = base_width / 3;
+> +               f->fmt.pix.height = base_height / 3;
+> +               if (!try){
+> +                       dev->decimate = 3;
+> +               }
+> +       } else if ((f->fmt.pix.width >= base_width >> 1
+> +                        && f->fmt.pix.width < base_width)
+> +                        ||((f->fmt.pix.height >= base_height >> 1
+> +                        && f->fmt.pix.height < base_height))){
+> +               f->fmt.pix.width = base_width >> 1;
+> +               f->fmt.pix.height = base_height >> 1;
+> +               if (!try){
+> +                       dev->decimate = 2;
+> +               }
+> +       } else {
+> +               f->fmt.pix.width = base_width;
+> +               f->fmt.pix.height = base_height;
+> +               if (!try){
+> +                       dev->decimate = 0;
+> +               }
+> +       }
+
+These if/else if/else block looks really ugly.
+
+> +}
+> +
+> +static void stk1160_set_fmt(struct stk1160 *dev)
+> +{
+> +       if (dev->norm & V4L2_STD_525_60){
+> +               dev->width = 720;
+> +               dev->height = 480;
+> +       } else {
+> +               dev->width = 720;
+> +               dev->height = 576;
+> +       }
+> +
+> +       switch (dev->decimate){
+> +               case 0:
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL,   0x00);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+1, 0x00);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+2, 0x00);
+> +                       break;
+> +               case 2:
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL,   0x01);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+1, 0x01);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+2, 0x1f);
+> +                       dev->width = dev->width >> 1;
+> +                       dev->height = dev->height >> 1;
+> +                       break;
+> +               case 3:
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL,   0x02);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+1, 0x02);
+> +                       stk1160_write_reg(dev, STK1160_DMCTRL+2, 0x1f);
+> +                       dev->width = dev->width / 3;
+> +                       dev->height = dev->height / 3;
+
+Seems there's room for simplification here.
+
+> +                       break;
+> +       }
+> +}
+> +
+>  /*
+>   * Set a new alternate setting.
+>   * Returns true is dev->max_pkt_size has changed, false otherwise.
+> @@ -321,17 +391,10 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  {
+>         struct stk1160 *dev = video_drvdata(file);
+>
+> -       /*
+> -        * User can't choose size at his own will,
+> -        * so we just return him the current size chosen
+> -        * at standard selection.
+> -        * TODO: Implement frame scaling?
+> -        */
+> +       stk1160_try_fmt(dev, f, true);
+>
+> -       f->fmt.pix.pixelformat = dev->fmt->fourcc;
+> -       f->fmt.pix.width = dev->width;
+> -       f->fmt.pix.height = dev->height;
+>         f->fmt.pix.field = V4L2_FIELD_INTERLACED;
+> +       f->fmt.pix.pixelformat = dev->fmt->fourcc;
+
+This is just churn. You are just moving this line.
+
+>         f->fmt.pix.bytesperline = dev->width * 2;
+>         f->fmt.pix.sizeimage = dev->height * f->fmt.pix.bytesperline;
+>         f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> @@ -348,9 +411,14 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+>         if (vb2_is_busy(q))
+>                 return -EBUSY;
+>
+> -       vidioc_try_fmt_vid_cap(file, priv, f);
+> +       stk1160_try_fmt(dev, f, false);
+> +       stk1160_set_fmt(dev);
+>
+> -       /* We don't support any format changes */
+> +       f->fmt.pix.field = V4L2_FIELD_INTERLACED;
+> +       f->fmt.pix.pixelformat = dev->fmt->fourcc;
+> +       f->fmt.pix.bytesperline = dev->width * 2;
+> +       f->fmt.pix.sizeimage = dev->height * f->fmt.pix.bytesperline;
+> +       f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+>
+>         return 0;
+>  }
+> @@ -389,23 +457,18 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>         dev->norm = norm;
+>
+>         /* This is taken from saa7115 video decoder */
+> -       if (dev->norm & V4L2_STD_525_60) {
+> -               dev->width = 720;
+> -               dev->height = 480;
+> -       } else if (dev->norm & V4L2_STD_625_50) {
+> -               dev->width = 720;
+> -               dev->height = 576;
+> +       if (dev->norm & V4L2_STD_525_60 || dev->norm & V4L2_STD_625_50) {
+> +               stk1160_set_std(dev);
+> +               stk1160_set_fmt(dev);
+> +
+> +               v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std,
+> +                               dev->norm);
+> +
+> +               return 0;
+>         } else {
+>                 stk1160_err("invalid standard\n");
+>                 return -EINVAL;
+>         }
+> -
+> -       stk1160_set_std(dev);
+> -
+> -       v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_std,
+> -                       dev->norm);
+> -
+> -       return 0;
+
+This removal looks unneeded.
+
+>  }
+>
+>
+> @@ -671,6 +734,7 @@ int stk1160_video_register(struct stk1160 *dev)
+>         dev->norm = V4L2_STD_NTSC_M;
+>         dev->width = 720;
+>         dev->height = 480;
+> +       dev->decimate = 0;
+>
+>         /* set default format */
+>         dev->fmt = &format[0];
+> diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
+> index 39f1aae..5a55028 100644
+> --- a/drivers/media/usb/stk1160/stk1160-video.c
+> +++ b/drivers/media/usb/stk1160/stk1160-video.c
+> @@ -84,7 +84,6 @@ struct stk1160_buffer *stk1160_next_buffer(struct stk1160 *dev)
+>         if (!list_empty(&dev->avail_bufs)) {
+>                 buf = list_first_entry(&dev->avail_bufs,
+>                                 struct stk1160_buffer, list);
+> -               list_del(&buf->list);
+
+What's this?
+
+>         }
+>         spin_unlock_irqrestore(&dev->buf_lock, flags);
+>
+> @@ -95,7 +94,7 @@ static inline
+>  void stk1160_buffer_done(struct stk1160 *dev)
+>  {
+>         struct stk1160_buffer *buf = dev->isoc_ctl.buf;
+> -
+> +       unsigned long flags = 0;
+
+You need an empty line between variables and code.
+
+>         dev->field_count++;
+>
+>         buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
+> @@ -104,7 +103,19 @@ void stk1160_buffer_done(struct stk1160 *dev)
+>         v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+>
+>         vb2_set_plane_payload(&buf->vb, 0, buf->bytesused);
+> -       vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+> +
+> +       spin_lock_irqsave(&dev->buf_lock, flags);
+
+Seems like taking the lock here could be correct.
+This is a fix, and it's not related to this patch,
+so you need to send a separate patch for it.
+
+> +       if (buf->bytesused == vb2_plane_size(&buf->vb, 0))
+> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+> +       else
+> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+> +
+> +       if (!list_empty(&dev->avail_bufs)) {
+> +               list_del(&buf->list);
+> +       }
+
+Hm.. why do you remove the buffer from the list here?
+
+> +
+> +       spin_unlock_irqrestore(&dev->buf_lock, flags);
+> +
+>
+>         dev->isoc_ctl.buf = NULL;
+>  }
+> diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
+> index abdea48..895ed35 100644
+> --- a/drivers/media/usb/stk1160/stk1160.h
+> +++ b/drivers/media/usb/stk1160/stk1160.h
+> @@ -150,6 +150,7 @@ struct stk1160 {
+>         unsigned int ctl_input;   /* selected input */
+>         v4l2_std_id norm;         /* current norm */
+>         struct stk1160_fmt *fmt;  /* selected format */
+> +       int decimate;
+>
+>         unsigned int field_count; /* not sure ??? */
+>         enum v4l2_field field;    /* also not sure :/ */
+> --
+> 2.1.1
+>
+
+-- 
+    Ezequiel
