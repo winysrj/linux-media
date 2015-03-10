@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59117 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752973AbbCIVXx (ORCPT
+Received: from mail-qg0-f47.google.com ([209.85.192.47]:35549 "EHLO
+	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753186AbbCJNVQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:23:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/18] marvell-ccic: add create_bufs support
-Date: Mon,  9 Mar 2015 22:22:15 +0100
-Message-Id: <1425936143-5658-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 10 Mar 2015 09:21:16 -0400
+Received: by qgfh3 with SMTP id h3so1616068qgf.2
+        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 06:21:15 -0700 (PDT)
+Message-ID: <54FEEF38.6060506@vanguardiasur.com.ar>
+Date: Tue, 10 Mar 2015 10:18:48 -0300
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com
+Subject: em38xx locking question
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Mauro,
 
-This fixes the final v4l2-compliance warning.
+Function drivers/media/usb/em28xx/em28xx-video.c:get_next_buf
+(copy pasted below for reference) does not take the list spinlock,
+yet it modifies the list. Is that correct?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/marvell-ccic/mcam-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+static inline struct em28xx_buffer *get_next_buf(struct em28xx *dev,
+                                                 struct em28xx_dmaqueue *dma_q)
+{
+        struct em28xx_buffer *buf;
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index b6b838f..51b7291 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1073,7 +1073,9 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
- 	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
+        if (list_empty(&dma_q->active)) {
+                em28xx_isocdbg("No active queue to serve\n");
+                return NULL;
+        }
  
--	sizes[0] = cam->pix_format.sizeimage;
-+	if (fmt && fmt->fmt.pix.sizeimage < cam->pix_format.sizeimage)
-+		return -EINVAL;
-+	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : cam->pix_format.sizeimage;
- 	*num_planes = 1; /* Someday we have to support planar formats... */
- 	if (*nbufs < minbufs)
- 		*nbufs = minbufs;
-@@ -1380,7 +1382,7 @@ static int mcam_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
- 	 * Can't do anything if the device is not idle
- 	 * Also can't if there are streaming buffers in place.
- 	 */
--	if (cam->state != S_IDLE || cam->vb_queue.num_buffers > 0)
-+	if (cam->state != S_IDLE || vb2_is_busy(&cam->vb_queue))
- 		return -EBUSY;
+        /* Get the next buffer */
+        buf = list_entry(dma_q->active.next, struct em28xx_buffer, list);
+        /* Cleans up buffer - Useful for testing for frame/URB loss */
+        list_del(&buf->list);
+        buf->pos = 0; 
+        buf->vb_buf = buf->mem;
  
- 	f = mcam_find_format(fmt->fmt.pix.pixelformat);
-@@ -1573,6 +1575,7 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
- 	.vidioc_g_input		= mcam_vidioc_g_input,
- 	.vidioc_s_input		= mcam_vidioc_s_input,
- 	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
- 	.vidioc_querybuf	= vb2_ioctl_querybuf,
- 	.vidioc_qbuf		= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
+        return buf;
+}
+
+Thanks!
 -- 
-2.1.4
-
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
