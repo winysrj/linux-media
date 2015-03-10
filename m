@@ -1,64 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:34027 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752519AbbCaQPj (ORCPT
+Received: from mail2.marcant.net ([217.14.160.186]:54838 "EHLO
+	mail2.marcant.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186AbbCJIVb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 12:15:39 -0400
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-To: linux-pm@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Julius Werner <jwerner@chromium.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pratyush Anand <pratyush.anand@st.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Scot Doyle <lkml14@scotdoyle.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 0/6] Allow UVC devices to remain runtime-suspended when sleeping
-Date: Tue, 31 Mar 2015 18:14:44 +0200
-Message-Id: <1427818501-10201-1-git-send-email-tomeu.vizoso@collabora.com>
+	Tue, 10 Mar 2015 04:21:31 -0400
+Date: Tue, 10 Mar 2015 09:04:03 +0100
+From: Dirk Nehring <dnehring@gmx.net>
+To: Nibble Max <nibble.max@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] Fix DVBsky rc-keymap
+Message-ID: <20150310080403.GA6349@marcant.net>
+References: <201503100948297650804@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201503100948297650804@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Mar 10, 2015 at 09:48:33AM +0800, Nibble Max wrote:
+> Hello,
+> 
+> Mapping VOLUME and CHANNEL keys to the general ones will break some tv softwares remote control functions.
 
-this series contain what I needed to do in order to have my USB webcam to not be resumed when the system resumes, reducing considerably the total time that resuming takes.
+The remote control has no volume and channel control, I would leave it
+to the general mapping. Tested successfully with vdr 2.2.0.
 
-It makes use of the facility that Rafael Wysocki added in aae4518b3 ("PM / sleep: Mechanism to avoid resuming runtime-suspended devices unnecessarily"), which requires that a devices and all its descendants opt-in by having their dev_pm_ops.prepare callback return 1, to have runtime PM enabled, and to be runtime suspended when the system goes to a sleep state.
+Best regards,
 
-Thanks,
+Dirk
 
-Tomeu
-
-Tomeu Vizoso (6):
-  [media] uvcvideo: Enable runtime PM of descendant devices
-  [media] v4l2-core: Implement dev_pm_ops.prepare()
-  Input: Implement dev_pm_ops.prepare()
-  [media] media-devnode: Implement dev_pm_ops.prepare callback
-  Input: evdev - Enable runtime PM of the evdev input handler
-  USB / PM: Allow USB devices to remain runtime-suspended when sleeping
-
- drivers/input/evdev.c              |  3 +++
- drivers/input/input.c              | 13 +++++++++++++
- drivers/media/media-devnode.c      | 10 ++++++++++
- drivers/media/usb/uvc/uvc_driver.c |  4 ++++
- drivers/media/usb/uvc/uvc_status.c |  3 +++
- drivers/media/v4l2-core/v4l2-dev.c | 10 ++++++++++
- drivers/usb/core/endpoint.c        | 17 +++++++++++++++++
- drivers/usb/core/message.c         | 16 ++++++++++++++++
- drivers/usb/core/port.c            |  6 ++++++
- drivers/usb/core/usb.c             |  2 +-
- 10 files changed, 83 insertions(+), 1 deletion(-)
-
--- 
-2.3.4
-
+> 
+> Best Regards,
+> Max
+> 
+> On 2015-03-10 06:05:02, Dirk Nehring <dnehring@gmx.net> wrote:
+> >Signed-off-by: Dirk Nehring <dnehring@gmx.net>
+> >---
+> > drivers/media/rc/keymaps/rc-dvbsky.c | 12 ++++++------
+> > 1 file changed, 6 insertions(+), 6 deletions(-)
+> >
+> >diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
+> >index c5115a1..b942b16 100644
+> >--- a/drivers/media/rc/keymaps/rc-dvbsky.c
+> >+++ b/drivers/media/rc/keymaps/rc-dvbsky.c
+> >@@ -33,16 +33,16 @@ static struct rc_map_table rc5_dvbsky[] = {
+> > 	{ 0x000b, KEY_STOP },
+> > 	{ 0x000c, KEY_EXIT },
+> > 	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
+> >-	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
+> >-	{ 0x0010, KEY_VOLUMEUP },
+> >-	{ 0x0011, KEY_VOLUMEDOWN },
+> >+	{ 0x000f, KEY_TV2 }, /*PIP*/
+> >+	{ 0x0010, KEY_RIGHT },
+> >+	{ 0x0011, KEY_LEFT },
+> > 	{ 0x0012, KEY_FAVORITES },
+> >-	{ 0x0013, KEY_LIST }, /*Info*/
+> >+	{ 0x0013, KEY_INFO },
+> > 	{ 0x0016, KEY_PAUSE },
+> > 	{ 0x0017, KEY_PLAY },
+> > 	{ 0x001f, KEY_RECORD },
+> >-	{ 0x0020, KEY_CHANNELDOWN },
+> >-	{ 0x0021, KEY_CHANNELUP },
+> >+	{ 0x0020, KEY_UP },
+> >+	{ 0x0021, KEY_DOWN },
+> > 	{ 0x0025, KEY_POWER2 },
+> > 	{ 0x0026, KEY_REWIND },
+> > 	{ 0x0027, KEY_FASTFORWARD },
+> >-- 
+> >2.1.0
+> >
