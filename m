@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:56457 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbbCOW6E (ORCPT
+Received: from mail-qc0-f170.google.com ([209.85.216.170]:33991 "EHLO
+	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689AbbCKQgY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 18:58:04 -0400
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi, mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 01/10] r820t: add DVBC profile in sysfreq_sel
-Date: Sun, 15 Mar 2015 23:57:46 +0100
-Message-Id: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+	Wed, 11 Mar 2015 12:36:24 -0400
+Received: by qcvp6 with SMTP id p6so11658496qcv.1
+        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 09:36:23 -0700 (PDT)
+Message-ID: <55006E71.9020403@vanguardiasur.com.ar>
+Date: Wed, 11 Mar 2015 13:33:53 -0300
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+MIME-Version: 1.0
+To: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Dale Hamel <dale.hamel@srvthe.net>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
+	"michael@stegemann.it" <michael@stegemann.it>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add framescaling support to stk1160
+References: <1424799211-26488-1-git-send-email-dale.hamel@srvthe.net> <CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>
+In-Reply-To: <CALF0-+U1LiWLh8H0TszoamPk7KZwM2zO4guavB0MQTXybnoBwA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will make the Astrometa DVB-T/T2/C usb stick be able to pick up
-muxes around 290-314 MHz.
+Hi Michael, Dale,
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/tuners/r820t.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+On 03/10/2015 12:26 AM, Ezequiel Garcia wrote:
+> Dale,
+> 
+> Don't forget to Cc the media mailing list. See below.
+> 
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 8e040cf..639c220 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -775,6 +775,19 @@ static int r820t_sysfreq_sel(struct r820t_priv *priv, u32 freq,
- 		div_buf_cur = 0x30;	/* 11, 150u */
- 		filter_cur = 0x40;	/* 10, low */
- 		break;
-+	case SYS_DVBC_ANNEX_A:
-+		mixer_top = 0x24;       /* mixer top:13 , top-1, low-discharge */
-+		lna_top = 0xe5;
-+		lna_vth_l = 0x62;
-+		mixer_vth_l = 0x75;
-+		air_cable1_in = 0x60;
-+		cable2_in = 0x00;
-+		pre_dect = 0x40;
-+		lna_discharge = 14;
-+		cp_cur = 0x38;          /* 111, auto */
-+		div_buf_cur = 0x30;     /* 11, 150u */
-+		filter_cur = 0x40;      /* 10, low */
-+		break;
- 	default: /* DVB-T 8M */
- 		mixer_top = 0x24;	/* mixer top:13 , top-1, low-discharge */
- 		lna_top = 0xe5;		/* detect bw 3, lna top:4, predet top:2 */
+If you are OK with it, I'll rework this patch (mostly cleaning the
+style) and then post it back so everyone can comment.
+
+BTW, my datasheet doesn't have the DMCTRL register documented, and I'm
+really glad that we can finally support hardware decimation.
+
+Thanks!
 -- 
-2.1.0
-
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
