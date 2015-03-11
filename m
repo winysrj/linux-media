@@ -1,155 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:62326 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbbCIMTg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 08:19:36 -0400
-Message-id: <54FD8FD4.2010305@samsung.com>
-Date: Mon, 09 Mar 2015 13:19:32 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
+Received: from mail-la0-f50.google.com ([209.85.215.50]:44279 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089AbbCKWXF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2015 18:23:05 -0400
+Received: by labgm9 with SMTP id gm9so11973648lab.11
+        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 15:23:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1425950282-30548-4-git-send-email-sakari.ailus@iki.fi>
+References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi> <1425950282-30548-4-git-send-email-sakari.ailus@iki.fi>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Wed, 11 Mar 2015 22:22:33 +0000
+Message-ID: <CA+V-a8u3o7fouVF5=cD=jsVdg0HGzP-ibU34mDW=q81ERknAaQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] v4l: of: Add link-frequencies array to struct v4l2_of_endpoint
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v12 10/19] DT: Add documentation for the mfd Maxim
- max77693
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
- <1425485680-8417-11-git-send-email-j.anaszewski@samsung.com>
- <20150309105404.GC11954@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150309105404.GC11954@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Cc: linux-media <linux-media@vger.kernel.org>,
+	laurent pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-Thanks for the review.
+Thanks for the patch.
 
-On 03/09/2015 11:54 AM, Sakari Ailus wrote:
-> Hi Jacek,
+On Tue, Mar 10, 2015 at 1:18 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Parse and read the link-frequencies property in v4l2_of_parse_endpoint().
+> The property is an u64 array of undefined length, thus the memory allocation
+> may fail, leading
 >
-> On Wed, Mar 04, 2015 at 05:14:31PM +0100, Jacek Anaszewski wrote:
->> This patch adds device tree binding documentation for
->> the flash cell of the Maxim max77693 multifunctional device.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Lee Jones <lee.jones@linaro.org>
->> Cc: Chanwoo Choi <cw00.choi@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>   Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
->>   1 file changed, 61 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
->> index 38e6440..ab8fbd5 100644
->> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
->> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
->> @@ -76,7 +76,53 @@ Optional properties:
->>       Valid values: 4300000, 4700000, 4800000, 4900000
->>       Default: 4300000
->>
->> +- led : the LED submodule device node
->> +
->> +There are two LED outputs available - FLED1 and FLED2. Each of them can
->> +control a separate LED or they can be connected together to double
->> +the maximum current for a single connected LED. One LED is represented
->> +by one child node.
->> +
->> +Required properties:
->> +- compatible : Must be "maxim,max77693-led".
->> +
->> +Optional properties:
->> +- maxim,trigger-type : Flash trigger type.
->> +	Possible trigger types:
->> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
->> +			the flash,
->> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
->> +			of the flash.
->> +- maxim,boost-mode :
->> +	In boost mode the device can produce up to 1.2A of total current
->> +	on both outputs. The maximum current on each output is reduced
->> +	to 625mA then. If not enabled explicitly, boost setting defaults to
->> +	LEDS_BOOST_FIXED in case both current sources are used.
->> +	Possible values:
->> +		LEDS_BOOST_OFF (0) - no boost,
->> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
->> +		LEDS_BOOST_FIXED (2) - fixed mode.
->> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
->> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
->> +	if chip estimates that system voltage could drop below this level due
->> +	to flash power consumption.
->> +
->> +Required properties of the LED child node:
->> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> - v4l2_of_parse_endpoint() to return an error in such a case (as well as
+>   when failing to parse the property) and
+> - to requiring releasing the memory reserved for the array
+>   (v4l2_of_release_endpoint()).
 >
-> According to ePAPR, label is "a human readable string describing a device".
-> There's no requirement that this would be unique, for instance. If you have
-> a camera flash LED, there's necessarily no meaningful label for it, as it
-> doesn't really tell the user anything (vs. HDD activity LED, for instance).
+> If a driver does not need to access properties that require memory
+> allocation (such as link-frequencies), it may choose to call
+> v4l2_of_release_endpoint() right after calling v4l2_of_parse_endpoint().
 >
-> I think I'd make this optional.
-
-OK.
-
-> What comes to entity naming in Media controller, the label isn't enough. As
-> we haven't yet fully agreed on how to name the entities in the future, I'd
-> propose sticking to current practices: chip name (and optional numerical LED
-> ID) followed by the I2C address. The name should be specified by the driver.
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/i2c/adv7604.c                    |    1 +
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c       |    1 +
+>  drivers/media/i2c/s5k5baf.c                    |    1 +
+>  drivers/media/i2c/smiapp/smiapp-core.c         |   32 ++++++++--------
+>  drivers/media/i2c/tvp514x.c                    |    1 +
+>  drivers/media/i2c/tvp7002.c                    |    1 +
+>  drivers/media/platform/am437x/am437x-vpfe.c    |    1 +
+>  drivers/media/platform/exynos4-is/media-dev.c  |    1 +
+>  drivers/media/platform/exynos4-is/mipi-csis.c  |    1 +
+>  drivers/media/platform/soc_camera/atmel-isi.c  |    1 +
+>  drivers/media/platform/soc_camera/pxa_camera.c |    1 +
+>  drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
+>  drivers/media/v4l2-core/v4l2-of.c              |   47 +++++++++++++++++++++++-
+>  include/media/v4l2-of.h                        |    9 +++++
+>  14 files changed, 81 insertions(+), 18 deletions(-)
 >
-> Do you have other than I2C busses required by the current drivers?
-
-I have AAT1290 device driven through GPIOs. There was also other driver,
-for a similar device, submitted few days ago to linux-leds list.
-
->> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
->> +		device current output identifiers: 0 - FLED1, 1 - FLED2
->> +
->> +Optional properties of the LED child node:
->> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 15625 - 250000
->> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 15625 - 1000000
->> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 62500 - 1000000
->> +
->>   Example:
->> +#include <dt-bindings/leds/max77693.h>
->> +
->>   	max77693@66 {
->>   		compatible = "maxim,max77693";
->>   		reg = <0x66>;
->> @@ -117,5 +163,20 @@ Example:
->>   			maxim,thermal-regulation-celsius = <75>;
->>   			maxim,battery-overcurrent-microamp = <3000000>;
->>   			maxim,charge-input-threshold-microvolt = <4300000>;
->> +
->> +		led {
->> +			compatible = "maxim,max77693-led";
->> +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
->> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
->> +			maxim,boost-mvout = <5000>;
->> +			maxim,mvsys-min = <2400>;
->> +
->> +			camera_flash: flash-led {
->> +				label = "max77693-flash1";
->> +				led-sources = <0>, <1>;
->> +				max-microamp = <500000>;
->> +				flash-max-microamp = <1250000>;
->> +				flash-timeout-us = <1000000>;
->> +			};
->>   		};
->>   	};
+[snip]
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+> index b4ed9a9..e24610c 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> +#include <linux/slab.h>
+>  #include <linux/string.h>
+>  #include <linux/types.h>
 >
+> @@ -109,6 +110,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>  }
+>
+>  /**
+> + * v4l2_of_release_endpoint() - release resources acquired by
+> + * v4l2_of_parse_endpoint()
+> + * @endpoint - the endpoint the resources of which are to be released
+> + *
+> + * It is safe to call this function on an endpoint which is not parsed or
+> + * and endpoint the parsing of which failed. However in the former case the
+> + * argument must point to a struct the memory of which has been set to zero.
+> + *
+> + * Values in the struct v4l2_of_endpoint that are not connected to resources
+> + * acquired by v4l2_of_parse_endpoint() are guaranteed to remain untouched.
+> + */
+> +void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint)
+> +{
+> +       kfree(endpoint->link_frequencies);
+> +       endpoint->link_frequencies = NULL;
+> +       endpoint->nr_of_link_frequencies = 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+> +
+> +/**
+>   * v4l2_of_parse_endpoint() - parse all endpoint node properties
+>   * @node: pointer to endpoint device_node
+>   * @endpoint: pointer to the V4L2 OF endpoint data structure
+> @@ -122,15 +143,39 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>   * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
+>   * The caller should hold a reference to @node.
+>   *
+> + * An endpoint parsed using v4l2_of_parse_endpoint() must be released using
+> + * v4l2_of_release_endpoint().
+> + *
+>   * Return: 0.
+>   */
+>  int v4l2_of_parse_endpoint(const struct device_node *node,
+>                            struct v4l2_of_endpoint *endpoint)
+>  {
+> +       int len;
+> +
+>         of_graph_parse_endpoint(node, &endpoint->base);
+>         endpoint->bus_type = 0;
+>         memset(&endpoint->bus, 0, sizeof(endpoint->bus));
+>
+endpoint->link_frequencies = NULL; required here.
 
+Apart from that patch looks good.
 
--- 
-Best Regards,
-Jacek Anaszewski
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
+
+> +       if (of_get_property(node, "link-frequencies", &len)) {
+> +               int rval;
+> +
+> +               endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
+> +               if (!endpoint->link_frequencies)
+> +                       return -ENOMEM;
+> +
+> +               endpoint->nr_of_link_frequencies =
+> +                       len / sizeof(*endpoint->link_frequencies);
+> +
+> +               rval = of_property_read_u64_array(
+> +                       node, "link-frequencies", endpoint->link_frequencies,
+> +                       endpoint->nr_of_link_frequencies);
+> +               if (rval < 0) {
+> +                       v4l2_of_release_endpoint(endpoint);
+> +                       return rval;
+> +               }
+> +       }
+> +
+>         v4l2_of_parse_csi_bus(node, endpoint);
+>         /*
+>          * Parse the parallel video bus properties only if none
+> @@ -141,4 +186,4 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+>
+>         return 0;
+>  }
+> -EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+> +EXPORT_SYMBOL(v4l2_of_release_endpoint);
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 70fa7b7..8c123ff 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -54,6 +54,8 @@ struct v4l2_of_bus_parallel {
+>   * @base: struct of_endpoint containing port, id, and local of_node
+>   * @bus_type: bus type
+>   * @bus: bus configuration data structure
+> + * @link_frequencies: array of supported link frequencies
+> + * @nr_of_link_frequencies: number of elements in link_frequenccies array
+>   * @head: list head for this structure
+>   */
+>  struct v4l2_of_endpoint {
+> @@ -63,12 +65,15 @@ struct v4l2_of_endpoint {
+>                 struct v4l2_of_bus_parallel parallel;
+>                 struct v4l2_of_bus_mipi_csi2 mipi_csi2;
+>         } bus;
+> +       u64 *link_frequencies;
+> +       unsigned int nr_of_link_frequencies;
+>         struct list_head head;
+>  };
+>
+>  #ifdef CONFIG_OF
+>  int v4l2_of_parse_endpoint(const struct device_node *node,
+>                            struct v4l2_of_endpoint *endpoint);
+> +void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint);
+>  #else /* CONFIG_OF */
+>
+>  static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+> @@ -77,6 +82,10 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+>         return -ENOSYS;
+>  }
+>
+> +static void v4l2_of_release_endpoint(struct v4l2_of_endpoint *endpoint)
+> +{
+> +}
+> +
+>  #endif /* CONFIG_OF */
+>
+>  #endif /* _V4L2_OF_H */
+> --
+> 1.7.10.4
+>
