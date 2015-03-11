@@ -1,167 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44994 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39404 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090AbbCQAHf (ORCPT
+	with ESMTP id S1752297AbbCKUOw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 20:07:35 -0400
+	Wed, 11 Mar 2015 16:14:52 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, linux-sh@vger.kernel.org,
-	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH 0/5] Add live source objects to DRM
-Date: Tue, 17 Mar 2015 02:07:40 +0200
-Message-ID: <64867045.Xjz6COdlBY@avalon>
-In-Reply-To: <20150316083522.GE21993@phenom.ffwll.local>
-References: <1426456540-21006-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20150316083522.GE21993@phenom.ffwll.local>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v4] media: i2c: add support for omnivision's ov2659 sensor
+Date: Wed, 11 Mar 2015 22:14:52 +0200
+Message-ID: <1868898.q0gy7fiiPL@avalon>
+In-Reply-To: <CA+V-a8tHrUS-=s8sas-yHy6Pnwbh+wu6KxyHDTfARopguqYL2g@mail.gmail.com>
+References: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com> <2415294.49LTQe4m32@avalon> <CA+V-a8tHrUS-=s8sas-yHy6Pnwbh+wu6KxyHDTfARopguqYL2g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hi Prabhakar,
 
-On Monday 16 March 2015 09:35:22 Daniel Vetter wrote:
-> On Sun, Mar 15, 2015 at 11:55:35PM +0200, Laurent Pinchart wrote:
-> > Hello,
+On Wednesday 11 March 2015 19:40:13 Lad, Prabhakar wrote:
+> On Wed, Mar 11, 2015 at 6:22 PM, Laurent Pinchart wrote:
+> > On Tuesday 10 March 2015 03:35:57 Sakari Ailus wrote:
+> >> On Sun, Mar 08, 2015 at 11:33:27AM +0000, Lad Prabhakar wrote:
+> >> ...
+> >> 
+> >> > +static struct ov2659_platform_data *
+> >> > +ov2659_get_pdata(struct i2c_client *client)
+> >> > +{
+> >> > +   struct ov2659_platform_data *pdata;
+> >> > +   struct device_node *endpoint;
+> >> > +   int ret;
+> >> > +
+> >> > +   if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
+> >> > +           dev_err(&client->dev, "ov2659_get_pdata: DT Node found\n");
+> >> > +           return client->dev.platform_data;
+> >> > +   }
+> >> > +
+> >> > +   endpoint = of_graph_get_next_endpoint(client->dev.of_node, NULL);
+> >> > +   if (!endpoint)
+> >> > +           return NULL;
+> >> > +
+> >> > +   pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+> >> > +   if (!pdata)
+> >> > +           goto done;
+> >> > +
+> >> > +   ret = of_property_read_u32(endpoint, "link-frequencies",
+> >> > +                              &pdata->link_frequency);
+> >> 
+> >> This is actually documented as being a 64-bit array.
 > > 
-> > I have a feeling that RFC/PATCH will work better than just RFC, so here's
-> > a patch set that adds a new object named live source to DRM.
+> > The main purpose of link-frequencies is to restrict the link frequencies
+> > acceptable in the system due to EMI requirements. One link frequency
+> > should be selected in the array based on the desired format and frame
+> > rate. This is usually done by exposing the frequency to userspace through
+> > a writable V4L2_CID_LINK_FREQ control, and exposing the resulting pixel
+> > rate as a read- only V4L2_CID_PIXEL_RATE control.
 > > 
-> > The need comes from the Renesas R-Car SoCs in which a video processing
-> > engine (named VSP1) that operates from memory to memory has one output
-> > directly connected to a plane of the display engine (DU) without going
-> > through memory.
-> > 
-> > The VSP1 is supported by a V4L2 driver. While it could be argued that it
-> > should instead be supported directly by the DRM rcar-du driver, this
-> > wouldn't be a good idea for at least two reasons. First, the R-Car SoCs
-> > contain several VSP1 instances, of which only a subset have a direct DU
-> > connection. The only other instances operate solely in memory to memory
-> > mode. Then, the VSP1 is a video processing engine and not a display
-> > engine. Its features are easily supported by the V4L2 API, but don't map
-> > to the DRM/KMS API. Significant changes to DRM/KMS would be required,
-> > beyond what is in my opinion an acceptable scope for a display API.
-> > 
-> > Now that the need to interface two separate devices supported by two
-> > different drivers in two separate subsystems has been established, we
-> > need an API to do so. It should be noted that while that API doesn't
-> > exist in the mainline kernel, the need isn't limited to Renesas SoCs.
-> > 
-> > This patch set proposes one possible solution for the problem in the form
-> > of a new DRM object named live source. Live sources are created by
-> > drivers to model hardware connections between a plane input and an
-> > external source, and are attached to planes through the KMS userspace
-> > API.
-> > 
-> > Patch 1/5 adds live source objects to DRM, with an in-kernel API for
-> > drivers to register the sources, and a userspace API to enumerate and
-> > configure them. Configuring a live source sets the width, height and
-> > pixel format of the video stream. This should ideally be queried directly
-> > from the driver that supports the live source device, but I've decided
-> > not to implement such communication between V4L2 and DRM/KMS at the
-> > moment to keep the proposal simple.
-> > 
-> > Patch 2/2 implements connection between live sources and planes. This
-> > takes different forms depending on whether drivers use the setplane or the
-> > atomic updates API:
-> > 
-> > - For setplane, the fb field can now contain a live source ID in addition
-> >   to a framebuffer ID. As DRM allocates object IDs from a single ID space,
-> >   the type can be inferred from the ID. This makes specifying both a
-> >   framebuffer and a live source impossible, which isn't an issue given
-> >   that such a configuration would be invalid.
-> >   
-> >   The live source is looked up by the DRM core and passed as a pointer to
-> >   the .update_plane() operation. Unlike framebuffers live sources are not
-> >   refcounted as they're created statically at driver initialization time.
-> > 
-> > - For atomic update, a new SRC_ID property has been added to planes. The
-> >   live source is looked up from the source ID and stored into the plane
-> >   state.
+> > V4L2_CID_PIXEL_RATE is mandatory to use the sensor with several drivers
+> > (including omap3isp and omap4iss), so it should really be implemented.
 > 
-> What about directly treating live sources as (very) special framebuffers?
-> A bunch of reasons:
-> - All the abi fu above gets resolved naturally.
-> - You have lot of duplication between fb and live source wrt size,
->   possible/selected pixel format and other stuff.
-> - The backing storage of framebuffers is fully opaque anyway ...
-> 
-> I think we still need separate live source objects though for things like
-> telling userspace what v4l thing it corresponds to, and for getting at the
-> pixel format. But connecting the live source with the plane could still be
-> done with a framebuffer and a special flag in the addfb2 ioctl to use
-> live sources as backing storage ids instead of gem/ttm handles.
-> 
-> That would also give you a good point to enforce pixel format
-> compatibility: As soon as someone created a framebuffer for a live source
-> you disallow pixel format changes in the v4l pipeline to make sure things
-> will fit.
+> Even if the sensor supports only one frequency the control needs to be
+> implemented ?
 
-That's an interesting idea, I'll give it a try. This will have to wait a 
-little bit though, I'll be busy with other tasks this week, and I'll be 
-attending ELC next week.
-
-Thank you for the quick review and the proposal, it's very appreciated.
-
-> > Patches 3/5 to 5/5 then implement support for live sources in the R-Car DU
-> > driver.
-> > 
-> > Nothing here is set in stone. One point I'm not sure about is whether live
-> > sources support should be enabled for setplane or only for atomic updates.
-> > Other parts of the API can certainly be modified as well, and I'm open for
-> > totally different implementations as well.
-> 
-> Imo this should be irrespective of atomic or not really. And by using
-> magic framebuffers as the link we'd get that for free.
-> 
-> Cheers, Daniel
-> 
-> > Laurent Pinchart (5):
-> >   drm: Add live source object
-> >   drm: Connect live source to plane
-> >   drm/rcar-du: Add VSP1 support to the planes allocator
-> >   drm/rcar-du: Add VSP1 live source support
-> >   drm/rcar-du: Restart the DU group when a plane source changes
-> >  
-> >  drivers/gpu/drm/armada/armada_overlay.c     |   2 +-
-> >  drivers/gpu/drm/drm_atomic.c                |   7 +
-> >  drivers/gpu/drm/drm_atomic_helper.c         |   4 +
-> >  drivers/gpu/drm/drm_crtc.c                  | 365 +++++++++++++++++++++--
-> >  drivers/gpu/drm/drm_fops.c                  |   6 +-
-> >  drivers/gpu/drm/drm_ioctl.c                 |   3 +
-> >  drivers/gpu/drm/drm_plane_helper.c          |   1 +
-> >  drivers/gpu/drm/exynos/exynos_drm_crtc.c    |   4 +-
-> >  drivers/gpu/drm/exynos/exynos_drm_plane.c   |   3 +-
-> >  drivers/gpu/drm/exynos/exynos_drm_plane.h   |   3 +-
-> >  drivers/gpu/drm/i915/intel_display.c        |   4 +-
-> >  drivers/gpu/drm/i915/intel_sprite.c         |   2 +-
-> >  drivers/gpu/drm/imx/ipuv3-plane.c           |   3 +-
-> >  drivers/gpu/drm/nouveau/dispnv04/overlay.c  |   6 +-
-> >  drivers/gpu/drm/omapdrm/omap_plane.c        |   1 +
-> >  drivers/gpu/drm/rcar-du/rcar_du_crtc.c      |  10 +-
-> >  drivers/gpu/drm/rcar-du/rcar_du_drv.c       |   6 +-
-> >  drivers/gpu/drm/rcar-du/rcar_du_drv.h       |   3 +
-> >  drivers/gpu/drm/rcar-du/rcar_du_group.c     |  21 +-
-> >  drivers/gpu/drm/rcar-du/rcar_du_group.h     |   2 +
-> >  drivers/gpu/drm/rcar-du/rcar_du_kms.c       |  62 ++++-
-> >  drivers/gpu/drm/rcar-du/rcar_du_plane.c     | 196 ++++++++++++---
-> >  drivers/gpu/drm/rcar-du/rcar_du_plane.h     |  11 +
-> >  drivers/gpu/drm/rcar-du/rcar_du_regs.h      |   1 +
-> >  drivers/gpu/drm/rockchip/rockchip_drm_vop.c |   5 +-
-> >  drivers/gpu/drm/shmobile/shmob_drm_plane.c  |   3 +-
-> >  drivers/gpu/drm/sti/sti_drm_plane.c         |   3 +-
-> >  drivers/gpu/drm/sti/sti_hqvdp.c             |   2 +-
-> >  include/drm/drmP.h                          |   3 +
-> >  include/drm/drm_atomic_helper.h             |   1 +
-> >  include/drm/drm_crtc.h                      |  48 ++++
-> >  include/drm/drm_plane_helper.h              |   1 +
-> >  include/uapi/drm/drm.h                      |   4 +
-> >  include/uapi/drm/drm_mode.h                 |  32 +++
-> >  34 files changed, 728 insertions(+), 100 deletions(-)
+The V4L2_CID_PIXEL_RATE must be implemented even for sensors supporting a 
+single pixel rate, yes. The reason is that the receiver needs to know the 
+sensor pixel rate in order to configure its clocking.
 
 -- 
 Regards,
