@@ -1,80 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:36401 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592AbbC0L5i (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:38813 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbbCKWYp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 07:57:38 -0400
-Received: by labe2 with SMTP id e2so68313018lab.3
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 04:57:36 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 3/5] saa7164: store i2c_client for demod and tuner in state
-Date: Fri, 27 Mar 2015 13:57:17 +0200
-Message-Id: <1427457439-1493-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
-References: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
+	Wed, 11 Mar 2015 18:24:45 -0400
+Received: by lbiz12 with SMTP id z12so12130149lbi.5
+        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 15:24:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1425950282-30548-2-git-send-email-sakari.ailus@iki.fi>
+References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi> <1425950282-30548-2-git-send-email-sakari.ailus@iki.fi>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Wed, 11 Mar 2015 22:24:14 +0000
+Message-ID: <CA+V-a8tqgrkcRpdSj-cZHwy3PdafPnqnPXXUm4b0qrkZA325Pw@mail.gmail.com>
+Subject: Re: [PATCH 1/3] smiapp: Clean up smiapp_get_pdata()
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	laurent pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to support demodulators and tuners that have their drivers
-implemented as I2C drivers, the i2c_client should be stored in state for
-both.
+Hi Sakari,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/saa7164/saa7164-dvb.c | 16 ++++++++++++++++
- drivers/media/pci/saa7164/saa7164.h     |  3 +++
- 2 files changed, 19 insertions(+)
+Thanks for the patch.
 
-diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c b/drivers/media/pci/saa7164/saa7164-dvb.c
-index 16ae715..6b9e8f6 100644
---- a/drivers/media/pci/saa7164/saa7164-dvb.c
-+++ b/drivers/media/pci/saa7164/saa7164-dvb.c
-@@ -425,6 +425,7 @@ int saa7164_dvb_unregister(struct saa7164_port *port)
- 	struct saa7164_dev *dev = port->dev;
- 	struct saa7164_buffer *b;
- 	struct list_head *c, *n;
-+	struct i2c_client *client;
- 
- 	dprintk(DBGLVL_DVB, "%s()\n", __func__);
- 
-@@ -451,6 +452,21 @@ int saa7164_dvb_unregister(struct saa7164_port *port)
- 	dvb_unregister_frontend(dvb->frontend);
- 	dvb_frontend_detach(dvb->frontend);
- 	dvb_unregister_adapter(&dvb->adapter);
-+
-+	/* remove I2C client for tuner */
-+	client = port->i2c_client_tuner;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
-+	/* remove I2C client for demodulator */
-+	client = port->i2c_client_demod;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index cd1a07c..37e450a 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -422,6 +422,9 @@ struct saa7164_port {
- 	u8 last_v_cc;
- 	u8 last_a_cc;
- 	u32 done_first_interrupt;
-+
-+	struct i2c_client *i2c_client_demod;
-+	struct i2c_client *i2c_client_tuner;
- };
- 
- struct saa7164_dev {
--- 
-1.9.1
+On Tue, Mar 10, 2015 at 1:18 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Don't set rval when it's not used (the function returns a pointer to struct
+> smiapp_platform_data).
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
+
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c |    5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> index b1f566b..565a00c 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2988,10 +2988,8 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+>                 return NULL;
+>
+>         pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> -       if (!pdata) {
+> -               rval = -ENOMEM;
+> +       if (!pdata)
+>                 goto out_err;
+> -       }
+>
+>         v4l2_of_parse_endpoint(ep, &bus_cfg);
+>
+> @@ -3001,7 +2999,6 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+>                 break;
+>                 /* FIXME: add CCP2 support. */
+>         default:
+> -               rval = -EINVAL;
+>                 goto out_err;
+>         }
+>
+> --
+> 1.7.10.4
+>
