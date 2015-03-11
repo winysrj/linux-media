@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:25943 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbbCSWiS (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:28339
+	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752826AbbCKREg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2015 18:38:18 -0400
-Date: Fri, 20 Mar 2015 01:38:10 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hamohammed.sa@gmail.com
-Cc: linux-media@vger.kernel.org
-Subject: re: Staging: media: replace pr_* with dev_*
-Message-ID: <20150319223810.GA13745@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Wed, 11 Mar 2015 13:04:36 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, daniel@iogearbox.net
+Subject: [PATCH 7/15] media: pci: cx23885: don't export static symbol
+Date: Wed, 11 Mar 2015 17:56:29 +0100
+Message-Id: <1426092997-30605-8-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Haneen Mohammed,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-The patch 2c9356d115c9: "Staging: media: replace pr_* with dev_*"
-from Mar 18, 2015, leads to the following static checker warning:
+The semantic patch that fixes this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-	drivers/staging/media/lirc/lirc_sasem.c:176 delete_context()
-	error: dereferencing freed memory 'context'
+// <smpl>
+@r@
+type T;
+identifier f;
+@@
 
-drivers/staging/media/lirc/lirc_sasem.c
-   166  static void delete_context(struct sasem_context *context)
-   167  {
-   168          usb_free_urb(context->tx_urb);  /* VFD */
-   169          usb_free_urb(context->rx_urb);  /* IR */
-   170          lirc_buffer_free(context->driver->rbuf);
-   171          kfree(context->driver->rbuf);
-   172          kfree(context->driver);
-   173          kfree(context);
-                      ^^^^^^^
-Free.
+static T f (...) { ... }
 
-   174  
-   175          if (debug)
-   176                  dev_info(&context->dev->dev, "%s: context deleted\n",
-                                  ^^^^^^^^^^^^^^^^^
-Use after free.  We could go back to pr_info(), or move this in front of
-the free or probably the best option is just to delete the printk.  It
-doesn't look very useful.
+@@
+identifier r.f;
+declarer name EXPORT_SYMBOL;
+@@
 
-   177                           __func__);
-   178  }
+-EXPORT_SYMBOL(f);
+// </smpl>
 
-regards,
-dan carpenter
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/pci/cx23885/altera-ci.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+diff -u -p a/drivers/media/pci/cx23885/altera-ci.c b/drivers/media/pci/cx23885/altera-ci.c
+--- a/drivers/media/pci/cx23885/altera-ci.c
++++ b/drivers/media/pci/cx23885/altera-ci.c
+@@ -483,7 +483,6 @@ static void altera_hw_filt_release(void
+ 	}
+ 
+ }
+-EXPORT_SYMBOL(altera_hw_filt_release);
+ 
+ void altera_ci_release(void *dev, int ci_nr)
+ {
+@@ -598,7 +597,6 @@ static int altera_pid_feed_control(void
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(altera_pid_feed_control);
+ 
+ static int altera_ci_start_feed(struct dvb_demux_feed *feed, int num)
+ {
+@@ -699,7 +697,6 @@ err:
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(altera_hw_filt_init);
+ 
+ int altera_ci_init(struct altera_ci_config *config, int ci_nr)
+ {
+
