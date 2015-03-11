@@ -1,199 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33300 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750855AbbCGVmP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39338 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbbCKSl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:15 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 03/18] omap3isp: Separate external link creation from platform data parsing
-Date: Sat,  7 Mar 2015 23:41:00 +0200
-Message-Id: <1425764475-27691-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 11 Mar 2015 14:41:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com
+Subject: Re: [PATCH 2/3] smiapp: Read link-frequencies property from the endpoint node
+Date: Wed, 11 Mar 2015 20:41:28 +0200
+Message-ID: <3221454.r85COdfNJV@avalon>
+In-Reply-To: <1425950282-30548-3-git-send-email-sakari.ailus@iki.fi>
+References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi> <1425950282-30548-3-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the code which connects the external entity to an ISP entity into a
-separate function. This disconnects it from parsing the platform data.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/platform/omap3isp/isp.c |  147 +++++++++++++++++----------------
- 1 file changed, 74 insertions(+), 73 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 4ab674d..a607f26 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1832,6 +1832,77 @@ isp_register_subdev_group(struct isp_device *isp,
- 	return sensor;
- }
- 
-+static int isp_link_entity(
-+	struct isp_device *isp, struct media_entity *entity,
-+	enum isp_interface_type interface)
-+{
-+	struct media_entity *input;
-+	unsigned int flags;
-+	unsigned int pad;
-+	unsigned int i;
-+
-+	/* Connect the sensor to the correct interface module.
-+	 * Parallel sensors are connected directly to the CCDC, while
-+	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
-+	 * receiver through CSIPHY1 or CSIPHY2.
-+	 */
-+	switch (interface) {
-+	case ISP_INTERFACE_PARALLEL:
-+		input = &isp->isp_ccdc.subdev.entity;
-+		pad = CCDC_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2A_PHY2:
-+		input = &isp->isp_csi2a.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		input = &isp->isp_ccp2.subdev.entity;
-+		pad = CCP2_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2C_PHY1:
-+		input = &isp->isp_csi2c.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	default:
-+		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Not all interfaces are available on all revisions of the
-+	 * ISP. The sub-devices of those interfaces aren't initialised
-+	 * in such a case. Check this by ensuring the num_pads is
-+	 * non-zero.
-+	 */
-+	if (!input->num_pads) {
-+		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < entity->num_pads; i++) {
-+		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-+			break;
-+	}
-+	if (i == entity->num_pads) {
-+		dev_err(isp->dev, "%s: no source pad in external entity\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	return media_entity_create_link(entity, i, input, pad, flags);
-+}
-+
- static int isp_register_entities(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-@@ -1894,85 +1965,15 @@ static int isp_register_entities(struct isp_device *isp)
- 
- 	/* Register external entities */
- 	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
--		struct v4l2_subdev *sensor;
--		struct media_entity *input;
--		unsigned int flags;
--		unsigned int pad;
--		unsigned int i;
-+		struct v4l2_subdev *sensor =
-+			isp_register_subdev_group(isp, subdevs->subdevs);
- 
--		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
- 		if (sensor == NULL)
- 			continue;
- 
- 		sensor->host_priv = subdevs;
- 
--		/* Connect the sensor to the correct interface module. Parallel
--		 * sensors are connected directly to the CCDC, while serial
--		 * sensors are connected to the CSI2a, CCP2b or CSI2c receiver
--		 * through CSIPHY1 or CSIPHY2.
--		 */
--		switch (subdevs->interface) {
--		case ISP_INTERFACE_PARALLEL:
--			input = &isp->isp_ccdc.subdev.entity;
--			pad = CCDC_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2A_PHY2:
--			input = &isp->isp_csi2a.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		case ISP_INTERFACE_CCP2B_PHY1:
--		case ISP_INTERFACE_CCP2B_PHY2:
--			input = &isp->isp_ccp2.subdev.entity;
--			pad = CCP2_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2C_PHY1:
--			input = &isp->isp_csi2c.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		default:
--			dev_err(isp->dev, "%s: invalid interface type %u\n",
--				__func__, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		/*
--		 * Not all interfaces are available on all revisions
--		 * of the ISP. The sub-devices of those interfaces
--		 * aren't initialised in such a case. Check this by
--		 * ensuring the num_pads is non-zero.
--		 */
--		if (!input->num_pads) {
--			dev_err(isp->dev, "%s: invalid input %u\n",
--				entity->name, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		for (i = 0; i < sensor->entity.num_pads; i++) {
--			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
--				break;
--		}
--		if (i == sensor->entity.num_pads) {
--			dev_err(isp->dev,
--				"%s: no source pad in external entity\n",
--				__func__);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		ret = media_entity_create_link(&sensor->entity, i, input, pad,
--					       flags);
-+		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
- 		if (ret < 0)
- 			goto done;
- 	}
+On Tuesday 10 March 2015 03:18:01 Sakari Ailus wrote:
+> The documentation stated that the link-frequencies property belongs to the
+> endpoint node, not to the device's of_node. Fix this.
+> 
+> There are no DT board descriptions using the driver yet, so a fix in the
+> driver is sufficient.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> b/drivers/media/i2c/smiapp/smiapp-core.c index 565a00c..ecae76b 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -3022,8 +3022,7 @@ static struct smiapp_platform_data
+> *smiapp_get_pdata(struct device *dev) dev_dbg(dev, "reset %d, nvm %d, clk
+> %d, csi %d\n", pdata->xshutdown, pdata->nvm_size, pdata->ext_clk,
+> pdata->csi_signalling_mode);
+> 
+> -	rval = of_get_property(
+> -		dev->of_node, "link-frequencies", &asize) ? 0 : -ENOENT;
+> +	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
+>  	if (rval) {
+>  		dev_warn(dev, "can't get link-frequencies array size\n");
+>  		goto out_err;
+> @@ -3037,7 +3036,7 @@ static struct smiapp_platform_data
+> *smiapp_get_pdata(struct device *dev)
+> 
+>  	asize /= sizeof(*pdata->op_sys_clock);
+>  	rval = of_property_read_u64_array(
+> -		dev->of_node, "link-frequencies", pdata->op_sys_clock, asize);
+> +		ep, "link-frequencies", pdata->op_sys_clock, asize);
+>  	if (rval) {
+>  		dev_warn(dev, "can't get link-frequencies\n");
+>  		goto out_err;
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
