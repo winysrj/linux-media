@@ -1,64 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50115 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752929AbbCIVWa (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33530 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbbCKLY6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:22:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Subject: [PATCH 00/18] marvell-ccic + ov7670 fixes
-Date: Mon,  9 Mar 2015 22:22:05 +0100
-Message-Id: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 11 Mar 2015 07:24:58 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
+References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
+ <1421942679-23609-3-git-send-email-k.debski@samsung.com>
+ <20150308112033.7d807164@recife.lan>
+In-reply-to: <20150308112033.7d807164@recife.lan>
+Subject: RE: [RFC v2 2/7] media: rc: Add cec protocol handling
+Date: Wed, 11 Mar 2015 12:24:53 +0100
+Message-id: <000f01d05bee$002b34c0$00819e40$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-This patch series makes loads of fixes and improvements to the marvell-ccic
-and ov7670 drivers. This has been tested on an OLPC XO-1 laptop.
+I have some more comments/questions below.
 
-This patch series sits on top of this pull request:
+From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+Sent: Sunday, March 08, 2015 3:21 PM
+> 
+> Em Thu, 22 Jan 2015 17:04:34 +0100
+> Kamil Debski <k.debski@samsung.com> escreveu:
+> 
+> (c/c linux-input ML)
+> 
+> > Add cec protocol handling the RC framework.
+> 
+> I added some comments, that reflects my understanding from what's there
+> at the keymap definitions found at:
+> 	http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
+> 
+> 
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > ---
+> >  drivers/media/rc/keymaps/Makefile |    1 +
+> >  drivers/media/rc/keymaps/rc-cec.c |  133
+> +++++++++++++++++++++++++++++++++++++
+> >  drivers/media/rc/rc-main.c        |    1 +
+> >  include/media/rc-core.h           |    1 +
+> >  include/media/rc-map.h            |    5 +-
+> >  5 files changed, 140 insertions(+), 1 deletion(-)  create mode
 
-https://patchwork.linuxtv.org/patch/28532/
+[snip]
 
-I do need to check the last patch with Libin Yang since his patch from mid-2013
-broke the driver for the OLPC laptop. Nobody noticed since the latest released
-kernel from the OLPC project for that laptop is 3.3, which didn't have his patch.
+> 
+> > +	{ 0x60, KEY_PLAY }, /* XXX CEC Spec: Play Function */
+> > +	{ 0x61, KEY_PLAYPAUSE }, /* XXX CEC Spec: Pause-Play Function */
+> > +	{ 0x62, KEY_RECORD }, /* XXX CEC Spec: Record Function */
+> > +	{ 0x63, KEY_PAUSE }, /* XXX CEC Spec: Pause-Record Function */
+> > +	{ 0x64, KEY_STOP }, /* XXX CEC Spec: Stop Function */
+> > +	{ 0x65, KEY_MUTE }, /* XXX CEC Spec: Mute Function */
+> > +	/* 0x66: CEC Spec: Restore Volume Function */
+> > +	{ 0x67, KEY_TUNER }, /* XXX CEC Spec: Tune Function */
+> > +	{ 0x68, KEY_MEDIA }, /* CEC Spec: Select Media Function */
+> > +	{ 0x69, KEY_SWITCHVIDEOMODE} /* XXX CEC Spec: Select A/V Input
+> Function */,
+> > +	{ 0x6a, KEY_AUDIO} /* CEC Spec: Select Audio Input Function */,
+> > +	{ 0x6b, KEY_POWER} /* CEC Spec: Power Toggle Function */,
+> > +	{ 0x6c, KEY_SLEEP} /* XXX CEC Spec: Power Off Function */,
+> > +	{ 0x6d, KEY_WAKEUP} /* XXX CEC Spec: Power On Function */,
+> 
+> Those "function" keycodes look weird. What's the difference between
+> those and the pure non-function variants?
 
-This driver now passes the v4l2-compliance test-suite, so that's very nice.
+The note 2 applies to most of these function buttons. It says:
+"2 During a recording or timed recording, a device may ask the user
+for confirmation of this action before executing it."
+ 
+> The spec (CEC 13.13.3) says that:
+> 
+> 	"Unlike the other codes, which just pass remote control presses
+> 	 to the target (often with manufacturer-specific results),
+> 	 the Functions are deterministic, ie they specify exactly the
+> state
+> 	 after executing these commands. Several of these also have
+> further
+> 	 operands, specifying the function in more detail, immediately
+> 	 following the relevant [UI Command] operand."
+> 
+> Some codes are actually compund ones. For example, 0x60 has a "play
+> mode"
+> operand. So, the actual mapping would be:
+> 
+> 0x60 + 0x24 - "play forward"
+> 0x61 + 0x20 - "play reverse"
+> ...
+> (see CEC17 for operand descriptions)
+> 
+> So, IMHO, the mapping should be
+> 
+> 	{ 0x6024, KEY_PLAY },
+> 	{ 0x6020, KEY_PLAY_REVERSE }, // to be created
 
-Regards,
+The note 1 says that they can be issued without the additional operand
+specified:
+"1 Functions with additional operands may also be used without the
+additional operand: in this case the behavior is manufacturer-specific."
 
-	Hans
+Will this do?
+	{ 0x60, KEY_PLAY },
+	{ 0x6024, KEY_PLAY },
+ 	{ 0x6020, KEY_PLAY_REVERSE }, // to be created
+Or will the framework get confused that an incomplete key code was
+received?
 
-Hans Verkuil (18):
-  marvell-ccic: fix vb2 warning
-  marvell-ccic: fill in bus_info
-  marvell-ccic: webcam drivers shouldn't support g/s_std
-  ov7670: check for valid width/height in ov7670_enum_frame_interval
-  marvell-ccic: fill in colorspace
-  marvell-ccic: control handler fixes
-  marvell-ccic: switch to struct v4l2_fh
-  marvell-ccic: implement control events
-  marvell-ccic: use vb2 helpers and core locking
-  marvell-ccic: add create_bufs support
-  marvell-ccic: add DMABUF support for all three DMA modes
-  marvell-ccic: fix streaming issues
-  marvell-ccic: correctly requeue buffers
-  marvell-ccic: add planar support to dma-vmalloc
-  marvell-ccic: drop V4L2_PIX_FMT_JPEG dead code
-  ov7670: use colorspace SRGB instead of JPEG
-  marvell-ccic: fix the bytesperline and sizeimage calculations
-  marvell-ccic: fix Y'CbCr ordering
+Another question I have is about the following operations:
+0x67 Tune Function
+0x68 Select Media Function
+0x69 Select A/V Input Function
+0x6a Select Audio Input Function
+These operations take an additional operand that is large number.
+1-255 for 0x68-0x6a or even a more complex operand such as the channel
+number for 0x67.
 
- drivers/media/i2c/ov7670.c                        |  25 +-
- drivers/media/platform/marvell-ccic/cafe-driver.c |   1 +
- drivers/media/platform/marvell-ccic/mcam-core.c   | 461 ++++++++--------------
- drivers/media/platform/marvell-ccic/mcam-core.h   |  11 +-
- drivers/media/platform/marvell-ccic/mmp-driver.c  |   1 +
- 5 files changed, 207 insertions(+), 292 deletions(-)
+Any suggestion on how to implement these correctly?
 
+> 	...
+> 
+> 
+> > +	/* 0x6e-0x70: Reserved */
+> > +	{ 0x71, KEY_BLUE }, /* XXX CEC Spec: F1 (Blue) */
+> > +	{ 0x72, KEY_RED }, /* XXX CEC Spec: F2 (Red) */
+> > +	{ 0x73, KEY_GREEN }, /* XXX CEC Spec: F3 (Green) */
+> > +	{ 0x74, KEY_YELLOW }, /* XXX CEC Spec: F4 (Yellow) */
+> > +	{ 0x75, KEY_F5 },
+> > +	{ 0x76, KEY_CONNECT }, /* XXX CEC Spec: Data - see Note 3 */
+> > +	/* Note 3: This is used, for example, to enter or leave a digital
+> TV
+> > +	 * data broadcast application. */
+> 
+
+[snip]
+
+Best wishes,
 -- 
-2.1.4
+Kamil Debski
+Samsung R&D Institute Poland
+
 
