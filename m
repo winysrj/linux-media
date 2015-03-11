@@ -1,72 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:34446 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752527AbbCPLZe (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59618 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753466AbbCKMvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 07:25:34 -0400
-Message-ID: <5506BDA8.3000700@xs4all.nl>
-Date: Mon, 16 Mar 2015 12:25:28 +0100
+	Wed, 11 Mar 2015 08:51:43 -0400
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 728772A0097
+	for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 13:51:35 +0100 (CET)
+Message-ID: <55003A40.4010607@xs4all.nl>
+Date: Wed, 11 Mar 2015 13:51:12 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANN] Media Mini-Summit Draft Agenda for March 26th
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media: fix section IDs
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the draft agenda for the media mini-summit in San Jose on March 26th.
+The colorspace section IDs were assigned to the title instead of to the
+section. Some links failed because of that.
 
-Time: 9 AM to 5 PM (approximately)
-Room: TBC (Mauro, do you know this?)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Attendees:
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 13540fa..1759beb 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -620,8 +620,8 @@ is mapped to [16&hellip;235]. Cb and Cr are mapped from [-0.5&hellip;0.5] to [16
 
-Mauro Carvalho Chehab	- mchehab@osg.samsung.com		- Samsung
-Laurent Pinchart	- laurent.pinchart@ideasonboard.com	- Ideas on board
-Hans Verkuil		- hverkuil@xs4all.nl			- Cisco
+   <section>
+     <title>Detailed Colorspace Descriptions</title>
+-    <section>
+-      <title id="col-smpte-170m">Colorspace SMPTE 170M (<constant>V4L2_COLORSPACE_SMPTE170M</constant>)</title>
++    <section id="col-smpte-170m">
++      <title>Colorspace SMPTE 170M (<constant>V4L2_COLORSPACE_SMPTE170M</constant>)</title>
+       <para>The <xref linkend="smpte170m" /> standard defines the colorspace used by NTSC and PAL and by SDTV
+ in general. The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_601</constant>.
+ The default Y'CbCr quantization is limited range. The chromaticities of the primary colors and
+@@ -703,8 +703,8 @@ though BT.601 does not mention any color primaries.</para>
+ rarely seen.</para>
+     </section>
 
-Mauro, do you have a better overview of who else will attend?
+-    <section>
+-      <title id="col-rec709">Colorspace Rec. 709 (<constant>V4L2_COLORSPACE_REC709</constant>)</title>
++    <section id="col-rec709">
++      <title>Colorspace Rec. 709 (<constant>V4L2_COLORSPACE_REC709</constant>)</title>
+       <para>The <xref linkend="itu709" /> standard defines the colorspace used by HDTV in general. The default
+ Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_709</constant>. The default Y'CbCr quantization is
+ limited range. The chromaticities of the primary colors and the white reference are:</para>
+@@ -814,8 +814,8 @@ selecting <constant>V4L2_YCBCR_ENC_XV709</constant> or <constant>V4L2_YCBCR_ENC_
+ The xvYCC encodings always use full range quantization.</para>
+     </section>
 
-Agenda:
+-    <section>
+-      <title id="col-srgb">Colorspace sRGB (<constant>V4L2_COLORSPACE_SRGB</constant>)</title>
++    <section id="col-srgb">
++      <title>Colorspace sRGB (<constant>V4L2_COLORSPACE_SRGB</constant>)</title>
+       <para>The <xref linkend="srgb" /> standard defines the colorspace used by most webcams and computer graphics. The
+ default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_SYCC</constant>. The default Y'CbCr quantization
+ is full range. The chromaticities of the primary colors and the white reference are:</para>
+@@ -891,8 +891,8 @@ encoding, it is not. The <constant>V4L2_YCBCR_ENC_XV601</constant> scales and of
+ values before quantization, but this encoding does not do that.</para>
+     </section>
 
-Times are approximate and will likely change.
+-    <section>
+-      <title id="col-adobergb">Colorspace Adobe RGB (<constant>V4L2_COLORSPACE_ADOBERGB</constant>)</title>
++    <section id="col-adobergb">
++      <title>Colorspace Adobe RGB (<constant>V4L2_COLORSPACE_ADOBERGB</constant>)</title>
+       <para>The <xref linkend="adobergb" /> standard defines the colorspace used by computer graphics
+ that use the AdobeRGB colorspace. This is also known as the <xref linkend="oprgb" /> standard.
+ The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_601</constant>. The default Y'CbCr
+@@ -963,8 +963,8 @@ clamped to the range [-0.5&hellip;0.5]. This transform is identical to one defin
+ SMPTE 170M/BT.601. The Y'CbCr quantization is limited range.</para>
+     </section>
 
-9:00-9:15   Get everyone installed, laptops hooked up, etc.
-9:15-9:30   Introduction
-9:30-10:30  Media Controller support for DVB (Mauro):
-		1) dynamic creation/removal of pipelines
-		2) change media_entity_pipeline_start to also define
-		   the final entity
-		3) how to setup pipelines that also envolve audio and DRM
-		4) how to lock the media controller pipeline between enabling a
-		   pipeline and starting it, in order to avoid race conditions
+-    <section>
+-      <title id="col-bt2020">Colorspace BT.2020 (<constant>V4L2_COLORSPACE_BT2020</constant>)</title>
++    <section id="col-bt2020">
++      <title>Colorspace BT.2020 (<constant>V4L2_COLORSPACE_BT2020</constant>)</title>
+       <para>The <xref linkend="itu2020" /> standard defines the colorspace used by Ultra-high definition
+ television (UHDTV). The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_BT2020</constant>.
+ The default Y'CbCr quantization is limited range. The chromaticities of the primary colors and
+@@ -1079,8 +1079,8 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ clamped to the range [-0.5&hellip;0.5]. The Yc'CbcCrc quantization is limited range.</para>
+     </section>
 
-See this post for more detailed information:
+-    <section>
+-      <title id="col-smpte-240m">Colorspace SMPTE 240M (<constant>V4L2_COLORSPACE_SMPTE240M</constant>)</title>
++    <section id="col-smpte-240m">
++      <title>Colorspace SMPTE 240M (<constant>V4L2_COLORSPACE_SMPTE240M</constant>)</title>
+       <para>The <xref linkend="smpte240m" /> standard was an interim standard used during the early days of HDTV (1988-1998).
+ It has been superseded by Rec. 709. The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_SMPTE240M</constant>.
+ The default Y'CbCr quantization is limited range. The chromaticities of the primary colors and the
+@@ -1152,8 +1152,8 @@ following <constant>V4L2_YCBCR_ENC_SMPTE240M</constant> encoding:</term>
+ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range.</para>
+     </section>
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+-    <section>
+-      <title id="col-sysm">Colorspace NTSC 1953 (<constant>V4L2_COLORSPACE_470_SYSTEM_M</constant>)</title>
++    <section id="col-sysm">
++      <title>Colorspace NTSC 1953 (<constant>V4L2_COLORSPACE_470_SYSTEM_M</constant>)</title>
+       <para>This standard defines the colorspace used by NTSC in 1953. In practice this
+ colorspace is obsolete and SMPTE 170M should be used instead. The default Y'CbCr encoding
+ is <constant>V4L2_YCBCR_ENC_601</constant>. The default Y'CbCr quantization is limited range.
+@@ -1230,8 +1230,8 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ This transform is identical to one defined in SMPTE 170M/BT.601.</para>
+     </section>
 
-10:30-10:45 Break
-10:45-12:00 Continue discussion
-12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch organized,
-	    or if we are on our own?)
-13:00-14:40 Continue discussion
-14:40-15:00 Break
-15:00-16:00 Subdev hotplug in the context of both FPGA dynamic reconfiguration and
-	    project Ara (http://www.projectara.com/) (Laurent).
-16:00-17:00 Update on ongoing projects (Hans):
-		- proposal for Android Camera v3-type requests (aka configuration stores)
-		- work on colorspace improvements
-		- vivid & v4l2-compliance improvements
-		- removing duplicate subdev video ops and use pad ops instead
-		- others?
+-    <section>
+-      <title id="col-sysbg">Colorspace EBU Tech. 3213 (<constant>V4L2_COLORSPACE_470_SYSTEM_BG</constant>)</title>
++    <section id="col-sysbg">
++      <title>Colorspace EBU Tech. 3213 (<constant>V4L2_COLORSPACE_470_SYSTEM_BG</constant>)</title>
+       <para>The <xref linkend="tech3213" /> standard defines the colorspace used by PAL/SECAM in 1975. In practice this
+ colorspace is obsolete and SMPTE 170M should be used instead. The default Y'CbCr encoding
+ is <constant>V4L2_YCBCR_ENC_601</constant>. The default Y'CbCr quantization is limited range.
+@@ -1304,8 +1304,8 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ This transform is identical to one defined in SMPTE 170M/BT.601.</para>
+     </section>
 
-Most of the time will be spent on DVB and the MC. Based on past experience this
-likely will take some time to get a concensus.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
+-    <section>
+-      <title id="col-jpeg">Colorspace JPEG (<constant>V4L2_COLORSPACE_JPEG</constant>)</title>
++    <section id="col-jpeg">
++      <title>Colorspace JPEG (<constant>V4L2_COLORSPACE_JPEG</constant>)</title>
+       <para>This colorspace defines the colorspace used by most (Motion-)JPEG formats. The chromaticities
+ of the primary colors and the white reference are identical to sRGB. The Y'CbCr encoding is
+ <constant>V4L2_YCBCR_ENC_601</constant> with full range quantization where
