@@ -1,95 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56470 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbbCBBtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2015 20:49:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v5 4/8] v4l: Add VUY8 24 bits bus format
-Date: Mon,  2 Mar 2015 03:48:41 +0200
-Message-Id: <1425260925-12064-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425260925-12064-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:62117 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932381AbbCLPpr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2015 11:45:47 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v13 01/13] leds: flash: Fix the size of sysfs_groups array
+Date: Thu, 12 Mar 2015 16:45:02 +0100
+Message-id: <1426175114-14876-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
+LED_FLASH_MAX_SYSFS_GROUPS macro had value that was relevant for
+previous version of the patches introducing LED Flash class. Currently
+it is required to reserve the room for maximum 4 sysfs groups.
+Since the last element of the struct attribute_group array passed to
+the function device_create_with_groups has to be NULL, the size of the
+array has to be greater by one than maximum allowed number of groups.
+Therefore, the name of the macro is being changed to
+LED_FLASH_SYSFS_GROUPS_SIZE, to make it more accurrate.
 
-Add VUY8 24 bits bus format, V4L2_MBUS_FMT_VUY8_1X24.
-
-Signed-off-by: Hyun Kwon <hyun.kwon@xilinx.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 30 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  3 ++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ include/linux/led-class-flash.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 9bfd468..bc8d3fb 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -3015,6 +3015,36 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-VUY8-1X24">
-+	      <entry>MEDIA_BUS_FMT_VUY8_1X24</entry>
-+	      <entry>0x201a</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-UYVY12-1X24">
- 	      <entry>MEDIA_BUS_FMT_UYVY12_1X24</entry>
- 	      <entry>0x2020</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 363a30f..d391893 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -50,7 +50,7 @@
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+diff --git a/include/linux/led-class-flash.h b/include/linux/led-class-flash.h
+index 21ec91e..e97966d 100644
+--- a/include/linux/led-class-flash.h
++++ b/include/linux/led-class-flash.h
+@@ -32,7 +32,7 @@ struct led_classdev_flash;
+ #define LED_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
+ #define LED_NUM_FLASH_FAULTS		9
  
--/* YUV (including grey) - next is	0x2024 */
-+/* YUV (including grey) - next is	0x2025 */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -80,6 +80,7 @@
- #define MEDIA_BUS_FMT_VYUY10_1X20		0x201b
- #define MEDIA_BUS_FMT_YUYV10_1X20		0x200d
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
-+#define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
+-#define LED_FLASH_MAX_SYSFS_GROUPS 7
++#define LED_FLASH_SYSFS_GROUPS_SIZE	5
+ 
+ struct led_flash_ops {
+ 	/* set flash brightness */
+@@ -80,7 +80,7 @@ struct led_classdev_flash {
+ 	struct led_flash_setting timeout;
+ 
+ 	/* LED Flash class sysfs groups */
+-	const struct attribute_group *sysfs_groups[LED_FLASH_MAX_SYSFS_GROUPS];
++	const struct attribute_group *sysfs_groups[LED_FLASH_SYSFS_GROUPS_SIZE];
+ };
+ 
+ static inline struct led_classdev_flash *lcdev_to_flcdev(
 -- 
-2.0.5
+1.7.9.5
 
