@@ -1,88 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56387 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752491AbbCYW6i (ORCPT
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:43386 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753361AbbCLRyL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:38 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 04/15] omap3isp: DT support for clocks
-Date: Thu, 26 Mar 2015 00:57:28 +0200
-Message-Id: <1427324259-18438-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+	Thu, 12 Mar 2015 13:54:11 -0400
+Received: by lbvp9 with SMTP id p9so17696060lbv.10
+        for <linux-media@vger.kernel.org>; Thu, 12 Mar 2015 10:54:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
+References: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
+From: Emil Renner Berthing <kernel@esmil.dk>
+Date: Thu, 12 Mar 2015 18:53:49 +0100
+Message-ID: <CANBLGcxheEoVisGw_HUiQtVL5N4L4XrVQ7mOfSWV82wP5NRQ0g@mail.gmail.com>
+Subject: Re: [PATCH v3 00/10] Use media bus formats in imx-drm and add drm
+ panel support
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: dri-devel@lists.freedesktop.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	David Airlie <airlied@linux.ie>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Boris Brezillion <boris.brezillon@free-electrons.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Hi Philipp
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+On 12 March 2015 at 10:58, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Currently the imx-drm driver misuses the V4L2_PIX_FMT constants to describe the
+> pixel format on the parallel bus between display controllers and encoders. Now
+> that MEDIA_BUS_FMT is available, use that instead.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index f694615..82499cd 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -279,9 +279,21 @@ static const struct clk_init_data isp_xclk_init_data = {
- 	.num_parents = 1,
- };
- 
-+static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
-+{
-+	unsigned int idx = clkspec->args[0];
-+	struct isp_device *isp = data;
-+
-+	if (idx >= ARRAY_SIZE(isp->xclks))
-+		return ERR_PTR(-ENOENT);
-+
-+	return isp->xclks[idx].clk;
-+}
-+
- static int isp_xclk_init(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-+	struct device_node *np = isp->dev->of_node;
- 	struct clk_init_data init;
- 	unsigned int i;
- 
-@@ -312,6 +324,12 @@ static int isp_xclk_init(struct isp_device *isp)
- 		if (IS_ERR(xclk->clk))
- 			return PTR_ERR(xclk->clk);
- 
-+		/* When instantiated from DT we don't need to register clock
-+		 * aliases.
-+		 */
-+		if (np)
-+			continue;
-+
- 		if (pdata->xclks[i].con_id == NULL &&
- 		    pdata->xclks[i].dev_id == NULL)
- 			continue;
-@@ -327,13 +345,20 @@ static int isp_xclk_init(struct isp_device *isp)
- 		clkdev_add(xclk->lookup);
- 	}
- 
-+	if (np)
-+		of_clk_add_provider(np, isp_xclk_src_get, isp);
-+
- 	return 0;
- }
- 
- static void isp_xclk_cleanup(struct isp_device *isp)
- {
-+	struct device_node *np = isp->dev->of_node;
- 	unsigned int i;
- 
-+	if (np)
-+		of_clk_del_provider(np);
-+
- 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
- 		struct isp_xclk *xclk = &isp->xclks[i];
- 
--- 
-1.7.10.4
+I've tested this series on the Hercules eCAFE Slim HD, which uses the
+RGB666_1X24_CPADHI format, and it still boots up with screen output.
+You can add
 
+Tested-by: Emil Renner Berthing <kernel@esmil.dk>
+
+--
+/Emil
