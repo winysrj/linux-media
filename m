@@ -1,204 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36632 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979AbbC3Q6Y (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40732 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbbCLXle (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 12:58:24 -0400
-Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 08F212A0099
-	for <linux-media@vger.kernel.org>; Mon, 30 Mar 2015 18:57:56 +0200 (CEST)
-Message-ID: <551980A9.4050604@xs4all.nl>
-Date: Mon, 30 Mar 2015 18:58:17 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 12 Mar 2015 19:41:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH] v4l: mt9v032: Add OF support
+Date: Fri, 13 Mar 2015 01:41:35 +0200
+Message-ID: <2140837.pMzBpl3YU4@avalon>
+In-Reply-To: <54FD9074.8050600@samsung.com>
+References: <1425822349-19218-1-git-send-email-laurent.pinchart@ideasonboard.com> <2320734.ji4C9lV64t@avalon> <54FD9074.8050600@samsung.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCHv2] ivtv: replace crop by selection
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the old g/s_crop ioctls by the new g/s_selection ioctls.
-This solves a v4l2-compliance failure, and it is something that needs
-to be done anyway to eventually be able to remove the old g/s_crop
-ioctl ops.
+Hi Sylwester,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
+On Monday 09 March 2015 13:22:12 Sylwester Nawrocki wrote:
+> On 09/03/15 12:29, Laurent Pinchart wrote:
+> > On Monday 09 March 2015 11:35:52 Sylwester Nawrocki wrote:
+> >> On 08/03/15 14:45, Laurent Pinchart wrote:
+> >>> +++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> >>> @@ -0,0 +1,41 @@
+> >>> +* Aptina 1/3-Inch WVGA CMOS Digital Image Sensor
+> >>> +
+> >>> +The Aptina MT9V032 is a 1/3-inch CMOS active pixel digital image sensor
+> >>> with
+> >>> +an active array size of 752H x 480V. It is programmable through a
+> >>> simple
+> >>> +two-wire serial interface.
+> >>> +
+> >>> +Required Properties:
+> >>> +
+> >>> +- compatible: value should be either one among the following
+> >>> +	(a) "aptina,mt9v032" for MT9V032 color sensor
+> >>> +	(b) "aptina,mt9v032m" for MT9V032 monochrome sensor
+> >>> +	(c) "aptina,mt9v034" for MT9V034 color sensor
+> >>> +	(d) "aptina,mt9v034m" for MT9V034 monochrome sensor
+> >> 
+> >> It can't be determined at runtime whether the sensor is just
+> >> monochromatic ?
+> >
+> > Unfortunately not. As far as I'm aware the only difference between the
+> > monochromatic and color sensors is the colour filter array. The register
+> > set is identical.
+> > 
+> >> Al in all the color filter array is a physical property of the sensor,
+> >> still the driver seems to be ignoring the "m" suffix.
+> > 
+> > No, the driver relies on the I2C core filling returning the I2C device id
+> > instance corresponding to the DT compatible string, and gets sensor model
+> > information from id->driver_data.
+> 
+> Sorry, I missed the I2C id part.
+> 
+> >> Hence I suspect the
+> >> register interfaces for both color and monochromatic versions are
+> >> compatible. I'm wondering whether using a boolean property to indicate
+> >> the
+> >> color filter array type would do as well.
+> > 
+> > That's an option as well, yes. I don't have a strong preference at the
+> > moment, but it should be noted that the "m" suffix is contained in the
+> > chip's part number.
+> > 
+> > MT9V032C12STM
+> > MT9V032C12STC
+> > MT9V032C12STMD
+> > MT9V032C12STMH
+> > MT9V032C12STCD
+> > MT9V032C12STCH
+> > 
+> > Granted, they use "c" for colour sensors, which the DT bindings don't use,
+> > and a "C12ST" that we completely ignore.
+> 
+> OK, deriving the compatible strings from current I2C device ids seems less
+> trouble from the driver's writer POV. However, my feeling is that using same
+> compatible and additional property to indicate colour/monochrome is cleaner
+> as far as device tree binding is concerned.
+> Anyway, I'm not going to object against your current approach, I suppose
+> it's acceptable as well.
 
-Changes since v1:
+It wouldn't take much to convince me about that, I'm really undecided. I'll 
+send v2 to fix other issues, we can continue discussing this point then.
 
-- add support for CROP_DEFAULTS and CROP_BOUNDS since CROPCAP is supported for
-  capture.
-
----
-
- drivers/media/pci/ivtv/ivtv-ioctl.c | 115 +++++++++++++++++++++---------------
- 1 file changed, 69 insertions(+), 46 deletions(-)
-
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index fa87565..683beb4 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -816,80 +816,103 @@ static int ivtv_cropcap(struct file *file, void *fh, struct v4l2_cropcap *cropca
- {
- 	struct ivtv_open_id *id = fh2id(fh);
- 	struct ivtv *itv = id->itv;
--	struct yuv_playback_info *yi = &itv->yuv_info;
--	int streamtype;
--
--	streamtype = id->type;
- 
--	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
--		return -EINVAL;
--	cropcap->bounds.top = cropcap->bounds.left = 0;
--	cropcap->bounds.width = 720;
- 	if (cropcap->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		cropcap->bounds.height = itv->is_50hz ? 576 : 480;
- 		cropcap->pixelaspect.numerator = itv->is_50hz ? 59 : 10;
- 		cropcap->pixelaspect.denominator = itv->is_50hz ? 54 : 11;
--	} else if (streamtype == IVTV_DEC_STREAM_TYPE_YUV) {
--		if (yi->track_osd) {
--			cropcap->bounds.width = yi->osd_full_w;
--			cropcap->bounds.height = yi->osd_full_h;
--		} else {
--			cropcap->bounds.width = 720;
--			cropcap->bounds.height =
--					itv->is_out_50hz ? 576 : 480;
--		}
-+	} else if (cropcap->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		cropcap->pixelaspect.numerator = itv->is_out_50hz ? 59 : 10;
- 		cropcap->pixelaspect.denominator = itv->is_out_50hz ? 54 : 11;
- 	} else {
--		cropcap->bounds.height = itv->is_out_50hz ? 576 : 480;
--		cropcap->pixelaspect.numerator = itv->is_out_50hz ? 59 : 10;
--		cropcap->pixelaspect.denominator = itv->is_out_50hz ? 54 : 11;
-+		return -EINVAL;
- 	}
--	cropcap->defrect = cropcap->bounds;
- 	return 0;
- }
- 
--static int ivtv_s_crop(struct file *file, void *fh, const struct v4l2_crop *crop)
-+static int ivtv_s_selection(struct file *file, void *fh,
-+			    struct v4l2_selection *sel)
- {
- 	struct ivtv_open_id *id = fh2id(fh);
- 	struct ivtv *itv = id->itv;
- 	struct yuv_playback_info *yi = &itv->yuv_info;
--	int streamtype;
-+	struct v4l2_rect r = { 0, 0, 720, 0 };
-+	int streamtype = id->type;
- 
--	streamtype = id->type;
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    !(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
-+		return -EINVAL;
- 
--	if (crop->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
--	    (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
--		if (streamtype == IVTV_DEC_STREAM_TYPE_YUV) {
--			yi->main_rect = crop->c;
--			return 0;
--		} else {
--			if (!ivtv_vapi(itv, CX2341X_OSD_SET_FRAMEBUFFER_WINDOW, 4,
--				crop->c.width, crop->c.height, crop->c.left, crop->c.top)) {
--				itv->main_rect = crop->c;
--				return 0;
--			}
--		}
-+	if (sel->target != V4L2_SEL_TGT_COMPOSE)
- 		return -EINVAL;
-+
-+
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    !(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
-+		return -EINVAL;
-+
-+	r.height = itv->is_out_50hz ? 576 : 480;
-+	if (streamtype == IVTV_DEC_STREAM_TYPE_YUV && yi->track_osd) {
-+		r.width = yi->osd_full_w;
-+		r.height = yi->osd_full_h;
-+	}
-+	sel->r.width = clamp(sel->r.width, 16U, r.width);
-+	sel->r.height = clamp(sel->r.height, 16U, r.height);
-+	sel->r.left = clamp_t(unsigned, sel->r.left, 0, r.width - sel->r.width);
-+	sel->r.top = clamp_t(unsigned, sel->r.top, 0, r.height - sel->r.height);
-+
-+	if (streamtype == IVTV_DEC_STREAM_TYPE_YUV) {
-+		yi->main_rect = sel->r;
-+		return 0;
-+	}
-+	if (!ivtv_vapi(itv, CX2341X_OSD_SET_FRAMEBUFFER_WINDOW, 4,
-+			sel->r.width, sel->r.height, sel->r.left, sel->r.top)) {
-+		itv->main_rect = sel->r;
-+		return 0;
- 	}
- 	return -EINVAL;
- }
- 
--static int ivtv_g_crop(struct file *file, void *fh, struct v4l2_crop *crop)
-+static int ivtv_g_selection(struct file *file, void *fh,
-+			    struct v4l2_selection *sel)
- {
- 	struct ivtv_open_id *id = fh2id(fh);
- 	struct ivtv *itv = id->itv;
- 	struct yuv_playback_info *yi = &itv->yuv_info;
--	int streamtype;
-+	struct v4l2_rect r = { 0, 0, 720, 0 };
-+	int streamtype = id->type;
-+
-+	if (sel->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		switch (sel->target) {
-+		case V4L2_SEL_TGT_CROP_DEFAULT:
-+		case V4L2_SEL_TGT_CROP_BOUNDS:
-+			sel->r.top = sel->r.left = 0;
-+			sel->r.width = 720;
-+			sel->r.height = itv->is_50hz ? 576 : 480;
-+			return 0;
-+		default:
-+			return -EINVAL;
-+		}
-+	}
- 
--	streamtype = id->type;
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    !(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
-+		return -EINVAL;
- 
--	if (crop->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
--	    (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE:
- 		if (streamtype == IVTV_DEC_STREAM_TYPE_YUV)
--			crop->c = yi->main_rect;
-+			sel->r = yi->main_rect;
- 		else
--			crop->c = itv->main_rect;
-+			sel->r = itv->main_rect;
-+		return 0;
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		r.height = itv->is_out_50hz ? 576 : 480;
-+		if (streamtype == IVTV_DEC_STREAM_TYPE_YUV && yi->track_osd) {
-+			r.width = yi->osd_full_w;
-+			r.height = yi->osd_full_h;
-+		}
-+		sel->r = r;
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -1837,8 +1860,8 @@ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_enum_output   		    = ivtv_enum_output,
- 	.vidioc_enumaudout   		    = ivtv_enumaudout,
- 	.vidioc_cropcap       		    = ivtv_cropcap,
--	.vidioc_s_crop       		    = ivtv_s_crop,
--	.vidioc_g_crop       		    = ivtv_g_crop,
-+	.vidioc_s_selection		    = ivtv_s_selection,
-+	.vidioc_g_selection		    = ivtv_g_selection,
- 	.vidioc_g_input      		    = ivtv_g_input,
- 	.vidioc_s_input      		    = ivtv_s_input,
- 	.vidioc_g_output     		    = ivtv_g_output,
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
