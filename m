@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50115 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752393AbbCIVXL (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:53375 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030313AbbCLPqm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:23:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/18] marvell-ccic: fill in colorspace
-Date: Mon,  9 Mar 2015 22:22:10 +0100
-Message-Id: <1425936143-5658-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 12 Mar 2015 11:46:42 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v13 10/13] Documentation: leds: Add description of
+ v4l2-flash sub-device
+Date: Thu, 12 Mar 2015 16:45:11 +0100
+Message-id: <1426175114-14876-11-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
-The colorspace field wasn't filled in properly. This fixes a v4l2-compliance
-failure.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/leds/leds-class-flash.txt |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 76357cf..7e54cef 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -188,6 +188,7 @@ static const struct v4l2_pix_format mcam_def_pix_format = {
- 	.field		= V4L2_FIELD_NONE,
- 	.bytesperline	= VGA_WIDTH*2,
- 	.sizeimage	= VGA_WIDTH*VGA_HEIGHT*2,
-+	.colorspace	= V4L2_COLORSPACE_SRGB,
- };
- 
- static const u32 mcam_def_mbus_code = MEDIA_BUS_FMT_YUYV8_2X8;
-@@ -1437,6 +1438,7 @@ static int mcam_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 		break;
- 	}
- 	pix->sizeimage = pix->height * pix->bytesperline;
-+	pix->colorspace = V4L2_COLORSPACE_SRGB;
- 	return ret;
- }
- 
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 19bb673..8623413 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -20,3 +20,16 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- max_flash_timeout
+ 	- flash_strobe
+ 	- flash_fault
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config. The driver must call the v4l2_flash_init
++function to get registered in the V4L2 subsystem. On remove the
++v4l2_flash_release function has to be called (see <media/v4l2-flash.h>).
++
++After proper initialization a V4L2 Flash sub-device is created. The sub-device
++exposes a number of V4L2 controls, which allow for controlling a LED Flash class
++device with use of its internal kernel API.
++Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 Flash sub-device
++is closed.
 -- 
-2.1.4
+1.7.9.5
 
