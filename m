@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36602 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752855AbbCaQPu (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:26379 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030312AbbCLPqv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 12:15:50 -0400
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-To: linux-pm@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/6] [media] v4l2-core: Implement dev_pm_ops.prepare()
-Date: Tue, 31 Mar 2015 18:14:46 +0200
-Message-Id: <1427818501-10201-3-git-send-email-tomeu.vizoso@collabora.com>
-In-Reply-To: <1427818501-10201-1-git-send-email-tomeu.vizoso@collabora.com>
-References: <1427818501-10201-1-git-send-email-tomeu.vizoso@collabora.com>
+	Thu, 12 Mar 2015 11:46:51 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH/RFC v13 11/13] DT: Add documentation for exynos4-is 'flashes'
+ property
+Date: Thu, 12 Mar 2015 16:45:12 +0100
+Message-id: <1426175114-14876-12-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Have it return 1 so that video devices that are runtime-suspended won't
-be suspended when the system goes to a sleep state. This can make resume
-times considerably shorter because these devices don't need to be
-resumed when the system is awaken.
+This patch adds a description of 'flashes' property
+to the samsung-fimc.txt.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ .../devicetree/bindings/media/samsung-fimc.txt     |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index e2b8b3e..b74e3d3 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -219,9 +219,19 @@ static void v4l2_device_release(struct device *cd)
- 		v4l2_device_put(v4l2_dev);
- }
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 922d6f8..cb0e263 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -40,6 +40,13 @@ should be inactive. For the "active-a" state the camera port A must be activated
+ and the port B deactivated and for the state "active-b" it should be the other
+ way around.
  
-+static int video_device_prepare(struct device *dev)
-+{
-+	return 1;
-+}
++Optional properties:
 +
-+static const struct dev_pm_ops video_device_pm_ops = {
-+	.prepare = video_device_prepare,
-+};
++- flashes - Array of phandles to the flash LEDs that can be controlled by the
++	    sub-devices contained in this media device. Flash LED is
++	    represented by a child node of a flash LED device
++	    (see Documentation/devicetree/bindings/leds/common.txt).
 +
- static struct class video_class = {
- 	.name = VIDEO_NAME,
- 	.dev_groups = video_device_groups,
-+	.pm = &video_device_pm_ops,
- };
+ The 'camera' node must include at least one 'fimc' child node.
  
- struct video_device *video_devdata(struct file *file)
+ 
+@@ -166,6 +173,7 @@ Example:
+ 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
++		flashes = <&camera_flash>, <&system_torch>;
+ 		status = "okay";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
 -- 
-2.3.4
+1.7.9.5
 
