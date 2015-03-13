@@ -1,60 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:12914 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750801AbbCTPET (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43179 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752616AbbCMLQt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 11:04:19 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v1 09/11] DT: Add documentation for exynos4-is 'flashes'
- property
-Date: Fri, 20 Mar 2015 16:03:29 +0100
-Message-id: <1426863811-12516-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 13 Mar 2015 07:16:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 31/39] vivid: fix format comments
+Date: Fri, 13 Mar 2015 12:16:09 +0100
+Message-Id: <1426245377-17704-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a description of 'flashes' property
-to the samsung-fimc.txt.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Clarify which formats have an alpha channel and which do not by
+using 'x' instead of 'a' if there is no alpha channel.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/samsung-fimc.txt     |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/platform/vivid/vivid-vid-common.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 922d6f8..cb0e263 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -40,6 +40,13 @@ should be inactive. For the "active-a" state the camera port A must be activated
- and the port B deactivated and for the state "active-b" it should be the other
- way around.
- 
-+Optional properties:
-+
-+- flashes - Array of phandles to the flash LEDs that can be controlled by the
-+	    sub-devices contained in this media device. Flash LED is
-+	    represented by a child node of a flash LED device
-+	    (see Documentation/devicetree/bindings/leds/common.txt).
-+
- The 'camera' node must include at least one 'fimc' child node.
- 
- 
-@@ -166,6 +173,7 @@ Example:
- 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
-+		flashes = <&camera_flash>, <&system_torch>;
- 		status = "okay";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index cb73c1b..453a5ad 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -197,7 +197,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "RGB555 (LE)",
+-		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb arrrrrgg */
++		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb xrrrrrgg */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 16 },
+ 		.planes   = 1,
+@@ -206,7 +206,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "XRGB555 (LE)",
+-		.fourcc   = V4L2_PIX_FMT_XRGB555, /* gggbbbbb arrrrrgg */
++		.fourcc   = V4L2_PIX_FMT_XRGB555, /* gggbbbbb xrrrrrgg */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 16 },
+ 		.planes   = 1,
+@@ -225,7 +225,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "RGB555 (BE)",
+-		.fourcc   = V4L2_PIX_FMT_RGB555X, /* arrrrrgg gggbbbbb */
++		.fourcc   = V4L2_PIX_FMT_RGB555X, /* xrrrrrgg gggbbbbb */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 16 },
+ 		.planes   = 1,
+@@ -250,7 +250,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "RGB32 (LE)",
+-		.fourcc   = V4L2_PIX_FMT_RGB32, /* argb */
++		.fourcc   = V4L2_PIX_FMT_RGB32, /* xrgb */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 32 },
+ 		.planes   = 1,
+@@ -258,7 +258,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "RGB32 (BE)",
+-		.fourcc   = V4L2_PIX_FMT_BGR32, /* bgra */
++		.fourcc   = V4L2_PIX_FMT_BGR32, /* bgrx */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 32 },
+ 		.planes   = 1,
+@@ -266,7 +266,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "XRGB32 (LE)",
+-		.fourcc   = V4L2_PIX_FMT_XRGB32, /* argb */
++		.fourcc   = V4L2_PIX_FMT_XRGB32, /* xrgb */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 32 },
+ 		.planes   = 1,
+@@ -274,7 +274,7 @@ struct vivid_fmt vivid_formats[] = {
+ 	},
+ 	{
+ 		.name     = "XRGB32 (BE)",
+-		.fourcc   = V4L2_PIX_FMT_XBGR32, /* bgra */
++		.fourcc   = V4L2_PIX_FMT_XBGR32, /* bgrx */
+ 		.vdownsampling = { 1 },
+ 		.bit_depth = { 32 },
+ 		.planes   = 1,
 -- 
-1.7.9.5
+2.1.4
 
