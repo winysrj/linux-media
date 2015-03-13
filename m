@@ -1,121 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay118.isp.belgacom.be ([195.238.20.145]:27663 "EHLO
-	mailrelay118.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932609AbbCPTy4 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40747 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519AbbCMADb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 15:54:56 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Fabian Frederick <fabf@skynet.be>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kernel@stlinux.com
-Subject: [PATCH 23/35 linux-next] [media] constify of_device_id array
-Date: Mon, 16 Mar 2015 20:54:33 +0100
-Message-Id: <1426535685-25996-2-git-send-email-fabf@skynet.be>
-In-Reply-To: <1426535685-25996-1-git-send-email-fabf@skynet.be>
-References: <1426533469-25458-1-git-send-email-fabf@skynet.be>
- <1426535685-25996-1-git-send-email-fabf@skynet.be>
+	Thu, 12 Mar 2015 20:03:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: =?UTF-8?q?Carlos=20Sanmart=C3=ADn=20Bustos?= <carsanbu@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 2/2] v4l: mt9v032: Add OF support
+Date: Fri, 13 Mar 2015 02:03:28 +0200
+Message-Id: <1426205008-6160-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1426205008-6160-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1426205008-6160-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-of_device_id is always used as const.
-(See driver.of_match_table and open firmware functions)
+Parse DT properties into a platform data structure when a DT node is
+available.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 ---
- drivers/media/i2c/adv7604.c                  | 2 +-
- drivers/media/platform/fsl-viu.c             | 2 +-
- drivers/media/platform/soc_camera/rcar_vin.c | 2 +-
- drivers/media/rc/gpio-ir-recv.c              | 2 +-
- drivers/media/rc/ir-hix5hd2.c                | 2 +-
- drivers/media/rc/st_rc.c                     | 2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index d228b7c..5a7c938 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2598,7 +2598,7 @@ static struct i2c_device_id adv7604_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
+Changes since v1:
+
+- Add MT9V02[24] compatible strings
+- Prefix all compatible strings with "aptina,"
+- Use "link-frequencies" instead of "link-freqs"
+
+Open questions:
+
+- Should the color/monochrome model be inferred from the compatible string, or
+  should a separate DT property be used for that ?
+
+---
+ .../devicetree/bindings/media/i2c/mt9v032.txt      | 45 ++++++++++++++
+ MAINTAINERS                                        |  1 +
+ drivers/media/i2c/mt9v032.c                        | 70 +++++++++++++++++++++-
+ 3 files changed, 115 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+new file mode 100644
+index 0000000..68b134e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+@@ -0,0 +1,45 @@
++* Aptina 1/3-Inch WVGA CMOS Digital Image Sensor
++
++The Aptina MT9V032 is a 1/3-inch CMOS active pixel digital image sensor with
++an active array size of 752H x 480V. It is programmable through a simple
++two-wire serial interface.
++
++Required Properties:
++
++- compatible: value should be either one among the following
++	(a) "aptina,mt9v022" for MT9V022 color sensor
++	(b) "aptina,mt9v022m" for MT9V022 monochrome sensor
++	(c) "aptina,mt9v024" for MT9V024 color sensor
++	(d) "aptina,mt9v024m" for MT9V024 monochrome sensor
++	(e) "aptina,mt9v032" for MT9V032 color sensor
++	(f) "aptina,mt9v032m" for MT9V032 monochrome sensor
++	(g) "aptina,mt9v034" for MT9V034 color sensor
++	(h) "aptina,mt9v034m" for MT9V034 monochrome sensor
++
++Optional Properties:
++
++- link-frequencies: List of allowed link frequencies in Hz. Each frequency is
++	expressed as a 64-bit big-endian integer.
++
++For further reading on port node refer to
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		...
++		mt9v032@5c {
++			compatible = "aptina,mt9v032";
++			reg = <0x5c>;
++
++			port {
++				mt9v032_1: endpoint {
++					link-frequencies =
++						<0 13000000>, <0 26600000>,
++						<0 27000000>;
++				};
++			};
++		};
++		...
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ddc5a8c..180f6fb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6535,6 +6535,7 @@ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
++F:	Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+ F:	drivers/media/i2c/mt9v032.c
+ F:	include/media/mt9v032.h
  
--static struct of_device_id adv7604_of_id[] __maybe_unused = {
-+static const struct of_device_id adv7604_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
- 	{ }
- };
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index bbf4281..5b76e3d 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -1664,7 +1664,7 @@ static int viu_resume(struct platform_device *op)
- /*
-  * Initialization and module stuff
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 255ea91..89e6d8d 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -17,6 +17,8 @@
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+@@ -26,6 +28,7 @@
+ #include <media/mt9v032.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ 
+ /* The first four rows are black rows. The active area spans 753x481 pixels. */
+@@ -876,10 +879,59 @@ static const struct regmap_config mt9v032_regmap_config = {
+  * Driver initialization and probing
   */
--static struct of_device_id mpc512x_viu_of_match[] = {
-+static const struct of_device_id mpc512x_viu_of_match[] = {
- 	{
- 		.compatible = "fsl,mpc5121-viu",
+ 
++static struct mt9v032_platform_data *
++mt9v032_get_pdata(struct i2c_client *client)
++{
++	struct mt9v032_platform_data *pdata;
++	struct v4l2_of_endpoint endpoint;
++	struct device_node *np;
++	struct property *prop;
++
++	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
++		return client->dev.platform_data;
++
++	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
++	if (!np)
++		return NULL;
++
++	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
++		goto done;
++
++	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		goto done;
++
++	prop = of_find_property(np, "link-frequencies", NULL);
++	if (prop) {
++		size_t size = prop->length / 8;
++		u64 *link_freqs;
++
++		link_freqs = devm_kzalloc(&client->dev,
++					  size * sizeof(*link_freqs),
++					  GFP_KERNEL);
++		if (!link_freqs)
++			goto done;
++
++		if (of_property_read_u64_array(np, "link-frequencies",
++					       link_freqs, size) < 0)
++			goto done;
++
++		pdata->link_freqs = link_freqs;
++		pdata->link_def_freq = link_freqs[0];
++	}
++
++	pdata->clk_pol = !!(endpoint.bus.parallel.flags &
++			    V4L2_MBUS_PCLK_SAMPLE_RISING);
++
++done:
++	of_node_put(np);
++	return pdata;
++}
++
+ static int mt9v032_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *did)
+ {
+-	struct mt9v032_platform_data *pdata = client->dev.platform_data;
++	struct mt9v032_platform_data *pdata = mt9v032_get_pdata(client);
+ 	struct mt9v032 *mt9v032;
+ 	unsigned int i;
+ 	int ret;
+@@ -1037,9 +1089,25 @@ static const struct i2c_device_id mt9v032_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, mt9v032_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id mt9v032_of_match[] = {
++	{ .compatible = "aptina,mt9v022" },
++	{ .compatible = "aptina,mt9v022m" },
++	{ .compatible = "aptina,mt9v024" },
++	{ .compatible = "aptina,mt9v024m" },
++	{ .compatible = "aptina,mt9v032" },
++	{ .compatible = "aptina,mt9v032m" },
++	{ .compatible = "aptina,mt9v034" },
++	{ .compatible = "aptina,mt9v034m" },
++	{ /* Sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, mt9v032_of_match);
++#endif
++
+ static struct i2c_driver mt9v032_driver = {
+ 	.driver = {
+ 		.name = "mt9v032",
++		.of_match_table = of_match_ptr(mt9v032_of_match),
  	},
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 279ab9f..bbbaa0a 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1818,7 +1818,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
- };
- 
- #ifdef CONFIG_OF
--static struct of_device_id rcar_vin_of_table[] = {
-+static const struct of_device_id rcar_vin_of_table[] = {
- 	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 229853d..707df54 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -59,7 +59,7 @@ static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
- 	return 0;
- }
- 
--static struct of_device_id gpio_ir_recv_of_match[] = {
-+static const struct of_device_id gpio_ir_recv_of_match[] = {
- 	{ .compatible = "gpio-ir-receiver", },
- 	{ },
- };
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index b0df629..0a11d55 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -327,7 +327,7 @@ static int hix5hd2_ir_resume(struct device *dev)
- static SIMPLE_DEV_PM_OPS(hix5hd2_ir_pm_ops, hix5hd2_ir_suspend,
- 			 hix5hd2_ir_resume);
- 
--static struct of_device_id hix5hd2_ir_table[] = {
-+static const struct of_device_id hix5hd2_ir_table[] = {
- 	{ .compatible = "hisilicon,hix5hd2-ir", },
- 	{},
- };
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index 0e758ae..50ea09d 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -381,7 +381,7 @@ static int st_rc_resume(struct device *dev)
- static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
- 
- #ifdef CONFIG_OF
--static struct of_device_id st_rc_match[] = {
-+static const struct of_device_id st_rc_match[] = {
- 	{ .compatible = "st,comms-irb", },
- 	{},
- };
+ 	.probe		= mt9v032_probe,
+ 	.remove		= mt9v032_remove,
 -- 
-2.1.0
+2.0.5
 
