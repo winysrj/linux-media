@@ -1,91 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:30374 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752778AbbC0NuC (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43179 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753436AbbCMLQ6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:50:02 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v2 00/11] LED / flash API integration
-Date: Fri, 27 Mar 2015 14:49:34 +0100
-Message-id: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 13 Mar 2015 07:16:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 32/39] vivid: add support for [A|X]RGB555X
+Date: Fri, 13 Mar 2015 12:16:10 +0100
+Message-Id: <1426245377-17704-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a second non-RFC version of LED / flash API integration
-series [1]. It is based on linux-next_20150327.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-================
-Changes since v1
-================
+Only RGB555X was supported, add support for the other two variants.
 
-- excluded exynos4-is media device related patches, as there is
-  consenus required related to flash devices handling in media device
-  DT bindings
-- modifications around LED Flash class settings and v4l2 flash config
-  initialization in LED Flash class drivers and v4l2-flash wrapper
-- switched to using DT node name as a device name for leds-max77693
-  and leds-aat1290 drivers, in case DT 'label' property is absent
-- dropped OF dependecy for v4l2-flash wrapper
-- moved LED_FAULTS definitions from led-class-flash.h to uapi/linux/leds.h
-- allowed for multiple clients of v4l2-flash sub-device
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c        | 10 ++++++++++
+ drivers/media/platform/vivid/vivid-vid-common.c | 18 +++++++++++++++++-
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
-======================
-Changes since RFC v13:
-======================
-
-- reduced number of patches - some of them have been merged
-- slightly modified max77693-led device naming
-- fixed issues in v4l2-flash helpers detected with yavta
-- cleaned up AAT1290 device tree documentation
-- added GPIOLIB dependecy to AAT1290 related entry in Kconfig
-
-Thanks,
-Jacek Anaszewski
-
-[1] http://www.spinics.net/lists/kernel/msg1944538.html
-
-Jacek Anaszewski (11):
-  leds: unify the location of led-trigger API
-  leds: add uapi header file
-  leds: Add support for max77693 mfd flash cell
-  DT: Add documentation for the mfd Maxim max77693
-  leds: Add driver for AAT1290 flash LED controller
-  of: Add Skyworks Solutions, Inc. vendor prefix
-  DT: Add documentation for the Skyworks AAT1290
-  media: Add registration helpers for V4L2 flash sub-devices
-  Documentation: leds: Add description of v4l2-flash sub-device
-  leds: max77693: add support for V4L2 Flash sub-device
-  leds: aat1290: add support for V4L2 Flash sub-device
-
- .../devicetree/bindings/leds/leds-aat1290.txt      |   70 ++
- Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++
- .../devicetree/bindings/vendor-prefixes.txt        |    1 +
- Documentation/leds/leds-class-flash.txt            |   13 +
- drivers/leds/Kconfig                               |   19 +
- drivers/leds/Makefile                              |    2 +
- drivers/leds/leds-aat1290.c                        |  518 ++++++++++
- drivers/leds/leds-max77693.c                       | 1086 ++++++++++++++++++++
- drivers/leds/leds.h                                |   24 -
- drivers/media/v4l2-core/Kconfig                    |   11 +
- drivers/media/v4l2-core/Makefile                   |    2 +
- drivers/media/v4l2-core/v4l2-flash.c               |  619 +++++++++++
- include/linux/led-class-flash.h                    |   16 +-
- include/linux/leds.h                               |   24 +
- include/media/v4l2-flash.h                         |  144 +++
- include/uapi/linux/leds.h                          |   34 +
- 16 files changed, 2605 insertions(+), 39 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
- create mode 100644 drivers/leds/leds-aat1290.c
- create mode 100644 drivers/leds/leds-max77693.c
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
- create mode 100644 include/uapi/linux/leds.h
-
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index fcb2486..e4d461a 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -197,6 +197,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_XRGB555:
+ 	case V4L2_PIX_FMT_ARGB555:
+ 	case V4L2_PIX_FMT_RGB555X:
++	case V4L2_PIX_FMT_XRGB555X:
++	case V4L2_PIX_FMT_ARGB555X:
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+ 	case V4L2_PIX_FMT_RGB32:
+@@ -274,6 +276,8 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_XRGB555:
+ 	case V4L2_PIX_FMT_ARGB555:
+ 	case V4L2_PIX_FMT_RGB555X:
++	case V4L2_PIX_FMT_XRGB555X:
++	case V4L2_PIX_FMT_ARGB555X:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YVYU:
+@@ -718,6 +722,8 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 		case V4L2_PIX_FMT_XRGB555:
+ 		case V4L2_PIX_FMT_ARGB555:
+ 		case V4L2_PIX_FMT_RGB555X:
++		case V4L2_PIX_FMT_XRGB555X:
++		case V4L2_PIX_FMT_ARGB555X:
+ 			r >>= 7;
+ 			g >>= 7;
+ 			b >>= 7;
+@@ -885,6 +891,10 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[0][offset + 1] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555X:
++	case V4L2_PIX_FMT_XRGB555X:
++		alpha = 0;
++		/* fall through */
++	case V4L2_PIX_FMT_ARGB555X:
+ 		buf[0][offset] = (alpha & 0x80) | (r_y << 2) | (g_u >> 3);
+ 		buf[0][offset + 1] = (g_u << 5) | b_v;
+ 		break;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 453a5ad..81e6c82 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -230,7 +230,23 @@ struct vivid_fmt vivid_formats[] = {
+ 		.bit_depth = { 16 },
+ 		.planes   = 1,
+ 		.buffers = 1,
+-		.can_do_overlay = true,
++	},
++	{
++		.name     = "XRGB555 (BE)",
++		.fourcc   = V4L2_PIX_FMT_XRGB555X, /* xrrrrrgg gggbbbbb */
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
++		.planes   = 1,
++		.buffers = 1,
++	},
++	{
++		.name     = "ARGB555 (BE)",
++		.fourcc   = V4L2_PIX_FMT_ARGB555X, /* arrrrrgg gggbbbbb */
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
++		.planes   = 1,
++		.buffers = 1,
++		.alpha_mask = 0x0080,
+ 	},
+ 	{
+ 		.name     = "RGB24 (LE)",
 -- 
-1.7.9.5
+2.1.4
 
