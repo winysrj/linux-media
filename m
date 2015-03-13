@@ -1,40 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:61992 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753594AbbCRJGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 05:06:09 -0400
-Message-ID: <55093FFC.9050602@gmx.com>
-Date: Wed, 18 Mar 2015 10:06:04 +0100
-From: Ole Ernst <olebowle@gmx.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49810 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751661AbbCMLAQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2015 07:00:16 -0400
+Message-ID: <5502C335.4080501@xs4all.nl>
+Date: Fri, 13 Mar 2015 12:00:05 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Nibble Max <nibble.max@gmail.com>
-CC: "olli.salonen" <olli.salonen@iki.fi>,
-	Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
-References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com>
-In-Reply-To: <201503180940386096906@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] DocBook media: fix PIX_FMT_SGRBR8 example
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+Fix the example of the V4L2_PIX_FMT_SGRBG8 Bayer format.
 
-I'm afraid I'm not experienced enough to adapt the ts2020 driver to
-interwork with the current kernel driver for the S952. I'd be more than
-happy to test patches though!
+The even lines should read BGBG, not RBRB.
 
-Thanks,
-Ole
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Am 18.03.2015 um 02:40 schrieb Nibble Max:
-> Hello Ole,
-> 
-> If it is m88ts2020, there is a tuner driver "ts2020" in "dvb-frontends" directory.
-> If fail to load m88ts2022 driver, then try to load ts2020 driver.
-> m88ts2022 driver is an i2c driver, but ts2020 is traditional dvb-attach driver.
-> Please check the other code using ts2020 for reference.
-> 
-> Best Regards,
-> Max
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sgrbg8.xml b/Documentation/DocBook/media/v4l/pixfmt-sgrbg8.xml
+index 19727ab..7803b8c 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-sgrbg8.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-sgrbg8.xml
+@@ -38,10 +38,10 @@ columns and rows.</para>
+ 		    </row>
+ 		    <row>
+ 		      <entry>start&nbsp;+&nbsp;4:</entry>
+-		      <entry>R<subscript>10</subscript></entry>
+-		      <entry>B<subscript>11</subscript></entry>
+-		      <entry>R<subscript>12</subscript></entry>
+-		      <entry>B<subscript>13</subscript></entry>
++		      <entry>B<subscript>10</subscript></entry>
++		      <entry>G<subscript>11</subscript></entry>
++		      <entry>B<subscript>12</subscript></entry>
++		      <entry>G<subscript>13</subscript></entry>
+ 		    </row>
+ 		    <row>
+ 		      <entry>start&nbsp;+&nbsp;8:</entry>
+@@ -52,10 +52,10 @@ columns and rows.</para>
+ 		    </row>
+ 		    <row>
+ 		      <entry>start&nbsp;+&nbsp;12:</entry>
+-		      <entry>R<subscript>30</subscript></entry>
+-		      <entry>B<subscript>31</subscript></entry>
+-		      <entry>R<subscript>32</subscript></entry>
+-		      <entry>B<subscript>33</subscript></entry>
++		      <entry>B<subscript>30</subscript></entry>
++		      <entry>G<subscript>31</subscript></entry>
++		      <entry>B<subscript>32</subscript></entry>
++		      <entry>G<subscript>33</subscript></entry>
+ 		    </row>
+ 		  </tbody>
+ 		</tgroup>
