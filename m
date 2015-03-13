@@ -1,80 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48169 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbbCBHBK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 02:01:10 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH] media: adv7604: improve usage of gpiod API
-Date: Mon,  2 Mar 2015 08:00:44 +0100
-Message-Id: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40783 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755319AbbCMAb2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2015 20:31:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] media: omap3isp: video: Use v4l2_get_timestamp()
+Date: Fri, 13 Mar 2015 02:31:27 +0200
+Message-Id: <1426206687-14340-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
-which appeared in v3.17-rc1, the gpiod_get* functions take an additional
-parameter that allows to specify direction and initial value for output.
-Simplify accordingly.
+Replace the open-coded copy by a function call.
 
-Moreover use devm_gpiod_get_index_optional instead of
-devm_gpiod_get_index with ignoring all errors.
-
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-BTW, sparse fails to check this file with many errors like:
+ drivers/media/platform/omap3isp/ispvideo.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-	drivers/media/i2c/adv7604.c:311:11: error: unknown field name in initializer
-
-Didn't look into that.
----
- drivers/media/i2c/adv7604.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5a7c9389a605..ddeeb6695a4b 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -537,12 +537,8 @@ static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
- {
- 	unsigned int i;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3de8d5d..0b5967e 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -452,7 +452,6 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+ 	enum isp_pipeline_state state;
+ 	struct isp_buffer *buf;
+ 	unsigned long flags;
+-	struct timespec ts;
  
--	for (i = 0; i < state->info->num_dv_ports; ++i) {
--		if (IS_ERR(state->hpd_gpio[i]))
--			continue;
--
-+	for (i = 0; i < state->info->num_dv_ports; ++i)
- 		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
--	}
+ 	spin_lock_irqsave(&video->irqlock, flags);
+ 	if (WARN_ON(list_empty(&video->dmaqueue))) {
+@@ -465,9 +464,7 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
+ 	list_del(&buf->irqlist);
+ 	spin_unlock_irqrestore(&video->irqlock, flags);
  
- 	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
- }
-@@ -2720,13 +2716,13 @@ static int adv7604_probe(struct i2c_client *client,
- 	/* Request GPIOs. */
- 	for (i = 0; i < state->info->num_dv_ports; ++i) {
- 		state->hpd_gpio[i] =
--			devm_gpiod_get_index(&client->dev, "hpd", i);
-+			devm_gpiod_get_index_optional(&client->dev, "hpd", i,
-+						      GPIOD_OUT_LOW);
- 		if (IS_ERR(state->hpd_gpio[i]))
--			continue;
--
--		gpiod_direction_output(state->hpd_gpio[i], 0);
-+			return PTR_ERR(state->hpd_gpio[i]);
+-	ktime_get_ts(&ts);
+-	buf->vb.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
+-	buf->vb.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
  
--		v4l_info(client, "Handling HPD %u GPIO\n", i);
-+		if (state->hpd_gpio[i])
-+			v4l_info(client, "Handling HPD %u GPIO\n", i);
- 	}
- 
- 	state->timings = cea640x480;
+ 	/* Do frame number propagation only if this is the output video node.
+ 	 * Frame number either comes from the CSI receivers or it gets
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
