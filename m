@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44762 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754769AbbCXSp1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40787 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489AbbCMAdi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 14:45:27 -0400
-Message-ID: <5511B0BF.1030305@xs4all.nl>
-Date: Tue, 24 Mar 2015 11:45:19 -0700
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANN] Media Mini-Summit Final Agenda for March 26th
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Mar 2015 20:33:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media: omap3isp: video: Don't call vb2 mmap with queue lock held
+Date: Fri, 13 Mar 2015 02:33:35 +0200
+Message-Id: <1426206815-15503-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the final agenda for the media mini-summit in San Jose on March 26th.
+videobuf2 has long been subject to AB-BA style deadlocks due to the
+queue lock and mmap_sem being taken in different orders for the mmap
+operation. The problem has been fixed by making this operation callable
+without taking the queue lock, using an mmap_lock internal to videobuf2.
 
-Time: 9 AM to 5:30 PM (approximately)
-Room: San Carlos, 2nd floor
+The omap3isp driver still calls the mmap operation with the queue lock
+held, resulting in a potential deadlock. As the operation can now be
+called without locking the queue, fix it.
 
-Attendees:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-We'll get this list later from the Linux Foundation based on who signed on.
-
-Agenda:
-
-Times are approximate and will likely change, although the intention is to
-not change too much :-)
-
-9:00-9:15   Get everyone installed, laptops hooked up, etc.
-9:15-9:30   Introduction
-9:30-10:30  Media Controller support for DVB (Mauro Carvalho Chehab):
-		1) dynamic creation/removal of pipelines
-		2) change media_entity_pipeline_start to also define
-		   the final entity
-		3) how to setup pipelines that also envolve audio and DRM
-		4) how to lock the media controller pipeline between enabling a
-		   pipeline and starting it, in order to avoid race conditions
-
-See this post for more detailed information:
-
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
-
-10:30-10:45 Break
-10:45-12:00 Continue discussion
-12:00-13:00 Lunch
-13:00-14:30 Continue discussion
-14:30-15:00 Media Tokens (Shuah Kahn)
-15:00-15:30 Break
-15:30-16:30 Subdev hotplug in the context of both FPGA dynamic reconfiguration and
-	    project Ara (http://www.projectara.com/) (Laurent Pinchart).
-16:30-17:30 Update on ongoing projects (Hans Verkuil):
-		- work on colorspace improvements
-		- removing duplicate subdev video ops and use pad ops instead
-		- vivid & v4l2-compliance improvements
-		- proposal for Android Camera v3-type requests (aka configuration stores)
-
-Most of the time will be spent on DVB and the MC. Based on past experience this
-likely will take some time to get a consensus.
-
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3fe9047..89ef31b 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1326,14 +1326,8 @@ static unsigned int isp_video_poll(struct file *file, poll_table *wait)
+ static int isp_video_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct isp_video_fh *vfh = to_isp_video_fh(file->private_data);
+-	struct isp_video *video = video_drvdata(file);
+-	int ret;
+-
+-	mutex_lock(&video->queue_lock);
+-	ret = vb2_mmap(&vfh->queue, vma);
+-	mutex_unlock(&video->queue_lock);
+ 
+-	return ret;
++	return vb2_mmap(&vfh->queue, vma);
+ }
+ 
+ static struct v4l2_file_operations isp_video_fops = {
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
