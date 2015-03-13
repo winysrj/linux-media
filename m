@@ -1,243 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37717 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145AbbCWLec (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51429 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753565AbbCMLRG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 07:34:32 -0400
-Date: Mon, 23 Mar 2015 12:34:30 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	sakari.ailus@iki.fi, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add device tree support to adp1653 flash driver
-Message-ID: <20150323113430.GB7871@amd>
-References: <20150313204840.GA29290@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150313204840.GA29290@amd>
+	Fri, 13 Mar 2015 07:17:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 33/39] vivid: add support for NV24 and NV42
+Date: Fri, 13 Mar 2015 12:16:11 +0100
+Message-Id: <1426245377-17704-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Nokia N900 is switching to device tree, make sure we can use flash
-> there, too.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Add support for the YUV 4:4:4 formats NV24 and NV42.
 
-Sakari, you are marked as a matinainer for this driver. Can you take
-the patch so that it makes it into 4.1?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c        | 28 +++++++++++++++++++++++--
+ drivers/media/platform/vivid/vivid-vid-common.c | 18 ++++++++++++++++
+ 2 files changed, 44 insertions(+), 2 deletions(-)
 
-Thanks,
-								Pavel
-
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index 873fe19..0341009 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -8,6 +8,7 @@
->   * Contributors:
->   *	Sakari Ailus <sakari.ailus@iki.fi>
->   *	Tuukka Toivonen <tuukkat76@gmail.com>
-> + *	Pavel Machek <pavel@ucw.cz>
->   *
->   * This program is free software; you can redistribute it and/or
->   * modify it under the terms of the GNU General Public License
-> @@ -34,6 +35,8 @@
->  #include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/gpio.h>
->  #include <media/adp1653.h>
->  #include <media/v4l2-device.h>
->  
-> @@ -306,9 +309,17 @@ adp1653_init_device(struct adp1653_flash *flash)
->  static int
->  __adp1653_set_power(struct adp1653_flash *flash, int on)
->  {
-> -	int ret;
-> +	int ret = 0;
-> +
-> +	if (flash->platform_data->power) {
-> +		ret = flash->platform_data->power(&flash->subdev, on);
-> +	} else {
-> +		gpio_set_value(flash->platform_data->power_gpio, on);
-> +		if (on)
-> +			/* Some delay is apparently required. */
-> +			udelay(20);
-> +	}
->  
-> -	ret = flash->platform_data->power(&flash->subdev, on);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -316,8 +327,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
->  		return 0;
->  
->  	ret = adp1653_init_device(flash);
-> -	if (ret < 0)
-> +	if (ret >= 0)
-> +		return ret;
-> +
-> +	if (flash->platform_data->power)
->  		flash->platform_data->power(&flash->subdev, 0);
-> +	else
-> +		gpio_set_value(flash->platform_data->power_gpio, 0);
->  
->  	return ret;
->  }
-> @@ -407,21 +423,77 @@ static int adp1653_resume(struct device *dev)
->  
->  #endif /* CONFIG_PM */
->  
-> +static int adp1653_of_init(struct i2c_client *client,
-> +			   struct adp1653_flash *flash,
-> +			   struct device_node *node)
-> +{
-> +	u32 val;
-> +	struct adp1653_platform_data *pd;
-> +	enum of_gpio_flags flags;
-> +	int gpio;
-> +	struct device_node *child;
-> +
-> +	if (!node)
-> +		return -EINVAL;
-> +
-> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
-> +	if (!pd)
-> +		return -ENOMEM;
-> +	flash->platform_data = pd;
-> +
-> +	child = of_get_child_by_name(node, "flash");
-> +	if (!child)
-> +		return -EINVAL;
-> +	if (of_property_read_u32(child, "flash-timeout-microsec", &val))
-> +		return -EINVAL;
-> +
-> +	pd->max_flash_timeout = val;
-> +	if (of_property_read_u32(child, "flash-max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_flash_intensity = val/1000;
-> +
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_torch_intensity = val/1000;
-> +
-> +	child = of_get_child_by_name(node, "indicator");
-> +	if (!child)
-> +		return -EINVAL;
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-> +		return -EINVAL;
-> +	pd->max_indicator_intensity = val;
-> +
-> +	if (!of_find_property(node, "gpios", NULL)) {
-> +		dev_err(&client->dev, "No gpio node\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	pd->power_gpio = of_get_gpio_flags(node, 0, &flags);
-> +	if (pd->power_gpio < 0) {
-> +		dev_err(&client->dev, "Error getting GPIO\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +
->  static int adp1653_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *devid)
->  {
->  	struct adp1653_flash *flash;
->  	int ret;
->  
-> -	/* we couldn't work without platform data */
-> -	if (client->dev.platform_data == NULL)
-> -		return -ENODEV;
-> -
->  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
->  	if (flash == NULL)
->  		return -ENOMEM;
->  
->  	flash->platform_data = client->dev.platform_data;
-> +	if (!flash->platform_data) {
-> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	mutex_init(&flash->power_lock);
->  
-> @@ -438,10 +510,10 @@ static int adp1653_probe(struct i2c_client *client,
->  		goto free_and_quit;
->  
->  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-> -
->  	return 0;
->  
->  free_and_quit:
-> +	dev_err(&client->dev, "adp1653: failed to register device\n");
->  	v4l2_ctrl_handler_free(&flash->ctrls);
->  	return ret;
->  }
-> @@ -464,7 +536,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
->  
-> -static struct dev_pm_ops adp1653_pm_ops = {
-> +static const struct dev_pm_ops adp1653_pm_ops = {
->  	.suspend	= adp1653_suspend,
->  	.resume		= adp1653_resume,
->  };
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adp1653.txt b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> new file mode 100644
-> index 0000000..0fc28a9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/adp1653.txt
-> @@ -0,0 +1,37 @@
-> +* Analog Devices ADP1653 flash LED driver
-> +
-> +Required Properties:
-> +
-> +  - compatible: Must contain be "adi,adp1653"
-> +
-> +  - reg: I2C slave address
-> +
-> +  - gpios: References to the GPIO that controls the power for the chip.
-> +
-> +There are two led outputs available - flash and indicator. One led is
-> +represented by one child node, nodes need to be named "flash" and "indicator".
-> +
-> +Required properties of the LED child node:
-> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Required properties of the flash LED child node:
-> +
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> +
-> +Example:
-> +
-> +	adp1653: led-controller@30 {
-> +		compatible = "adi,adp1653";
-> +		reg = <0x30>;
-> +		gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>; /* 88 */
-> +
-> +		flash {
-> +			flash-timeout-us = <500000>;
-> +			flash-max-microamp = <320000>;
-> +			max-microamp = <50000>;
-> +		};
-> +		indicator {
-> +			max-microamp = <17500>;
-> +		};
-> +	};
-> 
-
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index e4d461a..787747b 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -123,7 +123,7 @@ int tpg_alloc(struct tpg_data *tpg, unsigned max_w)
+ 	tpg->max_line_width = max_w;
+ 	for (pat = 0; pat < TPG_MAX_PAT_LINES; pat++) {
+ 		for (plane = 0; plane < TPG_MAX_PLANES; plane++) {
+-			unsigned pixelsz = plane ? 1 : 4;
++			unsigned pixelsz = plane ? 2 : 4;
+ 
+ 			tpg->lines[pat][plane] = vzalloc(max_w * 2 * pixelsz);
+ 			if (!tpg->lines[pat][plane])
+@@ -136,7 +136,7 @@ int tpg_alloc(struct tpg_data *tpg, unsigned max_w)
+ 		}
+ 	}
+ 	for (plane = 0; plane < TPG_MAX_PLANES; plane++) {
+-		unsigned pixelsz = plane ? 1 : 4;
++		unsigned pixelsz = plane ? 2 : 4;
+ 
+ 		tpg->contrast_line[plane] = vzalloc(max_w * pixelsz);
+ 		if (!tpg->contrast_line[plane])
+@@ -255,6 +255,13 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 		tpg->planes = 2;
+ 		tpg->is_yuv = true;
+ 		break;
++	case V4L2_PIX_FMT_NV24:
++	case V4L2_PIX_FMT_NV42:
++		tpg->vdownsampling[1] = 1;
++		tpg->hdownsampling[1] = 1;
++		tpg->planes = 2;
++		tpg->is_yuv = true;
++		break;
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YVYU:
+@@ -322,6 +329,11 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 		tpg->twopixelsize[1] = 2;
+ 		tpg->twopixelsize[2] = 2;
+ 		break;
++	case V4L2_PIX_FMT_NV24:
++	case V4L2_PIX_FMT_NV42:
++		tpg->twopixelsize[0] = 2;
++		tpg->twopixelsize[1] = 4;
++		break;
+ 	}
+ 	return true;
+ }
+@@ -826,6 +838,18 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[1][1] = g_u;
+ 		break;
+ 
++	case V4L2_PIX_FMT_NV24:
++		buf[0][offset] = r_y;
++		buf[1][2 * offset] = g_u;
++		buf[1][2 * offset + 1] = b_v;
++		break;
++
++	case V4L2_PIX_FMT_NV42:
++		buf[0][offset] = r_y;
++		buf[1][2 * offset] = b_v;
++		buf[1][2 * offset + 1] = g_u;
++		break;
++
+ 	case V4L2_PIX_FMT_YUYV:
+ 		buf[0][offset] = r_y;
+ 		if (odd) {
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 81e6c82..aa89850 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -144,6 +144,24 @@ struct vivid_fmt vivid_formats[] = {
+ 		.buffers = 1,
+ 	},
+ 	{
++		.name     = "YUV 4:4:4 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV24,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 16 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
++		.name     = "YVU 4:4:4 biplanar",
++		.fourcc   = V4L2_PIX_FMT_NV42,
++		.vdownsampling = { 1, 1 },
++		.bit_depth = { 8, 16 },
++		.is_yuv   = true,
++		.planes   = 2,
++		.buffers = 1,
++	},
++	{
+ 		.name     = "Monochrome",
+ 		.fourcc   = V4L2_PIX_FMT_GREY,
+ 		.vdownsampling = { 1 },
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.4
+
