@@ -1,119 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49215 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751781AbbCBDqV (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49561 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753948AbbCMLRb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Mar 2015 22:46:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AD9472A0083
-	for <linux-media@vger.kernel.org>; Mon,  2 Mar 2015 04:46:06 +0100 (CET)
-Date: Mon, 02 Mar 2015 04:46:06 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 13 Mar 2015 07:17:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150302034606.AD9472A0083@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 36/39] vivid: add support for BGR666
+Date: Fri, 13 Mar 2015 12:16:14 +0100
+Message-Id: <1426245377-17704-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Add support for the four byte BGR666 format.
 
-date:		Mon Mar  2 04:00:16 CET 2015
-git branch:	test
-git hash:	a3dfc6d925ca1bbd1a228253acb93f08657bad25
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-41-g6c2d743
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c        | 13 +++++++++++++
+ drivers/media/platform/vivid/vivid-vid-common.c |  8 ++++++++
+ 2 files changed, 21 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index ec9ffc4..059e98e 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -200,6 +200,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_RGB555X:
+ 	case V4L2_PIX_FMT_XRGB555X:
+ 	case V4L2_PIX_FMT_ARGB555X:
++	case V4L2_PIX_FMT_BGR666:
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+ 	case V4L2_PIX_FMT_RGB32:
+@@ -299,6 +300,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_BGR24:
+ 		tpg->twopixelsize[0] = 2 * 3;
+ 		break;
++	case V4L2_PIX_FMT_BGR666:
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_BGR32:
+ 	case V4L2_PIX_FMT_XRGB32:
+@@ -749,6 +751,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 			g >>= 7;
+ 			b >>= 7;
+ 			break;
++		case V4L2_PIX_FMT_BGR666:
++			r >>= 6;
++			g >>= 6;
++			b >>= 6;
++			break;
+ 		default:
+ 			r >>= 4;
+ 			g >>= 4;
+@@ -944,6 +951,12 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[0][offset + 1] = g_u;
+ 		buf[0][offset + 2] = r_y;
+ 		break;
++	case V4L2_PIX_FMT_BGR666:
++		buf[0][offset] = (b_v << 2) | (g_u >> 4);
++		buf[0][offset + 1] = (g_u << 4) | (r_y >> 2);
++		buf[0][offset + 2] = r_y << 6;
++		buf[0][offset + 3] = 0;
++		break;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_XRGB32:
+ 		alpha = 0;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 9e8c06a..58b42d2 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -291,6 +291,14 @@ struct vivid_fmt vivid_formats[] = {
+ 		.buffers = 1,
+ 	},
+ 	{
++		.name     = "BGR666",
++		.fourcc   = V4L2_PIX_FMT_BGR666, /* bbbbbbgg ggggrrrr rrxxxxxx */
++		.vdownsampling = { 1 },
++		.bit_depth = { 32 },
++		.planes   = 1,
++		.buffers = 1,
++	},
++	{
+ 		.name     = "RGB32 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB32, /* xrgb */
+ 		.vdownsampling = { 1 },
+-- 
+2.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
