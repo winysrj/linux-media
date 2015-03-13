@@ -1,32 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33290 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753804AbbCMQzq (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49561 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753763AbbCMLRX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 12:55:46 -0400
-Date: Fri, 13 Mar 2015 18:55:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l2-dev: disable selection ioctls for non-video devices
-Message-ID: <20150313165542.GT11954@valkosipuli.retiisi.org.uk>
-References: <55030F91.9080304@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55030F91.9080304@xs4all.nl>
+	Fri, 13 Mar 2015 07:17:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 35/39] DocBook media: clarify BGR666
+Date: Fri, 13 Mar 2015 12:16:13 +0100
+Message-Id: <1426245377-17704-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 13, 2015 at 05:25:53PM +0100, Hans Verkuil wrote:
-> The selection/cropping ioctls are only valid for video nodes, not for vbi.
-> 
-> Found by v4l2-compliance when run on a VBI device node.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The documentation is not clear whether this is a three or four byte
+format. Clarify this.
 
+Also move the BGR666 format to the other 32 bit formats.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 79 +++++++++++-----------
+ 1 file changed, 40 insertions(+), 39 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index 6ab4f0f..b60fb93 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -303,45 +303,6 @@ for a pixel lie next to each other in memory.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
+-	  <row id="V4L2-PIX-FMT-BGR666">
+-	    <entry><constant>V4L2_PIX_FMT_BGR666</constant></entry>
+-	    <entry>'BGRH'</entry>
+-	    <entry></entry>
+-	    <entry>b<subscript>5</subscript></entry>
+-	    <entry>b<subscript>4</subscript></entry>
+-	    <entry>b<subscript>3</subscript></entry>
+-	    <entry>b<subscript>2</subscript></entry>
+-	    <entry>b<subscript>1</subscript></entry>
+-	    <entry>b<subscript>0</subscript></entry>
+-	    <entry>g<subscript>5</subscript></entry>
+-	    <entry>g<subscript>4</subscript></entry>
+-	    <entry></entry>
+-	    <entry>g<subscript>3</subscript></entry>
+-	    <entry>g<subscript>2</subscript></entry>
+-	    <entry>g<subscript>1</subscript></entry>
+-	    <entry>g<subscript>0</subscript></entry>
+-	    <entry>r<subscript>5</subscript></entry>
+-	    <entry>r<subscript>4</subscript></entry>
+-	    <entry>r<subscript>3</subscript></entry>
+-	    <entry>r<subscript>2</subscript></entry>
+-	    <entry></entry>
+-	    <entry>r<subscript>1</subscript></entry>
+-	    <entry>r<subscript>0</subscript></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+@@ -404,6 +365,46 @@ for a pixel lie next to each other in memory.</para>
+ 	    <entry>b<subscript>1</subscript></entry>
+ 	    <entry>b<subscript>0</subscript></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-BGR666">
++	    <entry><constant>V4L2_PIX_FMT_BGR666</constant></entry>
++	    <entry>'BGRH'</entry>
++	    <entry></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry></entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	    <entry>-</entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-ABGR32">
+ 	    <entry><constant>V4L2_PIX_FMT_ABGR32</constant></entry>
+ 	    <entry>'AR24'</entry>
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
+
