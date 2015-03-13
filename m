@@ -1,103 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50695 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbbCUV34 (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:44208 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019AbbCMFsI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 17:29:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jean-Michel Hautbois <jhautbois@gmail.com>
-Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March 26th
-Date: Sat, 21 Mar 2015 23:30:10 +0200
-Message-ID: <47567947.bBC8Lg1D1r@avalon>
-In-Reply-To: <CAL8zT=gg+b1DGyKjm9wL9zV_aCP9YMCkpS-KLqVORP_Qb6oV=A@mail.gmail.com>
-References: <5506BDA8.3000700@xs4all.nl> <1539819.WFF67ZXgOp@avalon> <CAL8zT=gg+b1DGyKjm9wL9zV_aCP9YMCkpS-KLqVORP_Qb6oV=A@mail.gmail.com>
+	Fri, 13 Mar 2015 01:48:08 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20150313000415.GR11954@valkosipuli.retiisi.org.uk>
+References: <1426202556-29156-1-git-send-email-prabhakar.csengg@gmail.com> <20150313000415.GR11954@valkosipuli.retiisi.org.uk>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Fri, 13 Mar 2015 05:47:36 +0000
+Message-ID: <CA+V-a8uygY1XH-V+xSvXyfboFNK_tK=XziqRi6xLfh62WKLRuA@mail.gmail.com>
+Subject: Re: [PATCH v5] media: i2c: add support for omnivision's ov2659 sensor
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+Hi Sakari,
 
-On Saturday 21 March 2015 19:37:51 Jean-Michel Hautbois wrote:
-> 2015-03-21 13:36 GMT+01:00 Laurent Pinchart:
-> > On Monday 16 March 2015 12:25:28 Hans Verkuil wrote:
-> > > This is the draft agenda for the media mini-summit in San Jose on March
-> > > 26th.
-> > > 
-> > > Time: 9 AM to 5 PM (approximately)
-> > > Room: TBC (Mauro, do you know this?)
-> > > 
-> > > Attendees:
-> > > 
-> > > Mauro Carvalho Chehab - mchehab@osg.samsung.com               - Samsung
-> > > Laurent Pinchart      - laurent.pinchart@ideasonboard.com     - Ideas on
-> > > board Hans Verkuil          - hverkuil@xs4all.nl                    -
-> > > Cisco
-> > > 
-> > > Mauro, do you have a better overview of who else will attend?
-> > > 
-> > > Agenda:
-> > > 
-> > > Times are approximate and will likely change.
-> > > 
-> > > 9:00-9:15   Get everyone installed, laptops hooked up, etc.
-> > > 9:15-9:30   Introduction
-> > > 
-> > > 9:30-10:30  Media Controller support for DVB (Mauro):
-> > >               1) dynamic creation/removal of pipelines
-> > >               2) change media_entity_pipeline_start to also define
-> > >               
-> > >                  the final entity
-> > >               
-> > >               3) how to setup pipelines that also envolve audio and DRM
-> > >               4) how to lock the media controller pipeline between
-> > >               enabling a
-> > >               
-> > >                  pipeline and starting it, in order to avoid race
-> > >                  conditions
-> > > 
-> > > See this post for more detailed information:
-> > > 
-> > > https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
-> > > 
-> > > 10:30-10:45 Break
-> > > 10:45-12:00 Continue discussion
-> > > 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch
-> > > organized, or if we are on our own?)
-> > > 13:00-14:40 Continue discussion
-> > > 14:40-15:00 Break
-> > > 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic
-> > > reconfiguration and project Ara (http://www.projectara.com/) (Laurent).
-> > 
-> > To be precise, this will be both hot plug and hot unplug.
-> > 
-> > > 16:00-17:00 Update on ongoing projects (Hans):
-> > >               - proposal for Android Camera v3-type requests (aka
-> > >               configuration
-> > >               stores)
-> > 
-> > I'm interested in this as well.
-> > 
-> > >               - work on colorspace improvements
-> > >               - vivid & v4l2-compliance improvements
-> > >               - removing duplicate subdev video ops and use pad ops
-> > >               instead
-> > >               - others?
-> > 
-> > There's also the topic of the media device controller registry that we
-> > discussed during the FOSDEM, but as far as I know there has been no
-> > progress in that area.
-> 
-> Unfortunately I can't be there, but am interested by a report on this
-> particular question :).
+Thanks for the review.
 
-Feel free to report your progress ;-)
+On Fri, Mar 13, 2015 at 12:04 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Prabhakar,
+>
+> On Thu, Mar 12, 2015 at 11:22:36PM +0000, Lad Prabhakar wrote:
+> ...
+>> +static int ov2659_probe(struct i2c_client *client,
+>> +                     const struct i2c_device_id *id)
+>> +{
+>> +     const struct ov2659_platform_data *pdata = ov2659_get_pdata(client);
+>> +     struct v4l2_subdev *sd;
+>> +     struct ov2659 *ov2659;
+>> +     struct clk *clk;
+>> +     int ret;
+>> +
+>> +     if (!pdata) {
+>> +             dev_err(&client->dev, "platform data not specified\n");
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     ov2659 = devm_kzalloc(&client->dev, sizeof(*ov2659), GFP_KERNEL);
+>> +     if (!ov2659)
+>> +             return -ENOMEM;
+>> +
+>> +     ov2659->pdata = pdata;
+>> +     ov2659->client = client;
+>> +
+>> +     clk = devm_clk_get(&client->dev, "xvclk");
+>> +     if (IS_ERR(clk))
+>> +             return PTR_ERR(clk);
+>> +
+>> +     ov2659->xvclk_frequency = clk_get_rate(clk);
+>> +     if (ov2659->xvclk_frequency < 6000000 ||
+>> +         ov2659->xvclk_frequency > 27000000)
+>> +             return -EINVAL;
+>> +
+>> +     v4l2_ctrl_handler_init(&ov2659->ctrls, 2);
+>> +     v4l2_ctrl_new_std(&ov2659->ctrls, &ov2659_ctrl_ops,
+>> +                       V4L2_CID_PIXEL_RATE, ov2659->xvclk_frequency,
+>> +                       ov2659->xvclk_frequency, 1, ov2659->xvclk_frequency);
+>
+> ov2659->xvclk_frequency is the frequency of the external clock, not the
+> pixel rate. If I understand correctly, you should use the value of the
+> link-frequency property instead (as long as it's one pixel per clock).
+>
+this is what happens when you work late night :)
 
--- 
-Regards,
+> With this fixed,
+>
+will post a v6 today.
 
-Laurent Pinchart
+Cheers,
+--Prabhakar Lad
 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+>> +     v4l2_ctrl_new_std_menu_items(&ov2659->ctrls, &ov2659_ctrl_ops,
+>> +                                  V4L2_CID_TEST_PATTERN,
+>> +                                  ARRAY_SIZE(ov2659_test_pattern_menu) - 1,
+>> +                                  0, 0, ov2659_test_pattern_menu);
+>> +     ov2659->sd.ctrl_handler = &ov2659->ctrls;
+>> +
+>> +     if (ov2659->ctrls.error) {
+>> +             dev_err(&client->dev, "%s: control initialization error %d\n",
+>> +                     __func__, ov2659->ctrls.error);
+>> +             return  ov2659->ctrls.error;
+>> +     }
+>> +
+>> +     sd = &ov2659->sd;
+>> +     client->flags |= I2C_CLIENT_SCCB;
+>> +     v4l2_i2c_subdev_init(sd, client, &ov2659_subdev_ops);
+>> +
+>> +     sd->internal_ops = &ov2659_subdev_internal_ops;
+>> +     sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+>> +                  V4L2_SUBDEV_FL_HAS_EVENTS;
+>> +
+>> +#if defined(CONFIG_MEDIA_CONTROLLER)
+>> +     ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
+>> +     sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+>> +     ret = media_entity_init(&sd->entity, 1, &ov2659->pad, 0);
+>> +     if (ret < 0) {
+>> +             v4l2_ctrl_handler_free(&ov2659->ctrls);
+>> +             return ret;
+>> +     }
+>> +#endif
+>> +
+>> +     mutex_init(&ov2659->lock);
+>> +
+>> +     ov2659_get_default_format(&ov2659->format);
+>> +     ov2659->frame_size = &ov2659_framesizes[2];
+>> +     ov2659->format_ctrl_regs = ov2659_formats[0].format_ctrl_regs;
+>> +
+>> +     ret = ov2659_detect(sd);
+>> +     if (ret < 0)
+>> +             goto error;
+>> +
+>> +     /* Calculate the PLL register value needed */
+>> +     ov2659_pll_calc_params(ov2659);
+>> +
+>> +     ret = v4l2_async_register_subdev(&ov2659->sd);
+>> +     if (ret)
+>> +             goto error;
+>> +
+>> +     dev_info(&client->dev, "%s sensor driver registered !!\n", sd->name);
+>> +
+>> +     return 0;
+>> +
+>> +error:
+>> +     v4l2_ctrl_handler_free(&ov2659->ctrls);
+>> +#if defined(CONFIG_MEDIA_CONTROLLER)
+>> +     media_entity_cleanup(&sd->entity);
+>> +#endif
+>> +     mutex_destroy(&ov2659->lock);
+>> +     return ret;
+>> +}
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
