@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:46266 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbbCBXys (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 18:54:48 -0500
-Date: Mon, 2 Mar 2015 23:54:35 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
-Message-ID: <20150302235435.GF29584@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
- <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
- <118780170.u6ZO5zJrEk@avalon>
- <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150302225336.GV6539@valkosipuli.retiisi.org.uk>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47653 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661AbbCMJGe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2015 05:06:34 -0400
+Message-ID: <1426237574.3083.22.camel@pengutronix.de>
+Subject: Re: [PATCH v3 00/10] Use media bus formats in imx-drm and add drm
+ panel support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Emil Renner Berthing <kernel@esmil.dk>
+Cc: Boris Brezillion <boris.brezillon@free-electrons.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	linux-media@vger.kernel.org
+Date: Fri, 13 Mar 2015 10:06:14 +0100
+In-Reply-To: <CANBLGcxheEoVisGw_HUiQtVL5N4L4XrVQ7mOfSWV82wP5NRQ0g@mail.gmail.com>
+References: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
+	 <CANBLGcxheEoVisGw_HUiQtVL5N4L4XrVQ7mOfSWV82wP5NRQ0g@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Combining replies...)
-
-On Tue, Mar 03, 2015 at 12:53:37AM +0200, Sakari Ailus wrote:
-> Hi Laurent and Russell,
+Am Donnerstag, den 12.03.2015, 18:53 +0100 schrieb Emil Renner Berthing:
+> Hi Philipp
 > 
-> On Tue, Mar 03, 2015 at 12:33:44AM +0200, Laurent Pinchart wrote:
-> > Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
-> > prefer to resolve the conflict ? Russell, would it be fine to merge this 
-> > through Mauro's tree ?
+> On 12 March 2015 at 10:58, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > Currently the imx-drm driver misuses the V4L2_PIX_FMT constants to describe the
+> > pixel format on the parallel bus between display controllers and encoders. Now
+> > that MEDIA_BUS_FMT is available, use that instead.
+> 
+> I've tested this series on the Hercules eCAFE Slim HD, which uses the
+> RGB666_1X24_CPADHI format, and it still boots up with screen output.
+> You can add
+> 
+> Tested-by: Emil Renner Berthing <kernel@esmil.dk>
 
-As other changes will depend on this, I'd prefer not to.  The whole
-"make clk_get() return a unique struct clk" wasn't well tested, and
-several places broke - and currently clk_add_alias() is broken as a
-result of that.
+Thanks for testing! I'll add that to the relevant patches (5-7).
 
-I'm trying to get to the longer term solution, where clkdev internally
-uses a struct clk_hw pointer rather than a struct clk pointer, and I
-want to clean stuff up first.
+regards
+Philipp
 
-If omap3isp needs to keep this code, then so be it - I'll come up with
-a different patch improving its use of clkdev instead.
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
