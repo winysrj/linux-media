@@ -1,67 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40465 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51429 "EHLO
 	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756085AbbCCKOs (ORCPT
+	by vger.kernel.org with ESMTP id S1751113AbbCMLQj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 05:14:48 -0500
-Message-ID: <54F58988.1040404@xs4all.nl>
-Date: Tue, 03 Mar 2015 11:14:32 +0100
+	Fri, 13 Mar 2015 07:16:39 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 06/15] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <1424544001-19045-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-7-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 30/39] vivid: add RGB444 support
+Date: Fri, 13 Mar 2015 12:16:08 +0100
+Message-Id: <1426245377-17704-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/21/2015 07:39 PM, Lad Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> No need to reinvent the wheel. Just use the already existing
-> functions provided by vb2.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
->  1 file changed, 3 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-> index be0d0a2b..ee0e848 100644
-> --- a/drivers/media/platform/blackfin/bfin_capture.c
-> +++ b/drivers/media/platform/blackfin/bfin_capture.c
-> @@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
->  	return 0;
->  }
->  
-> -static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
-> -{
-> -	struct bcap_device *bcap_dev = video_drvdata(file);
-> -	int ret;
-> -
-> -	if (mutex_lock_interruptible(&bcap_dev->mutex))
-> -		return -ERESTARTSYS;
-> -	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
-> -	mutex_unlock(&bcap_dev->mutex);
-> -	return ret;
-> -}
-> -
->  #ifndef CONFIG_MMU
->  static unsigned long bcap_get_unmapped_area(struct file *file,
->  					    unsigned long addr,
-> @@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This can also be replaced by vb2_fop_get_unmapped_area().
+Add support for (A/X)RGB444 formats.
 
-Patch is welcome :-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c        | 21 +++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-vid-common.c | 25 +++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-Regards,
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index e7086e1..fcb2486 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -190,6 +190,9 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	switch (fourcc) {
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_RGB444:
++	case V4L2_PIX_FMT_XRGB444:
++	case V4L2_PIX_FMT_ARGB444:
+ 	case V4L2_PIX_FMT_RGB555:
+ 	case V4L2_PIX_FMT_XRGB555:
+ 	case V4L2_PIX_FMT_ARGB555:
+@@ -264,6 +267,9 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	switch (fourcc) {
+ 	case V4L2_PIX_FMT_RGB565:
+ 	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_RGB444:
++	case V4L2_PIX_FMT_XRGB444:
++	case V4L2_PIX_FMT_ARGB444:
+ 	case V4L2_PIX_FMT_RGB555:
+ 	case V4L2_PIX_FMT_XRGB555:
+ 	case V4L2_PIX_FMT_ARGB555:
+@@ -701,6 +707,13 @@ static void precalculate_color(struct tpg_data *tpg, int k)
+ 			g >>= 6;
+ 			b >>= 7;
+ 			break;
++		case V4L2_PIX_FMT_RGB444:
++		case V4L2_PIX_FMT_XRGB444:
++		case V4L2_PIX_FMT_ARGB444:
++			r >>= 8;
++			g >>= 8;
++			b >>= 8;
++			break;
+ 		case V4L2_PIX_FMT_RGB555:
+ 		case V4L2_PIX_FMT_XRGB555:
+ 		case V4L2_PIX_FMT_ARGB555:
+@@ -855,6 +868,14 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[0][offset] = (r_y << 3) | (g_u >> 3);
+ 		buf[0][offset + 1] = (g_u << 5) | b_v;
+ 		break;
++	case V4L2_PIX_FMT_RGB444:
++	case V4L2_PIX_FMT_XRGB444:
++		alpha = 0;
++		/* fall through */
++	case V4L2_PIX_FMT_ARGB444:
++		buf[0][offset] = (g_u << 4) | b_v;
++		buf[0][offset + 1] = (alpha & 0xf0) | r_y;
++		break;
+ 	case V4L2_PIX_FMT_RGB555:
+ 	case V4L2_PIX_FMT_XRGB555:
+ 		alpha = 0;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 7cb4aa0..cb73c1b 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -171,6 +171,31 @@ struct vivid_fmt vivid_formats[] = {
+ 		.can_do_overlay = true,
+ 	},
+ 	{
++		.name     = "RGB444",
++		.fourcc   = V4L2_PIX_FMT_RGB444, /* xxxxrrrr ggggbbbb */
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
++		.planes   = 1,
++		.buffers = 1,
++	},
++	{
++		.name     = "XRGB444",
++		.fourcc   = V4L2_PIX_FMT_XRGB444, /* xxxxrrrr ggggbbbb */
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
++		.planes   = 1,
++		.buffers = 1,
++	},
++	{
++		.name     = "ARGB444",
++		.fourcc   = V4L2_PIX_FMT_ARGB444, /* aaaarrrr ggggbbbb */
++		.vdownsampling = { 1 },
++		.bit_depth = { 16 },
++		.planes   = 1,
++		.buffers = 1,
++		.alpha_mask = 0x00f0,
++	},
++	{
+ 		.name     = "RGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb arrrrrgg */
+ 		.vdownsampling = { 1 },
+-- 
+2.1.4
 
-	Hans
