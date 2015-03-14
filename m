@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44918 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455AbbCOOXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 10:23:23 -0400
-Message-ID: <550595D1.4080605@iki.fi>
-Date: Sun, 15 Mar 2015 16:23:13 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "W.Pelser" <w.pelser@web.de>, linux-media@vger.kernel.org
-Subject: Re: new bug
-References: <55056136.2070305@web.de>
-In-Reply-To: <55056136.2070305@web.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42342 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbbCNO5h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2015 10:57:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: =?UTF-8?q?Carlos=20Sanmart=C3=ADn=20Bustos?= <carsanbu@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 1/2] of: Add vendor prefix for Aptina Imaging
+Date: Sat, 14 Mar 2015 16:57:36 +0200
+Message-Id: <1426345057-2752-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/2015 12:38 PM, W.Pelser wrote:
-> I filed a new bug and I got a comment from Greg Kroah-Hartman:
->
-> On Sat, Mar 14, 2015 at 06:17:39PM +0000,
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->  > https://bugzilla.kernel.org/show_bug.cgi?id=94861
->  >
->  >             Bug ID: 94861
->  >            Summary: After resume from hibernate/sleep USB-DVBT-adapter
->  >                     does not work
->
-> Please send to the linux-media@vger.kernel.org mailing list.
->
-> I hope, this time I can pass the spam-filter.
-> <mailto:greg@kroah.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-These media drivers does not support hibernate/suspend/resume generally, 
-only runtime PM. Almost all drivers will just fail when you try sleep 
-during streaming (only few usb drivers I made are supporting it).
+Aptina has recently been acquired by ON Semiconductor, but the name Aptina is
+still widely used. Should the onnn prefix be used instead ?
 
-In order to support hibernate driver needs to stop all (USB) 
-communication on hibernate, which means in practice stopping remote 
-controller polling and stopping possible data stream and on resume those 
-should be restored.
-
-regards
-Antti
-
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 389ca13..4326f52 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -20,6 +20,7 @@ amlogic	Amlogic, Inc.
+ ams	AMS AG
+ amstaos	AMS-Taos Inc.
+ apm	Applied Micro Circuits Corporation (APM)
++aptina	Aptina Imaging
+ arm	ARM Ltd.
+ armadeus	ARMadeus Systems SARL
+ asahi-kasei	Asahi Kasei Corp.
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
