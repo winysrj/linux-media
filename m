@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60957 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbbC3LLQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 07:11:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC 12/12] [media] tc358743: allow event subscription
-Date: Mon, 30 Mar 2015 13:10:56 +0200
-Message-Id: <1427713856-10240-13-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:52883 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726AbbCNQtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2015 12:49:13 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] rtl2832: disable regmap register cache
+Date: Sat, 14 Mar 2015 18:48:53 +0200
+Message-Id: <1426351734-30836-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is useful to subscribe to HDMI hotplug events via the
-V4L2_CID_DV_RX_POWER_PRESENT control.
+Caching register reads causes some random I/O errors on channel
+change. Disable caching now in order to avoid those errors.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reverts partly commit dcadb82
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/tc358743.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/dvb-frontends/rtl2832.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 7d70acc..aec4457 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -39,6 +39,7 @@
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-of.h>
- #include <media/tc358743.h>
- 
-@@ -1627,6 +1628,8 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
- 	.s_register = tc358743_s_register,
- #endif
- 	.interrupt_service_routine = tc358743_isr,
-+	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
- };
- 
- static const struct v4l2_subdev_video_ops tc358743_video_ops = {
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 5d2d8f4..67faa8d 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1240,7 +1240,7 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	dev->regmap_config.max_register = 5 * 0x100,
+ 	dev->regmap_config.ranges = regmap_range_cfg,
+ 	dev->regmap_config.num_ranges = ARRAY_SIZE(regmap_range_cfg),
+-	dev->regmap_config.cache_type = REGCACHE_RBTREE,
++	dev->regmap_config.cache_type = REGCACHE_NONE,
+ 	dev->regmap = regmap_init(&client->dev, &regmap_bus, client,
+ 				  &dev->regmap_config);
+ 	if (IS_ERR(dev->regmap)) {
 -- 
-2.1.4
+http://palosaari.fi/
 
