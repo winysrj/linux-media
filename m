@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41324 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752206AbbCXLsr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38667 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755372AbbCNOne (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 07:48:47 -0400
-Message-ID: <55114F17.9040206@xs4all.nl>
-Date: Tue, 24 Mar 2015 04:48:39 -0700
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 14 Mar 2015 10:43:34 -0400
+Date: Sat, 14 Mar 2015 16:43:24 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 16/18] arm: dts: omap3: Add DT entries for OMAP 3
+Message-ID: <20150314144320.GW11954@valkosipuli.retiisi.org.uk>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+ <1425764475-27691-17-git-send-email-sakari.ailus@iki.fi>
+ <2423520.KeZmBeFNoH@avalon>
 MIME-Version: 1.0
-To: Divneil Rai WADHAWAN <divneil.wadhawan@st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "divneil@outlook.com" <divneil@outlook.com>
-Subject: Re: Subdev notification for video device
-References: <C17522D12DF21D4F9DC8833224F23A8705F96EEB@EAPEX1MAIL1.st.com>
-In-Reply-To: <C17522D12DF21D4F9DC8833224F23A8705F96EEB@EAPEX1MAIL1.st.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2423520.KeZmBeFNoH@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/2015 12:49 AM, Divneil Rai WADHAWAN wrote:
-> Hello,
+On Sun, Mar 08, 2015 at 01:51:51AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> I have a use case, where, I am using subdev configuration to setup video capture.
-> The pipeline is something like this:
+> Thank you for the patch.
 > 
-> Subdevs: sd_display, sd_capture
-> Vdev: vcapture
+> On Saturday 07 March 2015 23:41:13 Sakari Ailus wrote:
+> > The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
+> > Especially the phy-type property is different.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  arch/arm/boot/dts/omap34xx.dtsi |   15 +++++++++++++++
+> >  arch/arm/boot/dts/omap36xx.dtsi |   15 +++++++++++++++
+> >  2 files changed, 30 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/omap34xx.dtsi
+> > b/arch/arm/boot/dts/omap34xx.dtsi index 3819c1e..4c034d0 100644
+> > --- a/arch/arm/boot/dts/omap34xx.dtsi
+> > +++ b/arch/arm/boot/dts/omap34xx.dtsi
+> > @@ -37,6 +37,21 @@
+> >  			pinctrl-single,register-width = <16>;
+> >  			pinctrl-single,function-mask = <0xff1f>;
+> >  		};
+> > +
+> > +		omap3_isp: omap3_isp@480bc000 {
+> > +			compatible = "ti,omap3-isp";
+> > +			reg = <0x480bc000 0x12fc
+> > +			       0x480bd800 0x017c>;
+> > +			interrupts = <24>;
+> > +			iommus = <&mmu_isp>;
+> > +			syscon = <&omap3_scm_general 0xdc>;
+> > +			ti,phy-type = <0>;
+> > +			#clock-cells = <1>;
+> > +			ports {
+> > +				#address-cells = <1>;
+> > +				#size-cells = <0>;
 > 
->  (0)sd_display(1) -> (0)sd_capture(1)->(0)vcapture
-> 
-> sd_display informs sd_capture of video resolution change and vdev using sd_capture needs to be informed, so, that vdev capture can be stopped.
-> 
-> Here, subdev notification/subscription is missing to/from vdev, in my understanding.
-> subdev can send notification to v4l2-dev, but not vdev.
-> Can you help with that? Thanks.
+> How about predefining the ports too ?
 
-This is correct. The subdev doesn't and cannot know anything about which video node(s)
-need(s) to send out a source change event. The only driver that can is the top-level driver
-that knows the topology and can map the event from the sd to the correct video_device.
+After a short discussion, we decided not to add port nodes. The arguments
+considered were:
 
-If your driver uses the media controller, then it should be possible to write a generic
-function that would use the topology to discover automatically which video_device nodes
-are linked to the sd and propagate the event to those video devices.
+- Port nodes could help integrators writing the DT nodes. However the port
+  nodes are easier to construct than endpoint nodes. Board specific
+  configuration would also still need to be added.
+- Extra port nodes take space which could be spent more usefully for other
+  purposes.
 
-Such a generic v4l2_dev notify function doesn't exist today though. Patches are welcome.
-
-If the driver doesn't use the media controller, then the top-level driver should provide
-this knowledge in its v4l2_dev notifier function.
-
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
