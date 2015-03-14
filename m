@@ -1,57 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42335 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38556 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753417AbbCIJW2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752481AbbCNOMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 05:22:28 -0400
-Date: Mon, 9 Mar 2015 11:21:55 +0200
+	Sat, 14 Mar 2015 10:12:13 -0400
+Date: Sat, 14 Mar 2015 16:12:09 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l2-framework.txt: debug -> dev_debug
-Message-ID: <20150309092155.GA11954@valkosipuli.retiisi.org.uk>
-References: <54FBFA7B.9040904@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	pali.rohar@gmail.com
+Subject: Re: [RFC 15/18] omap3isp: Add support for the Device Tree
+Message-ID: <20150314141209.GV11954@valkosipuli.retiisi.org.uk>
+References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+ <1425764475-27691-16-git-send-email-sakari.ailus@iki.fi>
+ <1977501.nIrQKlrSI0@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <54FBFA7B.9040904@xs4all.nl>
+In-Reply-To: <1977501.nIrQKlrSI0@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 08, 2015 at 08:30:03AM +0100, Hans Verkuil wrote:
-> The debug attribute was renamed to dev_debug. Update the doc accordingly.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/video4linux/v4l2-framework.txt | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index f586e29..59e619f 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -793,8 +793,8 @@ video_register_device_no_warn() instead.
->  
->  Whenever a device node is created some attributes are also created for you.
->  If you look in /sys/class/video4linux you see the devices. Go into e.g.
-> -video0 and you will see 'name', 'debug' and 'index' attributes. The 'name'
-> -attribute is the 'name' field of the video_device struct. The 'debug' attribute
-> +video0 and you will see 'name', 'dev_debug' and 'index' attributes. The 'name'
-> +attribute is the 'name' field of the video_device struct. The 'dev_debug' attribute
->  can be used to enable core debugging. See the next section for more detailed
->  information on this.
->  
-> @@ -821,7 +821,7 @@ unregister the device if the registration failed.
->  video device debugging
->  ----------------------
->  
-> -The 'debug' attribute that is created for each video, vbi, radio or swradio
-> +The 'dev_debug' attribute that is created for each video, vbi, radio or swradio
->  device in /sys/class/video4linux/<devX>/ allows you to enable logging of
->  file operations.
+Hi Laurent,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Thu, Mar 12, 2015 at 01:48:02AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Saturday 07 March 2015 23:41:12 Sakari Ailus wrote:
+> > Add the ISP device to omap3 DT include file and add support to the driver to
+> > use it.
+> > 
+> > Also obtain information on the external entities and the ISP configuration
+> > related to them through the Device Tree in addition to the platform data.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/platform/omap3isp/isp.c       |  206 ++++++++++++++++++++++--
+> >  drivers/media/platform/omap3isp/isp.h       |   11 ++
+> >  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
+> >  3 files changed, 213 insertions(+), 11 deletions(-)
+> 
+> [snip]
+> 
+> > @@ -2358,14 +2541,6 @@ static int isp_probe(struct platform_device *pdev)
+> >  	isp->mmio_hist_base_phys =
+> >  		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+> > 
+> > -	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+> > -	isp->syscon_offset = isp_res_maps[m].syscon_offset;
+> 
+> You're removing syscon_offset initialization here but not adding it anywhere 
+> else. This patch doesn't match the commit in your rm696-053-upstream branch, 
+> could you send the right version ? I'll then review it.
+
+Yeah, there have been quite a few changes since I posted this RFC set, this
+including. I'll post a new version once I've been able to take into account
+all the comments I've got so far.
+
+It'd be nice if someone could test the pdata support; I haven't had a chance
+to do that in a few years now. :-)
 
 -- 
+Cheers,
+
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
