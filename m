@@ -1,74 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:57079 "EHLO
-	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbbCGXHj (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44765 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750848AbbCNKBA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 18:07:39 -0500
-Message-ID: <1425769657.2300.55.camel@x220>
-Subject: Re: [PATCH v3] media: i2c: add support for omnivision's ov2659
- sensor
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
-Date: Sun, 08 Mar 2015 00:07:37 +0100
-In-Reply-To: <1425741700-23506-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425741700-23506-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Sat, 14 Mar 2015 06:01:00 -0400
+Message-ID: <550406D0.5070705@xs4all.nl>
+Date: Sat, 14 Mar 2015 11:00:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Shuah Khan <shuahkh@osg.samsung.com>, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, Julia.Lawall@lip6.fr,
+	laurent.pinchart@ideasonboard.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: au0828 - add vidq busy checks to s_std and s_input
+References: <1426299523-14718-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <1426299523-14718-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2015-03-07 at 15:21 +0000, Lad Prabhakar wrote:
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -0,0 +1,1495 @@
-> +/*
-> + * Omnivision OV2659 CMOS Image Sensor driver
-> + *
-> + * Copyright (C) 2015 Texas Instruments, Inc.
-> + *
-> + * Benoit Parrot <bparrot@ti.com>
-> + * Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> + *
-> + * This program is free software; you may redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; version 2 of the License.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
+On 03/14/2015 03:18 AM, Shuah Khan wrote:
+> au0828 s_std and s_input are missing queue busy checks. Add
+> vb2_is_busy() calls to s_std and s_input and return -EBUSY
+> if found busy.
 
-This states the license of this modules is GPL v2.
+I agree with Devin that for this particular driver this patch isn't necessary.
 
-> +MODULE_LICENSE("GPL");
+Regards,
 
-So you probably want
-    MODULE_LICENSE("GPL v2");
+	Hans
 
-here.
-
-(If you think this is a bit silly, and somewhere I think so too, you're
-invited to jump into the discussion starting at
-https://lkml.org/lkml/2015/3/7/119 .)
-
-
-
-Paul Bolle
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-video.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index f47ee90..42c49c2 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -1214,6 +1214,11 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>  	if (norm == dev->std)
+>  		return 0;
+>  
+> +	if (vb2_is_busy(&dev->vb_vidq)) {
+> +		pr_info("%s queue busy\n", __func__);
+> +		return -EBUSY;
+> +	}
+> +
+>  	if (dev->streaming_users > 0)
+>  		return -EBUSY;
+>  
+> @@ -1364,6 +1369,14 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+>  		return -EINVAL;
+>  	if (AUVI_INPUT(index).type == 0)
+>  		return -EINVAL;
+> +	/*
+> +	 * Changing the input implies a format change, which is not allowed
+> +	 * while buffers for use with streaming have already been allocated.
+> +	*/
+> +	if (vb2_is_busy(&dev->vb_vidq)) {
+> +		pr_info("%s queue busy\n", __func__);
+> +		return -EBUSY;
+> +	}
+>  	dev->ctrl_input = index;
+>  	au0828_s_input(dev, index);
+>  	return 0;
+> 
 
