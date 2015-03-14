@@ -1,64 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:35001 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272AbbCJBsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 21:48:33 -0400
-Received: by wesw55 with SMTP id w55so16597939wes.2
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2015 18:48:32 -0700 (PDT)
-Date: Tue, 10 Mar 2015 09:48:33 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "Dirk Nehring" <dnehring@gmx.net>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/1] Fix DVBsky rc-keymap
-Message-ID: <201503100948297650804@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38720 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751934AbbCNOr2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2015 10:47:28 -0400
+Date: Sat, 14 Mar 2015 16:47:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: omap3isp: video: Use v4l2_get_timestamp()
+Message-ID: <20150314144725.GX11954@valkosipuli.retiisi.org.uk>
+References: <1426206687-14340-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1426206687-14340-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Thanks!
 
-Mapping VOLUME and CHANNEL keys to the general ones will break some tv softwares remote control functions.
+On Fri, Mar 13, 2015 at 02:31:27AM +0200, Laurent Pinchart wrote:
+> Replace the open-coded copy by a function call.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Best Regards,
-Max
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-On 2015-03-10 06:05:02, Dirk Nehring <dnehring@gmx.net> wrote:
->Signed-off-by: Dirk Nehring <dnehring@gmx.net>
->---
-> drivers/media/rc/keymaps/rc-dvbsky.c | 12 ++++++------
-> 1 file changed, 6 insertions(+), 6 deletions(-)
->
->diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
->index c5115a1..b942b16 100644
->--- a/drivers/media/rc/keymaps/rc-dvbsky.c
->+++ b/drivers/media/rc/keymaps/rc-dvbsky.c
->@@ -33,16 +33,16 @@ static struct rc_map_table rc5_dvbsky[] = {
-> 	{ 0x000b, KEY_STOP },
-> 	{ 0x000c, KEY_EXIT },
-> 	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
->-	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
->-	{ 0x0010, KEY_VOLUMEUP },
->-	{ 0x0011, KEY_VOLUMEDOWN },
->+	{ 0x000f, KEY_TV2 }, /*PIP*/
->+	{ 0x0010, KEY_RIGHT },
->+	{ 0x0011, KEY_LEFT },
-> 	{ 0x0012, KEY_FAVORITES },
->-	{ 0x0013, KEY_LIST }, /*Info*/
->+	{ 0x0013, KEY_INFO },
-> 	{ 0x0016, KEY_PAUSE },
-> 	{ 0x0017, KEY_PLAY },
-> 	{ 0x001f, KEY_RECORD },
->-	{ 0x0020, KEY_CHANNELDOWN },
->-	{ 0x0021, KEY_CHANNELUP },
->+	{ 0x0020, KEY_UP },
->+	{ 0x0021, KEY_DOWN },
-> 	{ 0x0025, KEY_POWER2 },
-> 	{ 0x0026, KEY_REWIND },
-> 	{ 0x0027, KEY_FASTFORWARD },
->-- 
->2.1.0
->
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
