@@ -1,119 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59927 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752596AbbCaCql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 22:46:41 -0400
+Received: from mout.gmx.net ([212.227.17.20]:52033 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751430AbbCOSuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 14:50:21 -0400
+Received: from axis700.grange ([84.44.140.95]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MXqV1-1Z18f73kzH-00Wpui for
+ <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 19:50:18 +0100
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7EACA2A0099
-	for <linux-media@vger.kernel.org>; Tue, 31 Mar 2015 04:46:14 +0200 (CEST)
-Date: Tue, 31 Mar 2015 04:46:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150331024614.7EACA2A0099@tschai.lan>
+	by axis700.grange (Postfix) with ESMTP id 8ED0440BD9
+	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 19:50:17 +0100 (CET)
+Date: Sun, 15 Mar 2015 19:50:17 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: first 4.1 patch set
+Message-ID: <Pine.LNX.4.64.1503151915070.13027@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+Please, pull a bunch of soc-camera patches and my two v4l2_clk patches.
 
-date:		Tue Mar 31 04:00:17 CEST 2015
-git branch:	test
-git hash:	8a56b6b5fd6ff92b7e27d870b803b11b751660c2
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+The following changes since commit 48b777c0833bc7392679405539bb5d3ed0900828:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+  Merge branch 'patchwork' into to_next (2015-02-10 21:42:33 -0200)
 
-Detailed results are available here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.1-1
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+for you to fetch changes up to ca1613ec1a022fe2a3091fc1c0fbbe0661f1b2a6:
 
-The Media Infrastructure API from this daily build is here:
+  rcar-vin: Don't implement empty optional clock operations (2015-03-15 18:58:43 +0100)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+----------------------------------------------------------------
+Guennadi Liakhovetski (2):
+      V4L: remove clock name from v4l2_clk API
+      V4L: add CCF support to the v4l2_clk API
+
+Josh Wu (4):
+      media: soc-camera: use icd->control instead of icd->pdev for reset()
+      media: ov2640: add async probe function
+      media: ov2640: dt: add the device tree binding document
+      media: ov2640: add primary dt support
+
+Laurent Pinchart (3):
+      soc-camera: Unregister v4l2 clock in the OF bind error path
+      soc-camera: Make clock_start and clock_stop operations optional
+      rcar-vin: Don't implement empty optional clock operations
+
+ .../devicetree/bindings/media/i2c/ov2640.txt       |  46 ++++++++
+ drivers/media/i2c/soc_camera/ov2640.c              | 124 +++++++++++++++++----
+ drivers/media/platform/soc_camera/rcar_vin.c       |  15 ---
+ drivers/media/platform/soc_camera/soc_camera.c     |  78 +++++++------
+ drivers/media/usb/em28xx/em28xx-camera.c           |   2 +-
+ drivers/media/v4l2-core/v4l2-clk.c                 |  81 ++++++++++----
+ include/media/v4l2-clk.h                           |  10 +-
+ 7 files changed, 257 insertions(+), 99 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2640.txt
+
+Thanks
+Guennadi
