@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49516 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872AbbCCKJh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 05:09:37 -0500
-Date: Tue, 3 Mar 2015 11:09:27 +0100
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] media: adv7604: improve usage of gpiod API
-Message-ID: <20150303100927.GM7865@pengutronix.de>
-References: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <54F5851E.70906@xs4all.nl>
- <54F585FA.70701@xs4all.nl>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36352 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752600AbbCOTHf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 15:07:35 -0400
+Received: by wibg7 with SMTP id g7so22547748wib.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 12:07:33 -0700 (PDT)
+Message-ID: <5505D874.4060004@googlemail.com>
+Date: Sun, 15 Mar 2015 20:07:32 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54F585FA.70701@xs4all.nl>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media@vger.kernel.org
+CC: hdegoede@redhat.com, hans.verkuil@cisco.com,
+	b.zolnierkie@samsung.com, kyungmin.park@samsung.com,
+	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH/RFC v4 11/11] Add a libv4l plugin for Exynos4 camera
+References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com> <1416586480-19982-12-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1416586480-19982-12-git-send-email-j.anaszewski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On 21/11/14 17:14, Jacek Anaszewski wrote:
 
-On Tue, Mar 03, 2015 at 10:59:22AM +0100, Hans Verkuil wrote:
-> Never mind those comments, after checking what devm_gpiod_get_index_optional
-> does it's clear that this patch is correct.
-> 
-> Sorry about the noise.
-No problem. Is this an Ack then? Who picks up this patch?
+> diff --git a/lib/Makefile.am b/lib/Makefile.am
+> index 3a0e19c..56b3a9f 100644
+> --- a/lib/Makefile.am
+> +++ b/lib/Makefile.am
+> @@ -5,7 +5,12 @@ SUBDIRS = \
+>  	libv4l2rds \
+>  	libv4l-mplane
+>  
+> +if WITH_V4LUTILS
+> +SUBDIRS += \
+> +	libv4l-exynos4-camera
+> +endif
 
-Best regards
-Uwe
+Why do you depend on WITH_V4LUTILS for a libv4l plugin? This looks
+wrong. WITH_V4LUTILS is intended to only switch off the utilities in
+utils (see root Makefile.am).
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Thanks,
+Gregor
