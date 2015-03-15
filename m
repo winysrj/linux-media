@@ -1,97 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60954 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbbC3LLK (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:56493 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbbCOW6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 07:11:10 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC 09/12] [media] tc358743: add direct interrupt handling
-Date: Mon, 30 Mar 2015 13:10:53 +0200
-Message-Id: <1427713856-10240-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+	Sun, 15 Mar 2015 18:58:06 -0400
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi, mchehab@osg.samsung.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/10] mn88473: check if firmware is already running before loading it
+Date: Sun, 15 Mar 2015 23:57:53 +0100
+Message-Id: <1426460275-3766-8-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When probed from device tree, the i2c client driver can handle the interrupt
-on its own.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/i2c/tc358743.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ drivers/staging/media/mn88473/mn88473.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index e1059cc..2cf97d9 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -32,6 +32,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/interrupt.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
-@@ -891,7 +892,7 @@ static void tc358743_initial_setup(struct v4l2_subdev *sd)
+diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+index 607ce4d..a23e59e 100644
+--- a/drivers/staging/media/mn88473/mn88473.c
++++ b/drivers/staging/media/mn88473/mn88473.c
+@@ -196,8 +196,19 @@ static int mn88473_init(struct dvb_frontend *fe)
  
- /* --------------- IRQ --------------- */
+ 	dev_dbg(&client->dev, "\n");
  
--static void tc358743_enable_interrupts(struct v4l2_subdev *sd)
-+static void tc358743_clear_interrupt_status(struct v4l2_subdev *sd)
- {
- 	u16 i;
- 
-@@ -900,6 +901,11 @@ static void tc358743_enable_interrupts(struct v4l2_subdev *sd)
- 		i2c_wr8(sd, i, 0xff);
- 
- 	i2c_wr16(sd, INTSTATUS, 0xffff);
-+}
+-	if (dev->warm)
++	/* set cold state by default */
++	dev->warm = false;
 +
-+static void tc358743_enable_interrupts(struct v4l2_subdev *sd)
-+{
-+	tc358743_clear_interrupt_status(sd);
++	/* check if firmware is already running */
++	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
++	if (ret)
++		goto err;
++
++	if (!(tmp & 0x1)) {
++		dev_info(&client->dev, "firmware already running\n");
++		dev->warm = true;
+ 		return 0;
++	}
  
- 	/* enable interrupts */
- 	i2c_wr8(sd, SYS_INTM, ~(MASK_M_DDC | MASK_M_HDMI_DET) & 0xff);
-@@ -1322,6 +1328,16 @@ static int tc358743_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
-+static irqreturn_t tc358743_irq_handler(int irq, void *dev_id)
-+{
-+	struct tc358743_state *state = dev_id;
-+	bool handled;
-+
-+	tc358743_isr(&state->sd, 0, &handled);
-+
-+	return handled ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
- /* --------------- VIDEO OPS --------------- */
- 
- static int tc358743_g_input_status(struct v4l2_subdev *sd, u32 *status)
-@@ -1838,6 +1854,17 @@ static int tc358743_probe(struct i2c_client *client,
- 		v4l2_info(sd, "not a TC358743 on address 0x%x\n",
- 			  client->addr << 1);
- 		return -ENODEV;
-+
-+	tc358743_clear_interrupt_status(sd);
-+
-+	if (state->i2c_client->irq) {
-+		err = devm_request_threaded_irq(&client->dev,
-+						state->i2c_client->irq,
-+						NULL, tc358743_irq_handler,
-+						IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-+						"tc358743", state);
-+		if (err)
-+			return err;
- 	}
- 
- 	/* control handlers */
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &client->dev);
 -- 
-2.1.4
+2.1.0
 
