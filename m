@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:36143 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbbCHOlD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:03 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 01/17] media: blackfin: bfin_capture: drop buf_init() callback
-Date: Sun,  8 Mar 2015 14:40:37 +0000
-Message-Id: <1425825653-14768-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp.bredband2.com ([83.219.192.166]:56462 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbbCOW6E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 18:58:04 -0400
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi, mchehab@osg.samsung.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 04/10] rtl28xxu: swap frontend order for slave demods
+Date: Sun, 15 Mar 2015 23:57:49 +0100
+Message-Id: <1426460275-3766-4-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Some devices have 2 demodulators, when this is the case
+make the slave demod be listed first. Enumerating the slave
+first will help legacy applications to use the hardware.
 
-this patch drops the buf_init() callback as init
-of buf list is not required.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
-Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 8f66986..c6d8b95 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -302,14 +302,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index ea75b3a..bb5003d 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -853,6 +853,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	if (dev->slave_demod) {
+ 		struct i2c_board_info info = {};
++		struct dvb_frontend *tmp_fe;
+ 
+ 		/*
+ 		 * We continue on reduced mode, without DVB-T2/C, using master
+@@ -907,6 +908,11 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 			dev->i2c_client_slave_demod = client;
+ 		}
++
++		/* Swap frontend order */
++		tmp_fe = adap->fe[0];
++		adap->fe[0] = adap->fe[1];
++		adap->fe[1] = tmp_fe;
+ 	}
+ 
  	return 0;
- }
- 
--static int bcap_buffer_init(struct vb2_buffer *vb)
--{
--	struct bcap_buffer *buf = to_bcap_vb(vb);
+@@ -1134,12 +1140,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
+ 		break;
+ 	case TUNER_RTL2832_R828D:
+-		fe = dvb_attach(r820t_attach, adap->fe[0],
+-				dev->demod_i2c_adapter,
+-				&rtl2832u_r828d_config);
+-		adap->fe[0]->ops.read_signal_strength =
+-				adap->fe[0]->ops.tuner_ops.get_rf_strength;
 -
--	INIT_LIST_HEAD(&buf->list);
--	return 0;
--}
--
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -441,7 +433,6 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 
- static struct vb2_ops bcap_video_qops = {
- 	.queue_setup            = bcap_queue_setup,
--	.buf_init               = bcap_buffer_init,
- 	.buf_prepare            = bcap_buffer_prepare,
- 	.buf_cleanup            = bcap_buffer_cleanup,
- 	.buf_queue              = bcap_buffer_queue,
+ 		if (adap->fe[1]) {
+ 			fe = dvb_attach(r820t_attach, adap->fe[1],
+ 					dev->demod_i2c_adapter,
+@@ -1147,6 +1147,12 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 			adap->fe[1]->ops.read_signal_strength =
+ 					adap->fe[1]->ops.tuner_ops.get_rf_strength;
+ 		}
++
++		fe = dvb_attach(r820t_attach, adap->fe[0],
++			dev->demod_i2c_adapter,
++			&rtl2832u_r828d_config);
++		adap->fe[0]->ops.read_signal_strength =
++			adap->fe[0]->ops.tuner_ops.get_rf_strength;
+ 		break;
+ 	default:
+ 		dev_err(&d->intf->dev, "unknown tuner %d\n", dev->tuner);
 -- 
 2.1.0
 
