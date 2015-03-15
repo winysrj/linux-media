@@ -1,33 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40401 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751252AbbCTRFN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 13:05:13 -0400
-Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 5293D2A009F
-	for <linux-media@vger.kernel.org>; Fri, 20 Mar 2015 18:05:00 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] v4l2_dv_timings: add V4L2_DV_FL_IS_CE_VIDEO flag
-Date: Fri, 20 Mar 2015 18:05:01 +0100
-Message-Id: <1426871106-31914-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.18]:49161 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751855AbbCOR4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 13:56:50 -0400
+Date: Sun, 15 Mar 2015 18:56:44 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>, Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host
+ doesn't provide clk ops
+In-Reply-To: <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1503151845220.13027@axis700.grange>
+References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series improves the V4L2_DV_FL_HALF_LINE documentation and
-adds a new V4L2_DV_FL_IS_CE_VIDEO flag to tell whether this particular
-timing format is a CE video format or not.
+Hi Laurent,
 
-Previously V4L2_DV_BT_STD_CEA861 was used for that, but that fails
-with the CEA-861 640x480p49.94 format, which is not a CE format.
+On Mon, 9 Mar 2015, Laurent Pinchart wrote:
 
-I considered just removing V4L2_DV_BT_STD_CEA861 from the 640x480p
-format, but that's just a hack, and in the future new formats might
-be added to CEA-861 that also aren't CE formats. Just do this right
-and add a new flag for this.
+> If the soc-camera host doesn't provide clock start and stop operations
+> registering a v4l2 clock is pointless. Don't do it.
 
-Regards,
+This can introduce breakage only for camera-host drivers, that don't 
+provide .clock_start() or .clock_stop(). After your other 3 patches from 
+this patch set there will be one such driver in the tree - rcar_vin.c. I 
+wouldn't mind this patch as long as we can have an ack from an rcar_vin.c 
+maintainer. Since I don't see one in MAINTAINERS, who can ack this? Simon?
 
-	Hans
+Thanks
+Guennadi
 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c | 51 +++++++++++++++++---------
+>  1 file changed, 33 insertions(+), 18 deletions(-)
+> 
+> This requires proper review and testing, please don't apply it blindly.
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 0943125..f3ea911 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1374,10 +1374,13 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+>  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+>  		 shd->i2c_adapter_id, shd->board_info->addr);
+>  
+> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+> -	if (IS_ERR(icd->clk)) {
+> -		ret = PTR_ERR(icd->clk);
+> -		goto eclkreg;
+> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
+> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
+> +					     "mclk", icd);
+> +		if (IS_ERR(icd->clk)) {
+> +			ret = PTR_ERR(icd->clk);
+> +			goto eclkreg;
+> +		}
+>  	}
+>  
+>  	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+> @@ -1394,8 +1397,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+>  
+>  	return 0;
+>  ei2cnd:
+> -	v4l2_clk_unregister(icd->clk);
+> -	icd->clk = NULL;
+> +	if (icd->clk) {
+> +		v4l2_clk_unregister(icd->clk);
+> +		icd->clk = NULL;
+> +	}
+>  eclkreg:
+>  	kfree(ssdd);
+>  ealloc:
+> @@ -1420,8 +1425,10 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
+>  	i2c_unregister_device(client);
+>  	i2c_put_adapter(adap);
+>  	kfree(ssdd);
+> -	v4l2_clk_unregister(icd->clk);
+> -	icd->clk = NULL;
+> +	if (icd->clk) {
+> +		v4l2_clk_unregister(icd->clk);
+> +		icd->clk = NULL;
+> +	}
+>  }
+>  
+>  /*
+> @@ -1555,17 +1562,21 @@ static int scan_async_group(struct soc_camera_host *ici,
+>  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+>  		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
+>  
+> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+> -	if (IS_ERR(icd->clk)) {
+> -		ret = PTR_ERR(icd->clk);
+> -		goto eclkreg;
+> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
+> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
+> +					     "mclk", icd);
+> +		if (IS_ERR(icd->clk)) {
+> +			ret = PTR_ERR(icd->clk);
+> +			goto eclkreg;
+> +		}
+>  	}
+>  
+>  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+>  	if (!ret)
+>  		return 0;
+>  
+> -	v4l2_clk_unregister(icd->clk);
+> +	if (icd->clk)
+> +		v4l2_clk_unregister(icd->clk);
+>  eclkreg:
+>  	icd->clk = NULL;
+>  	platform_device_del(sasc->pdev);
+> @@ -1660,17 +1671,21 @@ static int soc_of_bind(struct soc_camera_host *ici,
+>  		snprintf(clk_name, sizeof(clk_name), "of-%s",
+>  			 of_node_full_name(remote));
+>  
+> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+> -	if (IS_ERR(icd->clk)) {
+> -		ret = PTR_ERR(icd->clk);
+> -		goto eclkreg;
+> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
+> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
+> +					     "mclk", icd);
+> +		if (IS_ERR(icd->clk)) {
+> +			ret = PTR_ERR(icd->clk);
+> +			goto eclkreg;
+> +		}
+>  	}
+>  
+>  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+>  	if (!ret)
+>  		return 0;
+>  
+> -	v4l2_clk_unregister(icd->clk);
+> +	if (icd->clk)
+> +		v4l2_clk_unregister(icd->clk);
+>  eclkreg:
+>  	icd->clk = NULL;
+>  	platform_device_del(sasc->pdev);
+> -- 
+> 2.0.5
+> 
