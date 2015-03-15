@@ -1,55 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33542 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764AbbCTNhn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 09:37:43 -0400
-Subject: [PATCH] m88ts2022: Nested loops shouldn't use the same index
- variable
-From: David Howells <dhowells@redhat.com>
-To: crope@iki.fi
-Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Date: Fri, 20 Mar 2015 13:37:38 +0000
-Message-ID: <20150320133738.19894.45270.stgit@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43500 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbbCOVzj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 17:55:39 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-api@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: [RFC/PATCH 0/5] Add live source objects to DRM
+Date: Sun, 15 Mar 2015 23:55:35 +0200
+Message-Id: <1426456540-21006-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a pair of nested loops inside m88ts2022_cmd() that use the same
-index variable, but for different things.  Split the variable.
+Hello,
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+I have a feeling that RFC/PATCH will work better than just RFC, so here's a
+patch set that adds a new object named live source to DRM.
 
- drivers/media/tuners/m88ts2022.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+The need comes from the Renesas R-Car SoCs in which a video processing engine
+(named VSP1) that operates from memory to memory has one output directly
+connected to a plane of the display engine (DU) without going through memory.
 
-diff --git a/drivers/media/tuners/m88ts2022.c b/drivers/media/tuners/m88ts2022.c
-index 066e543..cdf9fe5 100644
---- a/drivers/media/tuners/m88ts2022.c
-+++ b/drivers/media/tuners/m88ts2022.c
-@@ -21,7 +21,7 @@
- static int m88ts2022_cmd(struct m88ts2022_dev *dev, int op, int sleep, u8 reg,
- 		u8 mask, u8 val, u8 *reg_val)
- {
--	int ret, i;
-+	int ret, i, j;
- 	unsigned int utmp;
- 	struct m88ts2022_reg_val reg_vals[] = {
- 		{0x51, 0x1f - op},
-@@ -35,9 +35,9 @@ static int m88ts2022_cmd(struct m88ts2022_dev *dev, int op, int sleep, u8 reg,
- 				"i=%d op=%02x reg=%02x mask=%02x val=%02x\n",
- 				i, op, reg, mask, val);
- 
--		for (i = 0; i < ARRAY_SIZE(reg_vals); i++) {
--			ret = regmap_write(dev->regmap, reg_vals[i].reg,
--					reg_vals[i].val);
-+		for (j = 0; j < ARRAY_SIZE(reg_vals); j++) {
-+			ret = regmap_write(dev->regmap, reg_vals[j].reg,
-+					reg_vals[j].val);
- 			if (ret)
- 				goto err;
- 		}
+The VSP1 is supported by a V4L2 driver. While it could be argued that it
+should instead be supported directly by the DRM rcar-du driver, this wouldn't
+be a good idea for at least two reasons. First, the R-Car SoCs contain several
+VSP1 instances, of which only a subset have a direct DU connection. The only
+other instances operate solely in memory to memory mode. Then, the VSP1 is a
+video processing engine and not a display engine. Its features are easily
+supported by the V4L2 API, but don't map to the DRM/KMS API. Significant
+changes to DRM/KMS would be required, beyond what is in my opinion an
+acceptable scope for a display API.
+
+Now that the need to interface two separate devices supported by two different
+drivers in two separate subsystems has been established, we need an API to do
+so. It should be noted that while that API doesn't exist in the mainline
+kernel, the need isn't limited to Renesas SoCs.
+
+This patch set proposes one possible solution for the problem in the form of a
+new DRM object named live source. Live sources are created by drivers to model
+hardware connections between a plane input and an external source, and are
+attached to planes through the KMS userspace API.
+
+Patch 1/5 adds live source objects to DRM, with an in-kernel API for drivers
+to register the sources, and a userspace API to enumerate and configure them.
+Configuring a live source sets the width, height and pixel format of the
+video stream. This should ideally be queried directly from the driver that
+supports the live source device, but I've decided not to implement such
+communication between V4L2 and DRM/KMS at the moment to keep the proposal
+simple.
+
+Patch 2/2 implements connection between live sources and planes. This takes
+different forms depending on whether drivers use the setplane or the atomic
+updates API:
+
+- For setplane, the fb field can now contain a live source ID in addition to
+  a framebuffer ID. As DRM allocates object IDs from a single ID space, the
+  type can be inferred from the ID. This makes specifying both a framebuffer
+  and a live source impossible, which isn't an issue given that such a
+  configuration would be invalid.
+
+  The live source is looked up by the DRM core and passed as a pointer to the
+  .update_plane() operation. Unlike framebuffers live sources are not
+  refcounted as they're created statically at driver initialization time.
+
+- For atomic update, a new SRC_ID property has been added to planes. The live
+  source is looked up from the source ID and stored into the plane state.
+
+Patches 3/5 to 5/5 then implement support for live sources in the R-Car DU
+driver.
+
+Nothing here is set in stone. One point I'm not sure about is whether live
+sources support should be enabled for setplane or only for atomic updates.
+Other parts of the API can certainly be modified as well, and I'm open for
+totally different implementations as well.
+
+Laurent Pinchart (5):
+  drm: Add live source object
+  drm: Connect live source to plane
+  drm/rcar-du: Add VSP1 support to the planes allocator
+  drm/rcar-du: Add VSP1 live source support
+  drm/rcar-du: Restart the DU group when a plane source changes
+
+ drivers/gpu/drm/armada/armada_overlay.c     |   2 +-
+ drivers/gpu/drm/drm_atomic.c                |   7 +
+ drivers/gpu/drm/drm_atomic_helper.c         |   4 +
+ drivers/gpu/drm/drm_crtc.c                  | 365 ++++++++++++++++++++++++++--
+ drivers/gpu/drm/drm_fops.c                  |   6 +-
+ drivers/gpu/drm/drm_ioctl.c                 |   3 +
+ drivers/gpu/drm/drm_plane_helper.c          |   1 +
+ drivers/gpu/drm/exynos/exynos_drm_crtc.c    |   4 +-
+ drivers/gpu/drm/exynos/exynos_drm_plane.c   |   3 +-
+ drivers/gpu/drm/exynos/exynos_drm_plane.h   |   3 +-
+ drivers/gpu/drm/i915/intel_display.c        |   4 +-
+ drivers/gpu/drm/i915/intel_sprite.c         |   2 +-
+ drivers/gpu/drm/imx/ipuv3-plane.c           |   3 +-
+ drivers/gpu/drm/nouveau/dispnv04/overlay.c  |   6 +-
+ drivers/gpu/drm/omapdrm/omap_plane.c        |   1 +
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c      |  10 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c       |   6 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h       |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_group.c     |  21 +-
+ drivers/gpu/drm/rcar-du/rcar_du_group.h     |   2 +
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c       |  62 ++++-
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c     | 196 ++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h     |  11 +
+ drivers/gpu/drm/rcar-du/rcar_du_regs.h      |   1 +
+ drivers/gpu/drm/rockchip/rockchip_drm_vop.c |   5 +-
+ drivers/gpu/drm/shmobile/shmob_drm_plane.c  |   3 +-
+ drivers/gpu/drm/sti/sti_drm_plane.c         |   3 +-
+ drivers/gpu/drm/sti/sti_hqvdp.c             |   2 +-
+ include/drm/drmP.h                          |   3 +
+ include/drm/drm_atomic_helper.h             |   1 +
+ include/drm/drm_crtc.h                      |  48 ++++
+ include/drm/drm_plane_helper.h              |   1 +
+ include/uapi/drm/drm.h                      |   4 +
+ include/uapi/drm/drm_mode.h                 |  32 +++
+ 34 files changed, 728 insertions(+), 100 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
