@@ -1,204 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:36451 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285AbbCaRs5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 13:48:57 -0400
-Received: by lbbug6 with SMTP id ug6so18245085lbb.3
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2015 10:48:55 -0700 (PDT)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v3 2/7] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
-Date: Tue, 31 Mar 2015 20:48:07 +0300
-Message-Id: <1427824092-23163-3-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
+Received: from mout.gmx.net ([212.227.15.15]:60992 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720AbbCOLHF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 07:07:05 -0400
+Message-ID: <550567D5.9090405@gmx.com>
+Date: Sun, 15 Mar 2015 12:07:01 +0100
+From: Ole Ernst <olebowle@gmx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: nibble.max@gmail.com, olli.salonen@iki.fi
+Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
+References: <5504920C.7080806@gmx.com> <55055E66.6040600@gmx.com> <550563B2.9010306@iki.fi>
+In-Reply-To: <550563B2.9010306@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding a simple Manchester encoder to rc-core.
-Manchester coding is used by at least RC-5 and RC-6 protocols and their
-variants.
+Hi Antti,
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: David Härdeman <david@hardeman.nu>
----
+thanks for your quick response! Based on lsmod and modinfo I do have
+m88ts2022.
 
-Notes:
-    Changes in v3:
-     - Ported to apply against latest media-tree
-     - Enhanced to support rc-6 encoding
-     - Checkpatch.pl fixes
-    
-    Changes in v2 (James Hogan):
-     - Alter encode API to return -ENOBUFS when there isn't enough buffer
-       space. When this occurs all buffer contents must have been written
-       with the partial encoding of the scancode. This is to allow drivers
-       such as nuvoton-cir to provide a shorter buffer and still get a
-       useful partial encoding for the wakeup pattern.
-     - Add kerneldoc comment.
-     - Add individual buffer full checks, in order to support -ENOBUFS
-       properly.
-     - Make i unsigned to theoretically support all 32bits of data.
-     - Increment *ev at end so caller can calculate correct number of
-       events (during the loop *ev points to the last written event to allow
-       it to be extended in length).
-     - Make start/leader pulse optional, continuing from (*ev)[-1] if
-       disabled. This helps support rc-5x which has a space in the middle of
-       the bits.
+$ lsmod | grep m88
+m88ts2022              16898  0
+regmap_i2c             12783  1 m88ts2022
+m88ds3103              21452  0
+i2c_mux                12534  1 m88ds3103
+dvb_core              102038  4 cx23885,altera_ci,m88ds3103,videobuf2_dvb
+i2c_core               50240  13
+drm,i2c_i801,cx23885,cx25840,m88ts2022,i2c_mux,regmap_i2c,nvidia,v4l2_common,tveeprom,m88ds3103,tda18271,videodev
 
- drivers/media/rc/rc-core-priv.h | 33 ++++++++++++++++
- drivers/media/rc/rc-ir-raw.c    | 85 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 118 insertions(+)
+$ modinfo m88ts2022
+filename:
+/lib/modules/3.19.1-1-ARCH/kernel/drivers/media/tuners/m88ts2022.ko.gz
+license:        GPL
+author:         Antti Palosaari <crope@iki.fi>
+description:    Montage M88TS2022 silicon tuner driver
+alias:          i2c:m88ts2022
+depends:        i2c-core,regmap-i2c
+intree:         Y
+vermagic:       3.19.1-1-ARCH SMP preempt mod_unload modversions
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 122c25f..5266ecc7 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -152,6 +152,39 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- 
-+/* functions for IR encoders */
-+
-+static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
-+					      unsigned int pulse,
-+					      u32 duration)
-+{
-+	init_ir_raw_event(ev);
-+	ev->duration = duration;
-+	ev->pulse = pulse;
-+}
-+
-+/**
-+ * struct ir_raw_timings_manchester - Manchester coding timings
-+ * @leader:		duration of leader pulse (if any) 0 if continuing
-+ *			existing signal (see @pulse_space_start)
-+ * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
-+ * @clock:		duration of each pulse/space in ns
-+ * @invert:		if set clock logic is inverted
-+ *			(0 = space + pulse, 1 = pulse + space)
-+ * @trailer_space:	duration of trailer space in ns
-+ */
-+struct ir_raw_timings_manchester {
-+	unsigned int leader;
-+	unsigned int pulse_space_start:1;
-+	unsigned int clock;
-+	unsigned int invert:1;
-+	unsigned int trailer_space;
-+};
-+
-+int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
-+			  const struct ir_raw_timings_manchester *timings,
-+			  unsigned int n, unsigned int data);
-+
- /*
-  * Routines from rc-raw.c to be used internally and by decoders
-  */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index dd47fe5..6c9580e 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -247,6 +247,91 @@ static int change_protocol(struct rc_dev *dev, u64 *rc_type)
- }
- 
- /**
-+ * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
-+ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
-+ *		each raw event filled.
-+ * @max:	Maximum number of raw events to fill.
-+ * @timings:	Manchester modulation timings.
-+ * @n:		Number of bits of data.
-+ * @data:	Data bits to encode.
-+ *
-+ * Encodes the @n least significant bits of @data using Manchester (bi-phase)
-+ * modulation with the timing characteristics described by @timings, writing up
-+ * to @max raw IR events using the *@ev pointer.
-+ *
-+ * Returns:	0 on success.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		full encoded data. In this case all @max events will have been
-+ *		written.
-+ */
-+int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
-+			  const struct ir_raw_timings_manchester *timings,
-+			  unsigned int n, unsigned int data)
-+{
-+	bool need_pulse;
-+	unsigned int i;
-+	int ret = -ENOBUFS;
-+
-+	i = 1 << (n - 1);
-+
-+	if (timings->leader) {
-+		if (!max--)
-+			return ret;
-+		if (timings->pulse_space_start) {
-+			init_ir_raw_event_duration((*ev)++, 1, timings->leader);
-+
-+			if (!max--)
-+				return ret;
-+			init_ir_raw_event_duration((*ev), 0, timings->leader);
-+		} else {
-+			init_ir_raw_event_duration((*ev), 1, timings->leader);
-+		}
-+		i >>= 1;
-+	} else {
-+		/* continue existing signal */
-+		--(*ev);
-+	}
-+	/* from here on *ev will point to the last event rather than the next */
-+
-+	while (n && i > 0) {
-+		need_pulse = !(data & i);
-+		if (timings->invert)
-+			need_pulse = !need_pulse;
-+		if (need_pulse == !!(*ev)->pulse) {
-+			(*ev)->duration += timings->clock;
-+		} else {
-+			if (!max--)
-+				goto nobufs;
-+			init_ir_raw_event_duration(++(*ev), need_pulse,
-+						   timings->clock);
-+		}
-+
-+		if (!max--)
-+			goto nobufs;
-+		init_ir_raw_event_duration(++(*ev), !need_pulse,
-+					   timings->clock);
-+		i >>= 1;
-+	}
-+
-+	if (timings->trailer_space) {
-+		if (!(*ev)->pulse)
-+			(*ev)->duration += timings->trailer_space;
-+		else if (!max--)
-+			goto nobufs;
-+		else
-+			init_ir_raw_event_duration(++(*ev), 0,
-+						   timings->trailer_space);
-+	}
-+
-+	ret = 0;
-+nobufs:
-+	/* point to the next event rather than last event before returning */
-+	++(*ev);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_gen_manchester);
-+
-+/**
-  * ir_raw_encode_scancode() - Encode a scancode as raw events
-  *
-  * @protocols:		permitted protocols
--- 
-2.0.5
+Thanks,
+Ole
 
+Am 15.03.2015 um 11:49 schrieb Antti Palosaari:
+> You don't have m88ts2022 driver installed.
+> 
+> Antti
+> 
+> On 03/15/2015 12:26 PM, Ole Ernst wrote:
+>> Hi,
+>>
+>> I added some printk in cx23885-dvb.c and the problem is in
+>> i2c_new_device:
+>> https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/tree/drivers/media/pci/cx23885/cx23885-dvb.c?id=refs/tags/v3.19.1#n1935
+>>
+>>
+>> The returned client_tuner is not NULL, but client_tuner->dev.driver is.
+>> Hence it will goto frontend_detach, which will then return -EINVAL. Any
+>> idea why client_tuner->dev.driver is NULL?
+>>
+>> Thanks,
+>> Ole
+>>
+>> Am 14.03.2015 um 20:54 schrieb Ole Ernst:
+>>> Hi,
+>>>
+>>> using linux-3.19.1-1 (Archlinux) I get the following output while
+>>> booting without the media-build-tree provided by DVBSky:
+>>>
+>>> cx23885 driver version 0.0.4 loaded
+>>> cx23885 0000:04:00.0: enabling device (0000 -> 0002)
+>>> CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
+>>> [card=50,autodetected]
+>>> cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+>>> cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+>>> cx23885_dvb_register() allocating 1 frontend(s)
+>>> cx23885[0]: cx23885 based dvb card
+>>> i2c i2c-2: m88ds3103_attach: chip_id=70
+>>> i2c i2c-2: Added multiplexed i2c bus 4
+>>> cx23885_dvb_register() dvb_register failed err = -22
+>>> cx23885_dev_setup() Failed to register dvb adapters on VID_B
+>>> cx23885_dvb_register() allocating 1 frontend(s)
+>>> cx23885[0]: cx23885 based dvb card
+>>> i2c i2c-1: m88ds3103_attach: chip_id=70
+>>> i2c i2c-1: Added multiplexed i2c bus 4
+>>> cx23885_dvb_register() dvb_register failed err = -22
+>>> cx23885_dev_setup() Failed to register dvb on VID_C
+>>> cx23885_dev_checkrevision() Hardware revision = 0xa5
+>>> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 17, latency: 0, mmio:
+>>> 0xf7200000
+>>>
+>>> Obviously there are no device in /dev/dvb. Using the media-build-tree
+>>> works just fine though. The following firmware files are installed in
+>>> /usr/lib/firmware:
+>>> dvb-demod-m88ds3103.fw
+>>> dvb-demod-m88rs6000.fw
+>>> dvb-demod-si2168-a20-01.fw
+>>> dvb-demod-si2168-a30-01.fw
+>>> dvb-demod-si2168-b40-01.fw
+>>> dvb-fe-ds300x.fw
+>>> dvb-fe-ds3103.fw
+>>> dvb-fe-rs6000.fw
+>>> dvb-tuner-si2158-a20-01.fw
+>>>
+>>> Output of lspci -vvvnn:
+>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/lscpi
+>>>
+>>>
+>>> I also set the module parameters debug, i2c_debug, irq_debug and
+>>> irq_debug in cx23885.
+>>> The output is pretty verbose and can be found here:
+>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/debug.log
+>>>
+>>>
+>>> Thanks,
+>>> Ole
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+> 
