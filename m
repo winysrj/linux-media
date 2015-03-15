@@ -1,38 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2on0094.outbound.protection.outlook.com ([207.46.100.94]:23200
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757313AbbCPPqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 11:46:20 -0400
-From: Chris Kohn <christian.kohn@xilinx.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: [ANN] Media Mini-Summit Draft Agenda for March 26th
-Date: Mon, 16 Mar 2015 15:32:10 +0000
-References: <5506BDA8.3000700@xs4all.nl>
-In-Reply-To: <5506BDA8.3000700@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60832 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752774AbbCOQ0s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 12:26:48 -0400
+Message-ID: <5505B2C0.6090309@xs4all.nl>
+Date: Sun, 15 Mar 2015 17:26:40 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Message-ID: <BN1AFFO11FD043D7919AD89340A9CFE003EA020@BN1AFFO11FD043.protection.gbl>
+To: Florian Echtler <floe@butterbrot.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3][RFC] add raw video stream support for Samsung SUR40
+References: <1423063842-6902-1-git-send-email-floe@butterbrot.org> <54DB4295.1080307@butterbrot.org> <54E1D71C.2000003@xs4all.nl> <54E7AB1E.3000401@butterbrot.org> <54E85C48.6070907@xs4all.nl> <54F98E51.8040204@butterbrot.org> <54F993ED.2060701@xs4all.nl> <54FB5715.2090103@butterbrot.org> <54FB6636.6050308@xs4all.nl> <54FD6CAD.9030600@butterbrot.org> <54FD713D.5050401@xs4all.nl> <54FDA3EA.9080006@butterbrot.org> <54FDA7E5.3010004@xs4all.nl> <5501EB0B.5020806@butterbrot.org>
+In-Reply-To: <5501EB0B.5020806@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSGFucywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1t
-ZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gb3duZXJA
-dmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSGFucyBWZXJrdWlsDQo+IFNlbnQ6IE1vbmRh
-eSwgTWFyY2ggMTYsIDIwMTUgNDoyNSBBTQ0KPiBUbzogbWVkaWEtd29ya3Nob3BAbGludXh0di5v
-cmcNCj4gQ2M6IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdA0KPiBTdWJqZWN0OiBbQU5OXSBNZWRp
-YSBNaW5pLVN1bW1pdCBEcmFmdCBBZ2VuZGEgZm9yIE1hcmNoIDI2dGgNCj4gDQo+IFRoaXMgaXMg
-dGhlIGRyYWZ0IGFnZW5kYSBmb3IgdGhlIG1lZGlhIG1pbmktc3VtbWl0IGluIFNhbiBKb3NlIG9u
-IE1hcmNoIDI2dGguDQo+IA0KPiBUaW1lOiA5IEFNIHRvIDUgUE0gKGFwcHJveGltYXRlbHkpDQo+
-IFJvb206IFRCQyAoTWF1cm8sIGRvIHlvdSBrbm93IHRoaXM/KQ0KPiANCj4gQXR0ZW5kZWVzOg0K
-PiANCj4gTWF1cm8gQ2FydmFsaG8gQ2hlaGFiCS0gbWNoZWhhYkBvc2cuc2Ftc3VuZy5jb20JCS0g
-U2Ftc3VuZw0KPiBMYXVyZW50IFBpbmNoYXJ0CS0gbGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9h
-cmQuY29tCS0gSWRlYXMgb24NCj4gYm9hcmQNCj4gSGFucyBWZXJrdWlsCQktIGh2ZXJrdWlsQHhz
-NGFsbC5ubAkJCS0gQ2lzY28NCj4gDQo+IE1hdXJvLCBkbyB5b3UgaGF2ZSBhIGJldHRlciBvdmVy
-dmlldyBvZiB3aG8gZWxzZSB3aWxsIGF0dGVuZD8NCg0KSSB3aWxsIGF0dGVuZCBhcyB3ZWxsLiBJ
-J20gaW50ZXJlc3RlZCBpbiB0aGUgc3ViZGV2IGhvdHBsdWcgdG9waWMuDQoNCkNoZWVycywNCkNo
-cmlzDQo=
+On 03/12/2015 08:37 PM, Florian Echtler wrote:
+> Hello Hans,
+> 
+> On 09.03.2015 15:02, Hans Verkuil wrote:
+>> On 03/09/2015 02:45 PM, Florian Echtler wrote:
+>>> On 09.03.2015 11:09, Hans Verkuil wrote:
+>>>> The error almost certainly comes from usb_submit_urb(). That function does some
+>>>> checks on the sgl:
+>>>>
+>>>> I wonder it the code gets there. Perhaps a printk just before the return -EINVAL
+>>>> might help here (also print the 'max' value).
+>>>>
+>>>> So you will have to debug a bit here, trying to figure out which test in the usb
+>>>> code causes the usb_sg_wait error.
+>>> I'll do my best to track this down. Do you think this is an error in my
+>>> code, one in the USB subsystem, or some combination of both?
+>>
+>> If the USB core indeed requires scatter-gather segments of specific lengths
+>> (modulo max), then that explains the problems.
+>> So as suggested try to see if the usb core bails out in that check and what the
+>> 'max' value is. It looks like only XHCI allows SG segments of any size, so I really
+>> suspect that's the problem. But I also need to know the 'max' value to fully
+>> understand the implications.
+> Finally managed to confirm your suspicions on a kernel with a patched
+> dev_err call at the location you mentioned:
+> 
+> Mar 12 20:33:51 sur40 kernel: [ 1159.509580]  (null): urb 0 length
+> mismatch: length 4080, max 512
+> Mar 12 20:33:51 sur40 kernel: [ 1159.509592] sur40 2-1:1.0: error -22 in
+> usb_sg_wait
+> 
+> So the SG segments are expected in multiples of 512 bytes. I assume this
+> is not something I can fix from within my driver?
+
+No, you can't. I would use dma-sg, but disable the USERPTR support.
+Also comment why USERPTR support is disabled.
+
+This was interesting :-)
+
+Regards,
+
+	Hans
