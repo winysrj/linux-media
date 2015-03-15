@@ -1,104 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34277 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932227AbbCIQei (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:56492 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752177AbbCOW6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:34:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 02/19] vim2m: embed video_device
-Date: Mon,  9 Mar 2015 17:33:56 +0100
-Message-Id: <1425918853-12371-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 15 Mar 2015 18:58:06 -0400
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi, mchehab@osg.samsung.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 09/10] mn88472: check if firmware is already running before loading it
+Date: Sun, 15 Mar 2015 23:57:54 +0100
+Message-Id: <1426460275-3766-9-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/platform/vim2m.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ drivers/staging/media/mn88472/mn88472.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index d9d844a..4d6b4cc 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -142,7 +142,7 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index 4a00a4d..c041fbf 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -258,7 +258,7 @@ static int mn88472_init(struct dvb_frontend *fe)
+ 	int ret, len, remaining;
+ 	const struct firmware *fw = NULL;
+ 	u8 *fw_file = MN88472_FIRMWARE;
+-	unsigned int csum;
++	unsigned int tmp;
  
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
--	struct video_device	*vfd;
-+	struct video_device	vfd;
+ 	dev_dbg(&client->dev, "\n");
  
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -968,7 +968,7 @@ static struct video_device vim2m_videodev = {
- 	.fops		= &vim2m_fops,
- 	.ioctl_ops	= &vim2m_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- };
+@@ -274,6 +274,17 @@ static int mn88472_init(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
  
- static struct v4l2_m2m_ops m2m_ops = {
-@@ -996,26 +996,19 @@ static int vim2m_probe(struct platform_device *pdev)
- 	atomic_set(&dev->num_inst, 0);
- 	mutex_init(&dev->dev_mutex);
- 
--	vfd = video_device_alloc();
--	if (!vfd) {
--		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
--		ret = -ENOMEM;
--		goto unreg_dev;
--	}
--
--	*vfd = vim2m_videodev;
-+	dev->vfd = vim2m_videodev;
-+	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	/* check if firmware is already running */
++	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
++	if (ret)
++		goto err;
++
++	if (!(tmp & 0x1)) {
++		dev_info(&client->dev, "firmware already running\n");
++		dev->warm = true;
++		return 0;
++	}
++
+ 	/* request the firmware, this will block and timeout */
+ 	ret = request_firmware(&fw, fw_file, &client->dev);
  	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto rel_vdev;
-+		goto unreg_dev;
+@@ -305,18 +316,18 @@ static int mn88472_init(struct dvb_frontend *fe)
  	}
  
- 	video_set_drvdata(vfd, dev);
- 	snprintf(vfd->name, sizeof(vfd->name), "%s", vim2m_videodev.name);
--	dev->vfd = vfd;
- 	v4l2_info(&dev->v4l2_dev,
- 			"Device registered as /dev/video%d\n", vfd->num);
+ 	/* parity check of firmware */
+-	ret = regmap_read(dev->regmap[0], 0xf8, &csum);
++	ret = regmap_read(dev->regmap[0], 0xf8, &tmp);
+ 	if (ret) {
+ 		dev_err(&client->dev,
+ 				"parity reg read failed=%d\n", ret);
+ 		goto err;
+ 	}
+-	if (csum & 0x10) {
++	if (tmp & 0x10) {
+ 		dev_err(&client->dev,
+-				"firmware parity check failed=0x%x\n", csum);
++				"firmware parity check failed=0x%x\n", tmp);
+ 		goto err;
+ 	}
+-	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", csum);
++	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", tmp);
  
-@@ -1033,9 +1026,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 
- err_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
--	video_unregister_device(dev->vfd);
--rel_vdev:
--	video_device_release(vfd);
-+	video_unregister_device(&dev->vfd);
- unreg_dev:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
-@@ -1049,7 +1040,7 @@ static int vim2m_remove(struct platform_device *pdev)
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
--	video_unregister_device(dev->vfd);
-+	video_unregister_device(&dev->vfd);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return 0;
+ 	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
+ 	if (ret)
 -- 
-2.1.4
+2.1.0
 
