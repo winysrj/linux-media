@@ -1,132 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43487 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754094AbbCFKSf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2015 05:18:35 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 3/5] [media] coda: Set last buffer flag and fix EOS event
-Date: Fri,  6 Mar 2015 11:18:28 +0100
-Message-Id: <1425637110-12100-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
-References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40745 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751166AbbCOUyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 16:54:35 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 264B12A0083
+	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 21:54:30 +0100 (CET)
+Message-ID: <5505F186.7050608@xs4all.nl>
+Date: Sun, 15 Mar 2015 21:54:30 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: DocBook media: fix awkward language in VIDIOC_QUERYCAP
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
-DQBUF calls on the capture queue after the last buffer is dequeued.
-This patch also fixes the EOS event to conform to the specification. It now is
-sent right after the last buffer has been decoded instead of when the last
-buffer is dequeued.
+Fix some awkward language in the VIDIOC_QUERYCAP description.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    |  4 ++--
- drivers/media/platform/coda/coda-common.c | 27 +++++++++++----------------
- drivers/media/platform/coda/coda.h        |  3 +++
- 3 files changed, 16 insertions(+), 18 deletions(-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 856b542..9ae0bfa 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1278,7 +1278,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 
- 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
--	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
-+	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
- 
- 	ctx->gopcounter--;
- 	if (ctx->gopcounter < 0)
-@@ -1887,7 +1887,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		}
- 		vb2_set_plane_payload(dst_buf, 0, payload);
- 
--		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
-+		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
- 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6f32e6d..f178ad3 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -705,35 +705,30 @@ static int coda_qbuf(struct file *file, void *priv,
- }
- 
- static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
--				      struct v4l2_buffer *buf)
-+				      struct vb2_buffer *buf)
- {
- 	struct vb2_queue *src_vq;
- 
- 	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 
- 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
--		(buf->sequence == (ctx->qsequence - 1)));
-+		(buf->v4l2_buf.sequence == (ctx->qsequence - 1)));
- }
- 
--static int coda_dqbuf(struct file *file, void *priv,
--		      struct v4l2_buffer *buf)
-+void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+		       enum vb2_buffer_state state)
- {
--	struct coda_ctx *ctx = fh_to_ctx(priv);
--	int ret;
-+	const struct v4l2_event eos_event = {
-+		.type = V4L2_EVENT_EOS
-+	};
- 
--	ret = v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
--
--	/* If this is the last capture buffer, emit an end-of-stream event */
--	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
--	    coda_buf_is_end_of_stream(ctx, buf)) {
--		const struct v4l2_event eos_event = {
--			.type = V4L2_EVENT_EOS
--		};
-+	if (coda_buf_is_end_of_stream(ctx, buf)) {
-+		buf->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
- 
- 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
- 	}
- 
--	return ret;
-+	v4l2_m2m_buf_done(buf, state);
- }
- 
- static int coda_g_selection(struct file *file, void *fh,
-@@ -846,7 +841,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 
- 	.vidioc_qbuf		= coda_qbuf,
- 	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
--	.vidioc_dqbuf		= coda_dqbuf,
-+	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
- 	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
- 
- 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 0c35cd5..420de18 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -291,6 +291,9 @@ static inline int coda_get_bitstream_payload(struct coda_ctx *ctx)
- 
- void coda_bit_stream_end_flag(struct coda_ctx *ctx);
- 
-+void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+		       enum vb2_buffer_state state);
-+
- int coda_h264_padding(int size, char *p);
- 
- bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
--- 
-2.1.4
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index d0c5e60..20fda75 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -102,10 +102,10 @@ The bus_info must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boar
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>version</structfield></entry>
+ 	    <entry><para>Version number of the driver.</para>
+-<para>Starting on kernel 3.1, the version reported is provided per
+-V4L2 subsystem, following the same Kernel numberation scheme. However, it
+-should not always return the same version as the kernel, if, for example,
+-an stable or distribution-modified kernel uses the V4L2 stack from a
++<para>Starting with kernel 3.1, the version reported is provided by the
++V4L2 subsystem following the kernel numbering scheme. However, it
++may not always return the same version as the kernel if, for example,
++a stable or distribution-modified kernel uses the V4L2 stack from a
+ newer kernel.</para>
+ <para>The version number is formatted using the
+ <constant>KERNEL_VERSION()</constant> macro:</para></entry>
