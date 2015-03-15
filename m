@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60955 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbbC3LLQ (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:56490 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060AbbCOW6F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 07:11:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [RFC 05/12] [media] tc358743: fix lane number calculation to include blanking
-Date: Mon, 30 Mar 2015 13:10:49 +0200
-Message-Id: <1427713856-10240-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+	Sun, 15 Mar 2015 18:58:05 -0400
+From: Benjamin Larsson <benjamin@southpole.se>
+To: crope@iki.fi, mchehab@osg.samsung.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 07/10] mn88473: implement firmware parity check
+Date: Sun, 15 Mar 2015 23:57:52 +0100
+Message-Id: <1426460275-3766-7-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of only using the visible width and height, also add the
-horizontal and vertical blanking to calculate the bit rate.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 ---
- drivers/media/i2c/tc358743.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/staging/media/mn88473/mn88473.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index dd2ea16..74e83c5 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -713,9 +713,11 @@ static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
- {
- 	struct tc358743_state *state = to_state(sd);
- 	struct v4l2_bt_timings *bt = &state->timings.bt;
-+	u32 htotal = bt->width + bt->hfrontporch + bt->hsync + bt->hbackporch;
-+	u32 vtotal = bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch;
- 	u32 bits_pr_pixel =
- 		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
--	u32 bps = bt->width * bt->height * fps(bt) * bits_pr_pixel;
-+	u32 bps = htotal * vtotal * fps(bt) * bits_pr_pixel;
+diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+index 84bd4fa..607ce4d 100644
+--- a/drivers/staging/media/mn88473/mn88473.c
++++ b/drivers/staging/media/mn88473/mn88473.c
+@@ -192,6 +192,7 @@ static int mn88473_init(struct dvb_frontend *fe)
+ 	int ret, len, remaining;
+ 	const struct firmware *fw = NULL;
+ 	u8 *fw_file = MN88473_FIRMWARE;
++	unsigned int tmp;
  
- 	return DIV_ROUND_UP(bps, state->pdata.bps_pr_lane);
- }
+ 	dev_dbg(&client->dev, "\n");
+ 
+@@ -227,6 +228,20 @@ static int mn88473_init(struct dvb_frontend *fe)
+ 		}
+ 	}
+ 
++	/* parity check of firmware */
++	ret = regmap_read(dev->regmap[0], 0xf8, &tmp);
++	if (ret) {
++		dev_err(&client->dev,
++				"parity reg read failed=%d\n", ret);
++		goto err;
++	}
++	if (tmp & 0x10) {
++		dev_err(&client->dev,
++				"firmware parity check failed=0x%x\n", tmp);
++		goto err;
++	}
++	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", tmp);
++
+ 	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
+ 	if (ret)
+ 		goto err;
 -- 
-2.1.4
+2.1.0
 
