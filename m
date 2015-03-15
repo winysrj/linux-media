@@ -1,413 +1,505 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20625 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbbCIQWF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 12:22:05 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org
-References: <1421942679-23609-1-git-send-email-k.debski@samsung.com>
- <1421942679-23609-3-git-send-email-k.debski@samsung.com>
- <20150308112033.7d807164@recife.lan>
-In-reply-to: <20150308112033.7d807164@recife.lan>
-Subject: RE: [RFC v2 2/7] media: rc: Add cec protocol handling
-Date: Mon, 09 Mar 2015 17:22:00 +0100
-Message-id: <000801d05a85$2c83f4e0$858bdea0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8BIT
-Content-language: pl
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43509 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751799AbbCOVzo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 17:55:44 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-api@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: [RFC/PATCH 4/5] drm/rcar-du: Add VSP1 live source support
+Date: Sun, 15 Mar 2015 23:55:39 +0200
+Message-Id: <1426456540-21006-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1426456540-21006-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1426456540-21006-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, 
+Register live sources for VSPD0 and VSPD1 and configure the plane source
+at plane setup time to source frames from memory or from the VSP1.
 
-From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
-Sent: Sunday, March 08, 2015 3:21 PM
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c   |   6 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h   |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_group.c |  19 ++--
+ drivers/gpu/drm/rcar-du/rcar_du_group.h |   2 +
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c   |  22 +++-
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c | 173 +++++++++++++++++++++++++-------
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_regs.h  |   1 +
+ 8 files changed, 177 insertions(+), 52 deletions(-)
 
-> Em Thu, 22 Jan 2015 17:04:34 +0100
-> Kamil Debski <k.debski@samsung.com> escreveu:
-> 
-> (c/c linux-input ML)
-> 
-> > Add cec protocol handling the RC framework.
-> 
-> I added some comments, that reflects my understanding from what's there
-> at the keymap definitions found at:
-> 	http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-
-Thank you very much for the review, Mauro. Your comments are very much appreciated.
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+index da1216a73969..e16a912327b7 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+@@ -58,7 +58,8 @@ static const struct rcar_du_device_info rcar_du_r8a7779_info = {
  
-> 
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  drivers/media/rc/keymaps/Makefile |    1 +
-> >  drivers/media/rc/keymaps/rc-cec.c |  133
-> +++++++++++++++++++++++++++++++++++++
-> >  drivers/media/rc/rc-main.c        |    1 +
-> >  include/media/rc-core.h           |    1 +
-> >  include/media/rc-map.h            |    5 +-
-> >  5 files changed, 140 insertions(+), 1 deletion(-)  create mode
-> 100644
-> > drivers/media/rc/keymaps/rc-cec.c
-> >
-> > diff --git a/drivers/media/rc/keymaps/Makefile
-> > b/drivers/media/rc/keymaps/Makefile
-> > index abf6079..56f10d6 100644
-> > --- a/drivers/media/rc/keymaps/Makefile
-> > +++ b/drivers/media/rc/keymaps/Makefile
-> > @@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
-> >  			rc-behold.o \
-> >  			rc-behold-columbus.o \
-> >  			rc-budget-ci-old.o \
-> > +			rc-cec.o \
-> >  			rc-cinergy-1400.o \
-> >  			rc-cinergy.o \
-> >  			rc-delock-61959.o \
-> > diff --git a/drivers/media/rc/keymaps/rc-cec.c
-> > b/drivers/media/rc/keymaps/rc-cec.c
-> > new file mode 100644
-> > index 0000000..f2826c5
-> > --- /dev/null
-> > +++ b/drivers/media/rc/keymaps/rc-cec.c
-> > @@ -0,0 +1,133 @@
-> > +/* Keytable for the CEC remote control
-> > + *
-> > + * Copyright (c) 2015 by Kamil Debski
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > +modify
-> > + * it under the terms of the GNU General Public License as published
-> > +by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#include <media/rc-map.h>
-> > +#include <linux/module.h>
-> > +
-> > +/* CEC Spec "High-Definition Multimedia Interface Specification" can
-> > +be obtained
-> > + * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-> > + * The list of control codes is listed in Table 27: User Control
-> > +Codes p. 95 */
-> > +
-> > +static struct rc_map_table cec[] = {
-> > +	{ 0x00, KEY_SELECT }, /* XXX CEC Spec: Select, should it be
-> > +KEY_SELECT or KEY_OK? */
-> 
-> KEY_OK is better, IMHO.
-> 
-> > +	{ 0x01, KEY_UP },
-> > +	{ 0x02, KEY_DOWN },
-> > +	{ 0x03, KEY_LEFT },
-> > +	{ 0x04, KEY_RIGHT },
-> > +	/* XXX 0x05-0x08 CEC Spec: Right-Up, Right-Down, Left-Up, Left-
-> Down
-> > +*/
-> 
-> I think you need to send a patch to linux-input, in order to add those
-> keycodes.
-> 
-> > +	{ 0x09, KEY_CONTEXT_MENU }, /* CEC Spec: Root Menu - see Note 2
-> */
-> > +	/* Note 2: This is the initial display that a device shows. It is
-> > +	 * device-dependent and can be, for example, a contents menu,
-> setup
-> > +	 * menu, favorite menu or other menu. The actual menu displayed
-> > +	 * may also depend on the device’s current state. */
-> > +	{ 0x0a, KEY_SETUP },
-> > +	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
-> > +	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
-> > +	{ 0x0d, KEY_EXIT },
-> > +	/* 0x0e-0x1f: Reserved */
-> > +	/* 0x20-0x29: Keys 0 to 9 */
-> > +	{ 0x20, KEY_0 },
-> > +	{ 0x21, KEY_1 },
-> > +	{ 0x22, KEY_2 },
-> > +	{ 0x23, KEY_3 },
-> > +	{ 0x24, KEY_4 },
-> > +	{ 0x25, KEY_5 },
-> > +	{ 0x26, KEY_6 },
-> > +	{ 0x27, KEY_7 },
-> > +	{ 0x28, KEY_8 },
-> > +	{ 0x29, KEY_9 },
-> 
-> Better to use KEY_NUMERIC_* here, as this is not affected by the shift
-> state.
-> 
-> > +	{ 0x2a, KEY_DOT },
-> > +	{ 0x2b, KEY_ENTER },
-> > +	{ 0x2c, KEY_CLEAR },
-> > +	/* 0x2d-0x2e: Reserved */
-> 
-> > +	/* XXX 0x2f: CEC Spec: Next Favorite */
-> Again another addition to Linux keystroke codes.
-> 
-> > +	{ 0x30, KEY_CHANNELUP },
-> > +	{ 0x31, KEY_CHANNELDOWN },
-> > +	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
-> > +	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
-> > +	/* XXX 0x34: CEC Spec: Input Select */
-> 
-> Another key to be added. Yet, other keymaps have a key to select the
-> input source. Most use KEY_VIDEO, to select the video input source, and
-> KEY_AUDIO, to select the audio input source.
-> 
-> So, KEY_VIDEO is likely the best choice here.
-> 
-> > +	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
-> > +	{ 0x36, KEY_HELP },
-> > +	{ 0x37, KEY_PAGEUP },
-> > +	{ 0x38, KEY_PAGEDOWN },
-> > +	/* 0x39-0x3f: Reserved */
-> > +	{ 0x40, KEY_POWER },
-> > +	{ 0x41, KEY_VOLUMEUP },
-> > +	{ 0x42, KEY_VOLUMEDOWN },
-> > +	{ 0x43, KEY_MUTE },
-> > +	{ 0x44, KEY_PLAY },
-> > +	{ 0x45, KEY_STOP }, /* XXX CEC Spec: Stop, what about KEY_STOPCD?
-> */
-> > +	{ 0x46, KEY_PAUSE },/* XXX CEC Spec: Pause, what about
-> KEY_PAUSECD?
-> > +*/
-> 
-> The CD variants are to control the CD player on multimedia keyboards I
-> think.
-> only two IR maps use it. All the rest uses KEY_STOP/KEY_PAUSE.
-> 
-> > +	{ 0x47, KEY_RECORD },
-> > +	{ 0x48, KEY_REWIND },
-> > +	{ 0x49, KEY_FASTFORWARD },
-> > +	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
-> > +	{ 0x4b, KEY_FORWARD },
-> 
-> > +	{ 0x4c, }, /* XXX */
-> 
-> Hmm.. I guess it would be KEY_BACK for the backward keycode.
-> 
-> > +	{ 0x4d, KEY_STOP }, /* XXX CEC Spec: Stop-Record, what about
-> KEY_STOPCD? */
-> > +	{ 0x4e, KEY_PAUSE }, /* XXX CEC Spec: Pause-Record, what about
-> > +KEY_PAUSECD? */
-> 
-> Probably, we'll need to define two new keycodes here.
-> 
-> > +	/* 0x4f: Reserved */
-> > +	{ 0x50, KEY_ANGLE },
-> > +	{ 0x51, KEY_SUBTITLE }, /* XXX CEC Spec: Sub picture, should it
-> be
-> > +KEY_SUBTITLE or something else? */
-> 
-> KEY_SUBTITLE is for subtitle OSG data. Perhaps KEY_TV2?
-> 
-> Different maps do different things with the PIP key:
-> 
-> $ git grep -i pip drivers/media/rc/keymaps/
-> drivers/media/rc/keymaps/rc-alink-dtu-m.c:      { 0x0805, KEY_NEW },
-> /* symbol: PIP */
-> drivers/media/rc/keymaps/rc-avermedia-cardbus.c:        { 0x2b,
-> KEY_VIDEO },            /* PIP (Picture-in-picture) */
-> drivers/media/rc/keymaps/rc-avermedia-m135a.c:  { 0x022b, KEY_TV2 },
-> /* TV2 or PIP */
-> drivers/media/rc/keymaps/rc-avermedia-m135a.c:  { 0x041a, KEY_TV2 },
-> /* PIP */
-> drivers/media/rc/keymaps/rc-avermedia-m733a-rm-k6.c:    { 0x041a,
-> KEY_TV2 },      /* PIP */
-> drivers/media/rc/keymaps/rc-azurewave-ad-tu700.c:       { 0x0047,
-> KEY_NEW },             /* PIP */
-> drivers/media/rc/keymaps/rc-dib0700-rc5.c:      { 0x064c,
-> KEY_RESERVED }, /* PIP button*/
-> drivers/media/rc/keymaps/rc-digitalnow-tinytwin.c:      { 0x0053,
-> KEY_NEW },             /* [symbol PIP?] */
-> drivers/media/rc/keymaps/rc-dntv-live-dvbt-pro.c:       { 0x47,
-> KEY_TV2 },              /* pip */
-> drivers/media/rc/keymaps/rc-dvbsky.c:   { 0x000f, KEY_SUBTITLE },
-> /*PIP*/
-> drivers/media/rc/keymaps/rc-encore-enltv2.c:    { 0x71, KEY_TV2 },
-> /* PIP */
-> drivers/media/rc/keymaps/rc-evga-indtube.c:     { 0x16, KEY_TV2},
-> /* PIP */
-> drivers/media/rc/keymaps/rc-flydvb.c:   { 0x1a, KEY_TV2 },
-> /* PIP */
-> drivers/media/rc/keymaps/rc-terratec-slim.c:    { 0x02bd0b, KEY_NEW },
-> /* symbol: PIP */
-> drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c:     { 0x3a,
-> KEY_NEW},               /* PIP */
-> drivers/media/rc/keymaps/rc-winfast.c:  { 0x2a, KEY_TV2 },
-> /* PIP (Picture in picture */
-> 
-> > +	{ 0x52, KEY_VIDEO }, /* XXX CEC Spec: Video on Demand / input.h:
-> AL
-> > +Movie Browser, maybe KEY_DIRECTORY? */
-> 
-> I would add a KEY_VOD for that.
-> 
-> > +	{ 0x53, KEY_EPG },
-> > +	{ 0x54, KEY_TIME }, /* XXX CEC Spec: Timer */
-> > +	{ 0x55, KEY_CONFIG },
-> > +	/* 0x56-0x5f: Reserved */
-> 
-> > +	{ 0x60, KEY_PLAY }, /* XXX CEC Spec: Play Function */
-> > +	{ 0x61, KEY_PLAYPAUSE }, /* XXX CEC Spec: Pause-Play Function */
-> > +	{ 0x62, KEY_RECORD }, /* XXX CEC Spec: Record Function */
-> > +	{ 0x63, KEY_PAUSE }, /* XXX CEC Spec: Pause-Record Function */
-> > +	{ 0x64, KEY_STOP }, /* XXX CEC Spec: Stop Function */
-> > +	{ 0x65, KEY_MUTE }, /* XXX CEC Spec: Mute Function */
-> > +	/* 0x66: CEC Spec: Restore Volume Function */
-> > +	{ 0x67, KEY_TUNER }, /* XXX CEC Spec: Tune Function */
-> > +	{ 0x68, KEY_MEDIA }, /* CEC Spec: Select Media Function */
-> > +	{ 0x69, KEY_SWITCHVIDEOMODE} /* XXX CEC Spec: Select A/V Input
-> Function */,
-> > +	{ 0x6a, KEY_AUDIO} /* CEC Spec: Select Audio Input Function */,
-> > +	{ 0x6b, KEY_POWER} /* CEC Spec: Power Toggle Function */,
-> > +	{ 0x6c, KEY_SLEEP} /* XXX CEC Spec: Power Off Function */,
-> > +	{ 0x6d, KEY_WAKEUP} /* XXX CEC Spec: Power On Function */,
-> 
-> Those "function" keycodes look weird. What's the difference between
-> those and the pure non-function variants?
-> 
-> The spec (CEC 13.13.3) says that:
-> 
-> 	"Unlike the other codes, which just pass remote control presses
-> 	 to the target (often with manufacturer-specific results),
-> 	 the Functions are deterministic, ie they specify exactly the
-> state
-> 	 after executing these commands. Several of these also have
-> further
-> 	 operands, specifying the function in more detail, immediately
-> 	 following the relevant [UI Command] operand."
-> 
-> Some codes are actually compund ones. For example, 0x60 has a "play
-> mode"
-> operand. So, the actual mapping would be:
-> 
-> 0x60 + 0x24 - "play forward"
-> 0x61 + 0x20 - "play reverse"
-> ...
-> (see CEC17 for operand descriptions)
-> 
-> So, IMHO, the mapping should be
-> 
-> 	{ 0x6024, KEY_PLAY },
-> 	{ 0x6020, KEY_PLAY_REVERSE }, // to be created
-> 	...
-> 
-> 
-> > +	/* 0x6e-0x70: Reserved */
-> > +	{ 0x71, KEY_BLUE }, /* XXX CEC Spec: F1 (Blue) */
-> > +	{ 0x72, KEY_RED }, /* XXX CEC Spec: F2 (Red) */
-> > +	{ 0x73, KEY_GREEN }, /* XXX CEC Spec: F3 (Green) */
-> > +	{ 0x74, KEY_YELLOW }, /* XXX CEC Spec: F4 (Yellow) */
-> > +	{ 0x75, KEY_F5 },
-> > +	{ 0x76, KEY_CONNECT }, /* XXX CEC Spec: Data - see Note 3 */
-> > +	/* Note 3: This is used, for example, to enter or leave a digital
-> TV
-> > +	 * data broadcast application. */
-> 
-> perhaps a new keycode, like KEY_DVB? The spec is not actually too clear
-> about what that "Data" key means.
-> 
-> > +	/* 0x77-0xff: Reserved */
-> > +};
-> > +
-> > +static struct rc_map_list cec_map = {
-> > +	.map = {
-> > +		.scan		= cec,
-> > +		.size		= ARRAY_SIZE(cec),
-> > +		.rc_type	= RC_TYPE_CEC,
-> > +		.name		= RC_MAP_CEC,
-> > +	}
-> > +};
-> > +
-> > +static int __init init_rc_map_cec(void) {
-> > +	return rc_map_register(&cec_map);
-> > +}
-> > +
-> > +static void __exit exit_rc_map_cec(void) {
-> > +	rc_map_unregister(&cec_map);
-> > +}
-> > +
-> > +module_init(init_rc_map_cec);
-> > +module_exit(exit_rc_map_cec);
-> > +
-> > +MODULE_LICENSE("GPL");
-> > +MODULE_AUTHOR("Kamil Debski");
-> > diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> > index f8c5e47..37d1ce0 100644
-> > --- a/drivers/media/rc/rc-main.c
-> > +++ b/drivers/media/rc/rc-main.c
-> > @@ -801,6 +801,7 @@ static struct {
-> >  	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
-> >  	{ RC_BIT_LIRC,		"lirc"		},
-> >  	{ RC_BIT_XMP,		"xmp"		},
-> > +	{ RC_BIT_CEC,		"cec"		},
-> >  };
-> >
-> >  /**
-> > diff --git a/include/media/rc-core.h b/include/media/rc-core.h index
-> > 2c7fbca..7c9d15d 100644
-> > --- a/include/media/rc-core.h
-> > +++ b/include/media/rc-core.h
-> > @@ -32,6 +32,7 @@ do {
-> 	\
-> >  enum rc_driver_type {
-> >  	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a
-> scancode */
-> >  	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
-> > +	RC_DRIVER_CEC,
-> >  };
-> >
-> >  /**
-> > diff --git a/include/media/rc-map.h b/include/media/rc-map.h index
-> > e7a1514..2058a89 100644
-> > --- a/include/media/rc-map.h
-> > +++ b/include/media/rc-map.h
-> > @@ -32,6 +32,7 @@ enum rc_type {
-> >  	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype)
-> protocol */
-> >  	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
-> >  	RC_TYPE_XMP		= 19,	/* XMP protocol */
-> > +	RC_TYPE_CEC		= 20,	/* CEC protocol */
-> >  };
-> >
-> >  #define RC_BIT_NONE		0
-> > @@ -55,6 +56,7 @@ enum rc_type {
-> >  #define RC_BIT_RC6_MCE		(1 << RC_TYPE_RC6_MCE)
-> >  #define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
-> >  #define RC_BIT_XMP		(1 << RC_TYPE_XMP)
-> > +#define RC_BIT_CEC		(1 << RC_TYPE_CEC)
-> >
-> >  #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC |
-> \
-> >  			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \ @@ -
-> 63,7 +65,7 @@
-> > enum rc_type {
-> >  			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
-> >  			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
-> \
-> >  			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
-> > -			 RC_BIT_XMP)
-> > +			 RC_BIT_XMP | RC_BIT_CEC)
-> >
-> >
-> >  #define RC_SCANCODE_UNKNOWN(x)			(x)
-> > @@ -125,6 +127,7 @@ void rc_map_init(void);
-> >  #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
-> >  #define RC_MAP_BEHOLD                    "rc-behold"
-> >  #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
-> > +#define RC_MAP_CEC                       "rc-cec"
-> >  #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
-> >  #define RC_MAP_CINERGY                   "rc-cinergy"
-> >  #define RC_MAP_DELOCK_61959              "rc-delock-61959"
-
-
-Best wishes,
+ static const struct rcar_du_device_info rcar_du_r8a7790_info = {
+ 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
+-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS,
++		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
++		  | RCAR_DU_FEATURE_VSP1_SOURCE,
+ 	.quirks = RCAR_DU_QUIRK_ALIGN_128B | RCAR_DU_QUIRK_LVDS_LANES,
+ 	.num_crtcs = 3,
+ 	.routes = {
+@@ -86,7 +87,8 @@ static const struct rcar_du_device_info rcar_du_r8a7790_info = {
+ 
+ static const struct rcar_du_device_info rcar_du_r8a7791_info = {
+ 	.features = RCAR_DU_FEATURE_CRTC_IRQ_CLOCK
+-		  | RCAR_DU_FEATURE_EXT_CTRL_REGS,
++		  | RCAR_DU_FEATURE_EXT_CTRL_REGS
++		  | RCAR_DU_FEATURE_VSP1_SOURCE,
+ 	.num_crtcs = 2,
+ 	.routes = {
+ 		/* R8A7791 has one RGB output, one LVDS output and one
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.h b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+index c7c538dd2e68..b5be16053e71 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_drv.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.h
+@@ -29,6 +29,7 @@ struct rcar_du_lvdsenc;
+ 
+ #define RCAR_DU_FEATURE_CRTC_IRQ_CLOCK	(1 << 0)	/* Per-CRTC IRQ and clock */
+ #define RCAR_DU_FEATURE_EXT_CTRL_REGS	(1 << 1)	/* Has extended control registers */
++#define RCAR_DU_FEATURE_VSP1_SOURCE	(1 << 2)	/* Has inputs from VSP1 */
+ 
+ #define RCAR_DU_QUIRK_ALIGN_128B	(1 << 0)	/* Align pitches to 128 bytes */
+ #define RCAR_DU_QUIRK_LVDS_LANES	(1 << 1)	/* LVDS lanes 1 and 3 inverted */
+@@ -84,6 +85,8 @@ struct rcar_du_device {
+ 	struct rcar_du_group groups[RCAR_DU_MAX_GROUPS];
+ 
+ 	unsigned int dpad0_source;
++	unsigned int vspd1_sink;
++
+ 	struct rcar_du_lvdsenc *lvds[RCAR_DU_MAX_LVDS];
+ 
+ 	struct {
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+index 1bdc0ee0c248..71f50bf45581 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+@@ -49,10 +49,13 @@ static void rcar_du_group_setup_defr8(struct rcar_du_group *rgrp)
+ 	u32 defr8 = DEFR8_CODE | DEFR8_DEFE8;
+ 
+ 	/* The DEFR8 register for the first group also controls RGB output
+-	 * routing to DPAD0
++	 * routing to DPAD0 and VSPD1 routing to DU0/1/2.
+ 	 */
+-	if (rgrp->index == 0)
++	if (rgrp->index == 0) {
+ 		defr8 |= DEFR8_DRGBS_DU(rgrp->dev->dpad0_source);
++		if (rgrp->dev->vspd1_sink == 2)
++			defr8 |= DEFR8_VSCS;
++	}
+ 
+ 	rcar_du_group_write(rgrp, DEFR8, defr8);
+ }
+@@ -155,17 +158,17 @@ void rcar_du_group_restart(struct rcar_du_group *rgrp)
+ 	__rcar_du_group_start_stop(rgrp, true);
+ }
+ 
+-static int rcar_du_set_dpad0_routing(struct rcar_du_device *rcdu)
++int rcar_du_set_dpad0_vsp1_routing(struct rcar_du_device *rcdu)
+ {
+ 	int ret;
+ 
+ 	if (!rcar_du_has(rcdu, RCAR_DU_FEATURE_EXT_CTRL_REGS))
+ 		return 0;
+ 
+-	/* RGB output routing to DPAD0 is configured in the DEFR8 register of
+-	 * the first group. As this function can be called with the DU0 and DU1
+-	 * CRTCs disabled, we need to enable the first group clock before
+-	 * accessing the register.
++	/* RGB output routing to DPAD0 and VSP1D routing to DU0/1/2 are
++	 * configured in the DEFR8 register of the first group. As this function
++	 * can be called with the DU0 and DU1 CRTCs disabled, we need to enable
++	 * the first group clock before accessing the register.
+ 	 */
+ 	ret = clk_prepare_enable(rcdu->crtcs[0].clock);
+ 	if (ret < 0)
+@@ -196,5 +199,5 @@ int rcar_du_group_set_routing(struct rcar_du_group *rgrp)
+ 
+ 	rcar_du_group_write(rgrp, DORCR, dorcr);
+ 
+-	return rcar_du_set_dpad0_routing(rgrp->dev);
++	return rcar_du_set_dpad0_vsp1_routing(rgrp->dev);
+ }
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.h b/drivers/gpu/drm/rcar-du/rcar_du_group.h
+index ed36433fbe84..3fdf77171034 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_group.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_group.h
+@@ -52,4 +52,6 @@ void rcar_du_group_start_stop(struct rcar_du_group *rgrp, bool start);
+ void rcar_du_group_restart(struct rcar_du_group *rgrp);
+ int rcar_du_group_set_routing(struct rcar_du_group *rgrp);
+ 
++int rcar_du_set_dpad0_vsp1_routing(struct rcar_du_device *rcdu);
++
+ #endif /* __RCAR_DU_GROUP_H__ */
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+index 17f89bfca8f8..b78ced38b696 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+@@ -217,17 +217,25 @@ static void rcar_du_output_poll_changed(struct drm_device *dev)
+  */
+ 
+ static bool rcar_du_plane_needs_realloc(struct rcar_du_plane *plane,
+-					struct rcar_du_plane_state *state)
++					struct rcar_du_plane_state *new_state)
+ {
+-	const struct rcar_du_format_info *cur_format;
++	struct rcar_du_plane_state *cur_state;
+ 
+-	cur_format = to_rcar_du_plane_state(plane->plane.state)->format;
++	cur_state = to_rcar_du_plane_state(plane->plane.state);
+ 
+ 	/* Lowering the number of planes doesn't strictly require reallocation
+ 	 * as the extra hardware plane will be freed when committing, but doing
+ 	 * so could lead to more fragmentation.
+ 	 */
+-	return !cur_format || cur_format->planes != state->format->planes;
++	if (!cur_state->format ||
++	    cur_state->format->planes != new_state->format->planes)
++		return true;
++
++	/* Reallocate hardware planes if the source has changed. */
++	if (cur_state->source != new_state->source)
++		return true;
++
++	return false;
+ }
+ 
+ static unsigned int rcar_du_plane_hwmask(struct rcar_du_plane_state *state)
+@@ -776,6 +784,12 @@ int rcar_du_modeset_init(struct rcar_du_device *rcdu)
+ 
+ 	drm_mode_config_reset(dev);
+ 
++	if (rcar_du_has(rcdu, RCAR_DU_FEATURE_VSP1_SOURCE)) {
++		ret = rcar_du_vsp1_sources_init(rcdu);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	drm_kms_helper_poll_init(dev);
+ 
+ 	if (dev->mode_config.num_connector) {
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+index 80e4dba78aef..e77f9d93c1c5 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+@@ -20,21 +20,84 @@
+ #include <drm/drm_plane_helper.h>
+ 
+ #include "rcar_du_drv.h"
++#include "rcar_du_group.h"
+ #include "rcar_du_kms.h"
+ #include "rcar_du_plane.h"
+ #include "rcar_du_regs.h"
+ 
+-#define RCAR_DU_COLORKEY_NONE		(0 << 24)
+-#define RCAR_DU_COLORKEY_SOURCE		(1 << 24)
+-#define RCAR_DU_COLORKEY_MASK		(1 << 24)
++/* -----------------------------------------------------------------------------
++ * Live Sources
++ */
++
++struct rcar_du_vsp1_source {
++	struct drm_live_source base;
++
++	enum rcar_du_plane_source source;
++};
+ 
+-static u32 rcar_du_plane_read(struct rcar_du_group *rgrp,
+-			      unsigned int index, u32 reg)
++static inline struct rcar_du_vsp1_source *
++to_rcar_vsp1_source(struct drm_live_source *src)
+ {
+-	return rcar_du_read(rgrp->dev,
+-			    rgrp->mmio_offset + index * PLANE_OFF + reg);
++	return container_of(src, struct rcar_du_vsp1_source, base);
++}
++
++static const struct drm_live_source_funcs rcar_du_live_source_funcs = {
++	.destroy = drm_live_source_cleanup,
++};
++
++static const uint32_t source_formats[] = {
++	DRM_FORMAT_XRGB8888,
++};
++
++int rcar_du_vsp1_sources_init(struct rcar_du_device *rcdu)
++{
++	static const struct {
++		enum rcar_du_plane_source source;
++		unsigned int planes;
++	} sources[] = {
++		{ RCAR_DU_PLANE_VSPD0, BIT(RCAR_DU_NUM_KMS_PLANES - 1) },
++		{ RCAR_DU_PLANE_VSPD1, BIT(RCAR_DU_NUM_KMS_PLANES - 2) |
++				       BIT(2 * RCAR_DU_NUM_KMS_PLANES - 1) },
++	};
++	unsigned int planes_mask;
++	unsigned int num_planes;
++	unsigned int i;
++
++	num_planes = RCAR_DU_NUM_KMS_PLANES * DIV_ROUND_UP(rcdu->num_crtcs, 2);
++	planes_mask = (1 << num_planes) - 1;
++
++	for (i = 0; i < ARRAY_SIZE(sources); ++i) {
++		struct rcar_du_vsp1_source *src;
++		char name[6];
++		int ret;
++
++		src = devm_kzalloc(rcdu->dev, sizeof(*src), GFP_KERNEL);
++		if (src == NULL)
++			return -ENOMEM;
++
++		src->source = sources[i].source;
++
++		sprintf(name, "vspd%u", i);
++		ret = drm_live_source_init(rcdu->ddev, &src->base, name,
++					   sources[i].planes & planes_mask,
++					   source_formats,
++					   ARRAY_SIZE(source_formats),
++					   &rcar_du_live_source_funcs);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
+ }
+ 
++/* -----------------------------------------------------------------------------
++ * Planes
++ */
++
++#define RCAR_DU_COLORKEY_NONE		(0 << 24)
++#define RCAR_DU_COLORKEY_SOURCE		(1 << 24)
++#define RCAR_DU_COLORKEY_MASK		(1 << 24)
++
+ static void rcar_du_plane_write(struct rcar_du_group *rgrp,
+ 				unsigned int index, u32 reg, u32 data)
+ {
+@@ -42,34 +105,47 @@ static void rcar_du_plane_write(struct rcar_du_group *rgrp,
+ 		      data);
+ }
+ 
+-static void rcar_du_plane_setup_fb(struct rcar_du_plane *plane)
++static void rcar_du_plane_setup_scanout(struct rcar_du_plane *plane)
+ {
+ 	struct rcar_du_plane_state *state =
+ 		to_rcar_du_plane_state(plane->plane.state);
+-	struct drm_framebuffer *fb = plane->plane.state->fb;
+ 	struct rcar_du_group *rgrp = plane->group;
+ 	unsigned int src_x = state->state.src_x >> 16;
+ 	unsigned int src_y = state->state.src_y >> 16;
+ 	unsigned int index = state->hwindex;
+-	struct drm_gem_cma_object *gem;
++	unsigned int pitch;
+ 	bool interlaced;
+-	u32 mwr;
++	u32 dma[2];
+ 
+ 	interlaced = state->state.crtc->state->adjusted_mode.flags
+ 		   & DRM_MODE_FLAG_INTERLACE;
+ 
++	if (plane->plane.state->fb) {
++		struct drm_framebuffer *fb = state->state.fb;
++		struct drm_gem_cma_object *gem;
++		unsigned int i;
++
++		if (state->format->planes == 2)
++			pitch = fb->pitches[0];
++		else
++			pitch = fb->pitches[0] * 8 / state->format->bpp;
++
++		for (i = 0; i < state->format->planes; ++i) {
++			gem = drm_fb_cma_get_gem_obj(fb, i);
++			dma[i] = gem->paddr + fb->offsets[i];
++		}
++	} else {
++		pitch = state->state.src_w >> 16;
++		dma[0] = 0;
++		dma[1] = 0;
++	}
++
+ 	/* Memory pitch (expressed in pixels). Must be doubled for interlaced
+ 	 * operation with 32bpp formats.
+ 	 */
+-	if (state->format->planes == 2)
+-		mwr = fb->pitches[0];
+-	else
+-		mwr = fb->pitches[0] * 8 / state->format->bpp;
+-
+-	if (interlaced && state->format->bpp == 32)
+-		mwr *= 2;
+-
+-	rcar_du_plane_write(rgrp, index, PnMWR, mwr);
++	rcar_du_plane_write(rgrp, index, PnMWR,
++			    (interlaced && state->format->bpp == 32) ?
++			    pitch * 2 : pitch);
+ 
+ 	/* The Y position is expressed in raster line units and must be doubled
+ 	 * for 32bpp formats, according to the R8A7790 datasheet. No mention of
+@@ -87,21 +163,18 @@ static void rcar_du_plane_setup_fb(struct rcar_du_plane *plane)
+ 	rcar_du_plane_write(rgrp, index, PnSPYR, src_y *
+ 			    (!interlaced && state->format->bpp == 32 ? 2 : 1));
+ 
+-	gem = drm_fb_cma_get_gem_obj(fb, 0);
+-	rcar_du_plane_write(rgrp, index, PnDSA0R, gem->paddr + fb->offsets[0]);
++	rcar_du_plane_write(rgrp, index, PnDSA0R, dma[0]);
+ 
+ 	if (state->format->planes == 2) {
+ 		index = (index + 1) % 8;
+ 
+-		rcar_du_plane_write(rgrp, index, PnMWR, fb->pitches[0]);
++		rcar_du_plane_write(rgrp, index, PnMWR, pitch);
+ 
+ 		rcar_du_plane_write(rgrp, index, PnSPXR, src_x);
+ 		rcar_du_plane_write(rgrp, index, PnSPYR, src_y *
+ 				    (state->format->bpp == 16 ? 2 : 1) / 2);
+ 
+-		gem = drm_fb_cma_get_gem_obj(fb, 1);
+-		rcar_du_plane_write(rgrp, index, PnDSA0R,
+-				    gem->paddr + fb->offsets[1]);
++		rcar_du_plane_write(rgrp, index, PnDSA0R, dma[1]);
+ 	}
+ }
+ 
+@@ -168,8 +241,8 @@ static void rcar_du_plane_setup_mode(struct rcar_du_plane *plane,
+ 	}
+ }
+ 
+-static void __rcar_du_plane_setup(struct rcar_du_plane *plane,
+-				  unsigned int index)
++static void rcar_du_plane_setup_format(struct rcar_du_plane *plane,
++				       unsigned int index)
+ {
+ 	struct rcar_du_plane_state *state =
+ 		to_rcar_du_plane_state(plane->plane.state);
+@@ -182,10 +255,6 @@ static void __rcar_du_plane_setup(struct rcar_du_plane *plane,
+ 	 * The data format is selected by the DDDF field in PnMR and the EDF
+ 	 * field in DDCR4.
+ 	 */
+-	ddcr4 = rcar_du_plane_read(rgrp, index, PnDDCR4);
+-	ddcr4 &= ~PnDDCR4_EDF_MASK;
+-	ddcr4 |= state->format->edf | PnDDCR4_CODE;
+-
+ 	rcar_du_plane_setup_mode(plane, index);
+ 
+ 	if (state->format->planes == 2) {
+@@ -204,6 +273,11 @@ static void __rcar_du_plane_setup(struct rcar_du_plane *plane,
+ 	}
+ 
+ 	rcar_du_plane_write(rgrp, index, PnDDCR2, ddcr2);
++
++	ddcr4 = state->format->edf | PnDDCR4_CODE;
++	if (state->source != RCAR_DU_PLANE_MEMORY)
++		ddcr4 |= PnDDCR4_VSPS;
++
+ 	rcar_du_plane_write(rgrp, index, PnDDCR4, ddcr4);
+ 
+ 	/* Destination position and size */
+@@ -224,11 +298,21 @@ void rcar_du_plane_setup(struct rcar_du_plane *plane)
+ 	struct rcar_du_plane_state *state =
+ 		to_rcar_du_plane_state(plane->plane.state);
+ 
+-	__rcar_du_plane_setup(plane, state->hwindex);
++	rcar_du_plane_setup_format(plane, state->hwindex);
+ 	if (state->format->planes == 2)
+-		__rcar_du_plane_setup(plane, (state->hwindex + 1) % 8);
++		rcar_du_plane_setup_format(plane, (state->hwindex + 1) % 8);
++
++	rcar_du_plane_setup_scanout(plane);
++
++	if (state->source == RCAR_DU_PLANE_VSPD1) {
++		unsigned int vspd1_sink = plane->group->index ? 2 : 0;
++		struct rcar_du_device *rcdu = plane->group->dev;
+ 
+-	rcar_du_plane_setup_fb(plane);
++		if (rcdu->vspd1_sink != vspd1_sink) {
++			rcdu->vspd1_sink = vspd1_sink;
++			rcar_du_set_dpad0_vsp1_routing(rcdu);
++		}
++	}
+ }
+ 
+ static int rcar_du_plane_atomic_check(struct drm_plane *plane,
+@@ -237,8 +321,9 @@ static int rcar_du_plane_atomic_check(struct drm_plane *plane,
+ 	struct rcar_du_plane_state *rstate = to_rcar_du_plane_state(state);
+ 	struct rcar_du_plane *rplane = to_rcar_plane(plane);
+ 	struct rcar_du_device *rcdu = rplane->group->dev;
++	uint32_t pixel_format;
+ 
+-	if (!state->fb || !state->crtc) {
++	if ((!state->fb && !state->src) || !state->crtc) {
+ 		rstate->format = NULL;
+ 		return 0;
+ 	}
+@@ -249,13 +334,25 @@ static int rcar_du_plane_atomic_check(struct drm_plane *plane,
+ 		return -EINVAL;
+ 	}
+ 
+-	rstate->format = rcar_du_format_info(state->fb->pixel_format);
++	pixel_format = state->fb ? state->fb->pixel_format
++				 : state->src->pixel_format;
++	rstate->format = rcar_du_format_info(pixel_format);
+ 	if (rstate->format == NULL) {
+ 		dev_dbg(rcdu->dev, "%s: unsupported format %08x\n", __func__,
+-			state->fb->pixel_format);
++			pixel_format);
++		return -EINVAL;
++	}
++
++	if (state->src && rstate->format->planes > 1) {
++		dev_dbg(rcdu->dev,
++			"%s: unsupported format %08x for live source\n",
++			__func__, pixel_format);
+ 		return -EINVAL;
+ 	}
+ 
++	rstate->source = state->fb ? RCAR_DU_PLANE_MEMORY
++		       : to_rcar_vsp1_source(state->src)->source;
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+index 81c2d361a94f..9a6132899d59 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+@@ -17,6 +17,7 @@
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+ 
++struct rcar_du_device;
+ struct rcar_du_format_info;
+ struct rcar_du_group;
+ 
+@@ -70,6 +71,8 @@ to_rcar_du_plane_state(struct drm_plane_state *state)
+ 	return container_of(state, struct rcar_du_plane_state, state);
+ }
+ 
++int rcar_du_vsp1_sources_init(struct rcar_du_device *rcdu);
++
+ int rcar_du_planes_init(struct rcar_du_group *rgrp);
+ 
+ void rcar_du_plane_setup(struct rcar_du_plane *plane);
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_regs.h b/drivers/gpu/drm/rcar-du/rcar_du_regs.h
+index 70fcbc471ebd..ac9c3e511e79 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_regs.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_regs.h
+@@ -389,6 +389,7 @@
+ 
+ #define PnDDCR4			0x00190
+ #define PnDDCR4_CODE		(0x7766 << 16)
++#define PnDDCR4_VSPS		(1 << 13)
+ #define PnDDCR4_SDFS_RGB	(0 << 4)
+ #define PnDDCR4_SDFS_YC		(5 << 4)
+ #define PnDDCR4_SDFS_MASK	(7 << 4)
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+2.0.5
 
