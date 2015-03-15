@@ -1,144 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:11771 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810AbbC3Hgl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 03:36:41 -0400
-Message-id: <5518FD05.5060800@samsung.com>
-Date: Mon, 30 Mar 2015 09:36:37 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v2 04/11] DT: Add documentation for the mfd Maxim max77693
-References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
- <1427464185-27950-5-git-send-email-j.anaszewski@samsung.com>
- <20150328225503.GZ18321@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150328225503.GZ18321@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.15]:56573 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751554AbbCOK06 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 06:26:58 -0400
+Message-ID: <55055E66.6040600@gmx.com>
+Date: Sun, 15 Mar 2015 11:26:46 +0100
+From: Ole Ernst <olebowle@gmx.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: nibble.max@gmail.com, crope@iki.fi, olli.salonen@iki.fi
+Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
+References: <5504920C.7080806@gmx.com>
+In-Reply-To: <5504920C.7080806@gmx.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-On 03/28/2015 11:55 PM, Sakari Ailus wrote:
-> On Fri, Mar 27, 2015 at 02:49:38PM +0100, Jacek Anaszewski wrote:
->> This patch adds device tree binding documentation for
->> the flash cell of the Maxim max77693 multifunctional device.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Lee Jones <lee.jones@linaro.org>
->> Cc: Chanwoo Choi <cw00.choi@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>   Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
->>   1 file changed, 61 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
->> index 38e6440..15c546ea 100644
->> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
->> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
->> @@ -76,7 +76,53 @@ Optional properties:
->>       Valid values: 4300000, 4700000, 4800000, 4900000
->>       Default: 4300000
->>
->> +- led : the LED submodule device node
->> +
->> +There are two LED outputs available - FLED1 and FLED2. Each of them can
->> +control a separate LED or they can be connected together to double
->> +the maximum current for a single connected LED. One LED is represented
->> +by one child node.
->> +
->> +Required properties:
->> +- compatible : Must be "maxim,max77693-led".
->> +
->> +Optional properties:
->> +- maxim,trigger-type : Flash trigger type.
->> +	Possible trigger types:
->> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
->> +			the flash,
->> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
->> +			of the flash.
->> +- maxim,boost-mode :
->> +	In boost mode the device can produce up to 1.2A of total current
->> +	on both outputs. The maximum current on each output is reduced
->> +	to 625mA then. If not enabled explicitly, boost setting defaults to
->> +	LEDS_BOOST_FIXED in case both current sources are used.
->> +	Possible values:
->> +		LEDS_BOOST_OFF (0) - no boost,
->> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
->> +		LEDS_BOOST_FIXED (2) - fixed mode.
->> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
->
-> What are the possible values for this?
+I added some printk in cx23885-dvb.c and the problem is in
+i2c_new_device:
+https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/tree/drivers/media/pci/cx23885/cx23885-dvb.c?id=refs/tags/v3.19.1#n1935
 
-maxim,boost-mvout : Output voltage of the boost module in millivolts
-	Range: 3300 - 5500
+The returned client_tuner is not NULL, but client_tuner->dev.driver is.
+Hence it will goto frontend_detach, which will then return -EINVAL. Any
+idea why client_tuner->dev.driver is NULL?
 
-Do you think it is necessary to mention also allowed step for all the
-values?
+Thanks,
+Ole
 
-> Is the datasheet publicly available btw.?
-
-I have an access only to the non-public one.
-
->> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
->> +	if chip estimates that system voltage could drop below this level due
->> +	to flash power consumption.
->> +
->> +Required properties of the LED child node:
->> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
->> +		device current output identifiers: 0 - FLED1, 1 - FLED2
->> +
->> +Optional properties of the LED child node:
->> +- label : see Documentation/devicetree/bindings/leds/common.txt
->> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 15625 - 250000
->> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 15625 - 1000000
->> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
->> +		Range: 62500 - 1000000
->> +
->>   Example:
->> +#include <dt-bindings/leds/common.h>
->> +
->>   	max77693@66 {
->>   		compatible = "maxim,max77693";
->>   		reg = <0x66>;
->> @@ -117,5 +163,20 @@ Example:
->>   			maxim,thermal-regulation-celsius = <75>;
->>   			maxim,battery-overcurrent-microamp = <3000000>;
->>   			maxim,charge-input-threshold-microvolt = <4300000>;
->> +
->> +		led {
->> +			compatible = "maxim,max77693-led";
->> +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
->> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
->> +			maxim,boost-mvout = <5000>;
->> +			maxim,mvsys-min = <2400>;
->> +
->> +			camera_flash: flash-led {
->> +				label = "max77693-flash";
->> +				led-sources = <0>, <1>;
->> +				max-microamp = <500000>;
->> +				flash-max-microamp = <1250000>;
->> +				flash-timeout-us = <1000000>;
->> +			};
->>   		};
->>   	};
->
-
-
--- 
-Best Regards,
-Jacek Anaszewski
+Am 14.03.2015 um 20:54 schrieb Ole Ernst:
+> Hi,
+> 
+> using linux-3.19.1-1 (Archlinux) I get the following output while
+> booting without the media-build-tree provided by DVBSky:
+> 
+> cx23885 driver version 0.0.4 loaded
+> cx23885 0000:04:00.0: enabling device (0000 -> 0002)
+> CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
+> [card=50,autodetected]
+> cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+> cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+> cx23885_dvb_register() allocating 1 frontend(s)
+> cx23885[0]: cx23885 based dvb card
+> i2c i2c-2: m88ds3103_attach: chip_id=70
+> i2c i2c-2: Added multiplexed i2c bus 4
+> cx23885_dvb_register() dvb_register failed err = -22
+> cx23885_dev_setup() Failed to register dvb adapters on VID_B
+> cx23885_dvb_register() allocating 1 frontend(s)
+> cx23885[0]: cx23885 based dvb card
+> i2c i2c-1: m88ds3103_attach: chip_id=70
+> i2c i2c-1: Added multiplexed i2c bus 4
+> cx23885_dvb_register() dvb_register failed err = -22
+> cx23885_dev_setup() Failed to register dvb on VID_C
+> cx23885_dev_checkrevision() Hardware revision = 0xa5
+> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 17, latency: 0, mmio:
+> 0xf7200000
+> 
+> Obviously there are no device in /dev/dvb. Using the media-build-tree
+> works just fine though. The following firmware files are installed in
+> /usr/lib/firmware:
+> dvb-demod-m88ds3103.fw
+> dvb-demod-m88rs6000.fw
+> dvb-demod-si2168-a20-01.fw
+> dvb-demod-si2168-a30-01.fw
+> dvb-demod-si2168-b40-01.fw
+> dvb-fe-ds300x.fw
+> dvb-fe-ds3103.fw
+> dvb-fe-rs6000.fw
+> dvb-tuner-si2158-a20-01.fw
+> 
+> Output of lspci -vvvnn:
+> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/lscpi
+> 
+> I also set the module parameters debug, i2c_debug, irq_debug and
+> irq_debug in cx23885.
+> The output is pretty verbose and can be found here:
+> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/debug.log
+> 
+> Thanks,
+> Ole
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
