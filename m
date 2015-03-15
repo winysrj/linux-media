@@ -1,94 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49561 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753948AbbCMLRb (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56684 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751166AbbCOUv7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:17:31 -0400
+	Sun, 15 Mar 2015 16:51:59 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2A5C72A0083
+	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 21:51:54 +0100 (CET)
+Message-ID: <5505F0EA.3090901@xs4all.nl>
+Date: Sun, 15 Mar 2015 21:51:54 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 36/39] vivid: add support for BGR666
-Date: Fri, 13 Mar 2015 12:16:14 +0100
-Message-Id: <1426245377-17704-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: DocBook media: fix VIDIOC_CROPCAP type description
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The type field of VIDIOC_CROPCAP does not allow the MPLANE variants, just
+as all the other crop/selection related ioctls.
 
-Add support for the four byte BGR666 format.
+Fix the description of CROPCAP and G_CROP and make the text describing
+this consistent for all selection ioctls.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-tpg.c        | 13 +++++++++++++
- drivers/media/platform/vivid/vivid-vid-common.c |  8 ++++++++
- 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index ec9ffc4..059e98e 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -200,6 +200,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_RGB555X:
- 	case V4L2_PIX_FMT_XRGB555X:
- 	case V4L2_PIX_FMT_ARGB555X:
-+	case V4L2_PIX_FMT_BGR666:
- 	case V4L2_PIX_FMT_RGB24:
- 	case V4L2_PIX_FMT_BGR24:
- 	case V4L2_PIX_FMT_RGB32:
-@@ -299,6 +300,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_BGR24:
- 		tpg->twopixelsize[0] = 2 * 3;
- 		break;
-+	case V4L2_PIX_FMT_BGR666:
- 	case V4L2_PIX_FMT_RGB32:
- 	case V4L2_PIX_FMT_BGR32:
- 	case V4L2_PIX_FMT_XRGB32:
-@@ -749,6 +751,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 			g >>= 7;
- 			b >>= 7;
- 			break;
-+		case V4L2_PIX_FMT_BGR666:
-+			r >>= 6;
-+			g >>= 6;
-+			b >>= 6;
-+			break;
- 		default:
- 			r >>= 4;
- 			g >>= 4;
-@@ -944,6 +951,12 @@ static void gen_twopix(struct tpg_data *tpg,
- 		buf[0][offset + 1] = g_u;
- 		buf[0][offset + 2] = r_y;
- 		break;
-+	case V4L2_PIX_FMT_BGR666:
-+		buf[0][offset] = (b_v << 2) | (g_u >> 4);
-+		buf[0][offset + 1] = (g_u << 4) | (r_y >> 2);
-+		buf[0][offset + 2] = r_y << 6;
-+		buf[0][offset + 3] = 0;
-+		break;
- 	case V4L2_PIX_FMT_RGB32:
- 	case V4L2_PIX_FMT_XRGB32:
- 		alpha = 0;
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 9e8c06a..58b42d2 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -291,6 +291,14 @@ struct vivid_fmt vivid_formats[] = {
- 		.buffers = 1,
- 	},
- 	{
-+		.name     = "BGR666",
-+		.fourcc   = V4L2_PIX_FMT_BGR666, /* bbbbbbgg ggggrrrr rrxxxxxx */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 32 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
- 		.name     = "RGB32 (LE)",
- 		.fourcc   = V4L2_PIX_FMT_RGB32, /* xrgb */
- 		.vdownsampling = { 1 },
--- 
-2.1.4
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+index 1f5ed64..50cb940 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
+@@ -59,6 +59,11 @@ constant except when switching the video standard. Remember this
+ switch can occur implicit when switching the video input or
+ output.</para>
+ 
++<para>Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
++instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>
++and use <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.</para>
++
+     <para>This ioctl must be implemented for video capture or output devices that
+ support cropping and/or scaling and/or have non-square pixels, and for overlay devices.</para>
+ 
+@@ -73,9 +78,7 @@ support cropping and/or scaling and/or have non-square pixels, and for overlay d
+ 	    <entry>Type of the data stream, set by the application.
+ Only these types are valid here:
+ <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
+-<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant> and
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> and
+ <constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>. See <xref linkend="v4l2-buf-type" />.</entry>
+ 	  </row>
+ 	  <row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
+index 75c6a93..e6c4efb 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
+@@ -70,6 +70,11 @@ structure or returns the &EINVAL; if cropping is not supported.</para>
+ <constant>VIDIOC_S_CROP</constant> ioctl with a pointer to this
+ structure.</para>
+ 
++<para>Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
++instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>
++and use <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
++<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.</para>
++
+     <para>The driver first adjusts the requested dimensions against
+ hardware limits, &ie; the bounds given by the capture/output window,
+ and it rounds to the closest possible values of horizontal and
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index 9c04ac8..0bb5c06 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -60,8 +60,8 @@
+ 
+ <para>To query the cropping (composing) rectangle set &v4l2-selection;
+ <structfield> type </structfield> field to the respective buffer type.
+-Do not use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
+-instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
++Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
++instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant> and use
+ <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
+ <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
+ setting the value of &v4l2-selection; <structfield>target</structfield> field
