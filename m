@@ -1,119 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41788 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750914AbbCPDqv (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57904 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751973AbbCOM2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 23:46:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F00B02A0083
-	for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 04:46:44 +0100 (CET)
-Date: Mon, 16 Mar 2015 04:46:44 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150316034644.F00B02A0083@tschai.lan>
+	Sun, 15 Mar 2015 08:28:34 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B065B2A0083
+	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 13:28:29 +0100 (CET)
+Message-ID: <55057AED.7010304@xs4all.nl>
+Date: Sun, 15 Mar 2015 13:28:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.1] Various fixes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Various fixes found while testing drivers with v4l2-compliance.
 
-Results of the daily build of media_tree:
+Regards,
 
-date:		Mon Mar 16 04:00:26 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+	Hans
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
 
-Detailed results are available here:
+  [media] mn88473: simplify bandwidth registers setting code (2015-03-03 13:09:12 -0300)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+are available in the git repository at:
 
-Full logs are available here:
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.1k
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+for you to fetch changes up to 77b233e79baa96aa11a424e404c599b1daf26c6c:
 
-The Media Infrastructure API from this daily build is here:
+  v4l2-ioctl: allow all controls if ctrl_class == 0 (2015-03-15 13:27:10 +0100)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+----------------------------------------------------------------
+Hans Verkuil (3):
+      au0828: fix broken streaming
+      v4l2-dev: disable selection ioctls for non-video devices
+      v4l2-ioctl: allow all controls if ctrl_class == 0
+
+ drivers/media/usb/au0828/au0828-video.c | 14 +++++++-------
+ drivers/media/v4l2-core/v4l2-dev.c      | 16 ++++++++--------
+ drivers/media/v4l2-core/v4l2-ioctl.c    |  2 ++
+ 3 files changed, 17 insertions(+), 15 deletions(-)
