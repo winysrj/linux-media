@@ -1,124 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36480 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760872AbbCDJtK (ORCPT
+Received: from www.linutronix.de ([62.245.132.108]:37785 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933055AbbCPUvB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:49:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 6/8] DocBook media: document the new 'which' field.
-Date: Wed,  4 Mar 2015 10:47:59 +0100
-Message-Id: <1425462481-8200-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 16 Mar 2015 16:51:01 -0400
+Message-ID: <55074230.20307@linutronix.de>
+Date: Mon, 16 Mar 2015 21:50:56 +0100
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+MIME-Version: 1.0
+To: Mike Rapoport <mike.rapoport@gmail.com>,
+	Wolfram Sang <wsa@the-dreams.de>
+CC: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mike Galbraith <umgwanakikbuti@gmail.com>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: Re: rt-mutex usage in i2c
+References: <54FDA380.8030405@linutronix.de>	<20150314112703.GD970@katana>	<20150314113237.GE970@katana> <CABpLfoiQg1smiebL0=nWX4Sp1H+XD9VViUqGk13gRcfdAwkFoA@mail.gmail.com>
+In-Reply-To: <CABpLfoiQg1smiebL0=nWX4Sp1H+XD9VViUqGk13gRcfdAwkFoA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/15/2015 08:07 AM, Mike Rapoport wrote:
+> On Sat, Mar 14, 2015 at 1:32 PM, Wolfram Sang <wsa@the-dreams.de> wrote:
+>> On Sat, Mar 14, 2015 at 12:27:03PM +0100, Wolfram Sang wrote:
+>>> Hi Sebastian,
+>>>
+>>>> - i2c_transfer() has this piece:
+>>>>   2091                 if (in_atomic() || irqs_disabled()) {
+>>>>   2092                         ret = i2c_trylock_adapter(adap);
+>>>>
+>>>>   is this irqs_disabled() is what bothers me and should not be there.
+>>>>   pxa does a spin_lock_irq() which would enable interrupts on return /
+>>>>   too early.
+>>>>   mxs has a wait_for_completion() which needs irqs enabled _and_ makes
+>>>>   in_atomic() problematic, too. I have't checked other drivers but the
+>>>>   commit, that introduced it, does not explain why it is required.
+> 
+> That was some time ago, but as far as I remember, PIO in i2c_pxa was
+> required to enable communication with PMIC in interrupt context.
 
-The subdev enum ioctls now have a new 'which' field. Document this.
+Let me add one thing I forgot: the locking is using raw locks which are
+not irq safe. It usually works. But. If the wait_lock is hold during
+the unlock's slow path (that means there is no owner but the owner
+field is not yet NULL) and the interrupt handler gets here with a
+try_lock attempt then and it will spin forever on the wait_lock.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- .../DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml | 13 +++++++++----
- .../DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml     | 13 +++++++++----
- .../DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml      | 11 ++++++++---
- 3 files changed, 26 insertions(+), 11 deletions(-)
+I will try to lookup the threads later…
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-index 2f8f4f0..cff59f5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-@@ -67,9 +67,9 @@
- 
-     <para>To enumerate frame intervals applications initialize the
-     <structfield>index</structfield>, <structfield>pad</structfield>,
--    <structfield>code</structfield>, <structfield>width</structfield> and
--    <structfield>height</structfield> fields of
--    &v4l2-subdev-frame-interval-enum; and call the
-+    <structfield>which</structfield>, <structfield>code</structfield>,
-+    <structfield>width</structfield> and <structfield>height</structfield>
-+    fields of &v4l2-subdev-frame-interval-enum; and call the
-     <constant>VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL</constant> ioctl with a pointer
-     to this structure. Drivers fill the rest of the structure or return
-     an &EINVAL; if one of the input fields is invalid. All frame intervals are
-@@ -123,7 +123,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Frame intervals to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-index 79ce42b..abd545e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-@@ -61,9 +61,9 @@
-     ioctl.</para>
- 
-     <para>To enumerate frame sizes applications initialize the
--    <structfield>pad</structfield>, <structfield>code</structfield> and
--    <structfield>index</structfield> fields of the
--    &v4l2-subdev-mbus-code-enum; and call the
-+    <structfield>pad</structfield>, <structfield>which</structfield> ,
-+    <structfield>code</structfield> and <structfield>index</structfield>
-+    fields of the &v4l2-subdev-mbus-code-enum; and call the
-     <constant>VIDIOC_SUBDEV_ENUM_FRAME_SIZE</constant> ioctl with a pointer to
-     the structure. Drivers fill the minimum and maximum frame sizes or return
-     an &EINVAL; if one of the input parameters is invalid.</para>
-@@ -127,7 +127,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Frame sizes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-index a6b3432..0bcb278 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-@@ -56,8 +56,8 @@
-     </note>
- 
-     <para>To enumerate media bus formats available at a given sub-device pad
--    applications initialize the <structfield>pad</structfield> and
--    <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
-+    applications initialize the <structfield>pad</structfield>, <structfield>which</structfield>
-+    and <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
-     call the <constant>VIDIOC_SUBDEV_ENUM_MBUS_CODE</constant> ioctl with a
-     pointer to this structure. Drivers fill the rest of the structure or return
-     an &EINVAL; if either the <structfield>pad</structfield> or
-@@ -93,7 +93,12 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Media bus format codes to be enumerated, from &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
--- 
-2.1.4
-
+Sebastian
