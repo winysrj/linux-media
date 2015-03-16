@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:41854 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933662AbbCDHHi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 02:07:38 -0500
-Received: by pdno5 with SMTP id o5so55107933pdn.8
-        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2015 23:07:38 -0800 (PST)
+Received: from kirsty.vergenet.net ([202.4.237.240]:34133 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221AbbCPHny (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 03:43:54 -0400
+Date: Mon, 16 Mar 2015 16:43:12 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: Re: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host
+ doesn't provide clk ops
+Message-ID: <20150316074306.GA18193@verge.net.au>
+References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1503151845220.13027@axis700.grange>
+ <1634321.iE70ufz1gl@avalon>
 MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 4 Mar 2015 12:37:16 +0530
-Message-ID: <CAO_48GFmfHb=SEW=Ny+Nu8=1m0S9ij=m0hhUpsm2zJu6Y2gkwg@mail.gmail.com>
-Subject: [GIT PULL]: dma-buf fixes for 4.0
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1634321.iE70ufz1gl@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi,
 
-May I please request you to pull a couple of fixes in dma-buf for 4.0-rc3?
+On Mon, Mar 16, 2015 at 02:00:25AM +0200, Laurent Pinchart wrote:
+> Hi Guennadi,
+> 
+> On Sunday 15 March 2015 18:56:44 Guennadi Liakhovetski wrote:
+> > On Mon, 9 Mar 2015, Laurent Pinchart wrote:
+> > > If the soc-camera host doesn't provide clock start and stop operations
+> > > registering a v4l2 clock is pointless. Don't do it.
+> > 
+> > This can introduce breakage only for camera-host drivers, that don't
+> > provide .clock_start() or .clock_stop(). After your other 3 patches from
+> > this patch set there will be one such driver in the tree - rcar_vin.c. I
+> > wouldn't mind this patch as long as we can have an ack from an rcar_vin.c
+> > maintainer. Since I don't see one in MAINTAINERS, who can ack this? Simon?
+> 
+> I don't think we have an official maintainer. Maybe a Tested-by would be 
+> enough in this case ?
 
+I am quite happy to act as the maintainer of last resort for Renesas IP
+blocks and to be listed in MAINTAINERS if that is helpful.
 
-The following changes since commit b942c653ae265abbd31032f3b4f5f857e5c7c723:
-
-  Merge tag 'trace-sh-3.19' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace
-(2015-01-22 06:26:07 +1200)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
-tags/dma-buf-for-4.0-rc3
-
-for you to fetch changes up to 4eb2440ed60fb5793f7aa6da89b3d517cc59de43:
-
-  reservation: Remove shadowing local variable 'ret' (2015-01-22 16:29:31 +0530)
-
-----------------------------------------------------------------
-dma-buf pull request for 4.0-rc3
-- minor timeout & other fixes on reservation/fence
-
-----------------------------------------------------------------
-Jammy Zhou (2):
-      reservation: wait only with non-zero timeout specified (v3)
-      dma-buf/fence: don't wait when specified timeout is zero
-
-Michel Dänzer (1):
-      reservation: Remove shadowing local variable 'ret'
-
- drivers/dma-buf/fence.c       | 3 +++
- drivers/dma-buf/reservation.c | 5 +++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-Thanks, and Best regards,
-Sumit.
-
-PS: I am not submitting the cleanup that I submitted in my earlier
-pull request that you had to reject due to my stupid copy-paste error;
-that one patch and it's fix is in for-next, but it's not, strictly
-speaking, a "fix" to qualify for -rc3, hence I'll wait for the next
-merge-window to submit it.
+With regards to testing, I am also happy to help there, though in this
+case I would appreciate some help with a test case.
