@@ -1,51 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55599 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44810 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752019AbbCWJyg (ORCPT
+	by vger.kernel.org with ESMTP id S1751793AbbCPACH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 05:54:36 -0400
+	Sun, 15 Mar 2015 20:02:07 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com
-Subject: [PATCH v2 RESEND 0/4] Add link-frequencies to struct v4l2_of_endpoint
-Date: Mon, 23 Mar 2015 11:53:43 +0200
-Message-Id: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com,
+	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: [PATCH 3/4] arm: dts: omap3: Add DT entries for OMAP 3
+Date: Mon, 16 Mar 2015 02:01:19 +0200
+Message-Id: <1426464080-29119-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Resending; fixed Sylwester's e-mail address.)
+The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
+Especially the phy-type property is different.
 
-Hi,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/boot/dts/omap34xx.dtsi |   17 +++++++++++++++++
+ arch/arm/boot/dts/omap36xx.dtsi |   17 +++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
-I've split off the third and obviously somewhat problematic patch in the
-set, and sent a pull req containing the first two patches and another
-dependent patch:
-
-<URL:http://www.spinics.net/lists/linux-media/msg88033.html>
-
-The changes intend to address the review comments I gathered the last time.
-The third patch of set 1 has been split into three, with the major
-differences being that
-
-- the interface functions are now called v4l2_of_alloc_parse_endpoint() and
-  v4l2_of_free_endpoint(),
-
-- v4l2_of_alloc_parse_endpoint() will allocate and return struct
-  v4l2_of_endpoint. Correspondingly v4l2_of_free_endpoint() will release it,
-
-- the usage pattern of existing users is unchanged, however new drivers are
-  adviced to use the new interface. The old interface could be removed at
-  some point when it no longer has users, however it is not urgent in any
-  way.
-
-v1 can be found here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg87479.html>
-
-Comments are very welcome.
-
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 3819c1e..7bc8c0f 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -8,6 +8,8 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/media/omap3-isp.h>
++
+ #include "omap3.dtsi"
+ 
+ / {
+@@ -37,6 +39,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		isp: isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x017c>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&omap3_scm_general 0xdc>;
++			ti,phy-type = <OMAP3ISP_PHY_TYPE_COMPLEX_IO>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 541704a..3502fe0 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -8,6 +8,8 @@
+  * kind, whether express or implied.
+  */
+ 
++#include <dt-bindings/media/omap3-isp.h>
++
+ #include "omap3.dtsi"
+ 
+ / {
+@@ -69,6 +71,21 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		isp: isp@480bc000 {
++			compatible = "ti,omap3-isp";
++			reg = <0x480bc000 0x12fc
++			       0x480bd800 0x0600>;
++			interrupts = <24>;
++			iommus = <&mmu_isp>;
++			syscon = <&omap3_scm_general 0x2f0>;
++			ti,phy-type = <OMAP3ISP_PHY_TYPE_CSIPHY>;
++			#clock-cells = <1>;
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++			};
++		};
+ 	};
+ };
+ 
 -- 
-Kind regards,
-Sakari
+1.7.10.4
 
