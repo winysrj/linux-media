@@ -1,52 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53950 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754802AbbCPV07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:26:59 -0400
-Message-ID: <55074AA0.7060107@iki.fi>
-Date: Mon, 16 Mar 2015 23:26:56 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 03/10] rtl28xxu: lower the rc poll time to mitigate i2c
- transfer errors
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-3-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-3-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45082 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752384AbbCPA07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:26:59 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 08/15] omap3isp: Calculate vpclk_div for CSI-2
+Date: Mon, 16 Mar 2015 02:26:03 +0200
+Message-Id: <1426465570-30295-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
-> The Astrometa device has issues with i2c transfers. Lowering the
-> poll time somehow makes these errors disappear.
->
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+The video port clock is l3_ick divided by vpclk_div. This clock must be high
+enough for the external pixel rate. The video port requires two clock cycles
+to process a pixel.
 
-Applied!
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispcsi2.c |    8 +++++++-
+ include/media/omap3isp.h                  |    2 --
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-Antti
-
-
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 77dcfdf..ea75b3a 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1611,7 +1611,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
->   	rc->allowed_protos = RC_BIT_ALL;
->   	rc->driver_type = RC_DRIVER_IR_RAW;
->   	rc->query = rtl2832u_rc_query;
-> -	rc->interval = 400;
-> +	rc->interval = 200;
->
->   	return 0;
->   }
->
-
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 14d279d..97cdfeb 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -548,6 +548,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
+ 
+ static int csi2_configure(struct isp_csi2_device *csi2)
+ {
++	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+ 	const struct isp_bus_cfg *buscfg;
+ 	struct isp_device *isp = csi2->isp;
+ 	struct isp_csi2_timing_cfg *timing = &csi2->timing[0];
+@@ -570,7 +571,12 @@ static int csi2_configure(struct isp_csi2_device *csi2)
+ 	csi2->frame_skip = 0;
+ 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
+ 
+-	csi2->ctrl.vp_out_ctrl = buscfg->bus.csi2.vpclk_div;
++	csi2->ctrl.vp_out_ctrl =
++		clamp_t(unsigned int, pipe->l3_ick / pipe->external_rate - 1,
++			1, 3);
++	dev_dbg(isp->dev, "%s: l3_ick %lu, external_rate %u, vp_out_ctrl %u\n",
++		__func__, pipe->l3_ick,  pipe->external_rate,
++		csi2->ctrl.vp_out_ctrl);
+ 	csi2->ctrl.frame_mode = ISP_CSI2_FRAME_IMMEDIATE;
+ 	csi2->ctrl.ecc_enable = buscfg->bus.csi2.crc;
+ 
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 39e0748..0f0c08b 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -129,11 +129,9 @@ struct isp_ccp2_cfg {
+ /**
+  * struct isp_csi2_cfg - CSI2 interface configuration
+  * @crc: Enable the cyclic redundancy check
+- * @vpclk_div: Video port output clock control
+  */
+ struct isp_csi2_cfg {
+ 	unsigned crc:1;
+-	unsigned vpclk_div:2;
+ 	struct isp_csiphy_lanes_cfg lanecfg;
+ };
+ 
 -- 
-http://palosaari.fi/
+1.7.10.4
+
