@@ -1,46 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53614 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45083 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751317AbbCLWZF (ORCPT
+	by vger.kernel.org with ESMTP id S1752416AbbCPA07 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 18:25:05 -0400
-Date: Fri, 13 Mar 2015 00:25:03 +0200
+	Sun, 15 Mar 2015 20:26:59 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 13/18] v4l: of: Read lane-polarity endpoint property
-Message-ID: <20150312222503.GN11954@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-14-git-send-email-sakari.ailus@iki.fi>
- <5943571.XgR4Bv1QGx@avalon>
- <20150312222327.GM11954@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150312222327.GM11954@valkosipuli.retiisi.org.uk>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 09/15] omap3isp: Replace mmio_base_phys array with the histogram block base
+Date: Mon, 16 Mar 2015 02:26:04 +0200
+Message-Id: <1426465570-30295-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 13, 2015 at 12:23:27AM +0200, Sakari Ailus wrote:
-...
-> > > +
-> > > +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarity); i++) {
-> > > +			polarity = of_prop_next_u32(prop, polarity, &v);
-> > > +			if (!polarity)
-> > > +				break;
-> > > +			bus->lane_polarity[i] = v;
-> > > +		}
-> > 
-> > Should we check that i == num_data_lines + 1 ?
-> 
-> Good question. I think I'd just replace this with
-> of_property_read_u32_array() instead, how about that? Then there would have
-> to be at least as many lane polarities defined as there are lanes (data and
-> clock). Defining more wouldn't be an error.
+Only the histogram sub-block driver uses the physical address. Do not store
+it for other sub-blocks.
 
-Oh, I missed the variable in the struct is bool. I'll just add the check.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c     |    3 ++-
+ drivers/media/platform/omap3isp/isp.h     |    6 +++---
+ drivers/media/platform/omap3isp/isphist.c |    3 +--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index c045318..68d7edfc 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2247,7 +2247,8 @@ static int isp_map_mem_resource(struct platform_device *pdev,
+ 	if (IS_ERR(isp->mmio_base[res]))
+ 		return PTR_ERR(isp->mmio_base[res]);
+ 
+-	isp->mmio_base_phys[res] = mem->start;
++	if (res == OMAP3_ISP_IOMEM_HIST)
++		isp->mmio_hist_base_phys = mem->start;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index b932a6f..9535524 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -138,8 +138,8 @@ struct isp_xclk {
+  * @irq_num: Currently used IRQ number.
+  * @mmio_base: Array with kernel base addresses for ioremapped ISP register
+  *             regions.
+- * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
+- *                  regions.
++ * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
++ *			 region.
+  * @mapping: IOMMU mapping
+  * @stat_lock: Spinlock for handling statistics
+  * @isp_mutex: Mutex for serializing requests to ISP.
+@@ -175,7 +175,7 @@ struct isp_device {
+ 	unsigned int irq_num;
+ 
+ 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
+-	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
++	unsigned long mmio_hist_base_phys;
+ 
+ 	struct dma_iommu_mapping *mapping;
+ 
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index 738b946..7138b04 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -193,8 +193,7 @@ static int hist_buf_dma(struct ispstat *hist)
+ 	omap3isp_flush(hist->isp);
+ 
+ 	memset(&cfg, 0, sizeof(cfg));
+-	cfg.src_addr = hist->isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
+-		     + ISPHIST_DATA;
++	cfg.src_addr = hist->isp->mmio_hist_base_phys + ISPHIST_DATA;
+ 	cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+ 	cfg.src_maxburst = hist->buf_size / 4;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
