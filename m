@@ -1,79 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:56462 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbbCOW6E (ORCPT
+Received: from mail-qg0-f45.google.com ([209.85.192.45]:35876 "EHLO
+	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755564AbbCPSBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 18:58:04 -0400
-From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi, mchehab@osg.samsung.com
+	Mon, 16 Mar 2015 14:01:48 -0400
+Received: by qgg60 with SMTP id 60so47250805qgg.3
+        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 11:01:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5507177A.8060200@parrot.com>
+References: <5507177A.8060200@parrot.com>
+Date: Mon, 16 Mar 2015 14:01:47 -0400
+Message-ID: <CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com>
+Subject: Re: Dynamic video input/output list
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?UTF-8?Q?Aur=C3=A9lien_Zanelli?= <aurelien.zanelli@parrot.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 04/10] rtl28xxu: swap frontend order for slave demods
-Date: Sun, 15 Mar 2015 23:57:49 +0100
-Message-Id: <1426460275-3766-4-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices have 2 demodulators, when this is the case
-make the slave demod be listed first. Enumerating the slave
-first will help legacy applications to use the hardware.
+> I'm looking to enhance video input/output enumeration support in
+> GStreamer using VIDIOC_ENUMINPUT/VIDIOC_ENUMOUTPUT ioctls and after some
+> discussions we wonder if the input/output list can change dynamically at
+> runtime or not.
+>
+> So, is v4l2 allow this input/output list to be dynamic ?
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+I sure how the spec allows it, because I've done it in the past.  I
+have cards which have an onboard header for external A/V inputs, and I
+am able to tell if the breakout cable is attached due to a dedicated
+pin tied to a GPIO.  Thus, I am able to dictate whether the card has
+the A/V breakout cable attached and thus whether to expose only the
+first input or all three inputs.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index ea75b3a..bb5003d 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -853,6 +853,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	if (dev->slave_demod) {
- 		struct i2c_board_info info = {};
-+		struct dvb_frontend *tmp_fe;
- 
- 		/*
- 		 * We continue on reduced mode, without DVB-T2/C, using master
-@@ -907,6 +908,11 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 			dev->i2c_client_slave_demod = client;
- 		}
-+
-+		/* Swap frontend order */
-+		tmp_fe = adap->fe[0];
-+		adap->fe[0] = adap->fe[1];
-+		adap->fe[1] = tmp_fe;
- 	}
- 
- 	return 0;
-@@ -1134,12 +1140,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 		break;
- 	case TUNER_RTL2832_R828D:
--		fe = dvb_attach(r820t_attach, adap->fe[0],
--				dev->demod_i2c_adapter,
--				&rtl2832u_r828d_config);
--		adap->fe[0]->ops.read_signal_strength =
--				adap->fe[0]->ops.tuner_ops.get_rf_strength;
--
- 		if (adap->fe[1]) {
- 			fe = dvb_attach(r820t_attach, adap->fe[1],
- 					dev->demod_i2c_adapter,
-@@ -1147,6 +1147,12 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			adap->fe[1]->ops.read_signal_strength =
- 					adap->fe[1]->ops.tuner_ops.get_rf_strength;
- 		}
-+
-+		fe = dvb_attach(r820t_attach, adap->fe[0],
-+			dev->demod_i2c_adapter,
-+			&rtl2832u_r828d_config);
-+		adap->fe[0]->ops.read_signal_strength =
-+			adap->fe[0]->ops.tuner_ops.get_rf_strength;
- 		break;
- 	default:
- 		dev_err(&d->intf->dev, "unknown tuner %d\n", dev->tuner);
+That said, in this case the inputs in the list never moved around
+because the optional entries were at the end of the list - the list
+just got longer if those inputs were available.  I'm not sure what
+would happen if you had a configuration where you needed to remove
+entries other than those at the end of the list.  For example, if you
+had a card with four possible inputs and you removed input 2, does the
+list stay the same length and input 2 is now marked as invalid, or
+does the length of the list become 3 and inputs 3 and 4 turn into
+inputs 2 and 3?
+
+Devin
+
 -- 
-2.1.0
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
