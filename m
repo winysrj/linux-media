@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:41587 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbbCGQWz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 11:22:55 -0500
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:32796 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbbCPIGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 04:06:23 -0400
 MIME-Version: 1.0
-In-Reply-To: <54F82F5E.7060007@xs4all.nl>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
- <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com>
- <54F575AD.5020307@xs4all.nl> <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
- <54F58142.4030201@xs4all.nl> <CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com>
- <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com> <54F82F5E.7060007@xs4all.nl>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Sat, 7 Mar 2015 16:22:23 +0000
-Message-ID: <CA+V-a8vTBJuiHRPjEN7VHHmAZhAu=W=Zi5a_N9DiLiRZH-Ab0A@mail.gmail.com>
-Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <1426430018-3172-1-git-send-email-ykaneko0929@gmail.com>
+References: <1426430018-3172-1-git-send-email-ykaneko0929@gmail.com>
+Date: Mon, 16 Mar 2015 09:06:22 +0100
+Message-ID: <CAMuHMdVKmWgcSqLxfgOUFXd2mu-dacvQxLJr7xLaQ=S8Mt0gnw@mail.gmail.com>
+Subject: Re: [PATCH/RFC] v4l: vsp1: Change VSP1 LIF linebuffer FIFO
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 5, 2015 at 10:26 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 03/05/15 10:44, Scott Jiang wrote:
->> Hi Hans,
-[snip]
->>>>
->>>> cd utils/v4l2-compliance
->>>> cat *.cpp >x.cpp
->>>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
->>>>
->>>> I've never used uclibc, so I don't know what the limitations are.
->>>>
->>> Not sure what exactly fails, I haven’t tried compiling it, that was a
->>> response from Scott for v2 series.
->>>
->>
->> I found if I disabled libjpeg ./configure --without-jpeg, it can pass
->> compilation.
->
-> Great!
->
->> Would you like me to send the result now or after Lad's v4 patch?
->
-> Send it now as v4 won't have any meaningful code changes.
->
-But anyway I cant help here much if there are any compliance issues,
-as i don't have the hardware.
+Hi Kaneko-san, Hosoya-san,
 
-Thanks,
---Prabhakar Lad
+On Sun, Mar 15, 2015 at 3:33 PM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
+> From: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+>
+> Change to VSPD hardware recommended value.
+> Purpose is highest pixel clock without underruns.
+> In the default R-Car Linux BSP config this value is
+> wrong and therefore there are many underruns.
+>
+> Here are the original settings:
+> HBTH = 1300 (VSPD stops when 1300 pixels are buffered)
+> LBTH = 200 (VSPD resumes when buffer level has decreased
+>             below 200 pixels)
+>
+> The display underruns can be eliminated
+> by applying the following settings:
+> HBTH = 1504
+> LBTH = 1248
+
+> --- a/drivers/media/platform/vsp1/vsp1_lif.c
+> +++ b/drivers/media/platform/vsp1/vsp1_lif.c
+> @@ -44,9 +44,9 @@ static int lif_s_stream(struct v4l2_subdev *subdev, int enable)
+>  {
+>         const struct v4l2_mbus_framefmt *format;
+>         struct vsp1_lif *lif = to_lif(subdev);
+> -       unsigned int hbth = 1300;
+> -       unsigned int obth = 400;
+> -       unsigned int lbth = 200;
+> +       unsigned int hbth = 1536;
+> +       unsigned int obth = 128;
+> +       unsigned int lbth = 1520;
+
+These values don't match the patch description?
+
+BTW, what's the significance of changing obth?
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
