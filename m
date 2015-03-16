@@ -1,251 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53894 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932072AbbCIPrR (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:32781 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933067AbbCPRWk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:47:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 16 Mar 2015 13:22:40 -0400
+Received: by ladw1 with SMTP id w1so46012756lad.0
+        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 10:22:39 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 15/29] vivid-tpg: finish hor/vert downsampling support
-Date: Mon,  9 Mar 2015 16:44:37 +0100
-Message-Id: <1425915891-1017-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv2 3/3] dw2102: TechnoTrend TT-connect S2-4600 DVB-S/S2 tuner
+Date: Mon, 16 Mar 2015 19:22:18 +0200
+Message-Id: <1426526538-2124-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+TechnoTrend TT-connect S2-4600 is a USB2.0 DVB-S/S2 tuner using the popular 
+Montage M88DS3103/M88TS2022 demod/tuner.
 
-Implement horizontal and vertical downsampling when filling in the
-plane. The TPG is now ready to support such formats.
+The demodulator needs a firmware. Antti posted a firmware when releasing 
+support for PCTV 461e, available here: 
+http://palosaari.fi/linux/v4l-dvb/firmware/M88DS3103/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Patch v2: removed one unnecessary debug printout.
+
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/platform/vivid/vivid-tpg.c | 128 ++++++++++++++++++++++++++-----
- 1 file changed, 110 insertions(+), 18 deletions(-)
+ drivers/media/dvb-core/dvb-usb-ids.h |   1 +
+ drivers/media/usb/dvb-usb/Kconfig    |   6 +-
+ drivers/media/usb/dvb-usb/dw2102.c   | 158 ++++++++++++++++++++++++++++++++++-
+ 3 files changed, 161 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index f03289f..7d8e87e 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -1396,15 +1396,29 @@ void tpg_calc_text_basep(struct tpg_data *tpg,
- 		u8 *basep[TPG_MAX_PLANES][2], unsigned p, u8 *vbuf)
- {
- 	unsigned stride = tpg->bytesperline[p];
-+	unsigned h = tpg->buf_height;
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 80ab8d0..c6de073 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -245,6 +245,7 @@
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+ #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
++#define USB_PID_TECHNOTREND_CONNECT_S2_4600             0x3011
+ #define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI		0x3012
+ #define USB_PID_TECHNOTREND_TVSTICK_CT2_4400		0x3014
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
+index 3364200..def1e06 100644
+--- a/drivers/media/usb/dvb-usb/Kconfig
++++ b/drivers/media/usb/dvb-usb/Kconfig
+@@ -278,9 +278,11 @@ config DVB_USB_DW2102
+ 	select DVB_STV6110 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_STV0900 if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_M88RS2000 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_TS2022 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+-	  Say Y here to support the DvbWorld, TeVii, Prof DVB-S/S2 USB2.0
+-	  receivers.
++	  Say Y here to support the DvbWorld, TeVii, Prof, TechnoTrend
++	  DVB-S/S2 USB2.0 receivers.
  
- 	tpg_recalc(tpg);
+ config DVB_USB_CINERGY_T2
+ 	tristate "Terratec CinergyT2/qanu USB 2.0 DVB-T receiver"
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index f7dd973..9dc3619 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -2,7 +2,8 @@
+  *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
+  *	TeVii S600, S630, S650, S660, S480, S421, S632
+  *	Prof 1100, 7500,
+- *	Geniatech SU3000, T220 Cards
++ *	Geniatech SU3000, T220,
++ *	TechnoTrend S2-4600 Cards
+  * Copyright (C) 2008-2012 Igor M. Liplianin (liplianin@me.by)
+  *
+  *	This program is free software; you can redistribute it and/or modify it
+@@ -31,6 +32,8 @@
+ #include "m88rs2000.h"
+ #include "tda18271.h"
+ #include "cxd2820r.h"
++#include "m88ds3103.h"
++#include "m88ts2022.h"
  
- 	basep[p][0] = vbuf;
- 	basep[p][1] = vbuf;
-+	h /= tpg->vdownsampling[p];
- 	if (tpg->field == V4L2_FIELD_SEQ_TB)
--		basep[p][1] += tpg->buf_height * stride / 2;
-+		basep[p][1] += h * stride / 2;
- 	else if (tpg->field == V4L2_FIELD_SEQ_BT)
--		basep[p][0] += tpg->buf_height * stride / 2;
-+		basep[p][0] += h * stride / 2;
-+}
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  64
+@@ -1115,6 +1118,22 @@ static struct tda18271_config tda18271_config = {
+ 	.gate = TDA18271_GATE_DIGITAL,
+ };
+ 
++static const struct m88ds3103_config tt_s2_4600_m88ds3103_config = {
++	.i2c_addr = 0x68,
++	.clock = 27000000,
++	.i2c_wr_max = 33,
++	.ts_mode = M88DS3103_TS_CI,
++	.ts_clk = 16000,
++	.ts_clk_pol = 0,
++	.spec_inv = 0,
++	.agc_inv = 0,
++	.clock_out = M88DS3103_CLOCK_OUT_ENABLED,
++	.envelope_mode = 0,
++	.agc = 0x99,
++	.lnb_hv_pol = 1,
++	.lnb_en_pol = 0,
++};
 +
-+static int tpg_pattern_avg(const struct tpg_data *tpg,
-+			   unsigned pat1, unsigned pat2)
-+{
-+	unsigned pat_lines = tpg_get_pat_lines(tpg);
-+
-+	if (pat1 == (pat2 + 1) % pat_lines)
-+		return pat2;
-+	if (pat2 == (pat1 + 1) % pat_lines)
-+		return pat1;
-+	return -1;
+ static u8 m88rs2000_inittab[] = {
+ 	DEMOD_WRITE, 0x9a, 0x30,
+ 	DEMOD_WRITE, 0x00, 0x01,
+@@ -1459,6 +1478,86 @@ static int m88rs2000_frontend_attach(struct dvb_usb_adapter *d)
+ 	return -EIO;
  }
  
- void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8 *vbuf)
-@@ -1420,7 +1434,9 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 	int hmax = (tpg->compose.height * tpg->perc_fill) / 100;
- 	int h;
- 	unsigned twopixsize = tpg->twopixelsize[p];
--	unsigned img_width = tpg->compose.width * twopixsize / 2;
-+	unsigned hdiv = tpg->hdownsampling[p];
-+	unsigned vdiv = tpg->vdownsampling[p];
-+	unsigned img_width = (tpg->compose.width / hdiv) * twopixsize / 2;
- 	unsigned line_offset;
- 	unsigned left_pillar_width = 0;
- 	unsigned right_pillar_start = img_width;
-@@ -1446,18 +1462,18 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
++static int tt_s2_4600_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	struct dvb_usb_device *d = adap->dev;
++	struct dw2102_state *state = d->priv;
++	u8 obuf[3] = { 0xe, 0x80, 0 };
++	u8 ibuf[] = { 0 };
++	struct i2c_adapter *i2c_adapter;
++	struct i2c_client *client;
++	struct i2c_board_info info;
++	struct m88ts2022_config m88ts2022_config = {
++		.clock = 27000000,
++	};
++
++	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	obuf[0] = 0xe;
++	obuf[1] = 0x02;
++	obuf[2] = 1;
++
++	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++	msleep(300);
++
++	obuf[0] = 0xe;
++	obuf[1] = 0x83;
++	obuf[2] = 0;
++
++	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	obuf[0] = 0xe;
++	obuf[1] = 0x83;
++	obuf[2] = 1;
++
++	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	obuf[0] = 0x51;
++
++	if (dvb_usb_generic_rw(d, obuf, 1, ibuf, 1, 0) < 0)
++		err("command 0x51 transfer failed.");
++
++	memset(&info, 0, sizeof(struct i2c_board_info));
++
++	adap->fe_adap[0].fe = dvb_attach(m88ds3103_attach,
++					&tt_s2_4600_m88ds3103_config,
++					&d->i2c_adap,
++					&i2c_adapter);
++	if (adap->fe_adap[0].fe == NULL)
++		return -ENODEV;
++
++	/* attach tuner */
++	m88ts2022_config.fe = adap->fe_adap[0].fe;
++	strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
++	info.addr = 0x60;
++	info.platform_data = &m88ts2022_config;
++	request_module("m88ts2022");
++	client = i2c_new_device(i2c_adapter, &info);
++
++	if (client == NULL || client->dev.driver == NULL) {
++		dvb_frontend_detach(adap->fe_adap[0].fe);
++		return -ENODEV;
++	}
++
++	if (!try_module_get(client->dev.driver->owner)) {
++		i2c_unregister_device(client);
++		dvb_frontend_detach(adap->fe_adap[0].fe);
++		return -ENODEV;
++	}
++
++	/* delegate signal strength measurement to tuner */
++	adap->fe_adap[0].fe->ops.read_signal_strength =
++			adap->fe_adap[0].fe->ops.tuner_ops.get_rf_strength;
++
++	state->i2c_client_tuner = client;
++
++	return 0;
++}
++
+ static int dw2102_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60,
+@@ -1559,6 +1658,7 @@ enum dw2102_table_entry {
+ 	TERRATEC_CINERGY_S2_R2,
+ 	GOTVIEW_SAT_HD,
+ 	GENIATECH_T220,
++	TECHNOTREND_S2_4600,
+ };
  
- 	vbuf += tpg->compose.left * twopixsize / 2;
- 	line_offset = tpg->crop.left * tpg->scaled_width / tpg->src_width;
--	line_offset = (line_offset & ~1) * twopixsize / 2;
-+	line_offset = ((line_offset & ~1) / hdiv) * twopixsize / 2;
- 	if (tpg->crop.left < tpg->border.left) {
- 		left_pillar_width = tpg->border.left - tpg->crop.left;
- 		if (left_pillar_width > tpg->crop.width)
- 			left_pillar_width = tpg->crop.width;
- 		left_pillar_width = (left_pillar_width * tpg->scaled_width) / tpg->src_width;
--		left_pillar_width = (left_pillar_width & ~1) * twopixsize / 2;
-+		left_pillar_width = ((left_pillar_width & ~1) / hdiv) * twopixsize / 2;
- 	}
- 	if (tpg->crop.left + tpg->crop.width > tpg->border.left + tpg->border.width) {
- 		right_pillar_start = tpg->border.left + tpg->border.width - tpg->crop.left;
- 		right_pillar_start = (right_pillar_start * tpg->scaled_width) / tpg->src_width;
--		right_pillar_start = (right_pillar_start & ~1) * twopixsize / 2;
-+		right_pillar_start = ((right_pillar_start & ~1) / hdiv) * twopixsize / 2;
- 		if (right_pillar_start > img_width)
- 			right_pillar_start = img_width;
- 	}
-@@ -1486,6 +1502,26 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 			src_y++;
- 		}
+ static struct usb_device_id dw2102_table[] = {
+@@ -1582,6 +1682,8 @@ static struct usb_device_id dw2102_table[] = {
+ 	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
+ 	[GOTVIEW_SAT_HD] = {USB_DEVICE(0x1FE1, USB_PID_GOTVIEW_SAT_HD)},
+ 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
++	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
++		USB_PID_TECHNOTREND_CONNECT_S2_4600)},
+ 	{ }
+ };
  
-+		if (vdiv > 1) {
-+			/*
-+			 * When doing vertical downsampling the field setting
-+			 * matters: for SEQ_BT/TB we downsample each field
-+			 * separately (i.e. lines 0+2 are combined, as are
-+			 * lines 1+3), for the other field settings we combine
-+			 * odd and even lines. Doing that for SEQ_BT/TB would
-+			 * be really weird.
-+			 */
-+			if (tpg->field == V4L2_FIELD_SEQ_BT ||
-+			    tpg->field == V4L2_FIELD_SEQ_TB) {
-+				if ((h & 3) >= 2)
-+					continue;
-+			} else if (h & 1) {
-+				continue;
-+			}
+@@ -2059,6 +2161,55 @@ static struct dvb_usb_device_properties t220_properties = {
+ 	}
+ };
+ 
++static struct dvb_usb_device_properties tt_s2_4600_properties = {
++	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
++	.usb_ctrl = DEVICE_SPECIFIC,
++	.size_of_priv = sizeof(struct dw2102_state),
++	.power_ctrl = su3000_power_ctrl,
++	.num_adapters = 1,
++	.identify_state	= su3000_identify_state,
++	.i2c_algo = &su3000_i2c_algo,
 +
-+			buf_line /= vdiv;
-+		}
++	.rc.core = {
++		.rc_interval = 250,
++		.rc_codes = RC_MAP_TT_1500,
++		.module_name = "dw2102",
++		.allowed_protos   = RC_BIT_RC5,
++		.rc_query = su3000_rc_query,
++	},
 +
- 		if (h >= hmax) {
- 			if (hmax == tpg->compose.height)
- 				continue;
-@@ -1511,14 +1547,63 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 			linestart_newer = tpg->random_line[p] +
- 					  twopixsize * prandom_u32_max(tpg->src_width / 2);
- 		} else {
--			pat_line_old = tpg_get_pat_line(tpg,
--						(frame_line + mv_vert_old) % tpg->src_height);
--			pat_line_new = tpg_get_pat_line(tpg,
--						(frame_line + mv_vert_new) % tpg->src_height);
-+			unsigned frame_line_old =
-+				(frame_line + mv_vert_old) % tpg->src_height;
-+			unsigned frame_line_new =
-+				(frame_line + mv_vert_new) % tpg->src_height;
-+			unsigned pat_line_next_old;
-+			unsigned pat_line_next_new;
++	.read_mac_address = su3000_read_mac_address,
 +
-+			pat_line_old = tpg_get_pat_line(tpg, frame_line_old);
-+			pat_line_new = tpg_get_pat_line(tpg, frame_line_new);
- 			linestart_older = tpg->lines[pat_line_old][p] +
--					  mv_hor_old * twopixsize / 2;
-+				(mv_hor_old / hdiv) * twopixsize / 2;
- 			linestart_newer = tpg->lines[pat_line_new][p] +
--					  mv_hor_new * twopixsize / 2;
-+				(mv_hor_new / hdiv) * twopixsize / 2;
++	.generic_bulk_ctrl_endpoint = 0x01,
 +
-+			if (vdiv > 1) {
-+				unsigned frame_line_next;
-+				int avg_pat;
-+
-+				/*
-+				 * Now decide whether we need to use downsampled_lines[].
-+				 * That's necessary if the two lines use different patterns.
-+				 */
-+				frame_line_next = tpg_calc_frameline(tpg, src_y, tpg->field);
-+				if (tpg->vflip)
-+					frame_line_next = tpg->src_height - frame_line_next - 1;
-+				pat_line_next_old = tpg_get_pat_line(tpg,
-+						(frame_line_next + mv_vert_old) % tpg->src_height);
-+				pat_line_next_new = tpg_get_pat_line(tpg,
-+						(frame_line_next + mv_vert_new) % tpg->src_height);
-+
-+				switch (tpg->field) {
-+				case V4L2_FIELD_INTERLACED:
-+				case V4L2_FIELD_INTERLACED_BT:
-+				case V4L2_FIELD_INTERLACED_TB:
-+					avg_pat = tpg_pattern_avg(tpg, pat_line_old, pat_line_new);
-+					if (avg_pat < 0)
-+						break;
-+					linestart_older = tpg->downsampled_lines[avg_pat][p] +
-+						(mv_hor_old / hdiv) * twopixsize / 2;
-+					linestart_newer = linestart_older;
-+					break;
-+				case V4L2_FIELD_NONE:
-+				case V4L2_FIELD_TOP:
-+				case V4L2_FIELD_BOTTOM:
-+				case V4L2_FIELD_SEQ_BT:
-+				case V4L2_FIELD_SEQ_TB:
-+					avg_pat = tpg_pattern_avg(tpg, pat_line_old, pat_line_next_old);
-+					if (avg_pat >= 0)
-+						linestart_older = tpg->downsampled_lines[avg_pat][p] +
-+							(mv_hor_old / hdiv) * twopixsize / 2;
-+					avg_pat = tpg_pattern_avg(tpg, pat_line_new, pat_line_next_new);
-+					if (avg_pat >= 0)
-+						linestart_newer = tpg->downsampled_lines[avg_pat][p] +
-+							(mv_hor_new / hdiv) * twopixsize / 2;
-+					break;
++	.adapter = {
++		{
++		.num_frontends = 1,
++		.fe = {{
++			.streaming_ctrl   = su3000_streaming_ctrl,
++			.frontend_attach  = tt_s2_4600_frontend_attach,
++			.stream = {
++				.type = USB_BULK,
++				.count = 8,
++				.endpoint = 0x82,
++				.u = {
++					.bulk = {
++						.buffersize = 4096,
++					}
 +				}
 +			}
- 			linestart_older += line_offset;
- 			linestart_newer += line_offset;
- 		}
-@@ -1568,12 +1653,13 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 			u8 *wss = tpg->random_line[p] +
- 				  twopixsize * prandom_u32_max(tpg->src_width / 2);
- 
--			memcpy(vbuf + buf_line * stride, wss, wss_width * twopixsize / 2);
-+			memcpy(vbuf + buf_line * stride, wss,
-+			       (wss_width / hdiv) * twopixsize / 2);
- 		}
- 	}
- 
- 	vbuf = orig_vbuf;
--	vbuf += tpg->compose.left * twopixsize / 2;
-+	vbuf += (tpg->compose.left / hdiv) * twopixsize / 2;
- 	src_y = 0;
- 	error = 0;
- 	for (h = 0; h < tpg->compose.height; h++) {
-@@ -1590,6 +1676,12 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 			src_y++;
- 		}
- 
-+		if (vdiv > 1) {
-+			if (h & 1)
-+				continue;
-+			buf_line /= vdiv;
++		} },
 +		}
++	},
++	.num_device_descs = 1,
++	.devices = {
++		{ "TechnoTrend TT-connect S2-4600",
++			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
++			{ NULL },
++		},
++	}
++};
 +
- 		if (tpg->show_border && frame_line >= b->top &&
- 		    frame_line < b->top + b->height) {
- 			unsigned bottom = b->top + b->height - 1;
-@@ -1632,13 +1724,13 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 				width -= left + width - c->left - c->width;
- 			left -= c->left;
- 			left = (left * tpg->scaled_width) / tpg->src_width;
--			left = (left & ~1) * twopixsize / 2;
-+			left = ((left & ~1) / hdiv) * twopixsize / 2;
- 			width = (width * tpg->scaled_width) / tpg->src_width;
--			width = (width & ~1) * twopixsize / 2;
-+			width = ((width & ~1) / hdiv) * twopixsize / 2;
- 			memcpy(vbuf + buf_line * stride + left, tpg->contrast_line[p], width);
- 		}
- 		if (tpg->insert_sav) {
--			unsigned offset = (tpg->compose.width / 6) * twopixsize;
-+			unsigned offset = (tpg->compose.width / (6 * hdiv)) * twopixsize;
- 			u8 *p = vbuf + buf_line * stride + offset;
- 			unsigned vact = 0, hact = 0;
+ static int dw2102_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+@@ -2133,6 +2284,8 @@ static int dw2102_probe(struct usb_interface *intf,
+ 	    0 == dvb_usb_device_init(intf, &su3000_properties,
+ 			 THIS_MODULE, NULL, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &t220_properties,
++			 THIS_MODULE, NULL, adapter_nr) ||
++	    0 == dvb_usb_device_init(intf, &tt_s2_4600_properties,
+ 			 THIS_MODULE, NULL, adapter_nr))
+ 		return 0;
  
-@@ -1652,7 +1744,7 @@ void tpg_fill_plane_buffer(struct tpg_data *tpg, v4l2_std_id std, unsigned p, u8
- 				(hact ^ vact ^ f);
- 		}
- 		if (tpg->insert_eav) {
--			unsigned offset = (tpg->compose.width / 6) * 2 * twopixsize;
-+			unsigned offset = (tpg->compose.width / (6 * hdiv)) * 2 * twopixsize;
- 			u8 *p = vbuf + buf_line * stride + offset;
- 			unsigned vact = 0, hact = 1;
- 
+@@ -2169,7 +2322,8 @@ MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
+ 			" DVB-C 3101 USB2.0,"
+ 			" TeVii S600, S630, S650, S660, S480, S421, S632"
+ 			" Prof 1100, 7500 USB2.0,"
+-			" Geniatech SU3000, T220 devices");
++			" Geniatech SU3000, T220,"
++			" TechnoTrend S2-4600 devices");
+ MODULE_VERSION("0.1");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(DW2101_FIRMWARE);
 -- 
-2.1.4
+1.9.1
 
