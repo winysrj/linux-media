@@ -1,68 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:22721 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784AbbCTQy3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 12:54:29 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [RFC v3 6/9] v4l2-subdev: add cec ops.
-Date: Fri, 20 Mar 2015 17:52:40 +0100
-Message-id: <1426870363-18839-7-git-send-email-k.debski@samsung.com>
-In-reply-to: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
-References: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45925 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932524AbbCPVak (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 17:30:40 -0400
+Message-ID: <55074B7C.4030502@iki.fi>
+Date: Mon, 16 Mar 2015 23:30:36 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 05/10] mn88472: implement lock for all delivery systems
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-5-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-5-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+> The increase of the lock timeout is needed for dvb-t2.
+>
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
-Add callbacks to the v4l2_subdev_video_ops.
+Applied!
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- include/media/v4l2-subdev.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+regards
+Antti
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5beeb87..fdf620d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -40,6 +40,9 @@
- #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
- #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
- 
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event_subscription;
-@@ -48,6 +51,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
- 
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -354,6 +358,10 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
-+	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
- };
- 
- /*
+> ---
+>   drivers/staging/media/mn88472/mn88472.c | 24 ++++++++++++++++++++----
+>   1 file changed, 20 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+> index 6eebe56..5070c37 100644
+> --- a/drivers/staging/media/mn88472/mn88472.c
+> +++ b/drivers/staging/media/mn88472/mn88472.c
+> @@ -19,7 +19,7 @@
+>   static int mn88472_get_tune_settings(struct dvb_frontend *fe,
+>   	struct dvb_frontend_tune_settings *s)
+>   {
+> -	s->min_delay_ms = 400;
+> +	s->min_delay_ms = 800;
+>   	return 0;
+>   }
+>
+> @@ -201,6 +201,7 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>   	int ret;
+>   	unsigned int utmp;
+> +	int lock = 0;
+>
+>   	*status = 0;
+>
+> @@ -211,21 +212,36 @@ static int mn88472_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>
+>   	switch (c->delivery_system) {
+>   	case SYS_DVBT:
+> +		ret = regmap_read(dev->regmap[0], 0x7F, &utmp);
+> +		if (ret)
+> +			goto err;
+> +		if ((utmp & 0xF) >= 0x09)
+> +			lock = 1;
+> +		break;
+>   	case SYS_DVBT2:
+> -		/* FIXME: implement me */
+> -		utmp = 0x08; /* DVB-C lock value */
+> +		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
+> +		if (ret)
+> +			goto err;
+> +		if ((utmp & 0xF) >= 0x07)
+> +			*status |= FE_HAS_SIGNAL;
+> +		if ((utmp & 0xF) >= 0x0a)
+> +			*status |= FE_HAS_CARRIER;
+> +		if ((utmp & 0xF) >= 0x0d)
+> +			*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+>   		break;
+>   	case SYS_DVBC_ANNEX_A:
+>   		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
+>   		if (ret)
+>   			goto err;
+> +		if ((utmp & 0xF) >= 0x08)
+> +			lock = 1;
+>   		break;
+>   	default:
+>   		ret = -EINVAL;
+>   		goto err;
+>   	}
+>
+> -	if (utmp == 0x08)
+> +	if (lock)
+>   		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+>   				FE_HAS_SYNC | FE_HAS_LOCK;
+>
+>
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
