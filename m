@@ -1,1059 +1,601 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42245 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752783AbbC3Jw5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 05:52:57 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH v3] leds: Add support for max77693 mfd flash cell
-Date: Mon, 30 Mar 2015 11:52:29 +0200
-Message-id: <1427709149-15014-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:37090 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750950AbbCPHQH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 03:16:07 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, m.chehab@samsung.com
+Cc: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org, Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH v4] add raw video stream support for Samsung SUR40
+Date: Mon, 16 Mar 2015 08:16:02 +0100
+Message-Id: <1426490162-10646-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds led-flash support to Maxim max77693 chipset.
-A device can be exposed to user space through LED subsystem
-sysfs interface. Device supports up to two leds which can
-work in flash and torch mode. The leds can be triggered
-externally or by software.
+This patch adds raw video support for the Samsung SUR40 using vbuf2-dma-sg.
+All tests from v4l2-compliance pass. Support for VB2_USERPTR is currently
+disabled due to unexpected interference with dma-sg buffer sizes.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/leds/Kconfig         |   10 +
- drivers/leds/Makefile        |    1 +
- drivers/leds/leds-max77693.c |  972 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 983 insertions(+)
- create mode 100644 drivers/leds/leds-max77693.c
+ drivers/input/touchscreen/Kconfig |   2 +
+ drivers/input/touchscreen/sur40.c | 429 ++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 419 insertions(+), 12 deletions(-)
 
-- removed not needed '#include <asm/div64.h>' directive
-
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index 966b960..f9fbeb5 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -467,6 +467,16 @@ config LEDS_TCA6507
- 	  LED driver chips accessed via the I2C bus.
- 	  Driver support brightness control and hardware-assisted blinking.
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index 5891752..f8d16f1 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -953,7 +953,9 @@ config TOUCHSCREEN_SUN4I
+ config TOUCHSCREEN_SUR40
+ 	tristate "Samsung SUR40 (Surface 2.0/PixelSense) touchscreen"
+ 	depends on USB
++	depends on MEDIA_USB_SUPPORT
+ 	select INPUT_POLLDEV
++	select VIDEOBUF2_DMA_SG
+ 	help
+ 	  Say Y here if you want support for the Samsung SUR40 touchscreen
+ 	  (also known as Microsoft Surface 2.0 or Microsoft PixelSense).
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index f1cb051..d5f054b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -1,7 +1,7 @@
+ /*
+  * Surface2.0/SUR40/PixelSense input driver
+  *
+- * Copyright (c) 2013 by Florian 'floe' Echtler <floe@butterbrot.org>
++ * Copyright (c) 2015 by Florian 'floe' Echtler <floe@butterbrot.org>
+  *
+  * Derived from the USB Skeleton driver 1.1,
+  * Copyright (c) 2003 Greg Kroah-Hartman (greg@kroah.com)
+@@ -12,6 +12,9 @@
+  * and from the generic hid-multitouch driver,
+  * Copyright (c) 2010-2012 Stephane Chatty <chatty@enac.fr>
+  *
++ * and from the v4l2-pci-skeleton driver,
++ * Copyright (c) Copyright 2014 Cisco Systems, Inc.
++ *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+  * published by the Free Software Foundation; either version 2 of
+@@ -31,6 +34,11 @@
+ #include <linux/input-polldev.h>
+ #include <linux/input/mt.h>
+ #include <linux/usb/input.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-sg.h>
  
-+config LEDS_MAX77693
-+	tristate "LED support for MAX77693 Flash"
-+	depends on LEDS_CLASS_FLASH
-+	depends on MFD_MAX77693
-+	depends on OF
-+	help
-+	  This option enables support for the flash part of the MAX77693
-+	  multifunction device. It has build in control for two leds in flash
-+	  and torch mode.
+ /* read 512 bytes from endpoint 0x86 -> get header + blobs */
+ struct sur40_header {
+@@ -82,9 +90,19 @@ struct sur40_data {
+ 	struct sur40_blob   blobs[];
+ } __packed;
+ 
++/* read 512 bytes from endpoint 0x82 -> get header below
++ * continue reading 16k blocks until header.size bytes read */
++struct sur40_image_header {
++	__le32 magic;     /* "SUBF" */
++	__le32 packet_id;
++	__le32 size;      /* always 0x0007e900 = 960x540 */
++	__le32 timestamp; /* milliseconds (increases by 16 or 17 each frame) */
++	__le32 unknown;   /* "epoch?" always 02/03 00 00 00 */
++} __packed;
+ 
+ /* version information */
+ #define DRIVER_SHORT   "sur40"
++#define DRIVER_LONG    "Samsung SUR40"
+ #define DRIVER_AUTHOR  "Florian 'floe' Echtler <floe@butterbrot.org>"
+ #define DRIVER_DESC    "Surface2.0/SUR40/PixelSense input driver"
+ 
+@@ -99,6 +117,13 @@ struct sur40_data {
+ /* touch data endpoint */
+ #define TOUCH_ENDPOINT 0x86
+ 
++/* video data endpoint */
++#define VIDEO_ENDPOINT 0x82
 +
- config LEDS_MAX8997
- 	tristate "LED support for MAX8997 PMIC"
- 	depends on LEDS_CLASS && MFD_MAX8997
-diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index bf46093..9413fdb 100644
---- a/drivers/leds/Makefile
-+++ b/drivers/leds/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_LEDS_MC13783)		+= leds-mc13783.o
- obj-$(CONFIG_LEDS_NS2)			+= leds-ns2.o
- obj-$(CONFIG_LEDS_NETXBIG)		+= leds-netxbig.o
- obj-$(CONFIG_LEDS_ASIC3)		+= leds-asic3.o
-+obj-$(CONFIG_LEDS_MAX77693)		+= leds-max77693.o
- obj-$(CONFIG_LEDS_MAX8997)		+= leds-max8997.o
- obj-$(CONFIG_LEDS_LM355x)		+= leds-lm355x.o
- obj-$(CONFIG_LEDS_BLINKM)		+= leds-blinkm.o
-diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
-new file mode 100644
-index 0000000..7453e6b
---- /dev/null
-+++ b/drivers/leds/leds-max77693.c
-@@ -0,0 +1,972 @@
-+/*
-+ * LED Flash class driver for the flash cell of max77693 mfd.
-+ *
-+ *	Copyright (C) 2015, Samsung Electronics Co., Ltd.
-+ *
-+ *	Authors: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *		 Andrzej Hajda <a.hajda@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ */
++/* video header fields */
++#define VIDEO_HEADER_MAGIC 0x46425553
++#define VIDEO_PACKET_SIZE  16384
 +
-+#include <linux/led-class-flash.h>
-+#include <linux/mfd/max77693.h>
-+#include <linux/mfd/max77693-private.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <linux/slab.h>
-+#include <linux/workqueue.h>
-+#include <uapi/linux/leds.h>
-+
-+#define MODE_OFF		0
-+#define MODE_FLASH(a)		(1 << (a))
-+#define MODE_TORCH(a)		(1 << (2 + (a)))
-+#define MODE_FLASH_EXTERNAL(a)	(1 << (4 + (a)))
-+
-+#define MODE_FLASH_MASK		(MODE_FLASH(FLED1) | MODE_FLASH(FLED2) | \
-+				 MODE_FLASH_EXTERNAL(FLED1) | \
-+				 MODE_FLASH_EXTERNAL(FLED2))
-+#define MODE_TORCH_MASK		(MODE_TORCH(FLED1) | MODE_TORCH(FLED2))
-+
-+#define FLED1_IOUT		(1 << 0)
-+#define FLED2_IOUT		(1 << 1)
-+
-+enum max77693_fled {
-+	FLED1,
-+	FLED2,
-+};
-+
-+enum max77693_led_mode {
-+	FLASH,
-+	TORCH,
-+};
-+
-+struct max77693_led_config_data {
-+	const char *label[2];
-+	u32 iout_torch_max[2];
-+	u32 iout_flash_max[2];
-+	u32 flash_timeout[2];
-+	u32 num_leds;
-+	u32 boost_mode;
-+	u32 boost_vout;
-+	u32 low_vsys;
-+	u32 trigger_type;
-+};
-+
-+struct max77693_sub_led {
-+	/* corresponding FLED output identifier */
-+	int fled_id;
-+	/* corresponding LED Flash class device */
-+	struct led_classdev_flash fled_cdev;
-+	/* assures led-triggers compatibility */
-+	struct work_struct work_brightness_set;
-+
-+	/* brightness cache */
-+	unsigned int torch_brightness;
-+	/* flash timeout cache */
-+	unsigned int flash_timeout;
-+	/* flash faults that may have occurred */
-+	u32 flash_faults;
-+};
-+
-+struct max77693_led_device {
-+	/* parent mfd regmap */
-+	struct regmap *regmap;
-+	/* platform device data */
-+	struct platform_device *pdev;
-+	/* secures access to the device */
+ /* polling interval (ms) */
+ #define POLL_INTERVAL 10
+ 
+@@ -113,21 +138,23 @@ struct sur40_data {
+ #define SUR40_GET_STATE   0xc5 /*  4 bytes state (?) */
+ #define SUR40_GET_SENSORS 0xb1 /*  8 bytes sensors   */
+ 
+-/*
+- * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+- * here by mistake which is very likely to have corrupted the firmware EEPROM
+- * on two separate SUR40 devices. Thanks to Alan Stern who spotted this bug.
+- * Should you ever run into a similar problem, the background story to this
+- * incident and instructions on how to fix the corrupted EEPROM are available
+- * at https://floe.butterbrot.org/matrix/hacking/surface/brick.html
+-*/
+-
++/* master device state */
+ struct sur40_state {
+ 
+ 	struct usb_device *usbdev;
+ 	struct device *dev;
+ 	struct input_polled_dev *input;
+ 
++	struct v4l2_device v4l2;
++	struct video_device vdev;
 +	struct mutex lock;
 +
-+	/* sub led data */
-+	struct max77693_sub_led sub_leds[2];
++	struct vb2_queue queue;
++	struct vb2_alloc_ctx *alloc_ctx;
++	struct list_head buf_list;
++	spinlock_t qlock;
++	int sequence;
 +
-+	/* maximum torch current values for FLED outputs */
-+	u32 iout_torch_max[2];
-+	/* maximum flash current values for FLED outputs */
-+	u32 iout_flash_max[2];
-+	/* flash trigger type */
-+	u32 trigger_type;
-+
-+	/* current flash timeout cache */
-+	unsigned int current_flash_timeout;
-+	/* ITORCH register cache */
-+	u8 torch_iout_reg;
-+	/* mode of fled outputs */
-+	unsigned int mode_flags;
-+	/* recently strobed fled */
-+	int strobing_sub_led_id;
-+	/* bitmask of FLED outputs use state (bit 0. - FLED1, bit 1. - FLED2) */
-+	u8 fled_mask;
-+	/* FLED modes that can be set */
-+	u8 allowed_modes;
-+
-+	/* arrangement of current outputs */
-+	bool iout_joint;
+ 	struct sur40_data *bulk_in_buffer;
+ 	size_t bulk_in_size;
+ 	u8 bulk_in_epaddr;
+@@ -135,6 +162,27 @@ struct sur40_state {
+ 	char phys[64];
+ };
+ 
++struct sur40_buffer {
++	struct vb2_buffer vb;
++	struct list_head list;
 +};
 +
-+static u8 max77693_led_iout_to_reg(u32 ua)
-+{
-+	if (ua < FLASH_IOUT_MIN)
-+		ua = FLASH_IOUT_MIN;
-+	return (ua - FLASH_IOUT_MIN) / FLASH_IOUT_STEP;
++/* forward declarations */
++static const struct video_device sur40_video_device;
++static const struct v4l2_pix_format sur40_video_format;
++static const struct vb2_queue sur40_queue;
++static void sur40_process_video(struct sur40_state *sur40);
++
++/*
++ * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
++ * here by mistake which is very likely to have corrupted the firmware EEPROM
++ * on two separate SUR40 devices. Thanks to Alan Stern who spotted this bug.
++ * Should you ever run into a similar problem, the background story to this
++ * incident and instructions on how to fix the corrupted EEPROM are available
++ * at https://floe.butterbrot.org/matrix/hacking/surface/brick.html
++*/
++
++/* command wrapper */
+ static int sur40_command(struct sur40_state *dev,
+ 			 u8 command, u16 index, void *buffer, u16 size)
+ {
+@@ -247,7 +295,6 @@ static void sur40_report_blob(struct sur40_blob *blob, struct input_dev *input)
+ /* core function: poll for new input data */
+ static void sur40_poll(struct input_polled_dev *polldev)
+ {
+-
+ 	struct sur40_state *sur40 = polldev->private;
+ 	struct input_dev *input = polldev->input;
+ 	int result, bulk_read, need_blobs, packet_blobs, i;
+@@ -314,6 +361,81 @@ static void sur40_poll(struct input_polled_dev *polldev)
+ 
+ 	input_mt_sync_frame(input);
+ 	input_sync(input);
++
++	sur40_process_video(sur40);
 +}
 +
-+static u8 max77693_flash_timeout_to_reg(u32 us)
++/* deal with video data */
++static void sur40_process_video(struct sur40_state *sur40)
 +{
-+	return (us - FLASH_TIMEOUT_MIN) / FLASH_TIMEOUT_STEP;
-+}
 +
-+static inline struct max77693_sub_led *flcdev_to_sub_led(
-+					struct led_classdev_flash *fled_cdev)
-+{
-+	return container_of(fled_cdev, struct max77693_sub_led, fled_cdev);
-+}
++	struct sur40_image_header *img = (void *)(sur40->bulk_in_buffer);
++	struct sur40_buffer *new_buf;
++	struct usb_sg_request sgr;
++	struct sg_table *sgt;
++	int result, bulk_read;
 +
-+static inline struct max77693_led_device *sub_led_to_led(
-+					struct max77693_sub_led *sub_led)
-+{
-+	return container_of(sub_led, struct max77693_led_device,
-+				sub_leds[sub_led->fled_id]);
-+}
-+
-+static inline u8 max77693_led_vsys_to_reg(u32 mv)
-+{
-+	return ((mv - MAX_FLASH1_VSYS_MIN) / MAX_FLASH1_VSYS_STEP) << 2;
-+}
-+
-+static inline u8 max77693_led_vout_to_reg(u32 mv)
-+{
-+	return (mv - FLASH_VOUT_MIN) / FLASH_VOUT_STEP + FLASH_VOUT_RMIN;
-+}
-+
-+static inline bool max77693_fled_used(struct max77693_led_device *led,
-+					 int fled_id)
-+{
-+	u8 fled_bit = (fled_id == FLED1) ? FLED1_IOUT : FLED2_IOUT;
-+
-+	return led->fled_mask & fled_bit;
-+}
-+
-+static int max77693_set_mode_reg(struct max77693_led_device *led, u8 mode)
-+{
-+	struct regmap *rmap = led->regmap;
-+	int ret, v = 0, i;
-+
-+	for (i = FLED1; i <= FLED2; ++i) {
-+		if (mode & MODE_TORCH(i))
-+			v |= FLASH_EN_ON << TORCH_EN_SHIFT(i);
-+
-+		if (mode & MODE_FLASH(i)) {
-+			v |= FLASH_EN_ON << FLASH_EN_SHIFT(i);
-+		} else if (mode & MODE_FLASH_EXTERNAL(i)) {
-+			v |= FLASH_EN_FLASH << FLASH_EN_SHIFT(i);
-+			/*
-+			 * Enable hw triggering also for torch mode, as some
-+			 * camera sensors use torch led to fathom ambient light
-+			 * conditions before strobing the flash.
-+			 */
-+			v |= FLASH_EN_TORCH << TORCH_EN_SHIFT(i);
-+		}
-+	}
-+
-+	/* Reset the register only prior setting flash modes */
-+	if (mode & ~(MODE_TORCH(FLED1) | MODE_TORCH(FLED2))) {
-+		ret = regmap_write(rmap, MAX77693_LED_REG_FLASH_EN, 0);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return regmap_write(rmap, MAX77693_LED_REG_FLASH_EN, v);
-+}
-+
-+static int max77693_add_mode(struct max77693_led_device *led, u8 mode)
-+{
-+	int i, ret;
-+
-+	mode &= led->allowed_modes;
-+
-+	/*
-+	 * Torch mode once enabled remains active until turned off. If the FLED2
-+	 * output isn't to be disabled check if the torch mode to be set isn't
-+	 * already activated and avoid re-setting it.
-+	 */
-+	if ((!(mode ^ led->mode_flags)) & MODE_TORCH(FLED2)) {
-+		for (i = FLED1; i <= FLED2; ++i)
-+			if ((mode & led->mode_flags & MODE_TORCH(i)))
-+				return 0;
-+	}
-+
-+	if (led->iout_joint)
-+		/* Span the mode on FLED2 for joint iouts case */
-+		mode |= (mode << 1);
-+
-+	/*
-+	 * FLASH_EXTERNAL mode activates FLASHEN and TORCHEN pins in the device.
-+	 * Corresponding register bit fields interfere with SW triggered modes,
-+	 * thus clear them to ensure proper device configuration.
-+	 */
-+	for (i = FLED1; i <= FLED2; ++i)
-+		if (mode & MODE_FLASH_EXTERNAL(i))
-+			led->mode_flags &= (~MODE_TORCH(i) & ~MODE_FLASH(i));
-+
-+	led->mode_flags |= mode;
-+	led->mode_flags &= led->allowed_modes;
-+
-+	ret = max77693_set_mode_reg(led, led->mode_flags);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * Clear flash mode flag after setting the mode to avoid spurious flash
-+	 * strobing on each subsequent torch mode setting.
-+	 */
-+	if (mode & MODE_FLASH_MASK)
-+		led->mode_flags &= ~mode;
-+
-+	return ret;
-+}
-+
-+static int max77693_clear_mode(struct max77693_led_device *led,
-+				u8 mode)
-+{
-+	if (led->iout_joint)
-+		/* Clear mode also on FLED2 for joint iouts case */
-+		mode |= (mode << 1);
-+
-+	led->mode_flags &= ~mode;
-+
-+	return max77693_set_mode_reg(led, led->mode_flags);
-+}
-+
-+static void max77693_add_allowed_modes(struct max77693_led_device *led,
-+				int fled_id, enum max77693_led_mode mode)
-+{
-+	if (mode == FLASH)
-+		led->allowed_modes |= (MODE_FLASH(fled_id) |
-+				       MODE_FLASH_EXTERNAL(fled_id));
-+	else
-+		led->allowed_modes |= MODE_TORCH(fled_id);
-+}
-+
-+static void max77693_distribute_currents(struct max77693_led_device *led,
-+				int fled_id, enum max77693_led_mode mode,
-+				u32 micro_amp, u32 iout_max[2], u32 iout[2])
-+{
-+	if (!led->iout_joint) {
-+		iout[fled_id] = micro_amp;
-+		max77693_add_allowed_modes(led, fled_id, mode);
++	if (!vb2_start_streaming_called(&sur40->queue))
 +		return;
++
++	/* get a new buffer from the list */
++	spin_lock(&sur40->qlock);
++	new_buf = list_entry(sur40->buf_list.next, struct sur40_buffer, list);
++	list_del(&new_buf->list);
++	spin_unlock(&sur40->qlock);
++
++	/* retrieve data via bulk read */
++	result = usb_bulk_msg(sur40->usbdev,
++			usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
++			sur40->bulk_in_buffer, sur40->bulk_in_size,
++			&bulk_read, 1000);
++
++	if (result < 0) {
++		dev_err(sur40->dev, "error in usb_bulk_read\n");
++		goto err_poll;
 +	}
 +
-+	iout[FLED1] = min(micro_amp, iout_max[FLED1]);
-+	iout[FLED2] = micro_amp - iout[FLED1];
++	if (bulk_read != sizeof(struct sur40_image_header)) {
++		dev_err(sur40->dev, "received %d bytes (%ld expected)\n",
++			bulk_read, sizeof(struct sur40_image_header));
++		goto err_poll;
++	}
 +
-+	if (mode == FLASH)
-+		led->allowed_modes &= ~MODE_FLASH_MASK;
-+	else
-+		led->allowed_modes &= ~MODE_TORCH_MASK;
++	if (le32_to_cpu(img->magic) != VIDEO_HEADER_MAGIC) {
++		dev_err(sur40->dev, "image magic mismatch\n");
++		goto err_poll;
++	}
 +
-+	max77693_add_allowed_modes(led, FLED1, mode);
++	if (le32_to_cpu(img->size) != sur40_video_format.sizeimage) {
++		dev_err(sur40->dev, "image size mismatch\n");
++		goto err_poll;
++	}
 +
-+	if (iout[FLED2])
-+		max77693_add_allowed_modes(led, FLED2, mode);
-+}
++	sgt = vb2_dma_sg_plane_desc(&new_buf->vb, 0);
 +
-+static int max77693_set_torch_current(struct max77693_led_device *led,
-+				int fled_id, u32 micro_amp)
++	result = usb_sg_init(&sgr, sur40->usbdev,
++		usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT), 0,
++		sgt->sgl, sgt->nents, sur40_video_format.sizeimage, 0);
++	if (result < 0) {
++		dev_err(sur40->dev, "error %d in usb_sg_init\n", result);
++		goto err_poll;
++	}
++
++	usb_sg_wait(&sgr);
++	if (sgr.status < 0) {
++		dev_err(sur40->dev, "error %d in usb_sg_wait\n", sgr.status);
++		goto err_poll;
++	}
++
++	/* mark as finished */
++	v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
++	new_buf->vb.v4l2_buf.sequence = sur40->sequence++;
++	new_buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
++	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_DONE);
++	return;
++
++err_poll:
++	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_ERROR);
+ }
+ 
+ /* Initialize input device parameters. */
+@@ -377,6 +499,11 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_dev;
+ 	}
+ 
++	/* initialize locks/lists */
++	INIT_LIST_HEAD(&sur40->buf_list);
++	spin_lock_init(&sur40->qlock);
++	mutex_init(&sur40->lock);
++
+ 	/* Set up polled input device control structure */
+ 	poll_dev->private = sur40;
+ 	poll_dev->poll_interval = POLL_INTERVAL;
+@@ -387,7 +514,7 @@ static int sur40_probe(struct usb_interface *interface,
+ 	/* Set up regular input device structure */
+ 	sur40_input_setup(poll_dev->input);
+ 
+-	poll_dev->input->name = "Samsung SUR40";
++	poll_dev->input->name = DRIVER_LONG;
+ 	usb_to_input_id(usbdev, &poll_dev->input->id);
+ 	usb_make_path(usbdev, sur40->phys, sizeof(sur40->phys));
+ 	strlcat(sur40->phys, "/input0", sizeof(sur40->phys));
+@@ -408,6 +535,7 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_polldev;
+ 	}
+ 
++	/* register the polled input device */
+ 	error = input_register_polled_device(poll_dev);
+ 	if (error) {
+ 		dev_err(&interface->dev,
+@@ -415,12 +543,54 @@ static int sur40_probe(struct usb_interface *interface,
+ 		goto err_free_buffer;
+ 	}
+ 
++	/* register the video master device */
++	snprintf(sur40->v4l2.name, sizeof(sur40->v4l2.name), "%s", DRIVER_LONG);
++	error = v4l2_device_register(sur40->dev, &sur40->v4l2);
++	if (error) {
++		dev_err(&interface->dev,
++			"Unable to register video master device.");
++		goto err_unreg_v4l2;
++	}
++
++	/* initialize the lock and subdevice */
++	sur40->queue = sur40_queue;
++	sur40->queue.drv_priv = sur40;
++	sur40->queue.lock = &sur40->lock;
++
++	/* initialize the queue */
++	error = vb2_queue_init(&sur40->queue);
++	if (error)
++		goto err_unreg_v4l2;
++
++	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
++	if (IS_ERR(sur40->alloc_ctx)) {
++		dev_err(sur40->dev, "Can't allocate buffer context");
++		goto err_unreg_v4l2;
++	}
++
++	sur40->vdev = sur40_video_device;
++	sur40->vdev.v4l2_dev = &sur40->v4l2;
++	sur40->vdev.lock = &sur40->lock;
++	sur40->vdev.queue = &sur40->queue;
++	video_set_drvdata(&sur40->vdev, sur40);
++
++	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
++	if (error) {
++		dev_err(&interface->dev,
++			"Unable to register video subdevice.");
++		goto err_unreg_video;
++	}
++
+ 	/* we can register the device now, as it is ready */
+ 	usb_set_intfdata(interface, sur40);
+ 	dev_dbg(&interface->dev, "%s is now attached\n", DRIVER_DESC);
+ 
+ 	return 0;
+ 
++err_unreg_video:
++	video_unregister_device(&sur40->vdev);
++err_unreg_v4l2:
++	v4l2_device_unregister(&sur40->v4l2);
+ err_free_buffer:
+ 	kfree(sur40->bulk_in_buffer);
+ err_free_polldev:
+@@ -436,6 +606,10 @@ static void sur40_disconnect(struct usb_interface *interface)
+ {
+ 	struct sur40_state *sur40 = usb_get_intfdata(interface);
+ 
++	video_unregister_device(&sur40->vdev);
++	v4l2_device_unregister(&sur40->v4l2);
++	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
++
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+ 	kfree(sur40->bulk_in_buffer);
+@@ -445,12 +619,243 @@ static void sur40_disconnect(struct usb_interface *interface)
+ 	dev_dbg(&interface->dev, "%s is now disconnected\n", DRIVER_DESC);
+ }
+ 
++/*
++ * Setup the constraints of the queue: besides setting the number of planes
++ * per buffer and the size and allocation context of each plane, it also
++ * checks if sufficient buffers have been allocated. Usually 3 is a good
++ * minimum number: many DMA engines need a minimum of 2 buffers in the
++ * queue and you need to have another available for userspace processing.
++ */
++static int sur40_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], void *alloc_ctxs[])
 +{
-+	struct regmap *rmap = led->regmap;
-+	u8 iout1_reg = 0, iout2_reg = 0;
-+	u32 iout[2];
++	struct sur40_state *sur40 = vb2_get_drv_priv(q);
 +
-+	max77693_distribute_currents(led, fled_id, TORCH, micro_amp,
-+					led->iout_torch_max, iout);
++	if (q->num_buffers + *nbuffers < 3)
++		*nbuffers = 3 - q->num_buffers;
 +
-+	if (fled_id == FLED1 || led->iout_joint) {
-+		iout1_reg = max77693_led_iout_to_reg(iout[FLED1]);
-+		led->torch_iout_reg &= TORCH_IOUT_MASK(TORCH_IOUT2_SHIFT);
-+	}
-+	if (fled_id == FLED2 || led->iout_joint) {
-+		iout2_reg = max77693_led_iout_to_reg(iout[FLED2]);
-+		led->torch_iout_reg &= TORCH_IOUT_MASK(TORCH_IOUT1_SHIFT);
-+	}
++	if (fmt && fmt->fmt.pix.sizeimage < sur40_video_format.sizeimage)
++		return -EINVAL;
 +
-+	led->torch_iout_reg |= ((iout1_reg << TORCH_IOUT1_SHIFT) |
-+				(iout2_reg << TORCH_IOUT2_SHIFT));
-+
-+	return regmap_write(rmap, MAX77693_LED_REG_ITORCH,
-+						led->torch_iout_reg);
-+}
-+
-+static int max77693_set_flash_current(struct max77693_led_device *led,
-+					int fled_id,
-+					u32 micro_amp)
-+{
-+	struct regmap *rmap = led->regmap;
-+	u8 iout1_reg, iout2_reg;
-+	u32 iout[2];
-+	int ret = -EINVAL;
-+
-+	max77693_distribute_currents(led, fled_id, FLASH, micro_amp,
-+					led->iout_flash_max, iout);
-+
-+	if (fled_id == FLED1 || led->iout_joint) {
-+		iout1_reg = max77693_led_iout_to_reg(iout[FLED1]);
-+		ret = regmap_write(rmap, MAX77693_LED_REG_IFLASH1,
-+							iout1_reg);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	if (fled_id == FLED2 || led->iout_joint) {
-+		iout2_reg = max77693_led_iout_to_reg(iout[FLED2]);
-+		ret = regmap_write(rmap, MAX77693_LED_REG_IFLASH2,
-+							iout2_reg);
-+	}
-+
-+	return ret;
-+}
-+
-+static int max77693_set_timeout(struct max77693_led_device *led, u32 microsec)
-+{
-+	struct regmap *rmap = led->regmap;
-+	u8 v;
-+	int ret;
-+
-+	v = max77693_flash_timeout_to_reg(microsec);
-+
-+	if (led->trigger_type == MAX77693_LED_TRIG_TYPE_LEVEL)
-+		v |= FLASH_TMR_LEVEL;
-+
-+	ret = regmap_write(rmap, MAX77693_LED_REG_FLASH_TIMER, v);
-+	if (ret < 0)
-+		return ret;
-+
-+	led->current_flash_timeout = microsec;
++	*nplanes = 1;
++	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : sur40_video_format.sizeimage;
++	alloc_ctxs[0] = sur40->alloc_ctx;
 +
 +	return 0;
 +}
 +
-+static int max77693_get_strobe_status(struct max77693_led_device *led,
-+					bool *state)
++/*
++ * Prepare the buffer for queueing to the DMA engine: check and set the
++ * payload size.
++ */
++static int sur40_buffer_prepare(struct vb2_buffer *vb)
 +{
-+	struct regmap *rmap = led->regmap;
-+	unsigned int v;
-+	int ret;
++	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned long size = sur40_video_format.sizeimage;
 +
-+	ret = regmap_read(rmap, MAX77693_LED_REG_FLASH_STATUS, &v);
-+	if (ret < 0)
-+		return ret;
-+
-+	*state = v & FLASH_STATUS_FLASH_ON;
-+
-+	return ret;
-+}
-+
-+static int max77693_get_flash_faults(struct max77693_sub_led *sub_led)
-+{
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	struct regmap *rmap = led->regmap;
-+	unsigned int v;
-+	u8 fault_open_mask, fault_short_mask;
-+	int ret;
-+
-+	sub_led->flash_faults = 0;
-+
-+	if (led->iout_joint) {
-+		fault_open_mask = FLASH_INT_FLED1_OPEN | FLASH_INT_FLED2_OPEN;
-+		fault_short_mask = FLASH_INT_FLED1_SHORT |
-+							FLASH_INT_FLED2_SHORT;
-+	} else {
-+		fault_open_mask = (sub_led->fled_id == FLED1) ?
-+						FLASH_INT_FLED1_OPEN :
-+						FLASH_INT_FLED2_OPEN;
-+		fault_short_mask = (sub_led->fled_id == FLED1) ?
-+						FLASH_INT_FLED1_SHORT :
-+						FLASH_INT_FLED2_SHORT;
++	if (vb2_plane_size(vb, 0) < size) {
++		dev_err(&sur40->usbdev->dev, "buffer too small (%lu < %lu)\n",
++			 vb2_plane_size(vb, 0), size);
++		return -EINVAL;
 +	}
 +
-+	ret = regmap_read(rmap, MAX77693_LED_REG_FLASH_INT, &v);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (v & fault_open_mask)
-+		sub_led->flash_faults |= LED_FAULT_OVER_VOLTAGE;
-+	if (v & fault_short_mask)
-+		sub_led->flash_faults |= LED_FAULT_SHORT_CIRCUIT;
-+	if (v & FLASH_INT_OVER_CURRENT)
-+		sub_led->flash_faults |= LED_FAULT_OVER_CURRENT;
-+
++	vb2_set_plane_payload(vb, 0, size);
 +	return 0;
 +}
 +
-+static int max77693_setup(struct max77693_led_device *led,
-+			 struct max77693_led_config_data *led_cfg)
++/*
++ * Queue this buffer to the DMA engine.
++ */
++static void sur40_buffer_queue(struct vb2_buffer *vb)
 +{
-+	struct regmap *rmap = led->regmap;
-+	int i, first_led, last_led, ret;
-+	u32 max_flash_curr[2];
-+	u8 v;
++	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
++	struct sur40_buffer *buf = (struct sur40_buffer *)vb;
 +
++	spin_lock(&sur40->qlock);
++	list_add_tail(&buf->list, &sur40->buf_list);
++	spin_unlock(&sur40->qlock);
++}
++
++static void return_all_buffers(struct sur40_state *sur40,
++			       enum vb2_buffer_state state)
++{
++	struct sur40_buffer *buf, *node;
++
++	spin_lock(&sur40->qlock);
++	list_for_each_entry_safe(buf, node, &sur40->buf_list, list) {
++		vb2_buffer_done(&buf->vb, state);
++		list_del(&buf->list);
++	}
++	spin_unlock(&sur40->qlock);
++}
++
++/*
++ * Start streaming. First check if the minimum number of buffers have been
++ * queued. If not, then return -ENOBUFS and the vb2 framework will call
++ * this function again the next time a buffer has been queued until enough
++ * buffers are available to actually start the DMA engine.
++ */
++static int sur40_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
++
++	sur40->sequence = 0;
++	return 0;
++}
++
++/*
++ * Stop the DMA engine. Any remaining buffers in the DMA queue are dequeued
++ * and passed on to the vb2 framework marked as STATE_ERROR.
++ */
++static void sur40_stop_streaming(struct vb2_queue *vq)
++{
++	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
++
++	/* Release all active buffers */
++	return_all_buffers(sur40, VB2_BUF_STATE_ERROR);
++}
++
++/* V4L ioctl */
++static int sur40_vidioc_querycap(struct file *file, void *priv,
++				 struct v4l2_capability *cap)
++{
++	struct sur40_state *sur40 = video_drvdata(file);
++
++	strlcpy(cap->driver, DRIVER_SHORT, sizeof(cap->driver));
++	strlcpy(cap->card, DRIVER_LONG, sizeof(cap->card));
++	usb_make_path(sur40->usbdev, cap->bus_info, sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_READWRITE |
++		V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	return 0;
++}
++
++static int sur40_vidioc_enum_input(struct file *file, void *priv,
++				   struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	i->std = V4L2_STD_UNKNOWN;
++	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
++	i->capabilities = 0;
++	return 0;
++}
++
++static int sur40_vidioc_s_input(struct file *file, void *priv, unsigned int i)
++{
++	return (i == 0) ? 0 : -EINVAL;
++}
++
++static int sur40_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++
++static int sur40_vidioc_fmt(struct file *file, void *priv,
++			    struct v4l2_format *f)
++{
++	f->fmt.pix = sur40_video_format;
++	return 0;
++}
++
++static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
++				 struct v4l2_fmtdesc *f)
++{
++	if (f->index != 0)
++		return -EINVAL;
++	strlcpy(f->description, "8-bit greyscale", sizeof(f->description));
++	f->pixelformat = V4L2_PIX_FMT_GREY;
++	f->flags = 0;
++	return 0;
++}
++
+ static const struct usb_device_id sur40_table[] = {
+ 	{ USB_DEVICE(ID_MICROSOFT, ID_SUR40) },  /* Samsung SUR40 */
+ 	{ }                                      /* terminating null entry */
+ };
+ MODULE_DEVICE_TABLE(usb, sur40_table);
+ 
++/* V4L2 structures */
++static const struct vb2_ops sur40_queue_ops = {
++	.queue_setup		= sur40_queue_setup,
++	.buf_prepare		= sur40_buffer_prepare,
++	.buf_queue		= sur40_buffer_queue,
++	.start_streaming	= sur40_start_streaming,
++	.stop_streaming		= sur40_stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static const struct vb2_queue sur40_queue = {
++	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
 +	/*
-+	 * Initialize only flash current. Torch current doesn't
-+	 * require initialization as ITORCH register is written with
-+	 * new value each time brightness_set op is called.
-+	 */
-+	if (led->iout_joint) {
-+		first_led = FLED1;
-+		last_led = FLED1;
-+		max_flash_curr[FLED1] = led_cfg->iout_flash_max[FLED1] +
-+					led_cfg->iout_flash_max[FLED2];
-+	} else {
-+		first_led = max77693_fled_used(led, FLED1) ? FLED1 : FLED2;
-+		last_led = max77693_fled_used(led, FLED2) ? FLED2 : FLED1;
-+		max_flash_curr[FLED1] = led_cfg->iout_flash_max[FLED1];
-+		max_flash_curr[FLED2] = led_cfg->iout_flash_max[FLED2];
-+	}
-+
-+	for (i = first_led; i <= last_led; ++i) {
-+		ret = max77693_set_flash_current(led, i,
-+					max_flash_curr[i]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	v = TORCH_TMR_NO_TIMER | MAX77693_LED_TRIG_TYPE_LEVEL;
-+	ret = regmap_write(rmap, MAX77693_LED_REG_ITORCHTIMER, v);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (led_cfg->low_vsys > 0)
-+		v = max77693_led_vsys_to_reg(led_cfg->low_vsys) |
-+						MAX_FLASH1_MAX_FL_EN;
-+	else
-+		v = 0;
-+
-+	ret = regmap_write(rmap, MAX77693_LED_REG_MAX_FLASH1, v);
-+	if (ret < 0)
-+		return ret;
-+	ret = regmap_write(rmap, MAX77693_LED_REG_MAX_FLASH2, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (led_cfg->boost_mode == MAX77693_LED_BOOST_FIXED)
-+		v = FLASH_BOOST_FIXED;
-+	else
-+		v = led_cfg->boost_mode | led_cfg->boost_mode << 1;
-+
-+	if (max77693_fled_used(led, FLED1) && max77693_fled_used(led, FLED2))
-+		v |= FLASH_BOOST_LEDNUM_2;
-+
-+	ret = regmap_write(rmap, MAX77693_LED_REG_VOUT_CNTL, v);
-+	if (ret < 0)
-+		return ret;
-+
-+	v = max77693_led_vout_to_reg(led_cfg->boost_vout);
-+	ret = regmap_write(rmap, MAX77693_LED_REG_VOUT_FLASH1, v);
-+	if (ret < 0)
-+		return ret;
-+
-+	return max77693_set_mode_reg(led, MODE_OFF);
-+}
-+
-+static int __max77693_led_brightness_set(struct max77693_led_device *led,
-+					int fled_id, enum led_brightness value)
-+{
-+	int ret;
-+
-+	mutex_lock(&led->lock);
-+
-+	if (value == 0) {
-+		ret = max77693_clear_mode(led, MODE_TORCH(fled_id));
-+		if (ret < 0)
-+			dev_dbg(&led->pdev->dev,
-+				"Failed to clear torch mode (%d)\n",
-+				ret);
-+		goto unlock;
-+	}
-+
-+	ret = max77693_set_torch_current(led, fled_id, value * TORCH_IOUT_STEP);
-+	if (ret < 0) {
-+		dev_dbg(&led->pdev->dev,
-+			"Failed to set torch current (%d)\n",
-+			ret);
-+		goto unlock;
-+	}
-+
-+	ret = max77693_add_mode(led, MODE_TORCH(fled_id));
-+	if (ret < 0)
-+		dev_dbg(&led->pdev->dev,
-+			"Failed to set torch mode (%d)\n",
-+			ret);
-+unlock:
-+	mutex_unlock(&led->lock);
-+	return ret;
-+}
-+
-+static void max77693_led_brightness_set_work(
-+					struct work_struct *work)
-+{
-+	struct max77693_sub_led *sub_led =
-+			container_of(work, struct max77693_sub_led,
-+					work_brightness_set);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+
-+	__max77693_led_brightness_set(led, sub_led->fled_id,
-+				sub_led->torch_brightness);
-+}
-+
-+/* LED subsystem callbacks */
-+
-+static int max77693_led_brightness_set_sync(
-+				struct led_classdev *led_cdev,
-+				enum led_brightness value)
-+{
-+	struct led_classdev_flash *fled_cdev = lcdev_to_flcdev(led_cdev);
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+
-+	return __max77693_led_brightness_set(led, sub_led->fled_id, value);
-+}
-+
-+static void max77693_led_brightness_set(
-+				struct led_classdev *led_cdev,
-+				enum led_brightness value)
-+{
-+	struct led_classdev_flash *fled_cdev = lcdev_to_flcdev(led_cdev);
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+
-+	sub_led->torch_brightness = value;
-+	schedule_work(&sub_led->work_brightness_set);
-+}
-+
-+static int max77693_led_flash_brightness_set(
-+				struct led_classdev_flash *fled_cdev,
-+				u32 brightness)
-+{
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	int ret;
-+
-+	mutex_lock(&led->lock);
-+	ret = max77693_set_flash_current(led, sub_led->fled_id, brightness);
-+	mutex_unlock(&led->lock);
-+
-+	return ret;
-+}
-+
-+static int max77693_led_flash_strobe_set(
-+				struct led_classdev_flash *fled_cdev,
-+				bool state)
-+{
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	int fled_id = sub_led->fled_id;
-+	int ret;
-+
-+	mutex_lock(&led->lock);
-+
-+	if (!state) {
-+		ret = max77693_clear_mode(led, MODE_FLASH(fled_id));
-+		goto unlock;
-+	}
-+
-+	if (sub_led->flash_timeout != led->current_flash_timeout) {
-+		ret = max77693_set_timeout(led, sub_led->flash_timeout);
-+		if (ret < 0)
-+			goto unlock;
-+	}
-+
-+	led->strobing_sub_led_id = fled_id;
-+
-+	ret = max77693_add_mode(led, MODE_FLASH(fled_id));
-+	if (ret < 0)
-+		goto unlock;
-+
-+	ret = max77693_get_flash_faults(sub_led);
-+
-+unlock:
-+	mutex_unlock(&led->lock);
-+	return ret;
-+}
-+
-+static int max77693_led_flash_fault_get(
-+				struct led_classdev_flash *fled_cdev,
-+				u32 *fault)
-+{
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+
-+	*fault = sub_led->flash_faults;
-+
-+	return 0;
-+}
-+
-+static int max77693_led_flash_strobe_get(
-+				struct led_classdev_flash *fled_cdev,
-+				bool *state)
-+{
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	int ret;
-+
-+	if (!state)
-+		return -EINVAL;
-+
-+	mutex_lock(&led->lock);
-+
-+	ret = max77693_get_strobe_status(led, state);
-+
-+	*state = !!(*state && (led->strobing_sub_led_id == sub_led->fled_id));
-+
-+	mutex_unlock(&led->lock);
-+
-+	return ret;
-+}
-+
-+static int max77693_led_flash_timeout_set(
-+				struct led_classdev_flash *fled_cdev,
-+				u32 timeout)
-+{
-+	struct max77693_sub_led *sub_led = flcdev_to_sub_led(fled_cdev);
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+
-+	mutex_lock(&led->lock);
-+	sub_led->flash_timeout = timeout;
-+	mutex_unlock(&led->lock);
-+
-+	return 0;
-+}
-+
-+static int max77693_led_parse_dt(struct max77693_led_device *led,
-+				struct max77693_led_config_data *cfg)
-+{
-+	struct device *dev = &led->pdev->dev;
-+	struct max77693_sub_led *sub_leds = led->sub_leds;
-+	struct device_node *node = dev->of_node, *child_node;
-+	struct property *prop;
-+	u32 led_sources[2];
-+	int i, fled_id;
-+
-+	of_property_read_u32(node, "maxim,trigger-type", &cfg->trigger_type);
-+	of_property_read_u32(node, "maxim,boost-mode", &cfg->boost_mode);
-+	of_property_read_u32(node, "maxim,boost-mvout", &cfg->boost_vout);
-+	of_property_read_u32(node, "maxim,mvsys-min", &cfg->low_vsys);
-+
-+	for_each_available_child_of_node(node, child_node) {
-+		prop = of_find_property(child_node, "led-sources", NULL);
-+		if (prop) {
-+			const __be32 *srcs = NULL;
-+
-+			for (i = 0; i < ARRAY_SIZE(led_sources); ++i) {
-+				srcs = of_prop_next_u32(prop, srcs,
-+							&led_sources[i]);
-+				if (!srcs)
-+					break;
-+			}
-+		} else {
-+			dev_err(dev,
-+				"\"led-sources\" DT property not found.\n");
-+			return -EINVAL;
-+		}
-+
-+		if (i == 2) {
-+			fled_id = FLED1;
-+			led->fled_mask = FLED1_IOUT | FLED2_IOUT;
-+		} else if (led_sources[0] == FLED1) {
-+			fled_id = FLED1;
-+			led->fled_mask |= FLED1_IOUT;
-+		} else if (led_sources[0] == FLED2) {
-+			fled_id = FLED2;
-+			led->fled_mask |= FLED2_IOUT;
-+		} else {
-+			dev_err(dev,
-+				"Wrong \"led-sources\" DT property value.\n");
-+			return -EINVAL;
-+		}
-+
-+		sub_leds[fled_id].fled_id = fled_id;
-+
-+		cfg->label[fled_id] =
-+			of_get_property(child_node, "label", NULL) ? :
-+						child_node->name;
-+
-+		of_property_read_u32(child_node, "max-microamp",
-+						&cfg->iout_torch_max[fled_id]);
-+		of_property_read_u32(child_node, "flash-max-microamp",
-+						&cfg->iout_flash_max[fled_id]);
-+		of_property_read_u32(child_node, "flash-timeout-us",
-+						&cfg->flash_timeout[fled_id]);
-+
-+		if (++cfg->num_leds == 2 ||
-+		    (max77693_fled_used(led, FLED1) &&
-+		     max77693_fled_used(led, FLED2)))
-+			break;
-+	}
-+
-+	if (cfg->num_leds == 0) {
-+		dev_err(dev, "No DT child node found for connected LED(s).\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void clamp_align(u32 *v, u32 min, u32 max, u32 step)
-+{
-+	*v = clamp_val(*v, min, max);
-+	if (step > 1)
-+		*v = (*v - min) / step * step + min;
-+}
-+
-+static void max77693_led_validate_configuration(struct max77693_led_device *led,
-+					struct max77693_led_config_data *cfg)
-+{
-+	int i;
-+
-+	if (cfg->num_leds == 1 &&
-+	    max77693_fled_used(led, FLED1) && max77693_fled_used(led, FLED2))
-+		led->iout_joint = true;
-+
-+	cfg->boost_mode = clamp_val(cfg->boost_mode, MAX77693_LED_BOOST_NONE,
-+			    MAX77693_LED_BOOST_FIXED);
-+
-+	/* Boost must be enabled if both current outputs are used */
-+	if ((cfg->boost_mode == MAX77693_LED_BOOST_NONE) && led->iout_joint)
-+		cfg->boost_mode = MAX77693_LED_BOOST_FIXED;
-+
-+	/* Split max current settings to both outputs in case of joint leds */
-+	if (led->iout_joint) {
-+		cfg->iout_torch_max[FLED1] /= 2;
-+		cfg->iout_torch_max[FLED2] = cfg->iout_torch_max[FLED1];
-+		cfg->iout_flash_max[FLED1] /= 2;
-+		cfg->iout_flash_max[FLED2] = cfg->iout_flash_max[FLED1];
-+	}
-+
-+	for (i = FLED1; i <= FLED2; ++i) {
-+		if (max77693_fled_used(led, i)) {
-+			clamp_align(&cfg->iout_torch_max[i], TORCH_IOUT_MIN,
-+					TORCH_IOUT_MAX, TORCH_IOUT_STEP);
-+			clamp_align(&cfg->iout_flash_max[i], FLASH_IOUT_MIN,
-+					cfg->boost_mode ? FLASH_IOUT_MAX_2LEDS :
-+							FLASH_IOUT_MAX_1LED,
-+					FLASH_IOUT_STEP);
-+		} else {
-+			cfg->iout_torch_max[i] = cfg->iout_flash_max[i] = 0;
-+		}
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(cfg->flash_timeout); ++i)
-+		clamp_align(&cfg->flash_timeout[i], FLASH_TIMEOUT_MIN,
-+				FLASH_TIMEOUT_MAX, FLASH_TIMEOUT_STEP);
-+
-+	cfg->trigger_type = clamp_val(cfg->trigger_type,
-+					MAX77693_LED_TRIG_TYPE_EDGE,
-+					MAX77693_LED_TRIG_TYPE_LEVEL);
-+
-+	clamp_align(&cfg->boost_vout, FLASH_VOUT_MIN, FLASH_VOUT_MAX,
-+							FLASH_VOUT_STEP);
-+
-+	if (cfg->low_vsys)
-+		clamp_align(&cfg->low_vsys, MAX_FLASH1_VSYS_MIN,
-+				MAX_FLASH1_VSYS_MAX, MAX_FLASH1_VSYS_STEP);
-+}
-+
-+static int max77693_led_get_configuration(struct max77693_led_device *led,
-+				struct max77693_led_config_data *cfg)
-+{
-+	int ret;
-+
-+	ret = max77693_led_parse_dt(led, cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	max77693_led_validate_configuration(led, cfg);
-+
-+	memcpy(led->iout_torch_max, cfg->iout_torch_max,
-+				sizeof(led->iout_torch_max));
-+	memcpy(led->iout_flash_max, cfg->iout_flash_max,
-+				sizeof(led->iout_flash_max));
-+	led->trigger_type = cfg->trigger_type;
-+
-+	return 0;
-+}
-+
-+static const struct led_flash_ops flash_ops = {
-+	.flash_brightness_set	= max77693_led_flash_brightness_set,
-+	.strobe_set		= max77693_led_flash_strobe_set,
-+	.strobe_get		= max77693_led_flash_strobe_get,
-+	.timeout_set		= max77693_led_flash_timeout_set,
-+	.fault_get		= max77693_led_flash_fault_get,
++	 * VB2_USERPTR is currently not enabled: dma-sg doesn't provide
++	 * segment sizes of multiples of 512 bytes, which is required by
++	 * the host controller for working USERPTR support.
++	*/
++	.io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF,
++	.buf_struct_size = sizeof(struct sur40_buffer),
++	.ops = &sur40_queue_ops,
++	.mem_ops = &vb2_dma_sg_memops,
++	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
++	.min_buffers_needed = 3,
 +};
 +
-+static void max77693_init_flash_settings(struct max77693_sub_led *sub_led,
-+				 struct max77693_led_config_data *led_cfg)
-+{
-+	struct led_classdev_flash *fled_cdev = &sub_led->fled_cdev;
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	int fled_id = sub_led->fled_id;
-+	struct led_flash_setting *setting;
-+
-+	/* Init flash intensity setting */
-+	setting = &fled_cdev->brightness;
-+	setting->min = FLASH_IOUT_MIN;
-+	setting->max = led->iout_joint ?
-+		led_cfg->iout_flash_max[FLED1] * 2 :
-+		led_cfg->iout_flash_max[fled_id];
-+	setting->step = FLASH_IOUT_STEP;
-+	setting->val = setting->max;
-+
-+	/* Init flash timeout setting */
-+	setting = &fled_cdev->timeout;
-+	setting->min = FLASH_TIMEOUT_MIN;
-+	setting->max = led_cfg->flash_timeout[fled_id];
-+	setting->step = FLASH_TIMEOUT_STEP;
-+	setting->val = setting->max;
-+}
-+
-+static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
-+				struct max77693_led_config_data *led_cfg)
-+{
-+	struct max77693_led_device *led = sub_led_to_led(sub_led);
-+	int fled_id = sub_led->fled_id;
-+	struct led_classdev_flash *fled_cdev;
-+	struct led_classdev *led_cdev;
-+
-+	/* Initialize LED Flash class device */
-+	fled_cdev = &sub_led->fled_cdev;
-+	fled_cdev->ops = &flash_ops;
-+	led_cdev = &fled_cdev->led_cdev;
-+
-+	led_cdev->name = led_cfg->label[fled_id];
-+
-+	led_cdev->brightness_set = max77693_led_brightness_set;
-+	led_cdev->brightness_set_sync = max77693_led_brightness_set_sync;
-+	led_cdev->max_brightness = (led->iout_joint ?
-+					led_cfg->iout_torch_max[FLED1] * 2 :
-+					led_cfg->iout_torch_max[fled_id]) /
-+				   TORCH_IOUT_STEP;
-+	led_cdev->flags |= LED_DEV_CAP_FLASH;
-+	INIT_WORK(&sub_led->work_brightness_set,
-+			max77693_led_brightness_set_work);
-+
-+	max77693_init_flash_settings(sub_led, led_cfg);
-+
-+	/* Init flash timeout cache */
-+	sub_led->flash_timeout = fled_cdev->timeout.val;
-+}
-+
-+static int max77693_led_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
-+	struct max77693_led_device *led;
-+	struct max77693_sub_led *sub_leds;
-+	struct max77693_led_config_data led_cfg = {};
-+	int init_fled_cdev[2], i, ret;
-+
-+	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-+	if (!led)
-+		return -ENOMEM;
-+
-+	led->pdev = pdev;
-+	led->regmap = iodev->regmap;
-+	led->allowed_modes = MODE_FLASH_MASK;
-+	sub_leds = led->sub_leds;
-+
-+	platform_set_drvdata(pdev, led);
-+	ret = max77693_led_get_configuration(led, &led_cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = max77693_setup(led, &led_cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	mutex_init(&led->lock);
-+
-+	init_fled_cdev[FLED1] =
-+			led->iout_joint || max77693_fled_used(led, FLED1);
-+	init_fled_cdev[FLED2] =
-+			!led->iout_joint && max77693_fled_used(led, FLED2);
-+
-+	/* Initialize LED Flash class device(s) */
-+	for (i = FLED1; i <= FLED2; ++i)
-+		if (init_fled_cdev[i])
-+			max77693_init_fled_cdev(&sub_leds[i], &led_cfg);
-+
-+
-+	/* Register LED Flash class device(s) */
-+	for (i = FLED1; i <= FLED2; ++i) {
-+		if (!init_fled_cdev[i])
-+			continue;
-+
-+		ret = led_classdev_flash_register(dev, &sub_leds[i].fled_cdev);
-+		if (ret < 0) {
-+			/*
-+			 * At this moment FLED1 might have been already
-+			 * registered and it needs to be released.
-+			 */
-+			if (i == FLED2)
-+				goto err_register_led2;
-+			else
-+				goto err_register_led1;
-+		}
-+	}
-+
-+	return 0;
-+
-+err_register_led2:
-+	/* It is possible than only FLED2 was to be registered */
-+	if (!init_fled_cdev[FLED1])
-+		goto err_register_led1;
-+	led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
-+err_register_led1:
-+	mutex_destroy(&led->lock);
-+
-+	return ret;
-+}
-+
-+static int max77693_led_remove(struct platform_device *pdev)
-+{
-+	struct max77693_led_device *led = platform_get_drvdata(pdev);
-+	struct max77693_sub_led *sub_leds = led->sub_leds;
-+
-+	if (led->iout_joint || max77693_fled_used(led, FLED1)) {
-+		led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
-+		cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
-+	}
-+
-+	if (!led->iout_joint && max77693_fled_used(led, FLED2)) {
-+		led_classdev_flash_unregister(&sub_leds[FLED2].fled_cdev);
-+		cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
-+	}
-+
-+	mutex_destroy(&led->lock);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id max77693_led_dt_match[] = {
-+	{.compatible = "maxim,max77693-led"},
-+	{},
++static const struct v4l2_file_operations sur40_video_fops = {
++	.owner = THIS_MODULE,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.unlocked_ioctl = video_ioctl2,
++	.read = vb2_fop_read,
++	.mmap = vb2_fop_mmap,
++	.poll = vb2_fop_poll,
 +};
 +
-+static struct platform_driver max77693_led_driver = {
-+	.probe		= max77693_led_probe,
-+	.remove		= max77693_led_remove,
-+	.driver		= {
-+		.name	= "max77693-led",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = max77693_led_dt_match,
-+	},
++static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
++
++	.vidioc_querycap	= sur40_vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = sur40_vidioc_enum_fmt,
++	.vidioc_try_fmt_vid_cap	= sur40_vidioc_fmt,
++	.vidioc_s_fmt_vid_cap	= sur40_vidioc_fmt,
++	.vidioc_g_fmt_vid_cap	= sur40_vidioc_fmt,
++
++	.vidioc_enum_input	= sur40_vidioc_enum_input,
++	.vidioc_g_input		= sur40_vidioc_g_input,
++	.vidioc_s_input		= sur40_vidioc_s_input,
++
++	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
++	.vidioc_querybuf	= vb2_ioctl_querybuf,
++	.vidioc_qbuf		= vb2_ioctl_qbuf,
++	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
++	.vidioc_expbuf		= vb2_ioctl_expbuf,
++
++	.vidioc_streamon	= vb2_ioctl_streamon,
++	.vidioc_streamoff	= vb2_ioctl_streamoff,
 +};
 +
-+module_platform_driver(max77693_led_driver);
++static const struct video_device sur40_video_device = {
++	.name = DRIVER_LONG,
++	.fops = &sur40_video_fops,
++	.ioctl_ops = &sur40_video_ioctl_ops,
++	.release = video_device_release_empty,
++};
 +
-+MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
-+MODULE_AUTHOR("Andrzej Hajda <a.hajda@samsung.com>");
-+MODULE_DESCRIPTION("Maxim MAX77693 led flash driver");
-+MODULE_LICENSE("GPL v2");
++static const struct v4l2_pix_format sur40_video_format = {
++	.pixelformat = V4L2_PIX_FMT_GREY,
++	.width  = SENSOR_RES_X / 2,
++	.height = SENSOR_RES_Y / 2,
++	.field = V4L2_FIELD_NONE,
++	.colorspace = V4L2_COLORSPACE_SRGB,
++	.bytesperline = SENSOR_RES_X / 2,
++	.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
++};
++
+ /* USB-specific object needed to register this driver with the USB subsystem. */
+ static struct usb_driver sur40_driver = {
+ 	.name = DRIVER_SHORT,
 -- 
-1.7.9.5
+1.9.1
 
