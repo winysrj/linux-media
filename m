@@ -1,81 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33314 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752883AbbCGVmS (ORCPT
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:37017 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933918AbbCPVmc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:18 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 16/18] arm: dts: omap3: Add DT entries for OMAP 3
-Date: Sat,  7 Mar 2015 23:41:13 +0200
-Message-Id: <1425764475-27691-17-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 16 Mar 2015 17:42:32 -0400
+Received: by igcqo1 with SMTP id qo1so55762820igc.0
+        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 14:42:32 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 16 Mar 2015 14:42:32 -0700
+Message-ID: <CAA7C2qiWp=ZHNWW_6cMBh-g5kzCn6p-9J3w4x5hNbSbyTarNyw@mail.gmail.com>
+Subject: /dev/dvb not being creating when driver are loaded
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
-Especially the phy-type property is different.
+Hi. I just installed a clean Debian Testing box and am having a
+problem. When I load dvb drivers, /dev/dvb is not being created. I
+don't know if this is a dvb issue, udev, or what. I have other boxes
+also running Debian Testing, all using current packages & the same
+versions of everything as this new install, and /dev/dvb is created
+just fine when I load drivers of them. The only difference between
+those boxes and the new one that I can tell is the new one uses
+systemd while the others use sysvinit. I installed sysvinit and then
+uninstalled systemd, did an upgrade-grub, and then reboot but /dev/dvb
+still isn't being created so I don't think the problem is with
+systemd.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- arch/arm/boot/dts/omap34xx.dtsi |   15 +++++++++++++++
- arch/arm/boot/dts/omap36xx.dtsi |   15 +++++++++++++++
- 2 files changed, 30 insertions(+)
+Also, none of the working boxes have any special udev files/rules that
+I've found so it's probably safe to eliminate the need for
+specific/special udev rules as well.
 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index 3819c1e..4c034d0 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -37,6 +37,21 @@
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0xff1f>;
- 		};
-+
-+		omap3_isp: omap3_isp@480bc000 {
-+			compatible = "ti,omap3-isp";
-+			reg = <0x480bc000 0x12fc
-+			       0x480bd800 0x017c>;
-+			interrupts = <24>;
-+			iommus = <&mmu_isp>;
-+			syscon = <&omap3_scm_general 0xdc>;
-+			ti,phy-type = <0>;
-+			#clock-cells = <1>;
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+		};
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 541704a..31ac41c 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -69,6 +69,21 @@
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0xff1f>;
- 		};
-+
-+		omap3_isp: omap3_isp@480bc000 {
-+			compatible = "ti,omap3-isp";
-+			reg = <0x480bc000 0x12fc
-+			       0x480bd800 0x0600>;
-+			interrupts = <24>;
-+			iommus = <&mmu_isp>;
-+			syscon = <&omap3_scm_general 0x2f0>;
-+			ti,phy-type = <1>;
-+			#clock-cells = <1>;
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+		};
- 	};
- };
- 
--- 
-1.7.10.4
+Anyone have any clue about this?
 
+Thanks
