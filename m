@@ -1,74 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:46193 "EHLO mail.kernel.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:53950 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753672AbbC3Rlx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 13:41:53 -0400
-Date: Mon, 30 Mar 2015 19:41:23 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, pali.rohar@gmail.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 14/15] omap3isp: Add support for the Device Tree
-Message-ID: <20150330174123.GA2658@earth>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
- <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+	id S1754802AbbCPV07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 17:26:59 -0400
+Message-ID: <55074AA0.7060107@iki.fi>
+Date: Mon, 16 Mar 2015 23:26:56 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
-Content-Disposition: inline
-In-Reply-To: <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 03/10] rtl28xxu: lower the rc poll time to mitigate i2c
+ transfer errors
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-3-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-3-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+> The Astrometa device has issues with i2c transfers. Lowering the
+> poll time somehow makes these errors disappear.
+>
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
---AqsLC8rIMeq19msA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Applied!
 
-Hi,
+Antti
 
-The code crashed for me on Nokia N900. I found the following
-problem:
 
-On Thu, Mar 26, 2015 at 12:57:38AM +0200, Sakari Ailus wrote:
-> [...]
-> +static int isp_of_parse_nodes(struct device *dev,
-> +			      struct v4l2_async_notifier *notifier)
-> +{
-> +	struct device_node *node;
+> ---
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index 77dcfdf..ea75b3a 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1611,7 +1611,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+>   	rc->allowed_protos = RC_BIT_ALL;
+>   	rc->driver_type = RC_DRIVER_IR_RAW;
+>   	rc->query = rtl2832u_rc_query;
+> -	rc->interval = 400;
+> +	rc->interval = 200;
+>
+>   	return 0;
+>   }
+>
 
-struct device_node *node = NULL;
-
-to avoid feeding a random pointer into of_graph_get_next_endpoint():
-
-> [...]
-> +	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
-> +	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
-> [...]
-
--- Sebastian
-
---AqsLC8rIMeq19msA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVGYrAAAoJENju1/PIO/qaJnkP/Aqrzb4SS4iyIjg8DD8NcYp6
-kl8MbY5e9IXqMktydeIBDBijljDG+vhHrejEUQuVOI+/dTWC806Ulc9nEdv6V3nF
-M03HoDBR3J2aWx/B1mx1HGBpshiRCQA+xkZgwiayxNpp81lSu1rUkiwdqYx+yNEv
-EvbE+3oPlc+qSiGIiHQtnvqwUBQnrxnmssocZciZmGzG/jesXzzUweNPIfWt0d6e
-iUAfbA+Xjkge410HXQ84f80h6TlAkwPqAZU2UwHVoTrGdrTfUQED9/V/ubexJDU1
-woaaA0HnCla1Kg43MFDYfGXz1grnGyhOQwZ+7Uql3WeZ3JyxvnD354P17Q3md2mp
-Vk2Noo45j3n2sHS4M44sVlUYd+iWp12rZNr4wS/YakAw2kzR5g+5MupFVrDq0WbB
-6CSJaitRoCOrPxNZtQR9ReK/ZuhzHNLtk/8fHl6n1mol5SiVWHy3i3IoEg0cSB/x
-4mntK3t4FFrQ7Ncz6pB5uygK6+gDdpX/rQlMPJhshrtRX+8sEoaVzrg3JyfXyTmI
-u6rRT8/TytOZD04Z/IdmcBgNmR8euh18l21LcwK+FG58d7qzAtfWxqGQUazHHDwe
-BoQLY6GxAm0yXjSkjTwkethLsCrjsdiOw6g2GFiZHZJHjUqDxzSTZTii7Ohn9Nte
-kp5XwHWnmxQLW6pVew2e
-=PbtZ
------END PGP SIGNATURE-----
-
---AqsLC8rIMeq19msA--
+-- 
+http://palosaari.fi/
