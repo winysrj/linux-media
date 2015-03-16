@@ -1,63 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55933 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbbCPIyf (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:32770 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbbCPNoG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 04:54:35 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NLA00COHRLKSY10@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Mar 2015 08:58:32 +0000 (GMT)
-Message-id: <55069A45.2020105@samsung.com>
-Date: Mon, 16 Mar 2015 09:54:29 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: linux-media@vger.kernel.org, hdegoede@redhat.com,
-	hans.verkuil@cisco.com, b.zolnierkie@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@linux.intel.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH/RFC v4 11/11] Add a libv4l plugin for Exynos4 camera
-References: <1416586480-19982-1-git-send-email-j.anaszewski@samsung.com>
- <1416586480-19982-12-git-send-email-j.anaszewski@samsung.com>
- <5505D874.4060004@googlemail.com>
-In-reply-to: <5505D874.4060004@googlemail.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 16 Mar 2015 09:44:06 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1503151544190.13027@axis700.grange>
+References: <1426430373-3443-1-git-send-email-ykaneko0929@gmail.com>
+	<Pine.LNX.4.64.1503151544190.13027@axis700.grange>
+Date: Mon, 16 Mar 2015 22:44:04 +0900
+Message-ID: <CAH1o70L+6wG-mCMYF_aEZktkNqa_1RvQdRPSw4KQgAk4g-wR+Q@mail.gmail.com>
+Subject: Re: [PATCH/RFC] media: soc_camera: rcar_vin: Fix wait_for_completion
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/2015 08:07 PM, Gregor Jasny wrote:
-> On 21/11/14 17:14, Jacek Anaszewski wrote:
+Hi,
+
+2015-03-15 23:46 GMT+09:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi,
 >
->> diff --git a/lib/Makefile.am b/lib/Makefile.am
->> index 3a0e19c..56b3a9f 100644
->> --- a/lib/Makefile.am
->> +++ b/lib/Makefile.am
->> @@ -5,7 +5,12 @@ SUBDIRS = \
->>   	libv4l2rds \
->>   	libv4l-mplane
+> Thanks for the patch.
+>
+> On Sun, 15 Mar 2015, Yoshihiro Kaneko wrote:
+>
+>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 >>
->> +if WITH_V4LUTILS
->> +SUBDIRS += \
->> +	libv4l-exynos4-camera
->> +endif
+>> When stopping abnormally, a driver can't return from wait_for_completion.
+>> This patch resolved this problem by changing wait_for_completion_timeout
+>> from wait_for_completion.
+>>
+>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>> ---
+>>
+>> This patch is against master branch of linuxtv.org/media_tree.git.
+>>
+>>  drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++++
+>>  1 file changed, 6 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+>> index 279ab9f..ff0359b 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -135,6 +135,8 @@
+>>  #define VIN_MAX_WIDTH                2048
+>>  #define VIN_MAX_HEIGHT               2048
+>>
+>> +#define TIMEOUT_MS           100
+>> +
+>>  enum chip_id {
+>>       RCAR_GEN2,
+>>       RCAR_H1,
+>> @@ -821,6 +823,10 @@ static void rcar_vin_wait_stop_streaming(struct rcar_vin_priv *priv)
+>>                       priv->request_to_stop = true;
+>>                       spin_unlock_irq(&priv->lock);
+>>                       wait_for_completion(&priv->capture_stop);
+>> +                     if (!wait_for_completion_timeout(
+>> +                             &priv->capture_stop,
+>> +                             msecs_to_jiffies(TIMEOUT_MS)))
+>> +                             priv->state = STOPPED;
 >
-> Why do you depend on WITH_V4LUTILS for a libv4l plugin? This looks
-> wrong. WITH_V4LUTILS is intended to only switch off the utilities in
-> utils (see root Makefile.am).
+> You forgot to remove the original wait_for_completion().
 
-This is an issue to be resolved. I need to depend on WITH_V4LUTILS,
-because the plugin depends on utils' libraries (e.g. libmediactl.so and
-lib4lsubdev.so). On the other hand some utils depend on core libs.
+Oops, my bad.
 
-Temporarily the libv4-exynos4-camera plugin doesn't link against utils
-libraries but has their sources compiled-in to avoid cyclic
-dependencies. I submit this as a subject for discussion on how to adjust
-the build system to handle such a configuration.
+Thanks,
+Kaneko
 
-
--- 
-Best Regards,
-Jacek Anaszewski
+>
+> Thanks
+> Guennadi
+>
+>>                       spin_lock_irq(&priv->lock);
+>>               }
+>>       }
+>> --
+>> 1.9.1
+>>
