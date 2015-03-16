@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32720 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938AbbC3Nqm (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41788 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750914AbbCPDqv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 09:46:42 -0400
-Message-id: <551953BE.50506@samsung.com>
-Date: Mon, 30 Mar 2015 15:46:38 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"pavel@ucw.cz" <pavel@ucw.cz>,
-	"cooloney@gmail.com" <cooloney@gmail.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v3] DT: Add documentation for the mfd Maxim max77693
-References: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
- <1427709149-15014-2-git-send-email-j.anaszewski@samsung.com>
- <20150330115729.GG17971@leverpostej> <55194509.1070008@samsung.com>
- <20150330132002.GA29200@leverpostej>
-In-reply-to: <20150330132002.GA29200@leverpostej>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Sun, 15 Mar 2015 23:46:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F00B02A0083
+	for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 04:46:44 +0100 (CET)
+Date: Mon, 16 Mar 2015 04:46:44 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150316034644.F00B02A0083@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mark,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 03/30/2015 03:20 PM, Mark Rutland wrote:
-> Hi,
->
->>>> +Optional properties:
->>>> +- maxim,trigger-type : Flash trigger type.
->>>> +	Possible trigger types:
->>>> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
->>>> +			the flash,
->>>> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
->>>> +			of the flash.
->>>
->>> Surely this is required? What should be assumed if this property isn't
->>> present?
->>
->> LEDS_TRIG_TYPE_LEVEL allows for an ISP to do e.g. short flash blink
->> before the actual strobe - it is used for eliminating photographs with
->> closed eyes, or can serve for probing ambient light conditions.
->>
->> With LEDS_TRIG_TYPE_EDGE flash strobe is triggered on rising edge
->> and lasts until programmed timeout expires.
->>
->> This setting is tightly related to a camera sensor, which generates
->> the strobe signal. Effectively it depends on board configuration.
->
-> My comment wasn't to do with the semantics of eitehr option but rather
-> the optionality of the property.
->
-> Surely it's vital to know what this should be, and hence this property
-> should be required rather than optional?
->
-> If it isn't required, what would the assumed default be?
+Results of the daily build of media_tree:
 
-Default is LEDS_TRIG_TYPE_EDGE.
+date:		Mon Mar 16 04:00:26 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
--- 
-Best Regards,
-Jacek Anaszewski
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
