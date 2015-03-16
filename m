@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37164 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752599AbbCNMff (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 08:35:35 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 18BFE2A0081
-	for <linux-media@vger.kernel.org>; Sat, 14 Mar 2015 13:35:24 +0100 (CET)
-Message-ID: <55042B0B.1080201@xs4all.nl>
-Date: Sat, 14 Mar 2015 13:35:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:50032 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751345AbbCPVEI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 17:04:08 -0400
+Message-ID: <55074543.4060303@iki.fi>
+Date: Mon, 16 Mar 2015 23:04:03 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] vivid: allow s_dv_timings if it is the same as the current
-Content-Type: text/plain; charset=utf-8
+To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 04/10] rtl28xxu: swap frontend order for slave demods
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-4-git-send-email-benjamin@southpole.se> <550740A7.2080809@southpole.se>
+In-Reply-To: <550740A7.2080809@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow setting the same timings as the current timings (i.e., do nothing in that
-case). The code was actually there, but the vb2_is_busy() call was done before
-the timings check instead of afterwards.
+On 03/16/2015 10:44 PM, Benjamin Larsson wrote:
+> On 03/15/2015 11:57 PM, Benjamin Larsson wrote:
+>> Some devices have 2 demodulators, when this is the case
+>> make the slave demod be listed first. Enumerating the slave
+>> first will help legacy applications to use the hardware.
+>>
+>
+> Ignore this patch for now. Stuff gets broken if applied.
 
-Found by v4l2-compliance.
+I will not apply it even you fix it. I don't like idea adding such hack 
+to kernel in order to workaround buggy applications. There is many older 
+devices having similar situation, having 2 demods - one for DVB-T and 
+one for DVB-C. So there has been surely enough time for app developers 
+to add support for multiple frontends... laziness.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Quite same happened for DVB-T2 support. I added initially hack for 
+CXD2820R driver in order to support DVB-T2 even applications are not 
+supporting it. That was implemented using trick driver did DVB-T2 tune 
+when DVB-T tune fails. After many years I did another DVB-T2 driver 
+Si2168 and didn't add such hack anymore. And what was result; almost all 
+applications were still lacking proper DVB-T2 support, after many many 
+years...
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 1d9ea2d..c942bf7 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -1585,13 +1585,13 @@ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
- 
- 	if (!vivid_is_hdmi_cap(dev))
- 		return -ENODATA;
--	if (vb2_is_busy(&dev->vb_vid_cap_q))
--		return -EBUSY;
- 	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
- 				0, NULL, NULL))
- 		return -EINVAL;
- 	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0))
- 		return 0;
-+	if (vb2_is_busy(&dev->vb_vid_cap_q))
-+		return -EBUSY;
- 	dev->dv_timings_cap = *timings;
- 	vivid_update_format_cap(dev, false);
- 	return 0;
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 917cc69..5782b7d 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -1125,13 +1125,13 @@ int vivid_vid_out_s_dv_timings(struct file *file, void *_fh,
- 
- 	if (!vivid_is_hdmi_out(dev))
- 		return -ENODATA;
--	if (vb2_is_busy(&dev->vb_vid_out_q))
--		return -EBUSY;
- 	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
- 				0, NULL, NULL))
- 		return -EINVAL;
- 	if (v4l2_match_dv_timings(timings, &dev->dv_timings_out, 0))
- 		return 0;
-+	if (vb2_is_busy(&dev->vb_vid_out_q))
-+		return -EBUSY;
- 	dev->dv_timings_out = *timings;
- 	vivid_update_format_out(dev);
- 	return 0;
+So I will never ever add any hacks to driver to workaround application 
+support as application developers are so lazy to add support or new 
+things if there is some workaround available.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
