@@ -1,134 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43179 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068AbbCMLRs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:17:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 38/39] vivid: turn this into a platform_device
-Date: Fri, 13 Mar 2015 12:16:16 +0100
-Message-Id: <1426245377-17704-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:42287 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932525AbbCPVPB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 17:15:01 -0400
+Message-ID: <550747D1.6080006@iki.fi>
+Date: Mon, 16 Mar 2015 23:14:57 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 01/10] r820t: add DVBC profile in sysfreq_sel
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+> This will make the Astrometa DVB-T/T2/C usb stick be able to pick up
+> muxes around 290-314 MHz.
+>
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
-This turns this driver into a platform device. This ensures that it
-appears in /sys/bus/platform_device since it now has a proper parent
-device.
+Looks correct. I added initially DVB-C support for that driver, but I 
+forget to add this. After looking the driver I realized there was 2 
+places to add standard specific configurations - and I added only one place.
+I will apply that to my tree.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c | 50 +++++++++++++++++++++++++++----
- 1 file changed, 45 insertions(+), 5 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index a7e033a..d2558db 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -26,6 +26,7 @@
- #include <linux/vmalloc.h>
- #include <linux/font.h>
- #include <linux/mutex.h>
-+#include <linux/platform_device.h>
- #include <linux/videodev2.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/videobuf2-vmalloc.h>
-@@ -618,7 +619,7 @@ static const struct v4l2_ioctl_ops vivid_ioctl_ops = {
- 	Initialization and module stuff
-    ------------------------------------------------------------------*/
- 
--static int __init vivid_create_instance(int inst)
-+static int vivid_create_instance(struct platform_device *pdev, int inst)
- {
- 	static const struct v4l2_dv_timings def_dv_timings =
- 					V4L2_DV_BT_CEA_1280X720P60;
-@@ -646,7 +647,7 @@ static int __init vivid_create_instance(int inst)
- 	/* register v4l2_device */
- 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
- 			"%s-%03d", VIVID_MODULE_NAME, inst);
--	ret = v4l2_device_register(NULL, &dev->v4l2_dev);
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
- 	if (ret)
- 		goto free_dev;
- 
-@@ -1274,7 +1275,7 @@ free_dev:
-    will succeed. This is limited to the maximum number of devices that
-    videodev supports, which is equal to VIDEO_NUM_DEVICES.
-  */
--static int __init vivid_init(void)
-+static int vivid_probe(struct platform_device *pdev)
- {
- 	const struct font_desc *font = find_font("VGA8x16");
- 	int ret = 0, i;
-@@ -1289,7 +1290,7 @@ static int __init vivid_init(void)
- 	n_devs = clamp_t(unsigned, n_devs, 1, VIVID_MAX_DEVS);
- 
- 	for (i = 0; i < n_devs; i++) {
--		ret = vivid_create_instance(i);
-+		ret = vivid_create_instance(pdev, i);
- 		if (ret) {
- 			/* If some instantiations succeeded, keep driver */
- 			if (i)
-@@ -1309,7 +1310,7 @@ static int __init vivid_init(void)
- 	return ret;
- }
- 
--static void __exit vivid_exit(void)
-+static int vivid_remove(struct platform_device *pdev)
- {
- 	struct vivid_dev *dev;
- 	unsigned i;
-@@ -1370,6 +1371,45 @@ static void __exit vivid_exit(void)
- 		kfree(dev);
- 		vivid_devs[i] = NULL;
- 	}
-+	return 0;
-+}
-+
-+static void vivid_pdev_release(struct device *dev)
-+{
-+}
-+
-+static struct platform_device vivid_pdev = {
-+	.name		= "vivid",
-+	.dev.release	= vivid_pdev_release,
-+};
-+
-+static struct platform_driver vivid_pdrv = {
-+	.probe		= vivid_probe,
-+	.remove		= vivid_remove,
-+	.driver		= {
-+		.name	= "vivid",
-+	},
-+};
-+
-+static int __init vivid_init(void)
-+{
-+	int ret;
-+
-+	ret = platform_device_register(&vivid_pdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = platform_driver_register(&vivid_pdrv);
-+	if (ret)
-+		platform_device_unregister(&vivid_pdev);
-+
-+	return ret;
-+}
-+
-+static void __exit vivid_exit(void)
-+{
-+	platform_driver_unregister(&vivid_pdrv);
-+	platform_device_unregister(&vivid_pdev);
- }
- 
- module_init(vivid_init);
+
+> ---
+>   drivers/media/tuners/r820t.c | 13 +++++++++++++
+>   1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+> index 8e040cf..639c220 100644
+> --- a/drivers/media/tuners/r820t.c
+> +++ b/drivers/media/tuners/r820t.c
+> @@ -775,6 +775,19 @@ static int r820t_sysfreq_sel(struct r820t_priv *priv, u32 freq,
+>   		div_buf_cur = 0x30;	/* 11, 150u */
+>   		filter_cur = 0x40;	/* 10, low */
+>   		break;
+> +	case SYS_DVBC_ANNEX_A:
+> +		mixer_top = 0x24;       /* mixer top:13 , top-1, low-discharge */
+> +		lna_top = 0xe5;
+> +		lna_vth_l = 0x62;
+> +		mixer_vth_l = 0x75;
+> +		air_cable1_in = 0x60;
+> +		cable2_in = 0x00;
+> +		pre_dect = 0x40;
+> +		lna_discharge = 14;
+> +		cp_cur = 0x38;          /* 111, auto */
+> +		div_buf_cur = 0x30;     /* 11, 150u */
+> +		filter_cur = 0x40;      /* 10, low */
+> +		break;
+>   	default: /* DVB-T 8M */
+>   		mixer_top = 0x24;	/* mixer top:13 , top-1, low-discharge */
+>   		lna_top = 0xe5;		/* detect bw 3, lna top:4, predet top:2 */
+>
+
 -- 
-2.1.4
-
+http://palosaari.fi/
