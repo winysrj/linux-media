@@ -1,73 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:28339
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752826AbbCKREg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 13:04:36 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, daniel@iogearbox.net
-Subject: [PATCH 7/15] media: pci: cx23885: don't export static symbol
-Date: Wed, 11 Mar 2015 17:56:29 +0100
-Message-Id: <1426092997-30605-8-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1426092997-30605-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail.kapsi.fi ([217.30.184.167]:42974 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757101AbbCPRqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 13:46:14 -0400
+Message-ID: <550716E3.6020007@iki.fi>
+Date: Mon, 16 Mar 2015 19:46:11 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] dw2102: store i2c client for tuner into dw2102_state
+References: <1426526046-2063-1-git-send-email-olli.salonen@iki.fi> <1426526046-2063-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1426526046-2063-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+On 03/16/2015 07:14 PM, Olli Salonen wrote:
+> Prepare the dw2102 driver for tuner drivers that are implemented as I2C drivers (such as
+> m88ts2022). The I2C client is stored in to the state and released at disconnect.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 
-The semantic patch that fixes this problem is as follows:
-(http://coccinelle.lip6.fr/)
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-// <smpl>
-@r@
-type T;
-identifier f;
-@@
-
-static T f (...) { ... }
-
-@@
-identifier r.f;
-declarer name EXPORT_SYMBOL;
-@@
-
--EXPORT_SYMBOL(f);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/media/pci/cx23885/altera-ci.c |    3 ---
- 1 file changed, 3 deletions(-)
-
-diff -u -p a/drivers/media/pci/cx23885/altera-ci.c b/drivers/media/pci/cx23885/altera-ci.c
---- a/drivers/media/pci/cx23885/altera-ci.c
-+++ b/drivers/media/pci/cx23885/altera-ci.c
-@@ -483,7 +483,6 @@ static void altera_hw_filt_release(void
- 	}
- 
- }
--EXPORT_SYMBOL(altera_hw_filt_release);
- 
- void altera_ci_release(void *dev, int ci_nr)
- {
-@@ -598,7 +597,6 @@ static int altera_pid_feed_control(void
- 
- 	return 0;
- }
--EXPORT_SYMBOL(altera_pid_feed_control);
- 
- static int altera_ci_start_feed(struct dvb_demux_feed *feed, int num)
- {
-@@ -699,7 +697,6 @@ err:
- 
- 	return ret;
- }
--EXPORT_SYMBOL(altera_hw_filt_init);
- 
- int altera_ci_init(struct altera_ci_config *config, int ci_nr)
- {
-
+Antti
+-- 
+http://palosaari.fi/
