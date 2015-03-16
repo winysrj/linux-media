@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51044 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45047 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751395AbbCJBSr (ORCPT
+	by vger.kernel.org with ESMTP id S1751026AbbCPA05 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 21:18:47 -0400
+	Sun, 15 Mar 2015 20:26:57 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 0/3] Add link-frequencies to struct v4l2_of_endpoint
-Date: Tue, 10 Mar 2015 03:17:59 +0200
-Message-Id: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 01/15] omap3isp: Fix error handling in probe
+Date: Mon, 16 Mar 2015 02:25:56 +0200
+Message-Id: <1426465570-30295-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The mutex was not destroyed correctly if dma_coerce_mask_and_coherent()
+failed for some reason.
 
-While I was adding a link_frequencies array field to struct
-v4l2_of_endpoint, I also realised that the smiapp driver was not reading the
-link-frequencies property from the endpoint, but the i2c device node
-instead. This is what the second patch addresses.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The third patch does add support for reading the link-frequencies property
-to struct v4l2_of_endpoint. There were a few options to consider. I'm not
-entirely happy with the solution, but it still appears the best option to
-me, all being:
-
-1. Let drivers parse the link-frequencies property. There are three samples
-from three different developers (myself, Laurent and Prabhakar) and two of
-them seemed to have issues.
-
-2. Reading the contents of the link-frequencies property in
-v4l2_of_parse_endpoint() addresses the above issue. It currently has no
-cleanup function to release memory reserved for the variable-size
-link_frequencies array.
-
-2a. Use a constant size array for link-frequencies. This limits the number
-of link-frequencies and wastes memory elsewhere.
-
-2b. Use devm_*() functions to allocate the memory. v4l2_of_parse_endpoint()
-would require a device pointer argument in order to read variable size
-content from the endpoint. One major issue in this approach is that the
-configuration struct is typically short-lived as drivers allocate it in
-stack in their DT node parsing function.
-
-2c. Add a function to release resources reserved by
-v4l2_of_parse_endpoint(). This is what the third patch does.
-
-Comments are welcome.
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index deca809..fb193b6 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2252,7 +2252,7 @@ static int isp_probe(struct platform_device *pdev)
+ 
+ 	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
+ 	if (ret)
+-		return ret;
++		goto error;
+ 
+ 	platform_set_drvdata(pdev, isp);
+ 
 -- 
-Kind regards,
-Sakari
+1.7.10.4
 
