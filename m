@@ -1,69 +1,60 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <simon@koala.ie>) id 1YOrbj-0004Lr-AV
-	for linux-dvb@linuxtv.org; Fri, 20 Feb 2015 18:43:19 +0100
-Received: from killala.koala.ie ([195.7.61.8])
-	by mail.tu-berlin.de (exim-4.72/mailfrontend-6) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1YOrbh-0005FD-6I; Fri, 20 Feb 2015 18:43:19 +0100
-Received: from [195.7.61.52] (houston.koala.ie [195.7.61.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by killala.koala.ie (Postfix) with ESMTPSA id AF952924127
-	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2015 17:43:15 +0000 (GMT)
-Message-ID: <54E77233.1090202@koala.ie>
-Date: Fri, 20 Feb 2015 17:43:15 +0000
-From: Simon Kenyon <simon@koala.ie>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:44326 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932607AbbCPVlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 17:41:55 -0400
+Message-ID: <55074E21.2040909@iki.fi>
+Date: Mon, 16 Mar 2015 23:41:53 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DVB-S2 scanning
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 08/10] mn88473: check if firmware is already running before
+ loading it
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-8-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426460275-3766-8-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-what is the recommended way to scan?
+On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 
-scan/dvbscan/scan-s2/w_scan/dvbv5-scan
+Applied!
 
-i am more than a little confused.
+Antti
 
-this whole area seems to be abandonware.
-
-i can scan with pretty much any of these and get DVB-S signals
-but what should i use to get DVB-S2
-
-tuner is a Tevii S660
-it will receive DVB-S2 as i can use Kaffeine to scan
-
-i also want to scan a KA sat
-but i'll leave that for another day
+> ---
+>   drivers/staging/media/mn88473/mn88473.c | 13 ++++++++++++-
+>   1 file changed, 12 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+> index 607ce4d..a23e59e 100644
+> --- a/drivers/staging/media/mn88473/mn88473.c
+> +++ b/drivers/staging/media/mn88473/mn88473.c
+> @@ -196,8 +196,19 @@ static int mn88473_init(struct dvb_frontend *fe)
+>
+>   	dev_dbg(&client->dev, "\n");
+>
+> -	if (dev->warm)
+> +	/* set cold state by default */
+> +	dev->warm = false;
+> +
+> +	/* check if firmware is already running */
+> +	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (!(tmp & 0x1)) {
+> +		dev_info(&client->dev, "firmware already running\n");
+> +		dev->warm = true;
+>   		return 0;
+> +	}
+>
+>   	/* request the firmware, this will block and timeout */
+>   	ret = request_firmware(&fw, fw_file, &client->dev);
+>
 
 -- 
-simon
-
-Simon Kenyon
-Managing Director. The Koala Computer Company Limited
-e: simon@koala.ie
-m: +353 86 240 0005
-l: http://ie.linkedin.com/pub/simon-kenyon/0/6b2/744/
-s: simonckenyon
-t: @simonckenyon
-g: google.com/+SimonKenyon
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+http://palosaari.fi/
