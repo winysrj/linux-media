@@ -1,281 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44514 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754578AbbCIQgD (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43625 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450AbbCPAOB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:36:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 12/19] em28xx: embed video_device
-Date: Mon,  9 Mar 2015 17:34:06 +0100
-Message-Id: <1425918853-12371-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 15 Mar 2015 20:14:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/4] dt: bindings: Add bindings for omap3isp
+Date: Mon, 16 Mar 2015 02:14:07 +0200
+Message-ID: <3350721.RUNgWzh7DN@avalon>
+In-Reply-To: <1426464080-29119-3-git-send-email-sakari.ailus@iki.fi>
+References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi> <1426464080-29119-3-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 119 ++++++++++++++------------------
- drivers/media/usb/em28xx/em28xx.h       |   6 +-
- 2 files changed, 54 insertions(+), 71 deletions(-)
+On Monday 16 March 2015 02:01:18 Sakari Ailus wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  .../devicetree/bindings/media/ti,omap3isp.txt      |   71 +++++++++++++++++
+>  MAINTAINERS                                        |    1 +
+>  include/dt-bindings/media/omap3-isp.h              |   22 ++++++
+>  3 files changed, 94 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti,omap3isp.txt
+>  create mode 100644 include/dt-bindings/media/omap3-isp.h
+> 
+> diff --git a/Documentation/devicetree/bindings/media/ti,omap3isp.txt
+> b/Documentation/devicetree/bindings/media/ti,omap3isp.txt new file mode
+> 100644
+> index 0000000..547b493
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti,omap3isp.txt
+> @@ -0,0 +1,71 @@
+> +OMAP 3 ISP Device Tree bindings
+> +===============================
+> +
+> +The DT definitions can be found in include/dt-bindings/media/omap3-isp.h.
+> +
+> +Required properties
+> +===================
+> +
+> +compatible	: must contain "ti,omap3-isp"
+> +
+> +reg		: the two registers sets (physical address and length) for the
+> +		  ISP. The first set contains the core ISP registers up to
+> +		  the end of the SBL block. The second set contains the
+> +		  CSI PHYs and receivers registers.
+> +interrupts	: the ISP interrupt specifier
+> +iommus		: phandle and IOMMU specifier for the IOMMU that serves the ISP
+> +syscon		: the phandle and register offset to the Complex I/O or CSI-PHY
+> +		  register
+> +ti,phy-type	: 0 -- OMAP3ISP_PHY_TYPE_COMPLEX_IO (e.g. 3430)
+> +		  1 -- OMAP3ISP_PHY_TYPE_CSIPHY (e.g. 3630)
+> +#clock-cells	: Must be 1 --- the ISP provides two external clocks,
+> +		  cam_xclka and cam_xclkb, at indices 0 and 1,
+> +		  respectively. Please find more information on common
+> +		  clock bindings in ../clock/clock-bindings.txt.
+> +
+> +Port nodes (optional)
+> +---------------------
+> +
+> +More documentation on these bindings is available in
+> +video-interfaces.txt in the same directory.
+> +
+> +reg		: The interface:
+> +		  0 - parallel (CCDC)
+> +		  1 - CSIPHY1 -- CSI2C / CCP2B on 3630;
+> +		      CSI1 -- CSIb on 3430
+> +		  2 - CSIPHY2 -- CSI2A / CCP2B on 3630;
+> +		      CSI2 -- CSIa on 3430
+> +
+> +Optional properties
+> +===================
+> +
+> +vdd-csiphy1-supply : voltage supply of the CSI-2 PHY 1
+> +vdd-csiphy2-supply : voltage supply of the CSI-2 PHY 2
+> +
+> +Endpoint nodes
+> +--------------
+> +
+> +lane-polarity	: lane polarity (required on CSI-2)
+> +		  0 -- not inverted; 1 -- inverted
+> +data-lanes	: an array of data lanes from 1 to 3. The length can
+> +		  be either 1 or 2. (required on CSI-2)
+> +clock-lanes	: the clock lane (from 1 to 3). (required on CSI-2)
+> +
+> +
+> +Example
+> +=======
+> +
+> +		isp@480bc000 {
+> +			compatible = "ti,omap3-isp";
+> +			reg = <0x480bc000 0x12fc
+> +			       0x480bd800 0x0600>;
+> +			interrupts = <24>;
+> +			iommus = <&mmu_isp>;
+> +			syscon = <&omap3_scm_general 0x2f0>;
+> +			ti,phy-type = <1>;
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 9ecf656..14eba9c 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1472,7 +1472,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 	    (EM28XX_VMUX_CABLE == INPUT(n)->type))
- 		i->type = V4L2_INPUT_TYPE_TUNER;
- 
--	i->std = dev->v4l2->vdev->tvnorms;
-+	i->std = dev->v4l2->vdev.tvnorms;
- 	/* webcams do not have the STD API */
- 	if (dev->board.is_webcam)
- 		i->capabilities = 0;
-@@ -1730,9 +1730,9 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
- 		V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
--	if (v4l2->vbi_dev)
-+	if (video_is_registered(&v4l2->vbi_dev))
- 		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
--	if (v4l2->radio_dev)
-+	if (video_is_registered(&v4l2->radio_dev))
- 		cap->capabilities |= V4L2_CAP_RADIO;
- 	return 0;
- }
-@@ -1966,20 +1966,20 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 
- 	em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 
--	if (v4l2->radio_dev) {
-+	if (video_is_registered(&v4l2->radio_dev)) {
- 		em28xx_info("V4L2 device %s deregistered\n",
--			    video_device_node_name(v4l2->radio_dev));
--		video_unregister_device(v4l2->radio_dev);
-+			    video_device_node_name(&v4l2->radio_dev));
-+		video_unregister_device(&v4l2->radio_dev);
- 	}
--	if (v4l2->vbi_dev) {
-+	if (video_is_registered(&v4l2->vbi_dev)) {
- 		em28xx_info("V4L2 device %s deregistered\n",
--			    video_device_node_name(v4l2->vbi_dev));
--		video_unregister_device(v4l2->vbi_dev);
-+			    video_device_node_name(&v4l2->vbi_dev));
-+		video_unregister_device(&v4l2->vbi_dev);
- 	}
--	if (v4l2->vdev) {
-+	if (video_is_registered(&v4l2->vdev)) {
- 		em28xx_info("V4L2 device %s deregistered\n",
--			    video_device_node_name(v4l2->vdev));
--		video_unregister_device(v4l2->vdev);
-+			    video_device_node_name(&v4l2->vdev));
-+		video_unregister_device(&v4l2->vdev);
- 	}
- 
- 	v4l2_ctrl_handler_free(&v4l2->ctrl_handler);
-@@ -2127,7 +2127,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- static const struct video_device em28xx_video_template = {
- 	.fops		= &em28xx_v4l_fops,
- 	.ioctl_ops	= &video_ioctl_ops,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.tvnorms	= V4L2_STD_ALL,
- };
- 
-@@ -2156,7 +2156,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- static struct video_device em28xx_radio_template = {
- 	.fops		= &radio_fops,
- 	.ioctl_ops	= &radio_ioctl_ops,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- };
- 
- /* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
-@@ -2179,17 +2179,11 @@ static unsigned short msp3400_addrs[] = {
- 
- /******************************** usb interface ******************************/
- 
--static struct video_device
--*em28xx_vdev_init(struct em28xx *dev,
--		  const struct video_device *template,
--		  const char *type_name)
-+static void em28xx_vdev_init(struct em28xx *dev,
-+			     struct video_device *vfd,
-+			     const struct video_device *template,
-+			     const char *type_name)
- {
--	struct video_device *vfd;
--
--	vfd = video_device_alloc();
--	if (NULL == vfd)
--		return NULL;
--
- 	*vfd		= *template;
- 	vfd->v4l2_dev	= &dev->v4l2->v4l2_dev;
- 	vfd->lock	= &dev->lock;
-@@ -2200,7 +2194,6 @@ static struct video_device
- 		 dev->name, type_name);
- 
- 	video_set_drvdata(vfd, dev);
--	return vfd;
- }
- 
- static void em28xx_tuner_setup(struct em28xx *dev, unsigned short tuner_addr)
-@@ -2491,38 +2484,33 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 		goto unregister_dev;
- 
- 	/* allocate and fill video video_device struct */
--	v4l2->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
--	if (!v4l2->vdev) {
--		em28xx_errdev("cannot allocate video_device.\n");
--		ret = -ENODEV;
--		goto unregister_dev;
--	}
-+	em28xx_vdev_init(dev, &v4l2->vdev, &em28xx_video_template, "video");
- 	mutex_init(&v4l2->vb_queue_lock);
- 	mutex_init(&v4l2->vb_vbi_queue_lock);
--	v4l2->vdev->queue = &v4l2->vb_vidq;
--	v4l2->vdev->queue->lock = &v4l2->vb_queue_lock;
-+	v4l2->vdev.queue = &v4l2->vb_vidq;
-+	v4l2->vdev.queue->lock = &v4l2->vb_queue_lock;
- 
- 	/* disable inapplicable ioctls */
- 	if (dev->board.is_webcam) {
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_QUERYSTD);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_STD);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_STD);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_QUERYSTD);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_STD);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_STD);
- 	} else {
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_PARM);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_PARM);
- 	}
- 	if (dev->tuner_type == TUNER_ABSENT) {
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_TUNER);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_TUNER);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_FREQUENCY);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_FREQUENCY);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_TUNER);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_TUNER);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_FREQUENCY);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_FREQUENCY);
- 	}
- 	if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_G_AUDIO);
--		v4l2_disable_ioctl(v4l2->vdev, VIDIOC_S_AUDIO);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_G_AUDIO);
-+		v4l2_disable_ioctl(&v4l2->vdev, VIDIOC_S_AUDIO);
- 	}
- 
- 	/* register v4l2 video video_device */
--	ret = video_register_device(v4l2->vdev, VFL_TYPE_GRABBER,
-+	ret = video_register_device(&v4l2->vdev, VFL_TYPE_GRABBER,
- 				    video_nr[dev->devno]);
- 	if (ret) {
- 		em28xx_errdev("unable to register video device (error=%i).\n",
-@@ -2532,27 +2520,27 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 
- 	/* Allocate and fill vbi video_device struct */
- 	if (em28xx_vbi_supported(dev) == 1) {
--		v4l2->vbi_dev = em28xx_vdev_init(dev, &em28xx_video_template,
--						"vbi");
-+		em28xx_vdev_init(dev, &v4l2->vbi_dev, &em28xx_video_template,
-+				"vbi");
- 
--		v4l2->vbi_dev->queue = &v4l2->vb_vbiq;
--		v4l2->vbi_dev->queue->lock = &v4l2->vb_vbi_queue_lock;
-+		v4l2->vbi_dev.queue = &v4l2->vb_vbiq;
-+		v4l2->vbi_dev.queue->lock = &v4l2->vb_vbi_queue_lock;
- 
- 		/* disable inapplicable ioctls */
--		v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_PARM);
-+		v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_PARM);
- 		if (dev->tuner_type == TUNER_ABSENT) {
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_TUNER);
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_TUNER);
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_FREQUENCY);
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_FREQUENCY);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_TUNER);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_TUNER);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_FREQUENCY);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_FREQUENCY);
- 		}
- 		if (dev->int_audio_type == EM28XX_INT_AUDIO_NONE) {
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_G_AUDIO);
--			v4l2_disable_ioctl(v4l2->vbi_dev, VIDIOC_S_AUDIO);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_G_AUDIO);
-+			v4l2_disable_ioctl(&v4l2->vbi_dev, VIDIOC_S_AUDIO);
- 		}
- 
- 		/* register v4l2 vbi video_device */
--		ret = video_register_device(v4l2->vbi_dev, VFL_TYPE_VBI,
-+		ret = video_register_device(&v4l2->vbi_dev, VFL_TYPE_VBI,
- 					    vbi_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("unable to register vbi device\n");
-@@ -2561,29 +2549,24 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	}
- 
- 	if (em28xx_boards[dev->model].radio.type == EM28XX_RADIO) {
--		v4l2->radio_dev = em28xx_vdev_init(dev, &em28xx_radio_template,
--						   "radio");
--		if (!v4l2->radio_dev) {
--			em28xx_errdev("cannot allocate video_device.\n");
--			ret = -ENODEV;
--			goto unregister_dev;
--		}
--		ret = video_register_device(v4l2->radio_dev, VFL_TYPE_RADIO,
-+		em28xx_vdev_init(dev, &v4l2->radio_dev, &em28xx_radio_template,
-+				   "radio");
-+		ret = video_register_device(&v4l2->radio_dev, VFL_TYPE_RADIO,
- 					    radio_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("can't register radio device\n");
- 			goto unregister_dev;
- 		}
- 		em28xx_info("Registered radio device as %s\n",
--			    video_device_node_name(v4l2->radio_dev));
-+			    video_device_node_name(&v4l2->radio_dev));
- 	}
- 
- 	em28xx_info("V4L2 video device registered as %s\n",
--		    video_device_node_name(v4l2->vdev));
-+		    video_device_node_name(&v4l2->vdev));
- 
--	if (v4l2->vbi_dev)
-+	if (video_is_registered(&v4l2->vbi_dev))
- 		em28xx_info("V4L2 VBI device registered as %s\n",
--			    video_device_node_name(v4l2->vbi_dev));
-+			    video_device_node_name(&v4l2->vbi_dev));
- 
- 	/* Save some power by putting tuner to sleep */
- 	v4l2_device_call_all(&v4l2->v4l2_dev, 0, core, s_power, 0);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 637c959..e6559c6 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -513,9 +513,9 @@ struct em28xx_v4l2 {
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_clk *clk;
- 
--	struct video_device *vdev;
--	struct video_device *vbi_dev;
--	struct video_device *radio_dev;
-+	struct video_device vdev;
-+	struct video_device vbi_dev;
-+	struct video_device radio_dev;
- 
- 	/* Videobuf2 */
- 	struct vb2_queue vb_vidq;
+I would use OMAP3ISP_PHY_TYPE_CSIPHY instead of 1 here. Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +			#clock-cells = <1>;
+> +			ports {
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
+> +			};
+> +		};
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index af8df65..a102624 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -6949,6 +6949,7 @@ OMAP IMAGING SUBSYSTEM (OMAP3 ISP and OMAP4 ISS)
+>  M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>  L:	linux-media@vger.kernel.org
+>  S:	Maintained
+> +F:	Documentation/devicetree/bindings/media/ti,omap3isp.txt
+>  F:	drivers/media/platform/omap3isp/
+>  F:	drivers/staging/media/omap4iss/
+> 
+> diff --git a/include/dt-bindings/media/omap3-isp.h
+> b/include/dt-bindings/media/omap3-isp.h new file mode 100644
+> index 0000000..b18c60e
+> --- /dev/null
+> +++ b/include/dt-bindings/media/omap3-isp.h
+> @@ -0,0 +1,22 @@
+> +/*
+> + * include/dt-bindings/media/omap3-isp.h
+> + *
+> + * Copyright (C) 2015 Sakari Ailus
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#ifndef __DT_BINDINGS_OMAP3_ISP_H__
+> +#define __DT_BINDINGS_OMAP3_ISP_H__
+> +
+> +#define OMAP3ISP_PHY_TYPE_COMPLEX_IO	0
+> +#define OMAP3ISP_PHY_TYPE_CSIPHY	1
+> +
+> +#endif /* __DT_BINDINGS_OMAP3_ISP_H__ */
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
