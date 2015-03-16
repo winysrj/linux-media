@@ -1,89 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:44947 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758465AbbCDPEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 10:04:04 -0500
-Message-ID: <54F71ED3.2050503@cisco.com>
-Date: Wed, 04 Mar 2015 16:03:47 +0100
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:35321 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753118AbbCPTy2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 15:54:28 -0400
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 1/8] v4l2-subdev: replace v4l2_subdev_fh by v4l2_subdev_pad_config
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl> <1425462481-8200-2-git-send-email-hverkuil@xs4all.nl> <1585455.TczyOEbrob@avalon>
-In-Reply-To: <1585455.TczyOEbrob@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5506A13F.9060608@xs4all.nl>
+References: <1426415656-20775-1-git-send-email-prabhakar.csengg@gmail.com> <5506A13F.9060608@xs4all.nl>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Mon, 16 Mar 2015 19:53:56 +0000
+Message-ID: <CA+V-a8upDbCMtNxgNKa8hg=GyUT8bjJEzgC9xFu02ScXMF7ZJg@mail.gmail.com>
+Subject: Re: [PATCH v6] media: i2c: add support for omnivision's ov2659 sensor
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-On 03/04/15 16:02, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 04 March 2015 10:47:54 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks for the review.
+
+On Mon, Mar 16, 2015 at 9:24 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> On 03/15/2015 11:34 AM, Lad Prabhakar wrote:
+>> From: Benoit Parrot <bparrot@ti.com>
 >>
->> If a subdevice pad op is called from a bridge driver, then there is
->> no v4l2_subdev_fh struct that can be passed to the subdevice. This
->> made it hard to use such subdevs from a bridge driver.
+>> this patch adds support for omnivision's ov2659
+>> sensor, the driver supports following features:
+>> 1: Asynchronous probing
+>> 2: DT support
+>> 3: Media controller support
 >>
->> This patch replaces the v4l2_subdev_fh pointer by a v4l2_subdev_pad_config
->> pointer in the pad ops. This allows bridge drivers to use the various
->> try_ pad ops by creating a v4l2_subdev_pad_config struct and passing it
->> along to the pad op.
->>
->> The v4l2_subdev_get_try_* macros had to be changed because of this, so
->> I also took the opportunity to use the full name of the
->> v4l2_subdev_get_try_* functions in the __V4L2_SUBDEV_MK_GET_TRY macro
->> arguments: if you now do 'git grep v4l2_subdev_get_try_format' you will
->> actually find the header where it is defined.
->>
->> One remark regarding the drivers/staging/media/davinci_vpfe patches: the
->> *_init_formats() functions assumed that fh could be NULL. However, that's
->> not true for this driver, it's always set. This is almost certainly a copy
->> and paste from the omap3isp driver. I've updated the code to reflect the
->> fact that fh is never NULL.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> [snip]
-> 
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 5beeb87..0c43546 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -482,6 +482,18 @@ struct v4l2_subdev_ir_ops {
->>  				struct v4l2_subdev_ir_parameters *params);
->>  };
+>> ---
+>>  Changes for v6:
+>>  a: fixed V4L2_CID_PIXEL_RATE control to use link_frequency
+>>     instead of xvclk_frequency.
+>>  b: Included Ack from Sakari
 >>
->> +/*
->> + * Used for storing subdev pad information. This structure only needs
->> + * to be passed to the pad op if the 'which' field of the main argument
->> + * is set to V4L2_SUBDEV_FORMAT_TRY. For V4L2_SUBDEV_FORMAT_ACTIVE just
->> + * pass NULL.
-> 
-> Nitpicking, I would say "For V4L2_SUBDEV_FORMAT_ACTIVE is it safe to pass 
-> NULL.", otherwise it could be understood that callers have to pass NULL for 
-> ACTIVE.
-
-True. I'll fix that.
-
-	Hans
-
-> 
->> + */
->> +struct v4l2_subdev_pad_config {
->> +	struct v4l2_mbus_framefmt try_fmt;
->> +	struct v4l2_rect try_crop;
->> +	struct v4l2_rect try_compose;
+>>  v5: https://patchwork.kernel.org/patch/6000161/
+>>  v4: https://patchwork.kernel.org/patch/5961661/
+>>  v3: https://patchwork.kernel.org/patch/5959401/
+>>  v2: https://patchwork.kernel.org/patch/5859801/
+>>  v1: https://patchwork.linuxtv.org/patch/27919/
+>>
+>>  .../devicetree/bindings/media/i2c/ov2659.txt       |   38 +
+>>  MAINTAINERS                                        |   10 +
+>>  drivers/media/i2c/Kconfig                          |   11 +
+>>  drivers/media/i2c/Makefile                         |    1 +
+>>  drivers/media/i2c/ov2659.c                         | 1510 ++++++++++++++++++++
+>>  include/media/ov2659.h                             |   33 +
+>>  6 files changed, 1603 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+>>  create mode 100644 drivers/media/i2c/ov2659.c
+>>  create mode 100644 include/media/ov2659.h
+>>
+>> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+>> new file mode 100644
+>> index 0000000..3ae6629
+>> --- /dev/null
+>> +++ b/drivers/media/i2c/ov2659.c
+>
+> <snip>
+>
+>> +static const struct ov2659_pixfmt ov2659_formats[] = {
+>> +     {
+>> +             .code = MEDIA_BUS_FMT_YUYV8_2X8,
+>> +             .colorspace = V4L2_COLORSPACE_JPEG,
+>> +             .format_ctrl_regs = ov2659_format_yuyv,
+>> +     },
+>> +     {
+>> +             .code = MEDIA_BUS_FMT_UYVY8_2X8,
+>> +             .colorspace = V4L2_COLORSPACE_JPEG,
+>> +             .format_ctrl_regs = ov2659_format_uyvy,
+>> +     },
+>> +     {
+>> +             .code = MEDIA_BUS_FMT_RGB565_2X8_BE,
+>> +             .colorspace = V4L2_COLORSPACE_JPEG,
+>> +             .format_ctrl_regs = ov2659_format_rgb565,
+>> +     },
+>> +     {
+>> +             .code = MEDIA_BUS_FMT_SBGGR8_1X8,
+>> +             .colorspace = V4L2_COLORSPACE_SMPTE170M,
+>> +             .format_ctrl_regs = ov2659_format_bggr,
+>> +     },
 >> +};
-> 
+>
+> The colorspaces defined here make no sense. Sensors should give you
+> V4L2_COLORSPACE_SRGB. Certainly not COLORSPACE_JPEG (unless they encode
+> to a JPEG for you) and SMPTE170M (SDTV) is unlikely as well, unless the
+> documentation explicitly states that it uses that colorspace.
+>
+> Unfortunately, the product brief of this sensor does not mention the
+> colorimetry information at all, nor does it give any information about
+> the transfer function (aka gamma) used by the sensor. Since this sensor
+> is advertised as an HDTV sensor I would guess the colorspace should either
+> be SRGB or REC709, depending on the transfer function used.
+>
+Yes it needs to be V4L2_COLORSPACE_SRGB, Ill respin fixing this.
+
+Cheers,
+--Prabhakar Lad
+
+> I see a lot of sensor drivers that wrongly use the JPEG colorspace. I'm planning
+> to fix them, since that is really wrong.
+>
+> Regards,
+>
+>         Hans
