@@ -1,505 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45238 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760870AbbCDJtC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45077 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752190AbbCPA07 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:49:02 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 15 Mar 2015 20:26:59 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCHv2 5/8] v4l2-subdev: add support for the new enum_frame_size 'which' field.
-Date: Wed,  4 Mar 2015 10:47:58 +0100
-Message-Id: <1425462481-8200-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 05/15] omap3isp: Platform data could be NULL
+Date: Mon, 16 Mar 2015 02:26:00 +0200
+Message-Id: <1426465570-30295-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Only check for call platform data callback functions if there's platform
+data. Also take care of a few other cases where the NULL pdata pointer could
+have been accessed, and remove the check for NULL dev->platform_data
+pointer.
 
-Support the new 'which' field in the enum_frame_size ops. Most drivers do not
-need to be changed since they always returns the same enumeration regardless
-of the 'which' field.
+Removing the check for NULL dev->platform_data isn't strictly needed by the
+DT support but there's no harm from that either: the device now can be used
+without sensors, for instance.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 23 ++++++++++++++++++----
- drivers/media/platform/am437x/am437x-vpfe.c        |  1 +
- drivers/media/platform/omap3isp/ispccdc.c          |  4 ++--
- drivers/media/platform/omap3isp/ispccp2.c          |  4 ++--
- drivers/media/platform/omap3isp/ispcsi2.c          |  4 ++--
- drivers/media/platform/omap3isp/isppreview.c       |  4 ++--
- drivers/media/platform/omap3isp/ispresizer.c       |  4 ++--
- drivers/media/platform/vsp1/vsp1_hsit.c            |  4 +++-
- drivers/media/platform/vsp1/vsp1_lif.c             |  4 +++-
- drivers/media/platform/vsp1/vsp1_lut.c             |  4 +++-
- drivers/media/platform/vsp1/vsp1_rwpf.c            |  3 ++-
- drivers/media/platform/vsp1/vsp1_sru.c             |  4 +++-
- drivers/media/platform/vsp1/vsp1_uds.c             |  4 +++-
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  6 ++----
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  6 ++----
- drivers/staging/media/davinci_vpfe/dm365_isif.c    |  4 ++--
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++----
- drivers/staging/media/omap4iss/iss_csi2.c          |  4 ++--
- drivers/staging/media/omap4iss/iss_ipipe.c         |  4 ++--
- drivers/staging/media/omap4iss/iss_ipipeif.c       |  6 ++----
- drivers/staging/media/omap4iss/iss_resizer.c       |  6 ++----
- 21 files changed, 63 insertions(+), 46 deletions(-)
+ drivers/media/platform/omap3isp/isp.c      |   10 ++++------
+ drivers/media/platform/omap3isp/ispvideo.c |    6 +++---
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index 257a335..08b234b 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1251,6 +1251,7 @@ static int s5c73m3_oif_enum_frame_size(struct v4l2_subdev *sd,
- 				   struct v4l2_subdev_pad_config *cfg,
- 				   struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct s5c73m3 *state = oif_sd_to_s5c73m3(sd);
- 	int idx;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 82499cd..537377b 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -330,8 +330,8 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		if (np)
+ 			continue;
  
- 	if (fse->pad == OIF_SOURCE_PAD) {
-@@ -1260,11 +1261,25 @@ static int s5c73m3_oif_enum_frame_size(struct v4l2_subdev *sd,
- 		switch (fse->code) {
- 		case S5C73M3_JPEG_FMT:
- 		case S5C73M3_ISP_FMT: {
--			struct v4l2_mbus_framefmt *mf =
--				v4l2_subdev_get_try_format(sd, cfg, OIF_ISP_PAD);
-+			unsigned w, h;
-+
-+			if (fse->which == V4L2_SUBDEV_FORMAT_TRY) {
-+				struct v4l2_mbus_framefmt *mf;
-+
-+				mf = v4l2_subdev_get_try_format(sd, cfg,
-+								OIF_ISP_PAD);
-+
-+				w = mf->width;
-+				h = mf->height;
-+			} else {
-+				const struct s5c73m3_frame_size *fs;
+-		if (pdata->xclks[i].con_id == NULL &&
+-		    pdata->xclks[i].dev_id == NULL)
++		if (!pdata || (pdata->xclks[i].con_id == NULL &&
++			       pdata->xclks[i].dev_id == NULL))
+ 			continue;
  
--			fse->max_width = fse->min_width = mf->width;
--			fse->max_height = fse->min_height = mf->height;
-+				fs = state->oif_pix_size[RES_ISP];
-+				w = fs->width;
-+				h = fs->height;
-+			}
-+			fse->max_width = fse->min_width = w;
-+			fse->max_height = fse->min_height = h;
- 			return 0;
- 		}
- 		default:
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 8b413be..73fdb0d 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1645,6 +1645,7 @@ static int vpfe_enum_size(struct file *file, void  *priv,
- 	fse.index = fsize->index;
- 	fse.pad = 0;
- 	fse.code = mbus.code;
-+	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	ret = v4l2_subdev_call(sdinfo->sd, pad, enum_frame_size, NULL, &fse);
- 	if (ret)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 818aa52..6e0291b 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -2195,7 +2195,7 @@ static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ccdc_try_format(ccdc, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ccdc_try_format(ccdc, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
+ 		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+@@ -1989,7 +1989,8 @@ static int isp_register_entities(struct isp_device *isp)
+ 		goto done;
  
-@@ -2205,7 +2205,7 @@ static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ccdc_try_format(ccdc, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ccdc_try_format(ccdc, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
+ 	/* Register external entities */
+-	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
++	for (subdevs = pdata ? pdata->subdevs : NULL;
++	     subdevs && subdevs->subdevs; ++subdevs) {
+ 		struct v4l2_subdev *sensor;
  
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 1d79368..44c20fa 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -723,7 +723,7 @@ static int ccp2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ccp2_try_format(ccp2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ccp2_try_format(ccp2, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
+ 		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
+@@ -2271,9 +2272,6 @@ static int isp_probe(struct platform_device *pdev)
+ 	int ret;
+ 	int i, m;
  
-@@ -733,7 +733,7 @@ static int ccp2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ccp2_try_format(ccp2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ccp2_try_format(ccp2, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
+-	if (pdata == NULL)
+-		return -EINVAL;
+-
+ 	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
+ 	if (!isp) {
+ 		dev_err(&pdev->dev, "could not allocate memory\n");
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 0b5967e..d285af1 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1018,7 +1018,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
  
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index bde734c..bbadf66 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -944,7 +944,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
+ 	pipe->entities = 0;
  
-@@ -954,7 +954,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, true);
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+ 	pipe->max_rate = pipe->l3_ick;
+@@ -1100,7 +1100,7 @@ err_set_stream:
+ err_check_format:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ err_pipeline_start:
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, false);
+ 	/* The DMA queue must be emptied here, otherwise CCDC interrupts that
+ 	 * will get triggered the next time the CCDC is powered up will try to
+@@ -1161,7 +1161,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->queue = NULL;
+ 	video->error = false;
  
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index 0571c57..15cb254 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -1905,7 +1905,7 @@ static int preview_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	preview_try_format(prev, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	preview_try_format(prev, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -1915,7 +1915,7 @@ static int preview_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	preview_try_format(prev, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	preview_try_format(prev, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
-index 02549fa8..7cfb43d 100644
---- a/drivers/media/platform/omap3isp/ispresizer.c
-+++ b/drivers/media/platform/omap3isp/ispresizer.c
-@@ -1451,7 +1451,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	resizer_try_format(res, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(res, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -1461,7 +1461,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	resizer_try_format(res, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(res, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index d226b3f..8ffb817 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -76,9 +76,11 @@ static int hsit_enum_frame_size(struct v4l2_subdev *subdev,
- 				struct v4l2_subdev_pad_config *cfg,
- 				struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct vsp1_hsit *hsit = to_hsit(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-+	format = vsp1_entity_get_pad_format(&hsit->entity, cfg, fse->pad,
-+					    fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index 60f1bd8..39fa5ef 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -109,9 +109,11 @@ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct vsp1_lif *lif = to_lif(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, LIF_PAD_SINK);
-+	format = vsp1_entity_get_pad_format(&lif->entity, cfg, LIF_PAD_SINK,
-+					    fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 8aa8c11..656ec27 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -117,9 +117,11 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct vsp1_lut *lut = to_lut(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-+	format = vsp1_entity_get_pad_format(&lut->entity, cfg,
-+					    fse->pad, fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index a083d85..fa71f46 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -48,7 +48,8 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, fse->pad);
-+	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, fse->pad,
-+					    fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 554340d..6310aca 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -200,9 +200,11 @@ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct vsp1_sru *sru = to_sru(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, SRU_PAD_SINK);
-+	format = vsp1_entity_get_pad_format(&sru->entity, cfg,
-+					    SRU_PAD_SINK, fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index ef4d307..ccc8243 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -204,9 +204,11 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_frame_size_enum *fse)
- {
-+	struct vsp1_uds *uds = to_uds(subdev);
- 	struct v4l2_mbus_framefmt *format;
- 
--	format = v4l2_subdev_get_try_format(subdev, cfg, UDS_PAD_SINK);
-+	format = vsp1_entity_get_pad_format(&uds->entity, cfg,
-+					    UDS_PAD_SINK, fse->which);
- 
- 	if (fse->index || fse->code != format->code)
- 		return -EINVAL;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 715f1e6..1bbb90c 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1548,8 +1548,7 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ipipe_try_format(ipipe, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -1559,8 +1558,7 @@ ipipe_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ipipe_try_format(ipipe, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-index 68a9bb0..0495bcc 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-@@ -653,8 +653,7 @@ ipipeif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *c
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -664,8 +663,7 @@ ipipeif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *c
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index 02b6bdc..80907b4 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -1489,7 +1489,7 @@ isif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
- 	format.format.code = fse->code;
- 	format.format.width = 1;
- 	format.format.height = 1;
--	format.which = V4L2_SUBDEV_FORMAT_TRY;
-+	format.which = fse->which;
- 	isif_try_format(isif, cfg, &format);
- 	fse->min_width = format.format.width;
- 	fse->min_height = format.format.height;
-@@ -1501,7 +1501,7 @@ isif_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
- 	format.format.code = fse->code;
- 	format.format.width = -1;
- 	format.format.height = -1;
--	format.which = V4L2_SUBDEV_FORMAT_TRY;
-+	format.which = fse->which;
- 	isif_try_format(isif, cfg, &format);
- 	fse->max_width = format.format.width;
- 	fse->max_height = format.format.height;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index acd9cb5..fee44dd 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1484,8 +1484,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	resizer_try_format(sd, cfg, fse->pad, &format,
--			    V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(sd, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -1495,8 +1494,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	resizer_try_format(sd, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(sd, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index 2d5079d..d7ff769 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -943,7 +943,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -953,7 +953,7 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	csi2_try_format(csi2, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	csi2_try_format(csi2, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index fc31982..ff1d8cf 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -280,7 +280,7 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ipipe_try_format(ipipe, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -290,7 +290,7 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ipipe_try_format(ipipe, cfg, fse->pad, &format, V4L2_SUBDEV_FORMAT_TRY);
-+	ipipe_try_format(ipipe, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index b8e7277..8000bd3 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -492,8 +492,7 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -503,8 +502,7 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	ipipeif_try_format(ipipeif, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	ipipeif_try_format(ipipeif, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index 075b876..ded9066 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -554,8 +554,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = 1;
- 	format.height = 1;
--	resizer_try_format(resizer, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(resizer, cfg, fse->pad, &format, fse->which);
- 	fse->min_width = format.width;
- 	fse->min_height = format.height;
- 
-@@ -565,8 +564,7 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
- 	format.code = fse->code;
- 	format.width = -1;
- 	format.height = -1;
--	resizer_try_format(resizer, cfg, fse->pad, &format,
--			   V4L2_SUBDEV_FORMAT_TRY);
-+	resizer_try_format(resizer, cfg, fse->pad, &format, fse->which);
- 	fse->max_width = format.width;
- 	fse->max_height = format.height;
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, false);
+ 	media_entity_pipeline_stop(&video->video.entity);
  
 -- 
-2.1.4
+1.7.10.4
 
