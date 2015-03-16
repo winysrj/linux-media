@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:42358 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126AbbCXHXe (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43345 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750899AbbCPI75 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 03:23:34 -0400
-Date: Tue, 24 Mar 2015 10:23:40 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: kbuild@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org
-Subject: [linuxtv-media:master 348/454]
- drivers/media/dvb-core/dvb_frontend.c:861 dvb_frontend_thread() warn:
- inconsistent returns 'sem:&fepriv->sem'.
-Message-ID: <20150324072340.GX16501@mwanda>
+	Mon, 16 Mar 2015 04:59:57 -0400
+Message-ID: <55069B81.9050300@xs4all.nl>
+Date: Mon, 16 Mar 2015 09:59:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Florian Echtler <floe@butterbrot.org>, m.chehab@samsung.com
+CC: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v4] add raw video stream support for Samsung SUR40
+References: <1426490162-10646-1-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1426490162-10646-1-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   8a56b6b5fd6ff92b7e27d870b803b11b751660c2
-commit: 135f9be9194cf7778eb73594aa55791b229cf27c [348/454] [media] dvb_frontend: start media pipeline while thread is running
+On 03/16/2015 08:16 AM, Florian Echtler wrote:
+> This patch adds raw video support for the Samsung SUR40 using vbuf2-dma-sg.
+> All tests from v4l2-compliance pass. Support for VB2_USERPTR is currently
+> disabled due to unexpected interference with dma-sg buffer sizes.
+> 
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/Kconfig |   2 +
+>  drivers/input/touchscreen/sur40.c | 429 ++++++++++++++++++++++++++++++++++++--
+>  2 files changed, 419 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+> index 5891752..f8d16f1 100644
+> --- a/drivers/input/touchscreen/Kconfig
+> +++ b/drivers/input/touchscreen/Kconfig
+> @@ -953,7 +953,9 @@ config TOUCHSCREEN_SUN4I
+>  config TOUCHSCREEN_SUR40
+>  	tristate "Samsung SUR40 (Surface 2.0/PixelSense) touchscreen"
+>  	depends on USB
+> +	depends on MEDIA_USB_SUPPORT
+>  	select INPUT_POLLDEV
+> +	select VIDEOBUF2_DMA_SG
+>  	help
+>  	  Say Y here if you want support for the Samsung SUR40 touchscreen
+>  	  (also known as Microsoft Surface 2.0 or Microsoft PixelSense).
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index f1cb051..d5f054b 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
 
-New smatch warnings:
-drivers/media/dvb-core/dvb_frontend.c:861 dvb_frontend_thread() warn: inconsistent returns 'sem:&fepriv->sem'.
-  Locked on:   line 719
-  Unlocked on: line 861
+....
 
-git remote add linuxtv-media git://linuxtv.org/media_tree.git
-git remote update linuxtv-media
-git checkout 135f9be9194cf7778eb73594aa55791b229cf27c
-vim +861 drivers/media/dvb-core/dvb_frontend.c
+> +
+> +static const struct vb2_queue sur40_queue = {
+> +	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +	/*
+> +	 * VB2_USERPTR is currently not enabled: dma-sg doesn't provide
+> +	 * segment sizes of multiples of 512 bytes, which is required by
+> +	 * the host controller for working USERPTR support.
+> +	*/
 
-dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  845  				fe->ops.i2c_gate_ctrl(fe, 0);
-7eef5dd6 drivers/media/dvb/dvb-core/dvb_frontend.c Andrew de Quincey   2006-04-18  846  		}
-dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  847  		if (fe->ops.sleep)
-dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  848  			fe->ops.sleep(fe);
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  849  	}
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  850  
-8eec1429 drivers/media/dvb/dvb-core/dvb_frontend.c Herbert Poetzl      2007-02-08  851  	fepriv->thread = NULL;
-e36309f5 drivers/media/dvb/dvb-core/dvb_frontend.c Matthieu CASTET     2010-05-05  852  	if (kthread_should_stop())
-18ed2860 drivers/media/dvb-core/dvb_frontend.c     Shuah Khan          2014-07-12  853  		fe->exit = DVB_FE_DEVICE_REMOVED;
-e36309f5 drivers/media/dvb/dvb-core/dvb_frontend.c Matthieu CASTET     2010-05-05  854  	else
-18ed2860 drivers/media/dvb-core/dvb_frontend.c     Shuah Khan          2014-07-12  855  		fe->exit = DVB_FE_NO_EXIT;
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  856  	mb();
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  857  
-6ae23224 drivers/media/dvb-core/dvb_frontend.c     Juergen Lock        2012-12-23  858  	if (semheld)
-6ae23224 drivers/media/dvb-core/dvb_frontend.c     Juergen Lock        2012-12-23  859  		up(&fepriv->sem);
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  860  	dvb_frontend_wakeup(fe);
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16 @861  	return 0;
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  862  }
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  863  
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  864  static void dvb_frontend_stop(struct dvb_frontend *fe)
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  865  {
-0c53c70f drivers/media/dvb/dvb-core/dvb_frontend.c Johannes Stezenbach 2005-05-16  866  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  867  
-36bdbc3f drivers/media/dvb-core/dvb_frontend.c     Antti Palosaari     2012-08-15  868  	dev_dbg(fe->dvb->device, "%s:\n", __func__);
-^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  869  
+I would rephrase this slightly:
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+VB2_USERPTR in currently not enabled: passing a user pointer to
+dma-sg will result in segment sizes that are not a multiple of
+512 bytes, which is required by the host controller.
+
+If you post a v5 with that final change I'll make a pull request for you.
+
+Thanks for this patch, it was an interesting learning experience trying
+to figure out why USERPTR didn't work.
+
+Regards,
+
+	Hans
