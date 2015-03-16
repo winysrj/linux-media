@@ -1,70 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39919 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756010AbbCCPVb (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:53070 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933058AbbCPXLA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 10:21:31 -0500
-Message-ID: <54F5D16A.7090807@xs4all.nl>
-Date: Tue, 03 Mar 2015 16:21:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 16 Mar 2015 19:11:00 -0400
+Message-ID: <55076302.807@southpole.se>
+Date: Tue, 17 Mar 2015 00:10:58 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 04/15] media: blackfin: bfin_capture: improve buf_prepare()
- callback
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <1424544001-19045-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1424544001-19045-5-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=windows-1252
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 10/10] mn88473: implement lock for all delivery systems
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-10-git-send-email-benjamin@southpole.se> <55074F74.2080000@iki.fi> <55075CD2.6060908@iki.fi>
+In-Reply-To: <55075CD2.6060908@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/21/2015 07:39 PM, Lad Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> this patch improves the buf_prepare() callback.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/blackfin/bfin_capture.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-> index 332f8c9..8f62a84 100644
-> --- a/drivers/media/platform/blackfin/bfin_capture.c
-> +++ b/drivers/media/platform/blackfin/bfin_capture.c
-> @@ -305,16 +305,12 @@ static int bcap_queue_setup(struct vb2_queue *vq,
->  static int bcap_buffer_prepare(struct vb2_buffer *vb)
->  {
->  	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-> -	struct bcap_buffer *buf = to_bcap_vb(vb);
-> -	unsigned long size;
->  
-> -	size = bcap_dev->fmt.sizeimage;
-> -	if (vb2_plane_size(vb, 0) < size) {
-> -		v4l2_err(&bcap_dev->v4l2_dev, "buffer too small (%lu < %lu)\n",
-> -				vb2_plane_size(vb, 0), size);
+On 03/16/2015 11:44 PM, Antti Palosaari wrote:
+> On 03/16/2015 11:47 PM, Antti Palosaari wrote:
+>> On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+>>> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+>>
+>> Applied.
+>
+> I found this does not work at least for DVB-C. After playing with
+> modulator I find reg 0x85 on bank 1 is likely AGC. Its value is changed
+> according to RF level even modulation itself is turned off.
+>
+> I will likely remove that patch... It is a bit hard to find out lock
+> bits and it comes even harder without a modulator. Using typical tricks
+> to plug and unplug antenna, while dumping register values out is error
+> prone as you could not adjust signal strength nor change modulation
+> parameters causing wrong decision easily.
+>
+> regards
+> Antti
+>
 
-I would keep this error. Since you need to update patches 4 & 5 anyway to
-improve the commit message, it's probably good to reinstate this.
+Indeed the logic was inverted. Will respin the patch.
 
-Regards,
-
-	Hans
-
-> +	vb2_set_plane_payload(vb, 0, bcap_dev->fmt.sizeimage);
-> +	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
->  		return -EINVAL;
-> -	}
-> -	vb2_set_plane_payload(&buf->vb, 0, size);
-> +
-> +	vb->v4l2_buf.field = bcap_dev->fmt.field;
->  
->  	return 0;
->  }
-> 
+MvH
+Benjamin Larsson
 
