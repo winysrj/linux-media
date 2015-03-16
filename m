@@ -1,55 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24558 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755303AbbCEL5U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 06:57:20 -0500
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/2] ARM: dts: exynos5420: add nodes for jpeg codec
-Date: Thu, 05 Mar 2015 12:56:35 +0100
-Message-id: <1425556596-3938-2-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
-References: <1425556596-3938-1-git-send-email-andrzej.p@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45065 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751905AbbCPA06 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:26:58 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 04/15] omap3isp: DT support for clocks
+Date: Mon, 16 Mar 2015 02:25:59 +0200
+Message-Id: <1426465570-30295-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
----
- arch/arm/boot/dts/exynos5420.dtsi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
-index 73c1851..c8722d9 100644
---- a/arch/arm/boot/dts/exynos5420.dtsi
-+++ b/arch/arm/boot/dts/exynos5420.dtsi
-@@ -775,6 +775,24 @@
- 		iommus = <&sysmmu_gscl1>;
- 	};
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index f694615..82499cd 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -279,9 +279,21 @@ static const struct clk_init_data isp_xclk_init_data = {
+ 	.num_parents = 1,
+ };
  
-+	jpeg_0: jpeg@11F50000 {
-+		compatible = "samsung,exynos5420-jpeg";
-+		reg = <0x11F50000 0x1000>;
-+		interrupts = <0 89 0>;
-+		clock-names = "jpeg";
-+		clocks = <&clock CLK_JPEG>;
-+		iommus = <&sysmmu_jpeg>;
-+	};
++static struct clk *isp_xclk_src_get(struct of_phandle_args *clkspec, void *data)
++{
++	unsigned int idx = clkspec->args[0];
++	struct isp_device *isp = data;
 +
-+	jpeg_1: jpeg@11F60000 {
-+		compatible = "samsung,exynos5420-jpeg";
-+		reg = <0x11F60000 0x1000>;
-+		interrupts = <0 168 0>;
-+		clock-names = "jpeg";
-+		clocks = <&clock CLK_JPEG2>;
-+		iommus = <&sysmmu_jpeg2>;
-+	};
++	if (idx >= ARRAY_SIZE(isp->xclks))
++		return ERR_PTR(-ENOENT);
 +
- 	pmu_system_controller: system-controller@10040000 {
- 		compatible = "samsung,exynos5420-pmu", "syscon";
- 		reg = <0x10040000 0x5000>;
++	return isp->xclks[idx].clk;
++}
++
+ static int isp_xclk_init(struct isp_device *isp)
+ {
+ 	struct isp_platform_data *pdata = isp->pdata;
++	struct device_node *np = isp->dev->of_node;
+ 	struct clk_init_data init;
+ 	unsigned int i;
+ 
+@@ -312,6 +324,12 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		if (IS_ERR(xclk->clk))
+ 			return PTR_ERR(xclk->clk);
+ 
++		/* When instantiated from DT we don't need to register clock
++		 * aliases.
++		 */
++		if (np)
++			continue;
++
+ 		if (pdata->xclks[i].con_id == NULL &&
+ 		    pdata->xclks[i].dev_id == NULL)
+ 			continue;
+@@ -327,13 +345,20 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		clkdev_add(xclk->lookup);
+ 	}
+ 
++	if (np)
++		of_clk_add_provider(np, isp_xclk_src_get, isp);
++
+ 	return 0;
+ }
+ 
+ static void isp_xclk_cleanup(struct isp_device *isp)
+ {
++	struct device_node *np = isp->dev->of_node;
+ 	unsigned int i;
+ 
++	if (np)
++		of_clk_del_provider(np);
++
+ 	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+ 		struct isp_xclk *xclk = &isp->xclks[i];
+ 
 -- 
-1.9.1
+1.7.10.4
 
