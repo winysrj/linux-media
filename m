@@ -1,16 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35128 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43630 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752625AbbCGXPi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:15:38 -0500
+	with ESMTP id S1751450AbbCPAQZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2015 20:16:25 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for v4.1] smiapp DT u64 property workaround removal
-Date: Sun, 08 Mar 2015 01:15:38 +0200
-Message-ID: <1573085.ZVIDUf0yP4@avalon>
-In-Reply-To: <20150307220634.GD6539@valkosipuli.retiisi.org.uk>
-References: <20150307220634.GD6539@valkosipuli.retiisi.org.uk>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] arm: dts: omap3: Extend the syscon register range
+Date: Mon, 16 Mar 2015 02:16:31 +0200
+Message-ID: <1471279.pvvs0tPUUG@avalon>
+In-Reply-To: <1426464080-29119-2-git-send-email-sakari.ailus@iki.fi>
+References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi> <1426464080-29119-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -19,40 +21,36 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-On Sunday 08 March 2015 00:06:34 Sakari Ailus wrote:
-> Hi Mauro,
-> 
-> This pull request reverts the smiapp driver's u64 array DT property read
-> workaround, and uses of_property_read_u64_array() (second patch) which is
-> the correct API function for reading u64 arrays from DT.
-> 
-> Please pull.
-> 
-> 
-> The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
-> 
->   [media] mn88473: simplify bandwidth registers setting code (2015-03-03
-> 13:09:12 -0300)
-> 
-> are available in the git repository at:
-> 
->   ssh://linuxtv.org/git/sailus/media_tree.git smiapp-dt
-> 
-> for you to fetch changes up to 5f36db86e0cbb48c102fee8a3fe2b98a33f13199:
-> 
->   smiapp: Use of_property_read_u64_array() to read a 64-bit number array
-> (2015-03-08 00:00:20 +0200)
-> 
-> ----------------------------------------------------------------
-> Sakari Ailus (2):
->       Revert "[media] smiapp: Don't compile of_read_number() if CONFIG_OF
-> isn't defined"
->       smiapp: Use of_property_read_u64_array() to read a 64-bit number array
+Thank you for the patch.
 
-Won't this cause a bisection breakage if CONFIG_OF isn't enabled ?
+On Monday 16 March 2015 02:01:17 Sakari Ailus wrote:
+> The OMAP 3630 syscon register set was missing
+> OMAP3630_CONTROL_CAMERA_PHY_CTRL register at offset 0x2f0. This register
+> used to be mapped directly by the omap3isp driver, which is now moving to
+> use syscon instead. The omap3isp driver did not support DT so no driver
+> change is needed in this patch.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
->  drivers/media/i2c/smiapp/smiapp-core.c |   28 +++++-----------------------
->  1 file changed, 5 insertions(+), 23 deletions(-)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  arch/arm/boot/dts/omap3.dtsi |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 01b7111..fe0b293 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -183,7 +183,7 @@
+> 
+>  		omap3_scm_general: tisyscon@48002270 {
+>  			compatible = "syscon";
+> -			reg = <0x48002270 0x2f0>;
+> +			reg = <0x48002270 0x2f4>;
+>  		};
+> 
+>  		pbias_regulator: pbias_regulator {
 
 -- 
 Regards,
