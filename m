@@ -1,55 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.logicpd.com ([174.46.170.145]:51778 "HELO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752653AbbCJThf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2015 15:37:35 -0400
-From: Tim Nordell <tim.nordell@logicpd.com>
-To: <linux-media@vger.kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>, <sakari.ailus@iki.fi>,
-	Tim Nordell <tim.nordell@logicpd.com>
-Subject: [PATCH 1/3] omap3isp: Defer probing when subdev isn't available
-Date: Tue, 10 Mar 2015 14:24:52 -0500
-Message-ID: <1426015494-16799-2-git-send-email-tim.nordell@logicpd.com>
-In-Reply-To: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com>
-References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39000 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932144AbbCQPsd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2015 11:48:33 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/5] gpu: ipu-v3: Add missing IDMAC channel names
+Date: Tue, 17 Mar 2015 16:48:06 +0100
+Message-Id: <1426607290-13380-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1426607290-13380-1-git-send-email-p.zabel@pengutronix.de>
+References: <1426607290-13380-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the subdev isn't available just yet, defer probing of
-the system.  This is useful if the omap3isp comes up before
-the I2C subsystem does.
+This patch adds the remaining missing IDMAC channel names: all VDIC channels
+for deinterlacing and combining, the separate alpha channels for the MEM->IC
+and MEM->DC ASYNC channels, and the DC read / command / output mask channels.
 
-Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/omap3isp/isp.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/video/imx-ipu-v3.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 51c2129..a361c40 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1811,7 +1811,7 @@ isp_register_subdev_group(struct isp_device *isp,
- 				"device %s\n", __func__,
- 				board_info->i2c_adapter_id,
- 				board_info->board_info->type);
--			continue;
-+			return ERR_PTR(-EPROBE_DEFER);
- 		}
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 73390c1..459508e 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -96,20 +96,34 @@ enum ipu_channel_irq {
+ #define IPUV3_CHANNEL_CSI2			 2
+ #define IPUV3_CHANNEL_CSI3			 3
+ #define IPUV3_CHANNEL_VDI_MEM_IC_VF		 5
++#define IPUV3_CHANNEL_MEM_VDI_PREV		 8
++#define IPUV3_CHANNEL_MEM_VDI_CUR		 9
++#define IPUV3_CHANNEL_MEM_VDI_NEXT		10
+ #define IPUV3_CHANNEL_MEM_IC_PP			11
+ #define IPUV3_CHANNEL_MEM_IC_PRP_VF		12
++#define IPUV3_CHANNEL_VDI_MEM_RECENT		13
+ #define IPUV3_CHANNEL_G_MEM_IC_PRP_VF		14
+ #define IPUV3_CHANNEL_G_MEM_IC_PP		15
++#define IPUV3_CHANNEL_G_MEM_IC_PRP_VF_ALPHA	17
++#define IPUV3_CHANNEL_G_MEM_IC_PP_ALPHA		18
++#define IPUV3_CHANNEL_MEM_VDI_PLANE1_COMB_ALPHA	19
+ #define IPUV3_CHANNEL_IC_PRP_ENC_MEM		20
+ #define IPUV3_CHANNEL_IC_PRP_VF_MEM		21
+ #define IPUV3_CHANNEL_IC_PP_MEM			22
+ #define IPUV3_CHANNEL_MEM_BG_SYNC		23
+ #define IPUV3_CHANNEL_MEM_BG_ASYNC		24
++#define IPUV3_CHANNEL_MEM_VDI_PLANE1_COMB	25
++#define IPUV3_CHANNEL_MEM_VDI_PLANE3_COMB	26
+ #define IPUV3_CHANNEL_MEM_FG_SYNC		27
+ #define IPUV3_CHANNEL_MEM_DC_SYNC		28
+ #define IPUV3_CHANNEL_MEM_FG_ASYNC		29
+ #define IPUV3_CHANNEL_MEM_FG_SYNC_ALPHA		31
++#define IPUV3_CHANNEL_MEM_FG_ASYNC_ALPHA	33
++#define IPUV3_CHANNEL_DC_MEM_READ		40
+ #define IPUV3_CHANNEL_MEM_DC_ASYNC		41
++#define IPUV3_CHANNEL_MEM_DC_COMMAND		42
++#define IPUV3_CHANNEL_MEM_DC_COMMAND2		43
++#define IPUV3_CHANNEL_MEM_DC_OUTPUT_MASK	44
+ #define IPUV3_CHANNEL_MEM_ROT_ENC		45
+ #define IPUV3_CHANNEL_MEM_ROT_VF		46
+ #define IPUV3_CHANNEL_MEM_ROT_PP		47
+@@ -117,6 +131,7 @@ enum ipu_channel_irq {
+ #define IPUV3_CHANNEL_ROT_VF_MEM		49
+ #define IPUV3_CHANNEL_ROT_PP_MEM		50
+ #define IPUV3_CHANNEL_MEM_BG_SYNC_ALPHA		51
++#define IPUV3_CHANNEL_MEM_BG_ASYNC_ALPHA	52
  
- 		subdev = v4l2_i2c_new_subdev_board(&isp->v4l2_dev, adapter,
-@@ -1898,6 +1898,10 @@ static int isp_register_entities(struct isp_device *isp)
- 		unsigned int i;
- 
- 		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
-+		if (IS_ERR(sensor)) {
-+			ret = PTR_ERR(sensor);
-+			goto done;
-+		}
- 		if (sensor == NULL)
- 			continue;
- 
+ int ipu_map_irq(struct ipu_soc *ipu, int irq);
+ int ipu_idmac_channel_irq(struct ipu_soc *ipu, struct ipuv3_channel *channel,
 -- 
-2.0.4
+2.1.4
 
