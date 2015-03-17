@@ -1,113 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45364 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081AbbCBRGR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:17 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: [PATCH 02/10] SH: use clkdev_add_table()
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1YSTnH-0001JY-GT@rmk-PC.arm.linux.org.uk>
-Date: Mon, 02 Mar 2015 17:06:11 +0000
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42053 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751201AbbCQDtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2015 23:49:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CF2782A0080
+	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2015 04:49:11 +0100 (CET)
+Date: Tue, 17 Mar 2015 04:49:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150317034911.CF2782A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We have always had an efficient way of registering a table of clock
-lookups - it's called clkdev_add_table().  However, some people seem
-to really love writing inefficient and unnecessary code.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Convert SH to use the correct interface.
+Results of the daily build of media_tree:
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/sh/kernel/cpu/sh4a/clock-sh7734.c | 3 +--
- arch/sh/kernel/cpu/sh4a/clock-sh7757.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-sh7785.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-sh7786.c | 4 ++--
- arch/sh/kernel/cpu/sh4a/clock-shx3.c   | 4 ++--
- 5 files changed, 9 insertions(+), 10 deletions(-)
+date:		Tue Mar 17 04:00:16 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-index 1fdf1ee672de..7f54bf2f453d 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
-@@ -246,8 +246,7 @@ int __init arch_clk_init(void)
- 	for (i = 0; i < ARRAY_SIZE(main_clks); i++)
- 		ret |= clk_register(main_clks[i]);
- 
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-index 9a28fdb36387..e40ec2c97ad1 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
-@@ -141,8 +141,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-index 17d0ea55a5a2..8eb6e62340c9 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
-@@ -164,8 +164,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-index bec2a83f1ba5..5e50e7ebeff0 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
-@@ -179,8 +179,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-shx3.c b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-index 9a49a44f6f94..605221d1448a 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
-@@ -138,8 +138,8 @@ int __init arch_clk_init(void)
- 
- 	for (i = 0; i < ARRAY_SIZE(clks); i++)
- 		ret |= clk_register(clks[i]);
--	for (i = 0; i < ARRAY_SIZE(lookups); i++)
--		clkdev_add(&lookups[i]);
-+
-+	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
- 
- 	if (!ret)
- 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
--- 
-1.8.3.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
