@@ -1,162 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:58702 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932556AbbCPWMo (ORCPT
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:35410 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbbCQBxl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 18:12:44 -0400
-Message-ID: <55075559.50100@southpole.se>
-Date: Mon, 16 Mar 2015 23:12:41 +0100
-From: Benjamin Larsson <benjamin@southpole.se>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [RFC][PATCH] rtl2832: PID filter support for slave demod
-Content-Type: multipart/mixed;
- boundary="------------070200050504000002010800"
+	Mon, 16 Mar 2015 21:53:41 -0400
+Received: by wgdm6 with SMTP id m6so53888576wgd.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 18:53:40 -0700 (PDT)
+Date: Tue, 17 Mar 2015 09:53:40 +0800
+From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
+To: "=?utf-8?B?T2xlIEVybnN0?=" <olebowle@gmx.com>
+Cc: "=?utf-8?B?b2xsaS5zYWxvbmVu?=" <olli.salonen@iki.fi>,
+	"=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>,
+	"=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
+References: <5504920C.7080806@gmx.com>,
+ <55055E66.6040600@gmx.com>,
+ <550563B2.9010306@iki.fi>
+Subject: =?utf-8?B?UmU6IFJlOiBjeDIzODg1OiBEVkJTa3kgUzk1MiBkdmJfcmVnaXN0ZXIgZmFpbGVkIGVyciA9IC0yMg==?=
+Message-ID: <201503170953368436904@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070200050504000002010800
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello,
 
-Is this structure ok for the slave pid implementation? Or should there 
-be only one filters parameter? Will the overlaying pid filter framework 
-properly "flush" the set pid filters ?
+what is the "chip_id" debug output from m88ts2022 module?
 
-Note that this code currently is only compile tested.
+I think you maybe hold the old S952 card.
+Its satellite tuner is M88TS2020, not M88TS2022.
 
-MvH
-Benjamin Larsson
+Best Regards,
+Max
+On 2015-03-15 19:07:07, Ole Ernst <olebowle@gmx.com> wrote:
+>Hi Antti,
+>
+>thanks for your quick response! Based on lsmod and modinfo I do have
+>m88ts2022.
+>
+>$ lsmod | grep m88
+>m88ts2022              16898  0
+>regmap_i2c             12783  1 m88ts2022
+>m88ds3103              21452  0
+>i2c_mux                12534  1 m88ds3103
+>dvb_core              102038  4 cx23885,altera_ci,m88ds3103,videobuf2_dvb
+>i2c_core               50240  13
+>drm,i2c_i801,cx23885,cx25840,m88ts2022,i2c_mux,regmap_i2c,nvidia,v4l2_common,tveeprom,m88ds3103,tda18271,videodev
+>
+>$ modinfo m88ts2022
+>filename:
+>/lib/modules/3.19.1-1-ARCH/kernel/drivers/media/tuners/m88ts2022.ko.gz
+>license:        GPL
+>author:         Antti Palosaari <crope@iki.fi>
+>description:    Montage M88TS2022 silicon tuner driver
+>alias:          i2c:m88ts2022
+>depends:        i2c-core,regmap-i2c
+>intree:         Y
+>vermagic:       3.19.1-1-ARCH SMP preempt mod_unload modversions
+>
+>Thanks,
+>Ole
+>
+>Am 15.03.2015 um 11:49 schrieb Antti Palosaari:
+>> You don't have m88ts2022 driver installed.
+>> 
+>> Antti
+>> 
+>> On 03/15/2015 12:26 PM, Ole Ernst wrote:
+>>> Hi,
+>>>
+>>> I added some printk in cx23885-dvb.c and the problem is in
+>>> i2c_new_device:
+>>> https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/tree/drivers/media/pci/cx23885/cx23885-dvb.c?id=refs/tags/v3.19.1#n1935
+>>>
+>>>
+>>> The returned client_tuner is not NULL, but client_tuner->dev.driver is.
+>>> Hence it will goto frontend_detach, which will then return -EINVAL. Any
+>>> idea why client_tuner->dev.driver is NULL?
+>>>
+>>> Thanks,
+>>> Ole
+>>>
+>>> Am 14.03.2015 um 20:54 schrieb Ole Ernst:
+>>>> Hi,
+>>>>
+>>>> using linux-3.19.1-1 (Archlinux) I get the following output while
+>>>> booting without the media-build-tree provided by DVBSky:
+>>>>
+>>>> cx23885 driver version 0.0.4 loaded
+>>>> cx23885 0000:04:00.0: enabling device (0000 -> 0002)
+>>>> CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
+>>>> [card=50,autodetected]
+>>>> cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+>>>> cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+>>>> cx23885_dvb_register() allocating 1 frontend(s)
+>>>> cx23885[0]: cx23885 based dvb card
+>>>> i2c i2c-2: m88ds3103_attach: chip_id=70
+>>>> i2c i2c-2: Added multiplexed i2c bus 4
+>>>> cx23885_dvb_register() dvb_register failed err = -22
+>>>> cx23885_dev_setup() Failed to register dvb adapters on VID_B
+>>>> cx23885_dvb_register() allocating 1 frontend(s)
+>>>> cx23885[0]: cx23885 based dvb card
+>>>> i2c i2c-1: m88ds3103_attach: chip_id=70
+>>>> i2c i2c-1: Added multiplexed i2c bus 4
+>>>> cx23885_dvb_register() dvb_register failed err = -22
+>>>> cx23885_dev_setup() Failed to register dvb on VID_C
+>>>> cx23885_dev_checkrevision() Hardware revision = 0xa5
+>>>> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 17, latency: 0, mmio:
+>>>> 0xf7200000
+>>>>
+>>>> Obviously there are no device in /dev/dvb. Using the media-build-tree
+>>>> works just fine though. The following firmware files are installed in
+>>>> /usr/lib/firmware:
+>>>> dvb-demod-m88ds3103.fw
+>>>> dvb-demod-m88rs6000.fw
+>>>> dvb-demod-si2168-a20-01.fw
+>>>> dvb-demod-si2168-a30-01.fw
+>>>> dvb-demod-si2168-b40-01.fw
+>>>> dvb-fe-ds300x.fw
+>>>> dvb-fe-ds3103.fw
+>>>> dvb-fe-rs6000.fw
+>>>> dvb-tuner-si2158-a20-01.fw
+>>>>
+>>>> Output of lspci -vvvnn:
+>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/lscpi
+>>>>
+>>>>
+>>>> I also set the module parameters debug, i2c_debug, irq_debug and
+>>>> irq_debug in cx23885.
+>>>> The output is pretty verbose and can be found here:
+>>>> https://gist.githubusercontent.com/olebowle/6a4108363a9d1f7dd033/raw/debug.log
+>>>>
+>>>>
+>>>> Thanks,
+>>>> Ole
+>>>> -- 
+>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>> linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>> 
 
---------------070200050504000002010800
-Content-Type: text/x-patch;
- name="0001-rtl2832-PID-filter-support-for-slave-demod.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-rtl2832-PID-filter-support-for-slave-demod.patch"
-
->From 8efb26c18b4f9416bd516195c6a82853c9cccc24 Mon Sep 17 00:00:00 2001
-From: Benjamin Larsson <benjamin@southpole.se>
-Date: Mon, 16 Mar 2015 22:59:50 +0100
-Subject: [PATCH] rtl2832: PID filter support for slave demod
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-
-RTL2832p supports a slave configuration with a demodulator connected
-to a ts input on the chip. This makes it possible to receive DVB-T2
-muxes that are of larger size then what the rtl2832p usb-bridge is
-capable of transfering.
-
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/dvb-frontends/rtl2832.c      | 40 ++++++++++++++++++++++--------
- drivers/media/dvb-frontends/rtl2832_priv.h |  2 ++
- 2 files changed, 32 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 5d2d8f4..3725211 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -488,6 +488,8 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	dev->slave_demod_active = 0;
-+
- 	/* If the frontend has get_if_frequency(), use it */
- 	if (fe->ops.tuner_ops.get_if_frequency) {
- 		u32 if_freq;
-@@ -1114,6 +1116,8 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
- 	if (ret)
- 		goto err;
- 
-+	dev->slave_demod_active = 1;
-+
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -1135,7 +1139,10 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
- 	else
- 		u8tmp = 0x00;
- 
--	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-+	if (dev->slave_demod_active)
-+		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
-+	else
-+		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -1152,6 +1159,7 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 buf[4];
-+	unsigned long* filters;
- 
- 	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d\n",
- 		index, pid, onoff);
-@@ -1160,24 +1168,36 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	if (pid > 0x1fff || index > 32)
- 		return 0;
- 
--	if (onoff)
--		set_bit(index, &dev->filters);
-+	if (dev->slave_demod_active)
-+		filters = &dev->filters_slave;
- 	else
--		clear_bit(index, &dev->filters);
-+		filters = &dev->filters;
-+
-+	if (onoff) {
-+		set_bit(index, filters);
-+	} else {
-+		clear_bit(index, filters);
-+	}
- 
- 	/* enable / disable PIDs */
--	buf[0] = (dev->filters >>  0) & 0xff;
--	buf[1] = (dev->filters >>  8) & 0xff;
--	buf[2] = (dev->filters >> 16) & 0xff;
--	buf[3] = (dev->filters >> 24) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
-+	buf[0] = (*filters >>  0) & 0xff;
-+	buf[1] = (*filters >>  8) & 0xff;
-+	buf[2] = (*filters >> 16) & 0xff;
-+	buf[3] = (*filters >> 24) & 0xff;
-+	if (dev->slave_demod_active)
-+		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* add PID */
- 	buf[0] = (pid >> 8) & 0xff;
- 	buf[1] = (pid >> 0) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
-+	if (dev->slave_demod_active)
-+		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index c3a922c..b95a7b7 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -46,6 +46,8 @@ struct rtl2832_dev {
- 	bool sleeping;
- 	struct delayed_work i2c_gate_work;
- 	unsigned long filters; /* PID filter */
-+	unsigned long filters_slave; /* PID filter */
-+	int slave_demod_active;
- };
- 
- struct rtl2832_reg_entry {
--- 
-2.1.0
-
-
---------------070200050504000002010800--
