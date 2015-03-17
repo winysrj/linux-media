@@ -1,156 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35237 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbbCGX4N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:56:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 17/18] arm: dts: n950, n9: Add primary camera support
-Date: Sun, 08 Mar 2015 01:56:13 +0200
-Message-ID: <5342826.KbVLN7n8xZ@avalon>
-In-Reply-To: <1425764475-27691-18-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-18-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from cantor2.suse.de ([195.135.220.15]:43210 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752959AbbCQL47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2015 07:56:59 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
+	David Airlie <airlied@linux.ie>, Jan Kara <jack@suse.cz>
+Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
+Date: Tue, 17 Mar 2015 12:56:31 +0100
+Message-Id: <1426593399-6549-2-git-send-email-jack@suse.cz>
+In-Reply-To: <1426593399-6549-1-git-send-email-jack@suse.cz>
+References: <1426593399-6549-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Currently vb2 core acquires mmap_sem just around call to
+__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
+lockdep warning) it isn't necessary to acquire it so early as we no
+longer have to drop queue mutex before acquiring mmap_sem. So push
+acquisition of mmap_sem down into .get_userptr and .put_userptr memops
+so that the semaphore is acquired for a shorter time and it is clearer
+what it is needed for.
 
-Thank you for the patch.
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 --
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 +++++++
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +++++-
+ 4 files changed, 18 insertions(+), 3 deletions(-)
 
-On Saturday 07 March 2015 23:41:14 Sakari Ailus wrote:
-> Add support for the primary camera of the Nokia N950 and N9.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  arch/arm/boot/dts/omap3-n9.dts       |   39 +++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-n950-n9.dtsi |    4 ----
->  arch/arm/boot/dts/omap3-n950.dts     |   39 +++++++++++++++++++++++++++++++
->  3 files changed, 78 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-> index 9938b5d..05f32ae 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -16,3 +16,42 @@
->  	model = "Nokia N9";
->  	compatible = "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
->  };
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +
-> +	smia_1: camera@10 {
-> +		compatible = "nokia,smia";
-> +		reg = <0x10>;
-> +		/* No reset gpio */
-> +		vana-supply = <&vaux3>;
-> +		clocks = <&omap3_isp 0>;
-> +		clock-frequency = <9600000>;
-> +		nokia,nvm-size = <1024>; /* 16 * 64 */
-
-You could actually specify that as "<(16 * 64)>".
-
-> +		link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-> +		port {
-> +			smia_1_1: endpoint {
-> +				clock-lanes = <0>;
-> +				data-lanes = <1 2>;
-> +				remote-endpoint = <&csi2a_ep>;
-> +			};
-> +		};
-> +	};
-> +};
-> +
-> +&omap3_isp {
-> +	vdd-csiphy1-supply = <&vaux2>;
-> +	vdd-csiphy2-supply = <&vaux2>;
-> +	ports {
-> +		port@2 {
-> +			reg = <2>;
-> +			csi2a_ep: endpoint {
-> +				remote-endpoint = <&smia_1_1>;
-> +				clock-lanes = <2>;
-> +				data-lanes = <1 3>;
-> +				crc = <1>;
-> +				lane-polarity = <1 1 1>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> b/arch/arm/boot/dts/omap3-n950-n9.dtsi index c41db94..51e5043 100644
-> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> @@ -86,10 +86,6 @@
->  	regulator-max-microvolt = <2800000>;
->  };
-> 
-> -&i2c2 {
-> -	clock-frequency = <400000>;
-> -};
-> -
-
-What's the reason for moving this to the N9 and N950 DT files as you keep the 
-same value in both ?
-
->  &i2c3 {
->  	clock-frequency = <400000>;
->  };
-> diff --git a/arch/arm/boot/dts/omap3-n950.dts
-> b/arch/arm/boot/dts/omap3-n950.dts index 261c558..2b2ed9c 100644
-> --- a/arch/arm/boot/dts/omap3-n950.dts
-> +++ b/arch/arm/boot/dts/omap3-n950.dts
-> @@ -16,3 +16,42 @@
->  	model = "Nokia N950";
->  	compatible = "nokia,omap3-n950", "ti,omap36xx", "ti,omap3";
->  };
-> +
-> +&i2c2 {
-> +	clock-frequency = <400000>;
-> +
-> +	smia_1: camera@10 {
-> +		compatible = "nokia,smia";
-> +		reg = <0x10>;
-> +		/* No reset gpio */
-> +		vana-supply = <&vaux3>;
-> +		clocks = <&omap3_isp 0>;
-> +		clock-frequency = <9600000>;
-> +		nokia,nvm-size = <1024>; /* 16 * 64 */
-> +		link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
-> +		port {
-> +			smia_1_1: endpoint {
-> +				clock-lanes = <0>;
-> +				data-lanes = <1 2>;
-> +				remote-endpoint = <&csi2a_ep>;
-> +			};
-> +		};
-> +	};
-> +};
-> +
-> +&omap3_isp {
-> +	vdd-csiphy1-supply = <&vaux2>;
-> +	vdd-csiphy2-supply = <&vaux2>;
-> +	ports {
-> +		port@2 {
-> +			reg = <2>;
-> +			csi2a_ep: endpoint {
-> +				remote-endpoint = <&smia_1_1>;
-> +				clock-lanes = <2>;
-> +				data-lanes = <3 1>;
-> +				crc = <1>;
-> +				lane-polarity = <1 1 1>;
-> +			};
-> +		};
-> +	};
-> +};
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bc08a829bc13..e1fbdecb0b00 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1630,9 +1630,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+-		down_read(&current->mm->mmap_sem);
+ 		ret = __qbuf_userptr(vb, b);
+-		up_read(&current->mm->mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index b481d20c8372..96eceabb307b 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -526,7 +526,9 @@ static void vb2_dc_put_userptr(void *buf_priv)
+ 		sg_free_table(sgt);
+ 		kfree(sgt);
+ 	}
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+@@ -610,6 +612,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		goto fail_buf;
+ 	}
+ 
++	down_read(&current->mm->mmap_sem);
+ 	/* current->mm->mmap_sem is taken by videobuf2 core */
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+@@ -637,6 +640,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (ret) {
+ 		unsigned long pfn;
+ 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
++			up_read(&current->mm->mmap_sem);
+ 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
+ 			buf->size = size;
+ 			kfree(pages);
+@@ -646,6 +650,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		pr_err("failed to get user pages\n");
+ 		goto fail_vma;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 	if (!sgt) {
+@@ -708,10 +713,12 @@ fail_get_user_pages:
+ 		while (n_pages)
+ 			put_page(pages[--n_pages]);
+ 
++	down_read(&current->mm->mmap_sem);
+ fail_vma:
+ 	vb2_put_vma(buf->vma);
+ 
+ fail_pages:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(pages); /* kfree is NULL-proof */
+ 
+ fail_buf:
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index b1838abb6d00..71510e4f7d7c 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_alloc_pages;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+ 		dprintk(1, "no vma for address %lu\n", vaddr);
+@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					     1, /* force */
+ 					     buf->pages,
+ 					     NULL);
++	up_read(&current->mm->mmap_sem);
+ 
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
+ 	if (!vma_is_io(buf->vma))
+ 		while (--num_pages_from_user >= 0)
+ 			put_page(buf->pages[num_pages_from_user]);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
+ userptr_fail_find_vma:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf->pages);
+ userptr_fail_alloc_pages:
+ 	kfree(buf);
+@@ -362,7 +366,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 			put_page(buf->pages[i]);
+ 	}
+ 	kfree(buf->pages);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index bcde88572429..c060cf9662fa 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+ 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		if (!buf->vaddr)
+ 			goto fail_get_user_pages;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	buf->vaddr += offset;
+ 	return buf;
+@@ -133,6 +134,7 @@ fail_get_user_pages:
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -144,6 +146,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	if (buf->pages) {
+ 		if (vaddr)
+ 			vm_unmap_ram((void *)vaddr, buf->n_pages);
+@@ -157,6 +160,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
