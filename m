@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.techmunk.com ([209.141.61.243]:46455 "EHLO
-	mail.techmunk.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbbCIFR4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 01:17:56 -0400
-From: Christian Dale <cdale@aspedia.net>
-To: mchehab@osg.samsung.com, crope@iki.fi
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Christian Dale <kernel@techmunk.com>
-Subject: [PATCH] [media] rtl28xxu: add [0413:6f12] WinFast DTV2000 DS Plus
-Date: Mon,  9 Mar 2015 15:09:42 +1000
-Message-Id: <1425877782-2696-1-git-send-email-cdale@aspedia.net>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39247 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932889AbbCQKqt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2015 06:46:49 -0400
+Message-ID: <1426589206.3709.14.camel@pengutronix.de>
+Subject: Re: [PATCH v3 0/5] Signalling last decoded frame by
+ V4L2_BUF_FLAG_LAST and -EPIPE
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>, kernel@pengutronix.de,
+	Pawel Osciak <pawel@osciak.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Tue, 17 Mar 2015 11:46:46 +0100
+In-Reply-To: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Christian Dale <kernel@techmunk.com>
+Hi,
 
-Add Leadtek WinFast DTV2000DS Plus device based on Realtek RTL2832U.
+Am Freitag, den 06.03.2015, 11:18 +0100 schrieb Philipp Zabel:
+> At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+> draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+> decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+> poll should immediately return and all following VIDIOC_DQBUF should return
+> -EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+> (or STREAMOFF/STREAMON).
+> 
+> Changes since v2:
+>  - Made V4L2_BUF_FLAG_LAST known to trace events
+> 
+> regards
+> Philipp
+> 
+> Peter Seiderer (1):
+>   [media] videodev2: Add V4L2_BUF_FLAG_LAST
+> 
+> Philipp Zabel (4):
+>   [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+>   [media] coda: Set last buffer flag and fix EOS event
+>   [media] s5p-mfc: Set last buffer flag
+>   [media] DocBooc: mention mem2mem codecs for encoder/decoder commands
+> 
+>  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
+>  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
+>  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
+>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+>  drivers/media/platform/coda/coda-bit.c             |  4 ++--
+>  drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
+>  drivers/media/platform/coda/coda.h                 |  3 +++
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+>  drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+>  drivers/media/v4l2-core/videobuf2-core.c           | 18 ++++++++++++++-
+>  include/media/videobuf2-core.h                     | 10 ++++++++
+>  include/trace/events/v4l2.h                        |  3 ++-
+>  include/uapi/linux/videodev2.h                     |  2 ++
+>  13 files changed, 84 insertions(+), 23 deletions(-)
 
-I have not tested the remote, but it is the Y04G0051 model.
+are there any further changes that I should make to this series?
 
-Signed-off-by: Christian Dale <kernel@techmunk.com>
----
- drivers/media/dvb-core/dvb-usb-ids.h    | 1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 80ab8d0..339ee5c 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -318,6 +318,7 @@
- #define USB_PID_GRANDTEC_DVBT_USB2_COLD			0x0bc6
- #define USB_PID_GRANDTEC_DVBT_USB2_WARM			0x0bc7
- #define USB_PID_WINFAST_DTV2000DS			0x6a04
-+#define USB_PID_WINFAST_DTV2000DS_PLUS			0x6f12
- #define USB_PID_WINFAST_DTV_DONGLE_COLD			0x6025
- #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 77dcfdf..aa5e58b 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1726,6 +1726,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl28xxu_props, "DigitalNow Quad DVB-T Receiver", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_MINID,
- 		&rtl28xxu_props, "Leadtek Winfast DTV Dongle Mini D", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV2000DS_PLUS,
-+		&rtl28xxu_props, "Leadtek WinFast DTV2000DS Plus", RC_MAP_LEADTEK_Y04G0051) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d3,
- 		&rtl28xxu_props, "TerraTec Cinergy T Stick RC (Rev. 3)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1102,
--- 
-2.3.2
+regards
+Philipp
 
