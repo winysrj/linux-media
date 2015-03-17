@@ -1,100 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44810 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751793AbbCPACH (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:40640 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751478AbbCQIM6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:02:07 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com,
-	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [PATCH 3/4] arm: dts: omap3: Add DT entries for OMAP 3
-Date: Mon, 16 Mar 2015 02:01:19 +0200
-Message-Id: <1426464080-29119-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 17 Mar 2015 04:12:58 -0400
+Message-ID: <5507E1DF.9080505@st.com>
+Date: Tue, 17 Mar 2015 09:12:15 +0100
+From: Patrice Chotard <patrice.chotard@st.com>
+MIME-Version: 1.0
+To: Fabian Frederick <fabf@skynet.be>, <linux-kernel@vger.kernel.org>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <kernel@stlinux.com>
+Subject: Re: [PATCH 23/35 linux-next] [media] constify of_device_id array
+References: <1426533469-25458-1-git-send-email-fabf@skynet.be> <1426535685-25996-1-git-send-email-fabf@skynet.be> <1426535685-25996-2-git-send-email-fabf@skynet.be>
+In-Reply-To: <1426535685-25996-2-git-send-email-fabf@skynet.be>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The resources the ISP needs are slightly different on 3[45]xx and 3[67]xx.
-Especially the phy-type property is different.
+Hi Fabian
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- arch/arm/boot/dts/omap34xx.dtsi |   17 +++++++++++++++++
- arch/arm/boot/dts/omap36xx.dtsi |   17 +++++++++++++++++
- 2 files changed, 34 insertions(+)
+On 03/16/2015 08:54 PM, Fabian Frederick wrote:
+> of_device_id is always used as const.
+> (See driver.of_match_table and open firmware functions)
+>
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+...
+>   drivers/media/rc/st_rc.c                     | 2 +-
 
-diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-index 3819c1e..7bc8c0f 100644
---- a/arch/arm/boot/dts/omap34xx.dtsi
-+++ b/arch/arm/boot/dts/omap34xx.dtsi
-@@ -8,6 +8,8 @@
-  * kind, whether express or implied.
-  */
- 
-+#include <dt-bindings/media/omap3-isp.h>
-+
- #include "omap3.dtsi"
- 
- / {
-@@ -37,6 +39,21 @@
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0xff1f>;
- 		};
-+
-+		isp: isp@480bc000 {
-+			compatible = "ti,omap3-isp";
-+			reg = <0x480bc000 0x12fc
-+			       0x480bd800 0x017c>;
-+			interrupts = <24>;
-+			iommus = <&mmu_isp>;
-+			syscon = <&omap3_scm_general 0xdc>;
-+			ti,phy-type = <OMAP3ISP_PHY_TYPE_COMPLEX_IO>;
-+			#clock-cells = <1>;
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+		};
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
-index 541704a..3502fe0 100644
---- a/arch/arm/boot/dts/omap36xx.dtsi
-+++ b/arch/arm/boot/dts/omap36xx.dtsi
-@@ -8,6 +8,8 @@
-  * kind, whether express or implied.
-  */
- 
-+#include <dt-bindings/media/omap3-isp.h>
-+
- #include "omap3.dtsi"
- 
- / {
-@@ -69,6 +71,21 @@
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0xff1f>;
- 		};
-+
-+		isp: isp@480bc000 {
-+			compatible = "ti,omap3-isp";
-+			reg = <0x480bc000 0x12fc
-+			       0x480bd800 0x0600>;
-+			interrupts = <24>;
-+			iommus = <&mmu_isp>;
-+			syscon = <&omap3_scm_general 0x2f0>;
-+			ti,phy-type = <OMAP3ISP_PHY_TYPE_CSIPHY>;
-+			#clock-cells = <1>;
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+			};
-+		};
- 	};
- };
- 
--- 
-1.7.10.4
+For this driver
+
+Acked-by: Patrice Chotard <patrice.chotard@st.com>
+
+Thanks
 
