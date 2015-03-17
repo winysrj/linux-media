@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47173 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45035 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719AbbCRPPD (ORCPT
+	with ESMTP id S1751163AbbCQAt3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 11:15:03 -0400
+	Mon, 16 Mar 2015 20:49:29 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tim Nordell <tim.nordell@logicpd.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH 1/3] omap3isp: Defer probing when subdev isn't available
-Date: Wed, 18 Mar 2015 17:15:11 +0200
-Message-ID: <3275472.GjEQv8ASR0@avalon>
-In-Reply-To: <1426015494-16799-2-git-send-email-tim.nordell@logicpd.com>
-References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com> <1426015494-16799-2-git-send-email-tim.nordell@logicpd.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH 15/15] omap3isp: Deprecate platform data support
+Date: Tue, 17 Mar 2015 02:49:35 +0200
+Message-ID: <8566060.sCWOJrKQzE@avalon>
+In-Reply-To: <1426465570-30295-16-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi> <1426465570-30295-16-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tim,
+Hi Sakari,
 
 Thank you for the patch.
 
-The OMAP3 ISP driver is moving to DT, hopefully in time for v4.1. See "[PATCH 
-00/15] omap3isp driver DT support" posted to the list on Monday. I'd rather go 
-for proper DT support instead of custom deferred probing.
+On Monday 16 March 2015 02:26:10 Sakari Ailus wrote:
+> Print a warning when the driver is used with platform data. Existing
+> platform data user should move to DT now.
 
-On Tuesday 10 March 2015 14:24:52 Tim Nordell wrote:
-> If the subdev isn't available just yet, defer probing of
-> the system.  This is useful if the omap3isp comes up before
-> the I2C subsystem does.
+s/user/users/
+
 > 
-> Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 > ---
->  drivers/media/platform/omap3isp/isp.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  drivers/media/platform/omap3isp/isp.c |    2 ++
+>  1 file changed, 2 insertions(+)
 > 
 > diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 51c2129..a361c40 100644
+> b/drivers/media/platform/omap3isp/isp.c index 0d6012a..82940fe 100644
 > --- a/drivers/media/platform/omap3isp/isp.c
 > +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1811,7 +1811,7 @@ isp_register_subdev_group(struct isp_device *isp,
->  				"device %s\n", __func__,
->  				board_info->i2c_adapter_id,
->  				board_info->board_info->type);
-> -			continue;
-> +			return ERR_PTR(-EPROBE_DEFER);
->  		}
+> @@ -2447,6 +2447,8 @@ static int isp_probe(struct platform_device *pdev)
+>  		isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+>  		if (IS_ERR(isp->syscon))
+>  			return PTR_ERR(isp->syscon);
+> +		dev_warn(&pdev->dev,
+> +			 "Platform data support is deprecated! Please move to DT now!
+\n");
+>  	}
 > 
->  		subdev = v4l2_i2c_new_subdev_board(&isp->v4l2_dev, adapter,
-> @@ -1898,6 +1898,10 @@ static int isp_register_entities(struct isp_device
-> *isp) unsigned int i;
-> 
->  		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
-> +		if (IS_ERR(sensor)) {
-> +			ret = PTR_ERR(sensor);
-> +			goto done;
-> +		}
->  		if (sensor == NULL)
->  			continue;
+>  	isp->autoidle = autoidle;
 
 -- 
 Regards,
