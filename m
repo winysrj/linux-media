@@ -1,79 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:56492 "EHLO
+Received: from smtp.bredband2.com ([83.219.192.166]:46309 "EHLO
 	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbbCOW6G (ORCPT
+	with ESMTP id S1757128AbbCRVka (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 18:58:06 -0400
+	Wed, 18 Mar 2015 17:40:30 -0400
+Message-ID: <5509F0CC.6080104@southpole.se>
+Date: Wed, 18 Mar 2015 22:40:28 +0100
 From: Benjamin Larsson <benjamin@southpole.se>
-To: crope@iki.fi, mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 09/10] mn88472: check if firmware is already running before loading it
-Date: Sun, 15 Mar 2015 23:57:54 +0100
-Message-Id: <1426460275-3766-9-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 10/10] mn88473: implement lock for all delivery systems
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-10-git-send-email-benjamin@southpole.se> <55074F74.2080000@iki.fi> <55075CD2.6060908@iki.fi> <55076302.807@southpole.se> <5509EA6B.9080805@iki.fi>
+In-Reply-To: <5509EA6B.9080805@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/staging/media/mn88472/mn88472.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+On 03/18/2015 10:13 PM, Antti Palosaari wrote:
+> On 03/17/2015 01:10 AM, Benjamin Larsson wrote:
+>> On 03/16/2015 11:44 PM, Antti Palosaari wrote:
+>>> On 03/16/2015 11:47 PM, Antti Palosaari wrote:
+>>>> On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+>>>>> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+>>>>
+>>>> Applied.
+>>>
+>>> I found this does not work at least for DVB-C. After playing with
+>>> modulator I find reg 0x85 on bank 1 is likely AGC. Its value is changed
+>>> according to RF level even modulation itself is turned off.
+>>>
+>>> I will likely remove that patch... It is a bit hard to find out lock
+>>> bits and it comes even harder without a modulator. Using typical tricks
+>>> to plug and unplug antenna, while dumping register values out is error
+>>> prone as you could not adjust signal strength nor change modulation
+>>> parameters causing wrong decision easily.
+>>>
+>>> regards
+>>> Antti
+>>>
+>>
+>> Indeed the logic was inverted. Will respin the patch.
+>
+> Any ETA for the new patch?
+>
+> regards
+> Antti
+>
 
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index 4a00a4d..c041fbf 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -258,7 +258,7 @@ static int mn88472_init(struct dvb_frontend *fe)
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file = MN88472_FIRMWARE;
--	unsigned int csum;
-+	unsigned int tmp;
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -274,6 +274,17 @@ static int mn88472_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* check if firmware is already running */
-+	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
-+	if (ret)
-+		goto err;
-+
-+	if (!(tmp & 0x1)) {
-+		dev_info(&client->dev, "firmware already running\n");
-+		dev->warm = true;
-+		return 0;
-+	}
-+
- 	/* request the firmware, this will block and timeout */
- 	ret = request_firmware(&fw, fw_file, &client->dev);
- 	if (ret) {
-@@ -305,18 +316,18 @@ static int mn88472_init(struct dvb_frontend *fe)
- 	}
- 
- 	/* parity check of firmware */
--	ret = regmap_read(dev->regmap[0], 0xf8, &csum);
-+	ret = regmap_read(dev->regmap[0], 0xf8, &tmp);
- 	if (ret) {
- 		dev_err(&client->dev,
- 				"parity reg read failed=%d\n", ret);
- 		goto err;
- 	}
--	if (csum & 0x10) {
-+	if (tmp & 0x10) {
- 		dev_err(&client->dev,
--				"firmware parity check failed=0x%x\n", csum);
-+				"firmware parity check failed=0x%x\n", tmp);
- 		goto err;
- 	}
--	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", csum);
-+	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", tmp);
- 
- 	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
- 	if (ret)
--- 
-2.1.0
+Sent and I tested DVB-C yesterday, it worked fine.
 
+MvH
+Benjamin Larsson
