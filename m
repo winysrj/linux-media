@@ -1,131 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57544 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237AbbCBWdq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 17:33:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 01/10] media: omap3isp: remove unused clkdev
-Date: Tue, 03 Mar 2015 00:33:44 +0200
-Message-ID: <118780170.u6ZO5zJrEk@avalon>
-In-Reply-To: <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk> <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
+Received: from mout.gmx.net ([212.227.17.20]:62880 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753067AbbCRVtM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 17:49:12 -0400
+Date: Wed, 18 Mar 2015 22:49:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Oliver Lehmann <lehmann@ans-netz.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: capture high resolution images from webcam
+In-Reply-To: <20150317223529.Horde.S4cQ0yA7NJaIix7vWKABGA9@avocado.salatschuessel.net>
+Message-ID: <Pine.LNX.4.64.1503182220410.15761@axis700.grange>
+References: <20150317223529.Horde.S4cQ0yA7NJaIix7vWKABGA9@avocado.salatschuessel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Hi Oliver,
 
-On Monday 02 March 2015 17:06:06 Russell King wrote:
-> No merged platform supplies xclks via platform data.  As we want to
-> slightly change the clkdev interface, rather than fixing this unused
-> code, remove it instead.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Tue, 17 Mar 2015, Oliver Lehmann wrote:
 
-There are quite a few out of tree users that I know of that might be impacted. 
-On the other hand, out of tree isn't an excuse, and OMAP3 platforms should 
-move to DT. The good news is that DT support for the omap3isp driver is about 
-to get submitted, and hopefully merged in v4.1. I thus have no objection to 
-this patch.
+> Hi,
+> 
+> I'm using v4l2 on FreeBSD but I hope this doesn't matter that much.
+> I got a new MS LifeCam Studio HD which makes quite good pictures
+> because of its focus possibilites.
+> 
+> When I use the original software provided by MS the "autofocus"
+> feature works damn good. With v4l2, autofocus is enabled but it
+> just does not focus. Disabling autofocus and setting focus manually
+> does work (and in my case this is sufficient)
+> 
+> Another point is, that this cam can record pictures with 8 megapixel
+> which results in 3840x2160 image files. This "8MP mode" and the 1080p
+> mode is only available for snapshot pictures. The highest resolution
+> supported for videos is 720p.
 
-Sakari, does it conflict with the omap3isp DT support ? If so, how would you 
-prefer to resolve the conflict ? Russell, would it be fine to merge this 
-through Mauro's tree ?
+I'm not sure I can help, at least definitely not until I know details. But 
+in either case I'd be interested to know details of this camera. Can you 
+find out what driver is serving it, what standard it is? Looking at the 
+Microsoft so veeeery "technical" data sheet it says, it is compatible with 
+Android. So, it hints at it being a UVC camera.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+As for the actual question, I have no idea how they implement still 
+images: the UVC standard defines two methods for higher-resolution still 
+image capture: either using the "still image trigger control" or a 
+dedicated bulk pipeline (and a hardware button if there is one on your 
+camera?) FWIW, in either case I'm not sure whether the driver supports any 
+of those methods. I think bulk pipe support has been added to it at some 
+point, but what concerns switching... Not sure really, sorry.
 
-> ---
->  drivers/media/platform/omap3isp/isp.c | 18 ------------------
->  drivers/media/platform/omap3isp/isp.h |  1 -
->  include/media/omap3isp.h              |  6 ------
->  3 files changed, 25 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index deca80903c3a..4d8078b9d010
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -281,7 +281,6 @@ static const struct clk_init_data isp_xclk_init_data = {
-> 
->  static int isp_xclk_init(struct isp_device *isp)
->  {
-> -	struct isp_platform_data *pdata = isp->pdata;
->  	struct clk_init_data init;
->  	unsigned int i;
-> 
-> @@ -311,20 +310,6 @@ static int isp_xclk_init(struct isp_device *isp)
->  		xclk->clk = clk_register(NULL, &xclk->hw);
->  		if (IS_ERR(xclk->clk))
->  			return PTR_ERR(xclk->clk);
-> -
-> -		if (pdata->xclks[i].con_id == NULL &&
-> -		    pdata->xclks[i].dev_id == NULL)
-> -			continue;
-> -
-> -		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
-> -		if (xclk->lookup == NULL)
-> -			return -ENOMEM;
-> -
-> -		xclk->lookup->con_id = pdata->xclks[i].con_id;
-> -		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
-> -		xclk->lookup->clk = xclk->clk;
-> -
-> -		clkdev_add(xclk->lookup);
->  	}
-> 
->  	return 0;
-> @@ -339,9 +324,6 @@ static void isp_xclk_cleanup(struct isp_device *isp)
-> 
->  		if (!IS_ERR(xclk->clk))
->  			clk_unregister(xclk->clk);
-> -
-> -		if (xclk->lookup)
-> -			clkdev_drop(xclk->lookup);
->  	}
->  }
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.h
-> b/drivers/media/platform/omap3isp/isp.h index cfdfc8714b6b..d41c98bbdfe7
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -122,7 +122,6 @@ enum isp_xclk_id {
->  struct isp_xclk {
->  	struct isp_device *isp;
->  	struct clk_hw hw;
-> -	struct clk_lookup *lookup;
->  	struct clk *clk;
->  	enum isp_xclk_id id;
-> 
-> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-> index 398279dd1922..a9798525d01e 100644
-> --- a/include/media/omap3isp.h
-> +++ b/include/media/omap3isp.h
-> @@ -152,13 +152,7 @@ struct isp_v4l2_subdevs_group {
->  	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
->  };
-> 
-> -struct isp_platform_xclk {
-> -	const char *dev_id;
-> -	const char *con_id;
-> -};
-> -
->  struct isp_platform_data {
-> -	struct isp_platform_xclk xclks[2];
->  	struct isp_v4l2_subdevs_group *subdevs;
->  	void (*set_constraints)(struct isp_device *isp, bool enable);
->  };
+But if you just try to be opportunistic and try cheese - it has a separate 
+setting for still images, so, maybe I'm way behind the time and everything 
+is working already?
 
--- 
-Regards,
+Thanks
+Guennadi
 
-Laurent Pinchart
-
+> All I want is recording snapshot images and I do not need the video
+> capability at all.
+> 
+> I wonder how I can capture those big 8MP images? With mplayer I'm
+> only able toe capture 720p at max. I guess because mplayer just
+> accesses the video mode and takes a single frame.
+> 
+> mplayer tv:// -tv driver=v4l2:device=/dev/video0:width=1280:height=720 -frames
+> 1 -vo jpeg
+> 
+> I wonder if there is a possibility to access the cam in the
+> I-call-it-snapshot-mode to take single pictures with higher resolutions?
+> 
+> Regards, Oliver
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
