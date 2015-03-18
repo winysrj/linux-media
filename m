@@ -1,90 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35251 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958AbbCHA2z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 19:28:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 3/3] media: atmel-isi: remove mck back compatiable code as we don't need it
-Date: Sun, 08 Mar 2015 02:28:55 +0200
-Message-ID: <2234113.JDoJN7Dx5y@avalon>
-In-Reply-To: <Pine.LNX.4.64.1503062124450.20271@axis700.grange>
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <54F97DDF.7010403@atmel.com> <Pine.LNX.4.64.1503062124450.20271@axis700.grange>
+Received: from mail.kapsi.fi ([217.30.184.167]:35232 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752963AbbCRAL4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2015 20:11:56 -0400
+Message-ID: <5508C2C8.4090407@iki.fi>
+Date: Wed, 18 Mar 2015 02:11:52 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kozlov Sergey <serjk@netup.ru>
+CC: linux-media@vger.kernel.org, aospan1@gmail.com
+Subject: Re: [PATCH 1/5] [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
+References: <20150202092806.7B4D81BC32CD@debian> <20150305055414.1b02a0c1@recife.lan>
+In-Reply-To: <20150305055414.1b02a0c1@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 06 March 2015 21:25:36 Guennadi Liakhovetski wrote:
-> On Fri, 6 Mar 2015, Josh Wu wrote:
-> > On 3/5/2015 6:41 PM, Laurent Pinchart wrote:
-> >> On Thursday 05 March 2015 13:01:01 Josh Wu wrote:
-> >>> The master clock should handled by sensor itself.
-> >> 
-> >> I like that :-)
-> >> 
-> >>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> >>> ---
-> >>> 
-> >>>   drivers/media/platform/soc_camera/atmel-isi.c | 32 -------------------
-> >>>   1 file changed, 32 deletions(-)
-> >>> 
-> >>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> >>> b/drivers/media/platform/soc_camera/atmel-isi.c index 4a384f1..50375ce
-> >>> 100644
-> >>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> >>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> >>> @@ -83,8 +83,6 @@ struct atmel_isi {
-> >>> 
-> >>>   	struct completion		complete;
-> >>>   	/* ISI peripherial clock */
-> >>>   	struct clk			*pclk;
-> >>> 
-> >>> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-> >>> -	struct clk			*mck;
-> >>> 
-> >>>   	unsigned int			irq;
-> >>>   	
-> >>>   	struct isi_platform_data	pdata;
-> >>> 
-> >>> @@ -725,26 +723,12 @@ static void isi_camera_remove_device(struct
-> >>> soc_camera_device *icd) /* Called with .host_lock held */
-> >>> 
-> >>>   static int isi_camera_clock_start(struct soc_camera_host *ici)
-> >>>   {
-> >>> 
-> >>> -	struct atmel_isi *isi = ici->priv;
-> >>> -	int ret;
-> >>> -
-> >>> -	if (!IS_ERR(isi->mck)) {
-> >>> -		ret = clk_prepare_enable(isi->mck);
-> >>> -		if (ret) {
-> >>> -			return ret;
-> >>> -		}
-> >>> -	}
-> >>> -
-> >>> 
-> >>>   	return 0;
-> >> 
-> >> Would it make sense to make the clock_start and clock_stop operations
-> >> optional in the soc-camera core ?
-> > 
-> > I agree. For those camera host which don't provide master clock for
-> > sensor, clock_start and clock_stop should be optional.
-> > 
-> > Hi, Guennadi
-> > 
-> > Do you agree with this?
-> 
-> Yes, sure, we can do this. Would anyone like to prepare a patch?
+On 03/05/2015 10:54 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 02 Feb 2015 12:22:32 +0300
+> Kozlov Sergey <serjk@netup.ru> escreveu:
 
-Josh, would you like to do that, or should I give it a go ?
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index ddb9ac8..a3a1767 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -4365,6 +4365,15 @@ W:	http://linuxtv.org
+>>   S:	Odd Fixes
+>>   F:	drivers/media/usb/hdpvr/
+>>
+>> +HORUS3A MEDIA DRIVER
+>
+> Not a big issue, but could you please rename it to:
+> 	MEDIA DRIVERS FOR HORUS3A
+>
+> We're trying to better organize the media entries at MAINTAINERS, at
+> least for the new drivers.
+
+What the *ell is that new rule? MAINTAINERS file clearly says entries 
+should be alphabetical order, but on the other-hand there seems to be 
+PCI and ARM specific stuff already grouped. Is that some new way?
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
