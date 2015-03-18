@@ -1,53 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out4.electric.net ([192.162.216.181]:50585 "EHLO
-	smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbbC0SUn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 14:20:43 -0400
-Message-ID: <551565F6.5090909@ad-holdings.co.uk>
-Date: Fri, 27 Mar 2015 14:15:18 +0000
-From: Ian Molton <imolton@ad-holdings.co.uk>
+Received: from mout.gmx.net ([212.227.17.22]:61992 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753594AbbCRJGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 05:06:09 -0400
+Message-ID: <55093FFC.9050602@gmx.com>
+Date: Wed, 18 Mar 2015 10:06:04 +0100
+From: Ole Ernst <olebowle@gmx.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Kamil Debski <k.debski@samsung.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH] [media] coda: drop dma_sync_single_for_device in coda_bitstream_queue
-References: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Nibble Max <nibble.max@gmail.com>
+CC: "olli.salonen" <olli.salonen@iki.fi>,
+	Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
+References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com>
+In-Reply-To: <201503180940386096906@gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/03/15 16:45, Philipp Zabel wrote:
-> Issuing a cache flush for the whole bitstream buffer is not optimal in the first
-> place when only a part of it was written. But given that the buffer is mapped in
-> writecombine mode, it is not needed at all.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Max,
 
-Tested-by: Ian Molton <imolton@ad-holdings.co.uk>
+I'm afraid I'm not experienced enough to adapt the ts2020 driver to
+interwork with the current kernel driver for the S952. I'd be more than
+happy to test patches though!
 
-> ---
->   drivers/media/platform/coda/coda-bit.c | 4 ----
->   1 file changed, 4 deletions(-)
->
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index d39789d..d336cb6 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -181,10 +181,6 @@ static int coda_bitstream_queue(struct coda_ctx *ctx,
->   	if (n < src_size)
->   		return -ENOSPC;
->
-> -	dma_sync_single_for_device(&ctx->dev->plat_dev->dev,
-> -				   ctx->bitstream.paddr, ctx->bitstream.size,
-> -				   DMA_TO_DEVICE);
-> -
->   	src_buf->v4l2_buf.sequence = ctx->qsequence++;
->
->   	return 0;
->
+Thanks,
+Ole
 
+Am 18.03.2015 um 02:40 schrieb Nibble Max:
+> Hello Ole,
+> 
+> If it is m88ts2020, there is a tuner driver "ts2020" in "dvb-frontends" directory.
+> If fail to load m88ts2022 driver, then try to load ts2020 driver.
+> m88ts2022 driver is an i2c driver, but ts2020 is traditional dvb-attach driver.
+> Please check the other code using ts2020 for reference.
+> 
+> Best Regards,
+> Max
