@@ -1,124 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51206 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754516AbbCPWoi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 18:44:38 -0400
-Message-ID: <55075CD2.6060908@iki.fi>
-Date: Tue, 17 Mar 2015 00:44:34 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47149 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752666AbbCRO7j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 10:59:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tim Nordell <tim.nordell@logicpd.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 25/26] omap3isp: Move to videobuf2
+Date: Wed, 18 Mar 2015 16:59:47 +0200
+Message-ID: <2315546.eR07gyadH5@avalon>
+In-Reply-To: <550991C2.80503@logicpd.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com> <2161613.bbRGp2ApSQ@avalon> <550991C2.80503@logicpd.com>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 10/10] mn88473: implement lock for all delivery systems
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-10-git-send-email-benjamin@southpole.se> <55074F74.2080000@iki.fi>
-In-Reply-To: <55074F74.2080000@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 11:47 PM, Antti Palosaari wrote:
-> On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
->> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
->
-> Applied.
+Hi Tim,
 
-I found this does not work at least for DVB-C. After playing with 
-modulator I find reg 0x85 on bank 1 is likely AGC. Its value is changed 
-according to RF level even modulation itself is turned off.
+On Wednesday 18 March 2015 09:54:58 Tim Nordell wrote:
+> On 03/18/15 07:39, Laurent Pinchart wrote:
+> > On Tuesday 17 March 2015 17:57:30 Tim Nordell wrote:
+> >> On 04/21/14 07:29, Laurent Pinchart wrote:
+> >>> Replace the custom buffers queue implementation with a videobuf2 queue.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> 
+> >> I realize this is late (it's in the kernel now), but I'm noticing that
+> >> this does not appear to properly support the scatter-gather buffers that
+> >> were previously supported as far as I recall (and can tell with what was
+> >> removed with this patch), especially when using USERPTR.  You can
+> >> observe this using "yavta" with the -u parameter.  Can you confirm if
+> >> this works for you?  I get the following output from the kernel when
+> >> attempting to stream a 640x480 UYVY framebuffer:
+> >> 
+> >> [  111.381256] contiguous mapping is too small 589824/614400
+> > 
+> > The OMAP3 ISP uses an IOMMU, physically non-contiguous buffers should thus
+> > be mapped contiguously into the device memory space. I haven't tried
+> > USERPTR support recently, but this surprises me. It requires
+> > investigation. Could you give it a try ?
+> 
+> That's why I wrote the e-mail since I did give it a try.  It doesn't
+> work in kernel v3.19 as expected.  I'm using a BT.656 device (and with
+> the patches I submitted last week since it didn't work for my device
+> without those that I wrote), so it's a little harder to go back to the
+> exact patch that causes it to fail (since I believe it's this patch
+> which is pre-BT.656 support) but I would guess that it's the one I
+> replied to here.
+> 
+> The videobuf2-dma-contig framework is what is emitting this error, and
+> part of it's framework checks that the buffer is fully contiguous in
+> memory rather than doing scatter-gather.
 
-I will likely remove that patch... It is a bit hard to find out lock 
-bits and it comes even harder without a modulator. Using typical tricks 
-to plug and unplug antenna, while dumping register values out is error 
-prone as you could not adjust signal strength nor change modulation 
-parameters causing wrong decision easily.
+The names might be a bit misleading, vb2-dma-contig requires contiguous memory 
+in the device memory space, not in physical memory. The IOMMU, managed through 
+dma_map_sg_attrs, should have mapped the userptr buffer contiguously in the 
+ISP DMA address space. If it hasn't, that's what need to be investigated.
 
-regards
-Antti
+> The function "vb2_dc_get_contiguous_size(...)" is what finds the full
+> contiguous area of the buffer and reports back internally how much is
+> available in a row.  Would videobuf2-dma-sg have been a better choice here? 
+> I tried a naive conversion to that (that is, I'm sure I messed something
+> up), but it yielded the kernel spewing messages about "Address Hole seen by
+> CAM" from the omap_l3_smx driver.
 
-
->
-> Antti
->
->> ---
->>   drivers/staging/media/mn88473/mn88473.c | 50
->> +++++++++++++++++++++++++++++++--
->>   1 file changed, 48 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/staging/media/mn88473/mn88473.c
->> b/drivers/staging/media/mn88473/mn88473.c
->> index a23e59e..ba39614 100644
->> --- a/drivers/staging/media/mn88473/mn88473.c
->> +++ b/drivers/staging/media/mn88473/mn88473.c
->> @@ -167,7 +167,10 @@ static int mn88473_read_status(struct
->> dvb_frontend *fe, fe_status_t *status)
->>   {
->>       struct i2c_client *client = fe->demodulator_priv;
->>       struct mn88473_dev *dev = i2c_get_clientdata(client);
->> +    struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>       int ret;
->> +    unsigned int utmp;
->> +    int lock = 0;
->>
->>       *status = 0;
->>
->> @@ -176,8 +179,51 @@ static int mn88473_read_status(struct
->> dvb_frontend *fe, fe_status_t *status)
->>           goto err;
->>       }
->>
->> -    *status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
->> -            FE_HAS_SYNC | FE_HAS_LOCK;
->> +    switch (c->delivery_system) {
->> +    case SYS_DVBT:
->> +        ret = regmap_read(dev->regmap[0], 0x62, &utmp);
->> +        if (ret)
->> +            goto err;
->> +        if (utmp & 0xA0) {
->> +            if ((utmp & 0xF) >= 0x03)
->> +                *status |= FE_HAS_SIGNAL;
->> +            if ((utmp & 0xF) >= 0x09)
->> +                lock = 1;
->> +        }
->> +        break;
->> +    case SYS_DVBT2:
->> +        ret = regmap_read(dev->regmap[2], 0x8B, &utmp);
->> +        if (ret)
->> +            goto err;
->> +        if (utmp & 0x40) {
->> +            if ((utmp & 0xF) >= 0x07)
->> +                *status |= FE_HAS_SIGNAL;
->> +            if ((utmp & 0xF) >= 0x0a)
->> +                *status |= FE_HAS_CARRIER;
->> +            if ((utmp & 0xF) >= 0x0d)
->> +                *status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
->> +        }
->> +        break;
->> +    case SYS_DVBC_ANNEX_A:
->> +        ret = regmap_read(dev->regmap[1], 0x85, &utmp);
->> +        if (ret)
->> +            goto err;
->> +        if (utmp & 0x40) {
->> +            ret = regmap_read(dev->regmap[1], 0x89, &utmp);
->> +            if (ret)
->> +                goto err;
->> +            if (utmp & 0x01)
->> +                lock = 1;
->> +        }
->> +        break;
->> +    default:
->> +        ret = -EINVAL;
->> +        goto err;
->> +    }
->> +
->> +    if (lock)
->> +        *status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
->> +                FE_HAS_SYNC | FE_HAS_LOCK;
->>
->>       return 0;
->>   err:
->>
->
+vb2-dma-sg is used for devices that support scatter-gather. The OMAP3 ISP 
+doesn't, it requires DMA contiguous memory.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
