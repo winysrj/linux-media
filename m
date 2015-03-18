@@ -1,121 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41070 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750960AbbCCP5O (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49121 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965043AbbCRVo3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 10:57:14 -0500
-Message-ID: <54F5D9CA.2010103@xs4all.nl>
-Date: Tue, 03 Mar 2015 16:56:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 18 Mar 2015 17:44:29 -0400
+Date: Wed, 18 Mar 2015 23:44:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tim Nordell <tim.nordell@logicpd.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, iommu@lists.linux-foundation.org
+Subject: Re: [PATCH v2 25/26] omap3isp: Move to videobuf2
+Message-ID: <20150318214425.GL11954@valkosipuli.retiisi.org.uk>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <2315546.eR07gyadH5@avalon>
+ <55099773.2010809@logicpd.com>
+ <2250003.9yO29CjKoc@avalon>
+ <5509D6BC.6080006@logicpd.com>
+ <5509E6DF.4080900@logicpd.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [GIT PULL FOR v4.1] v4l2-subdev: removal of duplicate video enum
- ops
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5509E6DF.4080900@logicpd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Tim,
 
-This patch series prepares for the removal of duplicate video enum ops. See this
-post for the background for this series:
+On Wed, Mar 18, 2015 at 03:58:07PM -0500, Tim Nordell wrote:
+> Laurent -
+> 
+> On 03/18/15 14:49, Tim Nordell wrote:
+> >Digging through to find who is responsible for assigning the virtual
+> >addresses, I find that it's buried inside
+> >arch/arm/mm/dma-mapping.c:__alloc_iova(...).  This call is called
+> >individually for each entry in the scatter-gather table via
+> >__map_sg_chunk from iommu_map_sg(...).  If this is supposed to allocate
+> >a contiguous virtual memory region, it seems that __iommu_map_sg(...)
+> >should be considering the full buffer range rather than parts of the
+> >buffer at a time for the virtual allocation, similar to how
+> >__iommu_create_mapping(...) works in the same file.
+> >
+> >- Tim
+> >
+> 
+> I've confirmed that this code is the culprit for allocating a
+> non-contiguous space (called via the dma_map_sg_attrs(...) back down
+> in the videobuf2-dma-contig).  I've reworked it for testing so that
+> it does an __alloc_iova(...) on the entire region rather than a
+> chunk at a time, however, I don't think what I have locally is
+> completely the right approach for the generic case since I think
+> technically a given entry in the scatterlist could end up with the
+> end of a page partially used (the per list entry ->offset and such).
+> 
+> Looks like code (the specific functions in mm/dma-mapping.c) in
+> question was last touched in 2012 with a quick git-blame, but I
+> don't know how long the OMAP 3 ISP code has been using this common
+> code.  I'm guessing it's only been since the virtual memory manager
+> internal to the IOMMU code was removed in July of last year.
 
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/87869
+I don't think omap3isp has been using this very long. A few minor versions
+perhaps.
 
-The patches in this pull request are the same as the posted series, except for
-being rebased and with patch 6/7 being dropped. This patch is found here:
+> Do you know if this common code is supposed to guarantee a
+> physically contiguous memory region?  The documentation for the
+> function doesn't indicate that it should, and it certainly doesn't
+> as-is.  It seems like hitting this issue is highly dependent on the
+> size of the buffer one is allocating.
 
-https://patchwork.linuxtv.org/patch/28220/
+I guess there aren't too many drivers that may map large areas of memory
+pinned using get_user_pages() to IOMMU. If dma_map_sg() couldn't be used to
+allocate virtually contiguous memory, then what could be? This looks like a
+bug in __iommu_map_sg() to me.
 
-The reason for dropping it is that I don't have an Ack from Jon Corbet yet.
-I'm trying to test it myself, at least on my OLPC laptop, but that's painful
-and takes longer than I hoped.
+Cc the iommu list.
 
-So I don't want to wait for that and I am posting the other patches now.
-Laurent needs these patches as well so he can rebase his xilinx driver on top
-of it.
+-- 
+Kind regards,
 
-Patch 6/7 will be posted in a later pull request, once I (or Jon) managed to
-test it.
-
-Regards,
-
-	Hans
-
-The following changes since commit 269bd1324fbfaa52832bb3efe9f5105c9146a33a:
-
-  [media] media: adv7604: improve usage of gpiod API (2015-03-03 11:26:40 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.1e
-
-for you to fetch changes up to 95d3a905e017568456fa1ec3fd7833987bc9edd3:
-
-  DocBook media: document the new 'which' field. (2015-03-03 16:48:26 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      v4l2-subdev: replace v4l2_subdev_fh by v4l2_subdev_pad_config
-      v4l2-subdev.h: add 'which' field for the enum structs
-      v4l2-subdev.c: add 'which' checks for enum ops.
-      v4l2-subdev: support new 'which' field in enum_mbus_code
-      v4l2-subdev: add support for the new enum_frame_size 'which' field.
-      DocBook media: document the new 'which' field.
-
- Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml | 13 ++++++---
- Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml     | 13 ++++++---
- Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml      | 11 +++++--
- drivers/media/i2c/adv7180.c                                           | 10 +++----
- drivers/media/i2c/adv7511.c                                           | 16 ++++++-----
- drivers/media/i2c/adv7604.c                                           | 12 ++++----
- drivers/media/i2c/m5mols/m5mols_core.c                                | 16 +++++------
- drivers/media/i2c/mt9m032.c                                           | 34 +++++++++++-----------
- drivers/media/i2c/mt9p031.c                                           | 36 +++++++++++------------
- drivers/media/i2c/mt9t001.c                                           | 36 +++++++++++------------
- drivers/media/i2c/mt9v032.c                                           | 36 +++++++++++------------
- drivers/media/i2c/noon010pc30.c                                       | 17 +++++------
- drivers/media/i2c/ov9650.c                                            | 16 +++++------
- drivers/media/i2c/s5c73m3/s5c73m3-core.c                              | 72 ++++++++++++++++++++++++++++------------------
- drivers/media/i2c/s5k4ecgx.c                                          | 16 +++++------
- drivers/media/i2c/s5k5baf.c                                           | 38 ++++++++++++------------
- drivers/media/i2c/s5k6a3.c                                            | 18 ++++++------
- drivers/media/i2c/s5k6aa.c                                            | 34 +++++++++++-----------
- drivers/media/i2c/smiapp/smiapp-core.c                                | 80 +++++++++++++++++++++++++--------------------------
- drivers/media/i2c/tvp514x.c                                           | 12 ++++----
- drivers/media/i2c/tvp7002.c                                           | 14 ++++-----
- drivers/media/platform/exynos4-is/fimc-capture.c                      | 22 +++++++-------
- drivers/media/platform/exynos4-is/fimc-isp.c                          | 28 +++++++++---------
- drivers/media/platform/exynos4-is/fimc-lite.c                         | 33 ++++++++++-----------
- drivers/media/platform/exynos4-is/mipi-csis.c                         | 16 +++++------
- drivers/media/platform/omap3isp/ispccdc.c                             | 86 +++++++++++++++++++++++++++----------------------------
- drivers/media/platform/omap3isp/ispccp2.c                             | 46 ++++++++++++++---------------
- drivers/media/platform/omap3isp/ispcsi2.c                             | 42 +++++++++++++--------------
- drivers/media/platform/omap3isp/isppreview.c                          | 70 ++++++++++++++++++++++----------------------
- drivers/media/platform/omap3isp/ispresizer.c                          | 80 +++++++++++++++++++++++++--------------------------
- drivers/media/platform/s3c-camif/camif-capture.c                      | 18 ++++++------
- drivers/media/platform/vsp1/vsp1_bru.c                                | 42 ++++++++++++++-------------
- drivers/media/platform/vsp1/vsp1_entity.c                             | 16 +++++------
- drivers/media/platform/vsp1/vsp1_entity.h                             |  4 +--
- drivers/media/platform/vsp1/vsp1_hsit.c                               | 18 ++++++------
- drivers/media/platform/vsp1/vsp1_lif.c                                | 22 ++++++++------
- drivers/media/platform/vsp1/vsp1_lut.c                                | 22 ++++++++------
- drivers/media/platform/vsp1/vsp1_rwpf.c                               | 37 ++++++++++++------------
- drivers/media/platform/vsp1/vsp1_rwpf.h                               | 12 ++++----
- drivers/media/platform/vsp1/vsp1_sru.c                                | 30 ++++++++++---------
- drivers/media/platform/vsp1/vsp1_uds.c                                | 30 ++++++++++---------
- drivers/media/v4l2-core/v4l2-subdev.c                                 | 30 +++++++++++++------
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c                      | 51 ++++++++++++++++-----------------
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c                    | 49 +++++++++++++++----------------
- drivers/staging/media/davinci_vpfe/dm365_isif.c                       | 83 ++++++++++++++++++++++++++---------------------------
- drivers/staging/media/davinci_vpfe/dm365_resizer.c                    | 59 ++++++++++++++++++--------------------
- drivers/staging/media/omap4iss/iss_csi2.c                             | 42 +++++++++++++--------------
- drivers/staging/media/omap4iss/iss_ipipe.c                            | 42 +++++++++++++--------------
- drivers/staging/media/omap4iss/iss_ipipeif.c                          | 52 ++++++++++++++++-----------------
- drivers/staging/media/omap4iss/iss_resizer.c                          | 46 ++++++++++++++---------------
- include/media/v4l2-subdev.h                                           | 50 +++++++++++++++++++-------------
- include/uapi/linux/v4l2-subdev.h                                      | 12 ++++++--
- 52 files changed, 906 insertions(+), 834 deletions(-)
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
