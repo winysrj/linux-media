@@ -1,95 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53488 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751678AbbCCJja (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 04:39:30 -0500
-Message-ID: <54F58142.4030201@xs4all.nl>
-Date: Tue, 03 Mar 2015 10:39:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33453 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755076AbbCRVNR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 17:13:17 -0400
+Message-ID: <5509EA6B.9080805@iki.fi>
+Date: Wed, 18 Mar 2015 23:13:15 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: Scott Jiang <scott.jiang.linux@gmail.com>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com> <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com> <54F575AD.5020307@xs4all.nl> <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
-In-Reply-To: <CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 10/10] mn88473: implement lock for all delivery systems
+References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-10-git-send-email-benjamin@southpole.se> <55074F74.2080000@iki.fi> <55075CD2.6060908@iki.fi> <55076302.807@southpole.se>
+In-Reply-To: <55076302.807@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2015 10:30 AM, Lad, Prabhakar wrote:
-> Hi Hans,
-> 
-> On Tue, Mar 3, 2015 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 03/02/2015 08:57 AM, Scott Jiang wrote:
->>> Hi Lad and Hans,
+On 03/17/2015 01:10 AM, Benjamin Larsson wrote:
+> On 03/16/2015 11:44 PM, Antti Palosaari wrote:
+>> On 03/16/2015 11:47 PM, Antti Palosaari wrote:
+>>> On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
+>>>> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 >>>
->>> 2015-02-22 2:39 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
->>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>>>
->>>> This patch series, enhances blackfin capture driver with
->>>> vb2 helpers.
->>>>
->>>> Changes for v3:
->>>> 1: patches unchanged except for patch 8/15 fixing starting of ppi only
->>>>    after we have the resources.
->>>> 2: Rebased on media tree.
->>>>
->>>> v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
->>>>
->>>> v1: https://lkml.org/lkml/2014/12/20/27
->>>>
->>>> Lad, Prabhakar (15):
->>>>   media: blackfin: bfin_capture: drop buf_init() callback
->>>>   media: blackfin: bfin_capture: release buffers in case
->>>>     start_streaming() call back fails
->>>>   media: blackfin: bfin_capture: set min_buffers_needed
->>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
->>>>   media: blackfin: bfin_capture: improve queue_setup() callback
->>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
->>>>     stop_streaming() callback
->>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
->>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
->>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
->>>>
->>>>  drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
->>>>  1 file changed, 94 insertions(+), 212 deletions(-)
->>>>
->>>> --
->>>
->>> For all these patches,
->>> Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
->>> Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>>> Applied.
 >>
->> Thanks!
+>> I found this does not work at least for DVB-C. After playing with
+>> modulator I find reg 0x85 on bank 1 is likely AGC. Its value is changed
+>> according to RF level even modulation itself is turned off.
 >>
->> Is it possible for you to run 'v4l2-compliance -s' with this driver and
->> report the results? I'd be interested in that.
+>> I will likely remove that patch... It is a bit hard to find out lock
+>> bits and it comes even harder without a modulator. Using typical tricks
+>> to plug and unplug antenna, while dumping register values out is error
+>> prone as you could not adjust signal strength nor change modulation
+>> parameters causing wrong decision easily.
 >>
-> Fyi..
-> v4l2-utils can't be compiled under uClibc.
+>> regards
+>> Antti
+>>
+>
+> Indeed the logic was inverted. Will respin the patch.
 
-Do you know what exactly fails? Is it possible to manually compile v4l2-compliance?
+Any ETA for the new patch?
 
-I.e., try this:
+regards
+Antti
 
-cd utils/v4l2-compliance
-cat *.cpp >x.cpp
-g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
-
-I've never used uclibc, so I don't know what the limitations are.
-
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
