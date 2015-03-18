@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33317 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752808AbbCGVmS (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:34577 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755521AbbCRT4h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:18 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 18 Mar 2015 15:56:37 -0400
+Received: by wibg7 with SMTP id g7so69542807wib.1
+        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 12:56:36 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: whittenburg@gmail.com
+Date: Wed, 18 Mar 2015 14:56:36 -0500
+Message-ID: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
+Subject: OMAP3 ISP previewer Y10 to UYVY conversion
+From: Chris Whittenburg <whittenburg@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 12/18] dt: bindings: Add lane-polarity property to endpoint nodes
-Date: Sat,  7 Mar 2015 23:41:09 +0200
-Message-Id: <1425764475-27691-13-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add lane-polarity property to endpoint nodes. This essentially tells that
-the order of the differential signal wires is inverted.
+We're working on a DM3730 platform running a 3.5.7 kernel, using the
+pipeline below to take a 12-bit monochrome sensor (Aptina AR0130) and
+convert it to UYVY format for use with the TI codecs.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/devicetree/bindings/media/video-interfaces.txt |    5 +++++
- 1 file changed, 5 insertions(+)
+In general, this works, but the images end up looking washed out.
+Running them thru a "normalize" function makes them look good again.
+Looking at the levels histogram in gimp, I seem to be missing the high
+end and low end values.
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 571b4c6..058d1e6 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -106,6 +106,11 @@ Optional endpoint properties
- - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-   instance, this is the actual frequency of the bus, not bits per clock per
-   lane value. An array of 64-bit unsigned integers.
-+- lane-polarity: an array of polarities of the lanes starting from the clock
-+  lane and followed by the data lanes in the same order as in data-lanes.
-+  Valid values are 0 (normal) and 1 (inverted). The length of the array
-+  should be the combined length of data-lanes and clock-lanes properties.
-+  This property is valid for serial busses only.
- 
- 
- Example
--- 
-1.7.10.4
+I've captured the 12-bit data from the CCDC, downconverted it to Y8,
+and verified it looks ok, and is not washed out, so I'm suspecting the
+isp previewer is doing something wrong in the simple Y10 to UYVY
+conversion.
 
+Does someone with experience on this topic have a recommendation on
+what component might be causing the problem, or the best way to go
+about isolating the issue?
+
+media-ctl -r
+media-ctl -v -l '"ar0130 3-0010":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
+resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+media-ctl -v -V '"ar0130 3-0010":0['Y12' '640'x'480'], "OMAP3 ISP
+CCDC":2['Y10' '640'x'480'], "OMAP3 ISP preview":1[UYVY '640'x'480'],
+"OMAP3 ISP resizer":1[UYVY '640'x'480']'
+
+Thanks,
+Chris
