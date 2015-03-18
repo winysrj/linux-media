@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39408 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbbCNQ2i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 12:28:38 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 14E5D2A0081
-	for <linux-media@vger.kernel.org>; Sat, 14 Mar 2015 17:28:26 +0100 (CET)
-Message-ID: <550461A9.7040105@xs4all.nl>
-Date: Sat, 14 Mar 2015 17:28:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.logicpd.com ([174.46.170.145]:52347 "HELO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750719AbbCRPZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 11:25:46 -0400
+Message-ID: <550998EE.8080801@logicpd.com>
+Date: Wed, 18 Mar 2015 10:25:34 -0500
+From: Tim Nordell <tim.nordell@logicpd.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] v4l2-ioctl: allow all controls if ctrl_class == 0
-Content-Type: text/plain; charset=utf-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 2/3] omap3isp: Disable CCDC's VD0 and VD1 interrupts when
+ stream is not enabled
+References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com> <1426015494-16799-3-git-send-email-tim.nordell@logicpd.com> <1579699.dpjCaSBOhB@avalon>
+In-Reply-To: <1579699.dpjCaSBOhB@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The check_ext_ctrls() function in v4l2-ioctl.c checks if all controls in the
-control array are from the same control class as c->ctrl_class. However,
-that check should only be done if c->ctrl_class != 0. A 0 value means
-that this restriction does not apply.
+Laurent -
 
-So return 1 (OK) if c->ctrl_class == 0.
+On 03/18/15 10:19, Laurent Pinchart wrote:
+> Hi Tim,
+>
+> Thank you for the patch.
+>
+> On Tuesday 10 March 2015 14:24:53 Tim Nordell wrote:
+>> During testing there appeared to be a race condition where the IRQs
+>> for VD0 and VD1 could be triggered while enabling the CCDC module
+>> before the pipeline status was updated.  Simply modify the trigger
+>> conditions for VD0 and VD1 so they won't occur when the CCDC module
+>> is not enabled.
+>>
+>> (When this occurred during testing, the VD0 interrupt was occurring
+>> over and over again starving the rest of the system.)
+> I'm curious, might this be caused by the input (adv7180 in your case) being
+> enabled before the ISP ? The CCDC is very sensitive to any glitch in its input
+> signals, you need to make sure that the source is disabled before its subdev
+> s_stream operation is called. Given that the adv7180 driver doesn't implement
+> s_stream, I expect it to be free-running, which is definitely a problem.
+>
+I'll give that a shot and try add code into the adv7180 driver to turn 
+on and off its output signals.  However, it seems like if the driver can 
+avoid a problem presented by external hardware (or other drivers), that 
+it should.  Something like either turning off the VD0 and VD1 interrupts 
+when not in use, or by simply moving the trigger points for those 
+interrupts (as I did here) to avoid problems by presented by signals to 
+the system is probably a good thing for robustness.
 
-Found by running v4l2-compliance on the uvc driver.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 09ad8dd..7731499 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -901,6 +901,8 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	 */
- 	if (!allow_priv && c->ctrl_class == V4L2_CID_PRIVATE_BASE)
- 		return 0;
-+	if (c->ctrl_class == 0)
-+		return 1;
- 	/* Check that all controls are from the same control class. */
- 	for (i = 0; i < c->count; i++) {
- 		if (V4L2_CTRL_ID2CLASS(c->controls[i].id) != c->ctrl_class) {
+- Tim
 
