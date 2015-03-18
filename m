@@ -1,54 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:36120 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933268AbbCDQQc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:32 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH/RFC v12 08/19] mfd: max77693: Adjust FLASH_EN_SHIFT and
- TORCH_EN_SHIFT macros
-Date: Wed, 04 Mar 2015 17:14:29 +0100
-Message-id: <1425485680-8417-9-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-wi0-f195.google.com ([209.85.212.195]:33860 "EHLO
+	mail-wi0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766AbbCRGuY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 02:50:24 -0400
+Received: by wivr20 with SMTP id r20so3119553wiv.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2015 23:50:23 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 18 Mar 2015 14:50:23 +0800
+Message-ID: <CAFvf8-hLA3o6m+xAiKORJrO=bfr6ohJ1Zz1vh5vj4xDz2krzsA@mail.gmail.com>
+Subject: two UVC simultaneous devices impossible?
+From: dongdong zhang <dongguangit@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modify FLASH_EN_SHIFT and TORCH_EN_SHIFT macros to work properly
-when passed enum max77693_fled values (0 for FLED1 and 1 for FLED2)
-from leds-max77693 driver. Previous definitions were compatible with
-one of the previous RFC versions of leds-max77693.c driver, which was
-not merged.
+Using kernel 3.2.0 on ti am3354 ,
+Kernel 2.6.35.7 on samsung s5pv210,
+Kernel 3.0.8 on samsung s5pv210,
+Linux ubuntu 3.13.0-24-generic #46-Ubuntu SMP Thu Apr 10 19:08:14 UTC
+2014 i686 i686 i686 GNU/Linux
+Ubuntu 14.04 on x86
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
----
- include/linux/mfd/max77693-private.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I find it impossible to
+start motion with two UVC cameras:
 
-diff --git a/include/linux/mfd/max77693-private.h b/include/linux/mfd/max77693-private.h
-index 8770ce1..51633ea 100644
---- a/include/linux/mfd/max77693-private.h
-+++ b/include/linux/mfd/max77693-private.h
-@@ -114,8 +114,8 @@ enum max77693_pmic_reg {
- #define FLASH_EN_FLASH		0x1
- #define FLASH_EN_TORCH		0x2
- #define FLASH_EN_ON		0x3
--#define FLASH_EN_SHIFT(x)	(6 - ((x) - 1) * 2)
--#define TORCH_EN_SHIFT(x)	(2 - ((x) - 1) * 2)
-+#define FLASH_EN_SHIFT(x)	(6 - (x) * 2)
-+#define TORCH_EN_SHIFT(x)	(2 - (x) * 2)
- 
- /* MAX77693 MAX_FLASH1 register */
- #define MAX_FLASH1_MAX_FL_EN	0x80
--- 
-1.7.9.5
+uvcvideo: Failed to submit URB 0 (-28).
+ Error starting stream.
+ VIDIOC_STREAMON: No space left on  device
+ ioctl(VIDIOCGMBUF) - Error device does not support memory map
+When using one UVC camera with the same configuration it works fine.
+ Is there a limitation in the UVC driver regarding simultaneous camera.
 
+
+Lowering the resolution on both two cameras to the minimum (160x120)
+open simultaneously doesn't
+help. However with the same camera of two UVC at 1280x720 open
+simultaneously  on windows xp software platform it works fine.
+So it doesn't seem to be a USB bandwidth problem
