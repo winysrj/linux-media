@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:43852 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbbCHOlN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:13 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 09/17] media: blackfin: bfin_capture: make sure all buffers are returned on stop_streaming() callback
-Date: Sun,  8 Mar 2015 14:40:45 +0000
-Message-Id: <1425825653-14768-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44468 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755424AbbCRKXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 06:23:01 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 0/5] i.MX5/6 mem2mem scaler
+Date: Wed, 18 Mar 2015 11:22:48 +0100
+Message-Id: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi,
 
-In start_streaming() callback the buffer is removed from the
-dma_queue list and assigned to cur_frm, this patch makes sure
-that is returned to vb2 core with VB2_BUF_STATE_ERROR flag.
+this series uses the IPU IC post-processing task, to implement
+a mem2mem device for scaling and colorspace conversion. The first
+version had a fixup applied to the wrong patch.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
-Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 3 +++
- 1 file changed, 3 insertions(+)
+Changes since v1:
+ - Removed deinterlacer support left-overs
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 2a9e933..f2b1a23 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -374,6 +374,9 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 				"stream off failed in subdev\n");
- 
- 	/* release all active buffers */
-+	if (bcap_dev->cur_frm)
-+		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+
- 	while (!list_empty(&bcap_dev->dma_queue)) {
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 						struct bcap_buffer, list);
+regards
+Philipp
+
+Philipp Zabel (3):
+  gpu: ipu-v3: Add missing IDMAC channel names
+  gpu: ipu-v3: Add mem2mem image conversion support to IC
+  gpu: ipu-v3: Register scaler platform device
+
+Sascha Hauer (2):
+  [media] imx-ipu: Add ipu media common code
+  [media] imx-ipu: Add i.MX IPUv3 scaler driver
+
+ drivers/gpu/ipu-v3/ipu-common.c             |   2 +
+ drivers/gpu/ipu-v3/ipu-ic.c                 | 787 ++++++++++++++++++++++++-
+ drivers/media/platform/Kconfig              |   2 +
+ drivers/media/platform/Makefile             |   1 +
+ drivers/media/platform/imx/Kconfig          |  11 +
+ drivers/media/platform/imx/Makefile         |   2 +
+ drivers/media/platform/imx/imx-ipu-scaler.c | 869 ++++++++++++++++++++++++++++
+ drivers/media/platform/imx/imx-ipu.c        | 313 ++++++++++
+ drivers/media/platform/imx/imx-ipu.h        |  36 ++
+ include/video/imx-ipu-v3.h                  |  49 +-
+ 10 files changed, 2055 insertions(+), 17 deletions(-)
+ create mode 100644 drivers/media/platform/imx/Kconfig
+ create mode 100644 drivers/media/platform/imx/Makefile
+ create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.h
+
 -- 
-2.1.0
+2.1.4
 
