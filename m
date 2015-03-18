@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:34064 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbbCSJkZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2015 05:40:25 -0400
+Received: from mail.aswsp.com ([193.34.35.150]:39927 "EHLO mail.aswsp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755676AbbCRQzm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 12:55:42 -0400
+Message-ID: <5509AE0C.6040009@parrot.com>
+Date: Wed, 18 Mar 2015 17:55:40 +0100
+From: =?UTF-8?B?QXVyw6lsaWVuIFphbmVsbGk=?= <aurelien.zanelli@parrot.com>
 MIME-Version: 1.0
-In-Reply-To: <5509F87D.9060603@linux.intel.com>
-References: <1426628910-11927-1-git-send-email-prabhakar.csengg@gmail.com> <5509F87D.9060603@linux.intel.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 19 Mar 2015 09:39:53 +0000
-Message-ID: <CA+V-a8uaLhRrSn7KA1N5LCfPAx0KKpP4HFyk69SOmJmaSt3ewQ@mail.gmail.com>
-Subject: Re: [PATCH v7] media: i2c: add support for omnivision's ov2659 sensor
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Dynamic video input/output list
+References: <5507177A.8060200@parrot.com> <CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com> <55073598.9010803@xs4all.nl>
+In-Reply-To: <55073598.9010803@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thanks for the review.
-
-On Wed, Mar 18, 2015 at 10:13 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> Hi Prabhakar,
->
-> Lad Prabhakar wrote:
-> ...
+On 16/03/2015 20:57, Hans Verkuil wrote:
+> On 03/16/2015 07:01 PM, Devin Heitmueller wrote:
+>>> I'm looking to enhance video input/output enumeration support in
+>>> GStreamer using VIDIOC_ENUMINPUT/VIDIOC_ENUMOUTPUT ioctls and after some
+>>> discussions we wonder if the input/output list can change dynamically at
+>>> runtime or not.
+>>>
+>>> So, is v4l2 allow this input/output list to be dynamic ?
 >>
->> +static int ov2659_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->> +{
->> +       struct ov2659 *ov2659 =
->> +                       container_of(ctrl->handler, struct ov2659, ctrls);
->> +       struct v4l2_mbus_framefmt *fmt = &ov2659->format;
->> +
->> +       switch (ctrl->id) {
->> +       case V4L2_CID_PIXEL_RATE:
->> +               if (fmt->code != MEDIA_BUS_FMT_SBGGR8_1X8)
->> +                       ov2659->link_frequency->val =
->> +                                       ov2659->pdata->link_frequency / 2;
->> +               else
->> +                       ov2659->link_frequency->val =
->> +                                       ov2659->pdata->link_frequency;
->
->
-> You should simply use v4l2_ctrl_s_ctrl_int64() in ..._set_fmt() as this
-> isn't really a proper volatile control, but its value depends on the format.
->
-Yea makes sense, will respin the patch with this change.
+>> I sure how the spec allows it, because I've done it in the past.
+> 
+> Just because you can do something doesn't mean the spec allows it :-)
+> In this particular case nobody ever thought about whether this could
+> change dynamically so the spec never talks about it.
+> 
+> But at the moment it is definitely not allowed, even though the spec
+> doesn't explicitly forbid it. All applications expect that the list of
+> inputs/outputs is fixed.
+> 
+> The spec could be extended to allow this, but then there also should be
+> a new event introduced that the application can receive if the list changes
+> so it can update the list.
 
-Cheers,
---Prabhakar Lad
+Thanks for quick answers.
+In light of these details, I think we will assume in GStreamer that the
+list is fixed. Maybe it would be nice to explicitely forbid dynamic list
+in the specification for now.
+
+> 
+> But frankly, I would prefer to always expose all possible inputs, including
+> those of an optional onboard header, and if nothing is connected just mark
+> those inputs as having status V4L2_IN_ST_NO_POWER.
+Agreed.
+
+Regards,
+Aurélien Zanelli
+
+> 
+> Note however that it is perfectly fine if the driver detects the presence
+> of such an onboard header when it is loaded and then only exposes those
+> extra inputs if the header is present. It just can't change the list later
+> unless do you an rmmod and modprobe of the driver. It's probably what you
+> do anyway.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> I have cards which have an onboard header for external A/V inputs, and I
+>> am able to tell if the breakout cable is attached due to a dedicated
+>> pin tied to a GPIO.  Thus, I am able to dictate whether the card has
+>> the A/V breakout cable attached and thus whether to expose only the
+>> first input or all three inputs.
+>>
+>> That said, in this case the inputs in the list never moved around
+>> because the optional entries were at the end of the list - the list
+>> just got longer if those inputs were available.  I'm not sure what
+>> would happen if you had a configuration where you needed to remove
+>> entries other than those at the end of the list.  For example, if you
+>> had a card with four possible inputs and you removed input 2, does the
+>> list stay the same length and input 2 is now marked as invalid, or
+>> does the length of the list become 3 and inputs 3 and 4 turn into
+>> inputs 2 and 3?
+>>
+>> Devin
+>>
+> 
