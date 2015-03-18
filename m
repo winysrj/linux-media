@@ -1,60 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49039 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933928AbbCPVnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:43:03 -0400
-Message-ID: <55074E64.10500@iki.fi>
-Date: Mon, 16 Mar 2015 23:43:00 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47038 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932878AbbCRNXm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 09:23:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH/RFC] v4l: vsp1: Change VSP1 LIF linebuffer FIFO
+Date: Wed, 18 Mar 2015 15:23:50 +0200
+Message-ID: <35670369.0N4n9OXz2m@avalon>
+In-Reply-To: <CAMuHMdVKmWgcSqLxfgOUFXd2mu-dacvQxLJr7xLaQ=S8Mt0gnw@mail.gmail.com>
+References: <1426430018-3172-1-git-send-email-ykaneko0929@gmail.com> <CAMuHMdVKmWgcSqLxfgOUFXd2mu-dacvQxLJr7xLaQ=S8Mt0gnw@mail.gmail.com>
 MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 08/10] mn88473: check if firmware is already running before
- loading it
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-8-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-8-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+Hello,
 
-Applied!
+On Monday 16 March 2015 09:06:22 Geert Uytterhoeven wrote:
+> On Sun, Mar 15, 2015 at 3:33 PM, Yoshihiro Kaneko wrote:
+> > From: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+> > 
+> > Change to VSPD hardware recommended value.
+> > Purpose is highest pixel clock without underruns.
+> > In the default R-Car Linux BSP config this value is
+> > wrong and therefore there are many underruns.
+> > 
+> > Here are the original settings:
+> > HBTH = 1300 (VSPD stops when 1300 pixels are buffered)
+> > LBTH = 200 (VSPD resumes when buffer level has decreased
+> >             below 200 pixels)
+> > 
+> > The display underruns can be eliminated
+> > by applying the following settings:
+> > HBTH = 1504
+> > LBTH = 1248
+> > 
+> > --- a/drivers/media/platform/vsp1/vsp1_lif.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_lif.c
+> > @@ -44,9 +44,9 @@ static int lif_s_stream(struct v4l2_subdev *subdev, int
+> > enable)
+> >  {
+> >         const struct v4l2_mbus_framefmt *format;
+> >         struct vsp1_lif *lif = to_lif(subdev);
+> > -       unsigned int hbth = 1300;
+> > -       unsigned int obth = 400;
+> > -       unsigned int lbth = 200;
+> > +       unsigned int hbth = 1536;
+> > +       unsigned int obth = 128;
+> > +       unsigned int lbth = 1520;
+> 
+> These values don't match the patch description?
 
-Antti
+Indeed. And where do these values come from ? A 16 bytes hysteresis is very 
+small, the VSP1 will constantly start and stop. Isn't that bad from a power 
+consumption point of view ?
 
-> ---
->   drivers/staging/media/mn88473/mn88473.c | 13 ++++++++++++-
->   1 file changed, 12 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-> index 607ce4d..a23e59e 100644
-> --- a/drivers/staging/media/mn88473/mn88473.c
-> +++ b/drivers/staging/media/mn88473/mn88473.c
-> @@ -196,8 +196,19 @@ static int mn88473_init(struct dvb_frontend *fe)
->
->   	dev_dbg(&client->dev, "\n");
->
-> -	if (dev->warm)
-> +	/* set cold state by default */
-> +	dev->warm = false;
-> +
-> +	/* check if firmware is already running */
-> +	ret = regmap_read(dev->regmap[0], 0xf5, &tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (!(tmp & 0x1)) {
-> +		dev_info(&client->dev, "firmware already running\n");
-> +		dev->warm = true;
->   		return 0;
-> +	}
->
->   	/* request the firmware, this will block and timeout */
->   	ret = request_firmware(&fw, fw_file, &client->dev);
->
+> BTW, what's the significance of changing obth?
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
