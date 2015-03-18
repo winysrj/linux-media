@@ -1,176 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:32960 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115AbbCRKo3 convert rfc822-to-8bit (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47184 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbbCRPVP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 06:44:29 -0400
-Received: by lbbzq9 with SMTP id zq9so26449723lbb.0
-        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 03:44:27 -0700 (PDT)
+	Wed, 18 Mar 2015 11:21:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tim Nordell <tim.nordell@logicpd.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 25/26] omap3isp: Move to videobuf2
+Date: Wed, 18 Mar 2015 17:21:24 +0200
+Message-ID: <2250003.9yO29CjKoc@avalon>
+In-Reply-To: <55099773.2010809@logicpd.com>
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com> <2315546.eR07gyadH5@avalon> <55099773.2010809@logicpd.com>
 MIME-Version: 1.0
-In-Reply-To: <CAEmZozNLC_2pUD9h2vQeVMUQvt0apHdWas=SEpeuftp4PYiRNw@mail.gmail.com>
-References: <20150225223036.23353.77716.stgit@zeus.muc.hardeman.nu> <CAEmZozNLC_2pUD9h2vQeVMUQvt0apHdWas=SEpeuftp4PYiRNw@mail.gmail.com>
-From: =?UTF-8?Q?David_Cimb=C5=AFrek?= <david.cimburek@gmail.com>
-Date: Wed, 18 Mar 2015 11:43:56 +0100
-Message-ID: <CAEmZozNTy1UUF9BrR+VxzJ145+o9swY=Vs+gyMubdJJxNbpuhw@mail.gmail.com>
-Subject: Re: [PATCH] rc-core: fix dib0700 scancode generation for RC5
-To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Tim,
 
-any progress?? Do you need some more debugging output from me?
+On Wednesday 18 March 2015 10:19:15 Tim Nordell wrote:
+> Laurent -
+> 
+> On 03/18/15 09:59, Laurent Pinchart wrote:
+> > Hi Tim,
+> > The names might be a bit misleading, vb2-dma-contig requires contiguous
+> > memory in the device memory space, not in physical memory. The IOMMU,
+> > managed through dma_map_sg_attrs, should have mapped the userptr buffer
+> > contiguously in the ISP DMA address space. If it hasn't, that's what need
+> > to be investigated.
+>
+> I see now that it's the sg_dma_address(...) call that it's using and I
+> was assuming that was the physical memory address for the memory backing
+> up the buffer.
+> 
+> So the vb2_dc_get_contiguous_size(...) should be against the view of
+> memory that the IOMMU presents to the OMAP3 ISP?  That is, the DMA
+> addresses that the OMAP3 ISP can see?
 
+Correct. sg_dma_address() should contain the DMA virtual address when an IOMMU 
+is used.
+
+> I was assuming it was checking the physical memory layout to it without
+> looking too closely to the code.  Armed with that knowledge, I'll dig a
+> little deeper to see if I can figure out what happened here.
+
+Thank you.
+
+-- 
 Regards,
-David
 
+Laurent Pinchart
 
-2015-02-26 19:14 GMT+01:00 David Cimbůrek <david.cimburek@gmail.com>:
-> 2015-02-25 23:30 GMT+01:00 David Härdeman <david@hardeman.nu>:
->> David, could you please test this patch?
->> ---
->>  drivers/media/usb/dvb-usb/dib0700_core.c |   70 +++++++++++++++++-------------
->>  1 file changed, 40 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
->> index 50856db..605b090 100644
->> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
->> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
->> @@ -658,10 +658,20 @@ out:
->>  struct dib0700_rc_response {
->>         u8 report_id;
->>         u8 data_state;
->> -       u8 system;
->> -       u8 not_system;
->> -       u8 data;
->> -       u8 not_data;
->> +       union {
->> +               struct {
->> +                       u8 system;
->> +                       u8 not_system;
->> +                       u8 data;
->> +                       u8 not_data;
->> +               } nec;
->> +               struct {
->> +                       u8 not_used;
->> +                       u8 system;
->> +                       u8 data;
->> +                       u8 not_data;
->> +               } rc5;
->> +       };
->>  };
->>  #define RC_MSG_SIZE_V1_20 6
->>
->> @@ -697,8 +707,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->>
->>         deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
->>                  poll_reply->report_id, poll_reply->data_state,
->> -                poll_reply->system, poll_reply->not_system,
->> -                poll_reply->data, poll_reply->not_data,
->> +                poll_reply->nec.system, poll_reply->nec.not_system,
->> +                poll_reply->nec.data, poll_reply->nec.not_data,
->>                  purb->actual_length);
->>
->>         switch (d->props.rc.core.protocol) {
->> @@ -707,30 +717,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->>                 toggle = 0;
->>
->>                 /* NEC protocol sends repeat code as 0 0 0 FF */
->> -               if (poll_reply->system     == 0x00 &&
->> -                   poll_reply->not_system == 0x00 &&
->> -                   poll_reply->data       == 0x00 &&
->> -                   poll_reply->not_data   == 0xff) {
->> +               if (poll_reply->nec.system     == 0x00 &&
->> +                   poll_reply->nec.not_system == 0x00 &&
->> +                   poll_reply->nec.data       == 0x00 &&
->> +                   poll_reply->nec.not_data   == 0xff) {
->>                         poll_reply->data_state = 2;
->>                         break;
->>                 }
->>
->> -               if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
->> +               if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
->>                         deb_data("NEC32 protocol\n");
->> -                       keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
->> -                                                    poll_reply->not_system << 16 |
->> -                                                    poll_reply->data       << 8  |
->> -                                                    poll_reply->not_data);
->> -               } else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
->> +                       keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
->> +                                                    poll_reply->nec.not_system << 16 |
->> +                                                    poll_reply->nec.data       << 8  |
->> +                                                    poll_reply->nec.not_data);
->> +               } else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
->>                         deb_data("NEC extended protocol\n");
->> -                       keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
->> -                                                   poll_reply->not_system,
->> -                                                   poll_reply->data);
->> +                       keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
->> +                                                   poll_reply->nec.not_system,
->> +                                                   poll_reply->nec.data);
->>
->>                 } else {
->>                         deb_data("NEC normal protocol\n");
->> -                       keycode = RC_SCANCODE_NEC(poll_reply->system,
->> -                                                  poll_reply->data);
->> +                       keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
->> +                                                  poll_reply->nec.data);
->>                 }
->>
->>                 break;
->> @@ -738,19 +748,19 @@ static void dib0700_rc_urb_completion(struct urb *purb)
->>                 deb_data("RC5 protocol\n");
->>                 protocol = RC_TYPE_RC5;
->>                 toggle = poll_reply->report_id;
->> -               keycode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
->> +               keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
->> +
->> +               if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
->> +                       /* Key failed integrity check */
->> +                       err("key failed integrity check: %02x %02x %02x %02x",
->> +                           poll_reply->rc5.not_used, poll_reply->rc5.system,
->> +                           poll_reply->rc5.data, poll_reply->rc5.not_data);
->> +                       goto resubmit;
->> +               }
->>
->>                 break;
->>         }
->>
->> -       if ((poll_reply->data + poll_reply->not_data) != 0xff) {
->> -               /* Key failed integrity check */
->> -               err("key failed integrity check: %02x %02x %02x %02x",
->> -                   poll_reply->system,  poll_reply->not_system,
->> -                   poll_reply->data, poll_reply->not_data);
->> -               goto resubmit;
->> -       }
->> -
->>         rc_keydown(d->rc_dev, protocol, keycode, toggle);
->>
->>  resubmit:
->>
->
-> Hi David,
->
-> yes! Your patch seems to work fine on my side, my remote is working again!
->
-> Here is the relevant debug log (press and release of the "1" key):
->
-> [ 4131.099573] IR ID = 01 state = 01 System = 00 07 Cmd = 0F F0 (len 6)
-> [ 4131.099579] RC5 protocol
-> [ 4131.099581] protocol = 03 keycode = 070F toggle = 01
-> [ 4131.212813] IR ID = 01 state = 02 System = 00 07 Cmd = 0F F0 (len 6)
-> [ 4131.212819] RC5 protocol
->
-> This is the output of debug output which I added in
-> dib0700_core.c:dib0700_rc_urb_completion() before the call of
-> rc_keydown() function:
->
-> deb_data("protocol = %02X keycode = %04X toggle = %02X\n", protocol,
-> keycode, toggle);
-> [ 4131.212821] protocol = 03 keycode = 070F toggle = 01
->
-> Regards,
-> David
