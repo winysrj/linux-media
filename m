@@ -1,70 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:34262 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932398AbbCPROl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 13:14:41 -0400
-Received: by lbbsy1 with SMTP id sy1so35732571lbb.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2015 10:14:40 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 2/3] dw2102: store i2c client for tuner into dw2102_state
-Date: Mon, 16 Mar 2015 19:14:05 +0200
-Message-Id: <1426526046-2063-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1426526046-2063-1-git-send-email-olli.salonen@iki.fi>
-References: <1426526046-2063-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp.logicpd.com ([174.46.170.145]:52094 "HELO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751564AbbCRPT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 11:19:26 -0400
+Message-ID: <55099773.2010809@logicpd.com>
+Date: Wed, 18 Mar 2015 10:19:15 -0500
+From: Tim Nordell <tim.nordell@logicpd.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 25/26] omap3isp: Move to videobuf2
+References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com> <2161613.bbRGp2ApSQ@avalon> <550991C2.80503@logicpd.com> <2315546.eR07gyadH5@avalon>
+In-Reply-To: <2315546.eR07gyadH5@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare the dw2102 driver for tuner drivers that are implemented as I2C drivers (such as 
-m88ts2022). The I2C client is stored in to the state and released at disconnect.
+Laurent -
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/dw2102.c | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+On 03/18/15 09:59, Laurent Pinchart wrote:
+> Hi Tim,
+> The names might be a bit misleading, vb2-dma-contig requires contiguous memory
+> in the device memory space, not in physical memory. The IOMMU, managed through
+> dma_map_sg_attrs, should have mapped the userptr buffer contiguously in the
+> ISP DMA address space. If it hasn't, that's what need to be investigated.
+I see now that it's the sg_dma_address(...) call that it's using and I 
+was assuming that was the physical memory address for the memory backing 
+up the buffer.
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index c68a610..f7dd973 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -114,6 +114,7 @@
- 
- struct dw2102_state {
- 	u8 initialized;
-+	struct i2c_client *i2c_client_tuner;
- 	int (*old_set_voltage)(struct dvb_frontend *f, fe_sec_voltage_t v);
- };
- 
-@@ -2138,10 +2139,26 @@ static int dw2102_probe(struct usb_interface *intf,
- 	return -ENODEV;
- }
- 
-+static void dw2102_disconnect(struct usb_interface *intf)
-+{
-+	struct dvb_usb_device *d = usb_get_intfdata(intf);
-+	struct dw2102_state *st = (struct dw2102_state *)d->priv;
-+	struct i2c_client *client;
-+
-+	/* remove I2C client for tuner */
-+	client = st->i2c_client_tuner;
-+	if (client) {
-+		module_put(client->dev.driver->owner);
-+		i2c_unregister_device(client);
-+	}
-+
-+	dvb_usb_device_exit(intf);
-+}
-+
- static struct usb_driver dw2102_driver = {
- 	.name = "dw2102",
- 	.probe = dw2102_probe,
--	.disconnect = dvb_usb_device_exit,
-+	.disconnect = dw2102_disconnect,
- 	.id_table = dw2102_table,
- };
- 
--- 
-1.9.1
+So the vb2_dc_get_contiguous_size(...) should be against the view of 
+memory that the IOMMU presents to the OMAP3 ISP?  That is, the DMA 
+addresses that the OMAP3 ISP can see?  I was assuming it was checking 
+the physical memory layout to it without looking too closely to the 
+code.  Armed with that knowledge, I'll dig a little deeper to see if I 
+can figure out what happened here.
 
+- Tim
