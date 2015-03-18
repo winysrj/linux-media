@@ -1,343 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45108 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752545AbbCPA1A (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:35364 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755014AbbCRH5k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:27:00 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 11/15] omap3isp: Replace many MMIO regions by two
-Date: Mon, 16 Mar 2015 02:26:06 +0200
-Message-Id: <1426465570-30295-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 18 Mar 2015 03:57:40 -0400
+Received: by pdbop1 with SMTP id op1so35594279pdb.2
+        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 00:57:40 -0700 (PDT)
+From: Kassey Li <kassey1216@gmail.com>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, kasseyl@nvidia.com
+Subject: [PATCH V2 03/18] [media] V4L: soc-camera: add SPI device support
+Date: Wed, 18 Mar 2015 15:57:34 +0800
+Message-Id: <1426665454-6903-1-git-send-email-kassey1216@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap3isp MMIO register block is contiguous in the MMIO register space
-apart from the fact that the ISP IOMMU register block is in the middle of
-the area. Ioremap it at two occasions, and keep the rest of the layout of
-the register space internal to the omap3isp driver.
+From: Kassey Li <kasseyl@nvidia.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+This adds support for spi interface sub device for
+soc_camera.
+
+Signed-off-by: Kassey Li <kasseyl@nvidia.com>
 ---
- arch/arm/mach-omap2/devices.c         |   66 +------------------
- arch/arm/mach-omap2/omap34xx.h        |   36 +----------
- drivers/media/platform/omap3isp/isp.c |  113 +++++++++++++++++----------------
- drivers/media/platform/omap3isp/isp.h |    4 +-
- 4 files changed, 66 insertions(+), 153 deletions(-)
+ drivers/media/platform/soc_camera/soc_camera.c |   94 ++++++++++++++++++++++++
+ include/media/soc_camera.h                     |    4 +
+ 2 files changed, 98 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index e945957..990338f 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
- static struct resource omap3isp_resources[] = {
- 	{
- 		.start		= OMAP3430_ISP_BASE,
--		.end		= OMAP3430_ISP_END,
-+		.end		= OMAP3430_ISP_BASE + 0x12fc,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CCP2_BASE,
--		.end		= OMAP3430_ISP_CCP2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CCDC_BASE,
--		.end		= OMAP3430_ISP_CCDC_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_HIST_BASE,
--		.end		= OMAP3430_ISP_HIST_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_H3A_BASE,
--		.end		= OMAP3430_ISP_H3A_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_PREV_BASE,
--		.end		= OMAP3430_ISP_PREV_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_RESZ_BASE,
--		.end		= OMAP3430_ISP_RESZ_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_SBL_BASE,
--		.end		= OMAP3430_ISP_SBL_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
--		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CSIPHY2_BASE,
--		.end		= OMAP3430_ISP_CSIPHY2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
--		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
--		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSIPHY1_BASE,
--		.end		= OMAP3630_ISP_CSIPHY1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
--		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
-+		.start		= OMAP3430_ISP_BASE2,
-+		.end		= OMAP3430_ISP_BASE2 + 0x0600,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
-index c0d1b4b..ed0024d 100644
---- a/arch/arm/mach-omap2/omap34xx.h
-+++ b/arch/arm/mach-omap2/omap34xx.h
-@@ -46,39 +46,9 @@
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index b3db51c..b01c075 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -27,6 +27,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/spi/spi.h>
+ #include <linux/vmalloc.h>
  
- #define OMAP34XX_IC_BASE	0x48200000
- 
--#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
--#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
--#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
--#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
--#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
--#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
--#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
--#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
--#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
--#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
--#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
--#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
--#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
--#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
--
--#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
--#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
--#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
--#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
--#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
--#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
--#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
--#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
--#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
--#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
--#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
--#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
--#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
--#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
--#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
-+#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
-+#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
-+#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
- 
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 83b4368..992e74c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
- static const struct isp_res_mapping isp_res_maps[] = {
- 	{
- 		.isp_rev = ISP_REVISION_2_0,
--		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
--		       1 << OMAP3_ISP_IOMEM_CCP2 |
--		       1 << OMAP3_ISP_IOMEM_CCDC |
--		       1 << OMAP3_ISP_IOMEM_HIST |
--		       1 << OMAP3_ISP_IOMEM_H3A |
--		       1 << OMAP3_ISP_IOMEM_PREV |
--		       1 << OMAP3_ISP_IOMEM_RESZ |
--		       1 << OMAP3_ISP_IOMEM_SBL |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		.offset = {
-+			/* first MMIO area */
-+			0x0000, /* base, len 0x0070 */
-+			0x0400, /* ccp2, len 0x01f0 */
-+			0x0600, /* ccdc, len 0x00a8 */
-+			0x0a00, /* hist, len 0x0048 */
-+			0x0c00, /* h3a, len 0x0060 */
-+			0x0e00, /* preview, len 0x00a0 */
-+			0x1000, /* resizer, len 0x00ac */
-+			0x1200, /* sbl, len 0x00fc */
-+			/* second MMIO area */
-+			0x0000, /* csi2a, len 0x0170 */
-+			0x0170, /* csiphy2, len 0x000c */
-+		},
- 		.syscon_offset = 0xdc,
- 		.phy_type = ISP_PHY_TYPE_3430,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
--		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
--		       1 << OMAP3_ISP_IOMEM_CCP2 |
--		       1 << OMAP3_ISP_IOMEM_CCDC |
--		       1 << OMAP3_ISP_IOMEM_HIST |
--		       1 << OMAP3_ISP_IOMEM_H3A |
--		       1 << OMAP3_ISP_IOMEM_PREV |
--		       1 << OMAP3_ISP_IOMEM_RESZ |
--		       1 << OMAP3_ISP_IOMEM_SBL |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		.offset = {
-+			/* first MMIO area */
-+			0x0000, /* base, len 0x0070 */
-+			0x0400, /* ccp2, len 0x01f0 */
-+			0x0600, /* ccdc, len 0x00a8 */
-+			0x0a00, /* hist, len 0x0048 */
-+			0x0c00, /* h3a, len 0x0060 */
-+			0x0e00, /* preview, len 0x00a0 */
-+			0x1000, /* resizer, len 0x00ac */
-+			0x1200, /* sbl, len 0x00fc */
-+			/* second MMIO area */
-+			0x0000, /* csi2a, len 0x0170 (1st area) */
-+			0x0170, /* csiphy2, len 0x000c */
-+			0x01c0, /* csi2a, len 0x0040 (2nd area) */
-+			0x0400, /* csi2c, len 0x0170 (1st area) */
-+			0x0570, /* csiphy1, len 0x000c */
-+			0x05c0, /* csi2c, len 0x0040 (2nd area) */
-+		},
- 		.syscon_offset = 0x2f0,
- 		.phy_type = ISP_PHY_TYPE_3630,
- 	},
-@@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
- 	return 0;
+ #include <media/soc_camera.h>
+@@ -1430,6 +1431,91 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
+ 	icd->clk = NULL;
  }
  
--static int isp_map_mem_resource(struct platform_device *pdev,
--				struct isp_device *isp,
--				enum isp_mem_resources res)
--{
--	struct resource *mem;
--
--	/* request the mem region for the camera registers */
--
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
--
--	/* map the region */
--	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
--	if (IS_ERR(isp->mmio_base[res]))
--		return PTR_ERR(isp->mmio_base[res]);
--
--	if (res == OMAP3_ISP_IOMEM_HIST)
--		isp->mmio_hist_base_phys = mem->start;
--
--	return 0;
--}
--
- /*
-  * isp_probe - Probe ISP platform device
-  * @pdev: Pointer to ISP platform device
-@@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
- {
- 	struct isp_platform_data *pdata = pdev->dev.platform_data;
- 	struct isp_device *isp;
-+	struct resource *mem;
- 	int ret;
- 	int i, m;
- 
-@@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
- 	 *
- 	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
- 	 * manually to read the revision before calling __omap3isp_get().
-+	 *
-+	 * Start by mapping the ISP MMIO area, which is in two pieces.
-+	 * The ISP IOMMU is in between. Map both now, and fill in the
-+	 * ISP revision specific portions a little later in the
-+	 * function.
- 	 */
--	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
--	if (ret < 0)
--		goto error;
-+	for (i = 0; i < 2; i++) {
-+		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
++static int soc_camera_spi_init(struct soc_camera_device *icd,
++			       struct soc_camera_desc *sdesc)
++{
++	struct soc_camera_subdev_desc *ssdd;
++	struct spi_device *spi;
++	struct soc_camera_host *ici;
++	struct soc_camera_host_desc *shd = &sdesc->host_desc;
++	struct spi_master *spi_master;
++	struct v4l2_subdev *subdev;
++	char clk_name[V4L2_SUBDEV_NAME_SIZE];
++	int ret;
 +
-+		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		isp->mmio_base[map_idx] =
-+			devm_ioremap_resource(isp->dev, mem);
-+		if (IS_ERR(isp->mmio_base[map_idx]))
-+			return PTR_ERR(isp->mmio_base[map_idx]);
++	/* First find out how we link the main client */
++	if (icd->sasc) {
++		/* Async non-OF probing handled by the subdevice list */
++		return -EPROBE_DEFER;
 +	}
- 
- 	ret = isp_get_clocks(isp);
- 	if (ret < 0)
-@@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
- 		goto error_isp;
- 	}
- 
--	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
--		if (isp_res_maps[m].map & 1 << i) {
--			ret = isp_map_mem_resource(pdev, isp, i);
--			if (ret)
--				goto error_isp;
--		}
--	}
-+	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
-+		isp->mmio_base[i] =
-+			isp->mmio_base[0] + isp_res_maps[m].offset[i];
 +
-+	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
-+		isp->mmio_base[i] =
-+			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
-+			+ isp_res_maps[m].offset[i];
++	ici = to_soc_camera_host(icd->parent);
++	spi_master = spi_busnum_to_master(shd->spi_bus_id);
++	if (!spi_master) {
++		dev_err(icd->pdev, "Cannot get SPI master #%d. No driver?\n",
++			shd->spi_bus_id);
++		return -ENODEV;
++	}
 +
-+	isp->mmio_hist_base_phys =
-+		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
- 
- 	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
- 	if (IS_ERR(isp->syscon)) {
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 03d2129..dcb7d20 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -99,7 +99,7 @@ struct regmap;
++	ssdd = kmemdup(&sdesc->subdev_desc, sizeof(*ssdd), GFP_KERNEL);
++	if (!ssdd)
++		return -ENOMEM;
++	/*
++	 * In synchronous case we request regulators ourselves in
++	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
++	 * to allocate them again.
++	 */
++	ssdd->sd_pdata.num_regulators = 0;
++	ssdd->sd_pdata.regulators = NULL;
++	shd->board_info_spi->platform_data = ssdd;
++
++	snprintf(clk_name, sizeof(clk_name), "%d",
++		 shd->spi_bus_id);
++
++	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
++	if (IS_ERR(icd->clk)) {
++		ret = PTR_ERR(icd->clk);
++		goto eclkreg;
++	}
++
++	subdev = v4l2_spi_new_subdev(&ici->v4l2_dev, spi_master,
++				shd->board_info_spi);
++	if (!subdev) {
++		ret = -ENODEV;
++		goto espind;
++	}
++
++	spi = v4l2_get_subdevdata(subdev);
++
++	icd->control = &spi->dev;
++
++	return 0;
++espind:
++	v4l2_clk_unregister(icd->clk);
++	icd->clk = NULL;
++eclkreg:
++	kfree(ssdd);
++	return ret;
++}
++
++static void soc_camera_spi_free(struct soc_camera_device *icd)
++{
++	struct spi_device *spi =
++		to_spi_device(to_soc_camera_control(icd));
++	struct soc_camera_subdev_desc *ssdd;
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++
++	icd->control = NULL;
++	if (icd->sasc)
++		return;
++	ssdd = spi->dev.platform_data;
++	v4l2_device_unregister_subdev(sd);
++	spi_unregister_device(spi);
++	kfree(ssdd);
++	v4l2_clk_unregister(icd->clk);
++	icd->clk = NULL;
++}
++
  /*
-  * struct isp_res_mapping - Map ISP io resources to ISP revision.
-  * @isp_rev: ISP_REVISION_x_x
-- * @map: bitmap for enum isp_mem_resources
-+ * @offset: register offsets of various ISP sub-blocks
-  * @syscon_offset: offset of the syscon register for 343x / 3630
-  *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
-  *	    from the syscon base address
-@@ -107,7 +107,7 @@ struct regmap;
-  */
- struct isp_res_mapping {
- 	u32 isp_rev;
--	u32 map;
-+	u32 offset[OMAP3_ISP_IOMEM_LAST];
- 	u32 syscon_offset;
- 	u32 phy_type;
- };
+  * V4L2 asynchronous notifier callbacks. They are all called under a v4l2-async
+  * internal global mutex, therefore cannot race against other asynchronous
+@@ -1762,6 +1848,10 @@ static int soc_camera_probe(struct soc_camera_host *ici,
+ 		ret = soc_camera_i2c_init(icd, sdesc);
+ 		if (ret < 0 && ret != -EPROBE_DEFER)
+ 			goto eadd;
++	} else if (shd->board_info_spi) {
++		ret = soc_camera_spi_init(icd, sdesc);
++		if (ret < 0)
++			goto eadd;
+ 	} else if (!shd->add_device || !shd->del_device) {
+ 		ret = -EINVAL;
+ 		goto eadd;
+@@ -1803,6 +1893,8 @@ static int soc_camera_probe(struct soc_camera_host *ici,
+ efinish:
+ 	if (shd->board_info) {
+ 		soc_camera_i2c_free(icd);
++	} else if (shd->board_info_spi) {
++		soc_camera_spi_free(icd);
+ 	} else {
+ 		shd->del_device(icd);
+ 		module_put(control->driver->owner);
+@@ -1843,6 +1935,8 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ 
+ 	if (sdesc->host_desc.board_info) {
+ 		soc_camera_i2c_free(icd);
++	} else if (sdesc->host_desc.board_info_spi) {
++		soc_camera_spi_free(icd);
+ 	} else {
+ 		struct device *dev = to_soc_camera_control(icd);
+ 		struct device_driver *drv = dev ? dev->driver : NULL;
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..a948ff6 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -178,6 +178,8 @@ struct soc_camera_host_desc {
+ 	int i2c_adapter_id;
+ 	struct i2c_board_info *board_info;
+ 	const char *module_name;
++	struct spi_board_info *board_info_spi;
++	int spi_bus_id;
+ 
+ 	/*
+ 	 * For non-I2C devices platform has to provide methods to add a device
+@@ -243,6 +245,8 @@ struct soc_camera_link {
+ 	int i2c_adapter_id;
+ 	struct i2c_board_info *board_info;
+ 	const char *module_name;
++	struct spi_board_info *board_info_spi;
++	int spi_bus_id;
+ 
+ 	/*
+ 	 * For non-I2C devices platform has to provide methods to add a device
 -- 
-1.7.10.4
+1.7.9.5
 
