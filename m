@@ -1,39 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.logicpd.com ([174.46.170.145]:52094 "HELO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751564AbbCRPT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 11:19:26 -0400
-Message-ID: <55099773.2010809@logicpd.com>
-Date: Wed, 18 Mar 2015 10:19:15 -0500
-From: Tim Nordell <tim.nordell@logicpd.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 25/26] omap3isp: Move to videobuf2
-References: <1398083352-8451-1-git-send-email-laurent.pinchart@ideasonboard.com> <2161613.bbRGp2ApSQ@avalon> <550991C2.80503@logicpd.com> <2315546.eR07gyadH5@avalon>
-In-Reply-To: <2315546.eR07gyadH5@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54367 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755488AbbCRLaw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2015 07:30:52 -0400
+Message-ID: <1426678247.30356.9.camel@pengutronix.de>
+Subject: Re: [PATCH 10/12] [media] coda: fail to start streaming if
+ userspace set invalid formats
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jean-Michel Hautbois <jhautbois@gmail.com>
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Peter Seiderer <ps.report@gmx.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>
+Date: Wed, 18 Mar 2015 12:30:47 +0100
+In-Reply-To: <CAL8zT=iEZC4beWdMQD-vagRh9E7nwqprqrtRB7FVR9wpre45OQ@mail.gmail.com>
+References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
+	 <1424704813-20792-11-git-send-email-p.zabel@pengutronix.de>
+	 <CAL8zT=iEZC4beWdMQD-vagRh9E7nwqprqrtRB7FVR9wpre45OQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent -
+Am Freitag, den 27.02.2015, 09:59 +0100 schrieb Jean-Michel Hautbois:
+> Hi Philipp,
+> 
+> 2015-02-23 16:20 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/coda/coda-common.c | 13 ++++++++++++-
+> >  1 file changed, 12 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> > index b42ccfc..4441179 100644
+> > --- a/drivers/media/platform/coda/coda-common.c
+> > +++ b/drivers/media/platform/coda/coda-common.c
+> > @@ -1282,12 +1282,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+> >         if (!(ctx->streamon_out & ctx->streamon_cap))
+> >                 return 0;
+> >
+> > +       q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> > +       if ((q_data_src->width != q_data_dst->width &&
+> > +            round_up(q_data_src->width, 16) != q_data_dst->width) ||
+> > +           (q_data_src->height != q_data_dst->height &&
+> > +            round_up(q_data_src->height, 16) != q_data_dst->height)) {
+> > +               v4l2_err(v4l2_dev, "can't convert %dx%d to %dx%d\n",
+> > +                        q_data_src->width, q_data_src->height,
+> > +                        q_data_dst->width, q_data_dst->height);
+> > +               ret = -EINVAL;
+> > +               goto err;
+> > +       }
+> > +
+> 
+> Shouldn't the driver check on queues related to encoding or decoding only ?
+> We don't need to set correct width/height from userspace if we are
+> encoding, or it should be done by s_fmt itself.
 
-On 03/18/15 09:59, Laurent Pinchart wrote:
-> Hi Tim,
-> The names might be a bit misleading, vb2-dma-contig requires contiguous memory
-> in the device memory space, not in physical memory. The IOMMU, managed through
-> dma_map_sg_attrs, should have mapped the userptr buffer contiguously in the
-> ISP DMA address space. If it hasn't, that's what need to be investigated.
-I see now that it's the sg_dma_address(...) call that it's using and I 
-was assuming that was the physical memory address for the memory backing 
-up the buffer.
+Good point, the notes from the V4L2 codec API session during ELCE2014
+say:
+   "the coded format is always the master; changing format on it
+    changes the set of supported formats on the other queue;"
 
-So the vb2_dc_get_contiguous_size(...) should be against the view of 
-memory that the IOMMU presents to the OMAP3 ISP?  That is, the DMA 
-addresses that the OMAP3 ISP can see?  I was assuming it was checking 
-the physical memory layout to it without looking too closely to the 
-code.  Armed with that knowledge, I'll dig a little deeper to see if I 
-can figure out what happened here.
+Since an unsupported format shouldn't be selected, this implies that
+S_FMT on an encoder capture queue should possibly change the format on
+the output queue at the same time.
+If I enforce compatible output and capture formats during S_FMT,
+this check is indeed not needed.
 
-- Tim
+regards
+Philipp
+
