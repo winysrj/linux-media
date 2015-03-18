@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:37073 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751168AbbCMKHq (ORCPT
+Received: from mail-yk0-f172.google.com ([209.85.160.172]:34749 "EHLO
+	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754038AbbCRKRO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 06:07:46 -0400
-Received: by paceu11 with SMTP id eu11so28360125pac.4
-        for <linux-media@vger.kernel.org>; Fri, 13 Mar 2015 03:07:46 -0700 (PDT)
-Date: Fri, 13 Mar 2015 21:07:33 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Christian Dale <kernel@techmunk.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rtl28xxu: add [0413:6f12] WinFast DTV2000 DS Plus
-Message-ID: <20150313100731.GA66976@shambles.windy>
-References: <1425878341-3037-1-git-send-email-kernel@techmunk.com>
+	Wed, 18 Mar 2015 06:17:14 -0400
+Received: by ykfc206 with SMTP id c206so14449213ykf.1
+        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 03:17:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1425878341-3037-1-git-send-email-kernel@techmunk.com>
+In-Reply-To: <CAFvf8-hLA3o6m+xAiKORJrO=bfr6ohJ1Zz1vh5vj4xDz2krzsA@mail.gmail.com>
+References: <CAFvf8-hLA3o6m+xAiKORJrO=bfr6ohJ1Zz1vh5vj4xDz2krzsA@mail.gmail.com>
+From: Moritz Kassner <moritzkassner@gmail.com>
+Date: Wed, 18 Mar 2015 11:16:53 +0100
+Message-ID: <CAO14JipX1V6GCmqTeWJC7NviwSCh7dZ-6uOFgdwBOP2nheHh5A@mail.gmail.com>
+Subject: Re: two UVC simultaneous devices impossible?
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 09, 2015 at 03:19:01PM +1000, Christian Dale wrote:
-> Add Leadtek WinFast DTV2000DS Plus device based on Realtek RTL2832U.
-> 
-> I have not tested the remote, but it is the Y04G0051 model.
-> 
+hi,
 
-Thanks for doing this Christian. I have one of these cards also, 0x6f12.
-I wrote the same patch some time ago and it is not working for me.
-Can you give a few details of what kernel you tested on etc?
+your problem is not related to de-facto bandwidth use but with
+bandwidth allocation.
 
-I am testing on ubuntu 14.04 LTS
-[    0.000000] Linux version 3.13.0-45-generic (buildd@kissel) (gcc
-version 4.8.2 (Ubuntu 4.8.2-19ubuntu1) ) #74-Ubuntu SMP Tue Jan 13
-19:37:48 UTC 2015 (Ubuntu 3.13.0-45.74-generic 3.13.11-ckt13)
+The uvc driver follows the uvc specification: The driver selects an
+alternate setting for the Isochronous endpoint that  satisfies the
+bandwidth requirements for the negotiated video stream. The bandwidth
+requirement depends on the stream resolution,rate and format (think
+YUV or MJPEG...) and is reported by the camera. This is where the
+problem lies: Especially when you select a compressed format (for high
+resolutions and rates this is usually the case.), the camera reports a
+very conservative estimate on the minimum bandwidth required. This
+effectively prohibits multiple streams.
+
+One workaround is to estimate the bandwidth yourself.
+
+For uncompressed streams a quirk exists:
+http://www.ideasonboard.org/uvc/faq/#faq7
+For mjpeg stream there is a patch (not written by me) here:
+https://gist.githubusercontent.com/mkassner/10134241/raw/5ea34a0269d5b4bc12ec3ee466238cf82000e29d/mjepg_bandwidth.patch
 
 
-The symptom I have is when I try to tune with 'scan'
-from dvb-apps, the program wedges and I get this in dmesg:
-[  163.138982] fc0013: fc0013_set_params: failed: -22
-[  164.246233] fc0013: fc0013_set_params: failed: -22
-[  165.167758] fc0013: fc0013_set_params: failed: -22
-[  166.250280] fc0013: fc0013_set_params: failed: -22
-[  167.196580] fc0013: fc0013_set_params: failed: -22
-[  168.286208] fc0013: fc0013_set_params: failed: -22
-...
+I would really like to integrate the patch. I think I will do some
+writeup and submit a clean version.
 
-kind regards
-Vince
+On Wed, Mar 18, 2015 at 7:50 AM, dongdong zhang <dongguangit@gmail.com> wrote:
+> Using kernel 3.2.0 on ti am3354 ,
+> Kernel 2.6.35.7 on samsung s5pv210,
+> Kernel 3.0.8 on samsung s5pv210,
+> Linux ubuntu 3.13.0-24-generic #46-Ubuntu SMP Thu Apr 10 19:08:14 UTC
+> 2014 i686 i686 i686 GNU/Linux
+> Ubuntu 14.04 on x86
+>
+> I find it impossible to
+> start motion with two UVC cameras:
+>
+> uvcvideo: Failed to submit URB 0 (-28).
+>  Error starting stream.
+>  VIDIOC_STREAMON: No space left on  device
+>  ioctl(VIDIOCGMBUF) - Error device does not support memory map
+> When using one UVC camera with the same configuration it works fine.
+>  Is there a limitation in the UVC driver regarding simultaneous camera.
+>
+>
+> Lowering the resolution on both two cameras to the minimum (160x120)
+> open simultaneously doesn't
+> help. However with the same camera of two UVC at 1280x720 open
+> simultaneously  on windows xp software platform it works fine.
+> So it doesn't seem to be a USB bandwidth problem
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
