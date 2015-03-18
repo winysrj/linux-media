@@ -1,122 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48972 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41654 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523AbbCLJ7c (ORCPT
+	with ESMTP id S1754706AbbCRQ14 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 05:59:32 -0400
+	Wed, 18 Mar 2015 12:27:56 -0400
+Message-ID: <1426696069.30356.52.camel@pengutronix.de>
+Subject: Re: [PATCH v3 0/5] Signalling last decoded frame by
+ V4L2_BUF_FLAG_LAST and -EPIPE
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: David Airlie <airlied@linux.ie>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Boris Brezillion <boris.brezillon@free-electrons.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Emil Renner Berthing <kernel@esmil.dk>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 01/10] Add RGB444_1X12 and RGB565_1X16 media bus formats
-Date: Thu, 12 Mar 2015 10:58:07 +0100
-Message-Id: <1426154296-30665-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
-References: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, 'Pawel Osciak' <pawel@osciak.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Sakari Ailus' <sakari.ailus@linux.intel.com>,
+	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>
+Date: Wed, 18 Mar 2015 17:27:49 +0100
+In-Reply-To: <016b01d06197$69e7f6b0$3db7e410$%debski@samsung.com>
+References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
+	 <1426589206.3709.14.camel@pengutronix.de> <550851A7.8070004@xs4all.nl>
+	 <016b01d06197$69e7f6b0$3db7e410$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Boris Brezillion <boris.brezillon@free-electrons.com>
+Am Mittwoch, den 18.03.2015, 17:20 +0100 schrieb Kamil Debski:
+> Hi Philipp,
+> 
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Tuesday, March 17, 2015 5:09 PM
+> > 
+> > On 03/17/2015 11:46 AM, Philipp Zabel wrote:
+> > > Hi,
+> > >
+> > > Am Freitag, den 06.03.2015, 11:18 +0100 schrieb Philipp Zabel:
+> > >> At the V4L2 codec API session during ELC-E 2014, we agreed that for
+> > >> the decoder draining flow, after a V4L2_DEC_CMD_STOP decoder command
+> > >> was issued, the last decoded buffer should get dequeued with a
+> > >> V4L2_BUF_FLAG_LAST set. After that, poll should immediately return
+> > >> and all following VIDIOC_DQBUF should return -EPIPE until the stream
+> > is stopped or decoding continued via V4L2_DEC_CMD_START.
+> > >> (or STREAMOFF/STREAMON).
+> > >>
+> > >> Changes since v2:
+> > >>  - Made V4L2_BUF_FLAG_LAST known to trace events
+> > >>
+> > >> regards
+> > >> Philipp
+> > >>
+> > >> Peter Seiderer (1):
+> > >>   [media] videodev2: Add V4L2_BUF_FLAG_LAST
+> > >>
+> > >> Philipp Zabel (4):
+> > >>   [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+> > >>   [media] coda: Set last buffer flag and fix EOS event
+> > >>   [media] s5p-mfc: Set last buffer flag
+> > >>   [media] DocBooc: mention mem2mem codecs for encoder/decoder
+> > >> commands
+> > >>
+> > >>  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
+> > >>  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
+> > >>  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
+> > >>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+> > >>  drivers/media/platform/coda/coda-bit.c             |  4 ++--
+> > >>  drivers/media/platform/coda/coda-common.c          | 27 +++++++++--
+> > -----------
+> > >>  drivers/media/platform/coda/coda.h                 |  3 +++
+> > >>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+> > >>  drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+> > >>  drivers/media/v4l2-core/videobuf2-core.c           | 18
+> > ++++++++++++++-
+> > >>  include/media/videobuf2-core.h                     | 10 ++++++++
+> > >>  include/trace/events/v4l2.h                        |  3 ++-
+> > >>  include/uapi/linux/videodev2.h                     |  2 ++
+> > >>  13 files changed, 84 insertions(+), 23 deletions(-)
+> > >
+> > > are there any further changes that I should make to this series?
+> > 
+> > I'd like to see some Acks, esp. from Kamil and Pawel.
+> > 
+> > I'll take another look as well, probably on Friday.
+> 
+> The patches look good IMHO. I am not sure about the order - should the 
+> patch with code follow the documentation or should it be the other way around?
+> Anyway, it should be consistent. Here the documentation patches are first and
+> last, such that first precedes the code and then second follows the change.
+> 
+> Maybe the documentation should be in the same patch that makes the API change?
+> 
+> In the "DocBooc: mention mem2mem codecs for encoder/decoder commands" I would
+> mention that dequeue can return EPIPE.
 
-Add RGB444_1X12 and RGB565_1X16 format definitions and update the
-documentation.
+Thanks, unless otherwise instructed, I'll add that, move docs to the
+fron and s/DocBooc/DocBook/ in the commit message.
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 40 ++++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |  4 ++-
- 2 files changed, 43 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index c5ea868..29fe601 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -192,6 +192,24 @@ see <xref linkend="colorspaces" />.</entry>
- 	    </row>
- 	  </thead>
- 	  <tbody valign="top">
-+	    <row id="MEDIA-BUS-FMT-RGB444-1X12">
-+	      <entry>MEDIA_BUS_FMT_RGB444_1X12</entry>
-+	      <entry>0x100e</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-RGB444-2X8-PADHI-BE">
- 	      <entry>MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE</entry>
- 	      <entry>0x1001</entry>
-@@ -304,6 +322,28 @@ see <xref linkend="colorspaces" />.</entry>
- 	      <entry>g<subscript>4</subscript></entry>
- 	      <entry>g<subscript>3</subscript></entry>
- 	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB565-1X16">
-+	      <entry>MEDIA_BUS_FMT_RGB565_1X16</entry>
-+	      <entry>0x100f</entry>
-+	      <entry></entry>
-+	      &dash-ent-16;
-+	      <entry>r<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="MEDIA-BUS-FMT-BGR565-2X8-BE">
- 	      <entry>MEDIA_BUS_FMT_BGR565_2X8_BE</entry>
- 	      <entry>0x1005</entry>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 23b4090..37091c6 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,11 +33,13 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x100e */
-+/* RGB - next is	0x1010 */
-+#define MEDIA_BUS_FMT_RGB444_1X12		0x100e
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE	0x1003
- #define MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE	0x1004
-+#define MEDIA_BUS_FMT_RGB565_1X16		0x100f
- #define MEDIA_BUS_FMT_BGR565_2X8_BE		0x1005
- #define MEDIA_BUS_FMT_BGR565_2X8_LE		0x1006
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
--- 
-2.1.4
+regards
+Philipp
 
