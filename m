@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36160 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514AbbCaNxr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 09:53:47 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs related
- properties
-Date: Tue, 31 Mar 2015 15:52:37 +0200
-Message-id: <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45217 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755466AbbCSOXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2015 10:23:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] mn88472: define symbol rate limits
+Date: Thu, 19 Mar 2015 16:23:03 +0200
+Message-Id: <1426774983-13741-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1426774983-13741-1-git-send-email-crope@iki.fi>
+References: <1426774983-13741-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Description of flash LEDs related properties was not precise regarding
-the state of corresponding settings in case a property is missing.
-Add relevant statements.
-Removed is also the requirement making the flash-max-microamp
-property obligatory for flash LEDs. It was inconsistent as the property
-is defined as optional. Devices which require the property will have
-to assert this in their DT bindings.
+w_scan complains about missing symbol rate limits:
+This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: devicetree@vger.kernel.org
+Lets add some reasonable limits in order to keep w_scan happy :)
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/staging/media/mn88472/mn88472.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-index 747c538..21a25e4 100644
---- a/Documentation/devicetree/bindings/leds/common.txt
-+++ b/Documentation/devicetree/bindings/leds/common.txt
-@@ -29,13 +29,15 @@ Optional properties for child nodes:
-      "ide-disk" - LED indicates disk activity
-      "timer" - LED flashes at a fixed, configurable rate
- 
--- max-microamp : maximum intensity in microamperes of the LED
--		 (torch LED for flash devices)
--- flash-max-microamp : maximum intensity in microamperes of the
--                       flash LED; it is mandatory if the LED should
--		       support the flash mode
--- flash-timeout-us : timeout in microseconds after which the flash
--                     LED is turned off
-+- max-microamp : Maximum intensity in microamperes of the LED
-+		 (torch LED for flash devices). If omitted this will default
-+		 to the maximum current allowed by the device.
-+- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
-+		       If omitted this will default to the maximum
-+		       current allowed by the device.
-+- flash-timeout-us : Timeout in microseconds after which the flash
-+                     LED is turned off. If omitted this will default to the
-+		     maximum timeout allowed by the device.
- 
- 
- Examples:
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index c041fbf..8c9fefa 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -378,6 +378,8 @@ static struct dvb_frontend_ops mn88472_ops = {
+ 	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
+ 	.info = {
+ 		.name = "Panasonic MN88472",
++		.symbol_rate_min = 1000000,
++		.symbol_rate_max = 7200000,
+ 		.caps =	FE_CAN_FEC_1_2                 |
+ 			FE_CAN_FEC_2_3                 |
+ 			FE_CAN_FEC_3_4                 |
 -- 
-1.7.9.5
+http://palosaari.fi/
 
