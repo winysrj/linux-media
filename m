@@ -1,48 +1,47 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:12599 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933219AbbCDQQ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:26 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH/RFC v12 07/19] mfd: max77693: add TORCH_IOUT_MASK macro
-Date: Wed, 04 Mar 2015 17:14:28 +0100
-Message-id: <1425485680-8417-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Arun Kumar K <arun.kk@samsung.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 4/5] media/v4l2-ctrls: Always execute EXECUTE_ON_WRITE ctrls
+Date: Thu, 19 Mar 2015 16:21:25 +0100
+Message-id: <1426778486-21807-5-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Add a macro for obtaining the mask of ITORCH register bit fields
-related either to FLED1 or FLED2 current output. The expected
-arguments are TORCH_IOUT1_SHIFT or TORCH_IOUT2_SHIFT.
+Any control with V4L2_CTRL_FLAG_EXECUTE_ON_WRITE set should return
+changed == true in cluster_changed.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+This forces the value to be passed to the driver even if it has not
+changed.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- include/linux/mfd/max77693-private.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/linux/mfd/max77693-private.h b/include/linux/mfd/max77693-private.h
-index 955dd99..8770ce1 100644
---- a/include/linux/mfd/max77693-private.h
-+++ b/include/linux/mfd/max77693-private.h
-@@ -87,6 +87,7 @@ enum max77693_pmic_reg {
- /* MAX77693 ITORCH register */
- #define TORCH_IOUT1_SHIFT	0
- #define TORCH_IOUT2_SHIFT	4
-+#define TORCH_IOUT_MASK(x)	(0xf << (x))
- #define TORCH_IOUT_MIN		15625
- #define TORCH_IOUT_MAX		250000
- #define TORCH_IOUT_STEP		15625
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index da0ffd3..8f96478 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1611,6 +1611,10 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 		if (ctrl == NULL)
+ 			continue;
++
++		if (ctrl->flags & V4L2_CTRL_FLAG_EXECUTE_ON_WRITE)
++			changed = true;
++
+                 /*
+                  * Set has_changed to false to avoid generating
+                  * the event V4L2_EVENT_CTRL_CH_VALUE
 -- 
-1.7.9.5
-
+2.1.4
