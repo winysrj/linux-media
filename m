@@ -1,334 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48953 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563AbbCLJ67 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48500 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750861AbbCSQK2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 05:58:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: David Airlie <airlied@linux.ie>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Boris Brezillion <boris.brezillon@free-electrons.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Emil Renner Berthing <kernel@esmil.dk>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 02/10] Add LVDS RGB media bus formats
-Date: Thu, 12 Mar 2015 10:58:08 +0100
-Message-Id: <1426154296-30665-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
-References: <1426154296-30665-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 19 Mar 2015 12:10:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Oliver Lehmann <lehmann@ans-netz.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: capture high resolution images from webcam
+Date: Thu, 19 Mar 2015 18:10:39 +0200
+Message-ID: <1715183.7doEMqzC1N@avalon>
+In-Reply-To: <Pine.LNX.4.64.1503182220410.15761@axis700.grange>
+References: <20150317223529.Horde.S4cQ0yA7NJaIix7vWKABGA9@avocado.salatschuessel.net> <Pine.LNX.4.64.1503182220410.15761@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds three new RGB media bus formats that describe
-18-bit or 24-bit samples transferred over an LVDS bus with three
-or four differential data pairs, serialized into 7 time slots,
-using standard SPWG/PSWG/VESA or JEIDA data ordering.
+Hi Guennadi,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 255 +++++++++++++++++++++
- include/uapi/linux/media-bus-format.h              |   5 +-
- 2 files changed, 259 insertions(+), 1 deletion(-)
+On Wednesday 18 March 2015 22:49:07 Guennadi Liakhovetski wrote:
+> On Tue, 17 Mar 2015, Oliver Lehmann wrote:
+> > Hi,
+> > 
+> > I'm using v4l2 on FreeBSD but I hope this doesn't matter that much.
+> > I got a new MS LifeCam Studio HD which makes quite good pictures
+> > because of its focus possibilites.
+> > 
+> > When I use the original software provided by MS the "autofocus"
+> > feature works damn good. With v4l2, autofocus is enabled but it
+> > just does not focus. Disabling autofocus and setting focus manually
+> > does work (and in my case this is sufficient)
+> > 
+> > Another point is, that this cam can record pictures with 8 megapixel
+> > which results in 3840x2160 image files. This "8MP mode" and the 1080p
+> > mode is only available for snapshot pictures. The highest resolution
+> > supported for videos is 720p.
+> 
+> I'm not sure I can help, at least definitely not until I know details. But
+> in either case I'd be interested to know details of this camera. Can you
+> find out what driver is serving it, what standard it is? Looking at the
+> Microsoft so veeeery "technical" data sheet it says, it is compatible with
+> Android. So, it hints at it being a UVC camera.
+> 
+> As for the actual question, I have no idea how they implement still
+> images: the UVC standard defines two methods for higher-resolution still
+> image capture: either using the "still image trigger control" or a
+> dedicated bulk pipeline (and a hardware button if there is one on your
+> camera?) FWIW, in either case I'm not sure whether the driver supports any
+> of those methods. I think bulk pipe support has been added to it at some
+> point, but what concerns switching... Not sure really, sorry.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 29fe601..18449b3 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -622,6 +622,261 @@ see <xref linkend="colorspaces" />.</entry>
- 	  </tbody>
- 	</tgroup>
-       </table>
-+
-+      <para>On LVDS buses, usually each sample is transferred serialized in
-+      seven time slots per pixel clock, on three (18-bit) or four (24-bit)
-+      differential data pairs at the same time. The remaining bits are used for
-+      control signals as defined by SPWG/PSWG/VESA or JEIDA standards.
-+      The 24-bit RGB format serialized in seven time slots on four lanes using
-+      JEIDA defined bit mapping will be named
-+      <constant>MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA</constant>, for example.
-+      </para>
-+
-+      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb-lvds">
-+	<title>LVDS RGB formats</title>
-+	<tgroup cols="8">
-+	  <colspec colname="id" align="left" />
-+	  <colspec colname="code" align="center" />
-+	  <colspec colname="slot" align="center" />
-+	  <colspec colname="lane" />
-+	  <colspec colnum="5" colname="l03" align="center" />
-+	  <colspec colnum="6" colname="l02" align="center" />
-+	  <colspec colnum="7" colname="l01" align="center" />
-+	  <colspec colnum="8" colname="l00" align="center" />
-+	  <spanspec namest="l03" nameend="l00" spanname="l0" />
-+	  <thead>
-+	    <row>
-+	      <entry>Identifier</entry>
-+	      <entry>Code</entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry spanname="l0">Data organization</entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>Timeslot</entry>
-+	      <entry>Lane</entry>
-+	      <entry>3</entry>
-+	      <entry>2</entry>
-+	      <entry>1</entry>
-+	      <entry>0</entry>
-+	    </row>
-+	  </thead>
-+	  <tbody valign="top">
-+	    <row id="MEDIA-BUS-FMT-RGB666-1X7X3-SPWG">
-+	      <entry>MEDIA_BUS_FMT_RGB666_1X7X3_SPWG</entry>
-+	      <entry>0x1010</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>-</entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-SPWG">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_SPWG</entry>
-+	      <entry>0x1011</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="MEDIA-BUS-FMT-RGB888-1X7X4-JEIDA">
-+	      <entry>MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA</entry>
-+	      <entry>0x1012</entry>
-+	      <entry>0</entry>
-+	      <entry></entry>
-+	      <entry>d</entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>3</subscript></entry>
-+	      <entry>g<subscript>2</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>1</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>1</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>b<subscript>2</subscript></entry>
-+	      <entry>r<subscript>7</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>2</entry>
-+	      <entry></entry>
-+	      <entry>b<subscript>0</subscript></entry>
-+	      <entry>d</entry>
-+	      <entry>g<subscript>7</subscript></entry>
-+	      <entry>r<subscript>6</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>3</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>1</subscript></entry>
-+	      <entry>b<subscript>7</subscript></entry>
-+	      <entry>g<subscript>6</subscript></entry>
-+	      <entry>r<subscript>5</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>4</entry>
-+	      <entry></entry>
-+	      <entry>g<subscript>0</subscript></entry>
-+	      <entry>b<subscript>6</subscript></entry>
-+	      <entry>g<subscript>5</subscript></entry>
-+	      <entry>r<subscript>4</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>5</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>1</subscript></entry>
-+	      <entry>b<subscript>5</subscript></entry>
-+	      <entry>g<subscript>4</subscript></entry>
-+	      <entry>r<subscript>3</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry>6</entry>
-+	      <entry></entry>
-+	      <entry>r<subscript>0</subscript></entry>
-+	      <entry>b<subscript>4</subscript></entry>
-+	      <entry>g<subscript>3</subscript></entry>
-+	      <entry>r<subscript>2</subscript></entry>
-+	    </row>
-+	  </tbody>
-+	</tgroup>
-+      </table>
-     </section>
- 
-     <section>
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 37091c6..3fb9cbb 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1010 */
-+/* RGB - next is	0x1013 */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x100e
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -45,9 +45,12 @@
- #define MEDIA_BUS_FMT_RGB565_2X8_BE		0x1007
- #define MEDIA_BUS_FMT_RGB565_2X8_LE		0x1008
- #define MEDIA_BUS_FMT_RGB666_1X18		0x1009
-+#define MEDIA_BUS_FMT_RGB666_1X7X3_SPWG		0x1010
- #define MEDIA_BUS_FMT_RGB888_1X24		0x100a
- #define MEDIA_BUS_FMT_RGB888_2X12_BE		0x100b
- #define MEDIA_BUS_FMT_RGB888_2X12_LE		0x100c
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_SPWG		0x1011
-+#define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- 
- /* YUV (including grey) - next is	0x2024 */
+Still image capture isn't implemented in the uvcvideo driver. Part of the 
+reason is that I never managed to get my hands on a device that implements it 
+(but I haven't tried very hard either).
+
+> But if you just try to be opportunistic and try cheese - it has a separate
+> setting for still images, so, maybe I'm way behind the time and everything
+> is working already?
+> 
+> Thanks
+> Guennadi
+> 
+> > All I want is recording snapshot images and I do not need the video
+> > capability at all.
+> > 
+> > I wonder how I can capture those big 8MP images? With mplayer I'm
+> > only able toe capture 720p at max. I guess because mplayer just
+> > accesses the video mode and takes a single frame.
+> > 
+> > mplayer tv:// -tv driver=v4l2:device=/dev/video0:width=1280:height=720
+> > -frames 1 -vo jpeg
+> > 
+> > I wonder if there is a possibility to access the cam in the
+> > I-call-it-snapshot-mode to take single pictures with higher resolutions?
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
