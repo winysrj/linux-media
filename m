@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:38649 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbbCBRhK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:37:10 -0500
-Received: by wesw55 with SMTP id w55so34801578wes.5
-        for <linux-media@vger.kernel.org>; Mon, 02 Mar 2015 09:37:09 -0800 (PST)
-Message-ID: <54F49FC3.9030206@gmail.com>
-Date: Mon, 02 Mar 2015 18:37:07 +0100
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:34064 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbbCSJkZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2015 05:40:25 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Matthias Schwarzott <zzam@gentoo.org>,
+In-Reply-To: <5509F87D.9060603@linux.intel.com>
+References: <1426628910-11927-1-git-send-email-prabhakar.csengg@gmail.com> <5509F87D.9060603@linux.intel.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 19 Mar 2015 09:39:53 +0000
+Message-ID: <CA+V-a8uaLhRrSn7KA1N5LCfPAx0KKpP4HFyk69SOmJmaSt3ewQ@mail.gmail.com>
+Subject: Re: [PATCH v7] media: i2c: add support for omnivision's ov2659 sensor
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?B?UmFmYWVsIExvdXJlbsOnbyBkZSBMaW1hIENoZWhhYg==?=
-	<chehabrafael@gmail.com>
-Subject: Re: [PATCH] [media] use a function for DVB media controller register
-References: <89a2c1d60aa2cfcf4c9f194b4c923d72182be431.1425306670.git.mchehab@osg.samsung.com>	<54F495DD.7030304@gmail.com> <20150302140614.70300466@recife.lan>
-In-Reply-To: <20150302140614.70300466@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-Op 02-03-15 om 18:06 schreef Mauro Carvalho Chehab:
-> Em Mon, 02 Mar 2015 17:54:53 +0100
-> Tycho Lürsen <tycholursen@gmail.com> escreveu:
->
->> Hi Mauro,
->> Op 02-03-15 om 15:31 schreef Mauro Carvalho Chehab:
->>> This is really a simple function, but using it avoids to have
->>> if's inside the drivers.
->>>
->>> Also, the kABI becomes a little more clearer.
->>>
->>> This shouldn't generate any overhead, and the type check
->>> will happen when compiling with MC DVB enabled.
->>>
->>> So, let's do it.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
->>> index c739725ca7ee..367b8e77feb8 100644
->>> --- a/drivers/media/common/siano/smsdvb-main.c
->>> +++ b/drivers/media/common/siano/smsdvb-main.c
->>> @@ -1104,9 +1104,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
->>>    		pr_err("dvb_register_adapter() failed %d\n", rc);
->>>    		goto adapter_error;
->>>    	}
->>> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->>> -	client->adapter.mdev = coredev->media_dev;
->>> -#endif
->>> +	dvb_register_media_controller(&client->adapter, coredev->media_dev);
->>>    
->>>    	/* init dvb demux */
->>>    	client->demux.dmx.capabilities = DMX_TS_FILTERING;
->>> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
->>> index 556c9e9d1d4e..12629b8ecb0c 100644
->>> --- a/drivers/media/dvb-core/dvbdev.h
->>> +++ b/drivers/media/dvb-core/dvbdev.h
->>> @@ -125,8 +125,15 @@ extern void dvb_unregister_device (struct dvb_device *dvbdev);
->>>    
->>>    #ifdef CONFIG_MEDIA_CONTROLLER_DVB
->>>    void dvb_create_media_graph(struct dvb_adapter *adap);
->>> +static inline void dvb_register_media_controller(struct dvb_adapter *adap,
->>> +						 struct media_device *mdev)
->>> +{
->>> +	adap->mdev = mdev;
->>> +}
->>> +
->>>    #else
->>>    static inline void dvb_create_media_graph(struct dvb_adapter *adap) {}
->>> +#define dvb_register_media_controller(a, b) {}
->>>    #endif
->> Does "#define dvb_register_media_controller(a, b) {}" restrict the
->> number of registerd controllers in any way?
->> I mean, I've got a couple of TBS quad adapters, 4 tuner and 4 demod
->> chips on each card. Will they still work with this change?
-> No. What the above define does is to replace the function call by nothing,
-> if MEDIA_CONTROLLER_DVB is not set.
->
-> Neither it or the current patches for the media controller on DVB should
-> affect the TBS quad adapters. If you're having some regressions with it,
-> please report.
->
-> Regards,
-> Mauro
-Thanks for your reply, I will test this for regression as soon as it 
-hits the master branch.
+Hi Sakari,
 
-Regards,
-Tycho.
+Thanks for the review.
 
+On Wed, Mar 18, 2015 at 10:13 PM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Prabhakar,
+>
+> Lad Prabhakar wrote:
+> ...
+>>
+>> +static int ov2659_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +       struct ov2659 *ov2659 =
+>> +                       container_of(ctrl->handler, struct ov2659, ctrls);
+>> +       struct v4l2_mbus_framefmt *fmt = &ov2659->format;
+>> +
+>> +       switch (ctrl->id) {
+>> +       case V4L2_CID_PIXEL_RATE:
+>> +               if (fmt->code != MEDIA_BUS_FMT_SBGGR8_1X8)
+>> +                       ov2659->link_frequency->val =
+>> +                                       ov2659->pdata->link_frequency / 2;
+>> +               else
+>> +                       ov2659->link_frequency->val =
+>> +                                       ov2659->pdata->link_frequency;
+>
+>
+> You should simply use v4l2_ctrl_s_ctrl_int64() in ..._set_fmt() as this
+> isn't really a proper volatile control, but its value depends on the format.
+>
+Yea makes sense, will respin the patch with this change.
+
+Cheers,
+--Prabhakar Lad
