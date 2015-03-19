@@ -1,218 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35145 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823AbbCGXXJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2015 18:23:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com
-Subject: Re: [RFC 03/18] omap3isp: Separate external link creation from platform data parsing
-Date: Sun, 08 Mar 2015 01:23:09 +0200
-Message-ID: <6824722.Hxqf1AYo4M@avalon>
-In-Reply-To: <1425764475-27691-4-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi> <1425764475-27691-4-git-send-email-sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:46639 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751581AbbCSOoa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2015 10:44:30 -0400
+Message-ID: <550AE0CC.5050407@iki.fi>
+Date: Thu, 19 Mar 2015 16:44:28 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] mn88473: implement lock for all delivery systems
+References: <1426714629-15640-1-git-send-email-benjamin@southpole.se>
+In-Reply-To: <1426714629-15640-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Bad news. It does lock for DVB-C now, but DVB-T nor DVB-T2 does not lock.
 
-Thank you for the patch.
+regards
+Antti
 
-On Saturday 07 March 2015 23:41:00 Sakari Ailus wrote:
-> Move the code which connects the external entity to an ISP entity into a
-> separate function. This disconnects it from parsing the platform data.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+On 03/18/2015 11:37 PM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
 > ---
->  drivers/media/platform/omap3isp/isp.c |  147  +++++++++++++++--------------
->  1 file changed, 74 insertions(+), 73 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 4ab674d..a607f26 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1832,6 +1832,77 @@ isp_register_subdev_group(struct isp_device *isp,
->  	return sensor;
->  }
-> 
-> +static int isp_link_entity(
-> +	struct isp_device *isp, struct media_entity *entity,
-> +	enum isp_interface_type interface)
-> +{
-> +	struct media_entity *input;
-> +	unsigned int flags;
-> +	unsigned int pad;
-> +	unsigned int i;
-> +
-> +	/* Connect the sensor to the correct interface module.
-> +	 * Parallel sensors are connected directly to the CCDC, while
-> +	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
-> +	 * receiver through CSIPHY1 or CSIPHY2.
-> +	 */
-> +	switch (interface) {
-> +	case ISP_INTERFACE_PARALLEL:
-> +		input = &isp->isp_ccdc.subdev.entity;
-> +		pad = CCDC_PAD_SINK;
-> +		flags = 0;
+>   drivers/staging/media/mn88473/mn88473.c | 50 +++++++++++++++++++++++++++++++--
+>   1 file changed, 48 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+> index a23e59e..196fcd6 100644
+> --- a/drivers/staging/media/mn88473/mn88473.c
+> +++ b/drivers/staging/media/mn88473/mn88473.c
+> @@ -167,7 +167,10 @@ static int mn88473_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>   {
+>   	struct i2c_client *client = fe->demodulator_priv;
+>   	struct mn88473_dev *dev = i2c_get_clientdata(client);
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>   	int ret;
+> +	unsigned int utmp;
+> +	int lock = 0;
+>
+>   	*status = 0;
+>
+> @@ -176,8 +179,51 @@ static int mn88473_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>   		goto err;
+>   	}
+>
+> -	*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+> -			FE_HAS_SYNC | FE_HAS_LOCK;
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBT:
+> +		ret = regmap_read(dev->regmap[0], 0x62, &utmp);
+> +		if (ret)
+> +			goto err;
+> +		if (utmp & 0xA0) {
+> +			if ((utmp & 0xF) >= 0x03)
+> +				*status |= FE_HAS_SIGNAL;
+> +			if ((utmp & 0xF) >= 0x09)
+> +				lock = 1;
+> +		}
 > +		break;
-> +
-> +	case ISP_INTERFACE_CSI2A_PHY2:
-> +		input = &isp->isp_csi2a.subdev.entity;
-> +		pad = CSI2_PAD_SINK;
-> +		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
+> +	case SYS_DVBT2:
+> +		ret = regmap_read(dev->regmap[2], 0x8B, &utmp);
+> +		if (ret)
+> +			goto err;
+> +		if (utmp & 0x40) {
+> +			if ((utmp & 0xF) >= 0x07)
+> +				*status |= FE_HAS_SIGNAL;
+> +			if ((utmp & 0xF) >= 0x0a)
+> +				*status |= FE_HAS_CARRIER;
+> +			if ((utmp & 0xF) >= 0x0d)
+> +				*status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+> +		}
 > +		break;
-> +
-> +	case ISP_INTERFACE_CCP2B_PHY1:
-> +	case ISP_INTERFACE_CCP2B_PHY2:
-> +		input = &isp->isp_ccp2.subdev.entity;
-> +		pad = CCP2_PAD_SINK;
-> +		flags = 0;
+> +	case SYS_DVBC_ANNEX_A:
+> +		ret = regmap_read(dev->regmap[1], 0x85, &utmp);
+> +		if (ret)
+> +			goto err;
+> +		if (!(utmp & 0x40)) {
+> +			ret = regmap_read(dev->regmap[1], 0x89, &utmp);
+> +			if (ret)
+> +				goto err;
+> +			if (utmp & 0x01)
+> +				lock = 1;
+> +		}
 > +		break;
-> +
-> +	case ISP_INTERFACE_CSI2C_PHY1:
-> +		input = &isp->isp_csi2c.subdev.entity;
-> +		pad = CSI2_PAD_SINK;
-> +		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-> +		break;
-> +
 > +	default:
-> +		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
-> +			interface);
-> +		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto err;
 > +	}
 > +
-> +	/*
-> +	 * Not all interfaces are available on all revisions of the
-> +	 * ISP. The sub-devices of those interfaces aren't initialised
-> +	 * in such a case. Check this by ensuring the num_pads is
-> +	 * non-zero.
-> +	 */
-> +	if (!input->num_pads) {
-> +		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
-> +			interface);
-> +		return -EINVAL;
-> +	}
-> +
-> +	for (i = 0; i < entity->num_pads; i++) {
-> +		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-> +			break;
-> +	}
-> +	if (i == entity->num_pads) {
-> +		dev_err(isp->dev, "%s: no source pad in external entity\n",
-> +			__func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return media_entity_create_link(entity, i, input, pad, flags);
-> +}
-> +
->  static int isp_register_entities(struct isp_device *isp)
->  {
->  	struct isp_platform_data *pdata = isp->pdata;
-> @@ -1894,85 +1965,15 @@ static int isp_register_entities(struct isp_device
-> *isp)
-> 
->  	/* Register external entities */
->  	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
-> -		struct v4l2_subdev *sensor;
-> -		struct media_entity *input;
-> -		unsigned int flags;
-> -		unsigned int pad;
-> -		unsigned int i;
-> +		struct v4l2_subdev *sensor =
-> +			isp_register_subdev_group(isp, subdevs->subdevs);
-> 
-> -		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
-
-Nit-picking a bit, I'd keep the variable declaration and the function call 
-separate here, as isp_register_subdev_group() is much more than an 
-initializer. Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  		if (sensor == NULL)
->  			continue;
-> 
->  		sensor->host_priv = subdevs;
-> 
-> -		/* Connect the sensor to the correct interface module. Parallel
-> -		 * sensors are connected directly to the CCDC, while serial
-> -		 * sensors are connected to the CSI2a, CCP2b or CSI2c receiver
-> -		 * through CSIPHY1 or CSIPHY2.
-> -		 */
-> -		switch (subdevs->interface) {
-> -		case ISP_INTERFACE_PARALLEL:
-> -			input = &isp->isp_ccdc.subdev.entity;
-> -			pad = CCDC_PAD_SINK;
-> -			flags = 0;
-> -			break;
-> -
-> -		case ISP_INTERFACE_CSI2A_PHY2:
-> -			input = &isp->isp_csi2a.subdev.entity;
-> -			pad = CSI2_PAD_SINK;
-> -			flags = MEDIA_LNK_FL_IMMUTABLE
-> -			      | MEDIA_LNK_FL_ENABLED;
-> -			break;
-> -
-> -		case ISP_INTERFACE_CCP2B_PHY1:
-> -		case ISP_INTERFACE_CCP2B_PHY2:
-> -			input = &isp->isp_ccp2.subdev.entity;
-> -			pad = CCP2_PAD_SINK;
-> -			flags = 0;
-> -			break;
-> -
-> -		case ISP_INTERFACE_CSI2C_PHY1:
-> -			input = &isp->isp_csi2c.subdev.entity;
-> -			pad = CSI2_PAD_SINK;
-> -			flags = MEDIA_LNK_FL_IMMUTABLE
-> -			      | MEDIA_LNK_FL_ENABLED;
-> -			break;
-> -
-> -		default:
-> -			dev_err(isp->dev, "%s: invalid interface type %u\n",
-> -				__func__, subdevs->interface);
-> -			ret = -EINVAL;
-> -			goto done;
-> -		}
-> -
-> -		/*
-> -		 * Not all interfaces are available on all revisions
-> -		 * of the ISP. The sub-devices of those interfaces
-> -		 * aren't initialised in such a case. Check this by
-> -		 * ensuring the num_pads is non-zero.
-> -		 */
-> -		if (!input->num_pads) {
-> -			dev_err(isp->dev, "%s: invalid input %u\n",
-> -				entity->name, subdevs->interface);
-> -			ret = -EINVAL;
-> -			goto done;
-> -		}
-> -
-> -		for (i = 0; i < sensor->entity.num_pads; i++) {
-> -			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
-> -				break;
-> -		}
-> -		if (i == sensor->entity.num_pads) {
-> -			dev_err(isp->dev,
-> -				"%s: no source pad in external entity\n",
-> -				__func__);
-> -			ret = -EINVAL;
-> -			goto done;
-> -		}
-> -
-> -		ret = media_entity_create_link(&sensor->entity, i, input, pad,
-> -					       flags);
-> +		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
->  		if (ret < 0)
->  			goto done;
->  	}
+> +	if (lock)
+> +		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI |
+> +				FE_HAS_SYNC | FE_HAS_LOCK;
+>
+>   	return 0;
+>   err:
+>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
