@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:38813 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbbCKWYp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 18:24:45 -0400
-Received: by lbiz12 with SMTP id z12so12130149lbi.5
-        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2015 15:24:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1425950282-30548-2-git-send-email-sakari.ailus@iki.fi>
-References: <1425950282-30548-1-git-send-email-sakari.ailus@iki.fi> <1425950282-30548-2-git-send-email-sakari.ailus@iki.fi>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 11 Mar 2015 22:24:14 +0000
-Message-ID: <CA+V-a8tqgrkcRpdSj-cZHwy3PdafPnqnPXXUm4b0qrkZA325Pw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] smiapp: Clean up smiapp_get_pdata()
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from gofer.mess.org ([80.229.237.210]:51311 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750967AbbCSVuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2015 17:50:20 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [RFC PATCH 2/6] [media] lirc: LIRC_[SG]ET_SEND_MODE should return -ENOSYS
+Date: Thu, 19 Mar 2015 21:50:13 +0000
+Message-Id: <f0607fde6ec1ad120f62a80c53b1d44c4d5f4d81.1426801061.git.sean@mess.org>
+In-Reply-To: <cover.1426801061.git.sean@mess.org>
+References: <cover.1426801061.git.sean@mess.org>
+In-Reply-To: <cover.1426801061.git.sean@mess.org>
+References: <cover.1426801061.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+If the device cannot transmit then -ENOSYS should be returned. Also clarify
+that the ioctl should return modes, not features. The values happen to be
+identical.
 
-Thanks for the patch.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-On Tue, Mar 10, 2015 at 1:18 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Don't set rval when it's not used (the function returns a pointer to struct
-> smiapp_platform_data).
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 98893a8..17fd956 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -207,12 +207,19 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 
+ 	/* legacy support */
+ 	case LIRC_GET_SEND_MODE:
+-		val = LIRC_CAN_SEND_PULSE & LIRC_CAN_SEND_MASK;
++		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
++			return -ENOSYS;
++
++		val = LIRC_MODE_PULSE;
+ 		break;
+ 
+ 	case LIRC_SET_SEND_MODE:
+-		if (val != (LIRC_MODE_PULSE & LIRC_CAN_SEND_MASK))
++		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
++			return -ENOSYS;
++
++		if (val != LIRC_MODE_PULSE)
+ 			return -EINVAL;
++
+ 		return 0;
+ 
+ 	/* TX settings */
+-- 
+2.1.0
 
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Cheers,
---Prabhakar Lad
-
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c |    5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
->
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index b1f566b..565a00c 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2988,10 +2988,8 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
->                 return NULL;
->
->         pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> -       if (!pdata) {
-> -               rval = -ENOMEM;
-> +       if (!pdata)
->                 goto out_err;
-> -       }
->
->         v4l2_of_parse_endpoint(ep, &bus_cfg);
->
-> @@ -3001,7 +2999,6 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
->                 break;
->                 /* FIXME: add CCP2 support. */
->         default:
-> -               rval = -EINVAL;
->                 goto out_err;
->         }
->
-> --
-> 1.7.10.4
->
