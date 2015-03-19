@@ -1,74 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:37893 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698AbbCYEms convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52988 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756536AbbCSObz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 00:42:48 -0400
+	Thu, 19 Mar 2015 10:31:55 -0400
+Received: from [10.54.92.107] (unknown [173.38.220.40])
+	by tschai.lan (Postfix) with ESMTPSA id 4CBC92A00AB
+	for <linux-media@vger.kernel.org>; Thu, 19 Mar 2015 15:31:44 +0100 (CET)
+Message-ID: <550ADDAE.1000406@xs4all.nl>
+Date: Thu, 19 Mar 2015 15:31:10 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150324091540.GU8656@n2100.arm.linux.org.uk>
-References: <1425369592.3146.14.camel@pengutronix.de> <CAL_Jsq+s5RN+7z8Q5N1VghxaQ_ajQmBddtWOTovLoVJjb_6uDw@mail.gmail.com>
- <1426063881.3101.33.camel@pengutronix.de> <2376013.jScnaqPlDa@phil> <20150324091540.GU8656@n2100.arm.linux.org.uk>
-From: Rob Herring <robherring2@gmail.com>
-Date: Tue, 24 Mar 2015 23:42:26 -0500
-Message-ID: <CAL_JsqJCRQx9=pnvxvKP+Ruek1F-0TRJ2rDDHCcVYZ8y=hE=Xg@mail.gmail.com>
-Subject: Re: [GIT PULL v2] of: Add of-graph helpers to loop over endpoints and
- find ports by id
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Darren Etheridge <detheridge@ti.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] DocBook media: fix BT.2020 description
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 24, 2015 at 4:15 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Mar 23, 2015 at 05:29:02PM +0100, Heiko Stuebner wrote:
->> Hi Rob, Philipp,
->>
->> Am Mittwoch, 11. März 2015, 09:51:21 schrieb Philipp Zabel:
->> > Am Dienstag, den 10.03.2015, 14:05 -0500 schrieb Rob Herring:
->> > > I've only been copied on this latest pull request and a version from
->> > > March of last year which Grant nak'ed. This series did not go to
->> > > devicetree list either. I'll take a look at the series.
->> >
->> > My bad, I should have copied you, too. Thanks for having a look now.
->>
->> any news on this?
->>
->> Because it looks like I'll need the of_graph_get_port_by_id functionality in
->> the short term, it'll be nice to not having to opencode this :-)
->
-> Oh hell, you mean this still hasn't been merged for the next merge window?
->
-> What's going on, Grant?
->
-> Andrew, can you please take this if we send you the individual patches?
-> If not, I'll merge it into my tree, and send it to Linus myself.  If
-> Grant wakes up, we can address any comments he has at that time by
-> additional patches.  (I'll give Grant an extra few days to reply to
-> this mail...)
+One number was wrong (0.6789 -> 0.6780) and Y' should have been Yc'.
 
-I've merged this for 4.1. It is in my for-next branch[1].
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Rob
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 13540fa..05b595c 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1025,7 +1025,7 @@ the white reference are:</para>
+       	  <term>The luminance (Y') and color difference (Cb and Cr) are obtained with the
+ following <constant>V4L2_YCBCR_ENC_BT2020</constant> encoding:</term>
+ 	  <listitem>
+-            <para>Y'&nbsp;=&nbsp;0.2627R'&nbsp;+&nbsp;0.6789G'&nbsp;+&nbsp;0.0593B'</para>
++            <para>Y'&nbsp;=&nbsp;0.2627R'&nbsp;+&nbsp;0.6780G'&nbsp;+&nbsp;0.0593B'</para>
+             <para>Cb&nbsp;=&nbsp;-0.1396R'&nbsp;-&nbsp;0.3604G'&nbsp;+&nbsp;0.5B'</para>
+             <para>Cr&nbsp;=&nbsp;0.5R'&nbsp;-&nbsp;0.4598G'&nbsp;-&nbsp;0.0402B'</para>
+ 	  </listitem>
+@@ -1039,7 +1039,7 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ 	<varlistentry>
+       	  <term>Luma:</term>
+ 	  <listitem>
+-            <para>Yc'&nbsp;=&nbsp;(0.2627R&nbsp;+&nbsp;0.6789G&nbsp;+&nbsp;0.0593B)'</para>
++            <para>Yc'&nbsp;=&nbsp;(0.2627R&nbsp;+&nbsp;0.6780G&nbsp;+&nbsp;0.0593B)'</para>
+ 	  </listitem>
+ 	</varlistentry>
+       </variablelist>
+@@ -1047,7 +1047,7 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ 	<varlistentry>
+       	  <term>B'&nbsp;-&nbsp;Yc'&nbsp;&le;&nbsp;0:</term>
+ 	  <listitem>
+-            <para>Cbc&nbsp;=&nbsp;(B'&nbsp;-&nbsp;Y')&nbsp;/&nbsp;1.9404</para>
++            <para>Cbc&nbsp;=&nbsp;(B'&nbsp;-&nbsp;Yc')&nbsp;/&nbsp;1.9404</para>
+ 	  </listitem>
+ 	</varlistentry>
+       </variablelist>
+@@ -1055,7 +1055,7 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ 	<varlistentry>
+       	  <term>B'&nbsp;-&nbsp;Yc'&nbsp;&gt;&nbsp;0:</term>
+ 	  <listitem>
+-            <para>Cbc&nbsp;=&nbsp;(B'&nbsp;-&nbsp;Y')&nbsp;/&nbsp;1.5816</para>
++            <para>Cbc&nbsp;=&nbsp;(B'&nbsp;-&nbsp;Yc')&nbsp;/&nbsp;1.5816</para>
+ 	  </listitem>
+ 	</varlistentry>
+       </variablelist>
