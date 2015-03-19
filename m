@@ -1,61 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44423 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751941AbbCCLYQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 06:24:16 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6977E2A008D
-	for <linux-media@vger.kernel.org>; Tue,  3 Mar 2015 12:23:59 +0100 (CET)
-Message-ID: <54F599CF.90508@xs4all.nl>
-Date: Tue, 03 Mar 2015 12:23:59 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] vb2: check if vb2_fop_write/read is allowed
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:49538 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164AbbCSVuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2015 17:50:21 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [RFC PATCH 4/6] [media] rc: lirc is not a protocol or a keymap
+Date: Thu, 19 Mar 2015 21:50:15 +0000
+Message-Id: <2a2f4281ba60988242c11bdf2fda3243e2dc4467.1426801061.git.sean@mess.org>
+In-Reply-To: <cover.1426801061.git.sean@mess.org>
+References: <cover.1426801061.git.sean@mess.org>
+In-Reply-To: <cover.1426801061.git.sean@mess.org>
+References: <cover.1426801061.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Return -EINVAL if read() or write() is not supported by the queue. This
-makes it possible to provide both vb2_fop_read and vb2_fop_write in a
-struct v4l2_file_operations since the vb2_fop_* function will check if
-the file operation is allowed.
+Since the lirc bridge is not a decoder we can remove its protocol. The
+keymap existed only to select the protocol.
 
-A similar check exists in __vb2_init_fileio() which is called from
-__vb2_perform_fileio(), but that check is only done if no file I/O is
-active. So the sequence of read() followed by write() would be allowed,
-which is obviously a bug.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/keymaps/Makefile  |  1 -
+ drivers/media/rc/keymaps/rc-lirc.c | 42 --------------------------------------
+ drivers/media/rc/rc-main.c         |  1 -
+ drivers/media/rc/st_rc.c           |  2 +-
+ include/media/rc-map.h             | 42 +++++++++++++++++---------------------
+ 5 files changed, 20 insertions(+), 68 deletions(-)
+ delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
 
-In addition, vb2_fop_write/read should always return -EINVAL if the
-operation is not allowed, and by putting the check in the lower levels
-of the code it is possible that other error codes are returned (EBUSY
-or ERESTARTSYS).
-
-All these issues are avoided by just doing a quick explicit check.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index bc08a82..167c1d9 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3416,6 +3416,8 @@ ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index abf6079..661cd25 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -51,7 +51,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-kworld-pc150u.o \
+ 			rc-kworld-plus-tv-analog.o \
+ 			rc-leadtek-y04g0051.o \
+-			rc-lirc.o \
+ 			rc-lme2510.o \
+ 			rc-manli.o \
+ 			rc-medion-x10.o \
+diff --git a/drivers/media/rc/keymaps/rc-lirc.c b/drivers/media/rc/keymaps/rc-lirc.c
+deleted file mode 100644
+index fbf08fa..0000000
+--- a/drivers/media/rc/keymaps/rc-lirc.c
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/* rc-lirc.c - Empty dummy keytable, for use when its preferred to pass
+- * all raw IR data to the lirc userspace decoder.
+- *
+- * Copyright (c) 2010 by Jarod Wilson <jarod@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#include <media/rc-core.h>
+-#include <linux/module.h>
+-
+-static struct rc_map_table lirc[] = {
+-	{ },
+-};
+-
+-static struct rc_map_list lirc_map = {
+-	.map = {
+-		.scan    = lirc,
+-		.size    = ARRAY_SIZE(lirc),
+-		.rc_type = RC_TYPE_LIRC,
+-		.name    = RC_MAP_LIRC,
+-	}
+-};
+-
+-static int __init init_rc_map_lirc(void)
+-{
+-	return rc_map_register(&lirc_map);
+-}
+-
+-static void __exit exit_rc_map_lirc(void)
+-{
+-	rc_map_unregister(&lirc_map);
+-}
+-
+-module_init(init_rc_map_lirc)
+-module_exit(exit_rc_map_lirc)
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 128909c..e717dc9 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -797,7 +797,6 @@ static struct {
+ 	{ RC_BIT_SANYO,		"sanyo"		},
+ 	{ RC_BIT_SHARP,		"sharp"		},
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
+-	{ RC_BIT_LIRC,		"lirc"		},
+ 	{ RC_BIT_XMP,		"xmp"		},
+ };
  
-+	if (!(vdev->queue->io_modes & VB2_WRITE))
-+		return -EINVAL;
- 	if (lock && mutex_lock_interruptible(lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
-@@ -3438,6 +3440,8 @@ ssize_t vb2_fop_read(struct file *file, char __user *buf,
- 	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 	int err = -EBUSY;
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index 0e758ae..4834e78 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -295,7 +295,7 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	rdev->open = st_rc_open;
+ 	rdev->close = st_rc_close;
+ 	rdev->driver_name = IR_ST_NAME;
+-	rdev->map_name = RC_MAP_LIRC;
++	rdev->map_name = RC_MAP_EMPTY;
+ 	rdev->input_name = "ST Remote Control Receiver";
  
-+	if (!(vdev->queue->io_modes & VB2_READ))
-+		return -EINVAL;
- 	if (lock && mutex_lock_interruptible(lock))
- 		return -ERESTARTSYS;
- 	if (vb2_queue_is_busy(vdev, file))
+ 	/* enable wake via this device */
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index e7a1514..dfca14b 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -14,30 +14,28 @@
+ enum rc_type {
+ 	RC_TYPE_UNKNOWN		= 0,	/* Protocol not known */
+ 	RC_TYPE_OTHER		= 1,	/* Protocol known but proprietary */
+-	RC_TYPE_LIRC		= 2,	/* Pass raw IR to lirc userspace */
+-	RC_TYPE_RC5		= 3,	/* Philips RC5 protocol */
+-	RC_TYPE_RC5X		= 4,	/* Philips RC5x protocol */
+-	RC_TYPE_RC5_SZ		= 5,	/* StreamZap variant of RC5 */
+-	RC_TYPE_JVC		= 6,	/* JVC protocol */
+-	RC_TYPE_SONY12		= 7,	/* Sony 12 bit protocol */
+-	RC_TYPE_SONY15		= 8,	/* Sony 15 bit protocol */
+-	RC_TYPE_SONY20		= 9,	/* Sony 20 bit protocol */
+-	RC_TYPE_NEC		= 10,	/* NEC protocol */
+-	RC_TYPE_SANYO		= 11,	/* Sanyo protocol */
+-	RC_TYPE_MCE_KBD		= 12,	/* RC6-ish MCE keyboard/mouse */
+-	RC_TYPE_RC6_0		= 13,	/* Philips RC6-0-16 protocol */
+-	RC_TYPE_RC6_6A_20	= 14,	/* Philips RC6-6A-20 protocol */
+-	RC_TYPE_RC6_6A_24	= 15,	/* Philips RC6-6A-24 protocol */
+-	RC_TYPE_RC6_6A_32	= 16,	/* Philips RC6-6A-32 protocol */
+-	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype) protocol */
+-	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
+-	RC_TYPE_XMP		= 19,	/* XMP protocol */
++	RC_TYPE_RC5		= 2,	/* Philips RC5 protocol */
++	RC_TYPE_RC5X		= 3,	/* Philips RC5x protocol */
++	RC_TYPE_RC5_SZ		= 4,	/* StreamZap variant of RC5 */
++	RC_TYPE_JVC		= 5,	/* JVC protocol */
++	RC_TYPE_SONY12		= 6,	/* Sony 12 bit protocol */
++	RC_TYPE_SONY15		= 7,	/* Sony 15 bit protocol */
++	RC_TYPE_SONY20		= 8,	/* Sony 20 bit protocol */
++	RC_TYPE_NEC		= 9,	/* NEC protocol */
++	RC_TYPE_SANYO		= 10,	/* Sanyo protocol */
++	RC_TYPE_MCE_KBD		= 11,	/* RC6-ish MCE keyboard/mouse */
++	RC_TYPE_RC6_0		= 12,	/* Philips RC6-0-16 protocol */
++	RC_TYPE_RC6_6A_20	= 13,	/* Philips RC6-6A-20 protocol */
++	RC_TYPE_RC6_6A_24	= 14,	/* Philips RC6-6A-24 protocol */
++	RC_TYPE_RC6_6A_32	= 15,	/* Philips RC6-6A-32 protocol */
++	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
++	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
++	RC_TYPE_XMP		= 18,	/* XMP protocol */
+ };
+ 
+ #define RC_BIT_NONE		0
+ #define RC_BIT_UNKNOWN		(1 << RC_TYPE_UNKNOWN)
+ #define RC_BIT_OTHER		(1 << RC_TYPE_OTHER)
+-#define RC_BIT_LIRC		(1 << RC_TYPE_LIRC)
+ #define RC_BIT_RC5		(1 << RC_TYPE_RC5)
+ #define RC_BIT_RC5X		(1 << RC_TYPE_RC5X)
+ #define RC_BIT_RC5_SZ		(1 << RC_TYPE_RC5_SZ)
+@@ -56,9 +54,8 @@ enum rc_type {
+ #define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1 << RC_TYPE_XMP)
+ 
+-#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC | \
+-			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+-			 RC_BIT_JVC | \
++#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_RC5 | \
++			 RC_BIT_RC5X | RC_BIT_RC5_SZ | RC_BIT_JVC | \
+ 			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
+ 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+@@ -160,7 +157,6 @@ void rc_map_init(void);
+ #define RC_MAP_KWORLD_PC150U             "rc-kworld-pc150u"
+ #define RC_MAP_KWORLD_PLUS_TV_ANALOG     "rc-kworld-plus-tv-analog"
+ #define RC_MAP_LEADTEK_Y04G0051          "rc-leadtek-y04g0051"
+-#define RC_MAP_LIRC                      "rc-lirc"
+ #define RC_MAP_LME2510                   "rc-lme2510"
+ #define RC_MAP_MANLI                     "rc-manli"
+ #define RC_MAP_MEDION_X10                "rc-medion-x10"
+-- 
+2.1.0
+
