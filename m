@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:47194 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944AbbCBRWc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:22:32 -0500
+Received: from rcdn-iport-9.cisco.com ([173.37.86.80]:6033 "EHLO
+	rcdn-iport-9.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294AbbCTQr6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 12:47:58 -0400
+From: "Prashant Laddha (prladdha)" <prladdha@cisco.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 2/2] vivid: add support to set CVT, GTF timings
+Date: Fri, 20 Mar 2015 16:47:48 +0000
+Message-ID: <D1324CAB.3DF7F%prladdha@cisco.com>
+In-Reply-To: <550C4644.6060504@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <6E94E8689194D64581C16C2452F79D0A@emea.cisco.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-	<E1YSTnW-0001Jk-Tm@rmk-PC.arm.linux.org.uk>
-Date: Mon, 2 Mar 2015 18:22:31 +0100
-Message-ID: <CAMuHMdWHAu+zDKce0+ianDb=RHYR59eeMoiYBDK4PC=YMY0JXg@mail.gmail.com>
-Subject: Re: [PATCH 05/10] clkdev: add clkdev_create() helper
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 2, 2015 at 6:06 PM, Russell King
-<rmk+kernel@arm.linux.org.uk> wrote:
-> --- a/include/linux/clkdev.h
-> +++ b/include/linux/clkdev.h
-> @@ -37,6 +37,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
->  void clkdev_add(struct clk_lookup *cl);
->  void clkdev_drop(struct clk_lookup *cl);
+
+On 20/03/15 9:39 pm, "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+
+>Hi Prashant,
 >
-> +struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
-> +       const char *dev_fmt, ...);
+>> +
+>> +	h_freq = (u32)bt->pixelclock / total_h_pixel;
+>> +
+>> +	if (bt->standards == V4L2_DV_BT_STD_CVT)
+>
+>This test and the next isn't right. Apologies that I didn't see that
+>when I reviewed v1.
+>
+>The correct test is:
+>
+>	if (bt->standard == 0 || (bt->standards & V4L2_DV_BT_STD_CVT))
+>
+>
+>> +		return v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
+>> +				       bt->polarities, timings);
+>
+>Just returning here isn't right either: if a CVT format is detected, then
+>it can return true, otherwise it should continue and try the GTF format.
+>
+>> +
+>> +	if (bt->standards == V4L2_DV_BT_STD_GTF) {
+>
+>And this becomes:
+>
+>	If (bt->standard == 0 || (bt->standards & V4L2_DV_BT_STD_GTF))
+>
+>When it comes to autodetecting formats the driver can often detect
+>only a few timing properties, and it is rarely able to say if it
+>will be a CVT or GTF timing. So often they leave bt->standard to 0.
+>
+Thanks Hans. I will fix it and post v3.
 
-__printf(3, 4)
+Regards,
+Prashant
+>
 
-While you're at it, can you please also add the __printf attribute to
-clkdev_alloc() and clk_register_clkdev()?
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
