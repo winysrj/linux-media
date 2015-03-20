@@ -1,88 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43990 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751165AbbCKILM (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:33800 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935AbbCTGyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 04:11:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 21/21] marvell-ccic: drop support for PIX_FMT_422P
-Date: Wed, 11 Mar 2015 09:10:28 +0100
-Message-Id: <1426061428-47019-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426061428-47019-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426061428-47019-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 20 Mar 2015 02:54:43 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 1/2] vivid: add CVT,GTF standards to vivid dv timings caps
+Date: Fri, 20 Mar 2015 12:11:45 +0530
+Message-Id: <1426833706-7839-2-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
+References: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Currently vivid supports V4L2_DV_BT_STD_DMT and V4L2_DV_BT_STD_CEA861
+discrete video standards. Extending the capability set to allow for
+setting CVT and GTF standards. This change, along with adding the
+support for calculating CVT, GTF timings in v4l2-ctl would extend
+the number of resolutions supported by vivid to almost any custom
+resolution.
 
-I cannot get this format to work, the colors keep coming out wrong.
-Since this has never worked I just drop support for this.
+Also extending the limits on min and max pixel clock to accomodate
+pixel clock range provided by cvt/gtf for resolutions ranging from
+640x360p50 to 4kx2Kp60.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c | 19 -------------------
- 1 file changed, 19 deletions(-)
+ drivers/media/platform/vivid/vivid-vid-common.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index c522c75..d588445 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -124,13 +124,6 @@ static struct mcam_format_struct {
- 		.planar		= false,
- 	},
- 	{
--		.desc		= "YUV 4:2:2 PLANAR",
--		.pixelformat	= V4L2_PIX_FMT_YUV422P,
--		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
--		.bpp		= 1,
--		.planar		= true,
--	},
--	{
- 		.desc		= "YUV 4:2:0 PLANAR",
- 		.pixelformat	= V4L2_PIX_FMT_YUV420,
- 		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
-@@ -352,10 +345,6 @@ static void mcam_write_yuv_bases(struct mcam_camera *cam,
- 	y = base;
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 6bef1e6..cba095f 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -33,8 +33,9 @@ const struct v4l2_dv_timings_cap vivid_dv_timings_cap = {
+ 	.type = V4L2_DV_BT_656_1120,
+ 	/* keep this initialization for compatibility with GCC < 4.4.6 */
+ 	.reserved = { 0 },
+-	V4L2_INIT_BT_TIMINGS(0, MAX_WIDTH, 0, MAX_HEIGHT, 25000000, 600000000,
+-		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT,
++	V4L2_INIT_BT_TIMINGS(0, MAX_WIDTH, 0, MAX_HEIGHT, 14000000, 775000000,
++		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
++		V4L2_DV_BT_STD_CVT | V4L2_DV_BT_STD_GTF,
+ 		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_INTERLACED)
+ };
  
- 	switch (fmt->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		u = y + pixel_count;
--		v = u + pixel_count / 2;
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 		u = y + pixel_count;
- 		v = u + pixel_count / 4;
-@@ -755,7 +744,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 		widthy = fmt->width * 2;
- 		widthuv = 0;
- 		break;
--	case V4L2_PIX_FMT_YUV422P:
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		widthy = fmt->width;
-@@ -776,10 +764,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 	 * Tell the controller about the image format we are using.
- 	 */
- 	switch (fmt->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		mcam_reg_write_mask(cam, REG_CTRL0,
--			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		mcam_reg_write_mask(cam, REG_CTRL0,
-@@ -1374,9 +1358,6 @@ static int mcam_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 	v4l2_fill_pix_format(pix, &mbus_fmt);
- 	pix->bytesperline = pix->width * f->bpp;
- 	switch (f->pixelformat) {
--	case V4L2_PIX_FMT_YUV422P:
--		pix->sizeimage = pix->height * pix->bytesperline * 2;
--		break;
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 		pix->sizeimage = pix->height * pix->bytesperline * 3 / 2;
 -- 
-2.1.4
+1.9.1
 
