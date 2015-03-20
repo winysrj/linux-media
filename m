@@ -1,213 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55601 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752096AbbCWJyh (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40926 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750916AbbCTRF3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 05:54:37 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 20 Mar 2015 13:05:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com
-Subject: [PATCH v2 RESEND 3/4] v4l: of: Parse variable length properties --- link-frequencies
-Date: Mon, 23 Mar 2015 11:53:46 +0200
-Message-Id: <1427104427-19911-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
-References: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <mats.randgaard@cisco.com>
+Subject: [PATCH 2/5] videodev2.h/v4l2-dv-timings.h: add V4L2_DV_FL_IS_CE_VIDEO flag
+Date: Fri, 20 Mar 2015 18:05:03 +0100
+Message-Id: <1426871106-31914-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426871106-31914-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426871106-31914-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The link-frequencies property is a variable length array of link frequencies
-in an endpoint. The array is needed by an increasing number of drivers, so
-it makes sense to add it to struct v4l2_of_endpoint.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-However, the length of the array is variable and the size of struct
-v4l2_of_endpoint is fixed since it is allocated by the caller. The options
-here are
+In the past the V4L2_DV_BT_STD_CEA861 standard bit was used to
+determine whether the format is a CE (Consumer Electronics) format
+or not. However, the 640x480p59.94 format is part of the CEA-861
+standard, but it is *not* a CE video format.
 
-1. to define a fixed maximum limit of link frequencies that has to be the
-global maximum of all boards. This is seen as problematic since the maximum
-could be largish, and everyone hitting the problem would need to submit a
-patch to fix it, or
+Add a new flag to make this explicit. This information is needed
+in order to determine the default R'G'B' encoding for the format:
+for CE video this is limited range (16-235) instead of full range
+(0-255).
 
-2. parse the property in every driver. This doesn't sound appealing as two
-of the three implementations submitted to linux-media were wrong, and one of
-them was even merged before this was noticed, or
+The header with all the timings has been updated with this new
+flag.
 
-3. change the interface so that allocating and releasing memory according to
-the size of the array is possible. This is what the patch does.
-
-v4l2_of_alloc_parse_endpoint() is just like v4l2_of_parse_endpoint(), but it
-will allocate the memory resources needed to store struct v4l2_of_endpoint
-and the additional arrays pointed to by this struct. A corresponding release
-function v4l2_of_free_endpoint() is provided to release the memory allocated
-by v4l2_of_alloc_parse_endpoint().
-
-In addition to this, the link-frequencies property is parsed as well, and
-the result is stored to struct v4l2_of_endpoint field link_frequencies.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Cc: Mats Randgaard <mats.randgaard@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-of.c |   88 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-of.h           |   17 +++++++
- 2 files changed, 105 insertions(+)
+ include/uapi/linux/v4l2-dv-timings.h | 64 ++++++++++++++++++++++--------------
+ include/uapi/linux/videodev2.h       |  6 ++++
+ 2 files changed, 45 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index 1c3e398..e092c72 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/types.h>
- 
-@@ -122,6 +123,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-  * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-  * The caller should hold a reference to @node.
-  *
-+ * NOTE: This function does not parse properties the size of which is
-+ * variable without a low fixed limit. Please use
-+ * v4l2_of_alloc_parse_endpoint() in new drivers instead.
-+ *
-  * Return: 0.
-  */
- int v4l2_of_parse_endpoint(const struct device_node *node,
-@@ -143,3 +148,86 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/**
-+ * v4l2_of_free_endpoint() - release resources acquired by
-+ * v4l2_of_alloc_parse_endpoint()
-+ * @endpoint - the endpoint the resources of which are to be released
-+ *
-+ * It is safe to call this function with NULL argument or on and
-+ * endpoint the parsing of which failed.
-+ */
-+void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-+{
-+	if (IS_ERR_OR_NULL(endpoint))
-+		return;
-+
-+	kfree(endpoint->link_frequencies);
-+	kfree(endpoint);
-+}
-+EXPORT_SYMBOL(v4l2_of_free_endpoint);
-+
-+/**
-+ * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
-+ * @node: pointer to endpoint device_node
-+ *
-+ * All properties are optional. If none are found, we don't set any flags.
-+ * This means the port has a static configuration and no properties have
-+ * to be specified explicitly.
-+ * If any properties that identify the bus as parallel are found and
-+ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-+ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-+ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-+ * The caller should hold a reference to @node.
-+ *
-+ * v4l2_of_alloc_parse_endpoint() has two important differences to
-+ * v4l2_of_parse_endpoint():
-+ *
-+ * 1. It also parses variable size data and
-+ *
-+ * 2. The memory resources it has acquired to store the variable size
-+ *    data must be released using v4l2_of_free_endpoint() when no longer
-+ *    needed.
-+ *
-+ * Return: Pointer to v4l2_of_endpoint if successful, on error a
-+ * negative error code.
-+ */
-+struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-+	const struct device_node *node)
-+{
-+	struct v4l2_of_endpoint *endpoint;
-+	int len;
-+	int rval;
-+
-+	endpoint = kzalloc(sizeof(*endpoint), GFP_KERNEL);
-+	if (!endpoint)
-+		return ERR_PTR(-ENOMEM);
-+
-+	rval = v4l2_of_parse_endpoint(node, endpoint);
-+	if (rval < 0)
-+		goto out_err;
-+
-+	if (of_get_property(node, "link-frequencies", &len)) {
-+		endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
-+		if (!endpoint->link_frequencies) {
-+			rval = -ENOMEM;
-+			goto out_err;
-+		}
-+
-+		endpoint->nr_of_link_frequencies =
-+			len / sizeof(*endpoint->link_frequencies);
-+
-+		rval = of_property_read_u64_array(
-+			node, "link-frequencies", endpoint->link_frequencies,
-+			endpoint->nr_of_link_frequencies);
-+		if (rval < 0)
-+			goto out_err;
-+	}
-+
-+	return endpoint;
-+
-+out_err:
-+	v4l2_of_free_endpoint(endpoint);
-+	return ERR_PTR(rval);
-+}
-+EXPORT_SYMBOL(v4l2_of_alloc_parse_endpoint);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 00eec26..607229c 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -54,6 +54,8 @@ struct v4l2_of_bus_parallel {
-  * @base: struct of_endpoint containing port, id, and local of_node
-  * @bus_type: bus type
-  * @bus: bus configuration data structure
-+ * @link_frequencies: array of supported link frequencies
-+ * @nr_of_link_frequencies: number of elements in link_frequenccies array
-  */
- struct v4l2_of_endpoint {
- 	struct of_endpoint base;
-@@ -63,11 +65,16 @@ struct v4l2_of_endpoint {
- 		struct v4l2_of_bus_parallel parallel;
- 		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
- 	} bus;
-+	u64 *link_frequencies;
-+	unsigned int nr_of_link_frequencies;
- };
- 
- #ifdef CONFIG_OF
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint);
-+struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-+	const struct device_node *node);
-+void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
- #else /* CONFIG_OF */
- 
- static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-@@ -76,6 +83,16 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
- 	return -ENOSYS;
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 6c8f159..c039f1d 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -48,14 +48,15 @@
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 480, 1, 0, \
+ 		13500000, 19, 62, 57, 4, 3, 15, 4, 3, 16, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
  }
  
-+struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-+	const struct device_node *node)
-+{
-+	return NULL;
-+}
-+
-+static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-+{
-+}
-+
- #endif /* CONFIG_OF */
+ #define V4L2_DV_BT_CEA_720X480P59_94 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 480, 0, 0, \
+ 		27000000, 16, 62, 60, 9, 6, 30, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
  
- #endif /* _V4L2_OF_H */
+ /* Note: these are the nominal timings, for HDMI links this format is typically
+@@ -64,14 +65,15 @@
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 576, 1, 0, \
+ 		13500000, 12, 63, 69, 2, 3, 19, 2, 3, 20, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_720X576P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 576, 0, 0, \
+ 		27000000, 12, 64, 68, 5, 5, 39, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P24 { \
+@@ -88,7 +90,7 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 2420, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P30 { \
+@@ -96,7 +98,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 1760, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P50 { \
+@@ -104,7 +107,7 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 440, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P60 { \
+@@ -112,7 +115,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 110, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P24 { \
+@@ -120,7 +124,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 638, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P25 { \
+@@ -128,7 +133,7 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P30 { \
+@@ -136,7 +141,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080I50 { \
+@@ -144,7 +150,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 1, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 528, 44, 148, 2, 5, 15, 2, 5, 16, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P50 { \
+@@ -152,7 +159,7 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		148500000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080I60 { \
+@@ -161,7 +168,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 88, 44, 148, 2, 5, 15, 2, 5, 16, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_HALF_LINE) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P60 { \
+@@ -170,77 +178,83 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		148500000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P24 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P25 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P30 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P60 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P24 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P25 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P30 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P60 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
+ 		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
+ }
+ 
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index fbdc360..f62bd34 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1187,6 +1187,12 @@ struct v4l2_bt_timings {
+    exactly the same number of half-lines. Whether half-lines can be detected
+    or used depends on the hardware. */
+ #define V4L2_DV_FL_HALF_LINE			(1 << 3)
++/* If set, then this is a Consumer Electronics (CE) video format. Such formats
++ * differ from other formats (commonly called IT formats) in that if RGB
++ * encoding is used then by default the RGB values use limited range (i.e.
++ * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
++ * except for the 640x480 format are CE formats. */
++#define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
+ 
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
 -- 
-1.7.10.4
+2.1.4
 
