@@ -1,349 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:43813 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977AbbCSVuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2015 17:50:21 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [RFC PATCH 6/6] [media] rc: teach lirc how to send scancodes
-Date: Thu, 19 Mar 2015 21:50:17 +0000
-Message-Id: <985a9b11e5e02eb43e16d27db23086528434be24.1426801061.git.sean@mess.org>
-In-Reply-To: <cover.1426801061.git.sean@mess.org>
-References: <cover.1426801061.git.sean@mess.org>
-In-Reply-To: <cover.1426801061.git.sean@mess.org>
-References: <cover.1426801061.git.sean@mess.org>
+Received: from mailout3.samsung.com ([203.254.224.33]:12889 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbbCTPDy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 11:03:54 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: [PATCH v1 02/11] DT: Add documentation for the mfd Maxim max77693
+Date: Fri, 20 Mar 2015 16:03:22 +0100
+Message-id: <1426863811-12516-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The send mode has to be switched to LIRC_MODE_SCANCODE and then you can
-send one scancode with a write. The encoding is the same as for receiving
-scancodes.
+This patch adds device tree binding documentation for
+the flash cell of the Maxim max77693 multifunctional device.
 
-FIXME: Currently only the nec encoder can encode IR.
-FIXME: The "decoders" should be renamed (codec?)
-
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- .../DocBook/media/v4l/lirc_device_interface.xml    | 39 +++++++++--------
- drivers/media/rc/ir-lirc-codec.c                   | 49 +++++++++++++++------
- drivers/media/rc/ir-nec-decoder.c                  | 50 ++++++++++++++++++++++
- drivers/media/rc/rc-core-priv.h                    |  1 +
- drivers/media/rc/rc-ir-raw.c                       | 19 ++++++++
- include/media/lirc.h                               |  1 +
- include/media/rc-core.h                            |  3 +-
- 7 files changed, 132 insertions(+), 30 deletions(-)
+ Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/lirc_device_interface.xml b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-index f92b5a5..e7f8139 100644
---- a/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-+++ b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
-@@ -37,8 +37,8 @@ The lower 24 bits signify the value either in Hertz or nanoseconds.
- </para>
- <para>If LIRC_MODE_SCANCODE is enabled then the type in the highest 8 bits
- is LIRC_MODE2_SCANCODE. The 24 bit signifies a repeat, 23 bit toggle set and
--the lowest 8 bits is the rc protocol (see rc_type in rc-core.h). The next full
--unsigned int is the scancode; there is no type in the highest 8 bits.
-+the lowest 8 bits is the rc protocol (see enum rc_type in rc-map.h). The next
-+full unsigned int is the scancode; there is no type in the highest 8 bits.
- </para>
- <para>The mode can be set and get using <xref linkend="lirc_ioctl"/>. </para>
+diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+index 38e6440..15c546e 100644
+--- a/Documentation/devicetree/bindings/mfd/max77693.txt
++++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+@@ -76,7 +76,53 @@ Optional properties:
+     Valid values: 4300000, 4700000, 4800000, 4900000
+     Default: 4300000
  
-@@ -47,13 +47,24 @@ unsigned int is the scancode; there is no type in the highest 8 bits.
- <section id="lirc_write">
- <title>LIRC write fop</title>
- 
--<para>The data written to the chardev is a pulse/space sequence of integer
--values. Pulses and spaces are only marked implicitly by their position. The
--data must start and end with a pulse, therefore, the data must always include
--an uneven number of samples. The write function must block until the data has
--been transmitted by the hardware. If more data is provided than the hardware
--can send, the driver returns EINVAL.</para>
-+<para>
-+This is for sending or "blasting" IR. The format depends on the send mode,
-+this is either LIRC_MODE_PULSE or LIRC_MODE_SCANCODE. The mode can be set
-+and get using <xref linkend="lirc_ioctl"/>. </para>
-+</para>
-+<para>In LIRC_MODE_PULSE, the data written to the chardev is a pulse/space
-+sequence of integer values. Pulses and spaces are only marked implicitly by
-+their position. The data must start and end with a pulse, therefore, the
-+data must always include an uneven number of samples. The write function
-+must block until the data has been transmitted by the hardware. If more data
-+is provided than the hardware can send, the driver returns EINVAL.</para>
- 
-+<para>In LIRC_MODE_SCANCODE, two 32 bit unsigneds must be written. The
-+first unsigned must have it highest 8 bits set to LIRC_MODE2_SCANCODE and
-+the lowest 8 bit signify the rc protocol (see enum rc_type in rc-map.h).
-+If the protocol supports repeats then that can be set using
-+LIRC_SCANCODE_REPEAT and the same for LIRC_SCANCODE_TOGGLE. The next 32 bit
-+unsigned is the scancode.
- </section>
- 
- <section id="lirc_ioctl">
-@@ -81,9 +92,10 @@ on working with the default settings initially.</para>
-     </listitem>
-   </varlistentry>
-   <varlistentry>
--    <term>LIRC_GET_SEND_MODE</term>
-+    <term>LIRC_{G,S}ET_SEND_MODE</term>
-     <listitem>
--      <para>Get supported transmit mode. Only LIRC_MODE_PULSE is supported by lircd.</para>
-+      <para>Get or set the send mode. This can either be LIRC_MODE_PULSE or
-+      LIRC_MODE_SCANCODE. </para>
-     </listitem>
-   </varlistentry>
-   <varlistentry>
-@@ -155,13 +167,6 @@ on working with the default settings initially.</para>
-     </listitem>
-   </varlistentry>
-   <varlistentry>
--    <term>LIRC_SET_{SEND,REC}_MODE</term>
--    <listitem>
--      <para>Set send/receive mode. Largely obsolete for send, as only
--      LIRC_MODE_PULSE is supported.</para>
--    </listitem>
--  </varlistentry>
--  <varlistentry>
-     <term>LIRC_SET_{SEND,REC}_CARRIER</term>
-     <listitem>
-       <para>Set send/receive carrier (in Hz).</para>
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 594535e..14d9b41 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -141,16 +141,39 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (!dev || !dev->lirc)
- 		return -EFAULT;
- 
--	if (n < sizeof(unsigned) || n % sizeof(unsigned))
--		return -EINVAL;
-+	if (dev->send_mode == LIRC_MODE_SCANCODE) {
-+		unsigned c[2];
- 
--	count = n / sizeof(unsigned);
--	if (count > LIRCBUF_SIZE || count % 2 == 0)
--		return -EINVAL;
-+		if (n != sizeof(unsigned) * 2)
-+			return -EINVAL;
++- led : the LED submodule device node
 +
-+		ret = copy_from_user(c, buf, n);
-+		if (ret)
-+			return ret;
++There are two LED outputs available - FLED1 and FLED2. Each of them can
++control a separate LED or they can be connected together to double
++the maximum current for a single connected LED. One LED is represented
++by one child node.
 +
-+		txbuf = kmalloc(GFP_KERNEL, sizeof(unsigned) * LIRCBUF_SIZE);
-+		if (!txbuf)
-+			return -ENOMEM;
- 
--	txbuf = memdup_user(buf, n);
--	if (IS_ERR(txbuf))
--		return PTR_ERR(txbuf);
-+		ret = ir_raw_encode(c[0] & LIRC_SCANCODE_PROTOCOL_MASK, c[1],
-+				(c[0] & LIRC_SCANCODE_REPEAT) != 0,
-+				(c[0] & LIRC_SCANCODE_TOGGLE) != 0,
-+				txbuf, LIRCBUF_SIZE);
-+		if (ret < 0)
-+			goto out;
-+		count = ret;
-+	} else {
-+		if (n < sizeof(unsigned) || n % sizeof(unsigned))
-+			return -EINVAL;
++Required properties:
++- compatible : Must be "maxim,max77693-led".
 +
-+		count = n / sizeof(unsigned);
-+		if (count > LIRCBUF_SIZE || count % 2 == 0)
-+			return -EINVAL;
++Optional properties:
++- maxim,trigger-type : Flash trigger type.
++	Possible trigger types:
++		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
++			the flash,
++		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
++			of the flash.
++- maxim,boost-mode :
++	In boost mode the device can produce up to 1.2A of total current
++	on both outputs. The maximum current on each output is reduced
++	to 625mA then. If not enabled explicitly, boost setting defaults to
++	LEDS_BOOST_FIXED in case both current sources are used.
++	Possible values:
++		LEDS_BOOST_OFF (0) - no boost,
++		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
++		LEDS_BOOST_FIXED (2) - fixed mode.
++- maxim,boost-mvout : Output voltage of the boost module in millivolts.
++- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
++	if chip estimates that system voltage could drop below this level due
++	to flash power consumption.
 +
-+		txbuf = memdup_user(buf, n);
-+		if (IS_ERR(txbuf))
-+			return PTR_ERR(txbuf);
-+	}
- 
- 	if (!dev->tx_ir) {
- 		ret = -ENOSYS;
-@@ -173,7 +196,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	for (duration = i = 0; i < ret; i++)
- 		duration += txbuf[i];
- 
--	ret *= sizeof(unsigned int);
-+	ret = n;
- 
- 	/*
- 	 * The lircd gap calculation expects the write function to
-@@ -216,16 +239,17 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
- 			return -ENOSYS;
- 
--		val = LIRC_MODE_PULSE;
-+		val = dev->send_mode;
- 		break;
- 
- 	case LIRC_SET_SEND_MODE:
- 		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
- 			return -ENOSYS;
- 
--		if (val != LIRC_MODE_PULSE)
-+		if (val != LIRC_MODE_PULSE && val != LIRC_MODE_SCANCODE)
- 			return -EINVAL;
- 
-+		dev->send_mode = val;
- 		return 0;
- 
- 	case LIRC_GET_REC_MODE:
-@@ -386,13 +410,14 @@ int ir_lirc_register(struct rc_dev *dev)
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
- 		features |= LIRC_CAN_REC_MODE2;
- 	if (dev->tx_ir) {
--		features |= LIRC_CAN_SEND_PULSE;
-+		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
- 		if (dev->s_tx_mask)
- 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
- 		if (dev->s_tx_carrier)
- 			features |= LIRC_CAN_SET_SEND_CARRIER;
- 		if (dev->s_tx_duty_cycle)
- 			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
-+		dev->send_mode = LIRC_MODE_PULSE;
- 	}
- 
- 	if (dev->s_rx_carrier_range)
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 7b81fec..1232084 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -200,9 +200,59 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+static int ir_nec_encode(enum rc_type type, u32 scancode, bool repeat,
-+				bool toggle, unsigned *buf, unsigned count)
-+{
-+	unsigned i = 0, bits;
++Required properties of the LED child node:
++- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
++		device current output identifiers: 0 - FLED1, 1 - FLED2
 +
-+	if (type != RC_TYPE_NEC)
-+		return -EINVAL;
++Optional properties of the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
++- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++		Range: 15625 - 250000
++- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++		Range: 15625 - 1000000
++- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
++		Range: 62500 - 1000000
 +
-+	if (count < 3)
-+		return -ENOSPC;
+ Example:
++#include <dt-bindings/leds/common.h>
 +
-+	if (repeat) {
-+		buf[i++] = NEC_HEADER_PULSE;
-+		buf[i++] = NEC_REPEAT_SPACE;
-+		buf[i++] = STATE_TRAILER_PULSE;
-+		return 3;
-+	}
+ 	max77693@66 {
+ 		compatible = "maxim,max77693";
+ 		reg = <0x66>;
+@@ -117,5 +163,20 @@ Example:
+ 			maxim,thermal-regulation-celsius = <75>;
+ 			maxim,battery-overcurrent-microamp = <3000000>;
+ 			maxim,charge-input-threshold-microvolt = <4300000>;
 +
-+	if (count < 3 + NEC_NBITS * 2)
-+		return -ENOSPC;
++		led {
++			compatible = "maxim,max77693-led";
++			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
++			maxim,boost-mode = <LEDS_BOOST_FIXED>;
++			maxim,boost-mvout = <5000>;
++			maxim,mvsys-min = <2400>;
 +
-+	if (scancode < 0x10000) { /* normal NEC */
-+		u32 cmd, addr;
-+
-+		addr = (scancode >> 8) & 0xff;
-+		cmd = scancode & 0xff;
-+
-+		scancode = addr << 24 | (~addr & 0xff) << 16 |
-+						cmd << 8 | (~cmd & 0xff);
-+	} else if (scancode < 0x1000000) { /* extended NEC */
-+		u32 cmd = scancode & 0xff;
-+
-+		scancode = (scancode & 0xffff00) << 8 |
-+						(cmd << 8) | (~cmd & 0xff);
-+	}
-+
-+	buf[i++] = NEC_HEADER_PULSE;
-+	buf[i++] = NEC_HEADER_SPACE;
-+	for (bits = 0; bits < NEC_NBITS; bits++) {
-+		buf[i++] = NEC_BIT_PULSE;
-+		buf[i++] = (scancode & 0x80000000) ?
-+					NEC_BIT_1_SPACE : NEC_BIT_0_SPACE;
-+		scancode <<= 1;
-+	}
-+	buf[i++] = STATE_TRAILER_PULSE;
-+
-+	return i;
-+}
-+
- static struct ir_raw_handler nec_handler = {
- 	.protocols	= RC_BIT_NEC,
- 	.decode		= ir_nec_decode,
-+	.encode		= ir_nec_encode,
- };
- 
- static int __init ir_nec_decode_init(void)
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index f613306..82d9132 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -25,6 +25,7 @@ struct ir_raw_handler {
- 
- 	u64 protocols; /* which are handled by this handler */
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
-+	int (*encode)(enum rc_type protocol, u32 scancode, bool repeat, bool toggle, unsigned *buf, unsigned size);
- 
- 	/* These two should only be used by the mce kbd decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index d298be7..d4e2144 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -351,6 +351,25 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
- 
-+int ir_raw_encode(enum rc_type type, u32 scancode, bool repeat, bool toggle,
-+					unsigned *buf, unsigned size)
-+{
-+	struct ir_raw_handler *handler;
-+	u64 protocol = 1ull << type;
-+	int ret = -ENOSYS;
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & protocol && handler->encode) {
-+			ret = handler->encode(type, scancode, repeat, toggle,
-+								buf, size);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+	return ret;
-+}
-+
- void ir_raw_init(void)
- {
- 	/* Load the decoder modules */
-diff --git a/include/media/lirc.h b/include/media/lirc.h
-index a635fc9..3807ded 100644
---- a/include/media/lirc.h
-+++ b/include/media/lirc.h
-@@ -60,6 +60,7 @@
- #define LIRC_CAN_SEND_PULSE            LIRC_MODE2SEND(LIRC_MODE_PULSE)
- #define LIRC_CAN_SEND_MODE2            LIRC_MODE2SEND(LIRC_MODE_MODE2)
- #define LIRC_CAN_SEND_LIRCCODE         LIRC_MODE2SEND(LIRC_MODE_LIRCCODE)
-+#define LIRC_CAN_SEND_SCANCODE         LIRC_MODE2SEND(LIRC_MODE_SCANCODE)
- 
- #define LIRC_CAN_SEND_MASK             0x0000003f
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index a8cef8c..601a5ba 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -163,7 +163,7 @@ struct rc_dev {
- 	u64				gap_duration;
- 	bool				gap;
- 	bool				send_timeout_reports;
--	u32				rec_mode;
-+	u32				rec_mode, send_mode;
- 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_type);
- 	int				(*change_wakeup_protocol)(struct rc_dev *dev, u64 *rc_type);
- 	int				(*open)(struct rc_dev *dev);
-@@ -258,6 +258,7 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
- int ir_raw_event_store_with_filter(struct rc_dev *dev,
- 				struct ir_raw_event *ev);
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
-+int ir_raw_encode(enum rc_type type, u32 scancode, bool repeat, bool toggle, unsigned *buf, unsigned size);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
++			camera_flash: flash-led {
++				label = "max77693-flash";
++				led-sources = <0>, <1>;
++				max-microamp = <500000>;
++				flash-max-microamp = <1250000>;
++				flash-timeout-us = <1000000>;
++			};
+ 		};
+ 	};
 -- 
-2.1.0
+1.7.9.5
 
