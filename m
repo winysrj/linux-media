@@ -1,49 +1,63 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47240 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751832AbbCUWtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 18:49:06 -0400
-Date: Sun, 22 Mar 2015 00:49:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v1 02/11] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150321224903.GE16613@valkosipuli.retiisi.org.uk>
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
- <1426863811-12516-3-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1426863811-12516-3-git-send-email-j.anaszewski@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <sakari.ailus@linux.intel.com>
+Message-id: <550C14DA.3080904@linux.intel.com>
+Date: Fri, 20 Mar 2015 14:38:50 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Arun Kumar K <arun.kk@samsung.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/5] media/v4l2-ctrls: volatiles should not generate
+ CH_VALUE
+References: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1426778486-21807-2-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1426778486-21807-2-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Ricardo Ribalda Delgado wrote:
+> Volatile controls should not generate CH_VALUE events.
+>
+> Set has_changed to false to prevent this happening.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>   drivers/media/v4l2-core/v4l2-ctrls.c | 9 +++++++++
+>   1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 45c5b47..627d4c7 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1609,6 +1609,15 @@ static int cluster_changed(struct v4l2_ctrl *master)
+>
+>   		if (ctrl == NULL)
+>   			continue;
+> +                /*
+> +                 * Set has_changed to false to avoid generating
+> +                 * the event V4L2_EVENT_CTRL_CH_VALUE
+> +                 */
 
-On Fri, Mar 20, 2015 at 04:03:22PM +0100, Jacek Anaszewski wrote:
-> +Optional properties of the LED child node:
-> +- label : see Documentation/devicetree/bindings/leds/common.txt
+Tabs for indentation, please.
 
-I'm still not comfortable using the label field as-is as the entity name in
-the later patches, there's one important problem: it is not guaranteed to be
-unique in the system.
+> +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE){
 
-Do you think this could be added to
-Documentation/devicetree/bindings/leds/common.txt, with perhaps enforcing it
-in the LED framework? Bryan, what do you think?
+s/){/) {/
 
-The alternative would be to simply ignore it in the entity name, but then
-the name of the device would be different in the LED framework and Media
-controller.
+> +                       ctrl->has_changed = false;
+> +		       continue;
+> +		}
+> +
+>   		for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
+>   			ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
+>   				ctrl->p_cur, ctrl->p_new);
+>
+
 
 -- 
-Kind regards,
-
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+sakari.ailus@linux.intel.com
