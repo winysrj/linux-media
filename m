@@ -1,179 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:39283 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034AbbCIQDr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 12:03:47 -0400
+Received: from smtp.bredband2.com ([83.219.192.166]:47369 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196AbbCTXOE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 19:14:04 -0400
+Message-ID: <550CA9B4.4050903@southpole.se>
+Date: Sat, 21 Mar 2015 00:13:56 +0100
+From: Benjamin Larsson <benjamin@southpole.se>
 MIME-Version: 1.0
-In-Reply-To: <2182472.9lHHsiQgiX@avalon>
-References: <1425822349-19218-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CAPW4HR1WJPWg64GwitxCPK2jop0CntS1UtsOu_0VjCz0BEke6A@mail.gmail.com>
-	<2182472.9lHHsiQgiX@avalon>
-Date: Mon, 9 Mar 2015 17:03:46 +0100
-Message-ID: <CAPW4HR0Yqyur2-w3n63G47yuq5Bxfqx3xfnDYd8rBPJdwmcvvw@mail.gmail.com>
-Subject: Re: [PATCH] v4l: mt9v032: Add OF support
-From: =?UTF-8?Q?Carlos_Sanmart=C3=ADn_Bustos?= <carsanbu@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	devicetree@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] mn88473: implement lock for all delivery systems
+References: <1426714629-15640-1-git-send-email-benjamin@southpole.se> <550AE0CC.5050407@iki.fi>
+In-Reply-To: <550AE0CC.5050407@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 03/19/2015 03:44 PM, Antti Palosaari wrote:
+> Bad news. It does lock for DVB-C now, but DVB-T nor DVB-T2 does not lock.
+>
+> regards
+> Antti
 
-I am agree with your argumentations. I hope for the v2.
+I'm getting tired :/. Had the time to test now and the checks is 
+supposed to be negated.
 
-Best regards,
+if (utmp & 0xA0) { -> if (!(utmp & 0xA0))
 
-Carlos Sanmartín
+But as stock dvbv5-scan crashes on ubuntu 14.04 and I can't unload the 
+mn88473 module I will confirm this when I have an actual working version 
+of dvbv5-scan and Ubuntu.
 
-2015-03-09 12:19 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Carlos,
->
-> Thank you for the review.
->
-> On Monday 09 March 2015 10:45:31 Carlos Sanmartín Bustos wrote:
->> Hi Laurent,
->>
->> Looks good. One question, why not deprecate the platform data? I can't
->> see any device using the mt9v032 pdata, I was making a similar patch
->> but deprecating pdata.
->
-> The sensor could be used on non-DT platforms. As keeping platform data support
-> doesn't really make the code more complex and doesn't prevent cleanups or
-> other refactoring, I don't see much harm in keeping it for now.
->
-> For DT-based platforms, of course, DT should be used.
->
->> Some more comment:
->>
->> 2015-03-08 14:45 GMT+01:00 Laurent Pinchart:
->> > Parse DT properties into a platform data structure when a DT node is
->> > available.
->> >
->> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > ---
->> >
->> >  .../devicetree/bindings/media/i2c/mt9v032.txt      | 41 ++++++++++++++
->> >  MAINTAINERS                                        |  1 +
->> >  drivers/media/i2c/mt9v032.c                        | 66 ++++++++++++++++-
->> >  3 files changed, 107 insertions(+), 1 deletion(-)
->> >  create mode 100644
->> >  Documentation/devicetree/bindings/media/i2c/mt9v032.txt
->
-> [snip]
->
->> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
->> > index 3267c18..a6ea091 100644
->> > --- a/drivers/media/i2c/mt9v032.c
->> > +++ b/drivers/media/i2c/mt9v032.c
->
-> [snip]
->
->> > +static struct mt9v032_platform_data *
->> > +mt9v032_get_pdata(struct i2c_client *client)
->> > +{
->> > +       struct mt9v032_platform_data *pdata;
->> > +       struct v4l2_of_endpoint endpoint;
->> > +       struct device_node *np;
->> > +       struct property *prop;
->> > +
->> > +       if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
->> > +               return client->dev.platform_data;
->> > +
->> > +       np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
->> > +       if (!np)
->> > +               return NULL;
->> > +
->> > +       if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
->> > +               goto done;
->>
->> Here I have one little testing:
->>
->> if (endpoint.bus_type != V4L2_MBUS_PARALLEL) {
->>         dev_err(dev, "invalid bus type, must be parallel\n");
->>         goto done;
->> }
->
-> Good question, should drivers check DT properties that they don't use, in
-> order to catch errors in DT ? This would slightly increase the kernel size in
-> order to prevent people from connecting a parallel sensor to a CSI-2 bus,
-> which is obviously impossible in hardware :-)
->
->> > +
->> > +       pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->> > +       if (!pdata)
->> > +               goto done;
->> > +
->> > +       prop = of_find_property(np, "link-freqs", NULL);
->> > +       if (prop) {
->> > +               size_t size = prop->length / 8;
->> > +               u64 *link_freqs;
->> > +
->> > +               link_freqs = devm_kzalloc(&client->dev,
->> > +                                         size * sizeof(*link_freqs),
->> > +                                         GFP_KERNEL);
->> > +               if (!link_freqs)
->> > +                       goto done;
->> > +
->> > +               if (of_property_read_u64_array(np, "link-frequencies",
->> > +                                              link_freqs, size) < 0)
->> > +                       goto done;
->> > +
->> > +               pdata->link_freqs = link_freqs;
->> > +               pdata->link_def_freq = link_freqs[0];
->> > +       }
->> > +
->> > +       pdata->clk_pol = !!(endpoint.bus.parallel.flags &
->> > +                           V4L2_MBUS_PCLK_SAMPLE_RISING);
->> > +
->> > +done:
->> > +       of_node_put(np);
->> > +       return pdata;
->> > +}
->
-> [snip]
->
->> > @@ -1034,9 +1086,21 @@ static const struct i2c_device_id mt9v032_id[] = {
->> >  };
->> >  MODULE_DEVICE_TABLE(i2c, mt9v032_id);
->> >
->> > +#if IS_ENABLED(CONFIG_OF)
->> > +static const struct of_device_id mt9v032_of_match[] = {
->> > +       { .compatible = "mt9v032" },
->> > +       { .compatible = "mt9v032m" },
->> > +       { .compatible = "mt9v034" },
->> > +       { .compatible = "mt9v034m" },
->> > +       { /* Sentinel */ }
->> > +};
->> > +MODULE_DEVICE_TABLE(of, mt9v032_of_match);
->> > +#endif
->>
->> I have this:
->> #if IS_ENABLED(CONFIG_OF)
->> static const struct of_device_id mt9v032_of_match[] = {
->>     { .compatible = "aptina,mt9v022", },
->>     { .compatible = "aptina,mt9v022m", },
->>     { .compatible = "aptina,mt9v024", },
->>     { .compatible = "aptina,mt9v024m", },
->>     { .compatible = "aptina,mt9v032", },
->>     { .compatible = "aptina,mt9v032m", },
->>     { .compatible = "aptina,mt9v034", },
->>     { .compatible = "aptina,mt9v034m", },
->
-> Looks like I forgot to update my patch for mt9v02* support. Sorry about that,
-> I'll fix it. And the "aptina," prefix of course belongs there.
->
->>     { /* sentinel */ },
->> };
->>
->> MODULE_DEVICE_TABLE(of, mt9v032_of_match);
->> #endi
->
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+MvH
+Benjamin Larsson
