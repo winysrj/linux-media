@@ -1,126 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34277 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754444AbbCIQey (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:60159 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbbCTRUS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:34:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 20 Mar 2015 13:20:18 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/19] radio-bcm2048: embed video_device
-Date: Mon,  9 Mar 2015 17:33:58 +0100
-Message-Id: <1425918853-12371-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH v3 2/2] vivid: add support to set CVT, GTF timings
+Date: Fri, 20 Mar 2015 22:50:15 +0530
+Message-Id: <1426872015-6545-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+In addition to v4l2_find_dv_timings_cap(), where timings are searched
+against the list of preset timings, the incoming timing from v4l2-ctl
+is checked against CVT and GTF standards. If it confirms to be CVT or
+GTF, it is treated as valid timing and vivid format is updated with
+new timings.
 
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+v3: detect timings even when bt->standards == 0
+(Thanks to Hans for spotting this error)
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c | 33 ++++++++-------------------
- 1 file changed, 9 insertions(+), 24 deletions(-)
+ drivers/media/platform/vivid/vivid-vid-cap.c | 61 +++++++++++++++++++++++++++-
+ 1 file changed, 60 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 297ceaa..bd50fb2 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -279,7 +279,7 @@ struct region_info {
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 867a29a..47077cf 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -1552,6 +1552,63 @@ int vivid_vid_cap_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	return 0;
+ }
  
- struct bcm2048_device {
- 	struct i2c_client *client;
--	struct video_device *videodev;
-+	struct video_device videodev;
- 	struct work_struct work;
- 	struct completion compl;
- 	struct mutex mutex;
-@@ -2583,7 +2583,7 @@ static struct v4l2_ioctl_ops bcm2048_ioctl_ops = {
- static struct video_device bcm2048_viddev_template = {
- 	.fops			= &bcm2048_fops,
- 	.name			= BCM2048_DRIVER_NAME,
--	.release		= video_device_release,
-+	.release		= video_device_release_empty,
- 	.ioctl_ops		= &bcm2048_ioctl_ops,
- };
- 
-@@ -2602,13 +2602,6 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
- 		goto exit;
- 	}
- 
--	bdev->videodev = video_device_alloc();
--	if (!bdev->videodev) {
--		dev_dbg(&client->dev, "Failed to alloc video device.\n");
--		err = -ENOMEM;
--		goto free_bdev;
--	}
--
- 	bdev->client = client;
- 	i2c_set_clientdata(client, bdev);
- 	mutex_init(&bdev->mutex);
-@@ -2621,16 +2614,16 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
- 			client->name, bdev);
- 		if (err < 0) {
- 			dev_err(&client->dev, "Could not request IRQ\n");
--			goto free_vdev;
-+			goto free_bdev;
- 		}
- 		dev_dbg(&client->dev, "IRQ requested.\n");
- 	} else {
- 		dev_dbg(&client->dev, "IRQ not configured. Using timeouts.\n");
- 	}
- 
--	*bdev->videodev = bcm2048_viddev_template;
--	video_set_drvdata(bdev->videodev, bdev);
--	if (video_register_device(bdev->videodev, VFL_TYPE_RADIO, radio_nr)) {
-+	bdev->videodev = bcm2048_viddev_template;
-+	video_set_drvdata(&bdev->videodev, bdev);
-+	if (video_register_device(&bdev->videodev, VFL_TYPE_RADIO, radio_nr)) {
- 		dev_dbg(&client->dev, "Could not register video device.\n");
- 		err = -EIO;
- 		goto free_irq;
-@@ -2653,18 +2646,13 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
- free_sysfs:
- 	bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
- free_registration:
--	video_unregister_device(bdev->videodev);
--	/* video_unregister_device frees bdev->videodev */
--	bdev->videodev = NULL;
-+	video_unregister_device(&bdev->videodev);
- 	skip_release = 1;
- free_irq:
- 	if (client->irq)
- 		free_irq(client->irq, bdev);
--free_vdev:
--	if (!skip_release)
--		video_device_release(bdev->videodev);
--	i2c_set_clientdata(client, NULL);
- free_bdev:
-+	i2c_set_clientdata(client, NULL);
- 	kfree(bdev);
- exit:
- 	return err;
-@@ -2673,16 +2661,13 @@ exit:
- static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
++static void find_aspect_ratio(u32 width, u32 height,
++			       u32 *num, u32 *denom)
++{
++	if (!(height % 3) && ((height * 4 / 3) == width)) {
++		*num = 4;
++		*denom = 3;
++	} else if (!(height % 9) && ((height * 16 / 9) == width)) {
++		*num = 16;
++		*denom = 9;
++	} else if (!(height % 10) && ((height * 16 / 10) == width)) {
++		*num = 16;
++		*denom = 10;
++	} else if (!(height % 4) && ((height * 5 / 4) == width)) {
++		*num = 5;
++		*denom = 4;
++	} else if (!(height % 9) && ((height * 15 / 9) == width)) {
++		*num = 15;
++		*denom = 9;
++	} else { /* default to 16:9 */
++		*num = 16;
++		*denom = 9;
++	}
++}
++
++static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
++{
++	struct v4l2_bt_timings *bt = &timings->bt;
++	u32 total_h_pixel;
++	u32 total_v_lines;
++	u32 h_freq;
++
++	if (!v4l2_valid_dv_timings(timings, &vivid_dv_timings_cap,
++				NULL, NULL))
++		return false;
++
++	total_h_pixel = V4L2_DV_BT_FRAME_WIDTH(bt);
++	total_v_lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
++
++	h_freq = (u32)bt->pixelclock / total_h_pixel;
++
++	if (bt->standard == 0 || (bt->standards == V4L2_DV_BT_STD_CVT))
++		return v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
++				       bt->polarities, timings);
++
++	if (bt->standard == 0 || (bt->standards == V4L2_DV_BT_STD_GTF)) {
++		struct v4l2_fract aspect_ratio;
++
++		find_aspect_ratio(bt->width, bt->height,
++				  &aspect_ratio.numerator,
++				  &aspect_ratio.denominator);
++		return v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
++				       bt->polarities, aspect_ratio, timings);
++	}
++
++	return false;
++}
++
+ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
+ 				    struct v4l2_dv_timings *timings)
  {
- 	struct bcm2048_device *bdev = i2c_get_clientdata(client);
--	struct video_device *vd;
- 
- 	if (!client->adapter)
- 		return -ENODEV;
- 
- 	if (bdev) {
--		vd = bdev->videodev;
--
- 		bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
--		video_unregister_device(vd);
-+		video_unregister_device(&bdev->videodev);
- 
- 		if (bdev->power_state)
- 			bcm2048_set_power_state(bdev, BCM2048_POWER_OFF);
+@@ -1561,8 +1618,10 @@ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
+ 		return -ENODATA;
+ 	if (vb2_is_busy(&dev->vb_vid_cap_q))
+ 		return -EBUSY;
++
+ 	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
+-				0, NULL, NULL))
++				      0, NULL, NULL)
++	    && !valid_cvt_gtf_timings(timings))
+ 		return -EINVAL;
+ 	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0))
+ 		return 0;
 -- 
-2.1.4
+1.9.1
 
