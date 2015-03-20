@@ -1,255 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60122 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755670AbbCXRbD (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:53959 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801AbbCTG4u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 13:31:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 06/11] [media] coda: allocate bitstream buffer from REQBUFS, size depends on the format
-Date: Tue, 24 Mar 2015 18:30:52 +0100
-Message-Id: <1427218257-1507-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 20 Mar 2015 02:56:50 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 3/3] v4l2-ctl-stds: Support cvt/gtf options in set-dv-bt-timings
+Date: Fri, 20 Mar 2015 12:03:33 +0530
+Message-Id: <1426833213-7777-4-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1426833213-7777-1-git-send-email-prladdha@cisco.com>
+References: <1426833213-7777-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allocating the bitstream buffer only when the format is set allows to guarantee
-that at least two frames fit into the bitstream buffer. For small frame sizes
-a smaller bitstream buffer can be allocated. Since the bitstream buffer size now
-depends on the format, replace CODA_MAX_FRAME_SIZE with ctx->bitstream.size
-where appropriate and remove the now unused constant.
-Since REQBUFS can be called multiple times, but the format can't be changed
-unless REQBUFS 0 was called before, we can just keep the allocated context and
-bitstream buffers if REQBUFS is called multiple times with a non-zero buffer
-count.
+Added support to parse cvt/gtf suboptions- width, height, refresh
+rate, reduced blanking, interlaced.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-[fixed a resource leak preventing repeatedly decoding]
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Merged Peter's fix, calling coda_free_bitstream_buffer from coda_bit_release.
----
- drivers/media/platform/coda/coda-bit.c    | 85 +++++++++++++++++++++----------
- drivers/media/platform/coda/coda-common.c | 22 --------
- drivers/media/platform/coda/coda.h        |  1 -
- 3 files changed, 58 insertions(+), 50 deletions(-)
+The cvt/gtf modeline calculations are implemented v4l2-ctl-modes.cpp.
+Calling those APIs to update v4l2_bt_timings structure.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 12b9386..5aa8d87 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -15,6 +15,7 @@
- #include <linux/clk.h>
- #include <linux/irqreturn.h>
- #include <linux/kernel.h>
-+#include <linux/log2.h>
- #include <linux/platform_device.h>
- #include <linux/reset.h>
- #include <linux/slab.h>
-@@ -36,6 +37,8 @@
- #define CODA_DEFAULT_GAMMA	4096
- #define CODA9_DEFAULT_GAMMA	24576	/* 0.75 * 32768 */
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-stds.cpp | 82 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 80 insertions(+), 2 deletions(-)
+
+diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+index 2141876..0e4f810 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+@@ -39,6 +39,9 @@ void stds_usage(void)
+ 	       "  --set-dv-bt-timings\n"
+ 	       "                     query: use the output of VIDIOC_QUERY_DV_TIMINGS\n"
+ 	       "                     index=<index>: use the index as provided by --list-dv-timings\n"
++	       "                     or specify timings using cvt/gtf options as follows:\n"
++	       "                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>\n"
++	       "                     interlaced=<0/1>,reduced-blanking=<0/1>\n"
+ 	       "                     or give a fully specified timings:\n"
+ 	       "                     width=<width>,height=<height>,interlaced=<0/1>,\n"
+ 	       "                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,\n"
+@@ -141,6 +144,10 @@ enum timing_opts {
+ 	IL_VERT_SYNC,
+ 	IL_VERT_BACK_PORCH,
+ 	INDEX,
++	CVT,
++	GTF,
++	FPS,
++	REDUCED_BLANK,
+ };
  
-+static void coda_free_bitstream_buffer(struct coda_ctx *ctx);
-+
- static inline int coda_is_initialized(struct coda_dev *dev)
- {
- 	return coda_read(dev, CODA_REG_BIT_CUR_PC) != 0;
-@@ -389,21 +392,7 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 	if (dev->devtype->product == CODA_DX6)
- 		return 0;
+ static int parse_timing_subopt(char **subopt_str, int *value)
+@@ -164,6 +171,10 @@ static int parse_timing_subopt(char **subopt_str, int *value)
+ 	[IL_VERT_SYNC] = "il_vs",
+ 	[IL_VERT_BACK_PORCH] = "il_vbp",
+ 	[INDEX] = "index",
++	[CVT] = "cvt",
++	[GTF] = "gtf",
++	[FPS] = "fps",
++	[REDUCED_BLANK] = "reduced-blanking",
+ 	NULL
+ 	};
  
--	if (ctx->psbuf.vaddr) {
--		v4l2_err(&dev->v4l2_dev, "psmembuf still allocated\n");
--		return -EBUSY;
--	}
--	if (ctx->slicebuf.vaddr) {
--		v4l2_err(&dev->v4l2_dev, "slicebuf still allocated\n");
--		return -EBUSY;
--	}
--	if (ctx->workbuf.vaddr) {
--		v4l2_err(&dev->v4l2_dev, "context buffer still allocated\n");
--		ret = -EBUSY;
--		return -ENOMEM;
--	}
--
--	if (q_data->fourcc == V4L2_PIX_FMT_H264) {
-+	if (!ctx->slicebuf.vaddr && q_data->fourcc == V4L2_PIX_FMT_H264) {
- 		/* worst case slice size */
- 		size = (DIV_ROUND_UP(q_data->width, 16) *
- 			DIV_ROUND_UP(q_data->height, 16)) * 3200 / 8 + 512;
-@@ -417,7 +406,7 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 		}
+@@ -174,7 +185,7 @@ static int parse_timing_subopt(char **subopt_str, int *value)
+ 		stds_usage();
+ 		exit(1);
  	}
- 
--	if (dev->devtype->product == CODA_7541) {
-+	if (!ctx->psbuf.vaddr && dev->devtype->product == CODA_7541) {
- 		ret = coda_alloc_context_buf(ctx, &ctx->psbuf,
- 					     CODA7_PS_BUF_SIZE, "psbuf");
- 		if (ret < 0) {
-@@ -427,16 +416,19 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
- 		}
- 	}
- 
--	size = dev->devtype->workbuf_size;
--	if (dev->devtype->product == CODA_960 &&
--	    q_data->fourcc == V4L2_PIX_FMT_H264)
--		size += CODA9_PS_SAVE_SIZE;
--	ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size, "workbuf");
--	if (ret < 0) {
--		v4l2_err(&dev->v4l2_dev,
--			 "failed to allocate %d byte context buffer",
--			 ctx->workbuf.size);
--		goto err;
-+	if (!ctx->workbuf.vaddr) {
-+		size = dev->devtype->workbuf_size;
-+		if (dev->devtype->product == CODA_960 &&
-+		    q_data->fourcc == V4L2_PIX_FMT_H264)
-+			size += CODA9_PS_SAVE_SIZE;
-+		ret = coda_alloc_context_buf(ctx, &ctx->workbuf, size,
-+					     "workbuf");
-+		if (ret < 0) {
-+			v4l2_err(&dev->v4l2_dev,
-+				 "failed to allocate %d byte context buffer",
-+				 ctx->workbuf.size);
-+			goto err;
-+		}
- 	}
- 
- 	return 0;
-@@ -1337,6 +1329,7 @@ static void coda_bit_release(struct coda_ctx *ctx)
- 	mutex_lock(&ctx->buffer_mutex);
- 	coda_free_framebuffers(ctx);
- 	coda_free_context_buffers(ctx);
-+	coda_free_bitstream_buffer(ctx);
- 	mutex_unlock(&ctx->buffer_mutex);
+-	if (opt_str == NULL) {
++	if (opt_str == NULL && opt != CVT && opt != GTF) {
+ 		fprintf(stderr, "No value given to suboption <%s>\n",
+ 				subopt_list[opt]);
+ 		stds_usage();
+@@ -186,11 +197,69 @@ static int parse_timing_subopt(char **subopt_str, int *value)
+ 	return opt;
  }
  
-@@ -1354,6 +1347,38 @@ const struct coda_context_ops coda_bit_encode_ops = {
-  * Decoder context operations
-  */
- 
-+static int coda_alloc_bitstream_buffer(struct coda_ctx *ctx,
-+				       struct coda_q_data *q_data)
++static void get_cvt_gtf_timings(char *subopt, int standard,
++				struct v4l2_bt_timings *bt)
 +{
-+	if (ctx->bitstream.vaddr)
-+		return 0;
++	int width = 0;
++	int height = 0;
++	int fps = 0;
++	int r_blank = 0;
++	int interlaced = 0;
 +
-+	ctx->bitstream.size = roundup_pow_of_two(q_data->sizeimage * 2);
-+	ctx->bitstream.vaddr = dma_alloc_writecombine(
-+			&ctx->dev->plat_dev->dev, ctx->bitstream.size,
-+			&ctx->bitstream.paddr, GFP_KERNEL);
-+	if (!ctx->bitstream.vaddr) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "failed to allocate bitstream ringbuffer");
-+		return -ENOMEM;
-+	}
-+	kfifo_init(&ctx->bitstream_fifo,
-+		   ctx->bitstream.vaddr, ctx->bitstream.size);
++	bool timings_valid = false;
 +
-+	return 0;
-+}
++	char *subopt_str = subopt;
++	while (*subopt_str != '\0') {
++		int opt;
++		int opt_val;
 +
-+static void coda_free_bitstream_buffer(struct coda_ctx *ctx)
-+{
-+	if (ctx->bitstream.vaddr == NULL)
-+		return;
++		opt = parse_timing_subopt(&subopt_str, &opt_val);
 +
-+	dma_free_writecombine(&ctx->dev->plat_dev->dev, ctx->bitstream.size,
-+			      ctx->bitstream.vaddr, ctx->bitstream.paddr);
-+	ctx->bitstream.vaddr = NULL;
-+	kfifo_init(&ctx->bitstream_fifo, NULL, 0);
-+}
-+
- static int coda_decoder_reqbufs(struct coda_ctx *ctx,
- 				struct v4l2_requestbuffers *rb)
- {
-@@ -1368,7 +1393,13 @@ static int coda_decoder_reqbufs(struct coda_ctx *ctx,
- 		ret = coda_alloc_context_buffers(ctx, q_data_src);
- 		if (ret < 0)
- 			return ret;
-+		ret = coda_alloc_bitstream_buffer(ctx, q_data_src);
-+		if (ret < 0) {
-+			coda_free_context_buffers(ctx);
-+			return ret;
++		switch (opt) {
++		case WIDTH:
++			width = opt_val;
++			break;
++		case HEIGHT:
++			height = opt_val;
++			break;
++		case FPS:
++			fps = opt_val;
++			break;
++		case REDUCED_BLANK:
++			r_blank = opt_val;
++			break;
++		case INTERLACED:
++			interlaced = opt_val;
++			break;
++		default:
++			break;
 +		}
- 	} else {
-+		coda_free_bitstream_buffer(ctx);
- 		coda_free_context_buffers(ctx);
++	}
++
++	if (standard == V4L2_DV_BT_STD_CVT) {
++		timings_valid = calc_cvt_modeline(width, height, fps,
++			              r_blank == 1 ? true : false,
++			              interlaced == 1 ? true : false,
++			              bt);
++	} else {
++		timings_valid = calc_gtf_modeline(width, height, fps,
++			              r_blank == 1 ? true : false,
++			              interlaced == 1 ? true : false,
++			              bt);
++	}
++
++	if (!timings_valid) {
++		stds_usage();
++		exit(1);
++	}
++}
++
+ static void parse_dv_bt_timings(char *optarg, struct v4l2_dv_timings *dv_timings,
+ 		bool &query, int &enumerate)
+ {
+ 	char *subs = optarg;
+ 	struct v4l2_bt_timings *bt = &dv_timings->bt;
++	bool parse_cvt_gtf = false;
+ 
+ 	dv_timings->type = V4L2_DV_BT_656_1120;
+ 
+@@ -199,11 +268,12 @@ static void parse_dv_bt_timings(char *optarg, struct v4l2_dv_timings *dv_timings
+ 		return;
  	}
  
-@@ -1736,7 +1767,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	 * by up to 512 bytes
- 	 */
- 	if (ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) {
--		if (coda_get_bitstream_payload(ctx) >= CODA_MAX_FRAME_SIZE - 512)
-+		if (coda_get_bitstream_payload(ctx) >= ctx->bitstream.size - 512)
- 			kfifo_init(&ctx->bitstream_fifo,
- 				ctx->bitstream.vaddr, ctx->bitstream.size);
- 	}
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 0026e3a..b34a0db 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1716,20 +1716,6 @@ static int coda_open(struct file *file)
- 			goto err_dma_alloc;
- 		}
- 	}
--	if (ctx->use_bit && ctx->inst_type == CODA_INST_DECODER) {
--		ctx->bitstream.size = CODA_MAX_FRAME_SIZE;
--		ctx->bitstream.vaddr = dma_alloc_writecombine(
--				&dev->plat_dev->dev, ctx->bitstream.size,
--				&ctx->bitstream.paddr, GFP_KERNEL);
--		if (!ctx->bitstream.vaddr) {
--			v4l2_err(&dev->v4l2_dev,
--				 "failed to allocate bitstream ringbuffer");
--			ret = -ENOMEM;
--			goto err_dma_writecombine;
--		}
--	}
--	kfifo_init(&ctx->bitstream_fifo,
--		ctx->bitstream.vaddr, ctx->bitstream.size);
- 	mutex_init(&ctx->bitstream_mutex);
- 	mutex_init(&ctx->buffer_mutex);
- 	INIT_LIST_HEAD(&ctx->buffer_meta_list);
-@@ -1743,10 +1729,6 @@ static int coda_open(struct file *file)
+-	while (*subs != '\0') {
++	while (*subs != '\0' && !parse_cvt_gtf) {
+ 		int opt;
+ 		int opt_val;
  
- 	return 0;
- 
--err_dma_writecombine:
--	if (ctx->dev->devtype->product == CODA_DX6)
--		coda_free_aux_buf(dev, &ctx->workbuf);
--	coda_free_aux_buf(dev, &ctx->parabuf);
- err_dma_alloc:
- 	v4l2_ctrl_handler_free(&ctx->ctrls);
- err_ctrls_setup:
-@@ -1791,10 +1773,6 @@ static int coda_release(struct file *file)
- 	list_del(&ctx->list);
- 	coda_unlock(ctx);
- 
--	if (ctx->bitstream.vaddr) {
--		dma_free_writecombine(&dev->plat_dev->dev, ctx->bitstream.size,
--			ctx->bitstream.vaddr, ctx->bitstream.paddr);
--	}
- 	if (ctx->dev->devtype->product == CODA_DX6)
- 		coda_free_aux_buf(dev, &ctx->workbuf);
- 
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 57d070c..01d940c 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -26,7 +26,6 @@
- #include "coda_regs.h"
- 
- #define CODA_MAX_FRAMEBUFFERS	8
--#define CODA_MAX_FRAME_SIZE	0x100000
- #define FMO_SLICE_SAVE_BUF_SIZE	(32)
- 
- enum {
+ 		opt = parse_timing_subopt(&subs, &opt_val);
++
+ 		switch (opt) {
+ 		case WIDTH:
+ 			bt->width = opt_val;
+@@ -250,6 +320,14 @@ static void parse_dv_bt_timings(char *optarg, struct v4l2_dv_timings *dv_timings
+ 		case INDEX:
+ 			enumerate = opt_val;
+ 			break;
++		case CVT:
++			parse_cvt_gtf = true;
++			get_cvt_gtf_timings(subs, V4L2_DV_BT_STD_CVT, bt);
++			break;
++		case GTF:
++			parse_cvt_gtf = true;
++			get_cvt_gtf_timings(subs, V4L2_DV_BT_STD_GTF, bt);
++			break;
+ 		default:
+ 			stds_usage();
+ 			exit(1);
 -- 
-2.1.4
+1.9.1
 
