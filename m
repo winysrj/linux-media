@@ -1,53 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.techmunk.com ([209.141.61.243]:46462 "EHLO
-	mail.techmunk.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbbCIF14 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 01:27:56 -0400
-From: Christian Dale <kernel@techmunk.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Christian Dale <kernel@techmunk.com>
-Subject: [PATCH] [media] rtl28xxu: add [0413:6f12] WinFast DTV2000 DS Plus
-Date: Mon,  9 Mar 2015 15:19:01 +1000
-Message-Id: <1425878341-3037-1-git-send-email-kernel@techmunk.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53318 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750940AbbCTRFU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 13:05:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 1/5] DocBook media: improve V4L2_DV_FL_HALF_LINE documentation
+Date: Fri, 20 Mar 2015 18:05:02 +0100
+Message-Id: <1426871106-31914-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426871106-31914-1-git-send-email-hverkuil@xs4all.nl>
+References: <1426871106-31914-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Leadtek WinFast DTV2000DS Plus device based on Realtek RTL2832U.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have not tested the remote, but it is the Y04G0051 model.
+Explicitly specify where the half-line is added or removed in
+each field.
 
-Signed-off-by: Christian Dale <kernel@techmunk.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/dvb-core/dvb-usb-ids.h    | 1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
- 2 files changed, 3 insertions(+)
+ Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 80ab8d0..339ee5c 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -318,6 +318,7 @@
- #define USB_PID_GRANDTEC_DVBT_USB2_COLD			0x0bc6
- #define USB_PID_GRANDTEC_DVBT_USB2_WARM			0x0bc7
- #define USB_PID_WINFAST_DTV2000DS			0x6a04
-+#define USB_PID_WINFAST_DTV2000DS_PLUS			0x6f12
- #define USB_PID_WINFAST_DTV_DONGLE_COLD			0x6025
- #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 77dcfdf..aa5e58b 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1726,6 +1726,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl28xxu_props, "DigitalNow Quad DVB-T Receiver", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_MINID,
- 		&rtl28xxu_props, "Leadtek Winfast DTV Dongle Mini D", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV2000DS_PLUS,
-+		&rtl28xxu_props, "Leadtek WinFast DTV2000DS Plus", RC_MAP_LEADTEK_Y04G0051) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d3,
- 		&rtl28xxu_props, "TerraTec Cinergy T Stick RC (Rev. 3)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1102,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+index c433657..7d10784 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+@@ -318,10 +318,11 @@ can't generate such frequencies, then the flag will also be cleared.
+ 	  </row>
+ 	  <row>
+ 	    <entry>V4L2_DV_FL_HALF_LINE</entry>
+-	    <entry>Specific to interlaced formats: if set, then field 1 (aka the odd field)
+-is really one half-line longer and field 2 (aka the even field) is really one half-line
+-shorter, so each field has exactly the same number of half-lines. Whether half-lines can be
+-detected or used depends on the hardware.
++	    <entry>Specific to interlaced formats: if set, then the vertical frontporch
++of field 1 (aka the odd field) is really one half-line longer and the vertical backporch
++of field 2 (aka the even field) is really one half-line shorter, so each field has exactly
++the same number of half-lines. Whether half-lines can be detected or used depends on
++the hardware.
+ 	    </entry>
+ 	  </row>
+ 	</tbody>
 -- 
-2.3.2
+2.1.4
 
