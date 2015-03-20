@@ -1,91 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46604 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751450AbbCORac (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 13:30:32 -0400
-Message-ID: <5505C1B1.8030201@xs4all.nl>
-Date: Sun, 15 Mar 2015 18:30:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59112 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164AbbCTXZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 19:25:09 -0400
+Message-ID: <550CAC52.50700@iki.fi>
+Date: Sat, 21 Mar 2015 01:25:06 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [RFC PATCH] v4l2_plane_pix_format: use __u32 bytesperline instead
- of __u16
-Content-Type: text/plain; charset=utf-8
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] mn88473: implement lock for all delivery systems
+References: <1426714629-15640-1-git-send-email-benjamin@southpole.se> <550AE0CC.5050407@iki.fi> <550CA9B4.4050903@southpole.se>
+In-Reply-To: <550CA9B4.4050903@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While running v4l2-compliance tests on vivid I suddenly got errors due to
-a call to vmalloc_user with size 0 from vb2.
+On 03/21/2015 01:13 AM, Benjamin Larsson wrote:
+> On 03/19/2015 03:44 PM, Antti Palosaari wrote:
+>> Bad news. It does lock for DVB-C now, but DVB-T nor DVB-T2 does not lock.
+>>
+>> regards
+>> Antti
+>
+> I'm getting tired :/. Had the time to test now and the checks is
+> supposed to be negated.
+>
+> if (utmp & 0xA0) { -> if (!(utmp & 0xA0))
+>
+> But as stock dvbv5-scan crashes on ubuntu 14.04 and I can't unload the
+> mn88473 module I will confirm this when I have an actual working version
+> of dvbv5-scan and Ubuntu.
 
-Digging deeper into the cause I discovered that this was due to the fact that
-struct v4l2_plane_pix_format defines bytesperline as a __u16 instead of a __u32.
+You could also use w_scan. Or install latest dvbv5-scan from git - it 
+works even without install by running from compile directory.
 
-The test I was running selected a format of 4 * 4096 by 4 * 2048 with a 32
-bit pixelformat.
+regards
+Antti
 
-So bytesperline was 4 * 4 * 4096 = 65536, which becomes 0 in a __u16. And
-bytesperline * height is suddenly 0 as well.
-
-The best approach IMHO is to increase the type to __u32. The only drivers
-besides vivid that use the multiplanar API are little-endian ARM and SH platforms
-(exynos, ti-vpe, vsp1).
-
-Does anyone know of someone using those drivers on a big-endian system?
-
-I don't think we can ignore this. With work going on for deep-color and 8K formats
-you can reach this limit already (8192 * 8 == 65536). Ditto for high-resolution
-sensors. Add a scaler in the mix (like the vivid driver does) and you reach the
-limit very quickly.
-
-The alternative would be to add a __u32 bytesperline_msb field, but I think
-we can still safely change the API today without adding a cumbersome msb field.
-
-Comments?
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 13540fa..35d2f86 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -182,14 +182,14 @@ see <xref linkend="colorspaces" />.</entry>
-           </entry>
-         </row>
-         <row>
--          <entry>__u16</entry>
-+          <entry>__u32</entry>
-           <entry><structfield>bytesperline</structfield></entry>
-           <entry>Distance in bytes between the leftmost pixels in two adjacent
-             lines. See &v4l2-pix-format;.</entry>
-         </row>
-         <row>
-           <entry>__u16</entry>
--          <entry><structfield>reserved[7]</structfield></entry>
-+          <entry><structfield>reserved[6]</structfield></entry>
-           <entry>Reserved for future extensions. Should be zeroed by the
-            application.</entry>
-         </row>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fbdc360..44f381d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1841,8 +1841,8 @@ struct v4l2_mpeg_vbi_fmt_ivtv {
-  */
- struct v4l2_plane_pix_format {
- 	__u32		sizeimage;
--	__u16		bytesperline;
--	__u16		reserved[7];
-+	__u32		bytesperline;
-+	__u16		reserved[6];
- } __attribute__ ((packed));
- 
- /**
+-- 
+http://palosaari.fi/
