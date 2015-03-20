@@ -1,52 +1,67 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:50698 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753911AbbC3UVc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 16:21:32 -0400
-Date: Mon, 30 Mar 2015 22:21:19 +0200
-From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	m.chehab@samsung.com, James Hogan <james.hogan@imgtec.com>,
-	Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>,
-	Tomas Melin <tomas.melin@iki.fi>
-Subject: Re: mceusb: sysfs: cannot create duplicate filename '/class/rc/rc0'
-  (race condition between multiple RC_CORE devices)
-Message-ID: <20150330222119.16ee359e@mir>
-In-Reply-To: <61aca9029bf06b2a3f322018aee00dda@hardeman.nu>
-References: <201412181916.18051.s.L-H@gmx.de>
-	<201412302211.40801.s.L-H@gmx.de>
-	<20150330173031.1fb46443@mir>
-	<61aca9029bf06b2a3f322018aee00dda@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Arun Kumar K <arun.kk@samsung.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 3/5] media/v4l2-ctrls: Add execute flags to write_only
+ controls
+Date: Fri, 20 Mar 2015 15:21:28 +0100
+Message-id: <1426861288-5832-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Any control that sets FLAG_WRITE_ONLY should OR it with
+FLAG_EXECUTE_ON_WRITE.
 
-On 2015-03-30, David Härdeman wrote:
-> On 2015-03-30 17:30, Stefan Lippers-Hollmann wrote:
-> > Hi
-> > 
-> > This is a follow-up for:
-> > 	http://lkml.kernel.org/r/<201412181916.18051.s.L-H@gmx.de>
-> > 	http://lkml.kernel.org/r/<201412302211.40801.s.L-H@gmx.de>
-> 
-> I can't swear that it's the case but I'm guessing this might be fixed by 
-> the patches I posted earlier (in particular the one that converted 
-> rc-core to use the IDA infrastructure for keeping track of registered 
-> minor device numbers).
+So we can keep the current meaning of WRITE_ONLY.
 
-Do you have a pointer to that patch (-queue) or a tree containing it?
-So far I've only found https://patchwork.linuxtv.org/patch/23370/
-with those keywords, respectively the thread at 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/76514
-which seems to be partially applied, anything I could test (reproducing
-the problem takes its time, probably 4-10 weeks to be really sure, but 
-I'd be happy to try or forward port the required parts).
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+v2: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Fix commit message
 
-Thanks a lot
-	Stefan Lippers-Hollmann
+ drivers/media/v4l2-core/v4l2-ctrls.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2ebc33e..bacaed6 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -991,7 +991,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_AUTO_FOCUS_START:
+ 	case V4L2_CID_AUTO_FOCUS_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+-		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
++		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
++			  V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
+ 		*min = *max = *step = *def = 0;
+ 		break;
+ 	case V4L2_CID_POWER_LINE_FREQUENCY:
+@@ -1172,7 +1173,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_FOCUS_RELATIVE:
+ 	case V4L2_CID_IRIS_RELATIVE:
+ 	case V4L2_CID_ZOOM_RELATIVE:
+-		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
++		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
++			  V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
+ 		break;
+ 	case V4L2_CID_FLASH_STROBE_STATUS:
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:
+@@ -1983,7 +1985,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 
+ 	sz_extra = 0;
+ 	if (type == V4L2_CTRL_TYPE_BUTTON)
+-		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
++		flags |= V4L2_CTRL_FLAG_WRITE_ONLY |
++			V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
+ 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 	else if (type == V4L2_CTRL_TYPE_INTEGER64 ||
+-- 
+2.1.4
