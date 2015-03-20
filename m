@@ -1,60 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:33804 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751391AbbCMLKH (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:34196 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777AbbCTMLX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:10:07 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5BFEF2A002F
-	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2015 12:09:57 +0100 (CET)
-Message-ID: <5502C585.7000200@xs4all.nl>
-Date: Fri, 13 Mar 2015 12:09:57 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 20 Mar 2015 08:11:23 -0400
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.1] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <550C0D1C.1070200@gmail.com>
+References: <1426852133-14539-1-git-send-email-prabhakar.csengg@gmail.com> <550C0D1C.1070200@gmail.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Fri, 20 Mar 2015 12:10:51 +0000
+Message-ID: <CA+V-a8uMa9j5BHKPDakXYZn_cXwp_e8t1CyguVshJTm=A-mqMQ@mail.gmail.com>
+Subject: Re: [PATCH v8] media: i2c: add support for omnivision's ov2659 sensor
+To: Varka Bhadram <varkabhadram@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
+On Fri, Mar 20, 2015 at 12:05 PM, Varka Bhadram <varkabhadram@gmail.com> wrote:
+> On 03/20/2015 05:18 PM, Lad Prabhakar wrote:
+>
+>> From: Benoit Parrot <bparrot@ti.com>
+>>
+>> this patch adds support for omnivision's ov2659
+>> sensor, the driver supports following features:
+>> 1: Asynchronous probing
+>> 2: DT support
+>> 3: Media controller support
+>>
+>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>   Changes for v8:
+>>   --------------
+>>   a. Now setting the link_frequency control in set_fmt
+>>      callback instead of implementing g_volatile_ctrl()
+>>      for it and setting it there.
+>>
+>>   v7: https://patchwork.kernel.org/patch/6034651/
+>>   v6: https://patchwork.kernel.org/patch/6012751/
+>>   v5: https://patchwork.kernel.org/patch/6000161/
+>>   v4: https://patchwork.kernel.org/patch/5961661/
+>>   v3: https://patchwork.kernel.org/patch/5959401/
+>>   v2: https://patchwork.kernel.org/patch/5859801/
+>>   v1: https://patchwork.linuxtv.org/patch/27919/
+>>
+>>   .../devicetree/bindings/media/i2c/ov2659.txt       |   38 +
+>>   MAINTAINERS                                        |   10 +
+>>   drivers/media/i2c/Kconfig                          |   11 +
+>>   drivers/media/i2c/Makefile                         |    1 +
+>>   drivers/media/i2c/ov2659.c                         | 1528
+>> ++++++++++++++++++++
+>>   include/media/ov2659.h                             |   33 +
+>>   6 files changed, 1621 insertions(+)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/i2c/ov2659.txt
+>>   create mode 100644 drivers/media/i2c/ov2659.c
+>>   create mode 100644 include/media/ov2659.h
+>>
+> (...)
+>
+>> +static struct ov2659_platform_data *
+>> +ov2659_get_pdata(struct i2c_client *client)
+>> +{
+>> +       struct ov2659_platform_data *pdata;
+>> +       struct device_node *endpoint;
+>> +       int ret;
+>> +
+>> +       if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
+>> +               dev_err(&client->dev, "ov2659_get_pdata: DT Node
+>> found\n");
+>
+>
+> ov2659_get_pdata: DT Node *not* found...?
+>
+Good catch!
 
-  [media] mn88473: simplify bandwidth registers setting code (2015-03-03 13:09:12 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.1j
-
-for you to fetch changes up to 90eda3e053bf9e12490fea19a40d5d19e4f23b09:
-
-  DocBook media: fix PIX_FMT_SGRBR8 example (2015-03-13 12:08:10 +0100)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      wl128x-radio really depends on TI_ST
-
-Ezequiel Garcia (2):
-      stk1160: Make sure current buffer is released
-      MAINTAINERS: Update the maintainer mail address for stk1160
-
-Hans Verkuil (5):
-      DocBook v4l: update bytesperline handling
-      DocBook media: fix section IDs
-      rtl2832: fix compiler warning
-      cx231xx: fix compiler warnings
-      DocBook media: fix PIX_FMT_SGRBR8 example
-
-Julia Lawall (1):
-      media: pci: cx23885: don't export static symbol
-
- Documentation/DocBook/media/v4l/pixfmt-sgrbg8.xml | 16 ++++++++--------
- Documentation/DocBook/media/v4l/pixfmt.xml        | 40 ++++++++++++++++++++--------------------
- Documentation/DocBook/media/v4l/vidioc-g-fbuf.xml |  4 ++--
- MAINTAINERS                                       |  2 +-
- drivers/media/dvb-frontends/rtl2832.c             |  2 +-
- drivers/media/pci/cx23885/altera-ci.c             |  3 ---
- drivers/media/radio/wl128x/Kconfig                |  2 +-
- drivers/media/usb/cx231xx/cx231xx.h               |  7 +++++--
- drivers/media/usb/stk1160/stk1160-v4l.c           | 17 +++++++++++++++--
- 9 files changed, 53 insertions(+), 40 deletions(-)
+Cheers,
+--Prabhakar Lad
