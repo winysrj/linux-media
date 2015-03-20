@@ -1,159 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34277 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754556AbbCIQgU (ORCPT
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:33801 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823AbbCTMGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 12:36:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 14/19] gadget/uvc: embed video_device
-Date: Mon,  9 Mar 2015 17:34:08 +0100
-Message-Id: <1425918853-12371-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425918853-12371-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 20 Mar 2015 08:06:09 -0400
+Message-ID: <550C0D1C.1070200@gmail.com>
+Date: Fri, 20 Mar 2015 17:35:48 +0530
+From: Varka Bhadram <varkabhadram@gmail.com>
+MIME-Version: 1.0
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devicetree@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v8] media: i2c: add support for omnivision's ov2659 sensor
+References: <1426852133-14539-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1426852133-14539-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/20/2015 05:18 PM, Lad Prabhakar wrote:
 
-Embed the video_device struct to simplify the error handling and in
-order to (eventually) get rid of video_device_alloc/release.
+> From: Benoit Parrot <bparrot@ti.com>
+>
+> this patch adds support for omnivision's ov2659
+> sensor, the driver supports following features:
+> 1: Asynchronous probing
+> 2: DT support
+> 3: Media controller support
+>
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>   Changes for v8:
+>   --------------
+>   a. Now setting the link_frequency control in set_fmt
+>      callback instead of implementing g_volatile_ctrl()
+>      for it and setting it there.
+>
+>   v7: https://patchwork.kernel.org/patch/6034651/
+>   v6: https://patchwork.kernel.org/patch/6012751/
+>   v5: https://patchwork.kernel.org/patch/6000161/
+>   v4: https://patchwork.kernel.org/patch/5961661/
+>   v3: https://patchwork.kernel.org/patch/5959401/
+>   v2: https://patchwork.kernel.org/patch/5859801/
+>   v1: https://patchwork.linuxtv.org/patch/27919/
+>
+>   .../devicetree/bindings/media/i2c/ov2659.txt       |   38 +
+>   MAINTAINERS                                        |   10 +
+>   drivers/media/i2c/Kconfig                          |   11 +
+>   drivers/media/i2c/Makefile                         |    1 +
+>   drivers/media/i2c/ov2659.c                         | 1528 ++++++++++++++++++++
+>   include/media/ov2659.h                             |   33 +
+>   6 files changed, 1621 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+>   create mode 100644 drivers/media/i2c/ov2659.c
+>   create mode 100644 include/media/ov2659.h
+>
+(...)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/usb/gadget/function/f_uvc.c | 44 +++++++++++++++----------------------
- drivers/usb/gadget/function/uvc.h   |  2 +-
- 2 files changed, 19 insertions(+), 27 deletions(-)
+> +static struct ov2659_platform_data *
+> +ov2659_get_pdata(struct i2c_client *client)
+> +{
+> +	struct ov2659_platform_data *pdata;
+> +	struct device_node *endpoint;
+> +	int ret;
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node) {
+> +		dev_err(&client->dev, "ov2659_get_pdata: DT Node found\n");
 
-diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
-index 3242bc6..cf0df8f 100644
---- a/drivers/usb/gadget/function/f_uvc.c
-+++ b/drivers/usb/gadget/function/f_uvc.c
-@@ -222,7 +222,7 @@ uvc_function_ep0_complete(struct usb_ep *ep, struct usb_request *req)
- 		v4l2_event.type = UVC_EVENT_DATA;
- 		uvc_event->data.length = req->actual;
- 		memcpy(&uvc_event->data.data, req->buf, req->actual);
--		v4l2_event_queue(uvc->vdev, &v4l2_event);
-+		v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 	}
- }
- 
-@@ -256,7 +256,7 @@ uvc_function_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
- 	memset(&v4l2_event, 0, sizeof(v4l2_event));
- 	v4l2_event.type = UVC_EVENT_SETUP;
- 	memcpy(&uvc_event->req, ctrl, sizeof(uvc_event->req));
--	v4l2_event_queue(uvc->vdev, &v4l2_event);
-+	v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 
- 	return 0;
- }
-@@ -315,7 +315,7 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
- 			memset(&v4l2_event, 0, sizeof(v4l2_event));
- 			v4l2_event.type = UVC_EVENT_CONNECT;
- 			uvc_event->speed = cdev->gadget->speed;
--			v4l2_event_queue(uvc->vdev, &v4l2_event);
-+			v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 
- 			uvc->state = UVC_STATE_CONNECTED;
- 		}
-@@ -343,7 +343,7 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
- 
- 		memset(&v4l2_event, 0, sizeof(v4l2_event));
- 		v4l2_event.type = UVC_EVENT_STREAMOFF;
--		v4l2_event_queue(uvc->vdev, &v4l2_event);
-+		v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 
- 		uvc->state = UVC_STATE_CONNECTED;
- 		return 0;
-@@ -370,7 +370,7 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
- 
- 		memset(&v4l2_event, 0, sizeof(v4l2_event));
- 		v4l2_event.type = UVC_EVENT_STREAMON;
--		v4l2_event_queue(uvc->vdev, &v4l2_event);
-+		v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 		return USB_GADGET_DELAYED_STATUS;
- 
- 	default:
-@@ -388,7 +388,7 @@ uvc_function_disable(struct usb_function *f)
- 
- 	memset(&v4l2_event, 0, sizeof(v4l2_event));
- 	v4l2_event.type = UVC_EVENT_DISCONNECT;
--	v4l2_event_queue(uvc->vdev, &v4l2_event);
-+	v4l2_event_queue(&uvc->vdev, &v4l2_event);
- 
- 	uvc->state = UVC_STATE_DISCONNECTED;
- 
-@@ -435,25 +435,19 @@ static int
- uvc_register_video(struct uvc_device *uvc)
- {
- 	struct usb_composite_dev *cdev = uvc->func.config->cdev;
--	struct video_device *video;
- 
- 	/* TODO reference counting. */
--	video = video_device_alloc();
--	if (video == NULL)
--		return -ENOMEM;
--
--	video->v4l2_dev = &uvc->v4l2_dev;
--	video->fops = &uvc_v4l2_fops;
--	video->ioctl_ops = &uvc_v4l2_ioctl_ops;
--	video->release = video_device_release;
--	video->vfl_dir = VFL_DIR_TX;
--	video->lock = &uvc->video.mutex;
--	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
--
--	uvc->vdev = video;
--	video_set_drvdata(video, uvc);
--
--	return video_register_device(video, VFL_TYPE_GRABBER, -1);
-+	uvc->vdev.v4l2_dev = &uvc->v4l2_dev;
-+	uvc->vdev.fops = &uvc_v4l2_fops;
-+	uvc->vdev.ioctl_ops = &uvc_v4l2_ioctl_ops;
-+	uvc->vdev.release = video_device_release_empty;
-+	uvc->vdev.vfl_dir = VFL_DIR_TX;
-+	uvc->vdev.lock = &uvc->video.mutex;
-+	strlcpy(uvc->vdev.name, cdev->gadget->name, sizeof(uvc->vdev.name));
-+
-+	video_set_drvdata(&uvc->vdev, uvc);
-+
-+	return video_register_device(&uvc->vdev, VFL_TYPE_GRABBER, -1);
- }
- 
- #define UVC_COPY_DESCRIPTOR(mem, dst, desc) \
-@@ -766,8 +760,6 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
- 
- error:
- 	v4l2_device_unregister(&uvc->v4l2_dev);
--	if (uvc->vdev)
--		video_device_release(uvc->vdev);
- 
- 	if (uvc->control_ep)
- 		uvc->control_ep->driver_data = NULL;
-@@ -898,7 +890,7 @@ static void uvc_unbind(struct usb_configuration *c, struct usb_function *f)
- 
- 	INFO(cdev, "%s\n", __func__);
- 
--	video_unregister_device(uvc->vdev);
-+	video_unregister_device(&uvc->vdev);
- 	v4l2_device_unregister(&uvc->v4l2_dev);
- 	uvc->control_ep->driver_data = NULL;
- 	uvc->video.ep->driver_data = NULL;
-diff --git a/drivers/usb/gadget/function/uvc.h b/drivers/usb/gadget/function/uvc.h
-index 3390ecd..ebe409b 100644
---- a/drivers/usb/gadget/function/uvc.h
-+++ b/drivers/usb/gadget/function/uvc.h
-@@ -144,7 +144,7 @@ enum uvc_state
- 
- struct uvc_device
- {
--	struct video_device *vdev;
-+	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
- 	enum uvc_state state;
- 	struct usb_function func;
+ov2659_get_pdata: DT Node *not* found...?
+
 -- 
-2.1.4
+Varka Bhadram
 
