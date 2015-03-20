@@ -1,119 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41783 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754255AbbCRDqj (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:42307 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbbCTPEE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2015 23:46:39 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E304E2A008D
-	for <linux-media@vger.kernel.org>; Wed, 18 Mar 2015 04:46:30 +0100 (CET)
-Date: Wed, 18 Mar 2015 04:46:30 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150318034630.E304E2A008D@tschai.lan>
+	Fri, 20 Mar 2015 11:04:04 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v1 05/11] DT: Add documentation for the Skyworks AAT1290
+Date: Fri, 20 Mar 2015 16:03:25 +0100
+Message-id: <1426863811-12516-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-Results of the daily build of media_tree:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   70 ++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-date:		Wed Mar 18 04:00:23 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..c3df4e9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,70 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++The device is controlled through two pins: FL_EN and EN_SET. The pins when,
++asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
++respectively. In order to add a capability of selecting the strobe signal source
++(e.g. GPIO or ISP) there is an additional switch required, independent of the
++flash chip. The switch is controlled with pin control.
++
++Required properties:
++
++- compatible : Must be "skyworks,aat1290".
++- flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
++- enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
++
++Optional properties:
++- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
++		"default" and "host" must refer to the same pin configuration
++		node, which sets the host as a strobe signal provider. Entry
++		"isp" must refer to the pin configuration node, which sets the
++		ISP as a strobe signal provider.
++
++A discrete LED element connected to the device must be represented by a child
++node - see Documentation/devicetree/bindings/leds/common.txt.
++
++Required properties of the LED child node:
++- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
++		       it can be calculated using following formula:
++		       I = 1A * 162kohm / Rset.
++- flash-timeout-us : Maximum flash timeout in microseconds -
++		     it can be calculated using following formula:
++		     T = 8.82 * 10^9 * Ct.
++
++Optional properties of the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
++
++Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
++a switch that allows for routing strobe signal either from host or from ISP):
++
++#include "exynos4412.dtsi"
++
++aat1290 {
++	compatible = "skyworks,aat1290";
++	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
++	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
++
++	pinctrl-names = "default", "host", "isp";
++	pinctrl-0 = <&camera_flash_host>;
++	pinctrl-1 = <&camera_flash_host>;
++	pinctrl-2 = <&camera_flash_isp>;
++
++	camera_flash: flash-led {
++		label = "aat1290-flash";
++		flash-max-microamp = <1012500>;
++		flash-timeout-us = <1940000>;
++	};
++};
++
++&pinctrl_0 {
++	camera_flash_host: camera-flash-host {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <0>;
++	};
++
++	camera_flash_isp: camera-flash-isp {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <1>;
++	};
++};
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
