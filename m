@@ -1,74 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56404 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752508AbbCYW6j (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51214 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750782AbbCTDqf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:39 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 19 Mar 2015 23:46:35 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0DA1D2A00AB
+	for <linux-media@vger.kernel.org>; Fri, 20 Mar 2015 04:46:23 +0100 (CET)
+Date: Fri, 20 Mar 2015 04:46:23 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 08/15] omap3isp: Calculate vpclk_div for CSI-2
-Date: Thu, 26 Mar 2015 00:57:32 +0200
-Message-Id: <1427324259-18438-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150320034623.0DA1D2A00AB@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video port clock is l3_ick divided by vpclk_div. This clock must be high
-enough for the external pixel rate. The video port requires two clock cycles
-to process a pixel.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispcsi2.c |    8 +++++++-
- include/media/omap3isp.h                  |    2 --
- 2 files changed, 7 insertions(+), 3 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 14d279d..97cdfeb 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -548,6 +548,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
- 
- static int csi2_configure(struct isp_csi2_device *csi2)
- {
-+	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
- 	const struct isp_bus_cfg *buscfg;
- 	struct isp_device *isp = csi2->isp;
- 	struct isp_csi2_timing_cfg *timing = &csi2->timing[0];
-@@ -570,7 +571,12 @@ static int csi2_configure(struct isp_csi2_device *csi2)
- 	csi2->frame_skip = 0;
- 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
- 
--	csi2->ctrl.vp_out_ctrl = buscfg->bus.csi2.vpclk_div;
-+	csi2->ctrl.vp_out_ctrl =
-+		clamp_t(unsigned int, pipe->l3_ick / pipe->external_rate - 1,
-+			1, 3);
-+	dev_dbg(isp->dev, "%s: l3_ick %lu, external_rate %u, vp_out_ctrl %u\n",
-+		__func__, pipe->l3_ick,  pipe->external_rate,
-+		csi2->ctrl.vp_out_ctrl);
- 	csi2->ctrl.frame_mode = ISP_CSI2_FRAME_IMMEDIATE;
- 	csi2->ctrl.ecc_enable = buscfg->bus.csi2.crc;
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 39e0748..0f0c08b 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -129,11 +129,9 @@ struct isp_ccp2_cfg {
- /**
-  * struct isp_csi2_cfg - CSI2 interface configuration
-  * @crc: Enable the cyclic redundancy check
-- * @vpclk_div: Video port output clock control
-  */
- struct isp_csi2_cfg {
- 	unsigned crc:1;
--	unsigned vpclk_div:2;
- 	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
--- 
-1.7.10.4
+date:		Fri Mar 20 04:00:16 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
