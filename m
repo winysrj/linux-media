@@ -1,97 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:34456 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768AbbCHOlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:09 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 06/17] media: blackfin: bfin_capture: use vb2_fop_mmap/poll
-Date: Sun,  8 Mar 2015 14:40:42 +0000
-Message-Id: <1425825653-14768-7-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42158 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751251AbbCTWHu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2015 18:07:50 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v1.1 12/15] dt: bindings: Add lane-polarity property to endpoint nodes
+Date: Sat, 21 Mar 2015 00:07:06 +0200
+Message-Id: <1426889226-18080-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Add lane-polarity property to endpoint nodes. This essentially tells that
+the order of the differential signal wires is inverted.
 
-No need to reinvent the wheel. Just use the already existing
-functions provided by vb2.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
-Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/blackfin/bfin_capture.c | 28 +++-----------------------
- 1 file changed, 3 insertions(+), 25 deletions(-)
+since v1:
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index bf7e999..84827d2 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -244,18 +244,6 @@ static int bcap_release(struct file *file)
- 	return 0;
- }
+- Rename lane-polarity property as lane-polarities.
+
+ Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 571b4c6..9cd2a36 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -106,6 +106,12 @@ Optional endpoint properties
+ - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
+   instance, this is the actual frequency of the bus, not bits per clock per
+   lane value. An array of 64-bit unsigned integers.
++- lane-polarities: an array of polarities of the lanes starting from the clock
++  lane and followed by the data lanes in the same order as in data-lanes.
++  Valid values are 0 (normal) and 1 (inverted). The length of the array
++  should be the combined length of data-lanes and clock-lanes properties.
++  If the lane-polarities property is omitted, the value must be interpreted
++  as 0 (normal). This property is valid for serial busses only.
  
--static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	int ret;
--
--	if (mutex_lock_interruptible(&bcap_dev->mutex))
--		return -ERESTARTSYS;
--	ret = vb2_mmap(&bcap_dev->buffer_queue, vma);
--	mutex_unlock(&bcap_dev->mutex);
--	return ret;
--}
--
- #ifndef CONFIG_MMU
- static unsigned long bcap_get_unmapped_area(struct file *file,
- 					    unsigned long addr,
-@@ -273,17 +261,6 @@ static unsigned long bcap_get_unmapped_area(struct file *file,
- }
- #endif
  
--static unsigned int bcap_poll(struct file *file, poll_table *wait)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	unsigned int res;
--
--	mutex_lock(&bcap_dev->mutex);
--	res = vb2_poll(&bcap_dev->buffer_queue, file, wait);
--	mutex_unlock(&bcap_dev->mutex);
--	return res;
--}
--
- static int bcap_queue_setup(struct vb2_queue *vq,
- 				const struct v4l2_format *fmt,
- 				unsigned int *nbuffers, unsigned int *nplanes,
-@@ -900,11 +877,11 @@ static struct v4l2_file_operations bcap_fops = {
- 	.open = bcap_open,
- 	.release = bcap_release,
- 	.unlocked_ioctl = video_ioctl2,
--	.mmap = bcap_mmap,
-+	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
- 	.get_unmapped_area = bcap_get_unmapped_area,
- #endif
--	.poll = bcap_poll
-+	.poll = vb2_fop_poll
- };
- 
- static int bcap_probe(struct platform_device *pdev)
-@@ -1001,6 +978,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&bcap_dev->dma_queue);
- 
- 	vfd->lock = &bcap_dev->mutex;
-+	vfd->queue = q;
- 
- 	/* register video device */
- 	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
+ Example
 -- 
-2.1.0
+1.7.10.4
 
