@@ -1,41 +1,60 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:49676 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbbC0RY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 13:24:27 -0400
-Message-ID: <55159248.6010204@gmx.com>
-Date: Fri, 27 Mar 2015 18:24:24 +0100
-From: Ole Ernst <olebowle@gmx.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, Nibble Max <nibble.max@gmail.com>
-CC: "olli.salonen" <olli.salonen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
-References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com> <55093FFC.9050602@gmx.com> <55105683.40809@iki.fi> <551081CF.3080901@gmx.com> <5510992C.8060608@iki.fi> <551157AB.1090704@gmx.com> <55115E93.7030405@iki.fi> <55117A22.6010302@gmx.com> <5511811A.3010009@iki.fi> <5511C040.7040802@gmx.com>
-In-Reply-To: <5511C040.7040802@gmx.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <hverkuil@xs4all.nl>
+Message-id: <550C21F4.5040502@xs4all.nl>
+Date: Fri, 20 Mar 2015 14:34:44 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Arun Kumar K <arun.kk@samsung.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/5] media: New flag V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
+References: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1426778486-21807-3-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1426778486-21807-3-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
 
-I was able to test your current tree (8a56b6b..754594d) without SCR and
-the frontends still run into a timeout. There seems to be an issue with
-the patch in general. Is there something else I can test/try or do you
-require some debug output?
 
-Thanks,
-Ole
+On 03/19/2015 04:21 PM, Ricardo Ribalda Delgado wrote:
+> Create a new flag that represent controls that represent controls that
 
-Am 24.03.2015 um 20:51 schrieb Ole Ernst:
-> Am 24.03.2015 um 16:22 schrieb Antti Palosaari:
->> Someone has reported SCR/Unicable does not work with that demod driver,
->> but I have no personal experience from whole thing... Could you try
->> direct connection to LNB?
+Double 'that represent controls' :-)
+
+> its value needs to be passed to the driver even if it has not changed.
 > 
-> I will test a direct connection over Easter, as I don't have physical
-> access to the htpc right now. I will try to get someone else to test
-> your patch, who hopefully doesn't use SCR.
+> They typically represent actions, like triggering a flash or clearing an
+> error flag.
+
+I would add something like:
+
+"So writing to such a control means some action is executed."
+
+This ties in a bit better with the name of the flag.
+
+	Hans
+
 > 
-> Ole
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  include/uapi/linux/videodev2.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index fbdc360..1e33e10 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1456,6 +1456,7 @@ struct v4l2_querymenu {
+>  #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
+>  #define V4L2_CTRL_FLAG_VOLATILE		0x0080
+>  #define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x0100
+> +#define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE	0x0200
+>  
+>  /*  Query flags, to be ORed with the control ID */
+>  #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+> 
