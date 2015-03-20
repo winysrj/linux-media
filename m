@@ -1,53 +1,95 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45383 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754190AbbCBRGj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:39 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH 06/10] ASOC: migor: use clkdev_create()
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1YSTnc-0001Jo-1U@rmk-PC.arm.linux.org.uk>
-Date: Mon, 02 Mar 2015 17:06:32 +0000
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+ Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Arun Kumar K <arun.kk@samsung.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 5/5] media/Documentation: New flag EXECUTE_ON_WRITE
+Date: Fri, 20 Mar 2015 15:13:14 +0100
+Message-id: <1426860794-5026-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-clkdev_create() is a shorter way to write clkdev_alloc() followed by
-clkdev_add().  Use this instead.
+Document new flag V4L2_CTRL_FLAG_EXECUTE_ON_WRITE, and the new behavior
+of CH_VALUE event on VOLATILE controls.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- sound/soc/sh/migor.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+v2: Hans Verkuil <hverkuil@xs4all.nl>
+Fix documentation (Thanks Hans!)
 
-diff --git a/sound/soc/sh/migor.c b/sound/soc/sh/migor.c
-index 82f582344fe7..672bcd4c252b 100644
---- a/sound/soc/sh/migor.c
-+++ b/sound/soc/sh/migor.c
-@@ -162,12 +162,11 @@ static int __init migor_init(void)
- 	if (ret < 0)
- 		return ret;
- 
--	siumckb_lookup = clkdev_alloc(&siumckb_clk, "siumckb_clk", NULL);
-+	siumckb_lookup = clkdev_create(&siumckb_clk, "siumckb_clk", NULL);
- 	if (!siumckb_lookup) {
- 		ret = -ENOMEM;
- 		goto eclkdevalloc;
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml   |  6 +++---
+ Documentation/DocBook/media/v4l/vidioc-queryctrl.xml | 12 +++++++++++-
+ Documentation/video4linux/v4l2-controls.txt          |  4 +++-
+ 3 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index b036f89..b7a6b42 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -318,9 +318,9 @@
+ 	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
+ 	    <entry>0x0001</entry>
+ 	    <entry>This control event was triggered because the value of the control
+-		changed. Special case: if a button control is pressed, then this
+-		event is sent as well, even though there is not explicit value
+-		associated with a button control.</entry>
++		changed. Special cases: Volatile controls do no generate this event;
++		If a control has the <constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant>
++		flag set, then this event is sent as well, regardless its value.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 2bd98fd..dc83ad7 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -600,7 +600,9 @@ writing a value will cause the device to carry out a given action
+ changes continuously. A typical example would be the current gain value if the device
+ is in auto-gain mode. In such a case the hardware calculates the gain value based on
+ the lighting conditions which can change over time. Note that setting a new value for
+-a volatile control will have no effect. The new value will just be ignored.</entry>
++a volatile control will have no effect and no <constant>V4L2_EVENT_CTRL_CH_VALUE</constant>
++will be sent, unless the <constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant> flag
++(see below) is also set. Otherwise the new value will just be ignored.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant></entry>
+@@ -610,6 +612,14 @@ using one of the pointer fields of &v4l2-ext-control;. This flag is set for cont
+ that are an array, string, or have a compound type. In all cases you have to set a
+ pointer to memory containing the payload of the control.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant></entry>
++	    <entry>0x0200</entry>
++	    <entry>The value provided to the control will be propagated to the driver
++even if remains constant. This is required when the control represents an action
++on the hardware. For example: clearing an error flag or triggering the flash. All the
++controls of the type <constant>V4L2_CTRL_TYPE_BUTTON</constant> have this flag set.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 0f84ce8..5517db6 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -344,7 +344,9 @@ implement g_volatile_ctrl like this:
  	}
--	clkdev_add(siumckb_lookup);
  
- 	/* Port number used on this machine: port B */
- 	migor_snd_device = platform_device_alloc("soc-audio", 1);
+ Note that you use the 'new value' union as well in g_volatile_ctrl. In general
+-controls that need to implement g_volatile_ctrl are read-only controls.
++controls that need to implement g_volatile_ctrl are read-only controls. If they
++are not, a V4L2_EVENT_CTRL_CH_VALUE will not be generated when the control
++changes.
+ 
+ To mark a control as volatile you have to set V4L2_CTRL_FLAG_VOLATILE:
+ 
 -- 
-1.8.3.1
-
+2.1.4
