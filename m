@@ -1,451 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44477 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755680AbbCRKXB (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:36083 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154AbbCTGyp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 06:23:01 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-	Lucas Stach <l.stach@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 4/5] [media] imx-ipu: Add ipu media common code
-Date: Wed, 18 Mar 2015 11:22:52 +0100
-Message-Id: <1426674173-17088-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
-References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 20 Mar 2015 02:54:45 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 2/2] vivid: add support to set CVT, GTF timings
+Date: Fri, 20 Mar 2015 12:11:46 +0530
+Message-Id: <1426833706-7839-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
+References: <1426833706-7839-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sascha Hauer <s.hauer@pengutronix.de>
+In addition to v4l2_find_dv_timings_cap(), where timings are serached
+against the list of preset timings, the incoming timing from v4l2-ctl
+is checked against CVT and GTF standards. If it confirms to be CVT or
+GTF, it is treated as valid timing and vivid format is updated with
+new timings.
 
-Add video4linux API routines common to drivers for units that
-accept or provide video data via the i.MX IPU IDMAC channels,
-such as scaler or deinterlacer drivers.
-
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/platform/Kconfig       |   2 +
- drivers/media/platform/Makefile      |   1 +
- drivers/media/platform/imx/Kconfig   |   2 +
- drivers/media/platform/imx/Makefile  |   1 +
- drivers/media/platform/imx/imx-ipu.c | 313 +++++++++++++++++++++++++++++++++++
- drivers/media/platform/imx/imx-ipu.h |  35 ++++
- 6 files changed, 354 insertions(+)
- create mode 100644 drivers/media/platform/imx/Kconfig
- create mode 100644 drivers/media/platform/imx/Makefile
- create mode 100644 drivers/media/platform/imx/imx-ipu.c
- create mode 100644 drivers/media/platform/imx/imx-ipu.h
+ drivers/media/platform/vivid/vivid-vid-cap.c | 62 +++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index d9b872b..650a9a6 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -29,6 +29,8 @@ config VIDEO_VIA_CAMERA
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 867a29a..d769113 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -1552,6 +1552,64 @@ int vivid_vid_cap_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	return 0;
+ }
  
- source "drivers/media/platform/davinci/Kconfig"
- 
-+source "drivers/media/platform/imx/Kconfig"
-+
- source "drivers/media/platform/omap/Kconfig"
- 
- source "drivers/media/platform/blackfin/Kconfig"
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 3ec1547..2e35581 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
- 
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- 
-+obj-y	+= imx/
- obj-y	+= omap/
- 
- obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
-diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
-new file mode 100644
-index 0000000..a90c973
---- /dev/null
-+++ b/drivers/media/platform/imx/Kconfig
-@@ -0,0 +1,2 @@
-+config VIDEO_IMX_IPU_COMMON
-+	tristate
-diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
-new file mode 100644
-index 0000000..5de119c
---- /dev/null
-+++ b/drivers/media/platform/imx/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
-diff --git a/drivers/media/platform/imx/imx-ipu.c b/drivers/media/platform/imx/imx-ipu.c
-new file mode 100644
-index 0000000..c1b8637
---- /dev/null
-+++ b/drivers/media/platform/imx/imx-ipu.c
-@@ -0,0 +1,313 @@
-+/*
-+ * i.MX IPUv3 common v4l2 support
-+ *
-+ * Copyright (C) 2011 Sascha Hauer, Pengutronix
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/module.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-ioctl.h>
-+
-+#include "imx-ipu.h"
-+
-+static struct ipu_fmt ipu_fmt_yuv[] = {
-+	{
-+		.fourcc = V4L2_PIX_FMT_YUV420,
-+		.name = "YUV 4:2:0 planar, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YVU420,
-+		.name = "YUV 4:2:0 planar, YCrCb",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YUV422P,
-+		.name = "YUV 4:2:2 planar, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_NV12,
-+		.name = "YUV 4:2:0 partial interleaved, YCbCr",
-+		.bytes_per_pixel = 1,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_UYVY,
-+		.name = "4:2:2, packed, UYVY",
-+		.bytes_per_pixel = 2,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_YUYV,
-+		.name = "4:2:2, packed, YUYV",
-+		.bytes_per_pixel = 2,
-+	},
-+};
-+
-+static struct ipu_fmt ipu_fmt_rgb[] = {
-+	{
-+		.fourcc = V4L2_PIX_FMT_RGB32,
-+		.name = "RGB888",
-+		.bytes_per_pixel = 4,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_RGB24,
-+		.name = "RGB24",
-+		.bytes_per_pixel = 3,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_BGR24,
-+		.name = "BGR24",
-+		.bytes_per_pixel = 3,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_RGB565,
-+		.name = "RGB565",
-+		.bytes_per_pixel = 2,
-+	},
-+	{
-+		.fourcc = V4L2_PIX_FMT_BGR32,
-+		.name = "BGR888",
-+		.bytes_per_pixel = 4,
-+	},
-+};
-+
-+struct ipu_fmt *ipu_find_fmt_yuv(unsigned int pixelformat)
++static void find_aspect_ratio(u32 width, u32 height,
++			       u32 *num, u32 *denom)
 +{
-+	struct ipu_fmt *fmt;
-+	int i;
++	if (!(height % 3) && ((height * 4 / 3) == width)) {
++		*num = 4;
++		*denom = 3;
++	} else if (!(height % 9) && ((height * 16 / 9) == width)) {
++		*num = 16;
++		*denom = 9;
++	} else if (!(height % 10) && ((height * 16 / 10) == width)) {
++		*num = 16;
++		*denom = 10;
++	} else if (!(height % 4) && ((height * 5 / 4) == width)) {
++		*num = 5;
++		*denom = 4;
++	} else if (!(height % 9) && ((height * 15 / 9) == width)) {
++		*num = 15;
++		*denom = 9;
++	} else { /* default to 16:9 */
++		*num = 16;
++		*denom = 9;
++	}
++}
 +
-+	for (i = 0; i < ARRAY_SIZE(ipu_fmt_yuv); i++) {
-+		fmt = &ipu_fmt_yuv[i];
-+		if (fmt->fourcc == pixelformat)
-+			return fmt;
++static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
++{
++	struct v4l2_dv_timings fmt;
++	struct v4l2_bt_timings *bt = &timings->bt;
++	u32 total_h_pixel;
++	u32 total_v_lines;
++	u32 h_freq;
++
++	if (!v4l2_valid_dv_timings(timings, &vivid_dv_timings_cap,
++				NULL, NULL))
++		return false;
++
++	total_h_pixel = V4L2_DV_BT_FRAME_WIDTH(bt);
++	total_v_lines = V4L2_DV_BT_FRAME_HEIGHT(bt);
++
++	h_freq = (u32)bt->pixelclock / total_h_pixel;
++
++	if (bt->standards == V4L2_DV_BT_STD_CVT)
++		return v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
++				       bt->polarities, &fmt);
++
++	if (bt->standards == V4L2_DV_BT_STD_GTF) {
++		struct v4l2_fract aspect_ratio;
++
++		find_aspect_ratio(bt->width, bt->height,
++				  &aspect_ratio.numerator,
++				  &aspect_ratio.denominator);
++		return v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
++				       bt->polarities, aspect_ratio, &fmt);
 +	}
 +
-+	return NULL;
++	return false;
 +}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt_yuv);
 +
-+struct ipu_fmt *ipu_find_fmt_rgb(unsigned int pixelformat)
-+{
-+	struct ipu_fmt *fmt;
-+	int i;
+ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
+ 				    struct v4l2_dv_timings *timings)
+ {
+@@ -1561,8 +1619,10 @@ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
+ 		return -ENODATA;
+ 	if (vb2_is_busy(&dev->vb_vid_cap_q))
+ 		return -EBUSY;
 +
-+	for (i = 0; i < ARRAY_SIZE(ipu_fmt_rgb); i++) {
-+		fmt = &ipu_fmt_rgb[i];
-+		if (fmt->fourcc == pixelformat)
-+			return fmt;
-+	}
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt_rgb);
-+
-+static struct ipu_fmt *ipu_find_fmt(unsigned long pixelformat)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(pixelformat);
-+	if (fmt)
-+		return fmt;
-+	fmt = ipu_find_fmt_rgb(pixelformat);
-+
-+	return fmt;
-+}
-+EXPORT_SYMBOL_GPL(ipu_find_fmt);
-+
-+int ipu_try_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	v4l_bound_align_image(&f->fmt.pix.width, 8, 4096, 2,
-+			      &f->fmt.pix.height, 2, 4096, 1, 0);
-+
-+	f->fmt.pix.field = V4L2_FIELD_NONE;
-+
-+	fmt = ipu_find_fmt(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	f->fmt.pix.bytesperline = f->fmt.pix.width * fmt->bytes_per_pixel;
-+	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * f->fmt.pix.height;
-+	if (fmt->fourcc == V4L2_PIX_FMT_YUV420 ||
-+	    fmt->fourcc == V4L2_PIX_FMT_YVU420 ||
-+	    fmt->fourcc == V4L2_PIX_FMT_NV12)
-+		f->fmt.pix.sizeimage = f->fmt.pix.sizeimage * 3 / 2;
-+	else if (fmt->fourcc == V4L2_PIX_FMT_YUV422P)
-+		f->fmt.pix.sizeimage *= 2;
-+
-+	f->fmt.pix.priv = 0;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt);
-+
-+int ipu_try_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_rgb(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_try_fmt(file, fh, f);
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt_rgb);
-+
-+int ipu_try_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_try_fmt(file, fh, f);
-+}
-+EXPORT_SYMBOL_GPL(ipu_try_fmt_yuv);
-+
-+int ipu_enum_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (f->index >= ARRAY_SIZE(ipu_fmt_rgb))
-+		return -EINVAL;
-+
-+	fmt = &ipu_fmt_rgb[f->index];
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt_rgb);
-+
-+int ipu_enum_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (f->index >= ARRAY_SIZE(ipu_fmt_yuv))
-+		return -EINVAL;
-+
-+	fmt = &ipu_fmt_yuv[f->index];
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt_yuv);
-+
-+int ipu_enum_fmt(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct ipu_fmt *fmt;
-+	int index = f->index;
-+
-+	if (index >= ARRAY_SIZE(ipu_fmt_yuv)) {
-+		index -= ARRAY_SIZE(ipu_fmt_yuv);
-+		if (index >= ARRAY_SIZE(ipu_fmt_rgb))
-+			return -EINVAL;
-+		fmt = &ipu_fmt_rgb[index];
-+	} else {
-+		fmt = &ipu_fmt_yuv[index];
-+	}
-+
-+	strlcpy(f->description, fmt->name, sizeof(f->description));
-+	f->pixelformat = fmt->fourcc;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_fmt);
-+
-+int ipu_s_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	int ret;
-+
-+	ret = ipu_try_fmt(file, fh, f);
-+	if (ret)
-+		return ret;
-+
-+	pix->width = f->fmt.pix.width;
-+	pix->height = f->fmt.pix.height;
-+	pix->pixelformat = f->fmt.pix.pixelformat;
-+	pix->bytesperline = f->fmt.pix.bytesperline;
-+	pix->sizeimage = f->fmt.pix.sizeimage;
-+	pix->colorspace = f->fmt.pix.colorspace;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt);
-+
-+int ipu_s_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_rgb(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_s_fmt(file, fh, f, pix);
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt_rgb);
-+
-+int ipu_s_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	fmt = ipu_find_fmt_yuv(f->fmt.pix.pixelformat);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return ipu_s_fmt(file, fh, f, pix);
-+}
-+EXPORT_SYMBOL_GPL(ipu_s_fmt_yuv);
-+
-+int ipu_g_fmt(struct v4l2_format *f, struct v4l2_pix_format *pix)
-+{
-+	f->fmt.pix.field = V4L2_FIELD_NONE;
-+	f->fmt.pix.pixelformat = pix->pixelformat;
-+	f->fmt.pix.bytesperline = pix->bytesperline;
-+	f->fmt.pix.width = pix->width;
-+	f->fmt.pix.height = pix->height;
-+	f->fmt.pix.sizeimage = pix->sizeimage;
-+	f->fmt.pix.colorspace = pix->colorspace;
-+	f->fmt.pix.priv = 0;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_g_fmt);
-+
-+int ipu_enum_framesizes(struct file *file, void *fh,
-+			struct v4l2_frmsizeenum *fsize)
-+{
-+	struct ipu_fmt *fmt;
-+
-+	if (fsize->index != 0)
-+		return -EINVAL;
-+
-+	fmt = ipu_find_fmt(fsize->pixel_format);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
-+	fsize->stepwise.min_width = 1;
-+	fsize->stepwise.min_height = 1;
-+	fsize->stepwise.max_width = 4096;
-+	fsize->stepwise.max_height = 4096;
-+	fsize->stepwise.step_width = fsize->stepwise.step_height = 1;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_enum_framesizes);
-+
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/imx/imx-ipu.h b/drivers/media/platform/imx/imx-ipu.h
-new file mode 100644
-index 0000000..51c0982
---- /dev/null
-+++ b/drivers/media/platform/imx/imx-ipu.h
-@@ -0,0 +1,35 @@
-+#ifndef __MEDIA_IMX_IPU_H
-+#define __MEDIA_IMX_IPU_H
-+#include <linux/videodev2.h>
-+
-+struct ipu_fmt {
-+	u32 fourcc;
-+	const char *name;
-+	int bytes_per_pixel;
-+};
-+
-+int ipu_enum_fmt(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+int ipu_enum_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+int ipu_enum_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_fmtdesc *f);
-+struct ipu_fmt *ipu_find_fmt_rgb(unsigned int pixelformat);
-+struct ipu_fmt *ipu_find_fmt_yuv(unsigned int pixelformat);
-+int ipu_try_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_try_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_try_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f);
-+int ipu_s_fmt(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_s_fmt_rgb(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_s_fmt_yuv(struct file *file, void *fh,
-+		struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_g_fmt(struct v4l2_format *f, struct v4l2_pix_format *pix);
-+int ipu_enum_framesizes(struct file *file, void *fh,
-+			struct v4l2_frmsizeenum *fsize);
-+
-+#endif /* __MEDIA_IMX_IPU_H */
+ 	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
+-				0, NULL, NULL))
++				      0, NULL, NULL)
++	    && !valid_cvt_gtf_timings(timings))
+ 		return -EINVAL;
+ 	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0))
+ 		return 0;
 -- 
-2.1.4
+1.9.1
 
