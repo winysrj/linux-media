@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:33957 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018AbbCZQRj (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:42294 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751479AbbCTPEB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2015 12:17:39 -0400
-Received: by lagg8 with SMTP id g8so49643541lag.1
-        for <linux-media@vger.kernel.org>; Thu, 26 Mar 2015 09:17:37 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Gregor Jasny <gjasny@googlemail.com>,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] libv4lconvert: Fix support for Y16 pixel format
-Date: Thu, 26 Mar 2015 17:17:34 +0100
-Message-Id: <1427386654-31906-1-git-send-email-ricardo.ribalda@gmail.com>
+	Fri, 20 Mar 2015 11:04:01 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v1 04/11] of: Add Skyworks Solutions, Inc. vendor prefix
+Date: Fri, 20 Mar 2015 16:03:24 +0100
+Message-id: <1426863811-12516-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Y16 is a little-endian format. The original implementation assumed that
-it was big-endian.
+Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- lib/libv4lconvert/rgbyuv.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-index 0f30192..75c42aa 100644
---- a/lib/libv4lconvert/rgbyuv.c
-+++ b/lib/libv4lconvert/rgbyuv.c
-@@ -591,6 +591,9 @@ void v4lconvert_y16_to_rgb24(const unsigned char *src, unsigned char *dest,
- 		int width, int height)
- {
- 	int j;
-+
-+	src++; /*Y16 is little endian*/
-+
- 	while (--height >= 0) {
- 		for (j = 0; j < width; j++) {
- 			*dest++ = *src;
-@@ -606,6 +609,8 @@ void v4lconvert_y16_to_yuv420(const unsigned char *src, unsigned char *dest,
- {
- 	int x, y;
- 
-+	src++; /*Y16 is little endian*/
-+
- 	/* Y */
- 	for (y = 0; y < src_fmt->fmt.pix.height; y++)
- 		for (x = 0; x < src_fmt->fmt.pix.width; x++){
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index a9eeaa0..c87bd87 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -161,6 +161,7 @@ ricoh	Ricoh Co. Ltd.
+ rockchip	Fuzhou Rockchip Electronics Co., Ltd
+ samsung	Samsung Semiconductor
+ sandisk	Sandisk Corporation
++skyworks	Skyworks Solutions, Inc.
+ sbs	Smart Battery System
+ schindler	Schindler
+ seagate	Seagate Technology PLC
 -- 
-2.1.4
+1.7.9.5
 
