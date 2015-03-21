@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:43559 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753628AbbCBH5j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 02:57:39 -0500
-MIME-Version: 1.0
-In-Reply-To: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>
-Date: Mon, 2 Mar 2015 15:57:38 +0800
-Message-ID: <CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com>
-Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	adi-buildroot-devel@lists.sourceforge.net,
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:19101 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbbCUXVf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Mar 2015 19:21:35 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Daniel Mack <zonque@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@intel.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 1/4] media: pxa_camera: fix the buffer free path
+Date: Sun, 22 Mar 2015 00:21:21 +0100
+Message-Id: <1426980085-12281-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
+References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lad and Hans,
+From: Robert Jarzmik <robert.jarzmik@intel.com>
 
-2015-02-22 2:39 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->
-> This patch series, enhances blackfin capture driver with
-> vb2 helpers.
->
-> Changes for v3:
-> 1: patches unchanged except for patch 8/15 fixing starting of ppi only
->    after we have the resources.
-> 2: Rebased on media tree.
->
-> v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
->
-> v1: https://lkml.org/lkml/2014/12/20/27
->
-> Lad, Prabhakar (15):
->   media: blackfin: bfin_capture: drop buf_init() callback
->   media: blackfin: bfin_capture: release buffers in case
->     start_streaming() call back fails
->   media: blackfin: bfin_capture: set min_buffers_needed
->   media: blackfin: bfin_capture: improve buf_prepare() callback
->   media: blackfin: bfin_capture: improve queue_setup() callback
->   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->   media: blackfin: bfin_capture: make sure all buffers are returned on
->     stop_streaming() callback
->   media: blackfin: bfin_capture: return -ENODATA for *std calls
->   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->   media: blackfin: bfin_capture: add support for VB2_DMABUF
->   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->   media: blackfin: bfin_capture: set v4l2 buffer sequence
->
->  drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
->  1 file changed, 94 insertions(+), 212 deletions(-)
->
-> --
+Fix the error path where the video buffer wasn't allocated nor
+mapped. In this case, in the driver free path don't try to unmap memory
+which was not mapped in the first place.
 
-For all these patches,
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
-Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 8d6e343..3ca33f0 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -272,8 +272,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 	 * longer in STATE_QUEUED or STATE_ACTIVE
+ 	 */
+ 	videobuf_waiton(vq, &buf->vb, 0, 0);
+-	videobuf_dma_unmap(vq->dev, dma);
+-	videobuf_dma_free(dma);
++	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
++		return;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
+ 		if (buf->dmas[i].sg_cpu)
+@@ -283,6 +283,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 					  buf->dmas[i].sg_dma);
+ 		buf->dmas[i].sg_cpu = NULL;
+ 	}
++	videobuf_dma_unmap(vq->dev, dma);
++	videobuf_dma_free(dma);
+ 
+ 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+ }
+-- 
+2.1.4
+
