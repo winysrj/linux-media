@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47826 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363AbbCIPp0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47208 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751691AbbCUWoo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 11:45:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/29] vivid: wrong top/bottom order for FIELD_ALTERNATE
-Date: Mon,  9 Mar 2015 16:44:25 +0100
-Message-Id: <1425915891-1017-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425915891-1017-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 21 Mar 2015 18:44:44 -0400
+Date: Sun, 22 Mar 2015 00:44:37 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v1 01/11] leds: Add support for max77693 mfd flash cell
+Message-ID: <20150321224437.GD16613@valkosipuli.retiisi.org.uk>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-2-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1426863811-12516-2-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Jacek,
 
-The condition to decide whether the current field is top or bottom
-was inverted. Fix this.
+On Fri, Mar 20, 2015 at 04:03:21PM +0100, Jacek Anaszewski wrote:
+> This patch adds led-flash support to Maxim max77693 chipset.
+> A device can be exposed to user space through LED subsystem
+> sysfs interface. Device supports up to two leds which can
+> work in flash and torch mode. The leds can be triggered
+> externally or by software.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-kthread-cap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the update once again!
 
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index 39a67cf..9898072 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -427,7 +427,7 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		 * standards.
- 		 */
- 		buf->vb.v4l2_buf.field = ((dev->vid_cap_seq_count & 1) ^ is_60hz) ?
--			V4L2_FIELD_TOP : V4L2_FIELD_BOTTOM;
-+			V4L2_FIELD_BOTTOM : V4L2_FIELD_TOP;
- 		/*
- 		 * The sequence counter counts frames, not fields. So divide
- 		 * by two.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
