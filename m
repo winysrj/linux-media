@@ -1,50 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40783 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755319AbbCMAb2 (ORCPT
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:59580 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbbCUXVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 20:31:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] media: omap3isp: video: Use v4l2_get_timestamp()
-Date: Fri, 13 Mar 2015 02:31:27 +0200
-Message-Id: <1426206687-14340-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 21 Mar 2015 19:21:36 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Daniel Mack <zonque@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@intel.com>
+Subject: [PATCH 2/4] media: pxa_camera: move interrupt to tasklet
+Date: Sun, 22 Mar 2015 00:21:22 +0100
+Message-Id: <1426980085-12281-3-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
+References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the open-coded copy by a function call.
+From: Robert Jarzmik <robert.jarzmik@intel.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In preparation for dmaengine conversion, move the camera interrupt
+handling into a tasklet. This won't change the global flow, as this
+interrupt is only used to detect the end of frame and activate DMA fifos
+handling.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@intel.com>
 ---
- drivers/media/platform/omap3isp/ispvideo.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/platform/soc_camera/pxa_camera.c | 44 +++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 3de8d5d..0b5967e 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -452,7 +452,6 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 	enum isp_pipeline_state state;
- 	struct isp_buffer *buf;
- 	unsigned long flags;
--	struct timespec ts;
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 3ca33f0..c0c0f0f 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -223,6 +223,7 @@ struct pxa_camera_dev {
  
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	if (WARN_ON(list_empty(&video->dmaqueue))) {
-@@ -465,9 +464,7 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 	list_del(&buf->irqlist);
- 	spin_unlock_irqrestore(&video->irqlock, flags);
+ 	struct pxa_buffer	*active;
+ 	struct pxa_dma_desc	*sg_tail[3];
++	struct tasklet_struct	task_eof;
  
--	ktime_get_ts(&ts);
--	buf->vb.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
--	buf->vb.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-+	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
+ 	u32			save_cicr[5];
+ };
+@@ -605,6 +606,7 @@ static void pxa_camera_start_capture(struct pxa_camera_dev *pcdev)
+ 	unsigned long cicr0;
  
- 	/* Do frame number propagation only if this is the output video node.
- 	 * Frame number either comes from the CSI receivers or it gets
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "%s\n", __func__);
++	__raw_writel(__raw_readl(pcdev->base + CISR), pcdev->base + CISR);
+ 	/* Enable End-Of-Frame Interrupt */
+ 	cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_ENB;
+ 	cicr0 &= ~CICR0_EOFM;
+@@ -922,13 +924,35 @@ static void pxa_camera_deactivate(struct pxa_camera_dev *pcdev)
+ 	clk_disable_unprepare(pcdev->clk);
+ }
+ 
+-static irqreturn_t pxa_camera_irq(int irq, void *data)
++static void pxa_camera_eof(unsigned long arg)
+ {
+-	struct pxa_camera_dev *pcdev = data;
+-	unsigned long status, cifr, cicr0;
++	struct pxa_camera_dev *pcdev = (struct pxa_camera_dev *)arg;
++	unsigned long cifr;
+ 	struct pxa_buffer *buf;
+ 	struct videobuf_buffer *vb;
+ 
++	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
++		"Camera interrupt status 0x%x\n",
++		__raw_readl(pcdev->base + CISR));
++
++	/* Reset the FIFOs */
++	cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
++	__raw_writel(cifr, pcdev->base + CIFR);
++
++	pcdev->active = list_first_entry(&pcdev->capture,
++					 struct pxa_buffer, vb.queue);
++	vb = &pcdev->active->vb;
++	buf = container_of(vb, struct pxa_buffer, vb);
++	pxa_videobuf_set_actdma(pcdev, buf);
++
++	pxa_dma_start_channels(pcdev);
++}
++
++static irqreturn_t pxa_camera_irq(int irq, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++	unsigned long status, cicr0;
++
+ 	status = __raw_readl(pcdev->base + CISR);
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
+ 		"Camera interrupt status 0x%lx\n", status);
+@@ -939,20 +963,9 @@ static irqreturn_t pxa_camera_irq(int irq, void *data)
+ 	__raw_writel(status, pcdev->base + CISR);
+ 
+ 	if (status & CISR_EOF) {
+-		/* Reset the FIFOs */
+-		cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
+-		__raw_writel(cifr, pcdev->base + CIFR);
+-
+-		pcdev->active = list_first_entry(&pcdev->capture,
+-					   struct pxa_buffer, vb.queue);
+-		vb = &pcdev->active->vb;
+-		buf = container_of(vb, struct pxa_buffer, vb);
+-		pxa_videobuf_set_actdma(pcdev, buf);
+-
+-		pxa_dma_start_channels(pcdev);
+-
+ 		cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_EOFM;
+ 		__raw_writel(cicr0, pcdev->base + CICR0);
++		tasklet_schedule(&pcdev->task_eof);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -1834,6 +1847,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->soc_host.priv		= pcdev;
+ 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+ 	pcdev->soc_host.nr		= pdev->id;
++	tasklet_init(&pcdev->task_eof, pxa_camera_eof, (unsigned long)pcdev);
+ 
+ 	err = soc_camera_host_register(&pcdev->soc_host);
+ 	if (err)
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
