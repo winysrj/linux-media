@@ -1,118 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:12626 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933323AbbCDQQm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 11:16:42 -0500
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH/RFC v12 10/19] DT: Add documentation for the mfd Maxim max77693
-Date: Wed, 04 Mar 2015 17:14:31 +0100
-Message-id: <1425485680-8417-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:35426 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621AbbCUSiH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Mar 2015 14:38:07 -0400
+Received: by oiag65 with SMTP id g65so114137594oia.2
+        for <linux-media@vger.kernel.org>; Sat, 21 Mar 2015 11:38:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1539819.WFF67ZXgOp@avalon>
+References: <5506BDA8.3000700@xs4all.nl> <1539819.WFF67ZXgOp@avalon>
+From: Jean-Michel Hautbois <jhautbois@gmail.com>
+Date: Sat, 21 Mar 2015 19:37:51 +0100
+Message-ID: <CAL8zT=gg+b1DGyKjm9wL9zV_aCP9YMCkpS-KLqVORP_Qb6oV=A@mail.gmail.com>
+Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March 26th
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+2015-03-21 13:36 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>
+> Hi Hans,
+>
+> On Monday 16 March 2015 12:25:28 Hans Verkuil wrote:
+> > This is the draft agenda for the media mini-summit in San Jose on March
+> > 26th.
+> >
+> > Time: 9 AM to 5 PM (approximately)
+> > Room: TBC (Mauro, do you know this?)
+> >
+> > Attendees:
+> >
+> > Mauro Carvalho Chehab - mchehab@osg.samsung.com               - Samsung
+> > Laurent Pinchart      - laurent.pinchart@ideasonboard.com     - Ideas on board
+> > Hans Verkuil          - hverkuil@xs4all.nl                    - Cisco
+> >
+> > Mauro, do you have a better overview of who else will attend?
+> >
+> > Agenda:
+> >
+> > Times are approximate and will likely change.
+> >
+> > 9:00-9:15   Get everyone installed, laptops hooked up, etc.
+> > 9:15-9:30   Introduction
+> > 9:30-10:30  Media Controller support for DVB (Mauro):
+> >               1) dynamic creation/removal of pipelines
+> >               2) change media_entity_pipeline_start to also define
+> >                  the final entity
+> >               3) how to setup pipelines that also envolve audio and DRM
+> >               4) how to lock the media controller pipeline between enabling a
+> >                  pipeline and starting it, in order to avoid race conditions
+> >
+> > See this post for more detailed information:
+> >
+> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+> >
+> > 10:30-10:45 Break
+> > 10:45-12:00 Continue discussion
+> > 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch
+> > organized, or if we are on our own?)
+> > 13:00-14:40 Continue discussion
+> > 14:40-15:00 Break
+> > 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic
+> > reconfiguration and project Ara (http://www.projectara.com/) (Laurent).
+>
+> To be precise, this will be both hot plug and hot unplug.
+>
+> > 16:00-17:00 Update on ongoing projects (Hans):
+> >               - proposal for Android Camera v3-type requests (aka configuration
+> >               stores)
+>
+> I'm interested in this as well.
+>
+> >               - work on colorspace improvements
+> >               - vivid & v4l2-compliance improvements
+> >               - removing duplicate subdev video ops and use pad ops instead
+> >               - others?
+>
+> There's also the topic of the media device controller registry that we
+> discussed during the FOSDEM, but as far as I know there has been no progress
+> in that area.
+>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+Unfortunately I can't be there, but am interested by a report on this
+particular question :).
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 38e6440..ab8fbd5 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -76,7 +76,53 @@ Optional properties:
-     Valid values: 4300000, 4700000, 4800000, 4900000
-     Default: 4300000
- 
-+- led : the LED submodule device node
-+
-+There are two LED outputs available - FLED1 and FLED2. Each of them can
-+control a separate LED or they can be connected together to double
-+the maximum current for a single connected LED. One LED is represented
-+by one child node.
-+
-+Required properties:
-+- compatible : Must be "maxim,max77693-led".
-+
-+Optional properties:
-+- maxim,trigger-type : Flash trigger type.
-+	Possible trigger types:
-+		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-+			the flash,
-+		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-+			of the flash.
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If not enabled explicitly, boost setting defaults to
-+	LEDS_BOOST_FIXED in case both current sources are used.
-+	Possible values:
-+		LEDS_BOOST_OFF (0) - no boost,
-+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-+		LEDS_BOOST_FIXED (2) - fixed mode.
-+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-+- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+
-+Required properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-+		device current output identifiers: 0 - FLED1, 1 - FLED2
-+
-+Optional properties of the LED child node:
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 250000
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 1000000
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 62500 - 1000000
-+
- Example:
-+#include <dt-bindings/leds/max77693.h>
-+
- 	max77693@66 {
- 		compatible = "maxim,max77693";
- 		reg = <0x66>;
-@@ -117,5 +163,20 @@ Example:
- 			maxim,thermal-regulation-celsius = <75>;
- 			maxim,battery-overcurrent-microamp = <3000000>;
- 			maxim,charge-input-threshold-microvolt = <4300000>;
-+
-+		led {
-+			compatible = "maxim,max77693-led";
-+			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
-+			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-+			maxim,boost-mvout = <5000>;
-+			maxim,mvsys-min = <2400>;
-+
-+			camera_flash: flash-led {
-+				label = "max77693-flash1";
-+				led-sources = <0>, <1>;
-+				max-microamp = <500000>;
-+				flash-max-microamp = <1250000>;
-+				flash-timeout-us = <1000000>;
-+			};
- 		};
- 	};
--- 
-1.7.9.5
-
+Thanks,
+JM
