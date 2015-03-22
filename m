@@ -1,74 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:55978 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:51954 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752996AbbCIVrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:47:40 -0400
-Date: Mon, 9 Mar 2015 22:46:58 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
-In-Reply-To: <20150302135523.1f34dc84@recife.lan>
-Message-ID: <Pine.LNX.4.64.1503092244280.15137@axis700.grange>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
- <Pine.LNX.4.64.1502010019380.26661@axis700.grange> <8420980.1Z1tGTCX4O@avalon>
- <Pine.LNX.4.64.1502011211160.9534@axis700.grange> <20150302135523.1f34dc84@recife.lan>
+	id S1751794AbbCVTxg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Mar 2015 15:53:36 -0400
+Message-ID: <550F1DBD.2090807@iki.fi>
+Date: Sun, 22 Mar 2015 21:53:33 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1] mn88473: implement lock for all delivery systems
+References: <1426714629-15640-1-git-send-email-benjamin@southpole.se> <550AE0CC.5050407@iki.fi> <550CA9B4.4050903@southpole.se> <550CAC52.50700@iki.fi> <550D455F.4050500@southpole.se> <550EA7BC.60206@iki.fi> <550EE797.2070603@southpole.se>
+In-Reply-To: <550EE797.2070603@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 03/22/2015 06:02 PM, Benjamin Larsson wrote:
+>> Now it works. Next time I really expect you will test your patches
+>> somehow before sending. Now I tested 3 different patch versions, find 2
+>> first to be broken and last one working. It took around 2 hours of my
+>> time.
+>>
+>> Patch applied.
+>>
+>> Antti
+>>
+>
+> Yeah, my bad. Next I want to move the driver out of staging. What do I
+> need to fix to make it suitable for the main tree ?
+>
+> There is locking code for both 88472 and 88473.
+> There is a workaround for the I2C errors.
+> The r820t is now able to receive dvb-c at frequencies around 300MHz.
+>
+> So I think all TODO's are taken care of. Is it inly the missing register
+> I/O checks left ?
 
-On Mon, 2 Mar 2015, Mauro Carvalho Chehab wrote:
+I think technically it is in a condition that it could be moved out from 
+stating.
 
-> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> 
-> > V4L2 clocks, e.g. used by camera sensors for their master clock, do not
-> > have to be supplied by a different V4L2 driver, they can also be
-> > supplied by an independent source. In this case the standart kernel
-> > clock API should be used to handle such clocks. This patch adds support
-> > for such cases.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> > v4: sizeof(*clk) :)
-> > 
-> >  drivers/media/v4l2-core/v4l2-clk.c | 48 +++++++++++++++++++++++++++++++++++---
-> >  include/media/v4l2-clk.h           |  2 ++
-> >  2 files changed, 47 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-> > index 3ff0b00..9f8cb20 100644
-> > --- a/drivers/media/v4l2-core/v4l2-clk.c
-> > +++ b/drivers/media/v4l2-core/v4l2-clk.c
-> > @@ -9,6 +9,7 @@
-> >   */
-> >  
-> >  #include <linux/atomic.h>
-> > +#include <linux/clk.h>
-> >  #include <linux/device.h>
-> >  #include <linux/errno.h>
-> >  #include <linux/list.h>
-> > @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char *dev_id)
-> >  struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-> >  {
-> >  	struct v4l2_clk *clk;
-> > +	struct clk *ccf_clk = clk_get(dev, id);
-> > +
-> > +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
-> > +		return ERR_PTR(-EPROBE_DEFER);
-> 
-> Why not do just:
-> 		return ccf_clk;
+There is surely a lot of things that could be done better or improve, 
+but all the must be fixed things are fixed.
 
-I would prefer that shorter form too, but the function returns "struct 
-v4l2_clk *" and ccf_clk is "struct clk *"
+regards
+Antti
 
-Thanks
-Guennadi
+-- 
+http://palosaari.fi/
