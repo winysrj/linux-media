@@ -1,84 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45083 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51580 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752416AbbCPA07 (ORCPT
+	by vger.kernel.org with ESMTP id S1751854AbbCVVw2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:26:59 -0400
+	Sun, 22 Mar 2015 17:52:28 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 09/15] omap3isp: Replace mmio_base_phys array with the histogram block base
-Date: Mon, 16 Mar 2015 02:26:04 +0200
-Message-Id: <1426465570-30295-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	snawrocki@samsung.com
+Subject: [PATCH v2 2/4] v4l: of: Instead of zeroing bus_type and bus field separately, unify this
+Date: Sun, 22 Mar 2015 23:51:37 +0200
+Message-Id: <1427061099-17438-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1427061099-17438-1-git-send-email-sakari.ailus@iki.fi>
+References: <1427061099-17438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only the histogram sub-block driver uses the physical address. Do not store
-it for other sub-blocks.
+Clean the entire struct starting from bus_type. As more fields are added, no
+changes will be needed in the function to reset their value explicitly.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/omap3isp/isp.c     |    3 ++-
- drivers/media/platform/omap3isp/isp.h     |    6 +++---
- drivers/media/platform/omap3isp/isphist.c |    3 +--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/v4l2-of.c |    5 +++--
+ include/media/v4l2-of.h           |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index c045318..68d7edfc 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2247,7 +2247,8 @@ static int isp_map_mem_resource(struct platform_device *pdev,
- 	if (IS_ERR(isp->mmio_base[res]))
- 		return PTR_ERR(isp->mmio_base[res]);
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index b4ed9a9..1c3e398 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -128,8 +128,9 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint)
+ {
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+-	endpoint->bus_type = 0;
+-	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
++	/* Zero fields from bus_type to until the end */
++	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
++	       offsetof(typeof(*endpoint), bus_type));
  
--	isp->mmio_base_phys[res] = mem->start;
-+	if (res == OMAP3_ISP_IOMEM_HIST)
-+		isp->mmio_hist_base_phys = mem->start;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index b932a6f..9535524 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -138,8 +138,8 @@ struct isp_xclk {
-  * @irq_num: Currently used IRQ number.
-  * @mmio_base: Array with kernel base addresses for ioremapped ISP register
-  *             regions.
-- * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
-- *                  regions.
-+ * @mmio_hist_base_phys: Physical L4 bus address for ISP hist block register
-+ *			 region.
-  * @mapping: IOMMU mapping
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-@@ -175,7 +175,7 @@ struct isp_device {
- 	unsigned int irq_num;
- 
- 	void __iomem *mmio_base[OMAP3_ISP_IOMEM_LAST];
--	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
-+	unsigned long mmio_hist_base_phys;
- 
- 	struct dma_iommu_mapping *mapping;
- 
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 738b946..7138b04 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -193,8 +193,7 @@ static int hist_buf_dma(struct ispstat *hist)
- 	omap3isp_flush(hist->isp);
- 
- 	memset(&cfg, 0, sizeof(cfg));
--	cfg.src_addr = hist->isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
--		     + ISPHIST_DATA;
-+	cfg.src_addr = hist->isp->mmio_hist_base_phys + ISPHIST_DATA;
- 	cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
- 	cfg.src_maxburst = hist->buf_size / 4;
- 
+ 	v4l2_of_parse_csi_bus(node, endpoint);
+ 	/*
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index dc468de..00eec26 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -57,6 +57,7 @@ struct v4l2_of_bus_parallel {
+  */
+ struct v4l2_of_endpoint {
+ 	struct of_endpoint base;
++	/* Fields below this line will be cleaned by v4l2_of_parse_endpoint() */
+ 	enum v4l2_mbus_type bus_type;
+ 	union {
+ 		struct v4l2_of_bus_parallel parallel;
 -- 
 1.7.10.4
 
