@@ -1,93 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51429 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753763AbbCMLRO (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:34992 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751809AbbCVSgo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:17:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 34/39] vivid: add support for PIX_FMT_RGB332
-Date: Fri, 13 Mar 2015 12:16:12 +0100
-Message-Id: <1426245377-17704-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
-References: <1426245377-17704-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 22 Mar 2015 14:36:44 -0400
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: mchehab@osg.samsung.com, corbet@lwn.net
+Cc: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH 1/1] [media] DocBook media: fix broken EIA hyperlink
+Date: Sun, 22 Mar 2015 11:35:56 -0700
+Message-Id: <1427049356-30395-2-git-send-email-michael.opdenacker@free-electrons.com>
+In-Reply-To: <1427049356-30395-1-git-send-email-michael.opdenacker@free-electrons.com>
+References: <1427049356-30395-1-git-send-email-michael.opdenacker@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This fixes the bibliography hyperlink to "http://www.eia.org"
+which now redirects to a page with a "404 Not found" error.
 
-Add support for the one-byte-per-pixel RGB332 format.
+The latest update to the document referred to is now available
+on the Consumer Electronics Association website.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
 ---
- drivers/media/platform/vivid/vivid-tpg.c        | 12 ++++++++++++
- drivers/media/platform/vivid/vivid-vid-common.c |  8 ++++++++
- 2 files changed, 20 insertions(+)
+ Documentation/DocBook/media/v4l/biblio.xml                  | 11 +++++------
+ Documentation/DocBook/media/v4l/dev-sliced-vbi.xml          |  2 +-
+ Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml |  2 +-
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index 787747b..ec9ffc4 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -188,6 +188,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	tpg->hmask[2] = ~0;
+diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
+index 7ff01a23c2fe..fdee6b3f3eca 100644
+--- a/Documentation/DocBook/media/v4l/biblio.xml
++++ b/Documentation/DocBook/media/v4l/biblio.xml
+@@ -1,14 +1,13 @@
+   <bibliography>
+     <title>References</title>
  
- 	switch (fourcc) {
-+	case V4L2_PIX_FMT_RGB332:
- 	case V4L2_PIX_FMT_RGB565:
- 	case V4L2_PIX_FMT_RGB565X:
- 	case V4L2_PIX_FMT_RGB444:
-@@ -274,6 +275,9 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	}
+-    <biblioentry id="eia608">
+-      <abbrev>EIA&nbsp;608-B</abbrev>
++    <biblioentry id="cea608">
++      <abbrev>CEA&nbsp;608-E</abbrev>
+       <authorgroup>
+-	<corpauthor>Electronic Industries Alliance (<ulink
+-url="http://www.eia.org">http://www.eia.org</ulink>)</corpauthor>
++	<corpauthor>Consumer Electronics Association (<ulink
++url="http://www.ce.org">http://www.ce.org</ulink>)</corpauthor>
+       </authorgroup>
+-      <title>EIA 608-B "Recommended Practice for Line 21 Data
+-Service"</title>
++      <title>CEA-608-E R-2014 "Line 21 Data Services"</title>
+     </biblioentry>
  
- 	switch (fourcc) {
-+	case V4L2_PIX_FMT_RGB332:
-+		tpg->twopixelsize[0] = 2;
-+		break;
- 	case V4L2_PIX_FMT_RGB565:
- 	case V4L2_PIX_FMT_RGB565X:
- 	case V4L2_PIX_FMT_RGB444:
-@@ -717,6 +721,11 @@ static void precalculate_color(struct tpg_data *tpg, int k)
- 			b = (b * 219) / 255 + (16 << 4);
- 		}
- 		switch (tpg->fourcc) {
-+		case V4L2_PIX_FMT_RGB332:
-+			r >>= 9;
-+			g >>= 9;
-+			b >>= 10;
-+			break;
- 		case V4L2_PIX_FMT_RGB565:
- 		case V4L2_PIX_FMT_RGB565X:
- 			r >>= 7;
-@@ -890,6 +899,9 @@ static void gen_twopix(struct tpg_data *tpg,
- 		buf[0][0] = b_v;
- 		buf[0][2] = g_u;
- 		break;
-+	case V4L2_PIX_FMT_RGB332:
-+		buf[0][offset] = (r_y << 5) | (g_u << 2) | b_v;
-+		break;
- 	case V4L2_PIX_FMT_RGB565:
- 		buf[0][offset] = (g_u << 5) | b_v;
- 		buf[0][offset + 1] = (r_y << 3) | (g_u >> 3);
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index aa89850..9e8c06a 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -171,6 +171,14 @@ struct vivid_fmt vivid_formats[] = {
- 		.buffers = 1,
- 	},
- 	{
-+		.name     = "RGB332",
-+		.fourcc   = V4L2_PIX_FMT_RGB332, /* rrrgggbb */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 8 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
- 		.name     = "RGB565 (LE)",
- 		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
- 		.vdownsampling = { 1 },
+     <biblioentry id="en300294">
+diff --git a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
+index 7a8bf3011ee9..0aec62ed2bf8 100644
+--- a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
++++ b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
+@@ -254,7 +254,7 @@ ETS&nbsp;300&nbsp;231, lsb first transmitted.</entry>
+ 	  <row>
+ 	    <entry><constant>V4L2_SLICED_CAPTION_525</constant></entry>
+ 	    <entry>0x1000</entry>
+-	    <entry><xref linkend="eia608" /></entry>
++	    <entry><xref linkend="cea608" /></entry>
+ 	    <entry>NTSC line 21, 284 (second field 21)</entry>
+ 	    <entry>Two bytes in transmission order, including parity
+ bit, lsb first transmitted.</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml b/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
+index bd015d1563ff..d05623c55403 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
+@@ -205,7 +205,7 @@ ETS&nbsp;300&nbsp;231, lsb first transmitted.</entry>
+ 	  <row>
+ 	    <entry><constant>V4L2_SLICED_CAPTION_525</constant></entry>
+ 	    <entry>0x1000</entry>
+-	    <entry><xref linkend="eia608" /></entry>
++	    <entry><xref linkend="cea608" /></entry>
+ 	    <entry>NTSC line 21, 284 (second field 21)</entry>
+ 	    <entry>Two bytes in transmission order, including parity
+ bit, lsb first transmitted.</entry>
 -- 
-2.1.4
+2.1.0
 
