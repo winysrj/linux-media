@@ -1,97 +1,119 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Arun Kumar K <arun.kk@samsung.com>,
- Sylwester Nawrocki <s.nawrocki@samsung.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Antti Palosaari <crope@iki.fi>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 5/5] media/Documentation: New flag EXECUTE_ON_WRITE
-Date: Thu, 19 Mar 2015 16:21:26 +0100
-Message-id: <1426778486-21807-6-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1426778486-21807-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51844 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbbCWGXv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2015 02:23:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH v1.1 14/15] omap3isp: Add support for the Device Tree
+Date: Sun, 22 Mar 2015 22:26:39 +0200
+Message-ID: <3913985.bpC1SiT8Tn@avalon>
+In-Reply-To: <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
+References: <2603487.gEIKMl6vV7@avalon> <1426889104-17921-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document new flag V4L2_CTRL_FLAG_EXECUTE_ON_WRITE, and the new behavior
-of CH_VALUE event on VOLATILE controls.
+Hi Sakari,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml   |  7 ++++---
- Documentation/DocBook/media/v4l/vidioc-queryctrl.xml | 15 +++++++++++++--
- Documentation/video4linux/v4l2-controls.txt          |  4 +++-
- 3 files changed, 20 insertions(+), 6 deletions(-)
+Thank you for the patch. This looks good to me, except that there's one last 
+bug I've spotted. Please see below.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index b036f89..38d907e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -318,9 +318,10 @@
- 	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
- 	    <entry>0x0001</entry>
- 	    <entry>This control event was triggered because the value of the control
--		changed. Special case: if a button control is pressed, then this
--		event is sent as well, even though there is not explicit value
--		associated with a button control.</entry>
-+		changed. Special cases: Volatile controls do no generate this event;
-+		If a button control is pressed, then this event is sent as well,
-+		even though there is not explicit value associated with a button
-+		control.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 2bd98fd..d389292 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -599,8 +599,11 @@ writing a value will cause the device to carry out a given action
- 	    <entry>This control is volatile, which means that the value of the control
- changes continuously. A typical example would be the current gain value if the device
- is in auto-gain mode. In such a case the hardware calculates the gain value based on
--the lighting conditions which can change over time. Note that setting a new value for
--a volatile control will have no effect. The new value will just be ignored.</entry>
-+the lighting conditions which can change over time. Another example would be an error
-+flag (missed trigger, invalid voltage on the sensor). In those situations the user
-+could write to the control to acknowledge the error, but that write will never
-+generate a <constant>V4L2_EVENT_CTRL_CH_VALUE</constant> event and the flag
-+<constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant> must be set.<entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant></entry>
-@@ -610,6 +613,14 @@ using one of the pointer fields of &v4l2-ext-control;. This flag is set for cont
- that are an array, string, or have a compound type. In all cases you have to set a
- pointer to memory containing the payload of the control.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant></entry>
-+	    <entry>0x0200</entry>
-+	    <entry>The value provided to the control will be propagated to the driver
-+even if remains constant. This is required when the controls represents an action
-+on the hardware. For example: clearing an error flag or triggering the flash. All the
-+controls of the type <constant>V4L2_CTRL_TYPE_BUTTON</constant> have this flag set.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 0f84ce8..5517db6 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -344,7 +344,9 @@ implement g_volatile_ctrl like this:
- 	}
- 
- Note that you use the 'new value' union as well in g_volatile_ctrl. In general
--controls that need to implement g_volatile_ctrl are read-only controls.
-+controls that need to implement g_volatile_ctrl are read-only controls. If they
-+are not, a V4L2_EVENT_CTRL_CH_VALUE will not be generated when the control
-+changes.
- 
- To mark a control as volatile you have to set V4L2_CTRL_FLAG_VOLATILE:
- 
+On Saturday 21 March 2015 00:05:04 Sakari Ailus wrote:
+> Add the ISP device to omap3 DT include file and add support to the driver to
+> use it.
+> 
+> Also obtain information on the external entities and the ISP configuration
+> related to them through the Device Tree in addition to the platform data.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+> since v1:
+> 
+> - Print endpoint name in debug message when parsing an endpoint.
+> 
+> - Rename lane-polarity property as lane-polarities.
+> 
+> - Print endpoint name with the interface if the interface is invalid.
+> 
+> - Remove assignment to two variables at the same time.
+> 
+> - Fix multiple sub-device support in isp_of_parse_nodes().
+> 
+> - Put of_node properly in isp_of_parse_nodes() (requires Philipp Zabel's
+>   patch "of: Decrement refcount of previous endpoint in
+>   of_graph_get_next_endpoint".
+> 
+> - Rename return value variable rval as ret to be consistent with the rest of
+> the driver.
+> 
+> - Read the register offset from the syscom property's first argument.
+> 
+>  drivers/media/platform/omap3isp/isp.c       |  218 ++++++++++++++++++++++--
+>  drivers/media/platform/omap3isp/isp.h       |   11 ++
+>  drivers/media/platform/omap3isp/ispcsiphy.c |    7 +
+>  3 files changed, 224 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 992e74c..92a859e 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+
+[snip]
+
+> +static int isp_of_parse_nodes(struct device *dev,
+> +			      struct v4l2_async_notifier *notifier)
+> +{
+> +	struct device_node *node;
+> +
+> +	notifier->subdevs = devm_kcalloc(
+> +		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> +	if (!notifier->subdevs)
+> +		return -ENOMEM;
+> +
+> +	while ((node = of_graph_get_next_endpoint(dev->of_node, node)) &&
+> +	       notifier->num_subdevs < ISP_MAX_SUBDEVS) {
+
+If the first condition evaluates to true and the second one to false, the loop 
+will be exited without releasing the reference to the DT node. You could just 
+switch the two conditions to fix this.
+
+> +		struct isp_async_subdev *isd;
+> +
+> +		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> +		if (!isd) {
+> +			of_node_put(node);
+> +			return -ENOMEM;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> +
+> +		if (isp_of_parse_node(dev, node, isd)) {
+> +			of_node_put(node);
+> +			return -EINVAL;
+> +		}
+> +
+> +		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+> +		of_node_put(node);
+> +		if (!isd->asd.match.of.node) {
+> +			dev_warn(dev, "bad remote port parent\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+> +		notifier->num_subdevs++;
+> +	}
+> +
+> +	return notifier->num_subdevs;
+> +}
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
+
