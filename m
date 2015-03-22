@@ -1,198 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56382 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752467AbbCYW6i (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51020 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663AbbCVIqX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 18:58:38 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 03/15] omap3isp: Separate external link creation from platform data parsing
-Date: Thu, 26 Mar 2015 00:57:27 +0200
-Message-Id: <1427324259-18438-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+	Sun, 22 Mar 2015 04:46:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH v1.1 13/15] v4l: of: Read lane-polarities endpoint property
+Date: Sun, 22 Mar 2015 10:46:36 +0200
+Message-ID: <3152371.Am9HJ1ktiF@avalon>
+In-Reply-To: <1426889295-18182-1-git-send-email-sakari.ailus@iki.fi>
+References: <1426465570-30295-14-git-send-email-sakari.ailus@iki.fi> <1426889295-18182-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the code which connects the external entity to an ISP entity into a
-separate function. This disconnects it from parsing the platform data.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Thank you for the patch.
+On Saturday 21 March 2015 00:08:15 Sakari Ailus wrote:
+> Add lane_polarities field to struct v4l2_of_bus_mipi_csi2 and write the
+> contents of the lane-polarities property to it. The field tells the polarity
+> of the physical lanes starting from the first one. Any unused lanes are
+> ignored, i.e. only the polarity of the used lanes is specified.
+> 
+> Also rework reading the "data-lanes" property a little.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.c |  143 +++++++++++++++++----------------
- 1 file changed, 72 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 4ab674d..f694615 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1832,6 +1832,77 @@ isp_register_subdev_group(struct isp_device *isp,
- 	return sensor;
- }
- 
-+static int isp_link_entity(
-+	struct isp_device *isp, struct media_entity *entity,
-+	enum isp_interface_type interface)
-+{
-+	struct media_entity *input;
-+	unsigned int flags;
-+	unsigned int pad;
-+	unsigned int i;
-+
-+	/* Connect the sensor to the correct interface module.
-+	 * Parallel sensors are connected directly to the CCDC, while
-+	 * serial sensors are connected to the CSI2a, CCP2b or CSI2c
-+	 * receiver through CSIPHY1 or CSIPHY2.
-+	 */
-+	switch (interface) {
-+	case ISP_INTERFACE_PARALLEL:
-+		input = &isp->isp_ccdc.subdev.entity;
-+		pad = CCDC_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2A_PHY2:
-+		input = &isp->isp_csi2a.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		input = &isp->isp_ccp2.subdev.entity;
-+		pad = CCP2_PAD_SINK;
-+		flags = 0;
-+		break;
-+
-+	case ISP_INTERFACE_CSI2C_PHY1:
-+		input = &isp->isp_csi2c.subdev.entity;
-+		pad = CSI2_PAD_SINK;
-+		flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+		break;
-+
-+	default:
-+		dev_err(isp->dev, "%s: invalid interface type %u\n", __func__,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Not all interfaces are available on all revisions of the
-+	 * ISP. The sub-devices of those interfaces aren't initialised
-+	 * in such a case. Check this by ensuring the num_pads is
-+	 * non-zero.
-+	 */
-+	if (!input->num_pads) {
-+		dev_err(isp->dev, "%s: invalid input %u\n", entity->name,
-+			interface);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < entity->num_pads; i++) {
-+		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-+			break;
-+	}
-+	if (i == entity->num_pads) {
-+		dev_err(isp->dev, "%s: no source pad in external entity\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	return media_entity_create_link(entity, i, input, pad, flags);
-+}
-+
- static int isp_register_entities(struct isp_device *isp)
- {
- 	struct isp_platform_data *pdata = isp->pdata;
-@@ -1895,10 +1966,6 @@ static int isp_register_entities(struct isp_device *isp)
- 	/* Register external entities */
- 	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
- 		struct v4l2_subdev *sensor;
--		struct media_entity *input;
--		unsigned int flags;
--		unsigned int pad;
--		unsigned int i;
- 
- 		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
- 		if (sensor == NULL)
-@@ -1906,73 +1973,7 @@ static int isp_register_entities(struct isp_device *isp)
- 
- 		sensor->host_priv = subdevs;
- 
--		/* Connect the sensor to the correct interface module. Parallel
--		 * sensors are connected directly to the CCDC, while serial
--		 * sensors are connected to the CSI2a, CCP2b or CSI2c receiver
--		 * through CSIPHY1 or CSIPHY2.
--		 */
--		switch (subdevs->interface) {
--		case ISP_INTERFACE_PARALLEL:
--			input = &isp->isp_ccdc.subdev.entity;
--			pad = CCDC_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2A_PHY2:
--			input = &isp->isp_csi2a.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		case ISP_INTERFACE_CCP2B_PHY1:
--		case ISP_INTERFACE_CCP2B_PHY2:
--			input = &isp->isp_ccp2.subdev.entity;
--			pad = CCP2_PAD_SINK;
--			flags = 0;
--			break;
--
--		case ISP_INTERFACE_CSI2C_PHY1:
--			input = &isp->isp_csi2c.subdev.entity;
--			pad = CSI2_PAD_SINK;
--			flags = MEDIA_LNK_FL_IMMUTABLE
--			      | MEDIA_LNK_FL_ENABLED;
--			break;
--
--		default:
--			dev_err(isp->dev, "%s: invalid interface type %u\n",
--				__func__, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		/*
--		 * Not all interfaces are available on all revisions
--		 * of the ISP. The sub-devices of those interfaces
--		 * aren't initialised in such a case. Check this by
--		 * ensuring the num_pads is non-zero.
--		 */
--		if (!input->num_pads) {
--			dev_err(isp->dev, "%s: invalid input %u\n",
--				entity->name, subdevs->interface);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		for (i = 0; i < sensor->entity.num_pads; i++) {
--			if (sensor->entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
--				break;
--		}
--		if (i == sensor->entity.num_pads) {
--			dev_err(isp->dev,
--				"%s: no source pad in external entity\n",
--				__func__);
--			ret = -EINVAL;
--			goto done;
--		}
--
--		ret = media_entity_create_link(&sensor->entity, i, input, pad,
--					       flags);
-+		ret = isp_link_entity(isp, &sensor->entity, subdevs->interface);
- 		if (ret < 0)
- 			goto done;
- 	}
+> ---
+> since v1:
+> 
+> - Rename lane-polarity property as lane-polarities.
+> 
+>  drivers/media/v4l2-core/v4l2-of.c |   41 ++++++++++++++++++++++++++--------
+>  include/media/v4l2-of.h           |    3 +++
+>  2 files changed, 35 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index b4ed9a9..58e401f 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -19,11 +19,10 @@
+> 
+>  #include <media/v4l2-of.h>
+> 
+> -static void v4l2_of_parse_csi_bus(const struct device_node *node,
+> -				  struct v4l2_of_endpoint *endpoint)
+> +static int v4l2_of_parse_csi_bus(const struct device_node *node,
+> +				 struct v4l2_of_endpoint *endpoint)
+>  {
+>  	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+> -	u32 data_lanes[ARRAY_SIZE(bus->data_lanes)];
+>  	struct property *prop;
+>  	bool have_clk_lane = false;
+>  	unsigned int flags = 0;
+> @@ -32,16 +31,34 @@ static void v4l2_of_parse_csi_bus(const struct
+> device_node *node, prop = of_find_property(node, "data-lanes", NULL);
+>  	if (prop) {
+>  		const __be32 *lane = NULL;
+> -		int i;
+> +		unsigned int i;
+> 
+> -		for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
+> -			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
+> +		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+> +			lane = of_prop_next_u32(prop, lane, &v);
+>  			if (!lane)
+>  				break;
+> +			bus->data_lanes[i] = v;
+>  		}
+>  		bus->num_data_lanes = i;
+> -		while (i--)
+> -			bus->data_lanes[i] = data_lanes[i];
+> +	}
+> +
+> +	prop = of_find_property(node, "lane-polarities", NULL);
+> +	if (prop) {
+> +		const __be32 *polarity = NULL;
+> +		unsigned int i;
+> +
+> +		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
+> +			polarity = of_prop_next_u32(prop, polarity, &v);
+> +			if (!polarity)
+> +				break;
+> +			bus->lane_polarities[i] = v;
+> +		}
+> +
+> +		if (i < 1 + bus->num_data_lanes /* clock + data */) {
+> +			pr_warn("%s: too few lane-polarities entries (need %u, got 
+%u)\n",
+> +				node->full_name, 1 + bus->num_data_lanes, i);
+> +			return -EINVAL;
+> +		}
+>  	}
+> 
+>  	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+> @@ -56,6 +73,8 @@ static void v4l2_of_parse_csi_bus(const struct device_node
+> *node,
+> 
+>  	bus->flags = flags;
+>  	endpoint->bus_type = V4L2_MBUS_CSI2;
+> +
+> +	return 0;
+>  }
+> 
+>  static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+> @@ -127,11 +146,15 @@ static void v4l2_of_parse_parallel_bus(const struct
+> device_node *node, int v4l2_of_parse_endpoint(const struct device_node
+> *node,
+>  			   struct v4l2_of_endpoint *endpoint)
+>  {
+> +	int rval;
+> +
+>  	of_graph_parse_endpoint(node, &endpoint->base);
+>  	endpoint->bus_type = 0;
+>  	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
+> 
+> -	v4l2_of_parse_csi_bus(node, endpoint);
+> +	rval = v4l2_of_parse_csi_bus(node, endpoint);
+> +	if (rval)
+> +		return rval;
+>  	/*
+>  	 * Parse the parallel video bus properties only if none
+>  	 * of the MIPI CSI-2 specific properties were found.
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 70fa7b7..2de42c5 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -29,12 +29,15 @@ struct device_node;
+>   * @data_lanes: an array of physical data lane indexes
+>   * @clock_lane: physical lane index of the clock lane
+>   * @num_data_lanes: number of data lanes
+> + * @lane_polarities: polarity of the lanes. The order is the same of
+> + *		   the physical lanes.
+>   */
+>  struct v4l2_of_bus_mipi_csi2 {
+>  	unsigned int flags;
+>  	unsigned char data_lanes[4];
+>  	unsigned char clock_lane;
+>  	unsigned short num_data_lanes;
+> +	bool lane_polarities[5];
+>  };
+> 
+>  /**
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
