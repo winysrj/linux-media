@@ -1,86 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56684 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166AbbCOUv7 (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:56237 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751455AbbCWECU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 16:51:59 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2A5C72A0083
-	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 21:51:54 +0100 (CET)
-Message-ID: <5505F0EA.3090901@xs4all.nl>
-Date: Sun, 15 Mar 2015 21:51:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Mar 2015 00:02:20 -0400
+Date: Sun, 22 Mar 2015 21:02:18 -0700
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March
+ 26th
+Message-ID: <20150322210218.499f83e3@concha.lan>
+In-Reply-To: <5506BDA8.3000700@xs4all.nl>
+References: <5506BDA8.3000700@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: DocBook media: fix VIDIOC_CROPCAP type description
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The type field of VIDIOC_CROPCAP does not allow the MPLANE variants, just
-as all the other crop/selection related ioctls.
+Em Mon, 16 Mar 2015 12:25:28 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Fix the description of CROPCAP and G_CROP and make the text describing
-this consistent for all selection ioctls.
+> This is the draft agenda for the media mini-summit in San Jose on March 26th.
+> 
+> Time: 9 AM to 5 PM (approximately)
+> Room: TBC (Mauro, do you know this?)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+I'll check on this Monday with LF and wiĺl give you a feedback.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-index 1f5ed64..50cb940 100644
---- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-@@ -59,6 +59,11 @@ constant except when switching the video standard. Remember this
- switch can occur implicit when switching the video input or
- output.</para>
- 
-+<para>Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
-+instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>
-+and use <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.</para>
-+
-     <para>This ioctl must be implemented for video capture or output devices that
- support cropping and/or scaling and/or have non-square pixels, and for overlay devices.</para>
- 
-@@ -73,9 +78,7 @@ support cropping and/or scaling and/or have non-square pixels, and for overlay d
- 	    <entry>Type of the data stream, set by the application.
- Only these types are valid here:
- <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
--<constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>,
--<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
--<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant> and
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> and
- <constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>. See <xref linkend="v4l2-buf-type" />.</entry>
- 	  </row>
- 	  <row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-index 75c6a93..e6c4efb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-@@ -70,6 +70,11 @@ structure or returns the &EINVAL; if cropping is not supported.</para>
- <constant>VIDIOC_S_CROP</constant> ioctl with a pointer to this
- structure.</para>
- 
-+<para>Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
-+instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>
-+and use <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
-+<constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.</para>
-+
-     <para>The driver first adjusts the requested dimensions against
- hardware limits, &ie; the bounds given by the capture/output window,
- and it rounds to the closest possible values of horizontal and
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index 9c04ac8..0bb5c06 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -60,8 +60,8 @@
- 
- <para>To query the cropping (composing) rectangle set &v4l2-selection;
- <structfield> type </structfield> field to the respective buffer type.
--Do not use multiplanar buffers.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
--instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant>.  Use
-+Do not use the multiplanar buffer types.  Use <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>
-+instead of <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE</constant> and use
- <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant> instead of
- <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>.  The next step is
- setting the value of &v4l2-selection; <structfield>target</structfield> field
+> 
+> Attendees:
+> 
+> Mauro Carvalho Chehab	- mchehab@osg.samsung.com		- Samsung
+> Laurent Pinchart	- laurent.pinchart@ideasonboard.com	- Ideas on board
+> Hans Verkuil		- hverkuil@xs4all.nl			- Cisco
+> 
+> Mauro, do you have a better overview of who else will attend?
+
+This time, we'll be using ELC registration site to track. I'll see how
+we can get this info with LF as well, but, as people can join it
+dynamically, the best is to get the list with them on Thursday evening,
+and double-check during the Summit to track last-minute changes.
+
+> 
+> Agenda:
+> 
+> Times are approximate and will likely change.
+> 
+> 9:00-9:15   Get everyone installed, laptops hooked up, etc.
+> 9:15-9:30   Introduction
+> 9:30-10:30  Media Controller support for DVB (Mauro):
+> 		1) dynamic creation/removal of pipelines
+> 		2) change media_entity_pipeline_start to also define
+> 		   the final entity
+> 		3) how to setup pipelines that also envolve audio and DRM
+> 		4) how to lock the media controller pipeline between enabling a
+> 		   pipeline and starting it, in order to avoid race conditions
+> 
+> See this post for more detailed information:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+
+Actually, there are two threads and two followup emails. The detailed info
+is at:
+
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg85979.html
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg83883.html
+  https://www.mail-archive.com/linux-media@vger.kernel.org/msg83884.html
+
+I'll prepare a summary covering everything into a single file to make
+easier, and I'll prepare some slides with the topic highlights.
+
+> 10:30-10:45 Break
+> 10:45-12:00 Continue discussion
+> 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch organized,
+> 	    or if we are on our own?)
+
+I'm almost sure we are on our on for lunch. I'll double check this also
+with LF.
+
+> 13:00-14:40 Continue discussion
+> 14:40-15:00 Break
+> 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic reconfiguration and
+> 	    project Ara (http://www.projectara.com/) (Laurent).
+> 16:00-17:00 Update on ongoing projects (Hans):
+> 		- proposal for Android Camera v3-type requests (aka configuration stores)
+> 		- work on colorspace improvements
+> 		- vivid & v4l2-compliance improvements
+> 		- removing duplicate subdev video ops and use pad ops instead
+> 		- others?
+> 
+> Most of the time will be spent on DVB and the MC. Based on past experience this
+> likely will take some time to get a concensus.
+> 
+> Comments are welcome!
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> _______________________________________________
+> media-workshop mailing list
+> media-workshop@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+
+
+-- 
+
+Cheers,
+Mauro
