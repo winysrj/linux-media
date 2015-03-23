@@ -1,187 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:35587 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285AbbCaRtC (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:33896 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbbCWQ0y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 13:49:02 -0400
-Received: by lbdc10 with SMTP id c10so18198284lbd.2
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2015 10:49:00 -0700 (PDT)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-	James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v3 4/7] rc: ir-rc6-decoder: Add encode capability
-Date: Tue, 31 Mar 2015 20:48:09 +0300
-Message-Id: <1427824092-23163-5-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 23 Mar 2015 12:26:54 -0400
+From: Silvan Jegen <s.jegen@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Silvan Jegen <s.jegen@gmail.com>, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH V3] [media] mantis: fix error handling
+Date: Mon, 23 Mar 2015 17:25:53 +0100
+Message-Id: <1427127953-24716-1-git-send-email-s.jegen@gmail.com>
+In-Reply-To: <20150322224831.GF16501@mwanda>
+References: <20150322224831.GF16501@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the capability to encode RC-6 and RC-6A scancodes as raw events.
-The protocol is chosen based on the specified protocol mask, and
-whether all the required bits are set in the scancode mask, and none of
-the unused bits are set in the scancode data.
+Remove dead code, make goto label names more expressive and add a label
+in order to call mantis_dvb_exit if mantis_uart_init fails.
 
-The Manchester modulation helper is used several times with various
-timings so that RC-6 header preamble, the header, header trailing bit
-and the data itself can be modulated correctly.
+Also make sure that mantis_pci_exit is called if we fail the
+mantis_stream_control call and that we call mantis_i2c_exit if
+mantis_get_mac fails.
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Cc: James Hogan <james@albanarts.com>
-Cc: David Härdeman <david@hardeman.nu>
+Signed-off-by: Silvan Jegen <s.jegen@gmail.com>
 ---
+V3 Changes (due to Dan Carpenter's and Walter Harms' reviews):
+	- return -ENOMEM/0 directly
+  - remove dprintk calls in the error handling part
 
-Notes:
-    Changes in v3:
-     - New patch
+V2 Changes (due to Dan Carpenter's review):
+	- Remove dead code, do not activate it
+	- Make goto labels more expressive
+	- Add a call to mantis_dvb_exit
 
- drivers/media/rc/ir-rc6-decoder.c | 122 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 122 insertions(+)
+ drivers/media/pci/mantis/mantis_cards.c | 39 ++++++++++++++-------------------
+ 1 file changed, 16 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index d16bc67..f9c70ba 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -291,11 +291,133 @@ out:
- 	return -EINVAL;
+diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
+index 801fc55..9861a8c 100644
+--- a/drivers/media/pci/mantis/mantis_cards.c
++++ b/drivers/media/pci/mantis/mantis_cards.c
+@@ -169,8 +169,7 @@ static int mantis_pci_probe(struct pci_dev *pdev,
+ 	mantis = kzalloc(sizeof(struct mantis_pci), GFP_KERNEL);
+ 	if (mantis == NULL) {
+ 		printk(KERN_ERR "%s ERROR: Out of memory\n", __func__);
+-		err = -ENOMEM;
+-		goto fail0;
++		return -ENOMEM;
+ 	}
+ 
+ 	mantis->num		= devs;
+@@ -183,70 +182,64 @@ static int mantis_pci_probe(struct pci_dev *pdev,
+ 	err = mantis_pci_init(mantis);
+ 	if (err) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis PCI initialization failed <%d>", err);
+-		goto fail1;
++		goto err_free_mantis;
+ 	}
+ 
+ 	err = mantis_stream_control(mantis, STREAM_TO_HIF);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis stream control failed <%d>", err);
+-		goto fail1;
++		goto err_pci_exit;
+ 	}
+ 
+ 	err = mantis_i2c_init(mantis);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis I2C initialization failed <%d>", err);
+-		goto fail2;
++		goto err_pci_exit;
+ 	}
+ 
+ 	err = mantis_get_mac(mantis);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis MAC address read failed <%d>", err);
+-		goto fail2;
++		goto err_i2c_exit;
+ 	}
+ 
+ 	err = mantis_dma_init(mantis);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA initialization failed <%d>", err);
+-		goto fail3;
++		goto err_i2c_exit;
+ 	}
+ 
+ 	err = mantis_dvb_init(mantis);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DVB initialization failed <%d>", err);
+-		goto fail4;
++		goto err_dma_exit;
+ 	}
++
+ 	err = mantis_uart_init(mantis);
+ 	if (err < 0) {
+ 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART initialization failed <%d>", err);
+-		goto fail6;
++		goto err_dvb_exit;
+ 	}
+ 
+ 	devs++;
+ 
+-	return err;
+-
++	return 0;
+ 
+-	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART exit! <%d>", err);
+-	mantis_uart_exit(mantis);
++err_dvb_exit:
++	mantis_dvb_exit(mantis);
+ 
+-fail6:
+-fail4:
+-	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA exit! <%d>", err);
++err_dma_exit:
+ 	mantis_dma_exit(mantis);
+ 
+-fail3:
+-	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis I2C exit! <%d>", err);
++err_i2c_exit:
+ 	mantis_i2c_exit(mantis);
+ 
+-fail2:
+-	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis PCI exit! <%d>", err);
++err_pci_exit:
+ 	mantis_pci_exit(mantis);
+ 
+-fail1:
+-	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis free! <%d>", err);
++err_free_mantis:
+ 	kfree(mantis);
+ 
+-fail0:
+ 	return err;
  }
  
-+static struct ir_raw_timings_manchester ir_rc6_timings[4] = {
-+	{
-+		.leader			= RC6_PREFIX_PULSE,
-+		.pulse_space_start	= 0,
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+		.trailer_space		= RC6_PREFIX_SPACE,
-+	},
-+	{
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+	},
-+	{
-+		.clock			= RC6_UNIT * 2,
-+		.invert			= 1,
-+	},
-+	{
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+		.trailer_space		= RC6_SUFFIX_SPACE,
-+	},
-+};
-+
-+static int ir_rc6_validate_filter(const struct rc_scancode_filter *scancode,
-+				  unsigned int important_bits)
-+{
-+	/* all important bits of scancode should be set in mask */
-+	if (~scancode->mask & important_bits)
-+		return -EINVAL;
-+	/* extra bits in mask should be zero in data */
-+	if (scancode->mask & scancode->data & ~important_bits)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+/**
-+ * ir_rc6_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocols:	allowed protocols
-+ * @scancode:	scancode filter describing scancode (helps distinguish between
-+ *		protocol subtypes when scancode is ambiguous)
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc6_encode(u64 protocols,
-+			 const struct rc_scancode_filter *scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+
-+	if (protocols & RC_BIT_RC6_0 &&
-+	    !ir_rc6_validate_filter(scancode, 0xffff)) {
-+
-+		/* Modulate the preamble */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate the header (Start Bit & Mode-0) */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[1],
-+					    RC6_HEADER_NBITS, (1 << 3));
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate Trailer Bit */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[2], 1, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate rest of the data */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[3], RC6_0_NBITS,
-+					    scancode->data);
-+		if (ret < 0)
-+			return ret;
-+
-+	} else if (protocols & (RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
-+				RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE) &&
-+		   !ir_rc6_validate_filter(scancode, 0x8fffffff)) {
-+
-+		/* Modulate the preamble */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate the header (Start Bit & Header-version 6 */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[1],
-+					    RC6_HEADER_NBITS, (1 << 3 | 6));
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate Trailer Bit */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[2], 1, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate rest of the data */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[3],
-+					    fls(scancode->mask),
-+					    scancode->data);
-+		if (ret < 0)
-+			return ret;
-+
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc6_handler = {
- 	.protocols	= RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 |
- 			  RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32 |
- 			  RC_BIT_RC6_MCE,
- 	.decode		= ir_rc6_decode,
-+	.encode		= ir_rc6_encode,
- };
- 
- static int __init ir_rc6_decode_init(void)
 -- 
-2.0.5
+2.3.3
 
