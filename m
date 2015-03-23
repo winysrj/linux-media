@@ -1,80 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44465 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753002AbbCXVNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 17:13:09 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35027 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752017AbbCWDqa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Mar 2015 23:46:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EBC2C2A0090
+	for <linux-media@vger.kernel.org>; Mon, 23 Mar 2015 04:46:13 +0100 (CET)
+Date: Mon, 23 Mar 2015 04:46:13 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Nibble Max <nibble.max@gmail.com>
-Subject: [PATCH 5/8] smipcie: switch ts2022 to ts2020 driver
-Date: Tue, 24 Mar 2015 23:12:10 +0200
-Message-Id: <1427231533-4277-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1427231533-4277-1-git-send-email-crope@iki.fi>
-References: <1427231533-4277-1-git-send-email-crope@iki.fi>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150323034613.EBC2C2A0090@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change ts2022 driver to ts2020 driver. ts2020 driver supports
-both tuner chip models.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: Nibble Max <nibble.max@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/pci/smipcie/Kconfig   |  2 +-
- drivers/media/pci/smipcie/smipcie.c | 12 +++++-------
- 2 files changed, 6 insertions(+), 8 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
-index c8de53f..21a1583 100644
---- a/drivers/media/pci/smipcie/Kconfig
-+++ b/drivers/media/pci/smipcie/Kconfig
-@@ -4,7 +4,7 @@ config DVB_SMIPCIE
- 	select I2C_ALGOBIT
- 	select DVB_M88DS3103 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
--	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_TS2020 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-index 36c8ed7..4115925 100644
---- a/drivers/media/pci/smipcie/smipcie.c
-+++ b/drivers/media/pci/smipcie/smipcie.c
-@@ -16,7 +16,7 @@
- 
- #include "smipcie.h"
- #include "m88ds3103.h"
--#include "m88ts2022.h"
-+#include "ts2020.h"
- #include "m88rs6000t.h"
- #include "si2168.h"
- #include "si2157.h"
-@@ -532,9 +532,7 @@ static int smi_dvbsky_m88ds3103_fe_attach(struct smi_port *port)
- 	struct i2c_adapter *tuner_i2c_adapter;
- 	struct i2c_client *tuner_client;
- 	struct i2c_board_info tuner_info;
--	struct m88ts2022_config m88ts2022_config = {
--		.clock = 27000000,
--	};
-+	struct ts2020_config ts2020_config = {};
- 	memset(&tuner_info, 0, sizeof(struct i2c_board_info));
- 	i2c = (port->idx == 0) ? &dev->i2c_bus[0] : &dev->i2c_bus[1];
- 
-@@ -546,10 +544,10 @@ static int smi_dvbsky_m88ds3103_fe_attach(struct smi_port *port)
- 		return ret;
- 	}
- 	/* attach tuner */
--	m88ts2022_config.fe = port->fe;
--	strlcpy(tuner_info.type, "m88ts2022", I2C_NAME_SIZE);
-+	ts2020_config.fe = port->fe;
-+	strlcpy(tuner_info.type, "ts2020", I2C_NAME_SIZE);
- 	tuner_info.addr = 0x60;
--	tuner_info.platform_data = &m88ts2022_config;
-+	tuner_info.platform_data = &ts2020_config;
- 	tuner_client = smi_add_i2c_client(tuner_i2c_adapter, &tuner_info);
- 	if (!tuner_client) {
- 		ret = -ENODEV;
--- 
-http://palosaari.fi/
+date:		Mon Mar 23 04:00:14 CET 2015
+git branch:	test
+git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
