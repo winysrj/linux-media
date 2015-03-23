@@ -1,38 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:45032 "EHLO vena.lwn.net"
+Received: from mout.gmx.net ([212.227.15.15]:53994 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093AbbCZRHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2015 13:07:33 -0400
-Date: Thu, 26 Mar 2015 11:07:31 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/1] DocBook media: fix broken EIA hyperlink
-Message-ID: <20150326110731.138f39b2@lwn.net>
-In-Reply-To: <1427049356-30395-1-git-send-email-michael.opdenacker@free-electrons.com>
-References: <1427049356-30395-1-git-send-email-michael.opdenacker@free-electrons.com>
+	id S1752619AbbCWVM6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2015 17:12:58 -0400
+Message-ID: <551081CF.3080901@gmx.com>
+Date: Mon, 23 Mar 2015 22:12:47 +0100
+From: Ole Ernst <olebowle@gmx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>, Nibble Max <nibble.max@gmail.com>
+CC: "olli.salonen" <olli.salonen@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
+References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com> <55093FFC.9050602@gmx.com> <55105683.40809@iki.fi>
+In-Reply-To: <55105683.40809@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 22 Mar 2015 11:35:55 -0700
-Michael Opdenacker <michael.opdenacker@free-electrons.com> wrote:
+Very much appreciated, thanks Antti! Let me know, if you need someone to
+test your patches.
 
-> This is a fix for the only broken link in kernel documentation,
-> at least according to the "linkchecker" tool that we are running
-> on the Free Electrons website once a day.
+Am 23.03.2015 um 19:08 schrieb Antti Palosaari:
+> On 03/18/2015 11:06 AM, Ole Ernst wrote:
+>> Hi Max,
+>>
+>> I'm afraid I'm not experienced enough to adapt the ts2020 driver to
+>> interwork with the current kernel driver for the S952. I'd be more than
+>> happy to test patches though!
 > 
-> As kernel documentation is part of our website
-> (on http://free-electrons.com/kerneldoc/), I get reminded
-> of this broken link once a day!
-
-Applied to the docs tree - hopefully your email will be a little quieter
-soon.
-
-Thanks,
-
-jon
+> I will migrate M88TS2022 to TS2020 and it will start working after that.
+> 
+> regards
+> Antti
+> 
+>>
+>> Thanks,
+>> Ole
+>>
+>> Am 18.03.2015 um 02:40 schrieb Nibble Max:
+>>> Hello Ole,
+>>>
+>>> If it is m88ts2020, there is a tuner driver "ts2020" in
+>>> "dvb-frontends" directory.
+>>> If fail to load m88ts2022 driver, then try to load ts2020 driver.
+>>> m88ts2022 driver is an i2c driver, but ts2020 is traditional
+>>> dvb-attach driver.
+>>> Please check the other code using ts2020 for reference.
+>>>
+>>> Best Regards,
+>>> Max
+> 
