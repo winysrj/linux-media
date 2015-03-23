@@ -1,98 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36480 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760859AbbCDJsf (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55599 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752019AbbCWJyg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 04:48:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 23 Mar 2015 05:54:36 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/8] v4l2-subdev.h: add 'which' field for the enum structs
-Date: Wed,  4 Mar 2015 10:47:55 +0100
-Message-Id: <1425462481-8200-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425462481-8200-1-git-send-email-hverkuil@xs4all.nl>
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v2 RESEND 0/4] Add link-frequencies to struct v4l2_of_endpoint
+Date: Mon, 23 Mar 2015 11:53:43 +0200
+Message-Id: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+(Resending; fixed Sylwester's e-mail address.)
 
-While all other pad ops allow you to select whether to use the 'try' or
-the 'active' formats, the enum ops didn't have that option and always used
-'try'.
+Hi,
 
-However, this will fail if a simple (e.g. PCI) bridge driver wants to use
-the enum pad op of a subdev that's also used in a complex platform driver
-like the omap3. Such a bridge driver generally wants to enum formats based
-on the active format.
+I've split off the third and obviously somewhat problematic patch in the
+set, and sent a pull req containing the first two patches and another
+dependent patch:
 
-So add a new 'which' field to these structs. Note that V4L2_SUBDEV_FORMAT_TRY
-is 0, so the default remains TRY (applications need to set reserved to 0).
+<URL:http://www.spinics.net/lists/linux-media/msg88033.html>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/uapi/linux/v4l2-subdev.h | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+The changes intend to address the review comments I gathered the last time.
+The third patch of set 1 has been split into three, with the major
+differences being that
 
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index e0a7e3d..dbce2b5 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -69,12 +69,14 @@ struct v4l2_subdev_crop {
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-  * @code: format code (MEDIA_BUS_FMT_ definitions)
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-  */
- struct v4l2_subdev_mbus_code_enum {
- 	__u32 pad;
- 	__u32 index;
- 	__u32 code;
--	__u32 reserved[9];
-+	__u32 which;
-+	__u32 reserved[8];
- };
- 
- /**
-@@ -82,6 +84,7 @@ struct v4l2_subdev_mbus_code_enum {
-  * @pad: pad number, as reported by the media API
-  * @index: format index during enumeration
-  * @code: format code (MEDIA_BUS_FMT_ definitions)
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-  */
- struct v4l2_subdev_frame_size_enum {
- 	__u32 index;
-@@ -91,7 +94,8 @@ struct v4l2_subdev_frame_size_enum {
- 	__u32 max_width;
- 	__u32 min_height;
- 	__u32 max_height;
--	__u32 reserved[9];
-+	__u32 which;
-+	__u32 reserved[8];
- };
- 
- /**
-@@ -113,6 +117,7 @@ struct v4l2_subdev_frame_interval {
-  * @width: frame width in pixels
-  * @height: frame height in pixels
-  * @interval: frame interval in seconds
-+ * @which: format type (from enum v4l2_subdev_format_whence)
-  */
- struct v4l2_subdev_frame_interval_enum {
- 	__u32 index;
-@@ -121,7 +126,8 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 width;
- 	__u32 height;
- 	struct v4l2_fract interval;
--	__u32 reserved[9];
-+	__u32 which;
-+	__u32 reserved[8];
- };
- 
- /**
+- the interface functions are now called v4l2_of_alloc_parse_endpoint() and
+  v4l2_of_free_endpoint(),
+
+- v4l2_of_alloc_parse_endpoint() will allocate and return struct
+  v4l2_of_endpoint. Correspondingly v4l2_of_free_endpoint() will release it,
+
+- the usage pattern of existing users is unchanged, however new drivers are
+  adviced to use the new interface. The old interface could be removed at
+  some point when it no longer has users, however it is not urgent in any
+  way.
+
+v1 can be found here:
+
+<URL:http://www.spinics.net/lists/linux-media/msg87479.html>
+
+Comments are very welcome.
+
 -- 
-2.1.4
+Kind regards,
+Sakari
 
