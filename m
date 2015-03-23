@@ -1,115 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57454 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934AbbCBUwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 15:52:49 -0500
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, josh.wu@atmel.com,
-	g.liakhovetski@gmx.de
-From: laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
-In-Reply-To: <20150302135523.1f34dc84@recife.lan>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange>
-	<Pine.LNX.4.64.1502010019380.26661@axis700.grange>
-	<8420980.1Z1tGTCX4O@avalon>
-	<Pine.LNX.4.64.1502011211160.9534@axis700.grange>
- <20150302135523.1f34dc84@recife.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Date: Mon, 2 Mar 2015 20:52:41 +0000
-Message-ID: <qcg754.nklrbz.ru1ns5-qmf@galahad.ideasonboard.com>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:35633 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466AbbCWPCT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2015 11:02:19 -0400
+Received: by wgdm6 with SMTP id m6so148278566wgd.2
+        for <linux-media@vger.kernel.org>; Mon, 23 Mar 2015 08:02:18 -0700 (PDT)
+Date: Mon, 23 Mar 2015 15:02:13 +0000
+From: Lee Jones <lee.jones@linaro.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH/RFC v13 04/13] DT: Add documentation for the mfd Maxim
+ max77693
+Message-ID: <20150323150213.GN24804@x1>
+References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
+ <1426175114-14876-5-git-send-email-j.anaszewski@samsung.com>
+ <20150323120743.GG24422@x1>
+ <20150323142202.GA23919@amd>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20150323142202.GA23919@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF1cm8sDQoNCk9uIE1vbiBNYXIgMDIgMjAxNSAxODo1NToyMyBHTVQrMDIwMCAoRUVUKSwg
-TWF1cm8gQ2FydmFsaG8gQ2hlaGFiIHdyb3RlOg0KPiBFbSBTdW4sIDEgRmViIDIwMTUgMTI6MTI6
-MzMgKzAxMDAgKENFVCkNCj4gR3Vlbm5hZGkgTGlha2hvdmV0c2tpIDxnLmxpYWtob3ZldHNraUBn
-bXguZGU+IGVzY3JldmV1Og0KPiANCj4gPiBWNEwyIGNsb2NrcywgZS5nLiB1c2VkIGJ5IGNhbWVy
-YSBzZW5zb3JzIGZvciB0aGVpciBtYXN0ZXIgY2xvY2ssIGRvIG5vdA0KPiA+IGhhdmUgdG8gYmUg
-c3VwcGxpZWQgYnkgYSBkaWZmZXJlbnQgVjRMMiBkcml2ZXIsIHRoZXkgY2FuIGFsc28gYmUNCj4g
-PiBzdXBwbGllZCBieSBhbiBpbmRlcGVuZGVudCBzb3VyY2UuIEluIHRoaXMgY2FzZSB0aGUgc3Rh
-bmRhcnQga2VybmVsDQo+ID4gY2xvY2sgQVBJIHNob3VsZCBiZSB1c2VkIHRvIGhhbmRsZSBzdWNo
-IGNsb2Nrcy4gVGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQNCj4gPiBmb3Igc3VjaCBjYXNlcy4NCj4g
-PiANCj4gPiBTaWduZWQtb2ZmLWJ5OiBHdWVubmFkaSBMaWFraG92ZXRza2kgPGcubGlha2hvdmV0
-c2tpQGdteC5kZT4NCj4gPiBBY2tlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5j
-aGFydEBpZGVhc29uYm9hcmQuY29tPg0KPiA+IC0tLQ0KPiA+IA0KPiA+IHY0OiBzaXplb2YoKmNs
-aykgOikNCj4gPiANCj4gPiAgZHJpdmVycy9tZWRpYS92NGwyLWNvcmUvdjRsMi1jbGsuYyB8IDQ4
-ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tDQo+ID4gIGluY2x1ZGUvbWVk
-aWEvdjRsMi1jbGsuaCAgICAgICAgICAgfCAgMiArKw0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDQ3
-IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0bDItY2xrLmMgYi9kcml2ZXJzL21lZGlhL3Y0bDItY29y
-ZS92NGwyLWNsay5jDQo+ID4gaW5kZXggM2ZmMGIwMC4uOWY4Y2IyMCAxMDA2NDQNCj4gPiAtLS0g
-YS9kcml2ZXJzL21lZGlhL3Y0bDItY29yZS92NGwyLWNsay5jDQo+ID4gKysrIGIvZHJpdmVycy9t
-ZWRpYS92NGwyLWNvcmUvdjRsMi1jbGsuYw0KPiA+IEBAIC05LDYgKzksNyBAQA0KPiA+ICAgKi8N
-Cj4gPiAgDQo+ID4gICNpbmNsdWRlIDxsaW51eC9hdG9taWMuaD4NCj4gPiArI2luY2x1ZGUgPGxp
-bnV4L2Nsay5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+DQo+ID4gICNpbmNsdWRl
-IDxsaW51eC9lcnJuby5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvbGlzdC5oPg0KPiA+IEBAIC0z
-Nyw2ICszOCwyMSBAQCBzdGF0aWMgc3RydWN0IHY0bDJfY2xrICp2NGwyX2Nsa19maW5kKGNvbnN0
-IGNoYXIgKmRldl9pZCkNCj4gPiAgc3RydWN0IHY0bDJfY2xrICp2NGwyX2Nsa19nZXQoc3RydWN0
-IGRldmljZSAqZGV2LCBjb25zdCBjaGFyICppZCkNCj4gPiAgew0KPiA+ICAJc3RydWN0IHY0bDJf
-Y2xrICpjbGs7DQo+ID4gKwlzdHJ1Y3QgY2xrICpjY2ZfY2xrID0gY2xrX2dldChkZXYsIGlkKTsN
-Cj4gPiArDQo+ID4gKwlpZiAoUFRSX0VSUihjY2ZfY2xrKSA9PSAtRVBST0JFX0RFRkVSKQ0KPiA+
-ICsJCXJldHVybiBFUlJfUFRSKC1FUFJPQkVfREVGRVIpOw0KPiANCj4gV2h5IG5vdCBkbyBqdXN0
-Og0KPiAJCXJldHVybiBjY2ZfY2xrOw0KDQpJIGZpbmQgdGhlIGV4cGxpY2l0IGVycm9yIHNsaWdo
-dGx5IG1vcmUgcmVhZGFibGUsIGJ1dCB0aGF0J3MgYSBtYXR0ZXIgb2YgdGFzdGUuDQogDQo+ID4g
-Kw0KPiA+ICsJaWYgKCFJU19FUlJfT1JfTlVMTChjY2ZfY2xrKSkgew0KPiA+ICsJCWNsayA9IGt6
-YWxsb2Moc2l6ZW9mKCpjbGspLCBHRlBfS0VSTkVMKTsNCj4gPiArCQlpZiAoIWNsaykgew0KPiA+
-ICsJCQljbGtfcHV0KGNjZl9jbGspOw0KPiA+ICsJCQlyZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsN
-Cj4gPiArCQl9DQo+ID4gKwkJY2xrLT5jbGsgPSBjY2ZfY2xrOw0KPiA+ICsNCj4gPiArCQlyZXR1
-cm4gY2xrOw0KPiA+ICsJfQ0KPiANCj4gVGhlIGVycm9yIGNvbmRpdGlvbiBoZXJlIGxvb2tzIGEg
-bGl0dGxlIHdlaXJkIHRvIG1lLiBJIG1lYW4sIGlmIHRoZQ0KPiBDQ0YgY2xvY2sgcmV0dXJucyBh
-biBlcnJvciwgc2hvdWxkbid0IGl0IGZhaWwgaW5zdGVhZCBvZiBzaWxlbnRseQ0KPiBydW4gc29t
-ZSBsb2dpYyB0byBmaW5kIGFub3RoZXIgY2xvY2sgc291cmNlPyBJc24ndCBpdCByaXNreSBvbiBn
-ZXR0aW5nDQo+IGEgd3JvbmcgdmFsdWU/DQoNClRoZSBpZGVhIGlzIHRoYXQsIGluIHRoZSBsb25n
-IHRlcm0sIGV2ZXJ5dGhpbmcgc2hvdWxkIHVzZSBDQ0YgZGlyZWN0bHkuIEhvd2V2ZXIsIHdlIGhh
-dmUgY2xvY2sgcHJvdmlkZXJzIG9uIHBsYXRmb3JtcyB3aGVyZSBDQ0YgaXNuJ3QgYXZhbGFpYmxl
-LiBWNEwyIGNsb2NrIGhhcyBiZWVuIGludHJvZHVjZWQgIGFzIGEgIHNpbmdsZSBBUEkgdXNhYmxl
-IGJ5IFY0TDIgY2xvY2sgdXNlcnMgYWxsb3dpbmcgdGhlbSB0byByZXRyaWV2ZSBhbmQgdXNlIGNs
-b2NrcyByZWdhcmRsZXNzIG9mIHdoZXRoZXIgdGhlIHByb3ZpZGVyIHVzZXMgQ0NGIG9yIG5vdC4g
-SW50ZXJuYWxseSBpdCBmaXJzdCB0cmllcyBDQ0YsIGFuZCB0aGVuIGZhbGxzIGJhY2sgdG8gdGhl
-IG5vbi1DQ0YgaW1wbGVtZW50YXRpb24gaW4gY2FzZSBvZiBmYWlsdXJlLiANCiANCj4gSWYgdGhl
-IGFib3ZlIGNvZGUgaXMgcmlnaHQsIHBsZWFzZSBhZGQgYSBjb21tZW50IHRoZXJlIGV4cGxhaW5p
-bmcNCj4gd2h5IGl0IGlzIHNhZmUgdG8gZGlzY2FyZCB0aGUgQ0NGIGNsb2NrIGVycm9yLg0KPiAN
-Cj4gPiAgDQo+ID4gIAltdXRleF9sb2NrKCZjbGtfbG9jayk7DQo+ID4gIAljbGsgPSB2NGwyX2Ns
-a19maW5kKGRldl9uYW1lKGRldikpOw0KPiA+IEBAIC01Niw2ICs3MiwxMiBAQCB2b2lkIHY0bDJf
-Y2xrX3B1dChzdHJ1Y3QgdjRsMl9jbGsgKmNsaykNCj4gPiAgCWlmIChJU19FUlIoY2xrKSkNCj4g
-PiAgCQlyZXR1cm47DQo+ID4gIA0KPiA+ICsJaWYgKGNsay0+Y2xrKSB7DQo+ID4gKwkJY2xrX3B1
-dChjbGstPmNsayk7DQo+ID4gKwkJa2ZyZWUoY2xrKTsNCj4gPiArCQlyZXR1cm47DQo+ID4gKwl9
-DQo+ID4gKw0KPiA+ICAJbXV0ZXhfbG9jaygmY2xrX2xvY2spOw0KPiA+ICANCj4gPiAgCWxpc3Rf
-Zm9yX2VhY2hfZW50cnkodG1wLCAmY2xrX2xpc3QsIGxpc3QpDQo+ID4gQEAgLTkzLDggKzExNSwx
-MiBAQCBzdGF0aWMgdm9pZCB2NGwyX2Nsa191bmxvY2tfZHJpdmVyKHN0cnVjdCB2NGwyX2NsayAq
-Y2xrKQ0KPiA+ICANCj4gPiAgaW50IHY0bDJfY2xrX2VuYWJsZShzdHJ1Y3QgdjRsMl9jbGsgKmNs
-aykNCj4gPiAgew0KPiA+IC0JaW50IHJldCA9IHY0bDJfY2xrX2xvY2tfZHJpdmVyKGNsayk7DQo+
-ID4gKwlpbnQgcmV0Ow0KPiA+ICANCj4gPiArCWlmIChjbGstPmNsaykNCj4gPiArCQlyZXR1cm4g
-Y2xrX3ByZXBhcmVfZW5hYmxlKGNsay0+Y2xrKTsNCj4gPiArDQo+ID4gKwlyZXQgPSB2NGwyX2Ns
-a19sb2NrX2RyaXZlcihjbGspOw0KPiA+ICAJaWYgKHJldCA8IDApDQo+ID4gIAkJcmV0dXJuIHJl
-dDsNCj4gPiAgDQo+ID4gQEAgLTEyMCw2ICsxNDYsOSBAQCB2b2lkIHY0bDJfY2xrX2Rpc2FibGUo
-c3RydWN0IHY0bDJfY2xrICpjbGspDQo+ID4gIHsNCj4gPiAgCWludCBlbmFibGU7DQo+ID4gIA0K
-PiA+ICsJaWYgKGNsay0+Y2xrKQ0KPiA+ICsJCXJldHVybiBjbGtfZGlzYWJsZV91bnByZXBhcmUo
-Y2xrLT5jbGspOw0KPiA+ICsNCj4gPiAgCW11dGV4X2xvY2soJmNsay0+bG9jayk7DQo+ID4gIA0K
-PiA+ICAJZW5hYmxlID0gLS1jbGstPmVuYWJsZTsNCj4gPiBAQCAtMTM3LDggKzE2NiwxMiBAQCBF
-WFBPUlRfU1lNQk9MKHY0bDJfY2xrX2Rpc2FibGUpOw0KPiA+ICANCj4gPiAgdW5zaWduZWQgbG9u
-ZyB2NGwyX2Nsa19nZXRfcmF0ZShzdHJ1Y3QgdjRsMl9jbGsgKmNsaykNCj4gPiAgew0KPiA+IC0J
-aW50IHJldCA9IHY0bDJfY2xrX2xvY2tfZHJpdmVyKGNsayk7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+
-ICsNCj4gPiArCWlmIChjbGstPmNsaykNCj4gPiArCQlyZXR1cm4gY2xrX2dldF9yYXRlKGNsay0+
-Y2xrKTsNCj4gPiAgDQo+ID4gKwlyZXQgPSB2NGwyX2Nsa19sb2NrX2RyaXZlcihjbGspOw0KPiA+
-ICAJaWYgKHJldCA8IDApDQo+ID4gIAkJcmV0dXJuIHJldDsNCj4gPiAgDQo+ID4gQEAgLTE1Nyw3
-ICsxOTAsMTYgQEAgRVhQT1JUX1NZTUJPTCh2NGwyX2Nsa19nZXRfcmF0ZSk7DQo+ID4gIA0KPiA+
-ICBpbnQgdjRsMl9jbGtfc2V0X3JhdGUoc3RydWN0IHY0bDJfY2xrICpjbGssIHVuc2lnbmVkIGxv
-bmcgcmF0ZSkNCj4gPiAgew0KPiA+IC0JaW50IHJldCA9IHY0bDJfY2xrX2xvY2tfZHJpdmVyKGNs
-ayk7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICsNCj4gPiArCWlmIChjbGstPmNsaykgew0KPiA+ICsJ
-CWxvbmcgciA9IGNsa19yb3VuZF9yYXRlKGNsay0+Y2xrLCByYXRlKTsNCj4gPiArCQlpZiAociA8
-IDApDQo+ID4gKwkJCXJldHVybiByOw0KPiA+ICsJCXJldHVybiBjbGtfc2V0X3JhdGUoY2xrLT5j
-bGssIHIpOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldCA9IHY0bDJfY2xrX2xvY2tfZHJpdmVy
-KGNsayk7DQo+ID4gIA0KPiA+ICAJaWYgKHJldCA8IDApDQo+ID4gIAkJcmV0dXJuIHJldDsNCj4g
-PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9tZWRpYS92NGwyLWNsay5oIGIvaW5jbHVkZS9tZWRpYS92
-NGwyLWNsay5oDQo+ID4gaW5kZXggOTI4MDQ1Zi4uM2VmNmUzZCAxMDA2NDQNCj4gPiAtLS0gYS9p
-bmNsdWRlL21lZGlhL3Y0bDItY2xrLmgNCj4gPiArKysgYi9pbmNsdWRlL21lZGlhL3Y0bDItY2xr
-LmgNCj4gPiBAQCAtMjIsNiArMjIsNyBAQA0KPiA+ICBzdHJ1Y3QgbW9kdWxlOw0KPiA+ICBzdHJ1
-Y3QgZGV2aWNlOw0KPiA+ICANCj4gPiArc3RydWN0IGNsazsNCj4gPiAgc3RydWN0IHY0bDJfY2xr
-IHsNCj4gPiAgCXN0cnVjdCBsaXN0X2hlYWQgbGlzdDsNCj4gPiAgCWNvbnN0IHN0cnVjdCB2NGwy
-X2Nsa19vcHMgKm9wczsNCj4gPiBAQCAtMjksNiArMzAsNyBAQCBzdHJ1Y3QgdjRsMl9jbGsgew0K
-PiA+ICAJaW50IGVuYWJsZTsNCj4gPiAgCXN0cnVjdCBtdXRleCBsb2NrOyAvKiBQcm90ZWN0IHRo
-ZSBlbmFibGUgY291bnQgKi8NCj4gPiAgCWF0b21pY190IHVzZV9jb3VudDsNCj4gPiArCXN0cnVj
-dCBjbGsgKmNsazsNCj4gPiAgCXZvaWQgKnByaXY7DQo+ID4gIH07DQo+ID4gIA0KPg==
+On Mon, 23 Mar 2015, Pavel Machek wrote:
+> On Mon 2015-03-23 12:07:43, Lee Jones wrote:
+> > This patch requires a DT Ack.
+> 
+> No, it requires DT people to be notified -- and they were, few times
+> by now.
+> 
+> They clearly don't care.
+
+Well fortunately for the Kernel community, I do care.  And as this
+patch adds 3 new DT properties, has been through many iterations
+already with vast changes made over that period and there is still
+some controversy looming, I'm saying that it _does_ require a DT Ack.
+
+> > > This patch adds device tree binding documentation for
+> > > the flash cell of the Maxim max77693 multifunctional device.
+> > > 
+> > > Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> > > Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> > > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > Cc: Lee Jones <lee.jones@linaro.org>
+> > > Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> > > Cc: Bryan Wu <cooloney@gmail.com>
+> > > Cc: Richard Purdie <rpurdie@rpsys.net>
+> 
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> 
+> 
+> > > diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> > > index 38e6440..15c546e 100644
+> > > --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> > > +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> > > @@ -76,7 +76,53 @@ Optional properties:
+> > >      Valid values: 4300000, 4700000, 4800000, 4900000
+> > >      Default: 4300000
+> > >  
+> > > +- led : the LED submodule device node
+> > > +
+> > > +There are two LED outputs available - FLED1 and FLED2. Each of them can
+> > > +control a separate LED or they can be connected together to double
+> > > +the maximum current for a single connected LED. One LED is represented
+> > > +by one child node.
+> > > +
+> > > +Required properties:
+> > > +- compatible : Must be "maxim,max77693-led".
+> > > +
+> > > +Optional properties:
+> > > +- maxim,trigger-type : Flash trigger type.
+> > > +	Possible trigger types:
+> > > +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
+> > > +			the flash,
+> > > +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
+> > > +			of the flash.
+> > > +- maxim,boost-mode :
+> > > +	In boost mode the device can produce up to 1.2A of total current
+> > > +	on both outputs. The maximum current on each output is reduced
+> > > +	to 625mA then. If not enabled explicitly, boost setting defaults to
+> > > +	LEDS_BOOST_FIXED in case both current sources are used.
+> > > +	Possible values:
+> > > +		LEDS_BOOST_OFF (0) - no boost,
+> > > +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+> > > +		LEDS_BOOST_FIXED (2) - fixed mode.
+> > > +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
+> > > +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+> > > +	if chip estimates that system voltage could drop below this level due
+> > > +	to flash power consumption.
+> > > +
+> > > +Required properties of the LED child node:
+> > > +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+> > > +		device current output identifiers: 0 - FLED1, 1 - FLED2
+> > > +
+> > > +Optional properties of the LED child node:
+> > > +- label : see Documentation/devicetree/bindings/leds/common.txt
+> > > +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > > +		Range: 15625 - 250000
+> > > +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> > > +		Range: 15625 - 1000000
+> > > +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> > > +		Range: 62500 - 1000000
+> > > +
+> > >  Example:
+> > > +#include <dt-bindings/leds/common.h>
+> > > +
+> > >  	max77693@66 {
+> > >  		compatible = "maxim,max77693";
+> > >  		reg = <0x66>;
+> > > @@ -117,5 +163,20 @@ Example:
+> > >  			maxim,thermal-regulation-celsius = <75>;
+> > >  			maxim,battery-overcurrent-microamp = <3000000>;
+> > >  			maxim,charge-input-threshold-microvolt = <4300000>;
+> > > +
+> > > +		led {
+> > > +			compatible = "maxim,max77693-led";
+> > > +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
+> > > +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+> > > +			maxim,boost-mvout = <5000>;
+> > > +			maxim,mvsys-min = <2400>;
+> > > +
+> > > +			camera_flash: flash-led {
+> > > +				label = "max77693-flash";
+> > > +				led-sources = <0>, <1>;
+> > > +				max-microamp = <500000>;
+> > > +				flash-max-microamp = <1250000>;
+> > > +				flash-timeout-us = <1000000>;
+> > > +			};
+> > >  		};
+> > >  	};
+> > 
+> > 
+> 
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
