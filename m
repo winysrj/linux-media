@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51209 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55600 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751585AbbCJBjG (ORCPT
+	by vger.kernel.org with ESMTP id S1752013AbbCWJyg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 21:39:06 -0400
-Date: Tue, 10 Mar 2015 03:38:31 +0200
+	Mon, 23 Mar 2015 05:54:36 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4] media: i2c: add support for omnivision's ov2659 sensor
-Message-ID: <20150310013831.GG11954@valkosipuli.retiisi.org.uk>
-References: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1425814407-22766-1-git-send-email-prabhakar.csengg@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v2 RESEND 2/4] v4l: of: Instead of zeroing bus_type and bus field separately, unify this
+Date: Mon, 23 Mar 2015 11:53:45 +0200
+Message-Id: <1427104427-19911-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
+References: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Clean the entire struct starting from bus_type. As more fields are added, no
+changes will be needed in the function to reset their value explicitly.
 
-On Sun, Mar 08, 2015 at 11:33:27AM +0000, Lad Prabhakar wrote:
-> From: Benoit Parrot <bparrot@ti.com>
-> 
-> this patch adds support for omnivision's ov2659
-> sensor, the driver supports following features:
-> 1: Asynchronous probing
-> 2: DT support
-> 3: Media controller support
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-of.c |    5 +++--
+ include/media/v4l2-of.h           |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-Now that DT support is included, could you document it as well? There's a
-single proprerty to document.
-
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index b4ed9a9..1c3e398 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -128,8 +128,9 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint)
+ {
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+-	endpoint->bus_type = 0;
+-	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
++	/* Zero fields from bus_type to until the end */
++	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
++	       offsetof(typeof(*endpoint), bus_type));
+ 
+ 	v4l2_of_parse_csi_bus(node, endpoint);
+ 	/*
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index dc468de..00eec26 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -57,6 +57,7 @@ struct v4l2_of_bus_parallel {
+  */
+ struct v4l2_of_endpoint {
+ 	struct of_endpoint base;
++	/* Fields below this line will be cleaned by v4l2_of_parse_endpoint() */
+ 	enum v4l2_mbus_type bus_type;
+ 	union {
+ 		struct v4l2_of_bus_parallel parallel;
 -- 
-Cheers,
+1.7.10.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
