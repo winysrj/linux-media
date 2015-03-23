@@ -1,82 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:55003 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754441AbbCaNzB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55598 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752097AbbCWJyg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 09:55:01 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v4 07/12] DT: Add documentation for the Skyworks AAT1290
-Date: Tue, 31 Mar 2015 15:52:43 +0200
-Message-id: <1427809965-25540-8-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 23 Mar 2015 05:54:36 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v2 RESEND 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
+Date: Mon, 23 Mar 2015 11:53:47 +0200
+Message-Id: <1427104427-19911-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
+References: <1427104427-19911-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-1.5A Step-Up Current Regulator for Flash LEDs.
+Instead of parsing the link-frequencies property in the driver, let
+v4l2_of_alloc_parse_endpoint() do it.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: devicetree@vger.kernel.org
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- .../devicetree/bindings/leds/leds-aat1290.txt      |   40 ++++++++++++++++++++
- 1 file changed, 40 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+ drivers/media/i2c/smiapp/smiapp-core.c |   40 ++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-new file mode 100644
-index 0000000..6893eb1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -0,0 +1,40 @@
-+* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index ecae76b..a6c2dab 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2975,9 +2975,9 @@ static int smiapp_resume(struct device *dev)
+ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ {
+ 	struct smiapp_platform_data *pdata;
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_of_endpoint *bus_cfg;
+ 	struct device_node *ep;
+-	uint32_t asize;
++	int i;
+ 	int rval;
+ 
+ 	if (!dev->of_node)
+@@ -2987,13 +2987,17 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	if (!ep)
+ 		return NULL;
+ 
++	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
++	if (IS_ERR(bus_cfg)) {
++		rval = PTR_ERR(bus_cfg);
++		goto out_err;
++	}
 +
-+The device is controlled through two pins: FL_EN and EN_SET. The pins when,
-+asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
-+respectively.
-+
-+Required properties:
-+
-+- compatible : Must be "skyworks,aat1290".
-+- flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
-+- enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
-+
-+A discrete LED element connected to the device must be represented by a child
-+node - see Documentation/devicetree/bindings/leds/common.txt.
-+
-+Required properties of the LED child node:
-+- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
-+		       it can be calculated using following formula:
-+		       I = 1A * 162kohm / Rset.
-+- flash-timeout-us : Maximum flash timeout in microseconds -
-+		     it can be calculated using following formula:
-+		     T = 8.82 * 10^9 * Ct.
-+
-+Optional properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+
-+Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
-+a switch that allows for routing strobe signal either from host or from ISP):
-+
-+aat1290 {
-+	compatible = "skyworks,aat1290";
-+	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
-+	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
-+
-+	camera_flash: flash-led {
-+		label = "aat1290-flash";
-+		flash-max-microamp = <1012500>;
-+		flash-timeout-us = <1940000>;
-+	};
-+};
+ 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		goto out_err;
+ 
+-	v4l2_of_parse_endpoint(ep, &bus_cfg);
+-
+-	switch (bus_cfg.bus_type) {
++	switch (bus_cfg->bus_type) {
+ 	case V4L2_MBUS_CSI2:
+ 		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
+ 		break;
+@@ -3002,7 +3006,7 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 		goto out_err;
+ 	}
+ 
+-	pdata->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
++	pdata->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+ 	dev_dbg(dev, "lanes %u\n", pdata->lanes);
+ 
+ 	/* xshutdown GPIO is optional */
+@@ -3022,34 +3026,30 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", pdata->xshutdown,
+ 		pdata->nvm_size, pdata->ext_clk, pdata->csi_signalling_mode);
+ 
+-	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
+-	if (rval) {
+-		dev_warn(dev, "can't get link-frequencies array size\n");
++	if (!bus_cfg->nr_of_link_frequencies) {
++		dev_warn(dev, "no link frequencies defined\n");
+ 		goto out_err;
+ 	}
+ 
+-	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
++	pdata->op_sys_clock = devm_kcalloc(
++		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
++		sizeof(*pdata->op_sys_clock), GFP_KERNEL);
+ 	if (!pdata->op_sys_clock) {
+ 		rval = -ENOMEM;
+ 		goto out_err;
+ 	}
+ 
+-	asize /= sizeof(*pdata->op_sys_clock);
+-	rval = of_property_read_u64_array(
+-		ep, "link-frequencies", pdata->op_sys_clock, asize);
+-	if (rval) {
+-		dev_warn(dev, "can't get link-frequencies\n");
+-		goto out_err;
++	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
++		pdata->op_sys_clock[i] = bus_cfg->link_frequencies[i];
++		dev_dbg(dev, "freq %d: %lld\n", i, pdata->op_sys_clock[i]);
+ 	}
+ 
+-	for (; asize > 0; asize--)
+-		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
+-			pdata->op_sys_clock[asize - 1]);
+-
++	v4l2_of_free_endpoint(bus_cfg);
+ 	of_node_put(ep);
+ 	return pdata;
+ 
+ out_err:
++	v4l2_of_free_endpoint(bus_cfg);
+ 	of_node_put(ep);
+ 	return NULL;
+ }
 -- 
-1.7.9.5
+1.7.10.4
 
