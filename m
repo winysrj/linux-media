@@ -1,77 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33490 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935069AbbCPT5U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 15:57:20 -0400
-Message-ID: <55073598.9010803@xs4all.nl>
-Date: Mon, 16 Mar 2015 20:57:12 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:37940 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751328AbbCXVg2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 17:36:28 -0400
+Date: Tue, 24 Mar 2015 14:36:22 -0700
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] [ANN] Media Mini-Summit Final Agenda for March
+ 26th
+Message-ID: <20150324143622.24bce760@concha.lan>
+In-Reply-To: <5511B0BF.1030305@xs4all.nl>
+References: <5511B0BF.1030305@xs4all.nl>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?UTF-8?B?QXVyw6lsaWU=?= =?UTF-8?B?biBaYW5lbGxp?=
-	<aurelien.zanelli@parrot.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Dynamic video input/output list
-References: <5507177A.8060200@parrot.com> <CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com>
-In-Reply-To: <CAGoCfiyZt990gWqSPgaNE7L1fw=XN1DJiiQeDKvepO1Yz9cvaA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 07:01 PM, Devin Heitmueller wrote:
->> I'm looking to enhance video input/output enumeration support in
->> GStreamer using VIDIOC_ENUMINPUT/VIDIOC_ENUMOUTPUT ioctls and after some
->> discussions we wonder if the input/output list can change dynamically at
->> runtime or not.
->>
->> So, is v4l2 allow this input/output list to be dynamic ?
+Em Tue, 24 Mar 2015 11:45:19 -0700
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> This is the final agenda for the media mini-summit in San Jose on March 26th.
 > 
-> I sure how the spec allows it, because I've done it in the past.
-
-Just because you can do something doesn't mean the spec allows it :-)
-In this particular case nobody ever thought about whether this could
-change dynamically so the spec never talks about it.
-
-But at the moment it is definitely not allowed, even though the spec
-doesn't explicitly forbid it. All applications expect that the list of
-inputs/outputs is fixed.
-
-The spec could be extended to allow this, but then there also should be
-a new event introduced that the application can receive if the list changes
-so it can update the list.
-
-But frankly, I would prefer to always expose all possible inputs, including
-those of an optional onboard header, and if nothing is connected just mark
-those inputs as having status V4L2_IN_ST_NO_POWER.
-
-Note however that it is perfectly fine if the driver detects the presence
-of such an onboard header when it is loaded and then only exposes those
-extra inputs if the header is present. It just can't change the list later
-unless do you an rmmod and modprobe of the driver. It's probably what you
-do anyway.
-
-Regards,
-
-	Hans
-
-> I have cards which have an onboard header for external A/V inputs, and I
-> am able to tell if the breakout cable is attached due to a dedicated
-> pin tied to a GPIO.  Thus, I am able to dictate whether the card has
-> the A/V breakout cable attached and thus whether to expose only the
-> first input or all three inputs.
+> Time: 9 AM to 5:30 PM (approximately)
+> Room: San Carlos, 2nd floor
 > 
-> That said, in this case the inputs in the list never moved around
-> because the optional entries were at the end of the list - the list
-> just got longer if those inputs were available.  I'm not sure what
-> would happen if you had a configuration where you needed to remove
-> entries other than those at the end of the list.  For example, if you
-> had a card with four possible inputs and you removed input 2, does the
-> list stay the same length and input 2 is now marked as invalid, or
-> does the length of the list become 3 and inputs 3 and 4 turn into
-> inputs 2 and 3?
+> Attendees:
 > 
-> Devin
+> We'll get this list later from the Linux Foundation based on who signed on.
 > 
+> Agenda:
+> 
+> Times are approximate and will likely change, although the intention is to
+> not change too much :-)
+> 
+> 9:00-9:15   Get everyone installed, laptops hooked up, etc.
+> 9:15-9:30   Introduction
+> 9:30-10:30  Media Controller support for DVB (Mauro Carvalho Chehab):
+> 		1) dynamic creation/removal of pipelines
+> 		2) change media_entity_pipeline_start to also define
+> 		   the final entity
+> 		3) how to setup pipelines that also envolve audio and DRM
+> 		4) how to lock the media controller pipeline between enabling a
+> 		   pipeline and starting it, in order to avoid race conditions
+> 
+> See this post for more detailed information:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+> 
+> 10:30-10:45 Break
+> 10:45-12:00 Continue discussion
+> 12:00-13:00 Lunch
+> 13:00-14:30 Continue discussion
+> 14:30-15:00 Media Tokens (Shuah Kahn)
+> 15:00-15:30 Break
+> 15:30-16:30 Subdev hotplug in the context of both FPGA dynamic reconfiguration and
+> 	    project Ara (http://www.projectara.com/) (Laurent Pinchart).
+> 16:30-17:30 Update on ongoing projects (Hans Verkuil):
+> 		- work on colorspace improvements
+> 		- removing duplicate subdev video ops and use pad ops instead
+> 		- vivid & v4l2-compliance improvements
+> 		- proposal for Android Camera v3-type requests (aka configuration stores)
 
+One item is missing:
+
+17:30 - Group photo
+
+:)
+
+It would also be nice to use 15 mins at the end to double check if the model
+of subscribing via LF was a good idea, or if something needs to be improved
+for the next Summits.
+
+> Most of the time will be spent on DVB and the MC. Based on past experience this
+> likely will take some time to get a consensus.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> _______________________________________________
+> media-workshop mailing list
+> media-workshop@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+
+
+-- 
+
+Cheers,
+Mauro
