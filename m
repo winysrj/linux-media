@@ -1,68 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44452 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751025AbbCHHyO (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44148 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752764AbbCXQJw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Mar 2015 03:54:14 -0400
+	Tue, 24 Mar 2015 12:09:52 -0400
+Received: from [172.22.20.229] (unknown [12.104.145.3])
+	by tschai.lan (Postfix) with ESMTPSA id 5B3FF2A0092
+	for <linux-media@vger.kernel.org>; Tue, 24 Mar 2015 17:09:33 +0100 (CET)
+Message-ID: <55118C48.106@xs4all.nl>
+Date: Tue, 24 Mar 2015 09:09:44 -0700
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/4] DocBook media: BT.2020 RGB uses limited quantization range
-Date: Sun,  8 Mar 2015 08:53:31 +0100
-Message-Id: <1425801213-14230-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425801213-14230-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425801213-14230-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.1] Various fixes & ov2659 sensor driver
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 8a56b6b5fd6ff92b7e27d870b803b11b751660c2:
 
-In contrast to all other colorspaces, the BT.2020 colorspace uses
-limited range R'G'B' quantization as the default.
+  [media] v4l2-subdev: remove enum_framesizes/intervals (2015-03-23 12:02:41 -0700)
 
-This was incorrected documented, so fix this.
+are available in the git repository at:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/pixfmt.xml | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.1n
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index f2175f0..56bdd24 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -483,8 +483,8 @@ is the Y'CbCr encoding identifier (&v4l2-ycbcr-encoding;) to specify non-standar
- Y'CbCr encodings and the third is the quantization identifier (&v4l2-quantization;)
- to specify non-standard quantization methods. Most of the time only the colorspace
- field of &v4l2-pix-format; or &v4l2-pix-format-mplane; needs to be filled in. Note
--that the default R'G'B' quantization is always full range for all colorspaces,
--so this won't be mentioned explicitly for each colorspace description.</para>
-+that the default R'G'B' quantization is full range for all colorspaces except for
-+BT.2020 which uses limited range R'G'B' quantization.</para>
- 
-     <table pgwide="1" frame="none" id="v4l2-colorspace">
-       <title>V4L2 Colorspaces</title>
-@@ -598,7 +598,8 @@ so this won't be mentioned explicitly for each colorspace description.</para>
- 	  <row>
- 	    <entry><constant>V4L2_QUANTIZATION_DEFAULT</constant></entry>
- 	    <entry>Use the default quantization encoding as defined by the colorspace.
--This is always full range for R'G'B' and usually limited range for Y'CbCr.</entry>
-+This is always full range for R'G'B' (except for the BT.2020 colorspace) and usually
-+limited range for Y'CbCr.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_QUANTIZATION_FULL_RANGE</constant></entry>
-@@ -967,8 +968,8 @@ SMPTE 170M/BT.601. The Y'CbCr quantization is limited range.</para>
-       <title id="col-bt2020">Colorspace BT.2020 (<constant>V4L2_COLORSPACE_BT2020</constant>)</title>
-       <para>The <xref linkend="itu2020" /> standard defines the colorspace used by Ultra-high definition
- television (UHDTV). The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_BT2020</constant>.
--The default Y'CbCr quantization is limited range. The chromaticities of the primary colors and
--the white reference are:</para>
-+The default R'G'B' quantization is limited range (!), and so is the default Y'CbCr quantization.
-+The chromaticities of the primary colors and the white reference are:</para>
-       <table frame="none">
-         <title>BT.2020 Chromaticities</title>
-         <tgroup cols="3" align="left">
--- 
-2.1.4
+for you to fetch changes up to c4fc844c104c475f8d6f954dfd519023545b4bbd:
 
+  media: i2c: add support for omnivision's ov2659 sensor (2015-03-24 09:01:52 -0700)
+
+----------------------------------------------------------------
+Benoit Parrot (1):
+      media: i2c: add support for omnivision's ov2659 sensor
+
+Hans Verkuil (4):
+      DocBook media: improve event documentation
+      DocBook media: fix BT.2020 description
+      vivid-tpg.c: fix wrong Bt.2020 coefficients
+      DocBook media: improve V4L2_DV_FL_HALF_LINE documentation
+
+Michael Opdenacker (1):
+      DocBook media: fix broken EIA hyperlink
+
+ Documentation/DocBook/media/v4l/biblio.xml                  |   11 +-
+ Documentation/DocBook/media/v4l/compat.xml                  |    2 +-
+ Documentation/DocBook/media/v4l/dev-sliced-vbi.xml          |    2 +-
+ Documentation/DocBook/media/v4l/pixfmt.xml                  |    8 +-
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml          |  115 +++++++-
+ Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml     |    9 +-
+ Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml |    2 +-
+ Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml  |  111 +-------
+ Documentation/devicetree/bindings/media/i2c/ov2659.txt      |   38 +++
+ MAINTAINERS                                                 |   10 +
+ drivers/media/i2c/Kconfig                                   |   11 +
+ drivers/media/i2c/Makefile                                  |    1 +
+ drivers/media/i2c/ov2659.c                                  | 1509 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-tpg.c                    |    4 +-
+ include/media/ov2659.h                                      |   34 +++
+ 15 files changed, 1736 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2659.txt
+ create mode 100644 drivers/media/i2c/ov2659.c
+ create mode 100644 include/media/ov2659.h
