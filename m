@@ -1,118 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58875 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756182AbbCCW4W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 17:56:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, josh.wu@atmel.com,
-	g.liakhovetski@gmx.de
-Subject: Re: [PATCH v4 2/2] V4L: add CCF support to the v4l2_clk API
-Date: Wed, 04 Mar 2015 00:56:18 +0200
-Message-ID: <1930989.nfYKYx2vJh@avalon>
-In-Reply-To: <20150303134050.17bb1f4c@recife.lan>
-References: <Pine.LNX.4.64.1502010007180.26661@axis700.grange> <qcg754.nklrbz.ru1ns5-qmf@galahad.ideasonboard.com> <20150303134050.17bb1f4c@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39356 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753155AbbCXRq7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 13:46:59 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 0/4] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
+Date: Tue, 24 Mar 2015 18:46:50 +0100
+Message-Id: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+poll should immediately return and all following VIDIOC_DQBUF should return
+-EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+(or STREAMOFF/STREAMON).
 
-On Tuesday 03 March 2015 13:40:50 Mauro Carvalho Chehab wrote:
-> Em Mon, 02 Mar 2015 20:52:41 +0000 Laurent Pinchart escreveu:
-> > On Mon Mar 02 2015 18:55:23 GMT+0200 (EET), Mauro Carvalho Chehab wrote:
-> >> Em Sun, 1 Feb 2015 12:12:33 +0100 (CET) Guennadi Liakhovetski escreveu:
-> >>> V4L2 clocks, e.g. used by camera sensors for their master clock, do
-> >>> not have to be supplied by a different V4L2 driver, they can also be
-> >>> supplied by an independent source. In this case the standart kernel
-> >>> clock API should be used to handle such clocks. This patch adds
-> >>> support for such cases.
-> >>> 
-> >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>> v4: sizeof(*clk) :)
-> >>> 
-> >>>  drivers/media/v4l2-core/v4l2-clk.c | 48 ++++++++++++++++++++++++++---
-> >>>  include/media/v4l2-clk.h           |  2 ++
-> >>>  2 files changed, 47 insertions(+), 3 deletions(-)
-> >>> 
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
-> >>> b/drivers/media/v4l2-core/v4l2-clk.c index 3ff0b00..9f8cb20 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-clk.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-clk.c
+Changes since v3:
+ - Moved documentation changes into patches 1 and 2 and added a comment about
+   DQBUF returning -EPIPE to the encoder/decoder stop command documentation.
 
-[snip]
+regards
+Philipp
 
-> >>> @@ -37,6 +38,21 @@ static struct v4l2_clk *v4l2_clk_find(const char
-> >>> *dev_id)
-> >>> struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-> >>> {
-> >>>  	struct v4l2_clk *clk;
-> >>> 
-> >>> +	struct clk *ccf_clk = clk_get(dev, id);
-> >>> +
-> >>> +	if (PTR_ERR(ccf_clk) == -EPROBE_DEFER)
-> >>> +		return ERR_PTR(-EPROBE_DEFER);
-> >> 
-> >> Why not do just:
-> >> 		return ccf_clk;
-> > 
-> > I find the explicit error slightly more readable, but that's a matter of
-> > taste.
->
-> Well, return(ccf_clk) will likely produce a smaller instruction code
-> than return (long).
+Peter Seiderer (1):
+  [media] videodev2: Add V4L2_BUF_FLAG_LAST
 
-Not if the compiler is smart :-)
+Philipp Zabel (3):
+  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+  [media] coda: Set last buffer flag and fix EOS event
+  [media] s5p-mfc: Set last buffer flag
 
-> >>> +
-> >>> +	if (!IS_ERR_OR_NULL(ccf_clk)) {
-> >>> +		clk = kzalloc(sizeof(*clk), GFP_KERNEL);
-> >>> +		if (!clk) {
-> >>> +			clk_put(ccf_clk);
-> >>> +			return ERR_PTR(-ENOMEM);
-> >>> +		}
-> >>> +		clk->clk = ccf_clk;
-> >>> +
-> >>> +		return clk;
-> >>> +	}
-> >> 
-> >> The error condition here looks a little weird to me. I mean, if the
-> >> CCF clock returns an error, shouldn't it fail instead of silently
-> >> run some logic to find another clock source? Isn't it risky on getting
-> >> a wrong value?
-> > 
-> > The idea is that, in the long term, everything should use CCF directly.
-> > However, we have clock providers on platforms where CCF isn't avalaible.
-> > V4L2 clock has been introduced  as a  single API usable by V4L2 clock
-> > users allowing them to retrieve and use clocks regardless of whether the
-> > provider uses CCF or not. Internally it first tries CCF, and then falls
-> > back to the non-CCF implementation in case of failure.
->
-> Yeah, I got that the non-CCF is a fallback code, to be used on
-> platforms that CCF isn't available.
-> 
-> However, the above code doesn't seem to look if CCF is available
-> or not. Instead, it assumes that *all* error codes, or even NULL,
-> means that CCF isn't available.
-> 
-> Shouldn't it be, instead, either waiting for NULL or for some
-> specific error code, in order to:
-> - return the error code, if CCF is available but getting
->   the clock failed;
-> - run the backward-compat code when CCF is not available.
-
-Isn't that pretty much what the code is doing ? If we get a -EPROBE_DEFER 
-error from CCF meaning that the clock is known but not registered yet we 
-return it. Otherwise, if the clock is unknown to CCF, or if CCF is disabled, 
-we fall back.
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  8 ++++++-
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  7 +++++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+ drivers/media/platform/coda/coda-bit.c             |  4 ++--
+ drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
+ drivers/media/platform/coda/coda.h                 |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+ drivers/media/v4l2-core/videobuf2-core.c           | 18 ++++++++++++++-
+ include/media/videobuf2-core.h                     | 10 ++++++++
+ include/trace/events/v4l2.h                        |  3 ++-
+ include/uapi/linux/videodev2.h                     |  2 ++
+ 13 files changed, 88 insertions(+), 23 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
