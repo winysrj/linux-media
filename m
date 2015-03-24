@@ -1,61 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16079 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752845AbbCWNWn (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39364 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756814AbbCXRq7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 09:22:43 -0400
-Message-id: <5510139F.4030807@samsung.com>
-Date: Mon, 23 Mar 2015 14:22:39 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v1 01/11] leds: Add support for max77693 mfd flash cell
-References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
- <1426863811-12516-2-git-send-email-j.anaszewski@samsung.com>
- <20150321224437.GD16613@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150321224437.GD16613@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 24 Mar 2015 13:46:59 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v4 4/4] [media] s5p-mfc: Set last buffer flag
+Date: Tue, 24 Mar 2015 18:46:54 +0100
+Message-Id: <1427219214-5368-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
+DQBUF calls on the capture queue after the last buffer is dequeued.
 
-Thanks for the review.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On 03/21/2015 11:44 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Fri, Mar 20, 2015 at 04:03:21PM +0100, Jacek Anaszewski wrote:
->> This patch adds led-flash support to Maxim max77693 chipset.
->> A device can be exposed to user space through LED subsystem
->> sysfs interface. Device supports up to two leds which can
->> work in flash and torch mode. The leds can be triggered
->> externally or by software.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> Cc: Lee Jones <lee.jones@linaro.org>
->> Cc: Chanwoo Choi <cw00.choi@samsung.com>
->
-> Thanks for the update once again!
->
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-
-There will be one more version of this patch due to some changes
-around flash settings and v4l2-flash config initialization, requested
-in the review of v4l2-flash helpers related patches.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8e44a59..f08d639 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -211,6 +211,7 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
+ 		else
+ 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
++		dst_buf->b->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+ 
+ 		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
+ 		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.4
+
