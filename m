@@ -1,113 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35337 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755179AbbCEK1B (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60121 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755588AbbCXRbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2015 05:27:01 -0500
-Message-ID: <54F82F5E.7060007@xs4all.nl>
-Date: Thu, 05 Mar 2015 11:26:38 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: adi-buildroot-devel@lists.sourceforge.net,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 00/15] media: blackfin: bfin_capture enhancements
-References: <1424544001-19045-1-git-send-email-prabhakar.csengg@gmail.com>	<CAHG8p1DFu8Y1qaDc9c0m0JggUHrF4grHBj9VZQ4224v2wPJRbQ@mail.gmail.com>	<54F575AD.5020307@xs4all.nl>	<CA+V-a8uVoUHHtQAGOAjz_wYpmkOg8_=cxv6W5b289coU_Wq0Xg@mail.gmail.com>	<54F58142.4030201@xs4all.nl>	<CA+V-a8uKxZBtwOZ7rqpv6Ym6X9jpgsHUxVAmuUqrVoGT3M8e3A@mail.gmail.com> <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com>
-In-Reply-To: <CAHG8p1DvYQaU7kGJSSh4UTiHYcK2E=g=4vCFAa8rytkYz3jHVw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	Tue, 24 Mar 2015 13:31:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 05/11] [media] coda: allocate per-context buffers from REQBUFS
+Date: Tue, 24 Mar 2015 18:30:51 +0100
+Message-Id: <1427218257-1507-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/05/15 10:44, Scott Jiang wrote:
-> Hi Hans,
-> 
->>
->> On Tue, Mar 3, 2015 at 9:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 03/03/2015 10:30 AM, Lad, Prabhakar wrote:
->>>> Hi Hans,
->>>>
->>>> On Tue, Mar 3, 2015 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>> On 03/02/2015 08:57 AM, Scott Jiang wrote:
->>>>>> Hi Lad and Hans,
->>>>>>
->>>>>> 2015-02-22 2:39 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
->>>>>>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>>>>>>
->>>>>>> This patch series, enhances blackfin capture driver with
->>>>>>> vb2 helpers.
->>>>>>>
->>>>>>> Changes for v3:
->>>>>>> 1: patches unchanged except for patch 8/15 fixing starting of ppi only
->>>>>>>    after we have the resources.
->>>>>>> 2: Rebased on media tree.
->>>>>>>
->>>>>>> v2: http://lkml.iu.edu/hypermail/linux/kernel/1501.2/04655.html
->>>>>>>
->>>>>>> v1: https://lkml.org/lkml/2014/12/20/27
->>>>>>>
->>>>>>> Lad, Prabhakar (15):
->>>>>>>   media: blackfin: bfin_capture: drop buf_init() callback
->>>>>>>   media: blackfin: bfin_capture: release buffers in case
->>>>>>>     start_streaming() call back fails
->>>>>>>   media: blackfin: bfin_capture: set min_buffers_needed
->>>>>>>   media: blackfin: bfin_capture: improve buf_prepare() callback
->>>>>>>   media: blackfin: bfin_capture: improve queue_setup() callback
->>>>>>>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
->>>>>>>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
->>>>>>>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
->>>>>>>   media: blackfin: bfin_capture: make sure all buffers are returned on
->>>>>>>     stop_streaming() callback
->>>>>>>   media: blackfin: bfin_capture: return -ENODATA for *std calls
->>>>>>>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
->>>>>>>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
->>>>>>>   media: blackfin: bfin_capture: add support for VB2_DMABUF
->>>>>>>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
->>>>>>>   media: blackfin: bfin_capture: set v4l2 buffer sequence
->>>>>>>
->>>>>>>  drivers/media/platform/blackfin/bfin_capture.c | 306 ++++++++-----------------
->>>>>>>  1 file changed, 94 insertions(+), 212 deletions(-)
->>>>>>>
->>>>>>> --
->>>>>>
->>>>>> For all these patches,
->>>>>> Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
->>>>>> Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
->>>>>
->>>>> Thanks!
->>>>>
->>>>> Is it possible for you to run 'v4l2-compliance -s' with this driver and
->>>>> report the results? I'd be interested in that.
->>>>>
->>>> Fyi..
->>>> v4l2-utils can't be compiled under uClibc.
->>>
->>> Do you know what exactly fails? Is it possible to manually compile v4l2-compliance?
->>>
->>> I.e., try this:
->>>
->>> cd utils/v4l2-compliance
->>> cat *.cpp >x.cpp
->>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
->>>
->>> I've never used uclibc, so I don't know what the limitations are.
->>>
->> Not sure what exactly fails, I haven’t tried compiling it, that was a
->> response from Scott for v2 series.
->>
-> 
-> I found if I disabled libjpeg ./configure --without-jpeg, it can pass
-> compilation.
+Allocate the per-context buffers from REQBUFS instead in start_encoding or
+start_decoding. This allows to stop and start streaming independently of
+buffer (re)allocation
 
-Great!
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 55 ++++++++++++++++++++++++-------
+ drivers/media/platform/coda/coda-common.c | 22 ++++++++++++-
+ drivers/media/platform/coda/coda.h        |  1 +
+ 3 files changed, 66 insertions(+), 12 deletions(-)
 
-> Would you like me to send the result now or after Lad's v4 patch?
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 856b542..12b9386 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -709,6 +709,27 @@ err_clk_per:
+  * Encoder context operations
+  */
+ 
++static int coda_encoder_reqbufs(struct coda_ctx *ctx,
++				struct v4l2_requestbuffers *rb)
++{
++	struct coda_q_data *q_data_src;
++	int ret;
++
++	if (rb->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return 0;
++
++	if (rb->count) {
++		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++		ret = coda_alloc_context_buffers(ctx, q_data_src);
++		if (ret < 0)
++			return ret;
++	} else {
++		coda_free_context_buffers(ctx);
++	}
++
++	return 0;
++}
++
+ static int coda_start_encoding(struct coda_ctx *ctx)
+ {
+ 	struct coda_dev *dev = ctx->dev;
+@@ -725,11 +746,6 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 	dst_fourcc = q_data_dst->fourcc;
+ 
+-	/* Allocate per-instance buffers */
+-	ret = coda_alloc_context_buffers(ctx, q_data_src);
+-	if (ret < 0)
+-		return ret;
+-
+ 	buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+ 	bitstream_buf = vb2_dma_contig_plane_dma_addr(buf, 0);
+ 	bitstream_size = q_data_dst->sizeimage;
+@@ -1311,7 +1327,6 @@ static void coda_seq_end_work(struct work_struct *work)
+ 		ctx->bitstream.vaddr, ctx->bitstream.size);
+ 
+ 	coda_free_framebuffers(ctx);
+-	coda_free_context_buffers(ctx);
+ 
+ 	mutex_unlock(&dev->coda_mutex);
+ 	mutex_unlock(&ctx->buffer_mutex);
+@@ -1327,6 +1342,7 @@ static void coda_bit_release(struct coda_ctx *ctx)
+ 
+ const struct coda_context_ops coda_bit_encode_ops = {
+ 	.queue_init = coda_encoder_queue_init,
++	.reqbufs = coda_encoder_reqbufs,
+ 	.start_streaming = coda_start_encoding,
+ 	.prepare_run = coda_prepare_encode,
+ 	.finish_run = coda_finish_encode,
+@@ -1338,6 +1354,27 @@ const struct coda_context_ops coda_bit_encode_ops = {
+  * Decoder context operations
+  */
+ 
++static int coda_decoder_reqbufs(struct coda_ctx *ctx,
++				struct v4l2_requestbuffers *rb)
++{
++	struct coda_q_data *q_data_src;
++	int ret;
++
++	if (rb->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return 0;
++
++	if (rb->count) {
++		q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++		ret = coda_alloc_context_buffers(ctx, q_data_src);
++		if (ret < 0)
++			return ret;
++	} else {
++		coda_free_context_buffers(ctx);
++	}
++
++	return 0;
++}
++
+ static int __coda_start_decoding(struct coda_ctx *ctx)
+ {
+ 	struct coda_q_data *q_data_src, *q_data_dst;
+@@ -1356,11 +1393,6 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+ 	src_fourcc = q_data_src->fourcc;
+ 	dst_fourcc = q_data_dst->fourcc;
+ 
+-	/* Allocate per-instance buffers */
+-	ret = coda_alloc_context_buffers(ctx, q_data_src);
+-	if (ret < 0)
+-		return ret;
+-
+ 	coda_write(dev, ctx->parabuf.paddr, CODA_REG_BIT_PARA_BUF_ADDR);
+ 
+ 	/* Update coda bitstream read and write pointers from kfifo */
+@@ -1906,6 +1938,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 
+ const struct coda_context_ops coda_bit_decode_ops = {
+ 	.queue_init = coda_decoder_queue_init,
++	.reqbufs = coda_decoder_reqbufs,
+ 	.start_streaming = coda_start_decoding,
+ 	.prepare_run = coda_prepare_decode,
+ 	.finish_run = coda_finish_decode,
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 04130ea..0026e3a 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -696,6 +696,26 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
+ 	return coda_s_fmt(ctx, &f_cap);
+ }
+ 
++static int coda_reqbufs(struct file *file, void *priv,
++			struct v4l2_requestbuffers *rb)
++{
++	struct coda_ctx *ctx = fh_to_ctx(priv);
++	int ret;
++
++	ret = v4l2_m2m_reqbufs(file, ctx->fh.m2m_ctx, rb);
++	if (ret)
++		return ret;
++
++	/*
++	 * Allow to allocate instance specific per-context buffers, such as
++	 * bitstream ringbuffer, slice buffer, work buffer, etc. if needed.
++	 */
++	if (rb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT && ctx->ops->reqbufs)
++		return ctx->ops->reqbufs(ctx, rb);
++
++	return 0;
++}
++
+ static int coda_qbuf(struct file *file, void *priv,
+ 		     struct v4l2_buffer *buf)
+ {
+@@ -841,7 +861,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 	.vidioc_try_fmt_vid_out	= coda_try_fmt_vid_out,
+ 	.vidioc_s_fmt_vid_out	= coda_s_fmt_vid_out,
+ 
+-	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
++	.vidioc_reqbufs		= coda_reqbufs,
+ 	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
+ 
+ 	.vidioc_qbuf		= coda_qbuf,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 499049f..57d070c 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -178,6 +178,7 @@ struct coda_ctx;
+ struct coda_context_ops {
+ 	int (*queue_init)(void *priv, struct vb2_queue *src_vq,
+ 			  struct vb2_queue *dst_vq);
++	int (*reqbufs)(struct coda_ctx *ctx, struct v4l2_requestbuffers *rb);
+ 	int (*start_streaming)(struct coda_ctx *ctx);
+ 	int (*prepare_run)(struct coda_ctx *ctx);
+ 	void (*finish_run)(struct coda_ctx *ctx);
+-- 
+2.1.4
 
-Send it now as v4 won't have any meaningful code changes.
-
-Thanks!
-
-	Hans
