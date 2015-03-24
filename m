@@ -1,79 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:34705 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbbC3VSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2015 17:18:51 -0400
-Date: Mon, 30 Mar 2015 23:18:19 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
-Message-ID: <20150330211819.GA18426@hardeman.nu>
-References: <cover.1426801061.git.sean@mess.org>
+Received: from smtp-out4.electric.net ([192.162.216.183]:51513 "EHLO
+	smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbbCXOdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 10:33:41 -0400
+Message-ID: <5511759F.5050006@ad-holdings.co.uk>
+Date: Tue, 24 Mar 2015 14:33:03 +0000
+From: Ian Molton <imolton@ad-holdings.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1426801061.git.sean@mess.org>
+To: linux-media@vger.kernel.org
+CC: nicolas.dufresne@collabora.com, slongerbeam@gmail.com,
+	jhautbois@gmail.com, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Scaling and rounding issues
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 19, 2015 at 09:50:11PM +0000, Sean Young wrote:
->This patch series tries to fix the lirc interface and extend it so it can
->be used to send/recv scancodes in addition to raw IR:
->
-> - Make it possible to receive scancodes from hardware that generates 
->   scancodes (with rc protocol information)
-> - Make it possible to receive decoded scancodes from raw IR, from the 
->   in-kernel decoders (not mce mouse/keyboard). Now you can take any
->   remote, run ir-rec and you will get both the raw IR and the decoded
->   scancodes plus rc protocol information.
-> - Make it possible to send scancodes; in kernel-encoding of IR
-> - Make it possible to send scancodes for hardware that can only do that
->   (so that lirc_zilog can be moved out of staging, not completed yet)
-> - Possibly the lirc interface can be used for cec?
->
->This requires a little refactoring.
-> - All rc-core devices will have a lirc device associated with them
-> - The rc-core <-> lirc bridge no longer is a "decoder", this never made 
->   sense and caused confusion
+Hi folks,
 
-IIRC, it was written that way to make the lirc module optional.
+I've been discussing some issues with the CODA driver on gstreamer-devel and
+the thread seems better suited to this list;
 
->This requires new API for rc-core lirc devices.
-> - New feature LIRC_CAN_REC_SCANCODE and LIRC_CAN_SEND_SCANCODE
-> - REC_MODE and SEND_MODE do not enable LIRC_MODE_SCANCODE by default since 
->   this would confuse existing userspace code
-> - For each scancode we need: 
->   - rc protocol (RC_TYPE_*) 
->   - toggle and repeat bit for some protocols
->   - 32 bit scancode
+Here's a copy of what's been said thus far:
 
-I haven't looked at the patches in detail, but I think exposing the
-scancodes to userspace requires some careful consideration.
+--------------------
 
-First of all, scancode length should be dynamic, there are protocols
-(NEC48 and, at least theoretically, RC6) that have scancodes > 32 bits.
+I wrote:
 
-Second, if we expose protocol type (which we should, not doing so is
-throwing away valuable information) we should tackle the NEC scancode
-question. I've already explained my firm conviction that always
-reporting NEC as a 32 bit scancode is the only sane thing to do. Mauro
-is of the opinion that NEC16/24/32 should be essentially different
-protocols.
+I've located the cause of the "giant oops" I noted a couple of days ago.
 
-Third, we should still have a way to represent the protocol in the
-keymap as well.
+because ctx->icc is recycled, it must be a valid or NULL pointer for kfree().
 
-And on a much more general level...I still think we should start from
-scratch with a rc specific chardev with it's own API that is generic
-enough to cover both scancode / raw ir / future / other protocols (not
-that such an undertaking would preclude adding stuff to the lirc API of
-course).
+When an error occurs, the pointer is not reset to NULL, and kfree() crashes.
 
-Re,
-David
+This helps:
 
-PS
-Thanks for your continued RC efforts Sean!
+@@ -208,10 +208,11 @@ static void ipu_scaler_work(struct work_struct *work)
+          kfree(ctx->icc);
+          ctx->icc = ipu_image_convert_prepare(ipu_scaler->ipu, &in,
+                               &out, ctx->ctrl,
+                               &ctx->num_tiles);
+          if (IS_ERR(ctx->icc)) {
++            ctx->icc = NULL;
+              schedule_work(&ctx->skip_run);
+              return;
+          }
+      }
 
+This fix "band-aids" it, but I don't think its complete, as IMO, this really
+should result in gstreamer giving up, not displaying blank frames.
+
+On the plus side, it does make the whole thing a lot more reliable.
+
+It seems also like this case should be caught a lot earlier.
+
+I've also noticed odd behaviour below width=480;  (height=272)
+
+479: works
+478: works
+477: gstreamer errors out
+476: works (but no video output)
+475: ditto
+747: ditto
+743: gstreamer errors out
+
+The error is:
+
+0:00:00.284476334  1216   0xd01e30 ERROR          v4l2transform gstv4l2transform.c:239:gst_v4l2_transform_set_caps:<v4l2video0convert0> failed to set output caps: video/x-raw, pixel-aspect-ratio=(fraction)1/1, interlace-mode=(string)progressive, framerate=(fraction)24/1, format=(string)BGRx, width=(int)473, height=(int)272
+ERROR: from element /GstPipeline:pipeline0/v4l2video0convert:v4l2video0convert0: Device '/dev/video0' cannot capture at 473x272
+Additional debug info:
+gstv4l2object.c(2967): gst_v4l2_object_set_format (): /GstPipeline:pipeline0/v4l2video0convert:v4l2video0convert0:
+Tried to capture at 473x272, but device returned size 472x272
+ERROR: pipeline doesn't want to preroll.
+
+which smells like a shift or bitwise test thats not right.
+
+I'm guessing 478 and 479 are rounding up to 480, but the others aren't.
+
+--------------------------
+
+Nicholas dufresne replied thus:
+
+This is a famous case. The driver rounds middle, where only rounding up
+can be managed by application. There is an RFC to add some flags to VB2
+to let the driver decide what's ideal. When you crop, you want to round
+down, when you allocate space, you want to round up (so one can crop on
+top). The middle rounding is usually not very useful. I think this
+discussion should move to linux-media ML.
+
+--------------------------
+
+
+So the question is what should be done about this?
+
+-Ian
