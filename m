@@ -1,106 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f48.google.com ([209.85.213.48]:35482 "EHLO
-	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162AbbCLU7P (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60123 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756506AbbCXRbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2015 16:59:15 -0400
-Received: by yhnv1 with SMTP id v1so9703227yhn.2
-        for <linux-media@vger.kernel.org>; Thu, 12 Mar 2015 13:59:14 -0700 (PDT)
-From: Daniel Drake <drake@endlessm.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org
-Subject: [PATCH] uvcvideo: Add quirk for Quanta NL3 laptop camera
-Date: Thu, 12 Mar 2015 14:59:07 -0600
-Message-Id: <1426193947-12850-1-git-send-email-drake@endlessm.com>
+	Tue, 24 Mar 2015 13:31:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 07/11] [media] coda: move parameter buffer in together with context buffer allocation
+Date: Tue, 24 Mar 2015 18:30:53 +0100
+Message-Id: <1427218257-1507-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Quanta NL3 laptop has a UVC camera which the descriptor says
-comes from Realtek: https://gist.github.com/dsd/9a6567baa53c747fd306
+The parameter buffer is a per-context buffer, so we can allocate and free it
+together with the other context buffers during REQBUFS.
+Since this was the last context buffer allocated in coda-common.c, we can now
+move coda_alloc_context_buf into coda-bit.c.
 
-Probe fails, because the output terminal (ID 3) references a
-non-existent source with ID 6. Fixing it to add itself onto the
-end of the chain makes the camera work.
-
-Signed-off-by: Daniel Drake <drake@endlessm.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 36 ++++++++++++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   |  1 +
- 2 files changed, 37 insertions(+)
+ drivers/media/platform/coda/coda-bit.c    | 21 ++++++++++++++++++++-
+ drivers/media/platform/coda/coda-common.c | 12 ------------
+ drivers/media/platform/coda/coda.h        |  7 -------
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index cf27006..3cb4be3 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1575,6 +1575,30 @@ static const char *uvc_print_chain(struct uvc_video_chain *chain)
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 5aa8d87..0073f5a 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -31,6 +31,7 @@
+ 
+ #include "coda.h"
+ 
++#define CODA_PARA_BUF_SIZE	(10 * 1024)
+ #define CODA7_PS_BUF_SIZE	0x28000
+ #define CODA9_PS_SAVE_SIZE	(512 * 1024)
+ 
+@@ -300,6 +301,14 @@ static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
+ 		p[index ^ 1] = value;
  }
  
- /*
-+ * This Realtek camera has a broken descriptor. The output terminal
-+ * references a non-existent source. The rest of the simple chain is
-+ * fine. Fix the OT to chain on to the end.
-+ */
-+static void uvc_handle_rtl57a7(struct uvc_device *dev)
++static inline int coda_alloc_context_buf(struct coda_ctx *ctx,
++					 struct coda_aux_buf *buf, size_t size,
++					 const char *name)
 +{
-+	struct uvc_entity *term;
-+
-+	term = uvc_entity_by_id(dev, 3);
-+	if (!term) {
-+		uvc_printk(KERN_INFO, "RTL57A7: no entity with id 3\n");
-+		return;
-+	}
-+
-+	if (!UVC_ENTITY_IS_OTERM(term)) {
-+		uvc_printk(KERN_INFO, "RTL57A7: entity 3 is not OT\n");
-+		return;
-+	}
-+
-+	term->baSourceID[0] = 4;
-+	uvc_printk(KERN_INFO, "Applied RTL57A7 chain quirk.\n");
++	return coda_alloc_aux_buf(ctx->dev, buf, size, name, ctx->debugfs_entry);
 +}
 +
-+/*
-  * Scan the device for video chains and register video devices.
-  *
-  * Chains are scanned starting at their output terminals and walked backwards.
-@@ -1584,6 +1608,9 @@ static int uvc_scan_device(struct uvc_device *dev)
- 	struct uvc_video_chain *chain;
- 	struct uvc_entity *term;
- 
-+	if (dev->quirks & UVC_QUIRK_RTL57A7)
-+		uvc_handle_rtl57a7(dev);
 +
- 	list_for_each_entry(term, &dev->entities, list) {
- 		if (!UVC_ENTITY_IS_OTERM(term))
- 			continue;
-@@ -2351,6 +2378,15 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-+	/* Realtek camera in Quanta NL3 laptop */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x0bda,
-+	  .idProduct		= 0x57a7,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_RTL57A7 },
- 	/* MT6227 */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index c63e5b5..710e480 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -152,6 +152,7 @@
- #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
- #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
- #define UVC_QUIRK_FORCE_Y8		0x00000800
-+#define UVC_QUIRK_RTL57A7		0x00001000
+ static void coda_free_framebuffers(struct coda_ctx *ctx)
+ {
+ 	int i;
+@@ -380,6 +389,7 @@ static void coda_free_context_buffers(struct coda_ctx *ctx)
+ 	coda_free_aux_buf(dev, &ctx->psbuf);
+ 	if (dev->devtype->product != CODA_DX6)
+ 		coda_free_aux_buf(dev, &ctx->workbuf);
++	coda_free_aux_buf(dev, &ctx->parabuf);
+ }
  
- /* Format flags */
- #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+@@ -389,6 +399,15 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 	size_t size;
+ 	int ret;
+ 
++	if (!ctx->parabuf.vaddr) {
++		ret = coda_alloc_context_buf(ctx, &ctx->parabuf,
++					     CODA_PARA_BUF_SIZE, "parabuf");
++		if (ret < 0) {
++			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
++			return ret;
++		}
++	}
++
+ 	if (dev->devtype->product == CODA_DX6)
+ 		return 0;
+ 
+@@ -402,7 +421,7 @@ static int coda_alloc_context_buffers(struct coda_ctx *ctx,
+ 			v4l2_err(&dev->v4l2_dev,
+ 				 "failed to allocate %d byte slice buffer",
+ 				 ctx->slicebuf.size);
+-			return ret;
++			goto err;
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index b34a0db..172805b 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -46,7 +46,6 @@
+ #define CODADX6_MAX_INSTANCES	4
+ #define CODA_MAX_FORMATS	4
+ 
+-#define CODA_PARA_BUF_SIZE	(10 * 1024)
+ #define CODA_ISRAM_SIZE	(2048 * 2)
+ 
+ #define MIN_W 176
+@@ -1708,14 +1707,6 @@ static int coda_open(struct file *file)
+ 
+ 	ctx->fh.ctrl_handler = &ctx->ctrls;
+ 
+-	if (ctx->use_bit) {
+-		ret = coda_alloc_context_buf(ctx, &ctx->parabuf,
+-					     CODA_PARA_BUF_SIZE, "parabuf");
+-		if (ret < 0) {
+-			v4l2_err(&dev->v4l2_dev, "failed to allocate parabuf");
+-			goto err_dma_alloc;
+-		}
+-	}
+ 	mutex_init(&ctx->bitstream_mutex);
+ 	mutex_init(&ctx->buffer_mutex);
+ 	INIT_LIST_HEAD(&ctx->buffer_meta_list);
+@@ -1729,8 +1720,6 @@ static int coda_open(struct file *file)
+ 
+ 	return 0;
+ 
+-err_dma_alloc:
+-	v4l2_ctrl_handler_free(&ctx->ctrls);
+ err_ctrls_setup:
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ err_ctx_init:
+@@ -1776,7 +1765,6 @@ static int coda_release(struct file *file)
+ 	if (ctx->dev->devtype->product == CODA_DX6)
+ 		coda_free_aux_buf(dev, &ctx->workbuf);
+ 
+-	coda_free_aux_buf(dev, &ctx->parabuf);
+ 	v4l2_ctrl_handler_free(&ctx->ctrls);
+ 	clk_disable_unprepare(dev->clk_ahb);
+ 	clk_disable_unprepare(dev->clk_per);
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 01d940c..2b59e16 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -249,13 +249,6 @@ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
+ 		       size_t size, const char *name, struct dentry *parent);
+ void coda_free_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf);
+ 
+-static inline int coda_alloc_context_buf(struct coda_ctx *ctx,
+-					 struct coda_aux_buf *buf, size_t size,
+-					 const char *name)
+-{
+-	return coda_alloc_aux_buf(ctx->dev, buf, size, name, ctx->debugfs_entry);
+-}
+-
+ int coda_encoder_queue_init(void *priv, struct vb2_queue *src_vq,
+ 			    struct vb2_queue *dst_vq);
+ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
 -- 
-2.1.0
+2.1.4
 
