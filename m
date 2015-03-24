@@ -1,47 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59236 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750767AbbCNQxR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 12:53:17 -0400
-Received: from 85-23-164-4.bb.dnainternet.fi ([85.23.164.4] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1YWpJK-00035H-TO
-	for linux-media@vger.kernel.org; Sat, 14 Mar 2015 18:53:14 +0200
-Message-ID: <5504677A.8010908@iki.fi>
-Date: Sat, 14 Mar 2015 18:53:14 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 4.0] rtl28xx fixes for 4.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60127 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752719AbbCXRbD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 13:31:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH v2 11/11] [media] coda: fix fill bitstream errors in nonstreaming case
+Date: Tue, 24 Mar 2015 18:30:57 +0100
+Message-Id: <1427218257-1507-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 41f03a00536ebb3d72c051f9e7efe2d4ab76ebc8:
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-   [media] s5p-mfc: Fix NULL pointer dereference caused by not set 
-q->lock (2015-03-04 08:59:58 -0300)
+When queueing a buffer into the bitstream fails, it has to be requeued
+in the videobuf2 queue before streaming starts, but while streaming it
+should be returned to userspace with an error.
 
-are available in the git repository at:
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/platform/coda/coda-bit.c    | 11 +++++++----
+ drivers/media/platform/coda/coda-common.c |  6 +++---
+ drivers/media/platform/coda/coda.h        |  2 +-
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-   git://linuxtv.org/anttip/media_tree.git rtl28xx_fixes
-
-for you to fetch changes up to 536c12e1da3491d6ee263995ac267b487a9cd33b:
-
-   rtl28xxu: return success for unimplemented FE callback (2015-03-14 
-18:03:55 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-       rtl2832: disable regmap register cache
-       rtl28xxu: return success for unimplemented FE callback
-
-  drivers/media/dvb-frontends/rtl2832.c   | 2 +-
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
-  2 files changed, 1 insertion(+), 3 deletions(-)
-
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 2304158..d39789d 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -218,7 +218,7 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
+ 	return true;
+ }
+ 
+-void coda_fill_bitstream(struct coda_ctx *ctx)
++void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
+ {
+ 	struct vb2_buffer *src_buf;
+ 	struct coda_buffer_meta *meta;
+@@ -239,9 +239,12 @@ void coda_fill_bitstream(struct coda_ctx *ctx)
+ 		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG &&
+ 		    !coda_jpeg_check_buffer(ctx, src_buf)) {
+ 			v4l2_err(&ctx->dev->v4l2_dev,
+-				 "dropping invalid JPEG frame\n");
++				 "dropping invalid JPEG frame %d\n",
++				 ctx->qsequence);
+ 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+-			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_ERROR);
++			v4l2_m2m_buf_done(src_buf, streaming ?
++					  VB2_BUF_STATE_ERROR :
++					  VB2_BUF_STATE_QUEUED);
+ 			continue;
+ 		}
+ 
+@@ -1648,7 +1651,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 
+ 	/* Try to copy source buffer contents into the bitstream ringbuffer */
+ 	mutex_lock(&ctx->bitstream_mutex);
+-	coda_fill_bitstream(ctx);
++	coda_fill_bitstream(ctx, true);
+ 	mutex_unlock(&ctx->bitstream_mutex);
+ 
+ 	if (coda_get_bitstream_payload(ctx) < 512 &&
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 54c972f..5e159da 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1192,7 +1192,7 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+ 		mutex_lock(&ctx->bitstream_mutex);
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+ 		if (vb2_is_streaming(vb->vb2_queue))
+-			coda_fill_bitstream(ctx);
++			coda_fill_bitstream(ctx, true);
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 	} else {
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+@@ -1252,9 +1252,9 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		if (q_data_src->fourcc == V4L2_PIX_FMT_H264 ||
+ 		    (q_data_src->fourcc == V4L2_PIX_FMT_JPEG &&
+ 		     ctx->dev->devtype->product == CODA_7541)) {
+-			/* copy the buffers that where queued before streamon */
++			/* copy the buffers that were queued before streamon */
+ 			mutex_lock(&ctx->bitstream_mutex);
+-			coda_fill_bitstream(ctx);
++			coda_fill_bitstream(ctx, false);
+ 			mutex_unlock(&ctx->bitstream_mutex);
+ 
+ 			if (coda_get_bitstream_payload(ctx) < 512) {
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 2b59e16..970f0b3 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -256,7 +256,7 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ int coda_hw_reset(struct coda_ctx *ctx);
+ 
+-void coda_fill_bitstream(struct coda_ctx *ctx);
++void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming);
+ 
+ void coda_set_gdi_regs(struct coda_ctx *ctx);
+ 
 -- 
-http://palosaari.fi/
+2.1.4
+
