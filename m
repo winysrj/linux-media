@@ -1,112 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.logicpd.com ([174.46.170.145]:38051 "HELO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751641AbbCTUcv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 16:32:51 -0400
-From: Tim Nordell <tim.nordell@logicpd.com>
-To: <linux-media@vger.kernel.org>
-CC: <laurent.pinchart@ideasonboard.com>, <sakari.ailus@iki.fi>,
-	Tim Nordell <tim.nordell@logicpd.com>
-Subject: [PATCH] OMAP3 ISP: Support top and bottom fields
-Date: Fri, 20 Mar 2015 15:32:20 -0500
-Message-ID: <1426883540-19936-1-git-send-email-tim.nordell@logicpd.com>
+Received: from mout.gmx.net ([212.227.17.21]:63307 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751418AbbCXGZu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 02:25:50 -0400
+Date: Tue, 24 Mar 2015 07:25:39 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] [ANN] Media Mini-Summit Draft Agenda for March
+ 26th
+In-Reply-To: <20150322210218.499f83e3@concha.lan>
+Message-ID: <Pine.LNX.4.64.1503240712040.1710@axis700.grange>
+References: <5506BDA8.3000700@xs4all.nl> <20150322210218.499f83e3@concha.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OMAP3ISP can selectively stream either the top or bottom
-field by setting the start line vertical field to a high value
-for the field that one doesn't want to stream.  The driver
-can switch between these utilizing the vertical start feature
-of the CCDC.
+Hi Mauro,
 
-Additionally, we need to ensure that the FLDMODE bit is set
-when we're doing this as we need to differentiate between
-the two frames.
+On Sun, 22 Mar 2015, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
----
- drivers/media/platform/omap3isp/ispccdc.c  | 29 +++++++++++++++++++++++++++--
- drivers/media/platform/omap3isp/ispvideo.c |  4 ++--
- 2 files changed, 29 insertions(+), 4 deletions(-)
+> Em Mon, 16 Mar 2015 12:25:28 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > This is the draft agenda for the media mini-summit in San Jose on March 26th.
+> > 
+> > Time: 9 AM to 5 PM (approximately)
+> > Room: TBC (Mauro, do you know this?)
+> 
+> I'll check on this Monday with LF and wiĺl give you a feedback.
+> 
+> > 
+> > Attendees:
+> > 
+> > Mauro Carvalho Chehab	- mchehab@osg.samsung.com		- Samsung
+> > Laurent Pinchart	- laurent.pinchart@ideasonboard.com	- Ideas on board
+> > Hans Verkuil		- hverkuil@xs4all.nl			- Cisco
+> > 
+> > Mauro, do you have a better overview of who else will attend?
+> 
+> This time, we'll be using ELC registration site to track. I'll see how
+> we can get this info with LF as well, but, as people can join it
+> dynamically, the best is to get the list with them on Thursday evening,
+> and double-check during the Summit to track last-minute changes.
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 882ebde..beb8d96 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1131,6 +1131,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	unsigned int sph;
- 	u32 syn_mode;
- 	u32 ccdc_pattern;
-+	int slv0, slv1;
- 
- 	ccdc->bt656 = false;
- 	ccdc->fields = 0;
-@@ -1237,11 +1238,27 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		nph = crop->width - 1;
- 	}
- 
-+	/* Default the start vertical line offset to the crop point */
-+	slv0 = slv1 = crop->top;
-+
-+	/* When streaming just the top or bottom field, enable processing
-+	 * of the field input signal so that SLV1 is processed.
-+	 */
-+	if (ccdc->formats[CCDC_PAD_SINK].field == V4L2_FIELD_ALTERNATE) {
-+		if (format->field == V4L2_FIELD_TOP) {
-+			slv1 = 0x7FFF;
-+			syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-+		} else if (format->field == V4L2_FIELD_BOTTOM) {
-+			slv0 = 0x7FFF;
-+			syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-+		}
-+	}
-+
- 	isp_reg_writel(isp, (sph << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
- 		       (nph << ISPCCDC_HORZ_INFO_NPH_SHIFT),
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
--	isp_reg_writel(isp, (crop->top << ISPCCDC_VERT_START_SLV0_SHIFT) |
--		       (crop->top << ISPCCDC_VERT_START_SLV1_SHIFT),
-+	isp_reg_writel(isp, (slv0 << ISPCCDC_VERT_START_SLV0_SHIFT) |
-+		       (slv1 << ISPCCDC_VERT_START_SLV1_SHIFT),
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
- 	isp_reg_writel(isp, (crop->height - 1)
- 			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
-@@ -2064,6 +2081,14 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 			fmt->height *= 2;
- 		}
- 
-+		/* When input format is interlaced with alternating fields the
-+		 * CCDC can pick out just the top or bottom field.
-+		 */
-+		 if (fmt->field == V4L2_FIELD_ALTERNATE &&
-+		   (field == V4L2_FIELD_TOP ||
-+		    field == V4L2_FIELD_BOTTOM))
-+			fmt->field = field;
-+
- 		break;
- 
- 	case CCDC_PAD_SOURCE_VP:
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index bbbe55d..e636168 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -797,12 +797,12 @@ isp_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- 		/* Fall-through */
- 	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
- 		/* Interlaced orders are only supported at the CCDC output. */
- 		if (video != &video->isp->isp_ccdc.video_out)
- 			format->fmt.pix.field = V4L2_FIELD_NONE;
- 		break;
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
- 	case V4L2_FIELD_SEQ_TB:
- 	case V4L2_FIELD_SEQ_BT:
- 	default:
--- 
-2.0.4
+I asked the LF how I should register to attend the mini-summit only, they 
+said - no, no need to register, attending just a mini-summit is free. So, 
+expect unregistered visitors like me ;)
 
+Thanks
+Guennadi
+
+> 
+> > 
+> > Agenda:
+> > 
+> > Times are approximate and will likely change.
+> > 
+> > 9:00-9:15   Get everyone installed, laptops hooked up, etc.
+> > 9:15-9:30   Introduction
+> > 9:30-10:30  Media Controller support for DVB (Mauro):
+> > 		1) dynamic creation/removal of pipelines
+> > 		2) change media_entity_pipeline_start to also define
+> > 		   the final entity
+> > 		3) how to setup pipelines that also envolve audio and DRM
+> > 		4) how to lock the media controller pipeline between enabling a
+> > 		   pipeline and starting it, in order to avoid race conditions
+> > 
+> > See this post for more detailed information:
+> > 
+> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+> 
+> Actually, there are two threads and two followup emails. The detailed info
+> is at:
+> 
+>   https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
+>   https://www.mail-archive.com/linux-media@vger.kernel.org/msg85979.html
+>   https://www.mail-archive.com/linux-media@vger.kernel.org/msg83883.html
+>   https://www.mail-archive.com/linux-media@vger.kernel.org/msg83884.html
+> 
+> I'll prepare a summary covering everything into a single file to make
+> easier, and I'll prepare some slides with the topic highlights.
+> 
+> > 10:30-10:45 Break
+> > 10:45-12:00 Continue discussion
+> > 12:00-13:00 Lunch (Mauro, do you have any idea whether there is a lunch organized,
+> > 	    or if we are on our own?)
+> 
+> I'm almost sure we are on our on for lunch. I'll double check this also
+> with LF.
+> 
+> > 13:00-14:40 Continue discussion
+> > 14:40-15:00 Break
+> > 15:00-16:00 Subdev hotplug in the context of both FPGA dynamic reconfiguration and
+> > 	    project Ara (http://www.projectara.com/) (Laurent).
+> > 16:00-17:00 Update on ongoing projects (Hans):
+> > 		- proposal for Android Camera v3-type requests (aka configuration stores)
+> > 		- work on colorspace improvements
+> > 		- vivid & v4l2-compliance improvements
+> > 		- removing duplicate subdev video ops and use pad ops instead
+> > 		- others?
+> > 
+> > Most of the time will be spent on DVB and the MC. Based on past experience this
+> > likely will take some time to get a concensus.
+> > 
+> > Comments are welcome!
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > _______________________________________________
+> > media-workshop mailing list
+> > media-workshop@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+> 
+> 
+> -- 
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
