@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44813 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752516AbbCPACH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60125 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756509AbbCXRbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:02:07 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, sre@kernel.org, pali.rohar@gmail.com,
-	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [PATCH 1/4] arm: dts: omap3: Extend the syscon register range
-Date: Mon, 16 Mar 2015 02:01:17 +0200
-Message-Id: <1426464080-29119-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426464080-29119-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 24 Mar 2015 13:31:03 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 09/11] [media] coda: fail to start streaming if userspace set invalid formats
+Date: Tue, 24 Mar 2015 18:30:55 +0100
+Message-Id: <1427218257-1507-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427218257-1507-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OMAP 3630 syscon register set was missing
-OMAP3630_CONTROL_CAMERA_PHY_CTRL register at offset 0x2f0. This register
-used to be mapped directly by the omap3isp driver, which is now moving to
-use syscon instead. The omap3isp driver did not support DT so no driver
-change is needed in this patch.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- arch/arm/boot/dts/omap3.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/coda/coda-common.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 01b7111..fe0b293 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -183,7 +183,7 @@
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index b42ccfc..4441179 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1282,12 +1282,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	if (!(ctx->streamon_out & ctx->streamon_cap))
+ 		return 0;
  
- 		omap3_scm_general: tisyscon@48002270 {
- 			compatible = "syscon";
--			reg = <0x48002270 0x2f0>;
-+			reg = <0x48002270 0x2f4>;
- 		};
++	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	if ((q_data_src->width != q_data_dst->width &&
++	     round_up(q_data_src->width, 16) != q_data_dst->width) ||
++	    (q_data_src->height != q_data_dst->height &&
++	     round_up(q_data_src->height, 16) != q_data_dst->height)) {
++		v4l2_err(v4l2_dev, "can't convert %dx%d to %dx%d\n",
++			 q_data_src->width, q_data_src->height,
++			 q_data_dst->width, q_data_dst->height);
++		ret = -EINVAL;
++		goto err;
++	}
++
+ 	/* Allow BIT decoder device_run with no new buffers queued */
+ 	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit)
+ 		v4l2_m2m_set_src_buffered(ctx->fh.m2m_ctx, true);
  
- 		pbias_regulator: pbias_regulator {
+ 	ctx->gopcounter = ctx->params.gop_size - 1;
+-	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+ 
+ 	ctx->codec = coda_find_codec(ctx->dev, q_data_src->fourcc,
+ 				     q_data_dst->fourcc);
 -- 
-1.7.10.4
+2.1.4
 
