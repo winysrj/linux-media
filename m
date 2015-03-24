@@ -1,82 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:36281 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147AbbCUUmc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2015 16:42:32 -0400
-Received: by labe2 with SMTP id e2so33901351lab.3
-        for <linux-media@vger.kernel.org>; Sat, 21 Mar 2015 13:42:30 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:54547 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751803AbbCXVNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 17:13:09 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] dw2102: TeVii S482 support
-Date: Sat, 21 Mar 2015 22:42:23 +0200
-Message-Id: <1426970543-28176-1-git-send-email-olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>, Olli Salonen <olli.salonen@iki.fi>,
+	Nibble Max <nibble.max@gmail.com>
+Subject: [PATCH 4/8] cx23885: switch ts2022 to ts2020 driver
+Date: Tue, 24 Mar 2015 23:12:09 +0200
+Message-Id: <1427231533-4277-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1427231533-4277-1-git-send-email-crope@iki.fi>
+References: <1427231533-4277-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TeVii S482 is a PCIe device with two tuners that actually contains two 
-USB devices. The devices are visible in the lsusb printout.
+Change ts2022 driver to ts2020 driver. ts2020 driver supports
+both chip models.
 
-Bus 006 Device 002: ID 9022:d483 TeVii Technology Ltd.
-Bus 007 Device 002: ID 9022:d484 TeVii Technology Ltd.
-
-The device itself works exactly with the same settings as TechnoTrend 
-TT-connect S2-4600. Firmware for DS3103 demodulator is required:
-http://palosaari.fi/linux/v4l-dvb/firmware/M88DS3103/
-
-This patch should be applied on top of the TT S2-4600 patch:
-https://patchwork.linuxtv.org/patch/28818/
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Cc: Nibble Max <nibble.max@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/dvb-usb/dw2102.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/media/pci/cx23885/Kconfig       |  1 -
+ drivers/media/pci/cx23885/cx23885-dvb.c | 30 +++++++++++++-----------------
+ 2 files changed, 13 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 9dc3619..1ca0e25 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -1659,6 +1659,8 @@ enum dw2102_table_entry {
- 	GOTVIEW_SAT_HD,
- 	GENIATECH_T220,
- 	TECHNOTREND_S2_4600,
-+	TEVII_S482_1,
-+	TEVII_S482_2,
- };
+diff --git a/drivers/media/pci/cx23885/Kconfig b/drivers/media/pci/cx23885/Kconfig
+index 74d774e..2e1b88c 100644
+--- a/drivers/media/pci/cx23885/Kconfig
++++ b/drivers/media/pci/cx23885/Kconfig
+@@ -40,7 +40,6 @@ config VIDEO_CX23885
+ 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+-	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_TUNER_DIB0070 if MEDIA_SUBDRV_AUTOSELECT
+ 	---help---
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 45fbe1e..745caab 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -73,7 +73,6 @@
+ #include "si2157.h"
+ #include "sp2.h"
+ #include "m88ds3103.h"
+-#include "m88ts2022.h"
+ #include "m88rs6000t.h"
  
- static struct usb_device_id dw2102_table[] = {
-@@ -1684,6 +1686,8 @@ static struct usb_device_id dw2102_table[] = {
- 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
- 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
- 		USB_PID_TECHNOTREND_CONNECT_S2_4600)},
-+	[TEVII_S482_1] = {USB_DEVICE(0x9022, 0xd483)},
-+	[TEVII_S482_2] = {USB_DEVICE(0x9022, 0xd484)},
- 	{ }
- };
+ static unsigned int debug;
+@@ -1187,7 +1186,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	struct vb2_dvb_frontend *fe0, *fe1 = NULL;
+ 	struct si2168_config si2168_config;
+ 	struct si2157_config si2157_config;
+-	struct m88ts2022_config m88ts2022_config;
++	struct ts2020_config ts2020_config;
+ 	struct i2c_board_info info;
+ 	struct i2c_adapter *adapter;
+ 	struct i2c_client *client_demod = NULL, *client_tuner = NULL;
+@@ -1856,13 +1855,12 @@ static int dvb_register(struct cx23885_tsport *port)
+ 				break;
  
-@@ -2201,12 +2205,20 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
- 		} },
- 		}
- 	},
--	.num_device_descs = 1,
-+	.num_device_descs = 3,
- 	.devices = {
- 		{ "TechnoTrend TT-connect S2-4600",
- 			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
- 			{ NULL },
- 		},
-+		{ "TeVii S482 (tuner 1)",
-+			{ &dw2102_table[TEVII_S482_1], NULL },
-+			{ NULL },
-+		},
-+		{ "TeVii S482 (tuner 2)",
-+			{ &dw2102_table[TEVII_S482_2], NULL },
-+			{ NULL },
-+		},
- 	}
- };
+ 			/* attach tuner */
+-			memset(&m88ts2022_config, 0, sizeof(m88ts2022_config));
+-			m88ts2022_config.fe = fe0->dvb.frontend;
+-			m88ts2022_config.clock = 27000000;
++			memset(&ts2020_config, 0, sizeof(ts2020_config));
++			ts2020_config.fe = fe0->dvb.frontend;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+-			strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
++			strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
+-			info.platform_data = &m88ts2022_config;
++			info.platform_data = &ts2020_config;
+ 			request_module(info.type);
+ 			client_tuner = i2c_new_device(adapter, &info);
+ 			if (client_tuner == NULL ||
+@@ -1986,13 +1984,12 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			break;
  
+ 		/* attach tuner */
+-		memset(&m88ts2022_config, 0, sizeof(m88ts2022_config));
+-		m88ts2022_config.fe = fe0->dvb.frontend;
+-		m88ts2022_config.clock = 27000000;
++		memset(&ts2020_config, 0, sizeof(ts2020_config));
++		ts2020_config.fe = fe0->dvb.frontend;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+-		strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
++		strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+-		info.platform_data = &m88ts2022_config;
++		info.platform_data = &ts2020_config;
+ 		request_module(info.type);
+ 		client_tuner = i2c_new_device(adapter, &info);
+ 		if (client_tuner == NULL || client_tuner->dev.driver == NULL)
+@@ -2032,13 +2029,12 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			break;
+ 
+ 		/* attach tuner */
+-		memset(&m88ts2022_config, 0, sizeof(m88ts2022_config));
+-		m88ts2022_config.fe = fe0->dvb.frontend;
+-		m88ts2022_config.clock = 27000000;
++		memset(&ts2020_config, 0, sizeof(ts2020_config));
++		ts2020_config.fe = fe0->dvb.frontend;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+-		strlcpy(info.type, "m88ts2022", I2C_NAME_SIZE);
++		strlcpy(info.type, "ts2020", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+-		info.platform_data = &m88ts2022_config;
++		info.platform_data = &ts2020_config;
+ 		request_module(info.type);
+ 		client_tuner = i2c_new_device(adapter, &info);
+ 		if (client_tuner == NULL || client_tuner->dev.driver == NULL)
 -- 
-1.9.1
+http://palosaari.fi/
 
