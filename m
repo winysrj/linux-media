@@ -1,69 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:43875 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbbCHOlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:22 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 16/17] media: blackfin: bfin_capture: drop bcap_get_unmapped_area()
-Date: Sun,  8 Mar 2015 14:40:52 +0000
-Message-Id: <1425825653-14768-17-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41324 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752206AbbCXLsr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 07:48:47 -0400
+Message-ID: <55114F17.9040206@xs4all.nl>
+Date: Tue, 24 Mar 2015 04:48:39 -0700
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Divneil Rai WADHAWAN <divneil.wadhawan@st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "divneil@outlook.com" <divneil@outlook.com>
+Subject: Re: Subdev notification for video device
+References: <C17522D12DF21D4F9DC8833224F23A8705F96EEB@EAPEX1MAIL1.st.com>
+In-Reply-To: <C17522D12DF21D4F9DC8833224F23A8705F96EEB@EAPEX1MAIL1.st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 03/24/2015 12:49 AM, Divneil Rai WADHAWAN wrote:
+> Hello,
+> 
+> I have a use case, where, I am using subdev configuration to setup video capture.
+> The pipeline is something like this:
+> 
+> Subdevs: sd_display, sd_capture
+> Vdev: vcapture
+> 
+>  (0)sd_display(1) -> (0)sd_capture(1)->(0)vcapture
+> 
+> sd_display informs sd_capture of video resolution change and vdev using sd_capture needs to be informed, so, that vdev capture can be stopped.
+> 
+> Here, subdev notification/subscription is missing to/from vdev, in my understanding.
+> subdev can send notification to v4l2-dev, but not vdev.
+> Can you help with that? Thanks.
 
-this patch drops bcap_get_unmapped_area() and uses
-vb2_fop_get_unmapped_area() helper provided by the vb2 core.
+This is correct. The subdev doesn't and cannot know anything about which video node(s)
+need(s) to send out a source change event. The only driver that can is the top-level driver
+that knows the topology and can map the event from the sd to the correct video_device.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+If your driver uses the media controller, then it should be possible to write a generic
+function that would use the topology to discover automatically which video_device nodes
+are linked to the sd and propagate the event to those video devices.
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 306798e..d390f7c 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -196,23 +196,6 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
- 	bcap_dev->sensor_formats = NULL;
- }
- 
--#ifndef CONFIG_MMU
--static unsigned long bcap_get_unmapped_area(struct file *file,
--					    unsigned long addr,
--					    unsigned long len,
--					    unsigned long pgoff,
--					    unsigned long flags)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--
--	return vb2_get_unmapped_area(&bcap_dev->buffer_queue,
--				     addr,
--				     len,
--				     pgoff,
--				     flags);
--}
--#endif
--
- static int bcap_queue_setup(struct vb2_queue *vq,
- 				const struct v4l2_format *fmt,
- 				unsigned int *nbuffers, unsigned int *nplanes,
-@@ -783,7 +766,7 @@ static struct v4l2_file_operations bcap_fops = {
- 	.unlocked_ioctl = video_ioctl2,
- 	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
--	.get_unmapped_area = bcap_get_unmapped_area,
-+	.get_unmapped_area = vb2_fop_get_unmapped_area,
- #endif
- 	.poll = vb2_fop_poll
- };
--- 
-2.1.0
+Such a generic v4l2_dev notify function doesn't exist today though. Patches are welcome.
 
+If the driver doesn't use the media controller, then the top-level driver should provide
+this knowledge in its v4l2_dev notifier function.
+
+Regards,
+
+	Hans
