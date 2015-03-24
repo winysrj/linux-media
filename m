@@ -1,97 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60763 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792AbbCEKjh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2015 05:39:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 1/3] media: atmel-isi: move the peripheral clock to start/stop_stream() function
-Date: Thu, 05 Mar 2015 12:39:42 +0200
-Message-ID: <16387779.aQaQKCyNOp@avalon>
-In-Reply-To: <1425531661-20040-2-git-send-email-josh.wu@atmel.com>
-References: <1425531661-20040-1-git-send-email-josh.wu@atmel.com> <1425531661-20040-2-git-send-email-josh.wu@atmel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:42358 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126AbbCXHXe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 03:23:34 -0400
+Date: Tue, 24 Mar 2015 10:23:40 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: kbuild@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org
+Subject: [linuxtv-media:master 348/454]
+ drivers/media/dvb-core/dvb_frontend.c:861 dvb_frontend_thread() warn:
+ inconsistent returns 'sem:&fepriv->sem'.
+Message-ID: <20150324072340.GX16501@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+tree:   git://linuxtv.org/media_tree.git master
+head:   8a56b6b5fd6ff92b7e27d870b803b11b751660c2
+commit: 135f9be9194cf7778eb73594aa55791b229cf27c [348/454] [media] dvb_frontend: start media pipeline while thread is running
 
-Thank you for the patch.
+New smatch warnings:
+drivers/media/dvb-core/dvb_frontend.c:861 dvb_frontend_thread() warn: inconsistent returns 'sem:&fepriv->sem'.
+  Locked on:   line 719
+  Unlocked on: line 861
 
-On Thursday 05 March 2015 13:00:59 Josh Wu wrote:
-> As the clock_start/stop() use to control the mclk for the sensor not the
-> ISI peripheral clock.
-> So we move them to start/stop_stream() function.
+git remote add linuxtv-media git://linuxtv.org/media_tree.git
+git remote update linuxtv-media
+git checkout 135f9be9194cf7778eb73594aa55791b229cf27c
+vim +861 drivers/media/dvb-core/dvb_frontend.c
 
-Then the driver will access registers with the peripheral clock disabled, for 
-instance in isi_camera_set_fmt() (calling configure_geometry), 
-isi_camera_set_bus_param() or atmel_isi_probe(). Isn't that a problem ? Or are 
-all registers guaranteed to be accessible (and retained) when the clock is 
-disabled ?
+dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  845  				fe->ops.i2c_gate_ctrl(fe, 0);
+7eef5dd6 drivers/media/dvb/dvb-core/dvb_frontend.c Andrew de Quincey   2006-04-18  846  		}
+dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  847  		if (fe->ops.sleep)
+dea74869 drivers/media/dvb/dvb-core/dvb_frontend.c Patrick Boettcher   2006-05-14  848  			fe->ops.sleep(fe);
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  849  	}
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  850  
+8eec1429 drivers/media/dvb/dvb-core/dvb_frontend.c Herbert Poetzl      2007-02-08  851  	fepriv->thread = NULL;
+e36309f5 drivers/media/dvb/dvb-core/dvb_frontend.c Matthieu CASTET     2010-05-05  852  	if (kthread_should_stop())
+18ed2860 drivers/media/dvb-core/dvb_frontend.c     Shuah Khan          2014-07-12  853  		fe->exit = DVB_FE_DEVICE_REMOVED;
+e36309f5 drivers/media/dvb/dvb-core/dvb_frontend.c Matthieu CASTET     2010-05-05  854  	else
+18ed2860 drivers/media/dvb-core/dvb_frontend.c     Shuah Khan          2014-07-12  855  		fe->exit = DVB_FE_NO_EXIT;
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  856  	mb();
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  857  
+6ae23224 drivers/media/dvb-core/dvb_frontend.c     Juergen Lock        2012-12-23  858  	if (semheld)
+6ae23224 drivers/media/dvb-core/dvb_frontend.c     Juergen Lock        2012-12-23  859  		up(&fepriv->sem);
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  860  	dvb_frontend_wakeup(fe);
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16 @861  	return 0;
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  862  }
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  863  
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  864  static void dvb_frontend_stop(struct dvb_frontend *fe)
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  865  {
+0c53c70f drivers/media/dvb/dvb-core/dvb_frontend.c Johannes Stezenbach 2005-05-16  866  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  867  
+36bdbc3f drivers/media/dvb-core/dvb_frontend.c     Antti Palosaari     2012-08-15  868  	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+^1da177e drivers/media/dvb/dvb-core/dvb_frontend.c Linus Torvalds      2005-04-16  869  
 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index 1208818..eb179e7
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -386,6 +386,10 @@ static int start_streaming(struct vb2_queue *vq,
-> unsigned int count) struct atmel_isi *isi = ici->priv;
->  	int ret;
-> 
-> +	ret = clk_prepare_enable(isi->pclk);
-> +	if (ret)
-> +		return ret;
-> +
->  	/* Reset ISI */
->  	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
->  	if (ret < 0) {
-> @@ -445,6 +449,8 @@ static void stop_streaming(struct vb2_queue *vq)
->  	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
->  	if (ret < 0)
->  		dev_err(icd->parent, "Disable ISI timed out\n");
-> +
-> +	clk_disable_unprepare(isi->pclk);
->  }
-> 
->  static struct vb2_ops isi_video_qops = {
-> @@ -723,14 +729,9 @@ static int isi_camera_clock_start(struct
-> soc_camera_host *ici) struct atmel_isi *isi = ici->priv;
->  	int ret;
-> 
-> -	ret = clk_prepare_enable(isi->pclk);
-> -	if (ret)
-> -		return ret;
-> -
->  	if (!IS_ERR(isi->mck)) {
->  		ret = clk_prepare_enable(isi->mck);
->  		if (ret) {
-> -			clk_disable_unprepare(isi->pclk);
->  			return ret;
->  		}
->  	}
-> @@ -745,7 +746,6 @@ static void isi_camera_clock_stop(struct soc_camera_host
-> *ici)
-> 
->  	if (!IS_ERR(isi->mck))
->  		clk_disable_unprepare(isi->mck);
-> -	clk_disable_unprepare(isi->pclk);
->  }
-> 
->  static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
