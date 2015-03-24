@@ -1,120 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37050 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752683AbbCCJ7k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 04:59:40 -0500
-Message-ID: <54F585FA.70701@xs4all.nl>
-Date: Tue, 03 Mar 2015 10:59:22 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: =?UTF-8?B?VXdlIEtsZWluZS1Lw7ZuaWc=?=
-	<u.kleine-koenig@pengutronix.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] media: adv7604: improve usage of gpiod API
-References: <1425279644-25873-1-git-send-email-u.kleine-koenig@pengutronix.de> <54F5851E.70906@xs4all.nl>
-In-Reply-To: <54F5851E.70906@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:49897 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752326AbbCXVNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 17:13:09 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/8] ts2020: implement I2C client bindings
+Date: Tue, 24 Mar 2015 23:12:07 +0200
+Message-Id: <1427231533-4277-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1427231533-4277-1-git-send-email-crope@iki.fi>
+References: <1427231533-4277-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2015 10:55 AM, Hans Verkuil wrote:
-> Hi Uwe,
-> 
-> On 03/02/2015 08:00 AM, Uwe Kleine-König wrote:
->> Since 39b2bbe3d715 (gpio: add flags argument to gpiod_get*() functions)
->> which appeared in v3.17-rc1, the gpiod_get* functions take an additional
->> parameter that allows to specify direction and initial value for output.
->> Simplify accordingly.
->>
->> Moreover use devm_gpiod_get_index_optional instead of
->> devm_gpiod_get_index with ignoring all errors.
->>
->> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
->> ---
->> BTW, sparse fails to check this file with many errors like:
->>
->> 	drivers/media/i2c/adv7604.c:311:11: error: unknown field name in initializer
->>
->> Didn't look into that.
-> 
-> That's a sparse bug that's been fixed in the sparse repo, but not in the 0.5.0
-> release (they really should make a new sparse release IMHO).
-> 
-> Some comments below:
+Implement I2C binding model.
 
-Never mind those comments, after checking what devm_gpiod_get_index_optional
-does it's clear that this patch is correct.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/ts2020.c | 161 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 161 insertions(+)
 
-Sorry about the noise.
-
-	Hans
-
-> 
->> ---
->>  drivers/media/i2c/adv7604.c | 16 ++++++----------
->>  1 file changed, 6 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
->> index 5a7c9389a605..ddeeb6695a4b 100644
->> --- a/drivers/media/i2c/adv7604.c
->> +++ b/drivers/media/i2c/adv7604.c
->> @@ -537,12 +537,8 @@ static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
->>  {
->>  	unsigned int i;
->>  
->> -	for (i = 0; i < state->info->num_dv_ports; ++i) {
->> -		if (IS_ERR(state->hpd_gpio[i]))
->> -			continue;
-> 
-> Why this change? See also below:
-> 
->> -
->> +	for (i = 0; i < state->info->num_dv_ports; ++i)
->>  		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
->> -	}
->>  
->>  	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
->>  }
->> @@ -2720,13 +2716,13 @@ static int adv7604_probe(struct i2c_client *client,
->>  	/* Request GPIOs. */
->>  	for (i = 0; i < state->info->num_dv_ports; ++i) {
->>  		state->hpd_gpio[i] =
->> -			devm_gpiod_get_index(&client->dev, "hpd", i);
->> +			devm_gpiod_get_index_optional(&client->dev, "hpd", i,
->> +						      GPIOD_OUT_LOW);
->>  		if (IS_ERR(state->hpd_gpio[i]))
->> -			continue;
->> -
->> -		gpiod_direction_output(state->hpd_gpio[i], 0);
->> +			return PTR_ERR(state->hpd_gpio[i]);
-> 
-> This isn't correct. The use of gpio is optional, on some boards a different
-> mechanism is used to control the hpd, and there devm_gpiod_get_index will just
-> return an error. That's OK, we just continue in that case.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>  
->> -		v4l_info(client, "Handling HPD %u GPIO\n", i);
->> +		if (state->hpd_gpio[i])
->> +			v4l_info(client, "Handling HPD %u GPIO\n", i);
->>  	}
->>  
->>  	state->timings = cea640x480;
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index 24c4712..b1d91dc 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -26,6 +26,7 @@
+ #define FREQ_OFFSET_LOW_SYM_RATE 3000
+ 
+ struct ts2020_priv {
++	struct dvb_frontend *fe;
+ 	/* i2c details */
+ 	int i2c_address;
+ 	struct i2c_adapter *i2c;
+@@ -428,6 +429,7 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
+ 	priv->clk_out = config->clk_out;
+ 	priv->clk_out_div = config->clk_out_div;
+ 	priv->frequency_div = config->frequency_div;
++	priv->fe = fe;
+ 	fe->tuner_priv = priv;
+ 
+ 	if (!priv->frequency_div)
+@@ -463,6 +465,165 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
+ }
+ EXPORT_SYMBOL(ts2020_attach);
+ 
++static int ts2020_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct ts2020_config *pdata = client->dev.platform_data;
++	struct dvb_frontend *fe = pdata->fe;
++	struct ts2020_priv *dev;
++	int ret;
++	u8 u8tmp;
++	unsigned int utmp;
++	char *chip_str;
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	dev->i2c = client->adapter;
++	dev->i2c_address = client->addr;
++	dev->clk_out = pdata->clk_out;
++	dev->clk_out_div = pdata->clk_out_div;
++	dev->frequency_div = pdata->frequency_div;
++	dev->fe = fe;
++	fe->tuner_priv = dev;
++
++	/* check if the tuner is there */
++	ret = ts2020_readreg(fe, 0x00);
++	if (ret < 0)
++		goto err;
++	utmp = ret;
++
++	if ((utmp & 0x03) == 0x00) {
++		ret = ts2020_writereg(fe, 0x00, 0x01);
++		if (ret)
++			goto err;
++
++		usleep_range(2000, 50000);
++	}
++
++	ret = ts2020_writereg(fe, 0x00, 0x03);
++	if (ret)
++		goto err;
++
++	usleep_range(2000, 50000);
++
++	ret = ts2020_readreg(fe, 0x00);
++	if (ret < 0)
++		goto err;
++	utmp = ret;
++
++	dev_dbg(&client->dev, "chip_id=%02x\n", utmp);
++
++	switch (utmp) {
++	case 0x01:
++	case 0x41:
++	case 0x81:
++		dev->tuner = TS2020_M88TS2020;
++		chip_str = "TS2020";
++		if (!dev->frequency_div)
++			dev->frequency_div = 1060000;
++		break;
++	case 0xc3:
++	case 0x83:
++		dev->tuner = TS2020_M88TS2022;
++		chip_str = "TS2022";
++		if (!dev->frequency_div)
++			dev->frequency_div = 1103000;
++		break;
++	default:
++		ret = -ENODEV;
++		goto err;
++	}
++
++	if (dev->tuner == TS2020_M88TS2022) {
++		switch (dev->clk_out) {
++		case TS2020_CLK_OUT_DISABLED:
++			u8tmp = 0x60;
++			break;
++		case TS2020_CLK_OUT_ENABLED:
++			u8tmp = 0x70;
++			ret = ts2020_writereg(fe, 0x05, dev->clk_out_div);
++			if (ret)
++				goto err;
++			break;
++		case TS2020_CLK_OUT_ENABLED_XTALOUT:
++			u8tmp = 0x6c;
++			break;
++		default:
++			ret = -EINVAL;
++			goto err;
++		}
++
++		ret = ts2020_writereg(fe, 0x42, u8tmp);
++		if (ret)
++			goto err;
++
++		if (dev->loop_through)
++			u8tmp = 0xec;
++		else
++			u8tmp = 0x6c;
++
++		ret = ts2020_writereg(fe, 0x62, u8tmp);
++		if (ret)
++			goto err;
++	}
++
++	/* sleep */
++	ret = ts2020_writereg(fe, 0x00, 0x00);
++	if (ret)
++		goto err;
++
++	dev_info(&client->dev,
++		 "Montage Technology %s successfully identified\n", chip_str);
++
++	memcpy(&fe->ops.tuner_ops, &ts2020_tuner_ops,
++			sizeof(struct dvb_tuner_ops));
++	fe->ops.tuner_ops.release = NULL;
++
++	i2c_set_clientdata(client, dev);
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	kfree(dev);
++	return ret;
++}
++
++static int ts2020_remove(struct i2c_client *client)
++{
++	struct ts2020_priv *dev = i2c_get_clientdata(client);
++	struct dvb_frontend *fe = dev->fe;
++
++	dev_dbg(&client->dev, "\n");
++
++	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
++	fe->tuner_priv = NULL;
++	kfree(dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id ts2020_id_table[] = {
++	{"ts2020", 0},
++	{"ts2022", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, ts2020_id_table);
++
++static struct i2c_driver ts2020_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "ts2020",
++	},
++	.probe		= ts2020_probe,
++	.remove		= ts2020_remove,
++	.id_table	= ts2020_id_table,
++};
++
++module_i2c_driver(ts2020_driver);
++
+ MODULE_AUTHOR("Konstantin Dimitrov <kosio.dimitrov@gmail.com>");
+ MODULE_DESCRIPTION("Montage Technology TS2020 - Silicon tuner driver module");
+ MODULE_LICENSE("GPL");
+-- 
+http://palosaari.fi/
 
