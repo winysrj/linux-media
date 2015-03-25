@@ -1,34 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:38644 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932523AbbCDObQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 09:31:16 -0500
-Date: Wed, 4 Mar 2015 07:31:15 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 6/7] v4l2-subdev: remove enum_framesizes/intervals
-Message-ID: <20150304073115.7f2d3571@lwn.net>
-In-Reply-To: <54F6C6B3.6010603@xs4all.nl>
-References: <1423827006-32878-1-git-send-email-hverkuil@xs4all.nl>
-	<1423827006-32878-7-git-send-email-hverkuil@xs4all.nl>
-	<54F6C6B3.6010603@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49748 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347AbbCYJTO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2015 05:19:14 -0400
+Message-ID: <1427274927.3441.21.camel@pengutronix.de>
+Subject: Re: [GIT PULL v2] of: Add of-graph helpers to loop over endpoints
+ and find ports by id
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Benoit Parrot <bparrot@ti.com>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Darren Etheridge <detheridge@ti.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 25 Mar 2015 10:15:27 +0100
+In-Reply-To: <CAL_JsqJCRQx9=pnvxvKP+Ruek1F-0TRJ2rDDHCcVYZ8y=hE=Xg@mail.gmail.com>
+References: <1425369592.3146.14.camel@pengutronix.de>
+	 <CAL_Jsq+s5RN+7z8Q5N1VghxaQ_ajQmBddtWOTovLoVJjb_6uDw@mail.gmail.com>
+	 <1426063881.3101.33.camel@pengutronix.de> <2376013.jScnaqPlDa@phil>
+	 <20150324091540.GU8656@n2100.arm.linux.org.uk>
+	 <CAL_JsqJCRQx9=pnvxvKP+Ruek1F-0TRJ2rDDHCcVYZ8y=hE=Xg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 04 Mar 2015 09:47:47 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Rob,
 
-> It took blood, sweat and a bucket full of tears, but I finally managed to
-> get it to run on a OLPC XO-1 laptop.
+Am Dienstag, den 24.03.2015, 23:42 -0500 schrieb Rob Herring:
+> On Tue, Mar 24, 2015 at 4:15 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Mon, Mar 23, 2015 at 05:29:02PM +0100, Heiko Stuebner wrote:
+> >> Hi Rob, Philipp,
+> >>
+> >> Am Mittwoch, 11. März 2015, 09:51:21 schrieb Philipp Zabel:
+> >> > Am Dienstag, den 10.03.2015, 14:05 -0500 schrieb Rob Herring:
+> >> > > I've only been copied on this latest pull request and a version from
+> >> > > March of last year which Grant nak'ed. This series did not go to
+> >> > > devicetree list either. I'll take a look at the series.
+> >> >
+> >> > My bad, I should have copied you, too. Thanks for having a look now.
+> >>
+> >> any news on this?
+> >>
+> >> Because it looks like I'll need the of_graph_get_port_by_id functionality in
+> >> the short term, it'll be nice to not having to opencode this :-)
+> >
+> > Oh hell, you mean this still hasn't been merged for the next merge window?
+> >
+> > What's going on, Grant?
+> >
+> > Andrew, can you please take this if we send you the individual patches?
+> > If not, I'll merge it into my tree, and send it to Linus myself.  If
+> > Grant wakes up, we can address any comments he has at that time by
+> > additional patches.  (I'll give Grant an extra few days to reply to
+> > this mail...)
+> 
+> I've merged this for 4.1. It is in my for-next branch[1].
+> 
+> Rob
+> 
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
 
-Sorry you had to do that.  I've been trying to find a moment to employ my
-own bucket, but life remains rather unsettled in these parts.
+Thank you. Can I have your ok to merge the same into a pull requests
+going out to the drm subsystem tree?
 
-Feel free to add my ack, thanks for doing this.
+regards
+Philipp
 
-jon
