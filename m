@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:46408 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573AbbCBPAx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 10:00:53 -0500
-Received: by wggy19 with SMTP id y19so33887929wgg.13
-        for <linux-media@vger.kernel.org>; Mon, 02 Mar 2015 07:00:51 -0800 (PST)
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: i2c: s5c73m3: make sure we destroy the mutex
-Date: Mon,  2 Mar 2015 15:00:34 +0000
-Message-Id: <1425308434-26549-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46748 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752698AbbCYA4P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2015 20:56:15 -0400
+Date: Wed, 25 Mar 2015 02:55:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v1 02/11] DT: Add documentation for the mfd Maxim max77693
+Message-ID: <20150325005542.GG18321@valkosipuli.retiisi.org.uk>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-3-git-send-email-j.anaszewski@samsung.com>
+ <20150321224903.GE16613@valkosipuli.retiisi.org.uk>
+ <550FE2C3.7090702@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <550FE2C3.7090702@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Jacek,
 
-Make sure to call mutex_destroy() in case of probe failure or module
-unload.
+On Mon, Mar 23, 2015 at 10:54:11AM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 03/21/2015 11:49 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Fri, Mar 20, 2015 at 04:03:22PM +0100, Jacek Anaszewski wrote:
+> >>+Optional properties of the LED child node:
+> >>+- label : see Documentation/devicetree/bindings/leds/common.txt
+> >
+> >I'm still not comfortable using the label field as-is as the entity name in
+> >the later patches, there's one important problem: it is not guaranteed to be
+> >unique in the system.
+> 
+> I don't use it as-is in my patches. For max77603-led the i2c adapter id
+> and client address is added to it, and for aat1290 there is '_n' suffix
+> added. Nonetheless I didn't notice that the patch [1] was already
+> merged. It checks if a LED class device with given name isn't already
+> registered and adds a '_n" suffix if there was any. If it was exported
+> I could use it in the leds-aat1290 driver and avoid depending on the
+> static variable.
+> 
+> Whereas for I2C devices the problem doesn't exist (it is guaranteed that
+> no more than one I2C client with an address can be present on the
+> same bus), for devices driven through GPIOs we haven't stable unique
+> identifier.
+> 
+> I thought that we agreed on #v4l about adding numerical postfixes
+> in case of such devices.
+> 
+> >Do you think this could be added to
+> >Documentation/devicetree/bindings/leds/common.txt, with perhaps enforcing it
+> >in the LED framework? Bryan, what do you think?
+> 
+> The patch [1] seems to address the issue.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/i2c/s5c73m3/s5c73m3-core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Replied to that, you're cc'd.
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index ee0f57e..da0b3a3 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1658,7 +1658,6 @@ static int s5c73m3_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
- 
--	mutex_init(&state->lock);
- 	sd = &state->sensor_sd;
- 	oif_sd = &state->oif_sd;
- 
-@@ -1695,6 +1694,8 @@ static int s5c73m3_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
- 
-+	mutex_init(&state->lock);
-+
- 	ret = s5c73m3_configure_gpios(state);
- 	if (ret)
- 		goto out_err;
-@@ -1754,6 +1755,7 @@ out_err1:
- 	s5c73m3_unregister_spi_driver(state);
- out_err:
- 	media_entity_cleanup(&sd->entity);
-+	mutex_destroy(&state->lock);
- 	return ret;
- }
- 
-@@ -1772,6 +1774,7 @@ static int s5c73m3_remove(struct i2c_client *client)
- 	media_entity_cleanup(&sensor_sd->entity);
- 
- 	s5c73m3_unregister_spi_driver(state);
-+	mutex_destroy(&state->lock);
- 
- 	return 0;
- }
+For this patch:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-1.9.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
