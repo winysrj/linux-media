@@ -1,77 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46754 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964923AbbCPVhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2015 17:37:19 -0400
-Message-ID: <55074D0C.40303@iki.fi>
-Date: Mon, 16 Mar 2015 23:37:16 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>, mchehab@osg.samsung.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 06/10] mn88472: implement firmware parity check
-References: <1426460275-3766-1-git-send-email-benjamin@southpole.se> <1426460275-3766-6-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1426460275-3766-6-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47117 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932735AbbCYQpY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2015 12:45:24 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: drop dma_sync_single_for_device in coda_bitstream_queue
+Date: Wed, 25 Mar 2015 17:45:09 +0100
+Message-Id: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2015 12:57 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
+Issuing a cache flush for the whole bitstream buffer is not optimal in the first
+place when only a part of it was written. But given that the buffer is mapped in
+writecombine mode, it is not needed at all.
 
-Applied!
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Please don't use dev_err() logging for nothing but errors. That last 
-logging should be dev_dbg(), but as this is staging driver and features 
-really rule over minor issues I will simply apply that and fix minor 
-issues later.
-
-regards
-Antti
-
-
-
-> ---
->   drivers/staging/media/mn88472/mn88472.c | 15 +++++++++++++++
->   1 file changed, 15 insertions(+)
->
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index 5070c37..4a00a4d 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -258,6 +258,7 @@ static int mn88472_init(struct dvb_frontend *fe)
->   	int ret, len, remaining;
->   	const struct firmware *fw = NULL;
->   	u8 *fw_file = MN88472_FIRMWARE;
-> +	unsigned int csum;
->
->   	dev_dbg(&client->dev, "\n");
->
-> @@ -303,6 +304,20 @@ static int mn88472_init(struct dvb_frontend *fe)
->   		}
->   	}
->
-> +	/* parity check of firmware */
-> +	ret = regmap_read(dev->regmap[0], 0xf8, &csum);
-> +	if (ret) {
-> +		dev_err(&client->dev,
-> +				"parity reg read failed=%d\n", ret);
-> +		goto err;
-> +	}
-> +	if (csum & 0x10) {
-> +		dev_err(&client->dev,
-> +				"firmware parity check failed=0x%x\n", csum);
-> +		goto err;
-> +	}
-> +	dev_err(&client->dev, "firmware parity check succeeded=0x%x\n", csum);
-> +
->   	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
->   	if (ret)
->   		goto err;
->
-
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index d39789d..d336cb6 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -181,10 +181,6 @@ static int coda_bitstream_queue(struct coda_ctx *ctx,
+ 	if (n < src_size)
+ 		return -ENOSPC;
+ 
+-	dma_sync_single_for_device(&ctx->dev->plat_dev->dev,
+-				   ctx->bitstream.paddr, ctx->bitstream.size,
+-				   DMA_TO_DEVICE);
+-
+ 	src_buf->v4l2_buf.sequence = ctx->qsequence++;
+ 
+ 	return 0;
 -- 
-http://palosaari.fi/
+2.1.4
+
