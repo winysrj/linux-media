@@ -1,76 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45407 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755235AbbCBRHC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:07:02 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/10] ARM: omap2: use clkdev_add_alias()
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1YSTnw-0001K5-IQ@rmk-PC.arm.linux.org.uk>
-Date: Mon, 02 Mar 2015 17:06:52 +0000
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56397 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752427AbbCYW6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2015 18:58:40 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 05/15] omap3isp: Platform data could be NULL
+Date: Thu, 26 Mar 2015 00:57:29 +0200
+Message-Id: <1427324259-18438-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When creating aliases of existing clkdev clocks, use clkdev_add_alias()
-isntead of open coding the lookup and clk_lookup creation.
+Only check for call platform data callback functions if there's platform
+data. Also take care of a few other cases where the NULL pdata pointer could
+have been accessed, and remove the check for NULL dev->platform_data
+pointer.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Removing the check for NULL dev->platform_data isn't strictly needed by the
+DT support but there's no harm from that either: the device now can be used
+without sensors, for instance.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/mach-omap2/omap_device.c | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ drivers/media/platform/omap3isp/isp.c      |   10 ++++------
+ drivers/media/platform/omap3isp/ispvideo.c |    6 +++---
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index be9541e18650..521c32e7778e 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -47,7 +47,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
- 		       const char *clk_name)
- {
- 	struct clk *r;
--	struct clk_lookup *l;
-+	int rc;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 82499cd..537377b 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -330,8 +330,8 @@ static int isp_xclk_init(struct isp_device *isp)
+ 		if (np)
+ 			continue;
  
- 	if (!clk_alias || !clk_name)
- 		return;
-@@ -62,21 +62,15 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
- 		return;
- 	}
+-		if (pdata->xclks[i].con_id == NULL &&
+-		    pdata->xclks[i].dev_id == NULL)
++		if (!pdata || (pdata->xclks[i].con_id == NULL &&
++			       pdata->xclks[i].dev_id == NULL))
+ 			continue;
  
--	r = clk_get(NULL, clk_name);
--	if (IS_ERR(r)) {
--		dev_err(&od->pdev->dev,
--			"clk_get for %s failed\n", clk_name);
--		return;
-+	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
-+	if (rc) {
-+		if (rc == -ENODEV || rc == -ENOMEM)
-+			dev_err(&od->pdev->dev,
-+				"clkdev_alloc for %s failed\n", clk_alias);
-+		else
-+			dev_err(&od->pdev->dev,
-+				"clk_get for %s failed\n", clk_name);
- 	}
+ 		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+@@ -1989,7 +1989,8 @@ static int isp_register_entities(struct isp_device *isp)
+ 		goto done;
+ 
+ 	/* Register external entities */
+-	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
++	for (subdevs = pdata ? pdata->subdevs : NULL;
++	     subdevs && subdevs->subdevs; ++subdevs) {
+ 		struct v4l2_subdev *sensor;
+ 
+ 		sensor = isp_register_subdev_group(isp, subdevs->subdevs);
+@@ -2271,9 +2272,6 @@ static int isp_probe(struct platform_device *pdev)
+ 	int ret;
+ 	int i, m;
+ 
+-	if (pdata == NULL)
+-		return -EINVAL;
 -
--	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev->dev));
--	if (!l) {
--		dev_err(&od->pdev->dev,
--			"clkdev_alloc for %s failed\n", clk_alias);
--		return;
--	}
--
--	clkdev_add(l);
- }
+ 	isp = devm_kzalloc(&pdev->dev, sizeof(*isp), GFP_KERNEL);
+ 	if (!isp) {
+ 		dev_err(&pdev->dev, "could not allocate memory\n");
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 0b5967e..d285af1 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1018,7 +1018,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
  
- /**
+ 	pipe->entities = 0;
+ 
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, true);
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+ 	pipe->max_rate = pipe->l3_ick;
+@@ -1100,7 +1100,7 @@ err_set_stream:
+ err_check_format:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ err_pipeline_start:
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, false);
+ 	/* The DMA queue must be emptied here, otherwise CCDC interrupts that
+ 	 * will get triggered the next time the CCDC is powered up will try to
+@@ -1161,7 +1161,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->queue = NULL;
+ 	video->error = false;
+ 
+-	if (video->isp->pdata->set_constraints)
++	if (video->isp->pdata && video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, false);
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 
 -- 
-1.8.3.1
+1.7.10.4
 
