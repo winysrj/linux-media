@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48337 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbbCTQx6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56370 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751800AbbCYW6g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 12:53:58 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
-Subject: [RFC v3 2/9] dts: add s5p-cec to exynos4412-odroidu3
-Date: Fri, 20 Mar 2015 17:52:36 +0100
-Message-id: <1426870363-18839-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
-References: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
+	Wed, 25 Mar 2015 18:58:36 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 00/15] omap3isp driver DT support
+Date: Thu, 26 Mar 2015 00:57:24 +0200
+Message-Id: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the s5p-mfc device to the exynos4412-odroidu3.dts.
+Hi folks,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/boot/dts/exynos4412-odroidu3.dts |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Here's an update to the omap3isp DT support patchset. v1 can be found here:
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroidu3.dts b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-index 44684e5..e922789 100644
---- a/arch/arm/boot/dts/exynos4412-odroidu3.dts
-+++ b/arch/arm/boot/dts/exynos4412-odroidu3.dts
-@@ -31,6 +31,19 @@
- 			linux,default-trigger = "heartbeat";
- 		};
- 	};
-+
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		cec-gpio = <&gpx3 6 0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "okay";
-+	};
- };
- 
- &usb3503 {
+<URL:http://www.spinics.net/lists/linux-media/msg87733.html>
+
+Changes since v1:
+
+patch 10:
+
+- Add Kconfig dependency to MFD_SYSCON
+
+patch 12:
+
+- Rename "lane-polarity" property as "lane-polarities"
+
+patch 13:
+
+- Add node name to warning print when there are too few lane polarities.
+
+patch 14:
+
+- Fix comment about sub-device node registration in isp_register_entities().
+
+- Add endpoint name to a debug print in isp_of_parse_node().
+
+- Rework isp_of_parse_nodes(). Fixed issue with putting the acquired nodes,
+  and correctly register multiple async sub-devices.
+
+- Rename rval as ret.
+
+- Obtain syscon register index from DT.
+
+Patch 15:
+
+- Fix the number of users.
+
 -- 
-1.7.9.5
+Kind regards,
+Sakari
 
