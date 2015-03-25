@@ -1,74 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45082 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752384AbbCPA07 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:37133 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751278AbbCYIwG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:26:59 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 08/15] omap3isp: Calculate vpclk_div for CSI-2
-Date: Mon, 16 Mar 2015 02:26:03 +0200
-Message-Id: <1426465570-30295-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 25 Mar 2015 04:52:06 -0400
+Message-id: <55127732.7020004@samsung.com>
+Date: Wed, 25 Mar 2015 09:52:02 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH v1 09/11] DT: Add documentation for exynos4-is 'flashes'
+ property
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-10-git-send-email-j.anaszewski@samsung.com>
+ <20150325010641.GI18321@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150325010641.GI18321@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video port clock is l3_ick divided by vpclk_div. This clock must be high
-enough for the external pixel rate. The video port requires two clock cycles
-to process a pixel.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispcsi2.c |    8 +++++++-
- include/media/omap3isp.h                  |    2 --
- 2 files changed, 7 insertions(+), 3 deletions(-)
+On 03/25/2015 02:06 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Fri, Mar 20, 2015 at 04:03:29PM +0100, Jacek Anaszewski wrote:
+>> This patch adds a description of 'flashes' property
+>> to the samsung-fimc.txt.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>   .../devicetree/bindings/media/samsung-fimc.txt     |    8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> index 922d6f8..cb0e263 100644
+>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> @@ -40,6 +40,13 @@ should be inactive. For the "active-a" state the camera port A must be activated
+>>   and the port B deactivated and for the state "active-b" it should be the other
+>>   way around.
+>>
+>> +Optional properties:
+>> +
+>> +- flashes - Array of phandles to the flash LEDs that can be controlled by the
+>> +	    sub-devices contained in this media device. Flash LED is
+>> +	    represented by a child node of a flash LED device
+>
+> This should be in
+> Documentation/devicetree/bindings/media/video-interfaces.txt.
+>
+> Should flash devices be associated with sensors somehow rather than ISPs?
+> That's how they commonly are arranged, however that doesn't limit placing
+> them in silly places.
+>
+> I'm not necessarily saying the flashes-property should be present in
+> sensor's DT nodes, but it'd be good to be able to make the association if
+> it's there.
 
-diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
-index 14d279d..97cdfeb 100644
---- a/drivers/media/platform/omap3isp/ispcsi2.c
-+++ b/drivers/media/platform/omap3isp/ispcsi2.c
-@@ -548,6 +548,7 @@ int omap3isp_csi2_reset(struct isp_csi2_device *csi2)
- 
- static int csi2_configure(struct isp_csi2_device *csi2)
- {
-+	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
- 	const struct isp_bus_cfg *buscfg;
- 	struct isp_device *isp = csi2->isp;
- 	struct isp_csi2_timing_cfg *timing = &csi2->timing[0];
-@@ -570,7 +571,12 @@ static int csi2_configure(struct isp_csi2_device *csi2)
- 	csi2->frame_skip = 0;
- 	v4l2_subdev_call(sensor, sensor, g_skip_frames, &csi2->frame_skip);
- 
--	csi2->ctrl.vp_out_ctrl = buscfg->bus.csi2.vpclk_div;
-+	csi2->ctrl.vp_out_ctrl =
-+		clamp_t(unsigned int, pipe->l3_ick / pipe->external_rate - 1,
-+			1, 3);
-+	dev_dbg(isp->dev, "%s: l3_ick %lu, external_rate %u, vp_out_ctrl %u\n",
-+		__func__, pipe->l3_ick,  pipe->external_rate,
-+		csi2->ctrl.vp_out_ctrl);
- 	csi2->ctrl.frame_mode = ISP_CSI2_FRAME_IMMEDIATE;
- 	csi2->ctrl.ecc_enable = buscfg->bus.csi2.crc;
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 39e0748..0f0c08b 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -129,11 +129,9 @@ struct isp_ccp2_cfg {
- /**
-  * struct isp_csi2_cfg - CSI2 interface configuration
-  * @crc: Enable the cyclic redundancy check
-- * @vpclk_div: Video port output clock control
-  */
- struct isp_csi2_cfg {
- 	unsigned crc:1;
--	unsigned vpclk_div:2;
- 	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
+I know of a SoC, which drives the flash from its on-chip ISP. The GPIO
+connected to the flash controller's external strobe pin can be
+configured so that the signal is routed to it from the ISP or from
+CPU (for software strobe mode).
+
+I think that Sylwester could say more in this subject.
+
+
+>> +	    (see Documentation/devicetree/bindings/leds/common.txt).
+>> +
+>>   The 'camera' node must include at least one 'fimc' child node.
+>>
+>>
+>> @@ -166,6 +173,7 @@ Example:
+>>   		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+>>   		pinctrl-names = "default";
+>>   		pinctrl-0 = <&cam_port_a_clk_active>;
+>> +		flashes = <&camera_flash>, <&system_torch>;
+>>   		status = "okay";
+>>   		#address-cells = <1>;
+>>   		#size-cells = <1>;
+>
+> There will be other kind of devices that have somewhat similar relationship.
+> They just haven't been defined yet. Lens controllers or EEPROM for instance.
+> The two are an integral part of a module, something which is not modelled in
+> DT in any way, but perhaps should be.
+
+Do you suggest using more generic name than 'flashes'?
+
 -- 
-1.7.10.4
-
+Best Regards,
+Jacek Anaszewski
