@@ -1,119 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:47886 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbbCaNyC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 09:54:02 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v4 02/12] leds: unify the location of led-trigger API
-Date: Tue, 31 Mar 2015 15:52:38 +0200
-Message-id: <1427809965-25540-3-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:39182 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752102AbbCYOKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2015 10:10:54 -0400
+Message-ID: <5512C1E4.7060903@butterbrot.org>
+Date: Wed, 25 Mar 2015 15:10:44 +0100
+From: Florian Echtler <floe@butterbrot.org>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race condition)?
+References: <550FFFB2.9020400@butterbrot.org> <55103587.3080901@butterbrot.org> <43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org> <DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
+In-Reply-To: <DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="LE0jLcbwgxAHoflE3Sf7QNEnuAsj7DdXc"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of led-trigger API was in the private drivers/leds/leds.h header.
-Move it to the include/linux/leds.h header to unify the API location
-and announce it as public. It has been already exported from
-led-triggers.c with EXPORT_SYMBOL_GPL macro.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--LE0jLcbwgxAHoflE3Sf7QNEnuAsj7DdXc
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- drivers/leds/leds.h  |   24 ------------------------
- include/linux/leds.h |   24 ++++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 24 deletions(-)
+Hello Dmitry,
 
-diff --git a/drivers/leds/leds.h b/drivers/leds/leds.h
-index 79efe57..bc89d7a 100644
---- a/drivers/leds/leds.h
-+++ b/drivers/leds/leds.h
-@@ -13,7 +13,6 @@
- #ifndef __LEDS_H_INCLUDED
- #define __LEDS_H_INCLUDED
- 
--#include <linux/device.h>
- #include <linux/rwsem.h>
- #include <linux/leds.h>
- 
-@@ -50,27 +49,4 @@ void led_stop_software_blink(struct led_classdev *led_cdev);
- extern struct rw_semaphore leds_list_lock;
- extern struct list_head leds_list;
- 
--#ifdef CONFIG_LEDS_TRIGGERS
--void led_trigger_set_default(struct led_classdev *led_cdev);
--void led_trigger_set(struct led_classdev *led_cdev,
--			struct led_trigger *trigger);
--void led_trigger_remove(struct led_classdev *led_cdev);
--
--static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
--{
--	return led_cdev->trigger_data;
--}
--
--#else
--#define led_trigger_set_default(x) do {} while (0)
--#define led_trigger_set(x, y) do {} while (0)
--#define led_trigger_remove(x) do {} while (0)
--#define led_get_trigger_data(x) (NULL)
--#endif
--
--ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
--			const char *buf, size_t count);
--ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
--			char *buf);
--
- #endif	/* __LEDS_H_INCLUDED */
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index 9a2b000..0579708 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -12,6 +12,7 @@
- #ifndef __LINUX_LEDS_H_INCLUDED
- #define __LINUX_LEDS_H_INCLUDED
- 
-+#include <linux/device.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/rwsem.h>
-@@ -222,6 +223,29 @@ struct led_trigger {
- 	struct list_head  next_trig;
- };
- 
-+#ifdef CONFIG_LEDS_TRIGGERS
-+void led_trigger_set_default(struct led_classdev *led_cdev);
-+void led_trigger_set(struct led_classdev *led_cdev,
-+			struct led_trigger *trigger);
-+void led_trigger_remove(struct led_classdev *led_cdev);
-+
-+static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
-+{
-+	return led_cdev->trigger_data;
-+}
-+
-+#else
-+#define led_trigger_set_default(x) do {} while (0)
-+#define led_trigger_set(x, y) do {} while (0)
-+#define led_trigger_remove(x) do {} while (0)
-+#define led_get_trigger_data(x) (NULL)
-+#endif
-+
-+ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
-+			const char *buf, size_t count);
-+ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
-+			char *buf);
-+
- /* Registration functions for complex triggers */
- extern int led_trigger_register(struct led_trigger *trigger);
- extern void led_trigger_unregister(struct led_trigger *trigger);
--- 
-1.7.9.5
+On 25.03.2015 14:23, Dmitry Torokhov wrote:
+> On March 24, 2015 11:52:54 PM PDT, Florian Echtler <floe@butterbrot.org=
+> wrote:
+>> Currently, I'm setting the interval for input_polldev to 10 ms.
+>> However, with video data being retrieved at the same time, it's quite
+>> possible that one iteration of poll() will take longer than that. Coul=
+d
+>> this ultimately be the reason? What happens if a new poll() call is
+>> scheduled before the previous one completes?
+>=20
+> This can't happen as we schedule the next poll only after current one c=
+ompletes.
+>=20
+Thanks - any other suggestions how to debug such a complete freeze? I
+have the following options enabled in my kernel config:
 
+CONFIG_LOCKUP_DETECTOR=3Dy
+CONFIG_HARDLOCKUP_DETECTOR=3Dy
+CONFIG_DETECT_HUNG_TASK=3Dy
+CONFIG_EARLY_PRINTK=3Dy
+CONFIG_EARLY_PRINTK_DBGP=3Dy
+CONFIG_EARLY_PRINTK_EFI=3Dy
+
+Unfortunately, even after the system is frozen for several minutes, I
+never get to see a panic message. Maybe it's there on the console
+somewhere, but the screen never switches away from X (and as mentioned
+earlier, I think this bug can only be triggered from within X). Network
+also freezes, so I don't think netconsole will help?
+
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--LE0jLcbwgxAHoflE3Sf7QNEnuAsj7DdXc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlUSwecACgkQ7CzyshGvatiHsQCg4S7V+4IqhRFX5SnMs/pVRYaT
+Zj8An3mlIw0f/IghPznFJSbCvBEHA0fZ
+=bOsu
+-----END PGP SIGNATURE-----
+
+--LE0jLcbwgxAHoflE3Sf7QNEnuAsj7DdXc--
