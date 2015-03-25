@@ -1,142 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43999 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56425 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751438AbbCIMhV (ORCPT
+	by vger.kernel.org with ESMTP id S1751888AbbCYW6k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 08:37:21 -0400
-Date: Mon, 9 Mar 2015 14:37:17 +0200
+	Wed, 25 Mar 2015 18:58:40 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH/RFC v12 10/19] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20150309123716.GE11954@valkosipuli.retiisi.org.uk>
-References: <1425485680-8417-1-git-send-email-j.anaszewski@samsung.com>
- <1425485680-8417-11-git-send-email-j.anaszewski@samsung.com>
- <20150309105404.GC11954@valkosipuli.retiisi.org.uk>
- <54FD8FD4.2010305@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54FD8FD4.2010305@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 11/15] omap3isp: Replace many MMIO regions by two
+Date: Thu, 26 Mar 2015 00:57:35 +0200
+Message-Id: <1427324259-18438-12-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+The omap3isp MMIO register block is contiguous in the MMIO register space
+apart from the fact that the ISP IOMMU register block is in the middle of
+the area. Ioremap it at two occasions, and keep the rest of the layout of
+the register space internal to the omap3isp driver.
 
-On Mon, Mar 09, 2015 at 01:19:32PM +0100, Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> Thanks for the review.
-> 
-> On 03/09/2015 11:54 AM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Wed, Mar 04, 2015 at 05:14:31PM +0100, Jacek Anaszewski wrote:
-> >>This patch adds device tree binding documentation for
-> >>the flash cell of the Maxim max77693 multifunctional device.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Cc: Lee Jones <lee.jones@linaro.org>
-> >>Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> >>Cc: Bryan Wu <cooloney@gmail.com>
-> >>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>---
-> >>  Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
-> >>  1 file changed, 61 insertions(+)
-> >>
-> >>diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>index 38e6440..ab8fbd5 100644
-> >>--- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> >>@@ -76,7 +76,53 @@ Optional properties:
-> >>      Valid values: 4300000, 4700000, 4800000, 4900000
-> >>      Default: 4300000
-> >>
-> >>+- led : the LED submodule device node
-> >>+
-> >>+There are two LED outputs available - FLED1 and FLED2. Each of them can
-> >>+control a separate LED or they can be connected together to double
-> >>+the maximum current for a single connected LED. One LED is represented
-> >>+by one child node.
-> >>+
-> >>+Required properties:
-> >>+- compatible : Must be "maxim,max77693-led".
-> >>+
-> >>+Optional properties:
-> >>+- maxim,trigger-type : Flash trigger type.
-> >>+	Possible trigger types:
-> >>+		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-> >>+			the flash,
-> >>+		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-> >>+			of the flash.
-> >>+- maxim,boost-mode :
-> >>+	In boost mode the device can produce up to 1.2A of total current
-> >>+	on both outputs. The maximum current on each output is reduced
-> >>+	to 625mA then. If not enabled explicitly, boost setting defaults to
-> >>+	LEDS_BOOST_FIXED in case both current sources are used.
-> >>+	Possible values:
-> >>+		LEDS_BOOST_OFF (0) - no boost,
-> >>+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-> >>+		LEDS_BOOST_FIXED (2) - fixed mode.
-> >>+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-> >>+- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-> >>+	if chip estimates that system voltage could drop below this level due
-> >>+	to flash power consumption.
-> >>+
-> >>+Required properties of the LED child node:
-> >>+- label : see Documentation/devicetree/bindings/leds/common.txt
-> >
-> >According to ePAPR, label is "a human readable string describing a device".
-> >There's no requirement that this would be unique, for instance. If you have
-> >a camera flash LED, there's necessarily no meaningful label for it, as it
-> >doesn't really tell the user anything (vs. HDD activity LED, for instance).
-> >
-> >I think I'd make this optional.
-> 
-> OK.
-> 
-> >What comes to entity naming in Media controller, the label isn't enough. As
-> >we haven't yet fully agreed on how to name the entities in the future, I'd
-> >propose sticking to current practices: chip name (and optional numerical LED
-> >ID) followed by the I2C address. The name should be specified by the driver.
-> >
-> >Do you have other than I2C busses required by the current drivers?
-> 
-> I have AAT1290 device driven through GPIOs. There was also other driver,
-> for a similar device, submitted few days ago to linux-leds list.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/devices.c         |   66 +------------------
+ arch/arm/mach-omap2/omap34xx.h        |   36 +----------
+ drivers/media/platform/omap3isp/isp.c |  113 +++++++++++++++++----------------
+ drivers/media/platform/omap3isp/isp.h |    4 +-
+ 4 files changed, 66 insertions(+), 153 deletions(-)
 
-The problem indeed is defining a stable and unique identifier for a device
-in a system. In context of your patchset, I think this mostly matters in the
-V4L2 flash API wrapper patch.
-
-GPIO controlled devices are little bit more troublesome, as GPIO numbers
-alone aren't necessarily stable, but depend on the probing order. Well, i2c
-controllers could also be registered dynamically. The same goes for PCI
-devices, too, for instance.
-
-Most i2c adapters have a static id, and PCI devices have a stable bus
-address (unless system configuration is modified by e.g. adding or removing
-OTHER devices).
-
-I wonder if this could be resolved on OF-based systems by adding a string
-property, say, device name, whenever where are more than one device of a
-kind in the system. The string could just contain a numeric value, say 0 or
-1.
-
-Cc Hans and Laurent.
-
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index e945957..990338f 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
+ static struct resource omap3isp_resources[] = {
+ 	{
+ 		.start		= OMAP3430_ISP_BASE,
+-		.end		= OMAP3430_ISP_END,
++		.end		= OMAP3430_ISP_BASE + 0x12fc,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= OMAP3430_ISP_CCP2_BASE,
+-		.end		= OMAP3430_ISP_CCP2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CCDC_BASE,
+-		.end		= OMAP3430_ISP_CCDC_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_HIST_BASE,
+-		.end		= OMAP3430_ISP_HIST_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_H3A_BASE,
+-		.end		= OMAP3430_ISP_H3A_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_PREV_BASE,
+-		.end		= OMAP3430_ISP_PREV_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_RESZ_BASE,
+-		.end		= OMAP3430_ISP_RESZ_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_SBL_BASE,
+-		.end		= OMAP3430_ISP_SBL_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
+-		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_CSIPHY2_BASE,
+-		.end		= OMAP3430_ISP_CSIPHY2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
+-		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
+-		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSIPHY1_BASE,
+-		.end		= OMAP3630_ISP_CSIPHY1_END,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
+-		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
++		.start		= OMAP3430_ISP_BASE2,
++		.end		= OMAP3430_ISP_BASE2 + 0x0600,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
+index c0d1b4b..ed0024d 100644
+--- a/arch/arm/mach-omap2/omap34xx.h
++++ b/arch/arm/mach-omap2/omap34xx.h
+@@ -46,39 +46,9 @@
+ 
+ #define OMAP34XX_IC_BASE	0x48200000
+ 
+-#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+-#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
+-#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
+-#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
+-#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
+-#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
+-#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
+-#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
+-#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
+-#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
+-#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
+-#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
+-#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
+-#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
+-#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
+-#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+-
+-#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
+-#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
+-#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
+-#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
+-#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
+-#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
+-#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
+-#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
+-#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
+-#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
+-#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
+-#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
+-#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
+-#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
+-#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
+-#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
++#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
++#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
++#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
+ 
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 83b4368..992e74c 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
+ static const struct isp_res_mapping isp_res_maps[] = {
+ 	{
+ 		.isp_rev = ISP_REVISION_2_0,
+-		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+-		       1 << OMAP3_ISP_IOMEM_CCP2 |
+-		       1 << OMAP3_ISP_IOMEM_CCDC |
+-		       1 << OMAP3_ISP_IOMEM_HIST |
+-		       1 << OMAP3_ISP_IOMEM_H3A |
+-		       1 << OMAP3_ISP_IOMEM_PREV |
+-		       1 << OMAP3_ISP_IOMEM_RESZ |
+-		       1 << OMAP3_ISP_IOMEM_SBL |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
++		.offset = {
++			/* first MMIO area */
++			0x0000, /* base, len 0x0070 */
++			0x0400, /* ccp2, len 0x01f0 */
++			0x0600, /* ccdc, len 0x00a8 */
++			0x0a00, /* hist, len 0x0048 */
++			0x0c00, /* h3a, len 0x0060 */
++			0x0e00, /* preview, len 0x00a0 */
++			0x1000, /* resizer, len 0x00ac */
++			0x1200, /* sbl, len 0x00fc */
++			/* second MMIO area */
++			0x0000, /* csi2a, len 0x0170 */
++			0x0170, /* csiphy2, len 0x000c */
++		},
+ 		.syscon_offset = 0xdc,
+ 		.phy_type = ISP_PHY_TYPE_3430,
+ 	},
+ 	{
+ 		.isp_rev = ISP_REVISION_15_0,
+-		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
+-		       1 << OMAP3_ISP_IOMEM_CCP2 |
+-		       1 << OMAP3_ISP_IOMEM_CCDC |
+-		       1 << OMAP3_ISP_IOMEM_HIST |
+-		       1 << OMAP3_ISP_IOMEM_H3A |
+-		       1 << OMAP3_ISP_IOMEM_PREV |
+-		       1 << OMAP3_ISP_IOMEM_RESZ |
+-		       1 << OMAP3_ISP_IOMEM_SBL |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
++		.offset = {
++			/* first MMIO area */
++			0x0000, /* base, len 0x0070 */
++			0x0400, /* ccp2, len 0x01f0 */
++			0x0600, /* ccdc, len 0x00a8 */
++			0x0a00, /* hist, len 0x0048 */
++			0x0c00, /* h3a, len 0x0060 */
++			0x0e00, /* preview, len 0x00a0 */
++			0x1000, /* resizer, len 0x00ac */
++			0x1200, /* sbl, len 0x00fc */
++			/* second MMIO area */
++			0x0000, /* csi2a, len 0x0170 (1st area) */
++			0x0170, /* csiphy2, len 0x000c */
++			0x01c0, /* csi2a, len 0x0040 (2nd area) */
++			0x0400, /* csi2c, len 0x0170 (1st area) */
++			0x0570, /* csiphy1, len 0x000c */
++			0x05c0, /* csi2c, len 0x0040 (2nd area) */
++		},
+ 		.syscon_offset = 0x2f0,
+ 		.phy_type = ISP_PHY_TYPE_3630,
+ 	},
+@@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int isp_map_mem_resource(struct platform_device *pdev,
+-				struct isp_device *isp,
+-				enum isp_mem_resources res)
+-{
+-	struct resource *mem;
+-
+-	/* request the mem region for the camera registers */
+-
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
+-
+-	/* map the region */
+-	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
+-	if (IS_ERR(isp->mmio_base[res]))
+-		return PTR_ERR(isp->mmio_base[res]);
+-
+-	if (res == OMAP3_ISP_IOMEM_HIST)
+-		isp->mmio_hist_base_phys = mem->start;
+-
+-	return 0;
+-}
+-
+ /*
+  * isp_probe - Probe ISP platform device
+  * @pdev: Pointer to ISP platform device
+@@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
+ {
+ 	struct isp_platform_data *pdata = pdev->dev.platform_data;
+ 	struct isp_device *isp;
++	struct resource *mem;
+ 	int ret;
+ 	int i, m;
+ 
+@@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
+ 	 *
+ 	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
+ 	 * manually to read the revision before calling __omap3isp_get().
++	 *
++	 * Start by mapping the ISP MMIO area, which is in two pieces.
++	 * The ISP IOMMU is in between. Map both now, and fill in the
++	 * ISP revision specific portions a little later in the
++	 * function.
+ 	 */
+-	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
+-	if (ret < 0)
+-		goto error;
++	for (i = 0; i < 2; i++) {
++		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
++
++		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
++		isp->mmio_base[map_idx] =
++			devm_ioremap_resource(isp->dev, mem);
++		if (IS_ERR(isp->mmio_base[map_idx]))
++			return PTR_ERR(isp->mmio_base[map_idx]);
++	}
+ 
+ 	ret = isp_get_clocks(isp);
+ 	if (ret < 0)
+@@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
+ 		goto error_isp;
+ 	}
+ 
+-	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
+-		if (isp_res_maps[m].map & 1 << i) {
+-			ret = isp_map_mem_resource(pdev, isp, i);
+-			if (ret)
+-				goto error_isp;
+-		}
+-	}
++	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
++		isp->mmio_base[i] =
++			isp->mmio_base[0] + isp_res_maps[m].offset[i];
++
++	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
++		isp->mmio_base[i] =
++			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
++			+ isp_res_maps[m].offset[i];
++
++	isp->mmio_hist_base_phys =
++		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
+ 
+ 	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
+ 	if (IS_ERR(isp->syscon)) {
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 03d2129..dcb7d20 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -99,7 +99,7 @@ struct regmap;
+ /*
+  * struct isp_res_mapping - Map ISP io resources to ISP revision.
+  * @isp_rev: ISP_REVISION_x_x
+- * @map: bitmap for enum isp_mem_resources
++ * @offset: register offsets of various ISP sub-blocks
+  * @syscon_offset: offset of the syscon register for 343x / 3630
+  *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
+  *	    from the syscon base address
+@@ -107,7 +107,7 @@ struct regmap;
+  */
+ struct isp_res_mapping {
+ 	u32 isp_rev;
+-	u32 map;
++	u32 offset[OMAP3_ISP_IOMEM_LAST];
+ 	u32 syscon_offset;
+ 	u32 phy_type;
+ };
 -- 
-Kind regards,
+1.7.10.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
