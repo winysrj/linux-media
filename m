@@ -1,74 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54367 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755488AbbCRLaw (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:33678 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbbCYOM5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2015 07:30:52 -0400
-Message-ID: <1426678247.30356.9.camel@pengutronix.de>
-Subject: Re: [PATCH 10/12] [media] coda: fail to start streaming if
- userspace set invalid formats
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jhautbois@gmail.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Peter Seiderer <ps.report@gmx.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>
-Date: Wed, 18 Mar 2015 12:30:47 +0100
-In-Reply-To: <CAL8zT=iEZC4beWdMQD-vagRh9E7nwqprqrtRB7FVR9wpre45OQ@mail.gmail.com>
-References: <1424704813-20792-1-git-send-email-p.zabel@pengutronix.de>
-	 <1424704813-20792-11-git-send-email-p.zabel@pengutronix.de>
-	 <CAL8zT=iEZC4beWdMQD-vagRh9E7nwqprqrtRB7FVR9wpre45OQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 25 Mar 2015 10:12:57 -0400
+Received: by wixw10 with SMTP id w10so75526751wix.0
+        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2015 07:12:56 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: whittenburg@gmail.com
+In-Reply-To: <20150324235148.GC18321@valkosipuli.retiisi.org.uk>
+References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
+	<20150324235148.GC18321@valkosipuli.retiisi.org.uk>
+Date: Wed, 25 Mar 2015 09:12:56 -0500
+Message-ID: <CABcw_O=Gv3xvnRU9LvVUaCKEEkLFFrhpqLZ9FZ89XRAp0_RR5Q@mail.gmail.com>
+Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
+From: Chris Whittenburg <whittenburg@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 27.02.2015, 09:59 +0100 schrieb Jean-Michel Hautbois:
-> Hi Philipp,
-> 
-> 2015-02-23 16:20 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/coda/coda-common.c | 13 ++++++++++++-
-> >  1 file changed, 12 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> > index b42ccfc..4441179 100644
-> > --- a/drivers/media/platform/coda/coda-common.c
-> > +++ b/drivers/media/platform/coda/coda-common.c
-> > @@ -1282,12 +1282,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
-> >         if (!(ctx->streamon_out & ctx->streamon_cap))
-> >                 return 0;
-> >
-> > +       q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> > +       if ((q_data_src->width != q_data_dst->width &&
-> > +            round_up(q_data_src->width, 16) != q_data_dst->width) ||
-> > +           (q_data_src->height != q_data_dst->height &&
-> > +            round_up(q_data_src->height, 16) != q_data_dst->height)) {
-> > +               v4l2_err(v4l2_dev, "can't convert %dx%d to %dx%d\n",
-> > +                        q_data_src->width, q_data_src->height,
-> > +                        q_data_dst->width, q_data_dst->height);
-> > +               ret = -EINVAL;
-> > +               goto err;
-> > +       }
-> > +
-> 
-> Shouldn't the driver check on queues related to encoding or decoding only ?
-> We don't need to set correct width/height from userspace if we are
-> encoding, or it should be done by s_fmt itself.
+Hi Sakari,
 
-Good point, the notes from the V4L2 codec API session during ELCE2014
-say:
-   "the coded format is always the master; changing format on it
-    changes the set of supported formats on the other queue;"
+Thanks for the reply.
 
-Since an unsupported format shouldn't be selected, this implies that
-S_FMT on an encoder capture queue should possibly change the format on
-the output queue at the same time.
-If I enforce compatible output and capture formats during S_FMT,
-this check is indeed not needed.
+On Tue, Mar 24, 2015 at 6:51 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Do you know if the sensor has black level correction enabled? It appears to
+> have one, but I'm not completely sure what it does there. I'd check that it
+> is indeed enabled.
 
-regards
-Philipp
+The ar0130cs does have black level correction enabled by default.
 
+My thought is that since the 12-bit data from the CCDC looked ok, that
+it was something outside the sensor itself.
+
+>> I've captured the 12-bit data from the CCDC, downconverted it to Y8,
+>> and verified it looks ok, and is not washed out, so I'm suspecting the
+>> isp previewer is doing something wrong in the simple Y10 to UYVY
+>> conversion.
+>
+> Not necessarily wrong, the black level correction might be enabled by
+> default, with the default configuration which works for most sensors (64 for
+> 10-bit data, 16 for 8-bit etc.).
+
+Ok, I will check this.  You are referring to the "Camera ISP VPBE
+Preview Black Adjustment" which is controlled by PRV_BLKADJOFF
+register?
+
+I also found that there are contrast and brightness settings in the
+previewer which can be adjusted.  I'm not changing them from defaults,
+so I thought the "Y" values would just get truncated to 8 bits and
+mapped into the UYVY without being significantly altered.
+
+Would your thought be the black level is more likely the issue rather
+than brightness/contrast?
+
+Is there anywhere else I should look?
+
+Thanks,
+Chris
