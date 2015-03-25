@@ -1,96 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55162 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbbCYXTR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46630 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751876AbbCYAkl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 19:19:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [GIT PULL FOR v4.1] [v2] OMAP3 ISP DT support & other fixes
-Date: Thu, 26 Mar 2015 01:19:30 +0200
-Message-ID: <2471603.f3UFYjkmSW@avalon>
-In-Reply-To: <3472666.1mv3SyG49o@avalon>
-References: <3472666.1mv3SyG49o@avalon>
+	Tue, 24 Mar 2015 20:40:41 -0400
+Date: Wed, 25 Mar 2015 02:40:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v1 07/11] media: Add registration helpers for V4L2 flash
+ sub-devices
+Message-ID: <20150325004037.GE18321@valkosipuli.retiisi.org.uk>
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-8-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1426863811-12516-8-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jacek,
 
-This pull request supersedes "[GIT PULL FOR v4.1] OMAP3 ISP fixes". It 
-contains all the patches of the previous pull request, plus OMAP3 ISP DT 
-support.
+One more comment on this one:
 
-Board code and platform changes have been acked by the appropriate maintainers 
-to the best of my knowledge.
+On Fri, Mar 20, 2015 at 04:03:27PM +0100, Jacek Anaszewski wrote:
+...
+> +struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
+> +				   const struct v4l2_flash_ops *ops,
+> +				   struct v4l2_flash_ctrl_config *config)
+> +{
+> +	struct v4l2_flash *v4l2_flash;
+> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+> +	struct v4l2_subdev *sd;
+> +	int ret;
+> +
+> +	if (!fled_cdev || !ops || !config)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	v4l2_flash = devm_kzalloc(led_cdev->dev, sizeof(*v4l2_flash),
+> +					GFP_KERNEL);
+> +	if (!v4l2_flash)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	sd = &v4l2_flash->sd;
+> +	v4l2_flash->fled_cdev = fled_cdev;
+> +	v4l2_flash->ops = ops;
+> +	sd->dev = led_cdev->dev;
+> +	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
+> +	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	strlcpy(sd->name, config->dev_name, sizeof(sd->name));
+> +
+> +	ret = media_entity_init(&sd->entity, 0, NULL, 0);
+> +	if (ret < 0)
+> +		return ERR_PTR(ret);
+> +
+> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +
+> +	ret = v4l2_flash_init_controls(v4l2_flash, config);
+> +	if (ret < 0)
+> +		return ERR_PTR(ret);
+> +
+> +	of_node_get(led_cdev->dev->of_node);
+> +
+> +	ret = v4l2_async_register_subdev(sd);
+> +	if (ret < 0)
+> +		goto err_async_register_sd;
+> +
+> +	return v4l2_flash;
+> +
+> +err_async_register_sd:
+> +	of_node_put(led_cdev->dev->of_node);
+> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> +	media_entity_cleanup(&sd->entity);
+> +
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_flash_init);
+> +
+> +void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
+> +{
+> +	struct v4l2_subdev *sd = &v4l2_flash->sd;
+> +	struct led_classdev *led_cdev = &v4l2_flash->fled_cdev->led_cdev;
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	of_node_put(led_cdev->dev->of_node);
+> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> +	media_entity_cleanup(&sd->entity);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_flash_release);
 
-The following changes since commit 3d945be05ac1e806af075e9315bc1b3409adae2b:
-
-  [media] mn88473: simplify bandwidth registers setting code (2015-03-03 
-13:09:12 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to af62d8469b359ccd2d3b9bab5fa147074d4a8619:
-
-  omap3isp: Deprecate platform data support (2015-03-26 01:09:16 +0200)
-
-----------------------------------------------------------------
-Lad, Prabhakar (1):
-      media: omap3isp: video: drop setting of vb2 buffer state to 
-VB2_BUF_STATE_ACTIVE
-
-Laurent Pinchart (4):
-      media: omap3isp: video: Don't call vb2 mmap with queue lock held
-      media: omap3isp: video: Use v4l2_get_timestamp()
-      media: omap3isp: hist: Move histogram DMA to DMA engine
-      omap3isp: DT support for clocks
-
-Sakari Ailus (14):
-      omap3isp: Fix error handling in probe
-      omap3isp: Avoid a BUG_ON() in media_entity_create_link()
-      omap3isp: Separate external link creation from platform data parsing
-      omap3isp: Platform data could be NULL
-      omap3isp: Refactor device configuration structs for Device Tree
-      omap3isp: Rename regulators to better suit the Device Tree
-      omap3isp: Calculate vpclk_div for CSI-2
-      omap3isp: Replace mmio_base_phys array with the histogram block base
-      omap3isp: Move the syscon register out of the ISP register maps
-      omap3isp: Replace many MMIO regions by two
-      dt: bindings: Add lane-polarity property to endpoint nodes
-      v4l: of: Read lane-polarities endpoint property
-      omap3isp: Add support for the Device Tree
-      omap3isp: Deprecate platform data support
-
- .../devicetree/bindings/media/video-interfaces.txt      |   6 +
- arch/arm/mach-omap2/board-cm-t35.c                      |  57 +--
- arch/arm/mach-omap2/devices.c                           |  76 +---
- arch/arm/mach-omap2/omap34xx.h                          |  36 +-
- drivers/media/platform/Kconfig                          |   1 +
- drivers/media/platform/omap3isp/isp.c                   | 555 +++++++++++----
- drivers/media/platform/omap3isp/isp.h                   |  42 +-
- drivers/media/platform/omap3isp/ispccdc.c               |  26 +-
- drivers/media/platform/omap3isp/ispccp2.c               |  22 +-
- drivers/media/platform/omap3isp/ispcsi2.c               |  14 +-
- drivers/media/platform/omap3isp/ispcsiphy.c             |  48 +-
- drivers/media/platform/omap3isp/isph3a_aewb.c           |   1 -
- drivers/media/platform/omap3isp/isph3a_af.c             |   1 -
- drivers/media/platform/omap3isp/isphist.c               | 127 +++---
- drivers/media/platform/omap3isp/ispstat.c               |   2 +-
- drivers/media/platform/omap3isp/ispstat.h               |   5 +-
- drivers/media/platform/omap3isp/ispvideo.c              |  20 +-
- drivers/media/v4l2-core/v4l2-of.c                       |  41 +-
- include/media/omap3isp.h                                |  36 +-
- include/media/v4l2-of.h                                 |   3 +
- 20 files changed, 665 insertions(+), 454 deletions(-)
+It'd be very nice if v4l2_flash_release() could graciously behave with NULL
+or negative error code as an argument, such as those produced by
+v4l2_flash_init(). This makes error handling a lot easier in drivers.
 
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
