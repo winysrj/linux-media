@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:23480 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754629AbbCCOdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 09:33:18 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKN00HRE4FG1N60@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Mar 2015 23:33:16 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com
-Subject: [PATCH] s5p-mfc: Fix NULL pointer dereference caused by not set q->lock
-Date: Tue, 03 Mar 2015 15:32:58 +0100
-Message-id: <1425393178-27940-1-git-send-email-k.debski@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32310 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865AbbCYHaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2015 03:30:00 -0400
+Message-id: <551263F4.9030903@samsung.com>
+Date: Wed, 25 Mar 2015 08:29:56 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v1 07/11] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-8-git-send-email-j.anaszewski@samsung.com>
+ <20150322002229.GG16613@valkosipuli.retiisi.org.uk>
+ <55102C5A.8060206@samsung.com>
+ <20150323223546.GQ16613@valkosipuli.retiisi.org.uk>
+ <551121B9.10905@samsung.com>
+ <20150325010037.GH18321@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150325010037.GH18321@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch "media: s5p-mfc: use vb2_ops_wait_prepare/finish helper"
-(654a731be1a0b6f606f3f3d12b50db08f2ae3c3) introduced a kernel panic.
-The q->lock was set for just one queue, the other was not set thus causing
-a NULL pointer dereference.
+Hi Sakari,
 
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    1 +
- 1 file changed, 1 insertion(+)
+On 03/25/2015 02:00 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Tue, Mar 24, 2015 at 09:35:05AM +0100, Jacek Anaszewski wrote:
+> ...
+>>>>>> diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
+>>>>>> new file mode 100644
+>>>>>> index 0000000..804c2e4
+>>>>>> --- /dev/null
+>>>>>> +++ b/drivers/media/v4l2-core/v4l2-flash.c
+>>>>>> @@ -0,0 +1,607 @@
+>>>>>> +/*
+>>>>>> + * V4L2 Flash LED sub-device registration helpers.
+>>>>>> + *
+>>>>>> + *	Copyright (C) 2015 Samsung Electronics Co., Ltd
+>>>>>> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>>>> + *
+>>>>>> + * This program is free software; you can redistribute it and/or modify
+>>>>>> + * it under the terms of the GNU General Public License version 2 as
+>>>>>> + * published by the Free Software Foundation.
+>>>>>> + */
+>>>>>> +
+>>>>>> +#include <linux/led-class-flash.h>
+>>>>>> +#include <linux/module.h>
+>>>>>> +#include <linux/mutex.h>
+>>>>>> +#include <linux/of.h>
+>>>>>> +#include <linux/slab.h>
+>>>>>> +#include <linux/types.h>
+>>>>>> +#include <media/v4l2-flash.h>
+>>>>>> +#include "../../leds/leds.h"
+>>>>>
+>>>>> What do you need from leds.h? Shouldn't this be e.g. under include/linux
+>>>>> instead?
+>>
+>> I need led_trigger_remove function.
+>
+> It's exported but defined in what is obviously a private header file to the
+> framework. Could it be moved to include/linux/leds.h instead?
+>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 9fe4d90..8333fbc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -833,6 +833,7 @@ static int s5p_mfc_open(struct file *file)
- 	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
- 	q->io_modes = VB2_MMAP;
- 	q->drv_priv = &ctx->fh;
-+	q->lock = &dev->mfc_mutex;
- 	if (vdev == dev->vfd_dec) {
- 		q->io_modes = VB2_MMAP;
- 		q->ops = get_dec_queue_ops();
+I guess so. I'll try to create a suitable patch.
+
 -- 
-1.7.9.5
-
+Best Regards,
+Jacek Anaszewski
