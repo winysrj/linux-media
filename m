@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:47050 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751188AbbCNCS4 (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:36541 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413AbbCYNXS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2015 22:18:56 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	Julia.Lawall@lip6.fr, laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
-Subject: [PATCH] media: au0828 - add vidq busy checks to s_std and s_input
-Date: Fri, 13 Mar 2015 20:18:43 -0600
-Message-Id: <1426299523-14718-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 25 Mar 2015 09:23:18 -0400
+In-Reply-To: <43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
+References: <550FFFB2.9020400@butterbrot.org> <55103587.3080901@butterbrot.org> <43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race condition)?
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Wed, 25 Mar 2015 06:23:09 -0700
+To: Florian Echtler <floe@butterbrot.org>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 s_std and s_input are missing queue busy checks. Add
-vb2_is_busy() calls to s_std and s_input and return -EBUSY
-if found busy.
+On March 24, 2015 11:52:54 PM PDT, Florian Echtler <floe@butterbrot.org> wrote:
+>Sorry for the continued noise, but this bug/crash is proving quite
+>difficult to nail down.
+>
+>Currently, I'm setting the interval for input_polldev to 10 ms.
+>However, with video data being retrieved at the same time, it's quite
+>possible that one iteration of poll() will take longer than that. Could
+>this ultimately be the reason? What happens if a new poll() call is
+>scheduled before the previous one completes?
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+This can't happen as we schedule the next poll only after current one completes.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index f47ee90..42c49c2 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1214,6 +1214,11 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	if (norm == dev->std)
- 		return 0;
- 
-+	if (vb2_is_busy(&dev->vb_vidq)) {
-+		pr_info("%s queue busy\n", __func__);
-+		return -EBUSY;
-+	}
-+
- 	if (dev->streaming_users > 0)
- 		return -EBUSY;
- 
-@@ -1364,6 +1369,14 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
- 		return -EINVAL;
- 	if (AUVI_INPUT(index).type == 0)
- 		return -EINVAL;
-+	/*
-+	 * Changing the input implies a format change, which is not allowed
-+	 * while buffers for use with streaming have already been allocated.
-+	*/
-+	if (vb2_is_busy(&dev->vb_vidq)) {
-+		pr_info("%s queue busy\n", __func__);
-+		return -EBUSY;
-+	}
- 	dev->ctrl_input = index;
- 	au0828_s_input(dev, index);
- 	return 0;
+Hi Florian,
+Thanks.
+
 -- 
-2.1.0
-
+Dmitry
