@@ -1,178 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:38123 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752786AbbCHOlL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2015 10:41:11 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: adi-buildroot-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 07/17] media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
-Date: Sun,  8 Mar 2015 14:40:43 +0000
-Message-Id: <1425825653-14768-8-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:36305 "EHLO
+	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718AbbCZJSn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Mar 2015 05:18:43 -0400
+MIME-Version: 1.0
 In-Reply-To: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
 References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+Date: Thu, 26 Mar 2015 17:18:42 +0800
+Message-ID: <CAHG8p1AZMnV_ZLA1Ou=wejxwaHRObX1aAgO=xbXiwwEsJZ9EZA@mail.gmail.com>
+Subject: Re: [PATCH v4 00/17] media: blackfin: bfin_capture enhancements
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Lad and Hans,
 
-this patch adds support to use v4l2_fh_open() and vb2_fop_release,
-which allows to drop driver specific struct bcap_fh, as this is handled
-by core.
+2015-03-08 22:40 GMT+08:00 Lad Prabhakar <prabhakar.csengg@gmail.com>:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>
+> This patch series, enhances blackfin capture driver with
+> vb2 helpers.
+>
+> Changes for v4:
+> 1: Improved commit message for path 4/17 and 5/17.
+> 2: Added Ack's from Scott to patches 1-15
+> 3: Two new patches 16/17 and 17/17
+>
+> Lad, Prabhakar (17):
+>   media: blackfin: bfin_capture: drop buf_init() callback
+>   media: blackfin: bfin_capture: release buffers in case
+>     start_streaming() call back fails
+>   media: blackfin: bfin_capture: set min_buffers_needed
+>   media: blackfin: bfin_capture: set vb2 buffer field
+>   media: blackfin: bfin_capture: improve queue_setup() callback
+>   media: blackfin: bfin_capture: use vb2_fop_mmap/poll
+>   media: blackfin: bfin_capture: use v4l2_fh_open and vb2_fop_release
+>   media: blackfin: bfin_capture: use vb2_ioctl_* helpers
+>   media: blackfin: bfin_capture: make sure all buffers are returned on
+>     stop_streaming() callback
+>   media: blackfin: bfin_capture: return -ENODATA for *std calls
+>   media: blackfin: bfin_capture: return -ENODATA for *dv_timings calls
+>   media: blackfin: bfin_capture: add support for vidioc_create_bufs
+>   media: blackfin: bfin_capture: add support for VB2_DMABUF
+>   media: blackfin: bfin_capture: add support for VIDIOC_EXPBUF
+>   media: blackfin: bfin_capture: set v4l2 buffer sequence
+>   media: blackfin: bfin_capture: drop bcap_get_unmapped_area()
+>   media: blackfin: bfin_capture: embed video_device struct in
+>     bcap_device
+>
+>  drivers/media/platform/blackfin/bfin_capture.c | 348 ++++++++-----------------
+>  1 file changed, 103 insertions(+), 245 deletions(-)
+>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+for patch 16/17,
 Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
 Tested-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 79 +-------------------------
- 1 file changed, 2 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 84827d2..01e778d 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -105,12 +105,6 @@ struct bcap_device {
- 	bool stop;
- };
- 
--struct bcap_fh {
--	struct v4l2_fh fh;
--	/* indicates whether this file handle is doing IO */
--	bool io_allowed;
--};
--
- static const struct bcap_format bcap_formats[] = {
- 	{
- 		.desc        = "YCbCr 4:2:2 Interleaved UYVY",
-@@ -200,50 +194,6 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
- 	bcap_dev->sensor_formats = NULL;
- }
- 
--static int bcap_open(struct file *file)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct video_device *vfd = bcap_dev->video_dev;
--	struct bcap_fh *bcap_fh;
--
--	if (!bcap_dev->sd) {
--		v4l2_err(&bcap_dev->v4l2_dev, "No sub device registered\n");
--		return -ENODEV;
--	}
--
--	bcap_fh = kzalloc(sizeof(*bcap_fh), GFP_KERNEL);
--	if (!bcap_fh) {
--		v4l2_err(&bcap_dev->v4l2_dev,
--			 "unable to allocate memory for file handle object\n");
--		return -ENOMEM;
--	}
--
--	v4l2_fh_init(&bcap_fh->fh, vfd);
--
--	/* store pointer to v4l2_fh in private_data member of file */
--	file->private_data = &bcap_fh->fh;
--	v4l2_fh_add(&bcap_fh->fh);
--	bcap_fh->io_allowed = false;
--	return 0;
--}
--
--static int bcap_release(struct file *file)
--{
--	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	/* if this instance is doing IO */
--	if (bcap_fh->io_allowed)
--		vb2_queue_release(&bcap_dev->buffer_queue);
--
--	file->private_data = NULL;
--	v4l2_fh_del(&bcap_fh->fh);
--	v4l2_fh_exit(&bcap_fh->fh);
--	kfree(bcap_fh);
--	return 0;
--}
--
- #ifndef CONFIG_MMU
- static unsigned long bcap_get_unmapped_area(struct file *file,
- 					    unsigned long addr,
-@@ -436,13 +386,6 @@ static int bcap_reqbufs(struct file *file, void *priv,
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
- 	struct vb2_queue *vq = &bcap_dev->buffer_queue;
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (vb2_is_busy(vq))
--		return -EBUSY;
--
--	bcap_fh->io_allowed = true;
- 
- 	return vb2_reqbufs(vq, req_buf);
- }
-@@ -459,11 +402,6 @@ static int bcap_qbuf(struct file *file, void *priv,
- 			struct v4l2_buffer *buf)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (!bcap_fh->io_allowed)
--		return -EBUSY;
- 
- 	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
- }
-@@ -472,11 +410,6 @@ static int bcap_dqbuf(struct file *file, void *priv,
- 			struct v4l2_buffer *buf)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
--	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
--
--	if (!bcap_fh->io_allowed)
--		return -EBUSY;
- 
- 	return vb2_dqbuf(&bcap_dev->buffer_queue,
- 				buf, file->f_flags & O_NONBLOCK);
-@@ -527,14 +460,10 @@ static int bcap_streamon(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct bcap_fh *fh = file->private_data;
- 	struct ppi_if *ppi = bcap_dev->ppi;
- 	dma_addr_t addr;
- 	int ret;
- 
--	if (!fh->io_allowed)
--		return -EBUSY;
--
- 	/* call streamon to start streaming in videobuf */
- 	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
- 	if (ret)
-@@ -568,10 +497,6 @@ static int bcap_streamoff(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct bcap_device *bcap_dev = video_drvdata(file);
--	struct bcap_fh *fh = file->private_data;
--
--	if (!fh->io_allowed)
--		return -EBUSY;
- 
- 	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
- }
-@@ -874,8 +799,8 @@ static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
- 
- static struct v4l2_file_operations bcap_fops = {
- 	.owner = THIS_MODULE,
--	.open = bcap_open,
--	.release = bcap_release,
-+	.open = v4l2_fh_open,
-+	.release = vb2_fop_release,
- 	.unlocked_ioctl = video_ioctl2,
- 	.mmap = vb2_fop_mmap,
- #ifndef CONFIG_MMU
--- 
-2.1.0
+Hans, I tried to use v4l2-compliance but it failed to compile. Sorry
+for telling you it have passed compilation because I forgot to use
+blackfin toolchain.
+./configure --without-jpeg  --host=bfin-linux-uclibc --disable-libv4l
 
+The main problem is there is no argp.h in uClibc, how to disable checking this?
+
+checking for argp.h... no
+configure: error: Cannot continue: argp.h not found
+
+Scott
