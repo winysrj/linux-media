@@ -1,87 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:33321 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbbC2NMC (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58894 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342AbbCZRJH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2015 09:12:02 -0400
-MIME-Version: 1.0
-In-Reply-To: <35670369.0N4n9OXz2m@avalon>
-References: <1426430018-3172-1-git-send-email-ykaneko0929@gmail.com>
-	<CAMuHMdVKmWgcSqLxfgOUFXd2mu-dacvQxLJr7xLaQ=S8Mt0gnw@mail.gmail.com>
-	<35670369.0N4n9OXz2m@avalon>
-Date: Sun, 29 Mar 2015 22:12:01 +0900
-Message-ID: <CAH1o70KBNS9ns4MTf8d2TQ5LO97sQFmitWCceSHbn8U5VFQWhA@mail.gmail.com>
-Subject: Re: [PATCH/RFC] v4l: vsp1: Change VSP1 LIF linebuffer FIFO
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Thu, 26 Mar 2015 13:09:07 -0400
+Message-ID: <1427389745.3599.23.camel@pengutronix.de>
+Subject: Re: [RFC] v4l2-ctl: don't exit on VIDIOC_QUERYCAP error for
+ subdevices
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Date: Thu, 26 Mar 2015 18:09:05 +0100
+In-Reply-To: <5514386C.2020305@xs4all.nl>
+References: <1427361704-32456-1-git-send-email-p.zabel@pengutronix.de>
+	 <5514386C.2020305@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert, Hi Laurent,
+Am Donnerstag, den 26.03.2015, 09:48 -0700 schrieb Hans Verkuil:
+> On 03/26/2015 02:21 AM, Philipp Zabel wrote:
+> > Subdevice nodes don't implement VIDIOC_QUERYCAP. This check doesn't
+> > allow any operations on v42-subdev nodes, such as setting EDID.
+> 
+> Nack because I'm going to create a proper VIDIOC_SUBDEV_QUERYCAP for
+> subdevs. I'm planning to work on this next week.
 
-Thanks for your review. There do indeed seem to be some problems with
-this patch.
-I'm happy get some feedback from the BSP team if you think it is
-worthwhile. Else I suggest we simply drop this issue for now.
+Oh great, thanks for the heads-up.
 
-Thanks,
-Kaneko
+regards
+Philipp
 
-2015-03-18 22:23 GMT+09:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hello,
->
-> On Monday 16 March 2015 09:06:22 Geert Uytterhoeven wrote:
->> On Sun, Mar 15, 2015 at 3:33 PM, Yoshihiro Kaneko wrote:
->> > From: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
->> >
->> > Change to VSPD hardware recommended value.
->> > Purpose is highest pixel clock without underruns.
->> > In the default R-Car Linux BSP config this value is
->> > wrong and therefore there are many underruns.
->> >
->> > Here are the original settings:
->> > HBTH = 1300 (VSPD stops when 1300 pixels are buffered)
->> > LBTH = 200 (VSPD resumes when buffer level has decreased
->> >             below 200 pixels)
->> >
->> > The display underruns can be eliminated
->> > by applying the following settings:
->> > HBTH = 1504
->> > LBTH = 1248
->> >
->> > --- a/drivers/media/platform/vsp1/vsp1_lif.c
->> > +++ b/drivers/media/platform/vsp1/vsp1_lif.c
->> > @@ -44,9 +44,9 @@ static int lif_s_stream(struct v4l2_subdev *subdev, int
->> > enable)
->> >  {
->> >         const struct v4l2_mbus_framefmt *format;
->> >         struct vsp1_lif *lif = to_lif(subdev);
->> > -       unsigned int hbth = 1300;
->> > -       unsigned int obth = 400;
->> > -       unsigned int lbth = 200;
->> > +       unsigned int hbth = 1536;
->> > +       unsigned int obth = 128;
->> > +       unsigned int lbth = 1520;
->>
->> These values don't match the patch description?
->
-> Indeed. And where do these values come from ? A 16 bytes hysteresis is very
-> small, the VSP1 will constantly start and stop. Isn't that bad from a power
-> consumption point of view ?
->
->> BTW, what's the significance of changing obth?
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
