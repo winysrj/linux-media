@@ -1,89 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:55060 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754542AbbCaNze (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 09:55:34 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v4 09/12] Documentation: leds: Add description of v4l2-flash
- sub-device
-Date: Tue, 31 Mar 2015 15:52:45 +0200
-Message-id: <1427809965-25540-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+Received: from smtp205.alice.it ([82.57.200.101]:32490 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752191AbbCZVPy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Mar 2015 17:15:54 -0400
+Date: Thu, 26 Mar 2015 22:10:00 +0100
+From: Antonio Ospite <ao2@ao2.it>
+To: Florian Echtler <floe@butterbrot.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race
+ condition)?
+Message-Id: <20150326221000.86b9c2181e699915ba91d009@ao2.it>
+In-Reply-To: <5512C1E4.7060903@butterbrot.org>
+References: <550FFFB2.9020400@butterbrot.org>
+	<55103587.3080901@butterbrot.org>
+	<43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
+	<DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
+	<5512C1E4.7060903@butterbrot.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extends LED Flash class documention by
-the description of interactions with v4l2-flash sub-device.
+On Wed, 25 Mar 2015 15:10:44 +0100
+Florian Echtler <floe@butterbrot.org> wrote:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-class-flash.txt |   47 +++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+> Hello Dmitry,
+> 
+> On 25.03.2015 14:23, Dmitry Torokhov wrote:
+> > On March 24, 2015 11:52:54 PM PDT, Florian Echtler <floe@butterbrot.org> wrote:
+> >> Currently, I'm setting the interval for input_polldev to 10 ms.
+> >> However, with video data being retrieved at the same time, it's quite
+> >> possible that one iteration of poll() will take longer than that. Could
+> >> this ultimately be the reason? What happens if a new poll() call is
+> >> scheduled before the previous one completes?
+> > 
+> > This can't happen as we schedule the next poll only after current one completes.
+> > 
+> Thanks - any other suggestions how to debug such a complete freeze? I
+> have the following options enabled in my kernel config:
+> 
+> CONFIG_LOCKUP_DETECTOR=y
+> CONFIG_HARDLOCKUP_DETECTOR=y
+> CONFIG_DETECT_HUNG_TASK=y
+> CONFIG_EARLY_PRINTK=y
+> CONFIG_EARLY_PRINTK_DBGP=y
+> CONFIG_EARLY_PRINTK_EFI=y
+> 
+> Unfortunately, even after the system is frozen for several minutes, I
+> never get to see a panic message. Maybe it's there on the console
+> somewhere, but the screen never switches away from X (and as mentioned
+> earlier, I think this bug can only be triggered from within X). Network
+> also freezes, so I don't think netconsole will help?
+> 
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-index 19bb673..ad80eeb 100644
---- a/Documentation/leds/leds-class-flash.txt
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -20,3 +20,50 @@ Following sysfs attributes are exposed for controlling flash LED devices:
- 	- max_flash_timeout
- 	- flash_strobe
- 	- flash_fault
-+
-+
-+V4L2 Flash wrapper for flash LEDs
-+=================================
-+
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config.
-+
-+The driver must call the v4l2_flash_init function to get registered in the
-+V4L2 subsystem. The function takes three arguments:
-+- fled_cdev : the LED Flash class device to wrap
-+- ops : V4L2 specific ops
-+	* external_strobe_set - defines the source of the flash LED strobe -
-+		V4L2_CID_FLASH_STROBE control or external source, typically
-+		a sensor, which makes it possible to synchronise the flash
-+		strobe start with exposure start,
-+	* intensity_to_led_brightness and led_brightness_to_intensity - perform
-+		enum led_brightness <-> V4L2 intensity conversion in a device
-+		specific manner - they can be used for devices with non-linear
-+		LED current scale.
-+- config : configuration for V4L2 Flash sub-device
-+	* dev_name - the name of the media entity, unique in the system,
-+	* flash_faults - bitmask of flash faults that the LED Flash class
-+		device can report; corresponding LED_FAULT* bit definitions are
-+		available in <linux/led-class-flash.h>,
-+	* intensity - constraints for the LED in the TORCH or INDICATOR mode,
-+		in microamperes,
-+	* has_external_strobe - determines whether the flash strobe source
-+		can be switched to external,
-+	* indicator_led - signifies that a led is of indicator type, which
-+		implies that it can have only two V4L2 controls:
-+		V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
-+
-+On remove the v4l2_flash_release function has to be called, which takes one
-+argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-+
-+Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
-+v4l2-flash API.
-+
-+Once the V4L2 sub-device is registered by the driver which created the Media
-+controller device, the sub-device node acts just as a node of a native V4L2
-+flash API device would. The calls are simply routed to the LED flash API.
-+
-+Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
-+unavailable. The interface is re-enabled after the V4L2 Flash sub-device
-+is closed.
+PSTORE + some EFI/ACPI mechanism, maybe?
+http://lwn.net/Articles/434821/
+
+However I have never tried that myself and I don't know if all the
+needed bits are in linux already.
+
+JFTR, on some embedded system I worked on in the past the RAM content
+was preserved across resets and, after a crash, we used to dump the RAM
+from a second stage bootloader (i.e. before lading another linux
+instance) and then scrape the dump to look for the kernel messages, but
+AFAIK this is not going to be reliable —or even possible— on a more
+complex system.
+
+Ciao,
+   Antonio
+
 -- 
-1.7.9.5
+Antonio Ospite
+http://ao2.it
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
