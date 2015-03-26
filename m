@@ -1,51 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50115 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750976AbbCIVXg (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:35992 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402AbbCZFRA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:23:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/18] marvell-ccic: implement control events
-Date: Mon,  9 Mar 2015 22:22:13 +0100
-Message-Id: <1425936143-5658-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 26 Mar 2015 01:17:00 -0400
+Received: by wgra20 with SMTP id a20so51357767wgr.3
+        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2015 22:16:59 -0700 (PDT)
+Message-ID: <3548F3F7551EA910887CD4FCBD568361@ftqriovs>
+From: "kp" <yushan0xie@gmail.com>
+Subject: Re:Re:hi
+Date: Thu, 26 Mar 2015 13:16:26 +0800
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+QsOkc3RlIGhlcnINCmlwaG9uZSA2LDI4MCDigqwNCm1vdG8uY2FtZXJhLCBNb2JpbHRlbGVmb24s
+IGxhcHRvcC5tb3RvLndhdGNoLCBnaXRhcnIgLi4uLi4NCnNqw7ZmYXJ0ZW4gw6RyIGdyYXRpcw0K
+dyBlYiA6ICAgICBlcmVhYWFsIC4gY29tDQo=
 
-Now that this driver uses v4l2_fh, it is trivial to add support for
-control events. Again, this fixes a v4l2-compliance failure.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/marvell-ccic/mcam-core.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 8456017..4d50182 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -24,6 +24,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
- #include <media/ov7670.h>
- #include <media/videobuf2-vmalloc.h>
- #include <media/videobuf2-dma-contig.h>
-@@ -1665,6 +1666,8 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
- 	.vidioc_s_parm		= mcam_vidioc_s_parm,
- 	.vidioc_enum_framesizes = mcam_vidioc_enum_framesizes,
- 	.vidioc_enum_frameintervals = mcam_vidioc_enum_frameintervals,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register	= mcam_vidioc_g_register,
- 	.vidioc_s_register	= mcam_vidioc_s_register,
--- 
-2.1.4
 
