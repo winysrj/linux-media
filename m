@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:35422 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753202AbbC0IOC (ORCPT
+Received: from smtp-out4.electric.net ([192.162.216.181]:50585 "EHLO
+	smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752205AbbC0SUn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 04:14:02 -0400
-Received: by lbdc10 with SMTP id c10so4117372lbd.2
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 01:14:00 -0700 (PDT)
+	Fri, 27 Mar 2015 14:20:43 -0400
+Message-ID: <551565F6.5090909@ad-holdings.co.uk>
+Date: Fri, 27 Mar 2015 14:15:18 +0000
+From: Ian Molton <imolton@ad-holdings.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <551437F6.6010202@xs4all.nl>
-References: <CAPybu_1vgJ3t8GnKDk02SH0KkuEQH-Q-6Ym6gNX7a5H5OekAuA@mail.gmail.com>
- <551437F6.6010202@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 27 Mar 2015 09:13:40 +0100
-Message-ID: <CAPybu_2YBZ2cMDnwOdh8Qf+eQK-B1RRhVt8FscX-9ujkpxWRvA@mail.gmail.com>
-Subject: Re: RFC: New format V4L2_PIX_FMT_Y16_BE ?
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Kamil Debski <k.debski@samsung.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH] [media] coda: drop dma_sync_single_for_device in coda_bitstream_queue
+References: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427301909-17640-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+On 25/03/15 16:45, Philipp Zabel wrote:
+> Issuing a cache flush for the whole bitstream buffer is not optimal in the first
+> place when only a part of it was written. But given that the buffer is mapped in
+> writecombine mode, it is not needed at all.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-On Thu, Mar 26, 2015 at 5:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Tested-by: Ian Molton <imolton@ad-holdings.co.uk>
 
-> Yes, but you might want to wait 1-2 weeks: I'm going to make a patch
-> that moves the ENUMFMT description into the v4l2 core. So you want to be on
-> top of that patch. I posted an RFC patch for that earlier (last week I
-> think).
+> ---
+>   drivers/media/platform/coda/coda-bit.c | 4 ----
+>   1 file changed, 4 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+> index d39789d..d336cb6 100644
+> --- a/drivers/media/platform/coda/coda-bit.c
+> +++ b/drivers/media/platform/coda/coda-bit.c
+> @@ -181,10 +181,6 @@ static int coda_bitstream_queue(struct coda_ctx *ctx,
+>   	if (n < src_size)
+>   		return -ENOSPC;
+>
+> -	dma_sync_single_for_device(&ctx->dev->plat_dev->dev,
+> -				   ctx->bitstream.paddr, ctx->bitstream.size,
+> -				   DMA_TO_DEVICE);
+> -
+>   	src_buf->v4l2_buf.sequence = ctx->qsequence++;
+>
+>   	return 0;
+>
 
-Absolutely no hurry.
-
-My main worry is now this patch:
-
-libv4lconvert: Fix support for Y16 pixel format
-https://patchwork.linuxtv.org/patch/28989/
-
-That fixes the implementation in v4lconvert. I introduced the original
-bug and I don't want that anybody uses that library as a reference of
-how the format should be.
-
-
-
-Thanks!!
-
-
-
--- 
-Ricardo Ribalda
