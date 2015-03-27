@@ -1,83 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52335 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752935AbbCCJJj (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:22310 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753185AbbC0Nu2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2015 04:09:39 -0500
-Message-ID: <54F57A43.30101@xs4all.nl>
-Date: Tue, 03 Mar 2015 10:09:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-CC: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH] media: i2c: s5c73m3: make sure we destroy the mutex
-References: <1425308434-26549-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1425308434-26549-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 27 Mar 2015 09:50:28 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v2 07/11] DT: Add documentation for the Skyworks AAT1290
+Date: Fri, 27 Mar 2015 14:49:41 +0100
+Message-id: <1427464185-27950-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/02/2015 04:00 PM, Lad Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> Make sure to call mutex_destroy() in case of probe failure or module
-> unload.
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-It's not actually necessary to destroy a mutex. Most drivers never do this.
-It only helps a bit in debugging.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   70 ++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-I'll delegate this patch to Kamil, and he can decide whether or not to apply
-this.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> index ee0f57e..da0b3a3 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -1658,7 +1658,6 @@ static int s5c73m3_probe(struct i2c_client *client,
->  	if (ret < 0)
->  		return ret;
->  
-> -	mutex_init(&state->lock);
->  	sd = &state->sensor_sd;
->  	oif_sd = &state->oif_sd;
->  
-> @@ -1695,6 +1694,8 @@ static int s5c73m3_probe(struct i2c_client *client,
->  	if (ret < 0)
->  		return ret;
->  
-> +	mutex_init(&state->lock);
-> +
->  	ret = s5c73m3_configure_gpios(state);
->  	if (ret)
->  		goto out_err;
-> @@ -1754,6 +1755,7 @@ out_err1:
->  	s5c73m3_unregister_spi_driver(state);
->  out_err:
->  	media_entity_cleanup(&sd->entity);
-> +	mutex_destroy(&state->lock);
->  	return ret;
->  }
->  
-> @@ -1772,6 +1774,7 @@ static int s5c73m3_remove(struct i2c_client *client)
->  	media_entity_cleanup(&sensor_sd->entity);
->  
->  	s5c73m3_unregister_spi_driver(state);
-> +	mutex_destroy(&state->lock);
->  
->  	return 0;
->  }
-> 
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..c3df4e9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,70 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++The device is controlled through two pins: FL_EN and EN_SET. The pins when,
++asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
++respectively. In order to add a capability of selecting the strobe signal source
++(e.g. GPIO or ISP) there is an additional switch required, independent of the
++flash chip. The switch is controlled with pin control.
++
++Required properties:
++
++- compatible : Must be "skyworks,aat1290".
++- flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
++- enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
++
++Optional properties:
++- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
++		"default" and "host" must refer to the same pin configuration
++		node, which sets the host as a strobe signal provider. Entry
++		"isp" must refer to the pin configuration node, which sets the
++		ISP as a strobe signal provider.
++
++A discrete LED element connected to the device must be represented by a child
++node - see Documentation/devicetree/bindings/leds/common.txt.
++
++Required properties of the LED child node:
++- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
++		       it can be calculated using following formula:
++		       I = 1A * 162kohm / Rset.
++- flash-timeout-us : Maximum flash timeout in microseconds -
++		     it can be calculated using following formula:
++		     T = 8.82 * 10^9 * Ct.
++
++Optional properties of the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
++
++Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
++a switch that allows for routing strobe signal either from host or from ISP):
++
++#include "exynos4412.dtsi"
++
++aat1290 {
++	compatible = "skyworks,aat1290";
++	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
++	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
++
++	pinctrl-names = "default", "host", "isp";
++	pinctrl-0 = <&camera_flash_host>;
++	pinctrl-1 = <&camera_flash_host>;
++	pinctrl-2 = <&camera_flash_isp>;
++
++	camera_flash: flash-led {
++		label = "aat1290-flash";
++		flash-max-microamp = <1012500>;
++		flash-timeout-us = <1940000>;
++	};
++};
++
++&pinctrl_0 {
++	camera_flash_host: camera-flash-host {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <0>;
++	};
++
++	camera_flash_isp: camera-flash-isp {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <1>;
++	};
++};
+-- 
+1.7.9.5
 
