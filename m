@@ -1,126 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:49351 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:47145 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707AbbCKOFx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2015 10:05:53 -0400
-Date: Wed, 11 Mar 2015 15:05:48 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?B?QXloYW4gS8Ocw4fDnEtNQU7EsFNB?=
-	<ayhan.kucukmanisa@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Aptina MT9V024
-In-Reply-To: <CAF-Najso-kd3dWNMQvPpnWKFeohsYQSjHLLbS8VXonQ1FnH9LA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1503111504070.4181@axis700.grange>
-References: <CAF-NajsBJGtC2RCgzyX6=f8BkYtzFEcLu4q9XOhiE+Lgd+ux+Q@mail.gmail.com>
- <Pine.LNX.4.64.1503082133240.7485@axis700.grange>
- <CAF-NajvjMgZ9X8w=vZVTwVd3FQr4NKMU3Z6pv1d8Y=8a2cdK5A@mail.gmail.com>
- <CAF-Najso-kd3dWNMQvPpnWKFeohsYQSjHLLbS8VXonQ1FnH9LA@mail.gmail.com>
+	id S1751061AbbC0RqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2015 13:46:17 -0400
+Message-ID: <55159766.2010508@iki.fi>
+Date: Fri, 27 Mar 2015 19:46:14 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+To: Ole Ernst <olebowle@gmx.com>, Nibble Max <nibble.max@gmail.com>
+CC: "olli.salonen" <olli.salonen@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: cx23885: DVBSky S952 dvb_register failed err = -22
+References: <5504920C.7080806@gmx.com>, <55055E66.6040600@gmx.com>, <550563B2.9010306@iki.fi>, <201503170953368436904@gmail.com> <201503180940386096906@gmail.com> <55093FFC.9050602@gmx.com> <55105683.40809@iki.fi> <551081CF.3080901@gmx.com> <5510992C.8060608@iki.fi> <551157AB.1090704@gmx.com> <55115E93.7030405@iki.fi> <55117A22.6010302@gmx.com> <5511811A.3010009@iki.fi> <5511C040.7040802@gmx.com> <55159248.6010204@gmx.com>
+In-Reply-To: <55159248.6010204@gmx.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 03/27/2015 07:24 PM, Ole Ernst wrote:
+> Hi Antti,
+>
+> I was able to test your current tree (8a56b6b..754594d) without SCR and
+> the frontends still run into a timeout. There seems to be an issue with
+> the patch in general. Is there something else I can test/try or do you
+> require some debug output?
 
-On Wed, 11 Mar 2015, Ayhan K�~\�~G�~\KMANİSA wrote:
+It is a bit hard to debug remotely... Somehow it must be find out where 
+it starts failing. Is there some I/O communication problem with chips or 
+tuning is failing for some other reason.
 
-> Hi Guennadi,
-> 
-> My sensor Color filter array is RGB Bayer. Can i get image values and save
-> in any image format using v4l2?
+I have only old DS3000/TS2020 USB device and newer DS3103/TS2022 USB 
+device, but no DS3103/TS2020 combination.
 
-The kernel v4l2 doesn't do any pixel format conversions. I'm not sure, but 
-check libv4l, it probably supports Bayer format conversions in the 
-meantime. You just have to pick up your correct colour order. gstreamer 
-might be able to do that too.
+Could you try w_scan for example? Or szap? Some simple commandline tool.
 
-Thanks
-Guennadi
+regards
+Antti
 
-> 
-> Thanks, regards.
-> 
-> ---------------------------------------------------------------------------------------------------
-> Arş. Gör. Ayhan KÜÇÜKMANİSA
-> Kocaeli Üniversitesi, Gömülü Sistemler ve Görüntüleme Sistemleri
-> Laboratuvarı
-> 
-> Res. Asst. Ayhan KÜÇÜKMANİSA
-> Kocaeli University, Laboratory of Embedded and Vision Systems
-> 
-> 2015-03-09 17:06 GMT+02:00 Ayhan KÜÇÜKMANİSA <ayhan.kucukmanisa@gmail.com>:
-> 
-> > Hi Guennadi,
-> >
-> > Thanks for your quick reply. I solved my width problem.  In the attachment
-> > test pattern and normal camera image that i can get now. I think problem
-> > yuv / bayer conversion problem that you said before.
-> >
-> > I get images using mplayer like that : mplayer tv:// -tv
-> > driver=v4l2:width=752:height=480:device=/dev/video0:fps=10 -vo jpeg
-> > And using mpeg-streamer like that : sudo ./mjpg_streamer -i
-> > "/usr/local/lib/input_uvc.so -y -d /dev/video0 -r 752x480" -o
-> > "/usr/local/lib/output_http.so -w ./www -p 5000"
-> > now im trying to get images with code using v4l2(using derek molloy code
-> > on his web page). In the attachment there is my code. But i always get this
-> > error : Error 22, Invalid argument.
-> > I tried to change "fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24". But i
-> > couldnt solve problem.
-> >
-> >
-> > [image: Satır içi resim 1]
-> >
-> >
-> >
-> > ---------------------------------------------------------------------------------------------------
-> > Arş. Gör. Ayhan KÜÇÜKMANİSA
-> > Kocaeli Üniversitesi, Gömülü Sistemler ve Görüntüleme Sistemleri
-> > Laboratuvarı
-> >
-> > Res. Asst. Ayhan KÜÇÜKMANİSA
-> > Kocaeli University, Laboratory of Embedded and Vision Systems
-> >
-> > 2015-03-08 22:38 GMT+02:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> >
-> >> Hi,
-> >>
-> >> On Sun, 8 Mar 2015, Ayhan KÃ~\Ã~GÃ~\KMANÄ°SA wrote:
-> >>
-> >> > Hi Guennadi,
-> >> >
-> >> > Previously i asked you a problem about accesing camera i2c bus. I solved
-> >> > camera i2c detect problem. Now i can get images using mplayer and v4l2
-> >> lib.
-> >> > But i couldnt get right images. I try to get test pattern but when i get
-> >> > image that in attachment. Could you give an advice about this problem?
-> >>
-> >> The first problem, that appears in your image is geometry. There seem to
-> >> be more pixels in the image than you think there are. Also, I don't know
-> >> what your test image should look like, but I doubt it should be that pink.
-> >> So, looks like you also wrongly decode pixels. Maybe these two problems
-> >> are related - your bytes-per-pixel is wrong, so the width is wrong and the
-> >> pixel format too.
-> >>
-> >> Thanks
-> >> Guennadi
-> >>
-> >> >
-> >> > Thanks.
-> >> >
-> >> >
-> >> >
-> >> >
-> >> ---------------------------------------------------------------------------------------------------
-> >> > ArÅ . GÃ¶r. Ayhan KÃ Ã Ã KMANÄ°SA
-> >> > Kocaeli Ã niversitesi, GÃ¶mÃŒlÃŒ Sistemler ve GÃ¶rÃŒntÃŒleme Sistemleri
-> >> > LaboratuvarÄ±
-> >> >
-> >> > Res. Asst. Ayhan KÃ Ã Ã KMANÄ°SA
-> >> > Kocaeli University, Laboratory of Embedded and Vision Systems
-> >> >
-> >>
-> >
-> >
-> 
+
+
+>
+> Thanks,
+> Ole
+>
+> Am 24.03.2015 um 20:51 schrieb Ole Ernst:
+>> Am 24.03.2015 um 16:22 schrieb Antti Palosaari:
+>>> Someone has reported SCR/Unicable does not work with that demod driver,
+>>> but I have no personal experience from whole thing... Could you try
+>>> direct connection to LNB?
+>>
+>> I will test a direct connection over Easter, as I don't have physical
+>> access to the htpc right now. I will try to get someone else to test
+>> your patch, who hopefully doesn't use SCR.
+>>
+>> Ole
+
+-- 
+http://palosaari.fi/
