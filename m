@@ -1,148 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42833 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753832AbbCBOHZ (ORCPT
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:35422 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202AbbC0IOC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2015 09:07:25 -0500
-Message-ID: <54F46E83.2010008@xs4all.nl>
-Date: Mon, 02 Mar 2015 15:06:59 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 27 Mar 2015 04:14:02 -0400
+Received: by lbdc10 with SMTP id c10so4117372lbd.2
+        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 01:14:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>
-Subject: Re: [PATCH 1/2] [media] dvbdev: use adapter arg for dvb_create_media_graph()
-References: <b32471cf9f1ac95ae4bf181c7abfcbd6382554d7.1425304947.git.mchehab@osg.samsung.com>
-In-Reply-To: <b32471cf9f1ac95ae4bf181c7abfcbd6382554d7.1425304947.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <551437F6.6010202@xs4all.nl>
+References: <CAPybu_1vgJ3t8GnKDk02SH0KkuEQH-Q-6Ym6gNX7a5H5OekAuA@mail.gmail.com>
+ <551437F6.6010202@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 27 Mar 2015 09:13:40 +0100
+Message-ID: <CAPybu_2YBZ2cMDnwOdh8Qf+eQK-B1RRhVt8FscX-9ujkpxWRvA@mail.gmail.com>
+Subject: Re: RFC: New format V4L2_PIX_FMT_Y16_BE ?
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans
 
-Small nitpick:
+On Thu, Mar 26, 2015 at 5:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On 03/02/2015 03:02 PM, Mauro Carvalho Chehab wrote:
-> Instead of using media_dev argument for dvb_create_media_graph(),
-> use the adapter.
-> 
-> That allows to create a stub for this function, if compiled
-> without DVB support, avoiding to add extra if's at the drivers.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-> index dd3c1516013f..387db145d37e 100644
-> --- a/drivers/media/common/siano/smsdvb-main.c
-> +++ b/drivers/media/common/siano/smsdvb-main.c
-> @@ -1185,7 +1185,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
->  	if (smsdvb_debugfs_create(client) < 0)
->  		pr_info("failed to create debugfs node\n");
->  
-> -	dvb_create_media_graph(coredev->media_dev);
-> +	dvb_create_media_graph(&client->adapter);
->  
->  	pr_info("DVB interface registered.\n");
->  	return 0;
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 0af9d0c5f889..13bb57f0457f 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -381,9 +381,10 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
->  EXPORT_SYMBOL(dvb_unregister_device);
->  
->  
-> -void dvb_create_media_graph(struct media_device *mdev)
-> -{
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +void dvb_create_media_graph(struct dvb_adapter *adap)
-> +{
-> +	struct media_device *mdev = adap->mdev;
->  	struct media_entity *entity, *tuner = NULL, *fe = NULL;
->  	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
->  
-> @@ -421,9 +422,9 @@ void dvb_create_media_graph(struct media_device *mdev)
->  
->  	if (demux && ca)
->  		media_entity_create_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
-> -#endif
->  }
->  EXPORT_SYMBOL_GPL(dvb_create_media_graph);
-> +#endif
->  
->  static int dvbdev_check_free_adapter_num(int num)
->  {
-> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> index 467c1311bd4c..caf4d4791a8b 100644
-> --- a/drivers/media/dvb-core/dvbdev.h
-> +++ b/drivers/media/dvb-core/dvbdev.h
-> @@ -122,7 +122,12 @@ extern int dvb_register_device (struct dvb_adapter *adap,
->  				int type);
->  
->  extern void dvb_unregister_device (struct dvb_device *dvbdev);
-> -void dvb_create_media_graph(struct media_device *mdev);
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +void dvb_create_media_graph(struct dvb_adapter *adap);
-> +#else
-> +static inline void dvb_create_media_graph(struct dvb_adapter *adap) {};
+> Yes, but you might want to wait 1-2 weeks: I'm going to make a patch
+> that moves the ENUMFMT description into the v4l2 core. So you want to be on
+> top of that patch. I posted an RFC patch for that earlier (last week I
+> think).
 
-Unnecessary trailing ';'.
+Absolutely no hurry.
 
-Regards,
+My main worry is now this patch:
 
-	Hans
+libv4lconvert: Fix support for Y16 pixel format
+https://patchwork.linuxtv.org/patch/28989/
 
-> +#endif
->  
->  extern int dvb_generic_open (struct inode *inode, struct file *file);
->  extern int dvb_generic_release (struct inode *inode, struct file *file);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 44229a2c2d32..8bf2baae387f 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -540,9 +540,8 @@ static int register_dvb(struct cx231xx_dvb *dvb,
->  
->  	/* register network adapter */
->  	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	dvb_create_media_graph(dev->media_dev);
-> -#endif
-> +	dvb_create_media_graph(&dvb->adapter);
-> +
->  	return 0;
->  
->  fail_fe_conn:
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> index 0666c8f33ac7..08a3cd1c8b44 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> @@ -702,7 +702,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  		}
->  	}
->  
-> -	dvb_create_media_graph(adap->dvb_adap.mdev);
-> +	dvb_create_media_graph(&adap->dvb_adap);
->  
->  	return 0;
->  
-> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> index a7bc4535c58f..6c9f5ecf949c 100644
-> --- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> +++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> @@ -320,7 +320,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  		adap->num_frontends_initialized++;
->  	}
->  
-> -	dvb_create_media_graph(adap->dvb_adap.mdev);
-> +	dvb_create_media_graph(&adap->dvb_adap);
->  
->  	return 0;
->  }
-> 
+That fixes the implementation in v4lconvert. I introduced the original
+bug and I don't want that anybody uses that library as a reference of
+how the format should be.
+
+
+
+Thanks!!
+
+
+
+-- 
+Ricardo Ribalda
