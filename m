@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42158 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751251AbbCTWHu (ORCPT
+Received: from mail-la0-f49.google.com ([209.85.215.49]:34203 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752353AbbC0L5d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 18:07:50 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 27 Mar 2015 07:57:33 -0400
+Received: by lagg8 with SMTP id g8so68396817lag.1
+        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 04:57:31 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-	pali.rohar@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH v1.1 12/15] dt: bindings: Add lane-polarity property to endpoint nodes
-Date: Sat, 21 Mar 2015 00:07:06 +0200
-Message-Id: <1426889226-18080-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
-References: <1426465570-30295-13-git-send-email-sakari.ailus@iki.fi>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/5] saa7164: add support for i2c read
+Date: Fri, 27 Mar 2015 13:57:15 +0200
+Message-Id: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add lane-polarity property to endpoint nodes. This essentially tells that
-the order of the differential signal wires is inverted.
+Add support for pure I2C reads. Needed by si2157 tuner driver.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
-since v1:
+ drivers/media/pci/saa7164/saa7164-i2c.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-- Rename lane-polarity property as lane-polarities.
-
- Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 571b4c6..9cd2a36 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -106,6 +106,12 @@ Optional endpoint properties
- - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-   instance, this is the actual frequency of the bus, not bits per clock per
-   lane value. An array of 64-bit unsigned integers.
-+- lane-polarities: an array of polarities of the lanes starting from the clock
-+  lane and followed by the data lanes in the same order as in data-lanes.
-+  Valid values are 0 (normal) and 1 (inverted). The length of the array
-+  should be the combined length of data-lanes and clock-lanes properties.
-+  If the lane-polarities property is omitted, the value must be interpreted
-+  as 0 (normal). This property is valid for serial busses only.
- 
- 
- Example
+diff --git a/drivers/media/pci/saa7164/saa7164-i2c.c b/drivers/media/pci/saa7164/saa7164-i2c.c
+index 4f7e3b4..e30e206 100644
+--- a/drivers/media/pci/saa7164/saa7164-i2c.c
++++ b/drivers/media/pci/saa7164/saa7164-i2c.c
+@@ -39,9 +39,12 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
+ 		dprintk(DBGLVL_I2C, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
+ 			__func__, num, msgs[i].addr, msgs[i].len);
+ 		if (msgs[i].flags & I2C_M_RD) {
+-			/* Unsupported - Yet*/
+-			printk(KERN_ERR "%s() Unsupported - Yet\n", __func__);
+-			continue;
++			/* dummy write before read */
++			retval = saa7164_api_i2c_read(bus, msgs[i].addr,
++				0, NULL, msgs[i].len, msgs[i].buf);
++
++			if (retval < 0)
++				goto err;
+ 		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
+ 			   msgs[i].addr == msgs[i + 1].addr) {
+ 			/* write then read from same address */
 -- 
-1.7.10.4
+1.9.1
 
