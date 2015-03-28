@@ -1,120 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36236 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793AbbCaNyh (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42091 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751063AbbC1Qza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 09:54:37 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v4 04/12] DT: Add documentation for the mfd Maxim max77693
-Date: Tue, 31 Mar 2015 15:52:40 +0200
-Message-id: <1427809965-25540-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+	Sat, 28 Mar 2015 12:55:30 -0400
+Message-ID: <5516DCF7.20203@xs4all.nl>
+Date: Sat, 28 Mar 2015 09:55:19 -0700
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PULL] hvr2205 / hvr2255 support and misc patches
+References: <CALzAhNU0JfCoeX4f+MOXO4A-V1BmOz3bBZfEhtiujtsejtvdSQ@mail.gmail.com>
+In-Reply-To: <CALzAhNU0JfCoeX4f+MOXO4A-V1BmOz3bBZfEhtiujtsejtvdSQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+On 03/28/2015 08:51 AM, Steven Toth wrote:
+> Mauro,
+> 
+> Please disregard my prior pull request for this patchset.
+> 
+> As requested, this is a second pull request including the ATSC
+> inversion fix mentioned earlier.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: devicetree@vger.kernel.org
----
- Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+Why didn't you incorporate my querycap patch in this pull request?
+The querycap patch here still has the same problem I've addressed with
+my patch.
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 38e6440..deb832f 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -76,7 +76,54 @@ Optional properties:
-     Valid values: 4300000, 4700000, 4800000, 4900000
-     Default: 4300000
- 
-+- led : the LED submodule device node
-+
-+There are two LED outputs available - FLED1 and FLED2. Each of them can
-+control a separate LED or they can be connected together to double
-+the maximum current for a single connected LED. One LED is represented
-+by one child node.
-+
-+Required properties:
-+- compatible : Must be "maxim,max77693-led".
-+
-+Optional properties:
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If not enabled explicitly, boost setting defaults to
-+	LEDS_BOOST_FIXED in case both current sources are used.
-+	Possible values:
-+		LEDS_BOOST_OFF (0) - no boost,
-+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-+		LEDS_BOOST_FIXED (2) - fixed mode.
-+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-+	Valid values: 3300 - 5500, step by 25 (rounded down)
-+	Default: 3300
-+- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
-+	Valid values: 2400 - 3400, step by 33 (rounded down)
-+	Default: 2400
-+
-+Required properties of the LED child node:
-+- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-+		device current output identifiers: 0 - FLED1, 1 - FLED2
-+
-+Optional properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+	Valid values: 15625 - 250000, step by 15625 (rounded down)
-+	Default: 250000
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+	Valid values: 15625 - 1000000, step by 15625 (rounded down)
-+	Default: 1000000 when boost mode is off and 625000 otherwise
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+	Valid values: 62500 - 1000000, step by 62500 (rounded down)
-+	Default: 1000000
-+
- Example:
-+#include <dt-bindings/leds/common.h>
-+
- 	max77693@66 {
- 		compatible = "maxim,max77693";
- 		reg = <0x66>;
-@@ -117,5 +164,19 @@ Example:
- 			maxim,thermal-regulation-celsius = <75>;
- 			maxim,battery-overcurrent-microamp = <3000000>;
- 			maxim,charge-input-threshold-microvolt = <4300000>;
-+
-+		led {
-+			compatible = "maxim,max77693-led";
-+			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-+			maxim,boost-mvout = <5000>;
-+			maxim,mvsys-min = <2400>;
-+
-+			camera_flash: flash-led {
-+				label = "max77693-flash";
-+				led-sources = <0>, <1>;
-+				max-microamp = <500000>;
-+				flash-max-microamp = <1250000>;
-+				flash-timeout-us = <1000000>;
-+			};
- 		};
- 	};
--- 
-1.7.9.5
+I've changed the state of this pull request to 'Changes Requested' since
+it makes no sense to take in this pull request where one patch has known
+problems.
+
+Regards,
+
+	Hans
+
+> 
+> Thx
+> 
+> - Steve
+> 
+> The following changes since commit 4708e452aa3109fc23e0c6b5a658ccc1b720dfa6:
+> 
+>   [media] saa7164: I2C improvements for upcoming HVR2255/2205 boards
+> (2015-03-23 14:37:32 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://git.linuxtv.org/stoth/media_tree.git saa7164-dev
+> 
+> for you to fetch changes up to c77cfc0fb29c278cf45e9c226bac39434098ca07:
+> 
+>   [media] saa7164: fix HVR2255 ATSC inversion issue (2015-03-28 08:07:47 -0400)
+> 
+> ----------------------------------------------------------------
+> Steven Toth (6):
+>       [media] saa7164: Adding additional I2C debug.
+>       [media] saa7164: Improvements for I2C handling
+>       [media] saa7164: Add Digital TV support for the HVR2255 and HVR2205
+>       [media] saa7164: Fixup recent querycap warnings
+>       [media] saa7164: Copyright update
+>       [media] saa7164: fix HVR2255 ATSC inversion issue
+> 
+>  drivers/media/pci/saa7164/saa7164-api.c     |  21 ++-
+>  drivers/media/pci/saa7164/saa7164-buffer.c  |   2 +-
+>  drivers/media/pci/saa7164/saa7164-bus.c     |   2 +-
+>  drivers/media/pci/saa7164/saa7164-cards.c   | 188 ++++++++++++++++++++++++++-
+>  drivers/media/pci/saa7164/saa7164-cmd.c     |   2 +-
+>  drivers/media/pci/saa7164/saa7164-core.c    |   2 +-
+>  drivers/media/pci/saa7164/saa7164-dvb.c     | 232
+> +++++++++++++++++++++++++++++++---
+>  drivers/media/pci/saa7164/saa7164-encoder.c |   5 +-
+>  drivers/media/pci/saa7164/saa7164-fw.c      |   2 +-
+>  drivers/media/pci/saa7164/saa7164-i2c.c     |   2 +-
+>  drivers/media/pci/saa7164/saa7164-reg.h     |   2 +-
+>  drivers/media/pci/saa7164/saa7164-types.h   |   2 +-
+>  drivers/media/pci/saa7164/saa7164-vbi.c     |   5 +-
+>  drivers/media/pci/saa7164/saa7164.h         |   7 +-
+>  14 files changed, 440 insertions(+), 34 deletions(-)
+> 
 
