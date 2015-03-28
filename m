@@ -1,162 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58607 "EHLO lists.s-osg.org"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:54384 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbbCBOCB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 09:02:01 -0500
-Date: Mon, 2 Mar 2015 11:01:55 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dvb: fix compilation errors/warnings ifndef
- CONFIG_MEDIA_CONTROLLER_DVB
-Message-ID: <20150302110155.17c11cc7@recife.lan>
-In-Reply-To: <54F02B77.3050408@xs4all.nl>
-References: <54F02B77.3050408@xs4all.nl>
+	id S1753558AbbC1Ow2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2015 10:52:28 -0400
+Message-ID: <5516BE45.6030304@schinagl.nl>
+Date: Sat, 28 Mar 2015 15:44:21 +0100
+From: Olliver Schinagl <oliver@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Jonathan McCrohan <jmccrohan@gmail.com>,
+	linux-media@vger.kernel.org
+CC: Brian Burch <brian@pingtoo.com>
+Subject: Re: [PATCH] dtv-scan-tables: update dvb-t/au-SunshineCoast
+References: <1426938040-5806-1-git-send-email-jmccrohan@gmail.com>
+In-Reply-To: <1426938040-5806-1-git-send-email-jmccrohan@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 27 Feb 2015 09:31:51 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Thanks guys,
 
-> This patches fixes the following compilation warnings and errors if
-> CONFIG_MEDIA_CONTROLLER_DVB is not defined:
-> 
-> drivers/media/common/siano/smsdvb-main.c: In function ‘smsdvb_media_device_unregister’:
-> drivers/media/common/siano/smsdvb-main.c:614:27: warning: unused variable ‘coredev’ [-Wunused-variable]
->   struct smscore_device_t *coredev = client->coredev;
->                            ^
-> drivers/media/common/siano/smsdvb-main.c: In function ‘smsdvb_hotplug’:
-> drivers/media/common/siano/smsdvb-main.c:1188:32: error: ‘struct smscore_device_t’ has no member named ‘media_dev’
->   dvb_create_media_graph(coredev->media_dev);
->                                 ^
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_adapter_frontend_init’:
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:323:39: error: ‘struct dvb_adapter’ has no member named ‘mdev’
->   dvb_create_media_graph(adap->dvb_adap.mdev);
->                                        ^
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c: At top level:
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:97:13: warning: ‘dvb_usb_media_device_register’ defined but not used [-Wunused-function]
->  static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
->              ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_adapter_dvb_exit’:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:531:25: warning: unused variable ‘d’ [-Wunused-variable]
->   struct dvb_usb_device *d = adap_to_d(adap);
->                          ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_adapter_frontend_init’:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:705:39: error: ‘struct dvb_adapter’ has no member named ‘mdev’
->   dvb_create_media_graph(adap->dvb_adap.mdev);
->                                        ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: At top level:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:403:13: warning: ‘dvb_usbv2_media_device_register’ defined but not used [-Wunused-function]
->  static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
->              ^
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-> index dd3c151..28f764d 100644
-> --- a/drivers/media/common/siano/smsdvb-main.c
-> +++ b/drivers/media/common/siano/smsdvb-main.c
-> @@ -611,9 +611,9 @@ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
->  
->  static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
->  {
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  	struct smscore_device_t *coredev = client->coredev;
->  
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  	if (!coredev->media_dev)
->  		return;
->  	media_device_unregister(coredev->media_dev);
-> @@ -1185,7 +1185,9 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
->  	if (smsdvb_debugfs_create(client) < 0)
->  		pr_info("failed to create debugfs node\n");
->  
-> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
->  	dvb_create_media_graph(coredev->media_dev);
-> +#endif
+applied and pushed :)
 
-Nah, adding more ifs here is not a good idea. I'll create a stub for 
-dvb_create_media_graph() if media controller is not found. I'll need to
-change the arguments, but this is likely needed anyway, in order to
-better support multi-adapter boards.
+On 03/21/2015 12:40 PM, Jonathan McCrohan wrote:
+> From: Brian Burch <brian@pingtoo.com>
+>
+> Update dvb-t/au-SunshineCoast as per Brian Burch's bug report on Ubuntu
+> Launchpad:
+> https://bugs.launchpad.net/ubuntu/+source/dtv-scan-tables/+bug/1415262
+>
+> Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
+> ---
+>   dvb-t/au-SunshineCoast | 20 ++++++++++----------
+>   1 file changed, 10 insertions(+), 10 deletions(-)
+>
+> diff --git a/dvb-t/au-SunshineCoast b/dvb-t/au-SunshineCoast
+> index 5d22931..ff6f5dd 100644
+> --- a/dvb-t/au-SunshineCoast
+> +++ b/dvb-t/au-SunshineCoast
+> @@ -1,8 +1,8 @@
+>   # Australia / Sunshine Coast
+> -# SBS36 SBS ***
+> +# SBS40 SBS ***
+>   [CHANNEL]
+>   	DELIVERY_SYSTEM = DVBT
+> -	FREQUENCY = 585625000
+> +	FREQUENCY = 613500000
+>   	BANDWIDTH_HZ = 7000000
+>   	CODE_RATE_HP = 2/3
+>   	CODE_RATE_LP = NONE
+> @@ -12,10 +12,10 @@
+>   	HIERARCHY = NONE
+>   	INVERSION = AUTO
+>   
+> -# TNQ47 10 ***
+> +# TNQ44 10 ***
+>   [CHANNEL]
+>   	DELIVERY_SYSTEM = DVBT
+> -	FREQUENCY = 662625000
+> +	FREQUENCY = 641500000
+>   	BANDWIDTH_HZ = 7000000
+>   	CODE_RATE_HP = 3/4
+>   	CODE_RATE_LP = NONE
+> @@ -25,10 +25,10 @@
+>   	HIERARCHY = NONE
+>   	INVERSION = AUTO
+>   
+> -# ABQ62 ABC ***
+> +# ABC41 ABC ***
+>   [CHANNEL]
+>   	DELIVERY_SYSTEM = DVBT
+> -	FREQUENCY = 767625000
+> +	FREQUENCY = 620500000
+>   	BANDWIDTH_HZ = 7000000
+>   	CODE_RATE_HP = 3/4
+>   	CODE_RATE_LP = NONE
+> @@ -38,10 +38,10 @@
+>   	HIERARCHY = NONE
+>   	INVERSION = AUTO
+>   
+> -# STQ65 7 ***
+> +# STQ42 7 ***
+>   [CHANNEL]
+>   	DELIVERY_SYSTEM = DVBT
+> -	FREQUENCY = 788625000
+> +	FREQUENCY = 627500000
+>   	BANDWIDTH_HZ = 7000000
+>   	CODE_RATE_HP = 3/4
+>   	CODE_RATE_LP = NONE
+> @@ -51,10 +51,10 @@
+>   	HIERARCHY = NONE
+>   	INVERSION = AUTO
+>   
+> -# STQ68 WIN ***
+> +# RTQ43 WIN ***
+>   [CHANNEL]
+>   	DELIVERY_SYSTEM = DVBT
+> -	FREQUENCY = 809500000
+> +	FREQUENCY = 634500000
+>   	BANDWIDTH_HZ = 7000000
+>   	CODE_RATE_HP = 3/4
+>   	CODE_RATE_LP = NONE
 
->  
->  	pr_info("DVB interface registered.\n");
->  	return 0;
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> index 0666c8f..caf7fd9 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> @@ -400,9 +400,9 @@ skip_feed_stop:
->  	return ret;
->  }
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
->  {
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  	struct media_device *mdev;
->  	struct dvb_usb_device *d = adap_to_d(adap);
->  	struct usb_device *udev = d->udev;
-> @@ -433,8 +433,8 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
->  
->  	dev_info(&d->udev->dev, "media controller created\n");
->  
-> -#endif
->  }
-> +#endif
-
-Nah, the best is to remove the "if" before calling 
-dvb_usbv2_media_device_register().
-
-I have already two patches fixing the errors/warnings when compiling
-without the media controller.
-
-I'll submit them in a few.
-
-Thanks,
-Mauro
-
->  
->  static void dvb_usbv2_media_device_unregister(struct dvb_usb_adapter *adap)
->  {
-> @@ -528,8 +528,6 @@ err_dvb_register_adapter:
->  
->  static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
->  {
-> -	struct dvb_usb_device *d = adap_to_d(adap);
-> -
->  	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
->  			adap->id);
->  
-> @@ -702,7 +700,9 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  		}
->  	}
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  	dvb_create_media_graph(adap->dvb_adap.mdev);
-> +#endif
->  
->  	return 0;
->  
-> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> index a7bc453..6020f46 100644
-> --- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> +++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> @@ -320,7 +320,9 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  		adap->num_frontends_initialized++;
->  	}
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->  	dvb_create_media_graph(adap->dvb_adap.mdev);
-> +#endif
->  
->  	return 0;
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
