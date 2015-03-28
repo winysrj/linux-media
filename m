@@ -1,90 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60566 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754761AbbCDKUT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52828 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752013AbbC1Wzk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2015 05:20:19 -0500
-Message-ID: <54F6DC4F.6040504@xs4all.nl>
-Date: Wed, 04 Mar 2015 11:19:59 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 28 Mar 2015 18:55:40 -0400
+Date: Sun, 29 Mar 2015 00:55:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v2 04/11] DT: Add documentation for the mfd Maxim max77693
+Message-ID: <20150328225503.GZ18321@valkosipuli.retiisi.org.uk>
+References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+ <1427464185-27950-5-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>
-CC: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [Linux-kernel] RFC: supporting adv7604.c under soc_camera/rcar_vin
-References: <1422548388-28861-1-git-send-email-william.towle@codethink.co.uk> <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk>
-In-Reply-To: <alpine.DEB.2.02.1503040911560.4552@xk120.dyn.ducie.codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1427464185-27950-5-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/04/15 10:51, William Towle wrote:
+On Fri, Mar 27, 2015 at 02:49:38PM +0100, Jacek Anaszewski wrote:
+> This patch adds device tree binding documentation for
+> the flash cell of the Maxim max77693 multifunctional device.
 > 
-> Hi all,
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
+>  1 file changed, 61 insertions(+)
 > 
->   I would like to develop a point in my previous discussion based on
-> new findings:
-> 
-> On Thu, 29 Jan 2015, William Towle wrote:
->> 3. Our third problem concerns detecting the resolution of the stream.
->> Our code works with the obsoleted driver (adv761x.c) in place, but with
->> our modifications to adv7604.c we have seen a) recovery of a 640x480
->> image which is cropped rather than scaled, and/or b) recovery of a
->> 2048x2048 image with the stream content in the top left corner.
-> 
->   We have since ported this code from 3.17 to 3.19 (Hans' "subdev2"
-> branch) and removed the unnecessary backward compatibility sections.
-> Some of the the behaviour is somewhat different in the port, but
-> I'll discuss that separately. Here I intend to discuss a possible bug
-> in adv7604.c.
-> 
->   In our 3.17-based submission, we had shim code in soc_camera/rcar_vin
-> in order to emulate the old driver (originally serving to "test drive"
-> the new driver in an older kernel). For a test case with gstreamer
-> capturing a single frame it was sufficient at the time a) to override
-> the driver's default resolution with something larger when first probed
-> [emulating adv761x.c defaulting to the maximum supported resolution],
-> and b) to have a query_dv_timings() call ensuring rcar_vin_try_fmt()
-> works with the resolution of the live stream [subsequent queries to the
-> driver stop returning the default resolution after that, also as per
-> adv761x.c].
-> 
->   I am currently investigating an enhancement to that solution in
-> which the enum_dv_timings op is used to recover the maximum supported
-> resolution of the new driver, and we hit a line in the driver which
-> exits the corresponding function. It reads:
->     if (timings->pad >= state->source_pad)
->             return -EINVAL;
->   It suffices to comment out this line, but clearly this is not ideal.
-> Depending on the intended semantics, should it be filtering out all pad
-> IDs not matching the active one, or all pad IDs that are not valid
-> input sources? Unfortunately the lager board's adv7180 chip is too
-> simple to make a sensible comparison case (that we can also run tests
-> on) here.
+> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> index 38e6440..15c546ea 100644
+> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> @@ -76,7 +76,53 @@ Optional properties:
+>      Valid values: 4300000, 4700000, 4800000, 4900000
+>      Default: 4300000
+>  
+> +- led : the LED submodule device node
+> +
+> +There are two LED outputs available - FLED1 and FLED2. Each of them can
+> +control a separate LED or they can be connected together to double
+> +the maximum current for a single connected LED. One LED is represented
+> +by one child node.
+> +
+> +Required properties:
+> +- compatible : Must be "maxim,max77693-led".
+> +
+> +Optional properties:
+> +- maxim,trigger-type : Flash trigger type.
+> +	Possible trigger types:
+> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
+> +			the flash,
+> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
+> +			of the flash.
+> +- maxim,boost-mode :
+> +	In boost mode the device can produce up to 1.2A of total current
+> +	on both outputs. The maximum current on each output is reduced
+> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+> +	LEDS_BOOST_FIXED in case both current sources are used.
+> +	Possible values:
+> +		LEDS_BOOST_OFF (0) - no boost,
+> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+> +		LEDS_BOOST_FIXED (2) - fixed mode.
+> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
 
-The adv7604 code is not ideal, although the pad test is valid (you shouldn't
-be able to ask timings for pads that do not exist).
+What are the possible values for this?
 
-Perfect code would:
+Is the datasheet publicly available btw.?
 
-1) check if the requested pad is active (hooked up), and return -EINVAL if not.
-2) check if the pad is digital or analog and return a different list of
-timings accordingly (the max frequency is different between the two). See
-the adv7842.c driver how that should be done.
+> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+> +	if chip estimates that system voltage could drop below this level due
+> +	to flash power consumption.
+> +
+> +Required properties of the LED child node:
+> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+> +		device current output identifiers: 0 - FLED1, 1 - FLED2
+> +
+> +Optional properties of the LED child node:
+> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 250000
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 1000000
+> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 62500 - 1000000
+> +
+>  Example:
+> +#include <dt-bindings/leds/common.h>
+> +
+>  	max77693@66 {
+>  		compatible = "maxim,max77693";
+>  		reg = <0x66>;
+> @@ -117,5 +163,20 @@ Example:
+>  			maxim,thermal-regulation-celsius = <75>;
+>  			maxim,battery-overcurrent-microamp = <3000000>;
+>  			maxim,charge-input-threshold-microvolt = <4300000>;
+> +
+> +		led {
+> +			compatible = "maxim,max77693-led";
+> +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
+> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+> +			maxim,boost-mvout = <5000>;
+> +			maxim,mvsys-min = <2400>;
+> +
+> +			camera_flash: flash-led {
+> +				label = "max77693-flash";
+> +				led-sources = <0>, <1>;
+> +				max-microamp = <500000>;
+> +				flash-max-microamp = <1250000>;
+> +				flash-timeout-us = <1000000>;
+> +			};
+>  		};
+>  	};
 
-But in the meantime, why not just set timings->pad to 0 in rcar_vin? Or
-get it from platform data or something like that.
-
->   Please advise. Comments would also be welcome regarding whether the
-> shims describe changes that should live in the driver or elsewhere in
-> soc_camera/rcar_vin in an acceptable solution.
-
-I'm not entirely sure what it is you are referring to. As you know I am
-working to get rid of the duplicated video ops that are also available as
-pad ops. No shims required since everything will be converted.
-
-Regards,
-
-	Hans
+-- 
+Kind regards,
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
