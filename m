@@ -1,119 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36861 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054AbbCODrL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 23:47:11 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 501BC2A0081
-	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2015 04:46:59 +0100 (CET)
-Date: Sun, 15 Mar 2015 04:46:59 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150315034659.501BC2A0081@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:52807 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750960AbbC2PkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2015 11:40:15 -0400
+Date: Sun, 29 Mar 2015 08:40:13 -0700
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-kernel@vger.kernel.org,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 82/86] media/fintek: drop pci_ids dependency
+Message-ID: <20150329084013.2fe912f4@concha.lan>
+In-Reply-To: <1427635734-24786-83-git-send-email-mst@redhat.com>
+References: <1427635734-24786-1-git-send-email-mst@redhat.com>
+	<1427635734-24786-83-git-send-email-mst@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 29 Mar 2015 15:43:23 +0200
+"Michael S. Tsirkin" <mst@redhat.com> escreveu:
 
-Results of the daily build of media_tree:
+> This driver does not use any PCI IDs, don't include
+> the pci_ids.h header.
 
-date:		Sun Mar 15 04:00:17 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+Please merge the media patches into one. No reason to have this rename
+broken into lots of patches.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Thanks,
+Mauro
 
-Detailed results are available here:
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> ---
+>  drivers/media/rc/fintek-cir.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+> index 4ef500f..9ca168a 100644
+> --- a/drivers/media/rc/fintek-cir.c
+> +++ b/drivers/media/rc/fintek-cir.c
+> @@ -33,7 +33,6 @@
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+>  #include <media/rc-core.h>
+> -#include <uapi/linux/pci_ids.h>
+>  
+>  #include "fintek-cir.h"
+>  
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
+-- 
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
