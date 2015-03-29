@@ -1,119 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59518 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750930AbbCHDrN (ORCPT
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:33321 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647AbbC2NMC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 22:47:13 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7C7962A008E
-	for <linux-media@vger.kernel.org>; Sun,  8 Mar 2015 04:46:50 +0100 (CET)
-Date: Sun, 08 Mar 2015 04:46:50 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150308034650.7C7962A008E@tschai.lan>
+	Sun, 29 Mar 2015 09:12:02 -0400
+MIME-Version: 1.0
+In-Reply-To: <35670369.0N4n9OXz2m@avalon>
+References: <1426430018-3172-1-git-send-email-ykaneko0929@gmail.com>
+	<CAMuHMdVKmWgcSqLxfgOUFXd2mu-dacvQxLJr7xLaQ=S8Mt0gnw@mail.gmail.com>
+	<35670369.0N4n9OXz2m@avalon>
+Date: Sun, 29 Mar 2015 22:12:01 +0900
+Message-ID: <CAH1o70KBNS9ns4MTf8d2TQ5LO97sQFmitWCceSHbn8U5VFQWhA@mail.gmail.com>
+Subject: Re: [PATCH/RFC] v4l: vsp1: Change VSP1 LIF linebuffer FIFO
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Geert, Hi Laurent,
 
-Results of the daily build of media_tree:
+Thanks for your review. There do indeed seem to be some problems with
+this patch.
+I'm happy get some feedback from the BSP team if you think it is
+worthwhile. Else I suggest we simply drop this issue for now.
 
-date:		Sun Mar  8 04:00:18 CET 2015
-git branch:	test
-git hash:	3d945be05ac1e806af075e9315bc1b3409adae2b
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.18.0-5.slh.1-amd64
+Thanks,
+Kaneko
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+2015-03-18 22:23 GMT+09:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hello,
+>
+> On Monday 16 March 2015 09:06:22 Geert Uytterhoeven wrote:
+>> On Sun, Mar 15, 2015 at 3:33 PM, Yoshihiro Kaneko wrote:
+>> > From: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+>> >
+>> > Change to VSPD hardware recommended value.
+>> > Purpose is highest pixel clock without underruns.
+>> > In the default R-Car Linux BSP config this value is
+>> > wrong and therefore there are many underruns.
+>> >
+>> > Here are the original settings:
+>> > HBTH = 1300 (VSPD stops when 1300 pixels are buffered)
+>> > LBTH = 200 (VSPD resumes when buffer level has decreased
+>> >             below 200 pixels)
+>> >
+>> > The display underruns can be eliminated
+>> > by applying the following settings:
+>> > HBTH = 1504
+>> > LBTH = 1248
+>> >
+>> > --- a/drivers/media/platform/vsp1/vsp1_lif.c
+>> > +++ b/drivers/media/platform/vsp1/vsp1_lif.c
+>> > @@ -44,9 +44,9 @@ static int lif_s_stream(struct v4l2_subdev *subdev, int
+>> > enable)
+>> >  {
+>> >         const struct v4l2_mbus_framefmt *format;
+>> >         struct vsp1_lif *lif = to_lif(subdev);
+>> > -       unsigned int hbth = 1300;
+>> > -       unsigned int obth = 400;
+>> > -       unsigned int lbth = 200;
+>> > +       unsigned int hbth = 1536;
+>> > +       unsigned int obth = 128;
+>> > +       unsigned int lbth = 1520;
+>>
+>> These values don't match the patch description?
+>
+> Indeed. And where do these values come from ? A 16 bytes hysteresis is very
+> small, the VSP1 will constantly start and stop. Isn't that bad from a power
+> consumption point of view ?
+>
+>> BTW, what's the significance of changing obth?
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
