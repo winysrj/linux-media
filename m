@@ -1,149 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:49161 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855AbbCOR4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 13:56:50 -0400
-Date: Sun, 15 Mar 2015 18:56:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>, Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host
- doesn't provide clk ops
-In-Reply-To: <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1503151845220.13027@axis700.grange>
-References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54898 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752610AbbC2Nav (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2015 09:30:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hverkuil@xs4all.nl, stable@vger.kernel.org
+Subject: [RESEND 2 PATCH 1/1] vb2: Fix dma_dir setting for dma-contig mem type
+Date: Sun, 29 Mar 2015 16:30:48 +0300
+Message-Id: <1427635848-30253-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On Mon, 9 Mar 2015, Laurent Pinchart wrote:
+(This time with correct stable address.)
 
-> If the soc-camera host doesn't provide clock start and stop operations
-> registering a v4l2 clock is pointless. Don't do it.
+The last argument of vb2_dc_get_user_pages() is of type enum
+dma_data_direction, but the caller, vb2_dc_get_userptr() passes a value
+which is the result of comparison dma_dir == DMA_FROM_DEVICE. This results
+in the write parameter to get_user_pages() being zero in all cases, i.e.
+that the caller has no intent to write there.
 
-This can introduce breakage only for camera-host drivers, that don't 
-provide .clock_start() or .clock_stop(). After your other 3 patches from 
-this patch set there will be one such driver in the tree - rcar_vin.c. I 
-wouldn't mind this patch as long as we can have an ack from an rcar_vin.c 
-maintainer. Since I don't see one in MAINTAINERS, who can ack this? Simon?
+This was broken by patch "vb2: replace 'write' by 'dma_dir'".
 
-Thanks
-Guennadi
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stable@vger.kernel.org
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes: cd474037c4a9 ("[media] vb2: replace 'write' by 'dma_dir'")
+---
+Hi,
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c | 51 +++++++++++++++++---------
->  1 file changed, 33 insertions(+), 18 deletions(-)
-> 
-> This requires proper review and testing, please don't apply it blindly.
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 0943125..f3ea911 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1374,10 +1374,13 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
->  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
->  		 shd->i2c_adapter_id, shd->board_info->addr);
->  
-> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-> -	if (IS_ERR(icd->clk)) {
-> -		ret = PTR_ERR(icd->clk);
-> -		goto eclkreg;
-> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> +					     "mclk", icd);
-> +		if (IS_ERR(icd->clk)) {
-> +			ret = PTR_ERR(icd->clk);
-> +			goto eclkreg;
-> +		}
->  	}
->  
->  	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
-> @@ -1394,8 +1397,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
->  
->  	return 0;
->  ei2cnd:
-> -	v4l2_clk_unregister(icd->clk);
-> -	icd->clk = NULL;
-> +	if (icd->clk) {
-> +		v4l2_clk_unregister(icd->clk);
-> +		icd->clk = NULL;
-> +	}
->  eclkreg:
->  	kfree(ssdd);
->  ealloc:
-> @@ -1420,8 +1425,10 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
->  	i2c_unregister_device(client);
->  	i2c_put_adapter(adap);
->  	kfree(ssdd);
-> -	v4l2_clk_unregister(icd->clk);
-> -	icd->clk = NULL;
-> +	if (icd->clk) {
-> +		v4l2_clk_unregister(icd->clk);
-> +		icd->clk = NULL;
-> +	}
->  }
->  
->  /*
-> @@ -1555,17 +1562,21 @@ static int scan_async_group(struct soc_camera_host *ici,
->  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
->  		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
->  
-> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-> -	if (IS_ERR(icd->clk)) {
-> -		ret = PTR_ERR(icd->clk);
-> -		goto eclkreg;
-> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> +					     "mclk", icd);
-> +		if (IS_ERR(icd->clk)) {
-> +			ret = PTR_ERR(icd->clk);
-> +			goto eclkreg;
-> +		}
->  	}
->  
->  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
->  	if (!ret)
->  		return 0;
->  
-> -	v4l2_clk_unregister(icd->clk);
-> +	if (icd->clk)
-> +		v4l2_clk_unregister(icd->clk);
->  eclkreg:
->  	icd->clk = NULL;
->  	platform_device_del(sasc->pdev);
-> @@ -1660,17 +1671,21 @@ static int soc_of_bind(struct soc_camera_host *ici,
->  		snprintf(clk_name, sizeof(clk_name), "of-%s",
->  			 of_node_full_name(remote));
->  
-> -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-> -	if (IS_ERR(icd->clk)) {
-> -		ret = PTR_ERR(icd->clk);
-> -		goto eclkreg;
-> +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> +					     "mclk", icd);
-> +		if (IS_ERR(icd->clk)) {
-> +			ret = PTR_ERR(icd->clk);
-> +			goto eclkreg;
-> +		}
->  	}
->  
->  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
->  	if (!ret)
->  		return 0;
->  
-> -	v4l2_clk_unregister(icd->clk);
-> +	if (icd->clk)
-> +		v4l2_clk_unregister(icd->clk);
->  eclkreg:
->  	icd->clk = NULL;
->  	platform_device_del(sasc->pdev);
-> -- 
-> 2.0.5
-> 
+This fixes videobuf2 dma-contig memory type USERPTR support for v3.19. The
+pull req for the patch was submitted some time ago:
+
+<URL:http://www.spinics.net/lists/linux-media/msg86425.html>
+
+Mauro, let us know if you have objections.
+
+Thanks.
+
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index b481d20..69e0483 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -632,8 +632,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	}
+ 
+ 	/* extract page list from userspace mapping */
+-	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma,
+-				    dma_dir == DMA_FROM_DEVICE);
++	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, dma_dir);
+ 	if (ret) {
+ 		unsigned long pfn;
+ 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
+-- 
+1.7.10.4
+
