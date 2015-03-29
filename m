@@ -1,122 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:42837 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754043AbbCBQy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 11:54:56 -0500
-Received: by wiwh11 with SMTP id h11so16369494wiw.1
-        for <linux-media@vger.kernel.org>; Mon, 02 Mar 2015 08:54:55 -0800 (PST)
-Message-ID: <54F495DD.7030304@gmail.com>
-Date: Mon, 02 Mar 2015 17:54:53 +0100
-From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:34085 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388AbbC2NRx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2015 09:17:53 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>
-Subject: Re: [PATCH] [media] use a function for DVB media controller register
-References: <89a2c1d60aa2cfcf4c9f194b4c923d72182be431.1425306670.git.mchehab@osg.samsung.com>
-In-Reply-To: <89a2c1d60aa2cfcf4c9f194b4c923d72182be431.1425306670.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1426429987-3134-1-git-send-email-ykaneko0929@gmail.com>
+References: <1426429987-3134-1-git-send-email-ykaneko0929@gmail.com>
+Date: Sun, 29 Mar 2015 22:17:52 +0900
+Message-ID: <CAH1o70+42cX_XvHZZdOaQQnjoyXWXH6pK_bwDWBXZmcyaH42Nw@mail.gmail.com>
+Subject: Re: [PATCH/RFC] v4l: vsp1: Fix Suspend-to-RAM
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-Op 02-03-15 om 15:31 schreef Mauro Carvalho Chehab:
-> This is really a simple function, but using it avoids to have
-> if's inside the drivers.
+Hi Laurent,
+
+I'm wondering if you could find a moment to look over this patch.
+
+Regards,
+Kaneko
+
+2015-03-15 23:33 GMT+09:00 Yoshihiro Kaneko <ykaneko0929@gmail.com>:
+> From: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
 >
-> Also, the kABI becomes a little more clearer.
+> Fix Suspend-to-RAM
+> so that VSP1 driver continues to work after resuming.
 >
-> This shouldn't generate any overhead, and the type check
-> will happen when compiling with MC DVB enabled.
+> In detail,
+>   - Fix the judgment of ref count in resuming.
+>   - Add stopping VSP1 during suspend.
 >
-> So, let's do it.
+> Signed-off-by: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
+> Signed-off-by: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
 >
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> This patch is based on the master branch of linuxtv.org/media_tree.git.
 >
-> diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-> index c739725ca7ee..367b8e77feb8 100644
-> --- a/drivers/media/common/siano/smsdvb-main.c
-> +++ b/drivers/media/common/siano/smsdvb-main.c
-> @@ -1104,9 +1104,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
->   		pr_err("dvb_register_adapter() failed %d\n", rc);
->   		goto adapter_error;
->   	}
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	client->adapter.mdev = coredev->media_dev;
-> -#endif
-> +	dvb_register_media_controller(&client->adapter, coredev->media_dev);
->   
->   	/* init dvb demux */
->   	client->demux.dmx.capabilities = DMX_TS_FILTERING;
-> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> index 556c9e9d1d4e..12629b8ecb0c 100644
-> --- a/drivers/media/dvb-core/dvbdev.h
-> +++ b/drivers/media/dvb-core/dvbdev.h
-> @@ -125,8 +125,15 @@ extern void dvb_unregister_device (struct dvb_device *dvbdev);
->   
->   #ifdef CONFIG_MEDIA_CONTROLLER_DVB
->   void dvb_create_media_graph(struct dvb_adapter *adap);
-> +static inline void dvb_register_media_controller(struct dvb_adapter *adap,
-> +						 struct media_device *mdev)
+>  drivers/media/platform/vsp1/vsp1_drv.c   | 39 ++++++++++++++++++++++++++++----
+>  drivers/media/platform/vsp1/vsp1_video.c | 31 ++++++++++++++++++++++++-
+>  drivers/media/platform/vsp1/vsp1_video.h |  5 +++-
+>  3 files changed, 69 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+> index 913485a..b6e9cbc 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -1,7 +1,7 @@
+>  /*
+>   * vsp1_drv.c  --  R-Car VSP1 Driver
+>   *
+> - * Copyright (C) 2013-2014 Renesas Electronics Corporation
+> + * Copyright (C) 2013-2015 Renesas Electronics Corporation
+>   *
+>   * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+>   *
+> @@ -397,26 +397,57 @@ void vsp1_device_put(struct vsp1_device *vsp1)
+>  static int vsp1_pm_suspend(struct device *dev)
+>  {
+>         struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> +       unsigned int i = 0;
+> +       int ret = 0;
+>
+>         WARN_ON(mutex_is_locked(&vsp1->lock));
+>
+>         if (vsp1->ref_count == 0)
+>                 return 0;
+>
+> +       /* Suspend pipeline */
+> +       for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
+> +               struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> +               struct vsp1_pipeline *pipe;
+> +
+> +               if (wpf == NULL)
+> +                       continue;
+> +
+> +               pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
+> +               ret = vsp1_pipeline_suspend(pipe);
+> +               if (ret < 0)
+> +                       break;
+> +       }
+> +
+>         clk_disable_unprepare(vsp1->clock);
+> -       return 0;
+> +       return ret;
+>  }
+>
+>  static int vsp1_pm_resume(struct device *dev)
+>  {
+>         struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> +       unsigned int i = 0;
+>
+>         WARN_ON(mutex_is_locked(&vsp1->lock));
+>
+> -       if (vsp1->ref_count)
+> +       if (vsp1->ref_count == 0)
+>                 return 0;
+>
+> -       return clk_prepare_enable(vsp1->clock);
+> +       clk_prepare_enable(vsp1->clock);
+> +
+> +       /* Resume pipeline */
+> +       for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
+> +               struct vsp1_rwpf *wpf = vsp1->wpf[i];
+> +               struct vsp1_pipeline *pipe;
+> +
+> +               if (wpf == NULL)
+> +                       continue;
+> +
+> +               pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
+> +               vsp1_pipeline_resume(pipe);
+> +       }
+> +
+> +       return 0;
+>  }
+>  #endif
+>
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index d91f19a..c744608 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -1,7 +1,7 @@
+>  /*
+>   * vsp1_video.c  --  R-Car VSP1 Video Node
+>   *
+> - * Copyright (C) 2013-2014 Renesas Electronics Corporation
+> + * Copyright (C) 2013-2015 Renesas Electronics Corporation
+>   *
+>   * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+>   *
+> @@ -662,6 +662,35 @@ done:
+>         spin_unlock_irqrestore(&pipe->irqlock, flags);
+>  }
+>
+> +int vsp1_pipeline_suspend(struct vsp1_pipeline *pipe)
 > +{
-> +	adap->mdev = mdev;
+> +       unsigned long flags;
+> +       int ret;
+> +
+> +       if (pipe == NULL)
+> +               return 0;
+> +
+> +       spin_lock_irqsave(&pipe->irqlock, flags);
+> +       if (pipe->state == VSP1_PIPELINE_RUNNING)
+> +               pipe->state = VSP1_PIPELINE_STOPPING;
+> +       spin_unlock_irqrestore(&pipe->irqlock, flags);
+> +
+> +       ret = wait_event_timeout(pipe->wq, pipe->state == VSP1_PIPELINE_STOPPED,
+> +                                msecs_to_jiffies(500));
+> +       ret = ret == 0 ? -ETIMEDOUT : 0;
+> +
+> +       return ret;
 > +}
 > +
->   #else
->   static inline void dvb_create_media_graph(struct dvb_adapter *adap) {}
-> +#define dvb_register_media_controller(a, b) {}
->   #endif
-Does "#define dvb_register_media_controller(a, b) {}" restrict the 
-number of registerd controllers in any way?
-I mean, I've got a couple of TBS quad adapters, 4 tuner and 4 demod 
-chips on each card. Will they still work with this change?
->   
->   extern int dvb_generic_open (struct inode *inode, struct file *file);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 8bf2baae387f..ff39bf22442d 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -465,9 +465,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
->   		       dev->name, result);
->   		goto fail_adapter;
->   	}
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	dvb->adapter.mdev = dev->media_dev;
-> -#endif
-> +	dvb_register_media_controller(&dvb->adapter, dev->media_dev);
->   
->   	/* Ensure all frontends negotiate bus access */
->   	dvb->frontend->ops.ts_bus_ctrl = cx231xx_dvb_bus_ctrl;
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> index 8bd08ba4f869..f5df9eaba04f 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> @@ -429,7 +429,7 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
->   		return;
->   	}
->   
-> -	adap->dvb_adap.mdev = mdev;
-> +	dvb_register_media_controller(&adap->dvb_adap, mdev);
->   
->   	dev_info(&d->udev->dev, "media controller created\n");
->   
-> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> index 980d976960d9..7b7b834777b7 100644
-> --- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> +++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-> @@ -122,7 +122,7 @@ static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
->   		kfree(mdev);
->   		return;
->   	}
-> -	adap->dvb_adap.mdev = mdev;
-> +	dvb_register_media_controller(&adap->dvb_adap, mdev);
->   
->   	dev_info(&d->udev->dev, "media controller created\n");
->   #endif
-
+> +void vsp1_pipeline_resume(struct vsp1_pipeline *pipe)
+> +{
+> +       if (pipe == NULL)
+> +               return;
+> +
+> +       if (vsp1_pipeline_ready(pipe))
+> +               vsp1_pipeline_run(pipe);
+> +}
+> +
+>  /*
+>   * Propagate the alpha value through the pipeline.
+>   *
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+> index fd2851a..958a166 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.h
+> +++ b/drivers/media/platform/vsp1/vsp1_video.h
+> @@ -1,7 +1,7 @@
+>  /*
+>   * vsp1_video.h  --  R-Car VSP1 Video Node
+>   *
+> - * Copyright (C) 2013-2014 Renesas Electronics Corporation
+> + * Copyright (C) 2013-2015 Renesas Electronics Corporation
+>   *
+>   * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+>   *
+> @@ -149,4 +149,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+>                                    struct vsp1_entity *input,
+>                                    unsigned int alpha);
+>
+> +int vsp1_pipeline_suspend(struct vsp1_pipeline *pipe);
+> +void vsp1_pipeline_resume(struct vsp1_pipeline *pipe);
+> +
+>  #endif /* __VSP1_VIDEO_H__ */
+> --
+> 1.9.1
+>
