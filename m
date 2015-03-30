@@ -1,110 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:45357 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081AbbCBRGK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2015 12:06:10 -0500
-In-Reply-To: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-References: <20150302170538.GQ8656@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 01/10] media: omap3isp: remove unused clkdev
+Received: from foss.arm.com ([217.140.101.70]:60738 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752597AbbC3L5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 07:57:36 -0400
+Date: Mon, 30 Mar 2015 12:57:29 +0100
+From: Mark Rutland <mark.rutland@arm.com>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"pavel@ucw.cz" <pavel@ucw.cz>,
+	"cooloney@gmail.com" <cooloney@gmail.com>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v3] DT: Add documentation for the mfd Maxim max77693
+Message-ID: <20150330115729.GG17971@leverpostej>
+References: <1427709149-15014-1-git-send-email-j.anaszewski@samsung.com>
+ <1427709149-15014-2-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1YSTnC-0001JU-CX@rmk-PC.arm.linux.org.uk>
-Date: Mon, 02 Mar 2015 17:06:06 +0000
+In-Reply-To: <1427709149-15014-2-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No merged platform supplies xclks via platform data.  As we want to
-slightly change the clkdev interface, rather than fixing this unused
-code, remove it instead.
+On Mon, Mar 30, 2015 at 10:52:28AM +0100, Jacek Anaszewski wrote:
+> This patch adds device tree binding documentation for
+> the flash cell of the Maxim max77693 multifunctional device.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/mfd/max77693.txt |   63 ++++++++++++++++++++
+>  1 file changed, 63 insertions(+)
+> 
+> - added range to maxim,boost-mvout and maxim,mvsys-min description
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> index 38e6440..3d2103a 100644
+> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> @@ -76,7 +76,55 @@ Optional properties:
+>      Valid values: 4300000, 4700000, 4800000, 4900000
+>      Default: 4300000
+>  
+> +- led : the LED submodule device node
+> +
+> +There are two LED outputs available - FLED1 and FLED2. Each of them can
+> +control a separate LED or they can be connected together to double
+> +the maximum current for a single connected LED. One LED is represented
+> +by one child node.
+> +
+> +Required properties:
+> +- compatible : Must be "maxim,max77693-led".
+> +
+> +Optional properties:
+> +- maxim,trigger-type : Flash trigger type.
+> +	Possible trigger types:
+> +		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
+> +			the flash,
+> +		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
+> +			of the flash.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/media/platform/omap3isp/isp.c | 18 ------------------
- drivers/media/platform/omap3isp/isp.h |  1 -
- include/media/omap3isp.h              |  6 ------
- 3 files changed, 25 deletions(-)
+Surely this is required? What should be assumed if this property isn't
+present?
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index deca80903c3a..4d8078b9d010 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -281,7 +281,6 @@ static const struct clk_init_data isp_xclk_init_data = {
- 
- static int isp_xclk_init(struct isp_device *isp)
- {
--	struct isp_platform_data *pdata = isp->pdata;
- 	struct clk_init_data init;
- 	unsigned int i;
- 
-@@ -311,20 +310,6 @@ static int isp_xclk_init(struct isp_device *isp)
- 		xclk->clk = clk_register(NULL, &xclk->hw);
- 		if (IS_ERR(xclk->clk))
- 			return PTR_ERR(xclk->clk);
--
--		if (pdata->xclks[i].con_id == NULL &&
--		    pdata->xclks[i].dev_id == NULL)
--			continue;
--
--		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
--		if (xclk->lookup == NULL)
--			return -ENOMEM;
--
--		xclk->lookup->con_id = pdata->xclks[i].con_id;
--		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
--		xclk->lookup->clk = xclk->clk;
--
--		clkdev_add(xclk->lookup);
- 	}
- 
- 	return 0;
-@@ -339,9 +324,6 @@ static void isp_xclk_cleanup(struct isp_device *isp)
- 
- 		if (!IS_ERR(xclk->clk))
- 			clk_unregister(xclk->clk);
--
--		if (xclk->lookup)
--			clkdev_drop(xclk->lookup);
- 	}
- }
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index cfdfc8714b6b..d41c98bbdfe7 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -122,7 +122,6 @@ enum isp_xclk_id {
- struct isp_xclk {
- 	struct isp_device *isp;
- 	struct clk_hw hw;
--	struct clk_lookup *lookup;
- 	struct clk *clk;
- 	enum isp_xclk_id id;
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 398279dd1922..a9798525d01e 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -152,13 +152,7 @@ struct isp_v4l2_subdevs_group {
- 	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
- };
- 
--struct isp_platform_xclk {
--	const char *dev_id;
--	const char *con_id;
--};
--
- struct isp_platform_data {
--	struct isp_platform_xclk xclks[2];
- 	struct isp_v4l2_subdevs_group *subdevs;
- 	void (*set_constraints)(struct isp_device *isp, bool enable);
- };
--- 
-1.8.3.1
+Otherwise this looks OK, but I'm not that familiar with LED/flash
+bindings.
 
+Mark.
+
+> +- maxim,boost-mode :
+> +	In boost mode the device can produce up to 1.2A of total current
+> +	on both outputs. The maximum current on each output is reduced
+> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+> +	LEDS_BOOST_FIXED in case both current sources are used.
+> +	Possible values:
+> +		LEDS_BOOST_OFF (0) - no boost,
+> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+> +		LEDS_BOOST_FIXED (2) - fixed mode.
+> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
+> +		Range: 3300 - 5500
+> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+> +	if chip estimates that system voltage could drop below this level due
+> +	to flash power consumption.
+> +		Range: 2400 - 3400
+> +
+> +Required properties of the LED child node:
+> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+> +		device current output identifiers: 0 - FLED1, 1 - FLED2
+> +
+> +Optional properties of the LED child node:
+> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> +- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 250000
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 15625 - 1000000
+> +- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> +		Range: 62500 - 1000000
+> +
+>  Example:
+> +#include <dt-bindings/leds/common.h>
+> +
+>  	max77693@66 {
+>  		compatible = "maxim,max77693";
+>  		reg = <0x66>;
+> @@ -117,5 +165,20 @@ Example:
+>  			maxim,thermal-regulation-celsius = <75>;
+>  			maxim,battery-overcurrent-microamp = <3000000>;
+>  			maxim,charge-input-threshold-microvolt = <4300000>;
+> +
+> +		led {
+> +			compatible = "maxim,max77693-led";
+> +			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
+> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+> +			maxim,boost-mvout = <5000>;
+> +			maxim,mvsys-min = <2400>;
+> +
+> +			camera_flash: flash-led {
+> +				label = "max77693-flash";
+> +				led-sources = <0>, <1>;
+> +				max-microamp = <500000>;
+> +				flash-max-microamp = <1250000>;
+> +				flash-timeout-us = <1000000>;
+> +			};
+>  		};
+>  	};
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
