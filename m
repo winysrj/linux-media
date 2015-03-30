@@ -1,180 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43598 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbbCPAAU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39052 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753280AbbC3XOT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2015 20:00:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>, Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH/RFC 4/4] soc-camera: Skip v4l2 clock registration if host doesn't provide clk ops
-Date: Mon, 16 Mar 2015 02:00:25 +0200
-Message-ID: <1634321.iE70ufz1gl@avalon>
-In-Reply-To: <Pine.LNX.4.64.1503151845220.13027@axis700.grange>
-References: <1425883176-29859-1-git-send-email-laurent.pinchart@ideasonboard.com> <1425883176-29859-5-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1503151845220.13027@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 30 Mar 2015 19:14:19 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org, sre@kernel.org
+Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	pali.rohar@gmail.com, tony@atomide.com
+Subject: [PATCH 1/1] omap3isp: Don't pass uninitialised arguments to of_graph_get_next_endpoint()
+Date: Tue, 31 Mar 2015 02:13:28 +0300
+Message-Id: <1427757208-1938-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20150330174123.GA2658@earth>
+References: <20150330174123.GA2658@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+isp_of_parse_nodes() passed an uninitialised prev argument to
+of_graph_get_next_endpoint(). This is bad, fix it by assigning NULL to it in
+the initialisation.
 
-On Sunday 15 March 2015 18:56:44 Guennadi Liakhovetski wrote:
-> On Mon, 9 Mar 2015, Laurent Pinchart wrote:
-> > If the soc-camera host doesn't provide clock start and stop operations
-> > registering a v4l2 clock is pointless. Don't do it.
-> 
-> This can introduce breakage only for camera-host drivers, that don't
-> provide .clock_start() or .clock_stop(). After your other 3 patches from
-> this patch set there will be one such driver in the tree - rcar_vin.c. I
-> wouldn't mind this patch as long as we can have an ack from an rcar_vin.c
-> maintainer. Since I don't see one in MAINTAINERS, who can ack this? Simon?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Reported-by: Sebastian Reichel <sre@kernel.org>
+---
+ drivers/media/platform/omap3isp/isp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't think we have an official maintainer. Maybe a Tested-by would be 
-enough in this case ?
-
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/soc_camera/soc_camera.c | 51 +++++++++++++++------
-> >  1 file changed, 33 insertions(+), 18 deletions(-)
-> > 
-> > This requires proper review and testing, please don't apply it blindly.
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c
-> > b/drivers/media/platform/soc_camera/soc_camera.c index 0943125..f3ea911
-> > 100644
-> > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > @@ -1374,10 +1374,13 @@ static int soc_camera_i2c_init(struct
-> > soc_camera_device *icd,> 
-> >  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
-> >  	
-> >  		 shd->i2c_adapter_id, shd->board_info->addr);
-> > 
-> > -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk",
-> > icd);
-> > -	if (IS_ERR(icd->clk)) {
-> > -		ret = PTR_ERR(icd->clk);
-> > -		goto eclkreg;
-> > +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> > +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> > +					     "mclk", icd);
-> > +		if (IS_ERR(icd->clk)) {
-> > +			ret = PTR_ERR(icd->clk);
-> > +			goto eclkreg;
-> > +		}
-> > 
-> >  	}
-> >  	
-> >  	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
-> > 
-> > @@ -1394,8 +1397,10 @@ static int soc_camera_i2c_init(struct
-> > soc_camera_device *icd,> 
-> >  	return 0;
-> >  
-> >  ei2cnd:
-> > -	v4l2_clk_unregister(icd->clk);
-> > -	icd->clk = NULL;
-> > +	if (icd->clk) {
-> > +		v4l2_clk_unregister(icd->clk);
-> > +		icd->clk = NULL;
-> > +	}
-> > 
-> >  eclkreg:
-> >  	kfree(ssdd);
-> >  
-> >  ealloc:
-> > @@ -1420,8 +1425,10 @@ static void soc_camera_i2c_free(struct
-> > soc_camera_device *icd)> 
-> >  	i2c_unregister_device(client);
-> >  	i2c_put_adapter(adap);
-> >  	kfree(ssdd);
-> > 
-> > -	v4l2_clk_unregister(icd->clk);
-> > -	icd->clk = NULL;
-> > +	if (icd->clk) {
-> > +		v4l2_clk_unregister(icd->clk);
-> > +		icd->clk = NULL;
-> > +	}
-> > 
-> >  }
-> >  
-> >  /*
-> > 
-> > @@ -1555,17 +1562,21 @@ static int scan_async_group(struct soc_camera_host
-> > *ici,> 
-> >  	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
-> >  	
-> >  		 sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
-> > 
-> > -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk",
-> > icd);
-> > -	if (IS_ERR(icd->clk)) {
-> > -		ret = PTR_ERR(icd->clk);
-> > -		goto eclkreg;
-> > +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> > +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> > +					     "mclk", icd);
-> > +		if (IS_ERR(icd->clk)) {
-> > +			ret = PTR_ERR(icd->clk);
-> > +			goto eclkreg;
-> > +		}
-> > 
-> >  	}
-> >  	
-> >  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
-> >  	if (!ret)
-> >  	
-> >  		return 0;
-> > 
-> > -	v4l2_clk_unregister(icd->clk);
-> > +	if (icd->clk)
-> > +		v4l2_clk_unregister(icd->clk);
-> > 
-> >  eclkreg:
-> >  	icd->clk = NULL;
-> >  	platform_device_del(sasc->pdev);
-> > 
-> > @@ -1660,17 +1671,21 @@ static int soc_of_bind(struct soc_camera_host
-> > *ici,
-> > 
-> >  		snprintf(clk_name, sizeof(clk_name), "of-%s",
-> >  		
-> >  			 of_node_full_name(remote));
-> > 
-> > -	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk",
-> > icd);
-> > -	if (IS_ERR(icd->clk)) {
-> > -		ret = PTR_ERR(icd->clk);
-> > -		goto eclkreg;
-> > +	if (ici->ops->clock_start && ici->ops->clock_stop) {
-> > +		icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name,
-> > +					     "mclk", icd);
-> > +		if (IS_ERR(icd->clk)) {
-> > +			ret = PTR_ERR(icd->clk);
-> > +			goto eclkreg;
-> > +		}
-> > 
-> >  	}
-> >  	
-> >  	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
-> >  	if (!ret)
-> >  	
-> >  		return 0;
-> > 
-> > -	v4l2_clk_unregister(icd->clk);
-> > +	if (icd->clk)
-> > +		v4l2_clk_unregister(icd->clk);
-> > 
-> >  eclkreg:
-> >  	icd->clk = NULL;
-> >  	platform_device_del(sasc->pdev);
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index ff8f633..ff51c4f 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2338,7 +2338,7 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ static int isp_of_parse_nodes(struct device *dev,
+ 			      struct v4l2_async_notifier *notifier)
+ {
+-	struct device_node *node;
++	struct device_node *node = NULL;
+ 
+ 	notifier->subdevs = devm_kcalloc(
+ 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
