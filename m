@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:44715 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545AbbCJOJ2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60952 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752685AbbC3LLK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2015 10:09:28 -0400
-Received: by qcwr17 with SMTP id r17so1977766qcw.11
-        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2015 07:09:27 -0700 (PDT)
-Message-ID: <54FEFA83.2080205@vanguardiasur.com.ar>
-Date: Tue, 10 Mar 2015 11:06:59 -0300
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com, hans.verkuil@cisco.com
-Subject: Re: em38xx locking question
-References: <54FEEF38.6060506@vanguardiasur.com.ar> <54FEF0E9.9070804@xs4all.nl> <54FEF1D1.3000909@vanguardiasur.com.ar> <54FEF5B4.1060209@xs4all.nl>
-In-Reply-To: <54FEF5B4.1060209@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 30 Mar 2015 07:11:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC 06/12] [media] tc358743: split set_csi into set_csi and start_csi
+Date: Mon, 30 Mar 2015 13:10:50 +0200
+Message-Id: <1427713856-10240-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The CSI Tx can't be stopped except by pulling the CTx reset.
+Split the actual CSI start out of set_csi. This allows to call
+it later in s_stream, as the Synopsys Designware MIPI CSI-2 Host
+Controller needs to start with the lanes in stop state before
+it can sync its PLL to the clock lane.
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-On 03/10/2015 10:46 AM, Hans Verkuil wrote:
-> On 03/10/2015 02:29 PM, Ezequiel Garcia wrote:
->>
->>
->> On 03/10/2015 10:26 AM, Hans Verkuil wrote:
->>> On 03/10/2015 02:18 PM, Ezequiel Garcia wrote:
->>>> Mauro,
->>>>
->>>> Function drivers/media/usb/em28xx/em28xx-video.c:get_next_buf
->>>> (copy pasted below for reference) does not take the list spinlock,
->>>> yet it modifies the list. Is that correct?
->>>
->>> That looks wrong to me. You really need spinlocks here.
->>>
->>
->> OK, second question then. Is there any way to guarantee the URBs irq handler
->> is *not* running, when vb2_ops are called (e.g. stop_streaming)?
-> 
-> That depends on the op. But stop_streaming is the op that is supposed to
-> turn off the streaming (and thus the irq), so it depends on the order
-> of how things are done in that function.
-> 
-
-Ah, right. As long as you kill the urbs before you try to access the
-current buffer, everything is OK.
-
->> Otherwise, given stop_streaming will return the current buffer to vb2
->> (dev->usb_ctl.vid_buf), I believe that will race against the irq handler,
->> which is processing it.
->>
-
->> It seems that's currently racy as well.
-> 
-> Hmm, the stop_streaming code looks fine at first sight, but I think there
-> is a race if you start streaming both video and vbi, and then stop streaming
-> one of the two. I think the code might keep calling get_next_buf() in that
-> case, even if for that stream the streaming was stopped.
-> 
-> This is a problem anyway: get_next_buf() should do this check at the beginning:
-> 
-> 	if (!vb2_start_streaming_called(vb2_queue))
-> 		return NULL;
-> 
-> to prevent it from using buffer before start_streaming was actually called.
-> 
-
-I'd say get_next_buf() is called only in the URB complete handler path,
-and hence only after start_streaming. However, maybe there's a subtle
-issue here: URB complete handler can be called _while_ start_streaming
-is still running.
-
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 74e83c5..34acfed 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -759,6 +759,14 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
+ 			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
+ 
+ 	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
++}
++
++static void tc358743_start_csi(struct v4l2_subdev *sd)
++{
++	unsigned lanes = tc358743_num_csi_lanes_needed(sd);
++
++	v4l2_dbg(3, debug, sd, "%s:\n", __func__);
++
+ 	i2c_wr32(sd, STARTCNTRL, MASK_START);
+ 	i2c_wr32(sd, CSI_START, MASK_STRT);
+ 
+@@ -1177,6 +1185,7 @@ static long tc358743_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ 		i2c_wr16(sd, CONFCTL, confctl &
+ 				(~(MASK_VBUFEN | MASK_ABUFEN)));
+ 		tc358743_set_csi(sd);
++		tc358743_start_csi(sd);
+ 		i2c_wr16(sd, CONFCTL, confctl |
+ 				(MASK_VBUFEN | MASK_ABUFEN));
+ 		return 0;
+@@ -1505,7 +1514,11 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
+ 
+ static int tc358743_s_stream(struct v4l2_subdev *sd, int enable)
+ {
++	if (enable)
++		tc358743_start_csi(sd);
+ 	enable_stream(sd, enable);
++	if (!enable)
++		tc358743_set_csi(sd);
+ 
+ 	return 0;
+ }
 -- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+2.1.4
+
