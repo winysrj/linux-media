@@ -1,144 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:33896 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbbCWQ0y (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60955 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896AbbC3LLQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2015 12:26:54 -0400
-From: Silvan Jegen <s.jegen@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Silvan Jegen <s.jegen@gmail.com>, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH V3] [media] mantis: fix error handling
-Date: Mon, 23 Mar 2015 17:25:53 +0100
-Message-Id: <1427127953-24716-1-git-send-email-s.jegen@gmail.com>
-In-Reply-To: <20150322224831.GF16501@mwanda>
-References: <20150322224831.GF16501@mwanda>
+	Mon, 30 Mar 2015 07:11:16 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC 05/12] [media] tc358743: fix lane number calculation to include blanking
+Date: Mon, 30 Mar 2015 13:10:49 +0200
+Message-Id: <1427713856-10240-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dead code, make goto label names more expressive and add a label
-in order to call mantis_dvb_exit if mantis_uart_init fails.
+Instead of only using the visible width and height, also add the
+horizontal and vertical blanking to calculate the bit rate.
 
-Also make sure that mantis_pci_exit is called if we fail the
-mantis_stream_control call and that we call mantis_i2c_exit if
-mantis_get_mac fails.
-
-Signed-off-by: Silvan Jegen <s.jegen@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-V3 Changes (due to Dan Carpenter's and Walter Harms' reviews):
-	- return -ENOMEM/0 directly
-  - remove dprintk calls in the error handling part
+ drivers/media/i2c/tc358743.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-V2 Changes (due to Dan Carpenter's review):
-	- Remove dead code, do not activate it
-	- Make goto labels more expressive
-	- Add a call to mantis_dvb_exit
-
- drivers/media/pci/mantis/mantis_cards.c | 39 ++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/media/pci/mantis/mantis_cards.c b/drivers/media/pci/mantis/mantis_cards.c
-index 801fc55..9861a8c 100644
---- a/drivers/media/pci/mantis/mantis_cards.c
-+++ b/drivers/media/pci/mantis/mantis_cards.c
-@@ -169,8 +169,7 @@ static int mantis_pci_probe(struct pci_dev *pdev,
- 	mantis = kzalloc(sizeof(struct mantis_pci), GFP_KERNEL);
- 	if (mantis == NULL) {
- 		printk(KERN_ERR "%s ERROR: Out of memory\n", __func__);
--		err = -ENOMEM;
--		goto fail0;
-+		return -ENOMEM;
- 	}
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index dd2ea16..74e83c5 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -713,9 +713,11 @@ static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
+ {
+ 	struct tc358743_state *state = to_state(sd);
+ 	struct v4l2_bt_timings *bt = &state->timings.bt;
++	u32 htotal = bt->width + bt->hfrontporch + bt->hsync + bt->hbackporch;
++	u32 vtotal = bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch;
+ 	u32 bits_pr_pixel =
+ 		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
+-	u32 bps = bt->width * bt->height * fps(bt) * bits_pr_pixel;
++	u32 bps = htotal * vtotal * fps(bt) * bits_pr_pixel;
  
- 	mantis->num		= devs;
-@@ -183,70 +182,64 @@ static int mantis_pci_probe(struct pci_dev *pdev,
- 	err = mantis_pci_init(mantis);
- 	if (err) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis PCI initialization failed <%d>", err);
--		goto fail1;
-+		goto err_free_mantis;
- 	}
- 
- 	err = mantis_stream_control(mantis, STREAM_TO_HIF);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis stream control failed <%d>", err);
--		goto fail1;
-+		goto err_pci_exit;
- 	}
- 
- 	err = mantis_i2c_init(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis I2C initialization failed <%d>", err);
--		goto fail2;
-+		goto err_pci_exit;
- 	}
- 
- 	err = mantis_get_mac(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis MAC address read failed <%d>", err);
--		goto fail2;
-+		goto err_i2c_exit;
- 	}
- 
- 	err = mantis_dma_init(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA initialization failed <%d>", err);
--		goto fail3;
-+		goto err_i2c_exit;
- 	}
- 
- 	err = mantis_dvb_init(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DVB initialization failed <%d>", err);
--		goto fail4;
-+		goto err_dma_exit;
- 	}
-+
- 	err = mantis_uart_init(mantis);
- 	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART initialization failed <%d>", err);
--		goto fail6;
-+		goto err_dvb_exit;
- 	}
- 
- 	devs++;
- 
--	return err;
--
-+	return 0;
- 
--	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis UART exit! <%d>", err);
--	mantis_uart_exit(mantis);
-+err_dvb_exit:
-+	mantis_dvb_exit(mantis);
- 
--fail6:
--fail4:
--	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis DMA exit! <%d>", err);
-+err_dma_exit:
- 	mantis_dma_exit(mantis);
- 
--fail3:
--	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis I2C exit! <%d>", err);
-+err_i2c_exit:
- 	mantis_i2c_exit(mantis);
- 
--fail2:
--	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis PCI exit! <%d>", err);
-+err_pci_exit:
- 	mantis_pci_exit(mantis);
- 
--fail1:
--	dprintk(MANTIS_ERROR, 1, "ERROR: Mantis free! <%d>", err);
-+err_free_mantis:
- 	kfree(mantis);
- 
--fail0:
- 	return err;
+ 	return DIV_ROUND_UP(bps, state->pdata.bps_pr_lane);
  }
- 
 -- 
-2.3.3
+2.1.4
 
