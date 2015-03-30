@@ -1,76 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:36427 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbbCaQPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2015 12:15:44 -0400
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-To: linux-pm@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/6] [media] uvcvideo: Enable runtime PM of descendant devices
-Date: Tue, 31 Mar 2015 18:14:45 +0200
-Message-Id: <1427818501-10201-2-git-send-email-tomeu.vizoso@collabora.com>
-In-Reply-To: <1427818501-10201-1-git-send-email-tomeu.vizoso@collabora.com>
-References: <1427818501-10201-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:34616 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753390AbbC3Uvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 16:51:33 -0400
+Subject: [PATCH] rc-core: fix dib0700 scancode generation for RC5
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: david.cimburek@gmail.com, m.chehab@samsung.com
+Date: Mon, 30 Mar 2015 22:51:01 +0200
+Message-ID: <20150330205101.16848.5180.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So UVC devices can remain runtime-suspended when the system goes into a
-sleep state, they and all of their descendant devices need to have
-runtime PM enable.
+commit af3a4a9bbeb00df3e42e77240b4cdac5479812f9 cleaned up the NEC
+scancode logic but overlooked the RC5 case. This patch brings the
+RC5 case in line with the NEC code and makes the struct
+self-documenting.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+Reported-by: David Cimbůrek <david.cimburek@gmail.com>
+Cc: stable@vger.kernel.org
 ---
- drivers/media/usb/uvc/uvc_driver.c | 4 ++++
- drivers/media/usb/uvc/uvc_status.c | 3 +++
- 2 files changed, 7 insertions(+)
+ drivers/media/usb/dvb-usb/dib0700_core.c |   70 +++++++++++++++++-------------
+ 1 file changed, 40 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index cf27006..e98830a1 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1792,6 +1792,8 @@ static int uvc_register_video(struct uvc_device *dev,
- 		return ret;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index 50856db..605b090 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -658,10 +658,20 @@ out:
+ struct dib0700_rc_response {
+ 	u8 report_id;
+ 	u8 data_state;
+-	u8 system;
+-	u8 not_system;
+-	u8 data;
+-	u8 not_data;
++	union {
++		struct {
++			u8 system;
++			u8 not_system;
++			u8 data;
++			u8 not_data;
++		} nec;
++		struct {
++			u8 not_used;
++			u8 system;
++			u8 data;
++			u8 not_data;
++		} rc5;
++	};
+ };
+ #define RC_MSG_SIZE_V1_20 6
+ 
+@@ -697,8 +707,8 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 
+ 	deb_data("IR ID = %02X state = %02X System = %02X %02X Cmd = %02X %02X (len %d)\n",
+ 		 poll_reply->report_id, poll_reply->data_state,
+-		 poll_reply->system, poll_reply->not_system,
+-		 poll_reply->data, poll_reply->not_data,
++		 poll_reply->nec.system, poll_reply->nec.not_system,
++		 poll_reply->nec.data, poll_reply->nec.not_data,
+ 		 purb->actual_length);
+ 
+ 	switch (d->props.rc.core.protocol) {
+@@ -707,30 +717,30 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		toggle = 0;
+ 
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+-		if (poll_reply->system     == 0x00 &&
+-		    poll_reply->not_system == 0x00 &&
+-		    poll_reply->data       == 0x00 &&
+-		    poll_reply->not_data   == 0xff) {
++		if (poll_reply->nec.system     == 0x00 &&
++		    poll_reply->nec.not_system == 0x00 &&
++		    poll_reply->nec.data       == 0x00 &&
++		    poll_reply->nec.not_data   == 0xff) {
+ 			poll_reply->data_state = 2;
+ 			break;
+ 		}
+ 
+-		if ((poll_reply->data ^ poll_reply->not_data) != 0xff) {
++		if ((poll_reply->nec.data ^ poll_reply->nec.not_data) != 0xff) {
+ 			deb_data("NEC32 protocol\n");
+-			keycode = RC_SCANCODE_NEC32(poll_reply->system     << 24 |
+-						     poll_reply->not_system << 16 |
+-						     poll_reply->data       << 8  |
+-						     poll_reply->not_data);
+-		} else if ((poll_reply->system ^ poll_reply->not_system) != 0xff) {
++			keycode = RC_SCANCODE_NEC32(poll_reply->nec.system     << 24 |
++						     poll_reply->nec.not_system << 16 |
++						     poll_reply->nec.data       << 8  |
++						     poll_reply->nec.not_data);
++		} else if ((poll_reply->nec.system ^ poll_reply->nec.not_system) != 0xff) {
+ 			deb_data("NEC extended protocol\n");
+-			keycode = RC_SCANCODE_NECX(poll_reply->system << 8 |
+-						    poll_reply->not_system,
+-						    poll_reply->data);
++			keycode = RC_SCANCODE_NECX(poll_reply->nec.system << 8 |
++						    poll_reply->nec.not_system,
++						    poll_reply->nec.data);
+ 
+ 		} else {
+ 			deb_data("NEC normal protocol\n");
+-			keycode = RC_SCANCODE_NEC(poll_reply->system,
+-						   poll_reply->data);
++			keycode = RC_SCANCODE_NEC(poll_reply->nec.system,
++						   poll_reply->nec.data);
+ 		}
+ 
+ 		break;
+@@ -738,19 +748,19 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 		deb_data("RC5 protocol\n");
+ 		protocol = RC_TYPE_RC5;
+ 		toggle = poll_reply->report_id;
+-		keycode = RC_SCANCODE_RC5(poll_reply->system, poll_reply->data);
++		keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
++
++		if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
++			/* Key failed integrity check */
++			err("key failed integrity check: %02x %02x %02x %02x",
++			    poll_reply->rc5.not_used, poll_reply->rc5.system,
++			    poll_reply->rc5.data, poll_reply->rc5.not_data);
++			goto resubmit;
++		}
+ 
+ 		break;
  	}
  
-+	pm_runtime_enable(&vdev->dev);
-+
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
- 	else
-@@ -1932,6 +1934,8 @@ static int uvc_probe(struct usb_interface *intf,
- 	if (media_device_register(&dev->mdev) < 0)
- 		goto error;
+-	if ((poll_reply->data + poll_reply->not_data) != 0xff) {
+-		/* Key failed integrity check */
+-		err("key failed integrity check: %02x %02x %02x %02x",
+-		    poll_reply->system,  poll_reply->not_system,
+-		    poll_reply->data, poll_reply->not_data);
+-		goto resubmit;
+-	}
+-
+ 	rc_keydown(d->rc_dev, protocol, keycode, toggle);
  
-+	pm_runtime_enable(&dev->mdev.devnode.dev);
-+
- 	dev->vdev.mdev = &dev->mdev;
- #endif
- 	if (v4l2_device_register(&intf->dev, &dev->vdev) < 0)
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index f552ab9..b1d3d8c 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/input.h>
-+#include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/usb.h>
- #include <linux/usb/input.h>
-@@ -46,6 +47,8 @@ static int uvc_input_init(struct uvc_device *dev)
- 	if ((ret = input_register_device(input)) < 0)
- 		goto error;
- 
-+	pm_runtime_enable(&input->dev);
-+
- 	dev->input = input;
- 	return 0;
- 
--- 
-2.3.4
+ resubmit:
 
