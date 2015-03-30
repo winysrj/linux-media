@@ -1,117 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35628 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932140AbbCCO30 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 09:29:26 -0500
-Date: Tue, 3 Mar 2015 11:29:22 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.1] Various fixes/improvements
-Message-ID: <20150303112922.7d52fce8@recife.lan>
-In-Reply-To: <54F58A26.5090307@xs4all.nl>
-References: <54F58A26.5090307@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60948 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752745AbbC3LLK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 07:11:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC 00/12] TC358743 async subdev and dt support
+Date: Mon, 30 Mar 2015 13:10:44 +0200
+Message-Id: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 03 Mar 2015 11:17:10 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Mats,
 
-> Hi Mauro,
-> 
-> Just a pile of fixes/improvements, nothing that stands out.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit b44b2e06ae463327334235bf160e804632b9b37c:
-> 
->   [media] media: i2c: ADV7604: Rename adv7604 prefixes (2015-03-02 16:59:32 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.1c
-> 
-> for you to fetch changes up to 6e10c830b20252981b3896648fafcec60fb74dc5:
-> 
->   media: adv7604: improve usage of gpiod API (2015-03-03 11:01:51 +0100)
-> 
-> ----------------------------------------------------------------
-> Fabian Frederick (1):
->       saa7146: replace current->state by set_current_state()
-> 
-> Gilles Risch (1):
->       Basic support for the Elgato EyeTV Hybrid INT 2008 USB Stick
-> 
-> Hans Verkuil (1):
->       DocBook media: fix typos in YUV420M description
-> 
-> Lad, Prabhakar (4):
->       media: au0828: drop vbi_buffer_filled() and re-use buffer_filled()
->       media: drop call to v4l2_device_unregister_subdev()
->       media: i2c: ths7303: drop module param debug
->       media: omap/omap_vout: fix type of input members to omap_vout_setup_vrfb_bufs()
-> 
-> Olli Salonen (1):
->       saa7164: free_irq before pci_disable_device
-> 
-> Shuah Khan (3):
->       media: au0828 replace printk KERN_DEBUG with pr_debug
->       media: em28xx replace printk in dprintk macros
+did you have time to work on the TC358743 driver some more in the meanwhile?
+These are the changes I have made locally to v1 to get it to work on i.MX6.
 
-I nacked the two above patches, as it requires to both pass a modprobe
-parameter to the driver and to enable the dynamic printks. We should either
-use one way or the other (or to use a better solution as Joe Perches is
-proposing).
+regards
+Philipp
 
-The rest of this pull request is OK and got merged.
+Mats Randgaard (1):
+  [media] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
 
->       media: au0828 - embed vdev and vbi_dev structs in au0828_dev
-> 
-> Simon Farnsworth (1):
->       cx18: Fix bytes_per_line
-> 
-> Tapasweni Pathak (1):
->       drivers: media: i2c : s5c73m3: Replace dev_err with pr_err
-> 
-> Uwe Kleine-König (1):
->       media: adv7604: improve usage of gpiod API
-> 
-> Wei Yongjun (1):
->       v4l2: remove unused including <linux/version.h>
-> 
->  Documentation/DocBook/media/v4l/pixfmt-yuv420m.xml |   4 +--
->  drivers/media/common/saa7146/saa7146_vbi.c         |   4 +--
->  drivers/media/i2c/adv7343.c                        |   1 -
->  drivers/media/i2c/adv7604.c                        |  17 +++++--------
->  drivers/media/i2c/mt9v032.c                        |   1 -
->  drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |   2 +-
->  drivers/media/i2c/soc_camera/mt9m111.c             |   1 -
->  drivers/media/i2c/ths7303.c                        |   4 ---
->  drivers/media/i2c/ths8200.c                        |   1 -
->  drivers/media/i2c/tvp514x.c                        |   1 -
->  drivers/media/i2c/tvp7002.c                        |   1 -
->  drivers/media/pci/cx18/cx18-driver.h               |   1 +
->  drivers/media/pci/cx18/cx18-ioctl.c                |   9 ++++---
->  drivers/media/pci/saa7164/saa7164-core.c           |   4 +--
->  drivers/media/platform/omap/omap_vout.c            |   2 +-
->  drivers/media/platform/omap/omap_vout_vrfb.c       |   1 +
->  drivers/media/platform/omap/omap_vout_vrfb.h       |   4 +--
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c |   1 -
->  drivers/media/usb/au0828/au0828-video.c            | 100 ++++++++++++++++++++++++++-----------------------------------------------
->  drivers/media/usb/au0828/au0828.h                  |   6 ++---
->  drivers/media/usb/em28xx/em28xx-audio.c            |   3 +--
->  drivers/media/usb/em28xx/em28xx-cards.c            |  13 +++++++++-
->  drivers/media/usb/em28xx/em28xx-dvb.c              |   3 ++-
->  drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
->  drivers/media/usb/em28xx/em28xx.h                  |   1 +
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           |   1 -
->  26 files changed, 80 insertions(+), 108 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Philipp Zabel (11):
+  [media] tc358743: register v4l2 asynchronous subdevice
+  [media] tc358743: support probe from device tree
+  [media] tc358743: fix set_pll to enable PLL with default frequency
+  [media] tc358743: fix lane number calculation to include blanking
+  [media] tc358743: split set_csi into set_csi and start_csi
+  [media] tc358743: also set TCLK_TRAILCNT and TCLK_POSTCNT
+  [media] tc358743: parse MIPI CSI-2 endpoint, support noncontinuous
+    clock
+  [media] tc358743: add direct interrupt handling
+  [media] tc358743: detect chip by ChipID instead of IntMask
+  [media] tc358743: don't return E2BIG from G_EDID
+  [media] tc358743: allow event subscription
+
+ MAINTAINERS                        |    6 +
+ drivers/media/i2c/Kconfig          |   12 +
+ drivers/media/i2c/Makefile         |    1 +
+ drivers/media/i2c/tc358743.c       | 1979 ++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/tc358743_regs.h  |  670 ++++++++++++
+ include/media/tc358743.h           |   89 ++
+ include/uapi/linux/v4l2-controls.h |    4 +
+ 7 files changed, 2761 insertions(+)
+ create mode 100644 drivers/media/i2c/tc358743.c
+ create mode 100644 drivers/media/i2c/tc358743_regs.h
+ create mode 100644 include/media/tc358743.h
+
+-- 
+2.1.4
+
