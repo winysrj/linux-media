@@ -1,42 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36541 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413AbbCYNXS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 09:23:18 -0400
-In-Reply-To: <43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
-References: <550FFFB2.9020400@butterbrot.org> <55103587.3080901@butterbrot.org> <43CDB224-5B10-4234-9054-7A7EC1EDA3BF@butterbrot.org>
+Received: from vader.hardeman.nu ([95.142.160.32]:34705 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753386AbbC3VSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 17:18:51 -0400
+Date: Mon, 30 Mar 2015 23:18:19 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
+Message-ID: <20150330211819.GA18426@hardeman.nu>
+References: <cover.1426801061.git.sean@mess.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: input_polldev interval (was Re: [sur40] Debugging a race condition)?
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Date: Wed, 25 Mar 2015 06:23:09 -0700
-To: Florian Echtler <floe@butterbrot.org>,
-	linux-input <linux-input@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Benjamin Tissoires <benjamin.tissoires@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-ID: <DAFB1A9C-4AD7-4236-9945-6A456BEC7EDE@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1426801061.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On March 24, 2015 11:52:54 PM PDT, Florian Echtler <floe@butterbrot.org> wrote:
->Sorry for the continued noise, but this bug/crash is proving quite
->difficult to nail down.
+On Thu, Mar 19, 2015 at 09:50:11PM +0000, Sean Young wrote:
+>This patch series tries to fix the lirc interface and extend it so it can
+>be used to send/recv scancodes in addition to raw IR:
 >
->Currently, I'm setting the interval for input_polldev to 10 ms.
->However, with video data being retrieved at the same time, it's quite
->possible that one iteration of poll() will take longer than that. Could
->this ultimately be the reason? What happens if a new poll() call is
->scheduled before the previous one completes?
+> - Make it possible to receive scancodes from hardware that generates 
+>   scancodes (with rc protocol information)
+> - Make it possible to receive decoded scancodes from raw IR, from the 
+>   in-kernel decoders (not mce mouse/keyboard). Now you can take any
+>   remote, run ir-rec and you will get both the raw IR and the decoded
+>   scancodes plus rc protocol information.
+> - Make it possible to send scancodes; in kernel-encoding of IR
+> - Make it possible to send scancodes for hardware that can only do that
+>   (so that lirc_zilog can be moved out of staging, not completed yet)
+> - Possibly the lirc interface can be used for cec?
+>
+>This requires a little refactoring.
+> - All rc-core devices will have a lirc device associated with them
+> - The rc-core <-> lirc bridge no longer is a "decoder", this never made 
+>   sense and caused confusion
 
-This can't happen as we schedule the next poll only after current one completes.
+IIRC, it was written that way to make the lirc module optional.
 
-Hi Florian,
-Thanks.
+>This requires new API for rc-core lirc devices.
+> - New feature LIRC_CAN_REC_SCANCODE and LIRC_CAN_SEND_SCANCODE
+> - REC_MODE and SEND_MODE do not enable LIRC_MODE_SCANCODE by default since 
+>   this would confuse existing userspace code
+> - For each scancode we need: 
+>   - rc protocol (RC_TYPE_*) 
+>   - toggle and repeat bit for some protocols
+>   - 32 bit scancode
 
--- 
-Dmitry
+I haven't looked at the patches in detail, but I think exposing the
+scancodes to userspace requires some careful consideration.
+
+First of all, scancode length should be dynamic, there are protocols
+(NEC48 and, at least theoretically, RC6) that have scancodes > 32 bits.
+
+Second, if we expose protocol type (which we should, not doing so is
+throwing away valuable information) we should tackle the NEC scancode
+question. I've already explained my firm conviction that always
+reporting NEC as a 32 bit scancode is the only sane thing to do. Mauro
+is of the opinion that NEC16/24/32 should be essentially different
+protocols.
+
+Third, we should still have a way to represent the protocol in the
+keymap as well.
+
+And on a much more general level...I still think we should start from
+scratch with a rc specific chardev with it's own API that is generic
+enough to cover both scancode / raw ir / future / other protocols (not
+that such an undertaking would preclude adding stuff to the lirc API of
+course).
+
+Re,
+David
+
+PS
+Thanks for your continued RC efforts Sean!
+
