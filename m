@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:58495 "EHLO
-	asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757095AbbCDDm6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 22:42:58 -0500
-Message-ID: <54F67F3E.4050708@dharty.com>
-Date: Tue, 03 Mar 2015 19:42:54 -0800
-From: catchall <catchall@dharty.com>
-Reply-To: v4l@dharty.com
-MIME-Version: 1.0
-To: Brendan McGrath <redmcg@redmandi.dyndns.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-CC: Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCHv3] [media] saa7164: use an MSI interrupt when available
-References: <54EFAC4B.6080002@redmandi.dyndns.org> <1425168893-5251-1-git-send-email-redmcg@redmandi.dyndns.org>
-In-Reply-To: <1425168893-5251-1-git-send-email-redmcg@redmandi.dyndns.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60960 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752694AbbC3LLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 07:11:20 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC 11/12] [media] tc358743: don't return E2BIG from G_EDID
+Date: Mon, 30 Mar 2015 13:10:55 +0200
+Message-Id: <1427713856-10240-12-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/28/2015 04:14 PM, Brendan McGrath wrote:
-> Enhances driver to use an MSI interrupt when available.
->
-> Adds the module option 'enable_msi' (type bool) which by default is
-> enabled. Can be set to 'N' to disable.
->
-> Fixes (or can reduce the occurrence of) a crash which is most commonly
-> reported when multiple saa7164 chips are in use. A reported example can
-> be found here:
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/83948
->
-> Reviewed-by: Steven Toth <stoth@kernellabs.com>
-> Signed-off-by: Brendan McGrath <redmcg@redmandi.dyndns.org>
->
-I wanted to report that I have been running this patch for about a week 
-now and I have had no instances of the zero free sequences issue.
+E2BIG is meant to be returned by S_EDID if userspace provided more data than
+the hardware can handle. If userspace requested too much data with G_EDID, we
+should silently correct the number of EDID blocks downwards.
 
-Thank you very much!
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-David
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 02b131b..7d70acc 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1560,10 +1560,11 @@ static int tc358743_g_edid(struct v4l2_subdev *sd,
+ 	if (edid->blocks == 0)
+ 		return -EINVAL;
+ 
+-	if (edid->start_block + edid->blocks > 8) {
+-		edid->blocks = 8;
+-		return -E2BIG;
+-	}
++	if (edid->start_block >= 8)
++		return -EINVAL;
++
++	if (edid->start_block + edid->blocks > 8)
++		edid->blocks = 8 - edid->start_block;
+ 
+ 	if (!edid->edid)
+ 		return -EINVAL;
+-- 
+2.1.4
 
