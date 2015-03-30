@@ -1,77 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59117 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752863AbbCIVYB (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60953 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582AbbC3LLK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2015 17:24:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: corbet@lwn.net, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 11/18] marvell-ccic: add DMABUF support for all three DMA modes
-Date: Mon,  9 Mar 2015 22:22:16 +0100
-Message-Id: <1425936143-5658-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1425936143-5658-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 30 Mar 2015 07:11:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC 02/12] [media] tc358743: register v4l2 asynchronous subdevice
+Date: Mon, 30 Mar 2015 13:10:46 +0200
+Message-Id: <1427713856-10240-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for registering the sensor subdevice using the v4l2-async API.
 
-Add VB2_DMABUF and VIDIOC_EXPBUF support. Also add VB2_USERPTR support
-for the vmalloc DMA mode which was missing for no good reason.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/i2c/tc358743.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 51b7291..a1312a5 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1255,14 +1255,14 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 	vq->drv_priv = cam;
- 	vq->lock = &cam->s_mutex;
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
- 	INIT_LIST_HEAD(&cam->buffers);
- 	switch (cam->buffer_mode) {
- 	case B_DMA_contig:
- #ifdef MCAM_MODE_DMA_CONTIG
- 		vq->ops = &mcam_vb2_ops;
- 		vq->mem_ops = &vb2_dma_contig_memops;
--		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
--		vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
- 		cam->dma_setup = mcam_ctlr_dma_contig;
- 		cam->frame_complete = mcam_dma_contig_done;
- 		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
-@@ -1274,8 +1274,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- #ifdef MCAM_MODE_DMA_SG
- 		vq->ops = &mcam_vb2_sg_ops;
- 		vq->mem_ops = &vb2_dma_sg_memops;
--		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
--		vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
- 		cam->dma_setup = mcam_ctlr_dma_sg;
- 		cam->frame_complete = mcam_dma_sg_done;
- 		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
-@@ -1289,8 +1287,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 				(unsigned long) cam);
- 		vq->ops = &mcam_vb2_ops;
- 		vq->mem_ops = &vb2_vmalloc_memops;
--		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
--		vq->io_modes = VB2_MMAP | VB2_READ;
- 		cam->dma_setup = mcam_ctlr_dma_vmalloc;
- 		cam->frame_complete = mcam_vmalloc_done;
- #endif
-@@ -1579,6 +1575,7 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
- 	.vidioc_querybuf	= vb2_ioctl_querybuf,
- 	.vidioc_qbuf		= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf		= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf		= vb2_ioctl_expbuf,
- 	.vidioc_streamon	= vb2_ioctl_streamon,
- 	.vidioc_streamoff	= vb2_ioctl_streamoff,
- 	.vidioc_g_parm		= mcam_vidioc_g_parm,
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index a86cbe0..dfc10f0 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1711,6 +1711,16 @@ static int tc358743_probe(struct i2c_client *client,
+ 		goto err_hdl;
+ 	}
+ 
++	state->pad.flags = MEDIA_PAD_FL_SOURCE;
++	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
++	if (err < 0)
++		goto err_hdl;
++
++	sd->dev = &client->dev;
++	err = v4l2_async_register_subdev(sd);
++	if (err < 0)
++		goto err_hdl;
++
+ 	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
+ 			tc358743_delayed_work_enable_hotplug);
+ 
+@@ -1731,6 +1741,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ err_hdl:
++	media_entity_cleanup(&sd->entity);
+ 	v4l2_ctrl_handler_free(&state->hdl);
+ 	return err;
+ }
+@@ -1742,6 +1753,7 @@ static int tc358743_remove(struct i2c_client *client)
+ 
+ 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
+ 	destroy_workqueue(state->work_queues);
++	v4l2_async_unregister_subdev(sd);
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&state->hdl);
+ 
 -- 
 2.1.4
 
