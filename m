@@ -1,293 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:36111 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592AbbC0L5n (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35980 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752428AbbC3Mp4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 07:57:43 -0400
-Received: by lbbug6 with SMTP id ug6so61768233lbb.3
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2015 04:57:41 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 5/5] saa7164: Hauppauge HVR-2205 and HVR-2215 DVB-C/T/T2 tuners
-Date: Fri, 27 Mar 2015 13:57:19 +0200
-Message-Id: <1427457439-1493-5-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
-References: <1427457439-1493-1-git-send-email-olli.salonen@iki.fi>
+	Mon, 30 Mar 2015 08:45:56 -0400
+Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 0A92A2A0099
+	for <linux-media@vger.kernel.org>; Mon, 30 Mar 2015 14:45:29 +0200 (CEST)
+Message-ID: <5519457E.2000006@xs4all.nl>
+Date: Mon, 30 Mar 2015 14:45:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.1] Various improvements
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge HVR-2205 and HVR-2215 are PCIe dual tuner cards that support
-DVB-C, DVB-T and DVB-T2.
+Hi Mauro,
 
-PCIe bridge: SAA7164
-Demodulator: Si2168-B40
-Tuner: SI2157-A20
+Various fixes, more 'embed video_device' patches and change bytesperline in
+v4l2_plane_pix_format to __u32 instead of __u16 (we discussed that in San Jose).
 
-I know there's parallel activity ongoing regarding these devices, but I 
-thought I'll submit my own version here as well. The maintainers of each 
-module can then make the call what to merge.
+Regards,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/saa7164/Kconfig         |   2 +
- drivers/media/pci/saa7164/saa7164-cards.c | 101 ++++++++++++++++++++++++++++++
- drivers/media/pci/saa7164/saa7164-dvb.c   |  67 ++++++++++++++++++++
- drivers/media/pci/saa7164/saa7164.h       |   2 +
- 4 files changed, 172 insertions(+)
+	Hans
 
-diff --git a/drivers/media/pci/saa7164/Kconfig b/drivers/media/pci/saa7164/Kconfig
-index a53db7d..5ebe930 100644
---- a/drivers/media/pci/saa7164/Kconfig
-+++ b/drivers/media/pci/saa7164/Kconfig
-@@ -8,7 +8,9 @@ config VIDEO_SAA7164
- 	select VIDEOBUF_DVB
- 	select DVB_TDA10048 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_S5H1411 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  This is a video4linux driver for NXP SAA7164 based
- 	  TV cards.
-diff --git a/drivers/media/pci/saa7164/saa7164-cards.c b/drivers/media/pci/saa7164/saa7164-cards.c
-index 5b72da5..5ebd312 100644
---- a/drivers/media/pci/saa7164/saa7164-cards.c
-+++ b/drivers/media/pci/saa7164/saa7164-cards.c
-@@ -499,6 +499,90 @@ struct saa7164_board saa7164_boards[] = {
- 			.i2c_reg_len	= REGLEN_8bit,
- 		} },
- 	},
-+	[SAA7164_BOARD_HAUPPAUGE_HVR2205] = {
-+		.name		= "Hauppauge WinTV-HVR2205",
-+		.porta		= SAA7164_MPEG_DVB,
-+		.portb		= SAA7164_MPEG_DVB,
-+		.chiprev	= SAA7164_CHIP_REV3,
-+		.unit = {{
-+			.id = 0x28,
-+			.type = SAA7164_UNIT_EEPROM,
-+			.name = "4K EEPROM",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
-+			.i2c_bus_addr	= 0xa0 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x04,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "SI2157-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x05,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "SI2168-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0xc8 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x25,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "SI2157-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x26,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "SI2168-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0xcc >> 1,
-+			.i2c_reg_len	= 0,
-+		} },
-+	},
-+	[SAA7164_BOARD_HAUPPAUGE_HVR2215] = {
-+		.name		= "Hauppauge WinTV-HVR2215",
-+		.porta		= SAA7164_MPEG_DVB,
-+		.portb		= SAA7164_MPEG_DVB,
-+		.chiprev	= SAA7164_CHIP_REV3,
-+		.unit = {{
-+			.id = 0x28,
-+			.type = SAA7164_UNIT_EEPROM,
-+			.name = "4K EEPROM",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_0,
-+			.i2c_bus_addr	= 0xa0 >> 1,
-+			.i2c_reg_len	= REGLEN_8bit,
-+		}, {
-+			.id		= 0x04,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "SI2157-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x05,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "SI2168-1",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_1,
-+			.i2c_bus_addr	= 0xc8 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x25,
-+			.type		= SAA7164_UNIT_TUNER,
-+			.name		= "SI2157-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0xc0 >> 1,
-+			.i2c_reg_len	= 0,
-+		}, {
-+			.id		= 0x26,
-+			.type		= SAA7164_UNIT_DIGITAL_DEMODULATOR,
-+			.name		= "SI2168-2",
-+			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
-+			.i2c_bus_addr	= 0xcc >> 1,
-+			.i2c_reg_len	= 0,
-+		} },
-+	},
- };
- const unsigned int saa7164_bcount = ARRAY_SIZE(saa7164_boards);
- 
-@@ -546,6 +630,14 @@ struct saa7164_subid saa7164_subids[] = {
- 		.subvendor = 0x0070,
- 		.subdevice = 0x8953,
- 		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2200_5,
-+	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0xf120,
-+		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2205,
-+	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0xf123,
-+		.card      = SAA7164_BOARD_HAUPPAUGE_HVR2215,
- 	},
- };
- const unsigned int saa7164_idcount = ARRAY_SIZE(saa7164_subids);
-@@ -591,6 +683,8 @@ void saa7164_gpio_setup(struct saa7164_dev *dev)
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2205:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2215:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
-@@ -647,6 +741,11 @@ static void hauppauge_eeprom(struct saa7164_dev *dev, u8 *eeprom_data)
- 		/* WinTV-HVR2200 (PCIe, Retail, half-height)
- 		 * DVB-T (TDA18271/TDA10048) and basic analog, no IR */
- 		break;
-+	case 151009:
-+	case 151609:
-+		/* WinTV-HVR2205/HVR2215 (PCIe, Retail, full-height bracket)
-+		 * DVB-T2/C (Si2157/Si2168) and basic analog, FM */
-+		break;
- 	default:
- 		printk(KERN_ERR "%s: Warning: Unknown Hauppauge model #%d\n",
- 			dev->name, tv.model);
-@@ -673,6 +772,8 @@ void saa7164_card_setup(struct saa7164_dev *dev)
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_3:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_4:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2200_5:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2205:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2215:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
-diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c b/drivers/media/pci/saa7164/saa7164-dvb.c
-index 6b9e8f6..2242ef5 100644
---- a/drivers/media/pci/saa7164/saa7164-dvb.c
-+++ b/drivers/media/pci/saa7164/saa7164-dvb.c
-@@ -24,6 +24,8 @@
- #include "tda10048.h"
- #include "tda18271.h"
- #include "s5h1411.h"
-+#include "si2168.h"
-+#include "si2157.h"
- 
- #define DRIVER_NAME "saa7164"
- 
-@@ -519,6 +521,71 @@ int saa7164_dvb_register(struct saa7164_port *port)
- 			break;
- 		}
- 		break;
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2205:
-+	case SAA7164_BOARD_HAUPPAUGE_HVR2215:
-+		{
-+			struct si2168_config si2168_config;
-+			struct si2157_config si2157_config;
-+			struct i2c_board_info info;
-+			struct i2c_adapter *adapter;
-+			struct i2c_client *client_demod = NULL;
-+			struct i2c_client *client_tuner = NULL;
-+
-+			i2c_bus = &dev->i2c_bus[port->nr + 1];
-+
-+			/* attach frontend */
-+			memset(&si2168_config, 0, sizeof(si2168_config));
-+			si2168_config.i2c_adapter = &adapter;
-+			si2168_config.fe = &port->dvb.frontend;
-+			si2168_config.ts_mode = SI2168_TS_SERIAL;
-+			si2168_config.ts_clock_gapped = true;
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			switch (port->nr) {
-+			case 0:
-+				info.addr = 0xc8 >> 1;
-+				break;
-+			case 1:
-+				info.addr = 0xcc >> 1;
-+				break;
-+			}
-+			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-+			info.platform_data = &si2168_config;
-+			request_module(info.type);
-+			client_demod = i2c_new_device(&i2c_bus->i2c_adap,
-+						      &info);
-+			if (client_demod == NULL ||
-+					client_demod->dev.driver == NULL)
-+				break;
-+			if (!try_module_get(client_demod->dev.driver->owner)) {
-+				i2c_unregister_device(client_demod);
-+				break;
-+			}
-+			port->i2c_client_demod = client_demod;
-+
-+			/* attach tuner */
-+			memset(&si2157_config, 0, sizeof(si2157_config));
-+			si2157_config.fe = port->dvb.frontend;
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+			info.addr = 0xc0 >> 1;
-+			info.platform_data = &si2157_config;
-+			request_module(info.type);
-+			client_tuner = i2c_new_device(adapter, &info);
-+			if (client_tuner == NULL ||
-+					client_tuner->dev.driver == NULL) {
-+				module_put(client_demod->dev.driver->owner);
-+				i2c_unregister_device(client_demod);
-+				break;
-+			}
-+			if (!try_module_get(client_tuner->dev.driver->owner)) {
-+				i2c_unregister_device(client_tuner);
-+				module_put(client_demod->dev.driver->owner);
-+				i2c_unregister_device(client_demod);
-+				break;
-+			}
-+			port->i2c_client_tuner = client_tuner;
-+			break;
-+		}
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_2:
- 	case SAA7164_BOARD_HAUPPAUGE_HVR2250_3:
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 37e450a..1b41849 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -83,6 +83,8 @@
- #define SAA7164_BOARD_HAUPPAUGE_HVR2250_3	8
- #define SAA7164_BOARD_HAUPPAUGE_HVR2200_4	9
- #define SAA7164_BOARD_HAUPPAUGE_HVR2200_5	10
-+#define SAA7164_BOARD_HAUPPAUGE_HVR2205		11
-+#define SAA7164_BOARD_HAUPPAUGE_HVR2215		12
- 
- #define SAA7164_MAX_UNITS		8
- #define SAA7164_TS_NUMBER_OF_LINES	312
--- 
-1.9.1
+The following changes since commit 8a56b6b5fd6ff92b7e27d870b803b11b751660c2:
 
+  [media] v4l2-subdev: remove enum_framesizes/intervals (2015-03-23 12:02:41 -0700)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.1o
+
+for you to fetch changes up to 96fb27881e8f5abc263abfd42253e791b87773be:
+
+  sta2x11: embed video_device (2015-03-30 14:37:19 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      usbvision: fix leak of usb_dev on failure paths in usbvision_probe()
+
+Hans Verkuil (17):
+      ivtv: embed video_device
+      vim2m: embed video_device
+      saa7146: embed video_device
+      radio-bcm2048: embed video_device
+      dt3155v4l: embed video_device
+      meye: embed video_device
+      m2m-deinterlace: embed video_device
+      wl128x: embed video_device
+      gadget/uvc: embed video_device
+      hdpvr: embed video_device
+      tm6000: embed video_device
+      usbvision: embed video_device
+      cx231xx: embed video_device
+      v4l2_plane_pix_format: use __u32 bytesperline instead of __u16
+      ivtv: replace crop by selection
+      ivtv: disable fbuf support if ivtvfb isn't loaded
+      sta2x11: embed video_device
+
+Lad, Prabhakar (2):
+      media: davinci: vpfe_capture: embed video_device
+      media: sh_vou: embed video_device
+
+ Documentation/DocBook/media/v4l/pixfmt.xml    |   4 +-
+ drivers/media/common/saa7146/saa7146_fops.c   |  19 ++------
+ drivers/media/pci/ivtv/ivtv-alsa-main.c       |   2 +-
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c        |   2 +-
+ drivers/media/pci/ivtv/ivtv-driver.c          |   4 +-
+ drivers/media/pci/ivtv/ivtv-driver.h          |   2 +-
+ drivers/media/pci/ivtv/ivtv-fileops.c         |   2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c           | 146 ++++++++++++++++++++++++++++++++-----------------------
+ drivers/media/pci/ivtv/ivtv-irq.c             |   8 +--
+ drivers/media/pci/ivtv/ivtv-streams.c         | 113 +++++++++++++++++++-----------------------
+ drivers/media/pci/ivtv/ivtv-streams.h         |   2 +-
+ drivers/media/pci/meye/meye.c                 |  21 +++-----
+ drivers/media/pci/meye/meye.h                 |   2 +-
+ drivers/media/pci/saa7146/hexium_gemini.c     |   2 +-
+ drivers/media/pci/saa7146/hexium_orion.c      |   2 +-
+ drivers/media/pci/saa7146/mxb.c               |   4 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c       |  35 +++++--------
+ drivers/media/pci/ttpci/av7110.h              |   4 +-
+ drivers/media/pci/ttpci/budget-av.c           |   2 +-
+ drivers/media/platform/davinci/vpfe_capture.c |  26 +++-------
+ drivers/media/platform/m2m-deinterlace.c      |  21 +++-----
+ drivers/media/platform/s5p-tv/mixer_video.c   |   2 +-
+ drivers/media/platform/sh_vou.c               |  21 +++-----
+ drivers/media/platform/vim2m.c                |  23 +++------
+ drivers/media/radio/wl128x/fmdrv_v4l2.c       |  28 ++++-------
+ drivers/media/usb/cx231xx/cx231xx-417.c       |  33 +++++--------
+ drivers/media/usb/cx231xx/cx231xx-cards.c     |   6 +--
+ drivers/media/usb/cx231xx/cx231xx-video.c     |  94 ++++++++++++-----------------------
+ drivers/media/usb/cx231xx/cx231xx.h           |   8 +--
+ drivers/media/usb/hdpvr/hdpvr-core.c          |  10 ++--
+ drivers/media/usb/hdpvr/hdpvr-video.c         |  19 +++-----
+ drivers/media/usb/hdpvr/hdpvr.h               |   2 +-
+ drivers/media/usb/tm6000/tm6000-video.c       |  59 ++++++----------------
+ drivers/media/usb/tm6000/tm6000.h             |   4 +-
+ drivers/media/usb/usbvision/usbvision-video.c |  94 ++++++++++++++++-------------------
+ drivers/media/usb/usbvision/usbvision.h       |   4 +-
+ drivers/staging/media/bcm2048/radio-bcm2048.c |  33 ++++---------
+ drivers/staging/media/dt3155v4l/dt3155v4l.c   |  30 ++++--------
+ drivers/staging/media/dt3155v4l/dt3155v4l.h   |   4 +-
+ drivers/usb/gadget/function/f_uvc.c           |  44 +++++++----------
+ drivers/usb/gadget/function/uvc.h             |   2 +-
+ include/media/davinci/vpfe_capture.h          |   2 +-
+ include/media/saa7146_vv.h                    |   4 +-
+ include/uapi/linux/videodev2.h                |   4 +-
+ 44 files changed, 383 insertions(+), 570 deletions(-)
