@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:33678 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbbCYOM5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2015 10:12:57 -0400
-Received: by wixw10 with SMTP id w10so75526751wix.0
-        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2015 07:12:56 -0700 (PDT)
+Received: from vader.hardeman.nu ([95.142.160.32]:34076 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753419AbbC3Td5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2015 15:33:57 -0400
+To: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+Subject: Re: mceusb: sysfs: cannot create duplicate filename '/class/rc/rc0'  (race condition between multiple =?UTF-8?Q?RC=5FCORE=20devices=29?=
 MIME-Version: 1.0
-Reply-To: whittenburg@gmail.com
-In-Reply-To: <20150324235148.GC18321@valkosipuli.retiisi.org.uk>
-References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
-	<20150324235148.GC18321@valkosipuli.retiisi.org.uk>
-Date: Wed, 25 Mar 2015 09:12:56 -0500
-Message-ID: <CABcw_O=Gv3xvnRU9LvVUaCKEEkLFFrhpqLZ9FZ89XRAp0_RR5Q@mail.gmail.com>
-Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
-From: Chris Whittenburg <whittenburg@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Mon, 30 Mar 2015 21:33:55 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	m.chehab@samsung.com, James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	Tomas Melin <tomas.melin@iki.fi>
+In-Reply-To: <20150330173031.1fb46443@mir>
+References: <201412181916.18051.s.L-H@gmx.de>
+ <201412302211.40801.s.L-H@gmx.de> <20150330173031.1fb46443@mir>
+Message-ID: <61aca9029bf06b2a3f322018aee00dda@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 2015-03-30 17:30, Stefan Lippers-Hollmann wrote:
+> Hi
+> 
+> This is a follow-up for:
+> 	http://lkml.kernel.org/r/<201412181916.18051.s.L-H@gmx.de>
+> 	http://lkml.kernel.org/r/<201412302211.40801.s.L-H@gmx.de>
+> 
 
-Thanks for the reply.
+I can't swear that it's the case but I'm guessing this might be fixed by 
+the patches I posted earlier (in particular the one that converted 
+rc-core to use the IDA infrastructure for keeping track of registered 
+minor device numbers).
 
-On Tue, Mar 24, 2015 at 6:51 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Do you know if the sensor has black level correction enabled? It appears to
-> have one, but I'm not completely sure what it does there. I'd check that it
-> is indeed enabled.
+//D
 
-The ar0130cs does have black level correction enabled by default.
 
-My thought is that since the 12-bit data from the CCDC looked ok, that
-it was something outside the sensor itself.
-
->> I've captured the 12-bit data from the CCDC, downconverted it to Y8,
->> and verified it looks ok, and is not washed out, so I'm suspecting the
->> isp previewer is doing something wrong in the simple Y10 to UYVY
->> conversion.
->
-> Not necessarily wrong, the black level correction might be enabled by
-> default, with the default configuration which works for most sensors (64 for
-> 10-bit data, 16 for 8-bit etc.).
-
-Ok, I will check this.  You are referring to the "Camera ISP VPBE
-Preview Black Adjustment" which is controlled by PRV_BLKADJOFF
-register?
-
-I also found that there are contrast and brightness settings in the
-previewer which can be adjusted.  I'm not changing them from defaults,
-so I thought the "Y" values would just get truncated to 8 bits and
-mapped into the UYVY without being significantly altered.
-
-Would your thought be the black level is more likely the issue rather
-than brightness/contrast?
-
-Is there anywhere else I should look?
-
-Thanks,
-Chris
