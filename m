@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:19191 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361AbbCTQyQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38233 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753041AbbC3VSD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2015 12:54:16 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
-Subject: [RFC v3 3/9] Input: add key codes specific to the HDMI CEC bus
-Date: Fri, 20 Mar 2015 17:52:37 +0100
-Message-id: <1426870363-18839-4-git-send-email-k.debski@samsung.com>
-In-reply-to: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
-References: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
+	Mon, 30 Mar 2015 17:18:03 -0400
+Date: Tue, 31 Mar 2015 00:17:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sre@kernel.org>,
+	laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	tony@atomide.com, pali.rohar@gmail.com
+Subject: Re: [PATCH v2 14/15] omap3isp: Add support for the Device Tree
+Message-ID: <20150330211727.GE18321@valkosipuli.retiisi.org.uk>
+References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
+ <1427324259-18438-15-git-send-email-sakari.ailus@iki.fi>
+ <20150330174123.GA2658@earth>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150330174123.GA2658@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HDMI CEC bus allows device to communicate with one another.
-This includes sending remote control key codes. Some of key codes
-defined in the CEC standard are not defined in the input.h.
-This patch adds the key codes that are missing.
+Hi Sebastian,
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- include/uapi/linux/input.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+On Mon, Mar 30, 2015 at 07:41:23PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> The code crashed for me on Nokia N900. I found the following
+> problem:
+> 
+> On Thu, Mar 26, 2015 at 12:57:38AM +0200, Sakari Ailus wrote:
+> > [...]
+> > +static int isp_of_parse_nodes(struct device *dev,
+> > +			      struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct device_node *node;
+> 
+> struct device_node *node = NULL;
+> 
+> to avoid feeding a random pointer into of_graph_get_next_endpoint():
 
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index b0a8130..3fc6885 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -747,6 +747,18 @@ struct input_keymap_entry {
- #define KEY_KBDINPUTASSIST_ACCEPT		0x264
- #define KEY_KBDINPUTASSIST_CANCEL		0x265
- 
-+#define KEY_RIGHT_UP			0x266
-+#define KEY_RIGHT_DOWN			0x267
-+#define KEY_LEFT_UP			0x268
-+#define KEY_LEFT_DOWN			0x269
-+
-+#define KEY_NEXT_FAVORITE		0x270
-+#define KEY_STOP_RECORD			0x271
-+#define KEY_PAUSE_RECORD		0x272
-+#define KEY_VOD				0x273
-+#define KEY_UNMUTE			0x274
-+#define KEY_DVB				0x275
-+
- #define BTN_TRIGGER_HAPPY		0x2c0
- #define BTN_TRIGGER_HAPPY1		0x2c0
- #define BTN_TRIGGER_HAPPY2		0x2c1
+Good catch!
+
+Laurent, could you use a new version of this patch, and send a new pull
+request, or would you prefer an additional patch to fix this?
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
