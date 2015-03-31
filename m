@@ -1,340 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33318 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752846AbbCGVmS (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:33446 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752733AbbCaRtH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:18 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 31 Mar 2015 13:49:07 -0400
+Received: by lbbzk7 with SMTP id zk7so1973758lbb.0
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2015 10:49:06 -0700 (PDT)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 11/18] omap3isp: Replace many MMIO regions by two
-Date: Sat,  7 Mar 2015 23:41:08 +0200
-Message-Id: <1425764475-27691-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	James Hogan <james@albanarts.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v3 6/7] rc: rc-loopback: Add loopback of filter scancodes
+Date: Tue, 31 Mar 2015 20:48:11 +0300
+Message-Id: <1427824092-23163-7-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
+References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap3isp MMIO register block is contiguous in the MMIO register space
-apart from the fact that the ISP IOMMU register block is in the middle of
-the area. Ioremap it at two occasions, and keep the rest of the layout of
-the register space internal to the omap3isp driver.
+From: James Hogan <james@albanarts.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Add the s_wakeup_filter callback to the rc-loopback driver, which instead of
+setting the filter just feeds the scancode back through the input device
+so that it can be verified.
+
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Cc: David Härdeman <david@hardeman.nu>
 ---
- arch/arm/mach-omap2/devices.c         |   66 +------------------
- arch/arm/mach-omap2/omap34xx.h        |   36 +----------
- drivers/media/platform/omap3isp/isp.c |  113 +++++++++++++++++----------------
- drivers/media/platform/omap3isp/isp.h |    4 +-
- 4 files changed, 66 insertions(+), 153 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index e945957..990338f 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -74,72 +74,12 @@ omap_postcore_initcall(omap3_l3_init);
- static struct resource omap3isp_resources[] = {
- 	{
- 		.start		= OMAP3430_ISP_BASE,
--		.end		= OMAP3430_ISP_END,
-+		.end		= OMAP3430_ISP_BASE + 0x12fc,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CCP2_BASE,
--		.end		= OMAP3430_ISP_CCP2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CCDC_BASE,
--		.end		= OMAP3430_ISP_CCDC_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_HIST_BASE,
--		.end		= OMAP3430_ISP_HIST_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_H3A_BASE,
--		.end		= OMAP3430_ISP_H3A_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_PREV_BASE,
--		.end		= OMAP3430_ISP_PREV_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_RESZ_BASE,
--		.end		= OMAP3430_ISP_RESZ_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_SBL_BASE,
--		.end		= OMAP3430_ISP_SBL_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
--		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3430_ISP_CSIPHY2_BASE,
--		.end		= OMAP3430_ISP_CSIPHY2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
--		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
--		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSIPHY1_BASE,
--		.end		= OMAP3630_ISP_CSIPHY1_END,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
--		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
-+		.start		= OMAP3430_ISP_BASE2,
-+		.end		= OMAP3430_ISP_BASE2 + 0x0600,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/mach-omap2/omap34xx.h b/arch/arm/mach-omap2/omap34xx.h
-index c0d1b4b..ed0024d 100644
---- a/arch/arm/mach-omap2/omap34xx.h
-+++ b/arch/arm/mach-omap2/omap34xx.h
-@@ -46,39 +46,9 @@
+Notes:
+    Changes in v3:
+     - Ported to apply against latest media-tree
+     - Checkpatch.pl fixes
+    
+    Changes in v2:
+     - Move img-ir-raw test code to rc-loopback.
+     - Handle new encode API, specifically -ENOBUFS when the buffer isn't
+       long enough.
+     - Set encode_wakeup so that the set of allowed wakeup protocols matches
+       the set of raw IR encoders.
+
+ drivers/media/rc/rc-loopback.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 63dace8..d8bdf63 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <media/rc-core.h>
  
- #define OMAP34XX_IC_BASE	0x48200000
- 
--#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
--#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
--#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
--#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
--#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
--#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
--#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
--#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
--#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
--#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
--#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
--#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
--#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
--#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
--
--#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
--#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
--#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
--#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
--#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
--#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
--#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
--#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
--#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
--#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
--#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
--#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
--#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
--#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
--#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
-+#define OMAP3430_ISP_BASE	(L4_34XX_BASE + 0xBC000)
-+#define OMAP3430_ISP_MMU_BASE	(OMAP3430_ISP_BASE + 0x1400)
-+#define OMAP3430_ISP_BASE2	(OMAP3430_ISP_BASE + 0x1800)
- 
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 4ff4bbd..7804895 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -86,35 +86,43 @@ static void isp_restore_ctx(struct isp_device *isp);
- static const struct isp_res_mapping isp_res_maps[] = {
- 	{
- 		.isp_rev = ISP_REVISION_2_0,
--		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
--		       1 << OMAP3_ISP_IOMEM_CCP2 |
--		       1 << OMAP3_ISP_IOMEM_CCDC |
--		       1 << OMAP3_ISP_IOMEM_HIST |
--		       1 << OMAP3_ISP_IOMEM_H3A |
--		       1 << OMAP3_ISP_IOMEM_PREV |
--		       1 << OMAP3_ISP_IOMEM_RESZ |
--		       1 << OMAP3_ISP_IOMEM_SBL |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		.offset = {
-+			/* first MMIO area */
-+			0x0000, /* base, len 0x0070 */
-+			0x0400, /* ccp2, len 0x01f0 */
-+			0x0600, /* ccdc, len 0x00a8 */
-+			0x0a00, /* hist, len 0x0048 */
-+			0x0c00, /* h3a, len 0x0060 */
-+			0x0e00, /* preview, len 0x00a0 */
-+			0x1000, /* resizer, len 0x00ac */
-+			0x1200, /* sbl, len 0x00fc */
-+			/* second MMIO area */
-+			0x0000, /* csi2a, len 0x0170 */
-+			0x0170, /* csiphy2, len 0x000c */
-+		},
- 		.syscon_offset = 0xdc,
- 		.phy_type = ISP_PHY_TYPE_3430,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
--		.map = 1 << OMAP3_ISP_IOMEM_MAIN |
--		       1 << OMAP3_ISP_IOMEM_CCP2 |
--		       1 << OMAP3_ISP_IOMEM_CCDC |
--		       1 << OMAP3_ISP_IOMEM_HIST |
--		       1 << OMAP3_ISP_IOMEM_H3A |
--		       1 << OMAP3_ISP_IOMEM_PREV |
--		       1 << OMAP3_ISP_IOMEM_RESZ |
--		       1 << OMAP3_ISP_IOMEM_SBL |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
--		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		.offset = {
-+			/* first MMIO area */
-+			0x0000, /* base, len 0x0070 */
-+			0x0400, /* ccp2, len 0x01f0 */
-+			0x0600, /* ccdc, len 0x00a8 */
-+			0x0a00, /* hist, len 0x0048 */
-+			0x0c00, /* h3a, len 0x0060 */
-+			0x0e00, /* preview, len 0x00a0 */
-+			0x1000, /* resizer, len 0x00ac */
-+			0x1200, /* sbl, len 0x00fc */
-+			/* second MMIO area */
-+			0x0000, /* csi2a, len 0x0170 (1st area) */
-+			0x0170, /* csiphy2, len 0x000c */
-+			0x01c0, /* csi2a, len 0x0040 (2nd area) */
-+			0x0400, /* csi2c, len 0x0170 (1st area) */
-+			0x0570, /* csiphy1, len 0x000c */
-+			0x05c0, /* csi2c, len 0x0040 (2nd area) */
-+		},
- 		.syscon_offset = 0x2f0,
- 		.phy_type = ISP_PHY_TYPE_3630,
- 	},
-@@ -2235,27 +2243,6 @@ static int isp_remove(struct platform_device *pdev)
+ #define DRIVER_NAME	"rc-loopback"
+@@ -176,6 +177,39 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
  	return 0;
  }
  
--static int isp_map_mem_resource(struct platform_device *pdev,
--				struct isp_device *isp,
--				enum isp_mem_resources res)
--{
--	struct resource *mem;
--
--	/* request the mem region for the camera registers */
--
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, res);
--
--	/* map the region */
--	isp->mmio_base[res] = devm_ioremap_resource(isp->dev, mem);
--	if (IS_ERR(isp->mmio_base[res]))
--		return PTR_ERR(isp->mmio_base[res]);
--
--	if (res == OMAP3_ISP_IOMEM_HIST)
--		isp->mmio_hist_base_phys = mem->start;
--
--	return 0;
--}
--
- /*
-  * isp_probe - Probe ISP platform device
-  * @pdev: Pointer to ISP platform device
-@@ -2271,6 +2258,7 @@ static int isp_probe(struct platform_device *pdev)
- {
- 	struct isp_platform_data *pdata = pdev->dev.platform_data;
- 	struct isp_device *isp;
-+	struct resource *mem;
- 	int ret;
- 	int i, m;
- 
-@@ -2303,10 +2291,21 @@ static int isp_probe(struct platform_device *pdev)
- 	 *
- 	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
- 	 * manually to read the revision before calling __omap3isp_get().
-+	 *
-+	 * Start by mapping the ISP MMIO area, which is in two pieces.
-+	 * The ISP IOMMU is in between. Map both now, and fill in the
-+	 * ISP revision specific portions a little later in the
-+	 * function.
- 	 */
--	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
--	if (ret < 0)
--		goto error;
-+	for (i = 0; i < 2; i++) {
-+		unsigned int map_idx = i ? OMAP3_ISP_IOMEM_CSI2A_REGS1 : 0;
++static int loop_set_wakeup_filter(struct rc_dev *dev,
++				  struct rc_scancode_filter *sc_filter)
++{
++	static const unsigned int max = 512;
++	struct ir_raw_event *raw;
++	int ret;
++	int i;
 +
-+		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		isp->mmio_base[map_idx] =
-+			devm_ioremap_resource(isp->dev, mem);
-+		if (IS_ERR(isp->mmio_base[map_idx]))
-+			return PTR_ERR(isp->mmio_base[map_idx]);
++	/* fine to disable filter */
++	if (!sc_filter->mask)
++		return 0;
++
++	/* encode the specified filter and loop it back */
++	raw = kmalloc_array(max, sizeof(*raw), GFP_KERNEL);
++	ret = ir_raw_encode_scancode(dev->enabled_wakeup_protocols, sc_filter,
++				     raw, max);
++	/* still loop back the partial raw IR even if it's incomplete */
++	if (ret == -ENOBUFS)
++		ret = max;
++	if (ret >= 0) {
++		/* do the loopback */
++		for (i = 0; i < ret; ++i)
++			ir_raw_event_store(dev, &raw[i]);
++		ir_raw_event_handle(dev);
++
++		ret = 0;
 +	}
- 
- 	ret = isp_get_clocks(isp);
- 	if (ret < 0)
-@@ -2347,13 +2346,17 @@ static int isp_probe(struct platform_device *pdev)
- 		goto error_isp;
- 	}
- 
--	for (i = 1; i < OMAP3_ISP_IOMEM_LAST; i++) {
--		if (isp_res_maps[m].map & 1 << i) {
--			ret = isp_map_mem_resource(pdev, isp, i);
--			if (ret)
--				goto error_isp;
--		}
--	}
-+	for (i = 1; i < OMAP3_ISP_IOMEM_CSI2A_REGS1; i++)
-+		isp->mmio_base[i] =
-+			isp->mmio_base[0] + isp_res_maps[m].offset[i];
 +
-+	for (i = OMAP3_ISP_IOMEM_CSIPHY2; i < OMAP3_ISP_IOMEM_LAST; i++)
-+		isp->mmio_base[i] =
-+			isp->mmio_base[OMAP3_ISP_IOMEM_CSI2A_REGS1]
-+			+ isp_res_maps[m].offset[i];
++	kfree(raw);
 +
-+	isp->mmio_hist_base_phys =
-+		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
++	return ret;
++}
++
+ static int __init loop_init(void)
+ {
+ 	struct rc_dev *rc;
+@@ -195,6 +229,7 @@ static int __init loop_init(void)
+ 	rc->map_name		= RC_MAP_EMPTY;
+ 	rc->priv		= &loopdev;
+ 	rc->driver_type		= RC_DRIVER_IR_RAW;
++	rc->encode_wakeup	= true;
+ 	rc->allowed_protocols	= RC_BIT_ALL;
+ 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
+ 	rc->min_timeout		= 1;
+@@ -209,6 +244,7 @@ static int __init loop_init(void)
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->s_learning_mode	= loop_set_learning_mode;
+ 	rc->s_carrier_report	= loop_set_carrier_report;
++	rc->s_wakeup_filter	= loop_set_wakeup_filter;
  
- 	isp->syscon = syscon_regmap_lookup_by_pdevname("syscon.0");
- 	isp->syscon_offset = isp_res_maps[m].syscon_offset;
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 03d2129..dcb7d20 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -99,7 +99,7 @@ struct regmap;
- /*
-  * struct isp_res_mapping - Map ISP io resources to ISP revision.
-  * @isp_rev: ISP_REVISION_x_x
-- * @map: bitmap for enum isp_mem_resources
-+ * @offset: register offsets of various ISP sub-blocks
-  * @syscon_offset: offset of the syscon register for 343x / 3630
-  *	    (CONTROL_CSIRXFE / CONTROL_CAMERA_PHY_CTRL, respectively)
-  *	    from the syscon base address
-@@ -107,7 +107,7 @@ struct regmap;
-  */
- struct isp_res_mapping {
- 	u32 isp_rev;
--	u32 map;
-+	u32 offset[OMAP3_ISP_IOMEM_LAST];
- 	u32 syscon_offset;
- 	u32 phy_type;
- };
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
 -- 
-1.7.10.4
+2.0.5
 
