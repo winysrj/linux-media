@@ -1,42 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33313 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752710AbbCGVmR (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:55003 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441AbbCaNzB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2015 16:42:17 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, pali.rohar@gmail.com
-Subject: [RFC 07/18] omap3isp: Rename regulators to better suit the Device Tree
-Date: Sat,  7 Mar 2015 23:41:04 +0200
-Message-Id: <1425764475-27691-8-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 31 Mar 2015 09:55:01 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v4 07/12] DT: Add documentation for the Skyworks AAT1290
+Date: Tue, 31 Mar 2015 15:52:43 +0200
+Message-id: <1427809965-25540-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename VDD_CSIPHY1 as vdd-csiphy1 and VDD_CSIPHY2 as vdd-csiphy2.
+This patch adds device tree binding documentation for
+1.5A Step-Up Current Regulator for Flash LEDs.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: devicetree@vger.kernel.org
 ---
- drivers/media/platform/omap3isp/isp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   40 ++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 1b5c6df..c045318 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2292,8 +2292,8 @@ static int isp_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, isp);
- 
- 	/* Regulators */
--	isp->isp_csiphy1.vdd = devm_regulator_get(&pdev->dev, "VDD_CSIPHY1");
--	isp->isp_csiphy2.vdd = devm_regulator_get(&pdev->dev, "VDD_CSIPHY2");
-+	isp->isp_csiphy1.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy1");
-+	isp->isp_csiphy2.vdd = devm_regulator_get(&pdev->dev, "vdd-csiphy2");
- 
- 	/* Clocks
- 	 *
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+new file mode 100644
+index 0000000..6893eb1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -0,0 +1,40 @@
++* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
++
++The device is controlled through two pins: FL_EN and EN_SET. The pins when,
++asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
++respectively.
++
++Required properties:
++
++- compatible : Must be "skyworks,aat1290".
++- flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
++- enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
++
++A discrete LED element connected to the device must be represented by a child
++node - see Documentation/devicetree/bindings/leds/common.txt.
++
++Required properties of the LED child node:
++- flash-max-microamp : Maximum intensity in microamperes of the flash LED -
++		       it can be calculated using following formula:
++		       I = 1A * 162kohm / Rset.
++- flash-timeout-us : Maximum flash timeout in microseconds -
++		     it can be calculated using following formula:
++		     T = 8.82 * 10^9 * Ct.
++
++Optional properties of the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
++
++Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
++a switch that allows for routing strobe signal either from host or from ISP):
++
++aat1290 {
++	compatible = "skyworks,aat1290";
++	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
++	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
++
++	camera_flash: flash-led {
++		label = "aat1290-flash";
++		flash-max-microamp = <1012500>;
++		flash-timeout-us = <1940000>;
++	};
++};
 -- 
-1.7.10.4
+1.7.9.5
 
