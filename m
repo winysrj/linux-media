@@ -1,45 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39364 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756814AbbCXRq7 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:47886 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753943AbbCaNyC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2015 13:46:59 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 4/4] [media] s5p-mfc: Set last buffer flag
-Date: Tue, 24 Mar 2015 18:46:54 +0100
-Message-Id: <1427219214-5368-5-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
-References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 31 Mar 2015 09:54:02 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4 02/12] leds: unify the location of led-trigger API
+Date: Tue, 31 Mar 2015 15:52:38 +0200
+Message-id: <1427809965-25540-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
-DQBUF calls on the capture queue after the last buffer is dequeued.
+Part of led-trigger API was in the private drivers/leds/leds.h header.
+Move it to the include/linux/leds.h header to unify the API location
+and announce it as public. It has been already exported from
+led-triggers.c with EXPORT_SYMBOL_GPL macro.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/leds.h  |   24 ------------------------
+ include/linux/leds.h |   24 ++++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8e44a59..f08d639 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -211,6 +211,7 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
- 		else
- 			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
-+		dst_buf->b->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+diff --git a/drivers/leds/leds.h b/drivers/leds/leds.h
+index 79efe57..bc89d7a 100644
+--- a/drivers/leds/leds.h
++++ b/drivers/leds/leds.h
+@@ -13,7 +13,6 @@
+ #ifndef __LEDS_H_INCLUDED
+ #define __LEDS_H_INCLUDED
  
- 		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
- 		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
+-#include <linux/device.h>
+ #include <linux/rwsem.h>
+ #include <linux/leds.h>
+ 
+@@ -50,27 +49,4 @@ void led_stop_software_blink(struct led_classdev *led_cdev);
+ extern struct rw_semaphore leds_list_lock;
+ extern struct list_head leds_list;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
+-void led_trigger_set_default(struct led_classdev *led_cdev);
+-void led_trigger_set(struct led_classdev *led_cdev,
+-			struct led_trigger *trigger);
+-void led_trigger_remove(struct led_classdev *led_cdev);
+-
+-static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
+-{
+-	return led_cdev->trigger_data;
+-}
+-
+-#else
+-#define led_trigger_set_default(x) do {} while (0)
+-#define led_trigger_set(x, y) do {} while (0)
+-#define led_trigger_remove(x) do {} while (0)
+-#define led_get_trigger_data(x) (NULL)
+-#endif
+-
+-ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+-			const char *buf, size_t count);
+-ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
+-			char *buf);
+-
+ #endif	/* __LEDS_H_INCLUDED */
+diff --git a/include/linux/leds.h b/include/linux/leds.h
+index 9a2b000..0579708 100644
+--- a/include/linux/leds.h
++++ b/include/linux/leds.h
+@@ -12,6 +12,7 @@
+ #ifndef __LINUX_LEDS_H_INCLUDED
+ #define __LINUX_LEDS_H_INCLUDED
+ 
++#include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/rwsem.h>
+@@ -222,6 +223,29 @@ struct led_trigger {
+ 	struct list_head  next_trig;
+ };
+ 
++#ifdef CONFIG_LEDS_TRIGGERS
++void led_trigger_set_default(struct led_classdev *led_cdev);
++void led_trigger_set(struct led_classdev *led_cdev,
++			struct led_trigger *trigger);
++void led_trigger_remove(struct led_classdev *led_cdev);
++
++static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
++{
++	return led_cdev->trigger_data;
++}
++
++#else
++#define led_trigger_set_default(x) do {} while (0)
++#define led_trigger_set(x, y) do {} while (0)
++#define led_trigger_remove(x) do {} while (0)
++#define led_get_trigger_data(x) (NULL)
++#endif
++
++ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count);
++ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
++			char *buf);
++
+ /* Registration functions for complex triggers */
+ extern int led_trigger_register(struct led_trigger *trigger);
+ extern void led_trigger_unregister(struct led_trigger *trigger);
 -- 
-2.1.4
+1.7.9.5
 
