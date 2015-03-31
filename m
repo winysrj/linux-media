@@ -1,81 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:53030 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750734AbbCSVuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2015 17:50:20 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
-Date: Thu, 19 Mar 2015 21:50:11 +0000
-Message-Id: <cover.1426801061.git.sean@mess.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:55060 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754542AbbCaNze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2015 09:55:34 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4 09/12] Documentation: leds: Add description of v4l2-flash
+ sub-device
+Date: Tue, 31 Mar 2015 15:52:45 +0200
+Message-id: <1427809965-25540-10-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series tries to fix the lirc interface and extend it so it can
-be used to send/recv scancodes in addition to raw IR:
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
- - Make it possible to receive scancodes from hardware that generates 
-   scancodes (with rc protocol information)
- - Make it possible to receive decoded scancodes from raw IR, from the 
-   in-kernel decoders (not mce mouse/keyboard). Now you can take any
-   remote, run ir-rec and you will get both the raw IR and the decoded
-   scancodes plus rc protocol information.
- - Make it possible to send scancodes; in kernel-encoding of IR
- - Make it possible to send scancodes for hardware that can only do that
-   (so that lirc_zilog can be moved out of staging, not completed yet)
- - Possibly the lirc interface can be used for cec?
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-This requires a little refactoring.
- - All rc-core devices will have a lirc device associated with them
- - The rc-core <-> lirc bridge no longer is a "decoder", this never made 
-   sense and caused confusion
-
-This requires new API for rc-core lirc devices.
- - New feature LIRC_CAN_REC_SCANCODE and LIRC_CAN_SEND_SCANCODE
- - REC_MODE and SEND_MODE do not enable LIRC_MODE_SCANCODE by default since 
-   this would confuse existing userspace code
- - For each scancode we need: 
-   - rc protocol (RC_TYPE_*) 
-   - toggle and repeat bit for some protocols
-   - 32 bit scancode
-
-A separate patch will introduce new v4l-utils tools ir-rec and ir-send for 
-displaying and sending IR, raw or scancode.
-
-There are few FIXMEs in the code, I am sending this for early feedback. For
-example there are no encoders for most IR protocols (just nec).
-
-However the first four patches can be merged as-is should it be accepted.
-
-Sean Young (6):
-  [PATCH 1/6] [media] lirc: remove broken features
-  [PATCH 2/6] [media] lirc: LIRC_[SG]ET_SEND_MODE should return -ENOSYS
-  [PATCH 3/6] [media] rc: lirc bridge should not be a raw decoder
-  [PATCH 4/6] [media] rc: lirc is not a protocol or a keymap
-  [PATCH 5/6] [media] lirc: pass IR scancodes to userspace via lirc
-    bridge
-  [PATCH 6/6] [media] rc: teach lirc how to send scancodes
-
- .../DocBook/media/v4l/lirc_device_interface.xml    |  82 ++++----
- drivers/media/rc/Kconfig                           |  19 +-
- drivers/media/rc/Makefile                          |   6 +-
- drivers/media/rc/ir-lirc-codec.c                   | 211 ++++++++++++---------
- drivers/media/rc/ir-nec-decoder.c                  |  50 +++++
- drivers/media/rc/keymaps/Makefile                  |   1 -
- drivers/media/rc/keymaps/rc-lirc.c                 |  42 ----
- drivers/media/rc/lirc_dev.c                        |  18 +-
- drivers/media/rc/rc-core-priv.h                    |  43 +++--
- drivers/media/rc/rc-ir-raw.c                       |  23 ++-
- drivers/media/rc/rc-main.c                         |  29 ++-
- drivers/media/rc/st_rc.c                           |   2 +-
- include/media/lirc.h                               |  31 ++-
- include/media/rc-core.h                            |   9 +
- include/media/rc-map.h                             |  42 ++--
- 15 files changed, 336 insertions(+), 272 deletions(-)
- delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
-
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 19bb673..ad80eeb 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -20,3 +20,50 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- max_flash_timeout
+ 	- flash_strobe
+ 	- flash_fault
++
++
++V4L2 Flash wrapper for flash LEDs
++=================================
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config.
++
++The driver must call the v4l2_flash_init function to get registered in the
++V4L2 subsystem. The function takes three arguments:
++- fled_cdev : the LED Flash class device to wrap
++- ops : V4L2 specific ops
++	* external_strobe_set - defines the source of the flash LED strobe -
++		V4L2_CID_FLASH_STROBE control or external source, typically
++		a sensor, which makes it possible to synchronise the flash
++		strobe start with exposure start,
++	* intensity_to_led_brightness and led_brightness_to_intensity - perform
++		enum led_brightness <-> V4L2 intensity conversion in a device
++		specific manner - they can be used for devices with non-linear
++		LED current scale.
++- config : configuration for V4L2 Flash sub-device
++	* dev_name - the name of the media entity, unique in the system,
++	* flash_faults - bitmask of flash faults that the LED Flash class
++		device can report; corresponding LED_FAULT* bit definitions are
++		available in <linux/led-class-flash.h>,
++	* intensity - constraints for the LED in the TORCH or INDICATOR mode,
++		in microamperes,
++	* has_external_strobe - determines whether the flash strobe source
++		can be switched to external,
++	* indicator_led - signifies that a led is of indicator type, which
++		implies that it can have only two V4L2 controls:
++		V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
++
++On remove the v4l2_flash_release function has to be called, which takes one
++argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
++
++Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
++v4l2-flash API.
++
++Once the V4L2 sub-device is registered by the driver which created the Media
++controller device, the sub-device node acts just as a node of a native V4L2
++flash API device would. The calls are simply routed to the LED flash API.
++
++Opening the V4L2 Flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 Flash sub-device
++is closed.
 -- 
-2.1.0
+1.7.9.5
 
