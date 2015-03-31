@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63057 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520AbbCIMcy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2015 08:32:54 -0400
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCHv3 0/2] Support for JPEG IP on Exynos542x
-Date: Mon, 09 Mar 2015 13:32:44 +0100
-Message-id: <1425904366-14447-1-git-send-email-andrzej.p@samsung.com>
+Received: from butterbrot.org ([176.9.106.16]:50377 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750962AbbCaJnf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2015 05:43:35 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, m.chehab@samsung.com
+Cc: laurent.pinchart@ideasonboard.com, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org, Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH] sur40: fix occasional hard freeze due to buffer queue underrun
+Date: Tue, 31 Mar 2015 11:43:28 +0200
+Message-Id: <1427795008-10385-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This short series adds support for JPEG IP on Exynos542x SoC.
-The first patch adds necessary device tree nodes and the second
-one does JPEG IP support proper. The JPEG IP on Exynos542x is
-similar to what is on Exynos3250, there just slight differences.
+This patch fixes a kernel panic which occurs when buf_list is empty. This can
+happen occasionally when user space is under heavy load (e.g. due to image 
+processing on the CPU) and new buffers aren't re-queued fast enough. In that 
+case, vb2_start_streaming_called can return true, but when the spinlock
+is taken and sur40_poll attempts to fetch the next buffer from buf_list, the 
+list is in fact empty.
 
-v2..v3:
-- added commit message to patch 1/2
+This patch needs to be applied on top of the queued one adding V4L2 support 
+to the sur40 driver.
 
-v1..v2:
-- implemented changes resulting from Jacek's review
-- removed iommu entries in device tree nodes as iommu is
-not available at this moment
-- added hw3250_compat and htbl_reinit flags to s5p_jpeg_variant,
-which simplifies the code a bit
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Andrzej Pietrasiewicz (2):
-  ARM: dts: exynos5420: add nodes for jpeg codec
-  media: s5p-jpeg: add 5420 family support
-
- .../bindings/media/exynos-jpeg-codec.txt           |  2 +-
- arch/arm/boot/dts/exynos5420.dtsi                  | 16 ++++++
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 59 +++++++++++++++-------
- drivers/media/platform/s5p-jpeg/jpeg-core.h        | 12 +++--
- 4 files changed, 67 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 1e7dacf..d618514 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -380,6 +380,11 @@ static void sur40_process_video(struct sur40_state *sur40)
+ 
+ 	/* get a new buffer from the list */
+ 	spin_lock(&sur40->qlock);
++	if (list_empty(&sur40->buf_list)) {
++		dev_dbg(sur40->dev, "buffer queue empty\n");
++		spin_unlock(&sur40->qlock);
++		return;
++	}
+ 	new_buf = list_entry(sur40->buf_list.next, struct sur40_buffer, list);
+ 	list_del(&new_buf->list);
+ 	spin_unlock(&sur40->qlock);
 -- 
 1.9.1
 
