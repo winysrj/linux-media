@@ -1,48 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59559 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757870AbbCDOvw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2015 09:51:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Michal Simek <michal.simek@xilinx.com>,
-	Chris Kohn <christian.kohn@xilinx.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: [PATCH v6 1/8] media: entity: Document the media_entity_ops structure
-Date: Wed,  4 Mar 2015 16:51:42 +0200
-Message-Id: <1425480709-7545-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1425480709-7545-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:36160 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514AbbCaNxr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2015 09:53:47 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs related
+ properties
+Date: Tue, 31 Mar 2015 15:52:37 +0200
+Message-id: <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/media-entity.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Description of flash LEDs related properties was not precise regarding
+the state of corresponding settings in case a property is missing.
+Add relevant statements.
+Removed is also the requirement making the flash-max-microamp
+property obligatory for flash LEDs. It was inconsistent as the property
+is defined as optional. Devices which require the property will have
+to assert this in their DT bindings.
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d6d74bc..0c003d8 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -44,6 +44,15 @@ struct media_pad {
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
- };
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: devicetree@vger.kernel.org
+---
+ Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+index 747c538..21a25e4 100644
+--- a/Documentation/devicetree/bindings/leds/common.txt
++++ b/Documentation/devicetree/bindings/leds/common.txt
+@@ -29,13 +29,15 @@ Optional properties for child nodes:
+      "ide-disk" - LED indicates disk activity
+      "timer" - LED flashes at a fixed, configurable rate
  
-+/**
-+ * struct media_entity_operations - Media entity operations
-+ * @link_setup:		Notify the entity of link changes. The operation can
-+ *			return an error, in which case link setup will be
-+ *			cancelled. Optional.
-+ * @link_validate:	Return whether a link is valid from the entity point of
-+ *			view. The media_entity_pipeline_start() function
-+ *			validates all links by calling this operation. Optional.
-+ */
- struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
+-- max-microamp : maximum intensity in microamperes of the LED
+-		 (torch LED for flash devices)
+-- flash-max-microamp : maximum intensity in microamperes of the
+-                       flash LED; it is mandatory if the LED should
+-		       support the flash mode
+-- flash-timeout-us : timeout in microseconds after which the flash
+-                     LED is turned off
++- max-microamp : Maximum intensity in microamperes of the LED
++		 (torch LED for flash devices). If omitted this will default
++		 to the maximum current allowed by the device.
++- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
++		       If omitted this will default to the maximum
++		       current allowed by the device.
++- flash-timeout-us : Timeout in microseconds after which the flash
++                     LED is turned off. If omitted this will default to the
++		     maximum timeout allowed by the device.
+ 
+ 
+ Examples:
 -- 
-2.0.5
+1.7.9.5
 
