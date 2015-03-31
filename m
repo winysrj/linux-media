@@ -1,62 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:8530 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941AbbCCPwH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2015 10:52:07 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NKN00GK489M2S30@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Mar 2015 15:56:10 +0000 (GMT)
-Message-id: <54F5D897.9020103@samsung.com>
-Date: Tue, 03 Mar 2015 16:51:51 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] s5p-jpeg: Fix possible NULL pointer dereference in s_fmt
-References: <1417180218-4421-1-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1417180218-4421-1-git-send-email-j.anaszewski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:48144 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858AbbCaN6r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2015 09:58:47 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v4 12/12] DT: aat1290: Document handling external strobe sources
+Date: Tue, 31 Mar 2015 15:57:45 +0200
+Message-id: <1427810265-25651-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1427810265-25651-1-git-send-email-j.anaszewski@samsung.com>
+References: <1427810265-25651-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+This patch adds documentation for a pinctrl-names property.
+The property, when present, is used for switching the source
+of the strobe signal for the device.
 
-On 28/11/14 14:10, Jacek Anaszewski wrote:
-> Some formats are not supported in encoding or decoding
-> mode for given type of buffer (e.g. V4L2_PIX_FMT_JPEG
-> is supported on output buffer only while in decoding
-> mode). Make S_FMT failing if not suitable format
-> is found.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> ---
->  drivers/media/platform/s5p-jpeg/jpeg-core.c |    8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index d7571cd..dfab848 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -1345,6 +1345,14 @@ static int s5p_jpeg_s_fmt(struct s5p_jpeg_ctx *ct, struct v4l2_format *f)
->  			FMT_TYPE_OUTPUT : FMT_TYPE_CAPTURE;
->  
->  	q_data->fmt = s5p_jpeg_find_format(ct, pix->pixelformat, f_type);
-> +
-> +	if (!q_data->fmt) {
-> +		v4l2_err(&ct->jpeg->v4l2_dev,
-> +			 "Fourcc format (0x%08x) invalid.\n",
-> +			 f->fmt.pix.pixelformat);
-> +		return -EINVAL;
-> +	}
-> +
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: devicetree@vger.kernel.org
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   32 +++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-How about forcing one of valid formats instead ? VIDIOC_S_FMT is not
-supposed to return an error just because a not supported fourcc
-was passed from user space.
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+index 6893eb1..c3df4e9 100644
+--- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -2,7 +2,9 @@
+ 
+ The device is controlled through two pins: FL_EN and EN_SET. The pins when,
+ asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
+-respectively.
++respectively. In order to add a capability of selecting the strobe signal source
++(e.g. GPIO or ISP) there is an additional switch required, independent of the
++flash chip. The switch is controlled with pin control.
+ 
+ Required properties:
+ 
+@@ -10,6 +12,13 @@ Required properties:
+ - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
+ - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+ 
++Optional properties:
++- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
++		"default" and "host" must refer to the same pin configuration
++		node, which sets the host as a strobe signal provider. Entry
++		"isp" must refer to the pin configuration node, which sets the
++		ISP as a strobe signal provider.
++
+ A discrete LED element connected to the device must be represented by a child
+ node - see Documentation/devicetree/bindings/leds/common.txt.
+ 
+@@ -27,14 +36,35 @@ Optional properties of the LED child node:
+ Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
+ a switch that allows for routing strobe signal either from host or from ISP):
+ 
++#include "exynos4412.dtsi"
++
+ aat1290 {
+ 	compatible = "skyworks,aat1290";
+ 	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
+ 	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
+ 
++	pinctrl-names = "default", "host", "isp";
++	pinctrl-0 = <&camera_flash_host>;
++	pinctrl-1 = <&camera_flash_host>;
++	pinctrl-2 = <&camera_flash_isp>;
++
+ 	camera_flash: flash-led {
+ 		label = "aat1290-flash";
+ 		flash-max-microamp = <1012500>;
+ 		flash-timeout-us = <1940000>;
+ 	};
+ };
++
++&pinctrl_0 {
++	camera_flash_host: camera-flash-host {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <0>;
++	};
++
++	camera_flash_isp: camera-flash-isp {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <1>;
++	};
++};
+-- 
+1.7.9.5
 
---
-Thanks,
-Sylwester
