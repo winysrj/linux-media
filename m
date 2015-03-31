@@ -1,117 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38791 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754295AbbCNPBQ (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:36488 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829AbbCaN6H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2015 11:01:16 -0400
-Date: Sat, 14 Mar 2015 17:00:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	pali.rohar@gmail.com, linux-omap@vger.kernel.org
-Subject: Re: [RFC 10/18] omap3isp: Move the syscon register out of the ISP
- register maps
-Message-ID: <20150314150038.GZ11954@valkosipuli.retiisi.org.uk>
-References: <1425764475-27691-1-git-send-email-sakari.ailus@iki.fi>
- <1425764475-27691-11-git-send-email-sakari.ailus@iki.fi>
- <1726882.heQ7ZxmKYg@avalon>
- <20150307234334.GH6539@valkosipuli.retiisi.org.uk>
- <20150309152038.GD5264@atomide.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150309152038.GD5264@atomide.com>
+	Tue, 31 Mar 2015 09:58:07 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4 10/12] leds: max77693: add support for V4L2 Flash sub-device
+Date: Tue, 31 Mar 2015 15:57:43 +0200
+Message-id: <1427810265-25651-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+Add support for V4L2 Flash sub-device to the max77693 LED Flash class
+driver. The support allows for V4L2 Flash sub-device to take the control
+of the LED Flash class device.
 
-Thanks for the comments!!
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/leds/leds-max77693.c |  125 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 119 insertions(+), 6 deletions(-)
 
-On Mon, Mar 09, 2015 at 08:20:38AM -0700, Tony Lindgren wrote:
-> * Sakari Ailus <sakari.ailus@iki.fi> [150307 15:44]:
-> > Hi Laurent,
-> > 
-> > On Sun, Mar 08, 2015 at 01:34:17AM +0200, Laurent Pinchart wrote:
-> > > Hi Sakari,
-> > > 
-> > > Thank you for the patch.
-> > > 
-> > > (CC'ing linux-omap and Tony)
-> > 
-> > Thanks.
-> > 
-> > > On Saturday 07 March 2015 23:41:07 Sakari Ailus wrote:
-> > > > The syscon register isn't part of the ISP, use it through the syscom driver
-> > > > regmap instead. The syscom block is considered to be from 343x on ISP
-> > > > revision 2.0 whereas 15.0 is assumed to have 3630 syscon.
-> > > > 
-> > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > ---
-> > > >  arch/arm/boot/dts/omap3.dtsi                |    2 +-
-> > > >  arch/arm/mach-omap2/devices.c               |   10 ----------
-> > > >  drivers/media/platform/omap3isp/isp.c       |   19 +++++++++++++++----
-> > > >  drivers/media/platform/omap3isp/isp.h       |   19 +++++++++++++++++--
-> > > >  drivers/media/platform/omap3isp/ispcsiphy.c |   20 +++++++++-----------
-> > > 
-> > > You might be asked to split the patch into two, let's see what Tony says.
-> > > 
-> > > >  5 files changed, 42 insertions(+), 28 deletions(-)
-> > > > 
-> > > > diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> > > > index 01b7111..fe0b293 100644
-> > > > --- a/arch/arm/boot/dts/omap3.dtsi
-> > > > +++ b/arch/arm/boot/dts/omap3.dtsi
-> > > > @@ -183,7 +183,7 @@
-> > > > 
-> > > >  		omap3_scm_general: tisyscon@48002270 {
-> > > >  			compatible = "syscon";
-> > > > -			reg = <0x48002270 0x2f0>;
-> > > > +			reg = <0x48002270 0x2f4>;
-> > > >  		};
-> > > > 
-> > > >  		pbias_regulator: pbias_regulator {
-> 
-> Can you please send the above dts change separately as a fix describing
-> what goes wrong? Let's get that out of the way for the -rc, otherwise
-> we're going to probably get conflicts with Tero's dts changes.
-
-Sure.
-
-There's one register that didn't used to be mapped to syscon.
-
-> > > > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > > > index 1afb50d..e945957 100644
-> > > > --- a/arch/arm/mach-omap2/devices.c
-> > > > +++ b/arch/arm/mach-omap2/devices.c
-> > > > @@ -143,16 +143,6 @@ static struct resource omap3isp_resources[] = {
-> > > >  		.flags		= IORESOURCE_MEM,
-> > > >  	},
-> > > >  	{
-> > > > -		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
-> > > > -		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
-> > > > -		.flags		= IORESOURCE_MEM,
-> > > > -	},
-> > > > -	{
-> > > > -		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
-> > > > -		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
-> > > > -		.flags		= IORESOURCE_MEM,
-> > > > -	},
-> > > > -	{
-> > > >  		.start		= 24 + OMAP_INTC_START,
-> > > >  		.flags		= IORESOURCE_IRQ,
-> > > >  	}
-> 
-> Looks good to me, teel free to merge this part along with the other
-> isp changes:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Thanks!
-
+diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
+index aa974be..8a1673e 100644
+--- a/drivers/leds/leds-max77693.c
++++ b/drivers/leds/leds-max77693.c
+@@ -20,6 +20,7 @@
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
++#include <media/v4l2-flash.h>
+ 
+ #define MODE_OFF		0
+ #define MODE_FLASH(a)		(1 << (a))
+@@ -62,6 +63,8 @@ struct max77693_sub_led {
+ 	struct led_classdev_flash fled_cdev;
+ 	/* assures led-triggers compatibility */
+ 	struct work_struct work_brightness_set;
++	/* V4L2 Flash device */
++	struct v4l2_flash *v4l2_flash;
+ 
+ 	/* brightness cache */
+ 	unsigned int torch_brightness;
+@@ -634,7 +637,8 @@ static int max77693_led_flash_timeout_set(
+ }
+ 
+ static int max77693_led_parse_dt(struct max77693_led_device *led,
+-				struct max77693_led_config_data *cfg)
++				struct max77693_led_config_data *cfg,
++				struct device_node **sub_nodes)
+ {
+ 	struct device *dev = &led->pdev->dev;
+ 	struct max77693_sub_led *sub_leds = led->sub_leds;
+@@ -679,6 +683,13 @@ static int max77693_led_parse_dt(struct max77693_led_device *led,
+ 			return -EINVAL;
+ 		}
+ 
++		if (sub_nodes[fled_id]) {
++			dev_err(dev,
++				"Conflicting \"led-sources\" DT properties\n");
++			return -EINVAL;
++		}
++
++		sub_nodes[fled_id] = child_node;
+ 		sub_leds[fled_id].fled_id = fled_id;
+ 
+ 		cfg->label[fled_id] =
+@@ -783,11 +794,12 @@ static void max77693_led_validate_configuration(struct max77693_led_device *led,
+ }
+ 
+ static int max77693_led_get_configuration(struct max77693_led_device *led,
+-				struct max77693_led_config_data *cfg)
++				struct max77693_led_config_data *cfg,
++				struct device_node **sub_nodes)
+ {
+ 	int ret;
+ 
+-	ret = max77693_led_parse_dt(led, cfg);
++	ret = max77693_led_parse_dt(led, cfg, sub_nodes);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -835,6 +847,66 @@ static void max77693_init_flash_settings(struct max77693_sub_led *sub_led,
+ 	setting->val = setting->max;
+ }
+ 
++#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
++
++static int max77693_led_external_strobe_set(
++				struct v4l2_flash *v4l2_flash,
++				bool enable)
++{
++	struct max77693_sub_led *sub_led =
++				flcdev_to_sub_led(v4l2_flash->fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	int fled_id = sub_led->fled_id;
++	int ret;
++
++	mutex_lock(&led->lock);
++
++	if (enable)
++		ret = max77693_add_mode(led, MODE_FLASH_EXTERNAL(fled_id));
++	else
++		ret = max77693_clear_mode(led, MODE_FLASH_EXTERNAL(fled_id));
++
++	mutex_unlock(&led->lock);
++
++	return ret;
++}
++
++static void max77693_init_v4l2_flash_config(struct max77693_sub_led *sub_led,
++				struct max77693_led_config_data *led_cfg,
++				struct v4l2_flash_config *v4l2_sd_cfg)
++{
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	struct device *dev = &led->pdev->dev;
++	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
++	struct i2c_client *i2c = iodev->i2c;
++	struct led_flash_setting *s;
++
++	snprintf(v4l2_sd_cfg->dev_name, sizeof(v4l2_sd_cfg->dev_name),
++		 "%s %d-%04x", sub_led->fled_cdev.led_cdev.name,
++		 i2c_adapter_id(i2c->adapter), i2c->addr);
++
++	s = &v4l2_sd_cfg->intensity;
++	s->min = TORCH_IOUT_MIN;
++	s->max = sub_led->fled_cdev.led_cdev.max_brightness * TORCH_IOUT_STEP;
++	s->step = TORCH_IOUT_STEP;
++	s->val = s->max;
++
++	/* Init flash faults config */
++	v4l2_sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE |
++				LED_FAULT_SHORT_CIRCUIT |
++				LED_FAULT_OVER_CURRENT;
++
++	v4l2_sd_cfg->has_external_strobe = true;
++}
++
++static const struct v4l2_flash_ops v4l2_flash_ops = {
++	.external_strobe_set = max77693_led_external_strobe_set,
++};
++
++#else
++#define max77693_init_v4l2_flash_config(sub_led, led_cfg, v4l2_sd_cfg)
++#endif
++
+ static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
+ 				struct max77693_led_config_data *led_cfg)
+ {
+@@ -867,12 +939,49 @@ static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
+ 	sub_led->flash_timeout = fled_cdev->timeout.val;
+ }
+ 
++static int max77693_register_led(struct max77693_sub_led *sub_led,
++				 struct max77693_led_config_data *led_cfg,
++				 struct device_node *sub_node)
++{
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	struct led_classdev_flash *fled_cdev = &sub_led->fled_cdev;
++	struct device *dev = &led->pdev->dev;
++#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
++	struct v4l2_flash_config v4l2_sd_cfg = {};
++#endif
++	int ret;
++
++	/* Register in the LED subsystem */
++	ret = led_classdev_flash_register(dev, fled_cdev);
++	if (ret < 0)
++		return ret;
++
++	max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
++
++	fled_cdev->led_cdev.dev->of_node = sub_node;
++
++	/* Register in the V4L2 subsystem. */
++	sub_led->v4l2_flash = v4l2_flash_init(fled_cdev, &v4l2_flash_ops,
++						&v4l2_sd_cfg);
++	if (IS_ERR(sub_led->v4l2_flash)) {
++		ret = PTR_ERR(sub_led->v4l2_flash);
++		goto err_v4l2_flash_init;
++	}
++
++	return 0;
++
++err_v4l2_flash_init:
++	led_classdev_flash_unregister(fled_cdev);
++	return ret;
++}
++
+ static int max77693_led_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
+ 	struct max77693_led_device *led;
+ 	struct max77693_sub_led *sub_leds;
++	struct device_node *sub_nodes[2] = {};
+ 	struct max77693_led_config_data led_cfg = {};
+ 	int init_fled_cdev[2], i, ret;
+ 
+@@ -886,7 +995,7 @@ static int max77693_led_probe(struct platform_device *pdev)
+ 	sub_leds = led->sub_leds;
+ 
+ 	platform_set_drvdata(pdev, led);
+-	ret = max77693_led_get_configuration(led, &led_cfg);
++	ret = max77693_led_get_configuration(led, &led_cfg, sub_nodes);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -907,12 +1016,13 @@ static int max77693_led_probe(struct platform_device *pdev)
+ 			max77693_init_fled_cdev(&sub_leds[i], &led_cfg);
+ 
+ 
+-	/* Register LED Flash class device(s) */
++	/* Register LED Flash class and related V4L2 Flash device(s) */
+ 	for (i = FLED1; i <= FLED2; ++i) {
+ 		if (!init_fled_cdev[i])
+ 			continue;
+ 
+-		ret = led_classdev_flash_register(dev, &sub_leds[i].fled_cdev);
++		ret = max77693_register_led(&sub_leds[i], &led_cfg,
++						sub_nodes[i]);
+ 		if (ret < 0) {
+ 			/*
+ 			 * At this moment FLED1 might have been already
+@@ -931,6 +1041,7 @@ err_register_led2:
+ 	/* It is possible than only FLED2 was to be registered */
+ 	if (!init_fled_cdev[FLED1])
+ 		goto err_register_led1;
++	v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
+ 	led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
+ err_register_led1:
+ 	mutex_destroy(&led->lock);
+@@ -944,11 +1055,13 @@ static int max77693_led_remove(struct platform_device *pdev)
+ 	struct max77693_sub_led *sub_leds = led->sub_leds;
+ 
+ 	if (led->iout_joint || max77693_fled_used(led, FLED1)) {
++		v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
+ 		led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
+ 		cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
+ 	}
+ 
+ 	if (!led->iout_joint && max77693_fled_used(led, FLED2)) {
++		v4l2_flash_release(sub_leds[FLED2].v4l2_flash);
+ 		led_classdev_flash_unregister(&sub_leds[FLED2].fled_cdev);
+ 		cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
+ 	}
 -- 
-Regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
