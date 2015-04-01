@@ -1,113 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60146 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbbD3OI4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:56 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH 14/22] saa7134: use pr_warn() on some places where no KERN_foo were used
-Date: Thu, 30 Apr 2015 11:08:34 -0300
-Message-Id: <0eaea469493102d06e885e474f9cfd4b69bd290c.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33934 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863AbbDAXxU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2015 19:53:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [GIT PULL FOR v4.1] [v3] OMAP3 ISP DT support & other fixes
+Date: Thu, 02 Apr 2015 02:53:38 +0300
+Message-ID: <1974578.Pp6GtfjauX@avalon>
+In-Reply-To: <2471603.f3UFYjkmSW@avalon>
+References: <3472666.1mv3SyG49o@avalon> <2471603.f3UFYjkmSW@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On a few places, mostly during board detection, some printk()
-macros were called without especifying any message level.
+Hi Mauro,
 
-Those are actually warnings. So, use pr_warn() for them.
+This pull request supersedes "[GIT PULL FOR v4.1] [v2] OMAP3 ISP DT support & 
+other fixes". Compared to the previous version it merges the "[PATCH 1/1] 
+omap3isp: Don't pass uninitialised arguments to of_graph_get_next_endpoint()" 
+bug fix into patch "omap3isp: Add support for the Device Tree".
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Board code and platform changes have been acked by the appropriate maintainers 
+to the best of my knowledge.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index 5b81157a5003..abbeeb923114 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -7159,10 +7159,10 @@ MODULE_DEVICE_TABLE(pci, saa7134_pci_tbl);
- 
- static void board_flyvideo(struct saa7134_dev *dev)
- {
--	printk("%s: there are different flyvideo cards with different tuners\n"
--	       "%s: out there, you might have to use the tuner=<nr> insmod\n"
--	       "%s: option to override the default value.\n",
--	       dev->name, dev->name, dev->name);
-+	pr_warn("%s: there are different flyvideo cards with different tuners\n"
-+		"%s: out there, you might have to use the tuner=<nr> insmod\n"
-+		"%s: option to override the default value.\n",
-+		dev->name, dev->name, dev->name);
- }
- 
- static int saa7134_xc2028_callback(struct saa7134_dev *dev,
-@@ -7513,10 +7513,10 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		break;
- 	case SAA7134_BOARD_MD5044:
--		printk("%s: seems there are two different versions of the MD5044\n"
--		       "%s: (with the same ID) out there.  If sound doesn't work for\n"
--		       "%s: you try the audio_clock_override=0x200000 insmod option.\n",
--		       dev->name,dev->name,dev->name);
-+		pr_warn("%s: seems there are two different versions of the MD5044\n"
-+			"%s: (with the same ID) out there.  If sound doesn't work for\n"
-+			"%s: you try the audio_clock_override=0x200000 insmod option.\n",
-+			dev->name,dev->name,dev->name);
- 		break;
- 	case SAA7134_BOARD_CINERGY400_CARDBUS:
- 		/* power-up tuner chip */
-@@ -7641,10 +7641,10 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 		dev->has_remote = SAA7134_REMOTE_I2C;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_A169_B:
--		printk("%s: %s: dual saa713x broadcast decoders\n"
--		       "%s: Sorry, none of the inputs to this chip are supported yet.\n"
--		       "%s: Dual decoder functionality is disabled for now, use the other chip.\n",
--		       dev->name,card(dev).name,dev->name,dev->name);
-+		pr_warn("%s: %s: dual saa713x broadcast decoders\n"
-+			"%s: Sorry, none of the inputs to this chip are supported yet.\n"
-+			"%s: Dual decoder functionality is disabled for now, use the other chip.\n",
-+			dev->name,card(dev).name,dev->name,dev->name);
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_M102:
- 		/* enable tuner */
-@@ -7790,7 +7790,7 @@ int saa7134_board_init2(struct saa7134_dev *dev)
- 		if (board == dev->board)
- 			break;
- 		dev->board = board;
--		printk("%s: board type fixup: %s\n", dev->name,
-+		pr_warn("%s: board type fixup: %s\n", dev->name,
- 		saa7134_boards[dev->board].name);
- 		dev->tuner_type = saa7134_boards[dev->board].tuner_type;
- 
-@@ -8047,7 +8047,7 @@ int saa7134_board_init2(struct saa7134_dev *dev)
- 			msg.len = ARRAY_SIZE(buffer[0]);
- 			if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1)
- 				pr_warn("%s: Unable to enable tuner(%i).\n",
--				        dev->name, i);
-+					dev->name, i);
- 		}
- 		break;
- 	}
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index c206148f816b..83dbb443214e 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -947,7 +947,7 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
- 	pci_set_master(pci_dev);
- 	if (!pci_dma_supported(pci_dev, DMA_BIT_MASK(32))) {
--		printk("%s: Oops: no 32bit PCI DMA ???\n",dev->name);
-+		pr_warn("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
- 		err = -EIO;
- 		goto fail1;
- 	}
+The following changes since commit bf104c238dc1c7172460853882a545141eaa8222:
+
+  [media] mn88472: One function call less in mn88472_init() after error 
+detection (2015-04-01 06:22:27 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to fb6ff895435abdc92fd7ddd92e7c8f4630b4e127:
+
+  omap3isp: Deprecate platform data support (2015-04-02 02:46:29 +0300)
+
+----------------------------------------------------------------
+Lad, Prabhakar (1):
+      media: omap3isp: video: drop setting of vb2 buffer state to 
+VB2_BUF_STATE_ACTIVE
+
+Laurent Pinchart (4):
+      media: omap3isp: video: Don't call vb2 mmap with queue lock held
+      media: omap3isp: video: Use v4l2_get_timestamp()
+      media: omap3isp: hist: Move histogram DMA to DMA engine
+      omap3isp: DT support for clocks
+
+Sakari Ailus (14):
+      omap3isp: Fix error handling in probe
+      omap3isp: Avoid a BUG_ON() in media_entity_create_link()
+      omap3isp: Separate external link creation from platform data parsing
+      omap3isp: Platform data could be NULL
+      omap3isp: Refactor device configuration structs for Device Tree
+      omap3isp: Rename regulators to better suit the Device Tree
+      omap3isp: Calculate vpclk_div for CSI-2
+      omap3isp: Replace mmio_base_phys array with the histogram block base
+      omap3isp: Move the syscon register out of the ISP register maps
+      omap3isp: Replace many MMIO regions by two
+      dt: bindings: Add lane-polarity property to endpoint nodes
+      v4l: of: Read lane-polarities endpoint property
+      omap3isp: Add support for the Device Tree
+      omap3isp: Deprecate platform data support
+
+ .../devicetree/bindings/media/video-interfaces.txt      |   6 +
+ arch/arm/mach-omap2/board-cm-t35.c                      |  57 +--
+ arch/arm/mach-omap2/devices.c                           |  76 +---
+ arch/arm/mach-omap2/omap34xx.h                          |  36 +-
+ drivers/media/platform/Kconfig                          |   1 +
+ drivers/media/platform/omap3isp/isp.c                   | 555 ++++++++++-----
+ drivers/media/platform/omap3isp/isp.h                   |  42 +-
+ drivers/media/platform/omap3isp/ispccdc.c               |  26 +-
+ drivers/media/platform/omap3isp/ispccp2.c               |  22 +-
+ drivers/media/platform/omap3isp/ispcsi2.c               |  14 +-
+ drivers/media/platform/omap3isp/ispcsiphy.c             |  48 +-
+ drivers/media/platform/omap3isp/isph3a_aewb.c           |   1 -
+ drivers/media/platform/omap3isp/isph3a_af.c             |   1 -
+ drivers/media/platform/omap3isp/isphist.c               | 127 +++---
+ drivers/media/platform/omap3isp/ispstat.c               |   2 +-
+ drivers/media/platform/omap3isp/ispstat.h               |   5 +-
+ drivers/media/platform/omap3isp/ispvideo.c              |  20 +-
+ drivers/media/v4l2-core/v4l2-of.c                       |  41 +-
+ include/media/omap3isp.h                                |  36 +-
+ include/media/v4l2-of.h                                 |   3 +
+ 20 files changed, 665 insertions(+), 454 deletions(-)
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
