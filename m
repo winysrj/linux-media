@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33756 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240AbbDCRMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:12:37 -0400
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: [PATCH 02/14] clkdev: drop __init from clkdev_add_table()
+Received: from mx1.redhat.com ([209.132.183.28]:60422 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752929AbbDAPIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Apr 2015 11:08:21 -0400
+Date: Wed, 1 Apr 2015 17:08:16 +0200
+From: "Michael S. Tsirkin" <mst@redhat.com>
+To: John Hunter <zhjwpku@gmail.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	virtio-dev@lists.oasis-open.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	open list <linux-kernel@vger.kernel.org>, airlied@redhat.com,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/4] break kconfig dependency loop
+Message-ID: <20150401170706-mutt-send-email-mst@redhat.com>
+References: <1427894130-14228-1-git-send-email-kraxel@redhat.com>
+ <1427894130-14228-2-git-send-email-kraxel@redhat.com>
+ <CAEG8a3+Wp-jgtwKmcBhG2gVAOP2tQ5MHuJwYe-m2HwYQRB06HQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Ye58y-0001Ax-Qy@rmk-PC.arm.linux.org.uk>
-Date: Fri, 03 Apr 2015 18:12:32 +0100
+In-Reply-To: <CAEG8a3+Wp-jgtwKmcBhG2gVAOP2tQ5MHuJwYe-m2HwYQRB06HQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We want to be able to call clkdev_add_table() from non-init code, so we
-need to drop the __init marker from it.
+On Wed, Apr 01, 2015 at 10:55:01PM +0800, John Hunter wrote:
+> Hi Gerd,
+> I've read the patches about the virtio-gpu, it's a nice design.
+> As far as I know, there are two other drivers used by qemu, CIRRUS and BOCHS.
+> I have a question about the relationship of these three drivers, is that the
+> virtio-gpu
+> designed to replace the other two drivers? I mean are the CIRRUS and BOCHS
+> going to be deprecated in the future?
+> 
+> Would you please kindly explain this a little bit?
+> 
+> Actually, this is a problem by Martin Peres who is the GSoC xorg administor. 
+> My proposal is "Convert the BOCHS and CIRRUS drivers to atomic mode-setting".
+> Martin wonder if the two drivers are going to be deprecated, there is no need
+> for
+> me to do the job.
+> 
+> Best regards,
+> John 
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/clk/clkdev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hypervisors are going to support BOCHS and CIRRUS for years to come.
 
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index 043fd3633373..156f2e2f972c 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -251,7 +251,7 @@ void clkdev_add(struct clk_lookup *cl)
- }
- EXPORT_SYMBOL(clkdev_add);
- 
--void __init clkdev_add_table(struct clk_lookup *cl, size_t num)
-+void clkdev_add_table(struct clk_lookup *cl, size_t num)
- {
- 	mutex_lock(&clocks_mutex);
- 	while (num--) {
 -- 
-1.8.3.1
-
+MST
