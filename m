@@ -1,69 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59007 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030436AbbD1PLu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 11:11:50 -0400
-Message-ID: <553FA320.4040006@kapsi.fi>
-Date: Tue, 28 Apr 2015 18:11:28 +0300
-From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:33039 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187AbbDAQpR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2015 12:45:17 -0400
+Received: by qcrf4 with SMTP id f4so33522446qcr.0
+        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2015 09:45:16 -0700 (PDT)
 MIME-Version: 1.0
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mike Turquette <mturquette@linaro.org>
-CC: Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>,
-	ascha Hauer <kernel@pengutronix.de>,
-	David Brown <davidb@codeaurora.org>,
-	Daniel Walker <dwalker@fifo99.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Paul Walmsley <paul@pwsan.com>,
-	Liviu Dudau <liviu.dudau@arm.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Ralf Baechle <ralf@linux-mips.org>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Barry Song <baohua@kernel.org>,
-	Viresh Kumar <viresh.linux@gmail.com>,
-	=?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Peter De Schrijver <pdeschrijver@nvidia.com>,
-	Prashant Gaikwad <pgaikwad@nvidia.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Alexandre Courbot <gnurou@gmail.com>,
-	Tero Kristo <t-kristo@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
-	linux-rockchip@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
-	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
-Subject: Re: [PATCH 1/2] clk: change clk_ops' ->round_rate() prototype
-References: <1429255769-13639-1-git-send-email-boris.brezillon@free-electrons.com> <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Wed, 1 Apr 2015 12:45:16 -0400
+Message-ID: <CALzAhNWSH9Y8Zepn4BpbDJ14cr5+KjhWbWwqDKoVQWs6g0zxvQ@mail.gmail.com>
+Subject: v4l2-compliance question
+From: Steven Toth <stoth@kernellabs.com>
+To: Linux-Media <linux-media@vger.kernel.org>,
+	"Jacob Johan (Hans) Verkuil" <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The series
+Hans,
 
-Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+struct v4l2_capability has a version field described as:
 
-on Jetson-TK1.
+__u32version
 
-I rebased my cpufreq series on top of this and everything's working well 
-now. :)
+"Version number of the driver.
 
-Thanks,
-Mikko.
+Starting on kernel 3.1, the version reported is provided per V4L2
+subsystem, following the same Kernel numberation scheme. However, it
+should not always return the same version as the kernel, if, for
+example, an stable or distribution-modified kernel uses the V4L2 stack
+from a newer kernel.
 
-On 04/17/2015 10:29 AM, Boris Brezillon wrote:
-> ...
+The version number is formatted using the KERNEL_VERSION() macro..."
+
+fail_on_test((vcap.version >> 16) < 3);
+
+I have a driver that returns 0x00010703 and thus fails v4l2-compliance.
+
+My read on the documentation is that the major doesn't have to be 3 or
+higher, it doesn't specially call that out.
+
+Thoughts?
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
