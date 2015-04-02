@@ -1,1051 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:19876 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933445AbbDJOWK (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46120 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751102AbbDBMkh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 10:22:10 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NML000AMHFGFTA0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Apr 2015 15:26:05 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, 'David Airlie' <airlied@linux.ie>,
-	'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
-	'Steve Longerbeam' <slongerbeam@gmail.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Ian Molton' <imolton@ad-holdings.co.uk>,
-	'Jean-Michel Hautbois' <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, 'Sascha Hauer' <s.hauer@pengutronix.de>,
-	'Michael Olbrich' <m.olbrich@pengutronix.de>
-References: <1426607290-13380-1-git-send-email-p.zabel@pengutronix.de>
- <1426607290-13380-6-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1426607290-13380-6-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH 5/5] [media] imx-ipu: Add i.MX IPUv3 scaler driver
-Date: Fri, 10 Apr 2015 16:22:05 +0200
-Message-id: <03ba01d07399$b929f6b0$2b7de410$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Thu, 2 Apr 2015 08:40:37 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 88F2E2A00AB
+	for <linux-media@vger.kernel.org>; Thu,  2 Apr 2015 14:40:05 +0200 (CEST)
+Message-ID: <551D38A5.9020104@xs4all.nl>
+Date: Thu, 02 Apr 2015 14:40:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2] v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-owner@vger.kernel.org] On Behalf Of Philipp Zabel
-Sent: Tuesday, March 17, 2015 4:48 PM
-> 
-> From: Sascha Hauer <s.hauer@pengutronix.de>
-> 
-> This patch adds support for hardware accelerated scaling and color
-> space conversion between memory buffers using the IPUv3 IC.
-> Since the maximum output size of the IC unit is 1024x1024 pixels,
-> multiple IC tasks with overlapping tiles are used internally to scale
-> and convert larger frames.
-> 
-> The IC operates with a burst size of at least 8 pixels. Depending on
-> the frame width and scaling factor, up to 7 junk pixels may be written
-> after the end of the frame. The sizeimage is increased accordingly.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The descriptions used in drivers for the formats returned with ENUM_FMT
+are all over the place.
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+So instead allow the core to fill them in if the driver didn't. This
+allows drivers to drop the description and flags.
 
-> ---
->  drivers/gpu/ipu-v3/ipu-ic.c                 |  28 +-
->  drivers/media/platform/imx/Kconfig          |   9 +
->  drivers/media/platform/imx/Makefile         |   1 +
->  drivers/media/platform/imx/imx-ipu-scaler.c | 869
-> ++++++++++++++++++++++++++++
->  drivers/media/platform/imx/imx-ipu.c        |   2 +-
->  drivers/media/platform/imx/imx-ipu.h        |   1 +
->  6 files changed, 882 insertions(+), 28 deletions(-)  create mode
-> 100644 drivers/media/platform/imx/imx-ipu-scaler.c
-> 
-> diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-> index 39ee388..984f68f 100644
-> --- a/drivers/gpu/ipu-v3/ipu-ic.c
-> +++ b/drivers/gpu/ipu-v3/ipu-ic.c
-> @@ -701,7 +701,6 @@ static struct image_convert_ctx
-> *ipu_image_convert_next(struct ipu_ic *ic)  {
->  	struct ipu_ic_priv *priv = ic->priv;
->  	struct ipuv3_channel *ch_in = ic->input_channel;
-> -	struct ipuv3_channel *ch_in_p, *ch_in_n;
->  	struct ipuv3_channel *ch_out = ic->output_channel;
->  	struct image_convert_ctx *ctx;
->  	struct ipu_image *in_p, *in, *in_n;
-> @@ -748,32 +747,7 @@ static struct image_convert_ctx
-> *ipu_image_convert_next(struct ipu_ic *ic)
->  	ipu_cpmem_set_burstsize(ch_in, inburst);
->  	ipu_cpmem_set_burstsize(ch_out, outburst);
-> 
-> -	if (ctx->deinterlace) {
-> -		ch_in_p = ic->input_channel_p;
-> -		ch_in_n = ic->input_channel_n;
-> -
-> -		ipu_cpmem_zero(ch_in_p);
-> -		ipu_cpmem_zero(ch_in_n);
-> -
-> -		ipu_ic_task_idma_init(ic, ic->input_channel_p,
-> -				      in_p->rect.width, in_p->rect.height,
-> -				      inburst, IPU_ROTATE_NONE);
-> -		ipu_ic_task_idma_init(ic, ic->input_channel_n,
-> -				      in_n->rect.width, in_n->rect.height,
-> -				      inburst, IPU_ROTATE_NONE);
-> -
-> -		ipu_cpmem_set_image(ch_in_p, &ctx->in_p);
-> -		ipu_cpmem_set_image(ch_in_n, &ctx->in_n);
-> -
-> -		ipu_cpmem_set_burstsize(ch_in_p, inburst);
-> -		ipu_cpmem_set_burstsize(ch_in_n, inburst);
-> -	}
-> -
-> -
-> -	if (ctx->deinterlace)
-> -		in_height = in->rect.height * 2;
-> -	else
-> -		in_height = in->rect.height;
-> +	in_height = in->rect.height;
-> 
->  	dev_dbg(priv->ipu->dev, "%s: %dx%d(%dx%d@%d,%d) -
-> > %dx%d(%dx%d@%d,%d)\n",
->  		__func__, in->pix.width, in->pix.height, diff --git
-> a/drivers/media/platform/imx/Kconfig
-> b/drivers/media/platform/imx/Kconfig
-> index a90c973..4694367 100644
-> --- a/drivers/media/platform/imx/Kconfig
-> +++ b/drivers/media/platform/imx/Kconfig
-> @@ -1,2 +1,11 @@
->  config VIDEO_IMX_IPU_COMMON
->  	tristate
-> +
-> +config VIDEO_IMX_IPU_SCALER
-> +	tristate "i.MX5/6 IPUv3 based image scaler driver"
-> +	depends on VIDEO_DEV && IMX_IPUV3_CORE
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select VIDEO_IMX_IPU_COMMON
-> +	select V4L2_MEM2MEM_DEV
-> +	---help---
-> +	  This is a v4l2 scaler video driver for the IPUv3 on i.MX5/6.
-> diff --git a/drivers/media/platform/imx/Makefile
-> b/drivers/media/platform/imx/Makefile
-> index 5de119c..f20aa0b 100644
-> --- a/drivers/media/platform/imx/Makefile
-> +++ b/drivers/media/platform/imx/Makefile
-> @@ -1 +1,2 @@
->  obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
-> +obj-$(CONFIG_VIDEO_IMX_IPU_SCALER)	+= imx-ipu-scaler.o
-> diff --git a/drivers/media/platform/imx/imx-ipu-scaler.c
-> b/drivers/media/platform/imx/imx-ipu-scaler.c
-> new file mode 100644
-> index 0000000..9cf8a70
-> --- /dev/null
-> +++ b/drivers/media/platform/imx/imx-ipu-scaler.c
-> @@ -0,0 +1,869 @@
-> +/*
-> + * i.MX IPUv3 scaler driver
-> + *
-> + * Copyright (C) 2011 Sascha Hauer, Pengutronix
-> + *
-> + * based on the mem2mem test driver
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; either version 2
-> + * of the License, or (at your option) any later version.
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/version.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +#include <video/imx-ipu-v3.h>
-> +
-> +#include <linux/platform_device.h>
-> +#include <media/v4l2-mem2mem.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +
-> +#include "imx-ipu.h"
-> +
-> +#define MIN_W 32
-> +#define MIN_H 32
-> +#define MAX_W 4096
-> +#define MAX_H 4096
-> +#define DIM_ALIGN_MASK 0x08 /* 8-alignment for dimensions */
-> +
-> +/* Flags that indicate a format can be used for capture/output */
-> +#define MEM2MEM_CAPTURE	(1 << 0)
-> +#define MEM2MEM_OUTPUT	(1 << 1)
-> +
-> +#define MEM2MEM_NAME		"imx-ipuv3-scale"
-> +
-> +/* Per queue */
-> +#define MEM2MEM_DEF_NUM_BUFS	VIDEO_MAX_FRAME
-> +/* In bytes, per queue */
-> +#define MEM2MEM_VID_MEM_LIMIT	(64 * 1024 * 1024)
-> +
-> +#define fh_to_ctx(__fh)	container_of(__fh, struct ipu_scale_ctx,
-> fh)
-> +
-> +enum {
-> +	V4L2_M2M_SRC = 0,
-> +	V4L2_M2M_DST = 1,
-> +};
-> +
-> +struct ipu_scale_dev {
-> +	struct v4l2_device	v4l2_dev;
-> +	struct video_device	*vfd;
-> +	struct device		*dev;
-> +	struct ipu_soc		*ipu;
-> +
-> +	atomic_t		num_inst;
-> +	spinlock_t		irqlock;
-> +
-> +	struct v4l2_m2m_dev	*m2m_dev;
-> +	struct mutex		dev_mutex;
-> +};
-> +
-> +/* Per-queue, driver-specific private data */ struct ipu_scale_q_data
-> {
-> +	struct v4l2_pix_format	cur_fmt;
-> +	struct v4l2_rect	rect;
-> +};
-> +
-> +struct ipu_scale_ctx {
-> +	struct ipu_scale_dev	*ipu_scaler;
-> +
-> +	struct v4l2_fh		fh;
-> +	struct vb2_alloc_ctx	*alloc_ctx;
-> +	struct ipu_scale_q_data	q_data[2];
-> +	struct work_struct	work;
-> +	struct completion	completion;
-> +	struct work_struct	skip_run;
-> +	int			error;
-> +	int			aborting;
-> +	enum ipu_image_scale_ctrl ctrl;
-> +	struct image_convert_ctx *icc;
-> +	int			num_tiles;
-> +};
-> +
-> +static struct ipu_scale_q_data *get_q_data(struct ipu_scale_ctx *ctx,
-> +					   enum v4l2_buf_type type)
-> +{
-> +	switch (type) {
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> +		return &ctx->q_data[V4L2_M2M_SRC];
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> +		return &ctx->q_data[V4L2_M2M_DST];
-> +	default:
-> +		BUG();
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * mem2mem callbacks
-> + */
-> +
-> +/**
-> + * job_ready() - check whether an instance is ready to be scheduled to
-> +run  */ static int job_ready(void *priv) {
-> +	struct ipu_scale_ctx *ctx = priv;
-> +
-> +	if (ctx->aborting)
-> +		return 0;
-> +
-> +	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) < 1
-> +	    || v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) < 1) {
-> +		dev_dbg(ctx->ipu_scaler->dev, "Not enough buffers
-> available\n");
-> +		return 0;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
-> +static void job_abort(void *priv)
-> +{
-> +	struct ipu_scale_ctx *ctx = priv;
-> +
-> +	ctx->aborting = 1;
-> +}
-> +
-> +static void ipu_complete(void *priv, int err) {
-> +	struct ipu_scale_dev *ipu_scaler = priv;
-> +	struct ipu_scale_ctx *curr_ctx;
-> +
-> +	curr_ctx = v4l2_m2m_get_curr_priv(ipu_scaler->m2m_dev);
-> +
-> +	if (NULL == curr_ctx) {
-> +		dev_dbg(ipu_scaler->dev,
-> +			"Instance released before the end of
-transaction\n");
-> +		return;
-> +	}
-> +
-> +	curr_ctx->error = err;
-> +	complete(&curr_ctx->completion);
-> +}
-> +
-> +static void device_run(void *priv)
-> +{
-> +	struct ipu_scale_ctx *ctx = priv;
-> +
-> +	schedule_work(&ctx->work);
-> +}
-> +
-> +static void ipu_scaler_work(struct work_struct *work) {
-> +	struct ipu_scale_ctx *ctx = container_of(work, struct
-> ipu_scale_ctx,
-> +						 work);
-> +	struct ipu_scale_dev *ipu_scaler = ctx->ipu_scaler;
-> +	struct vb2_buffer *src_buf, *dst_buf;
-> +	struct ipu_scale_q_data *q_data;
-> +	struct v4l2_pix_format *pix;
-> +	struct ipu_image in, out;
-> +	int err = -ETIMEDOUT;
-> +	unsigned long flags;
-> +
-> +	/*
-> +	 * If streamoff dequeued all buffers before we could get the lock,
-> +	 * just bail out immediately.
-> +	 */
-> +	if (!v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) ||
-> +		!v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx)) {
-> +		WARN_ON(1);
-> +		schedule_work(&ctx->skip_run);
-> +		return;
-> +	}
-> +
-> +	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-> +	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-> +
-> +	in.phys0 = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-> +	out.phys0 = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-> +
-> +	if (!ctx->num_tiles) {
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +		pix = &q_data->cur_fmt;
-> +
-> +		in.pix.width = pix->width;
-> +		in.pix.height = pix->height;
-> +		in.pix.bytesperline = pix->bytesperline;
-> +		in.pix.pixelformat = pix->pixelformat;
-> +		in.rect = q_data->rect;
-> +
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +		pix = &q_data->cur_fmt;
-> +
-> +		out.pix.width = pix->width;
-> +		out.pix.height = pix->height;
-> +		out.pix.bytesperline = pix->bytesperline;
-> +		out.pix.pixelformat = pix->pixelformat;
-> +		out.rect = q_data->rect;
-> +
-> +		kfree(ctx->icc);
-> +		ctx->icc = ipu_image_convert_prepare(ipu_scaler->ipu, &in,
-> +						     &out, ctx->ctrl,
-> +						     &ctx->num_tiles);
-> +		if (IS_ERR(ctx->icc)) {
-> +			schedule_work(&ctx->skip_run);
-> +			return;
-> +		}
-> +	}
-> +
-> +	ipu_image_convert_run(ipu_scaler->ipu, &in, &out, ctx->icc,
-> +			      ctx->num_tiles, ipu_complete, ipu_scaler,
-> false);
-> +
-> +	if (!wait_for_completion_timeout(&ctx->completion,
-> +					 msecs_to_jiffies(300))) {
-> +		dev_err(ipu_scaler->dev,
-> +			"Timeout waiting for scaling result\n");
-> +		err = -ETIMEDOUT;
-> +	} else {
-> +		err = ctx->error;
-> +	}
-> +
-> +	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> +	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> +
-> +	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-> +	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
-> +
-> +	spin_lock_irqsave(&ipu_scaler->irqlock, flags);
-> +	v4l2_m2m_buf_done(src_buf, err ? VB2_BUF_STATE_ERROR :
-> +					 VB2_BUF_STATE_DONE);
-> +	v4l2_m2m_buf_done(dst_buf, err ? VB2_BUF_STATE_ERROR :
-> +					 VB2_BUF_STATE_DONE);
-> +	spin_unlock_irqrestore(&ipu_scaler->irqlock, flags);
-> +
-> +	v4l2_m2m_job_finish(ipu_scaler->m2m_dev, ctx->fh.m2m_ctx); }
-> +
-> +/*
-> + * video ioctls
-> + */
-> +static int vidioc_querycap(struct file *file, void *priv,
-> +			   struct v4l2_capability *cap)
-> +{
-> +	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
-> +	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
-> +	strncpy(cap->bus_info, "platform:" MEM2MEM_NAME,
-> +		sizeof(cap->bus_info) - 1);
-> +	/*
-> +	 * This is only a mem-to-mem video device. The capture and output
-> +	 * device capability flags are left for backward compatibility
-> and
-> +	 * are scheduled for removal.
-> +	 */
-> +	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> +				   struct v4l2_fmtdesc *f)
-> +{
-> +	return ipu_enum_fmt(file, priv, f);
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-> +				   struct v4l2_fmtdesc *f)
-> +{
-> +	return ipu_enum_fmt(file, priv, f);
-> +}
-> +
-> +static int vidioc_g_fmt(struct ipu_scale_ctx *ctx, struct v4l2_format
-> +*f) {
-> +	struct vb2_queue *vq;
-> +	struct ipu_scale_q_data *q_data;
-> +	struct v4l2_pix_format *pix;
-> +
-> +	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
-> +	if (!vq)
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, f->type);
-> +	pix = &q_data->cur_fmt;
-> +
-> +	return ipu_g_fmt(f, pix);
-> +}
-> +
-> +static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	int ret;
-> +
-> +	ret = ipu_try_fmt(file, priv, f);
-> +
-> +	/*
-> +	 * Leave enough output space for worst-case overhead caused by 8
-> pixel
-> +	 * burst size: 7 RGBA pixels.
-> +	 */
-> +	f->fmt.pix.sizeimage += 7 * 4;
-> +
-> +	return ret;
-> +}
-> +
-> +static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	f->fmt.pix.width &= ~0x7;
-> +	return ipu_try_fmt(file, priv, f);
-> +}
-> +
-> +static int vidioc_s_fmt(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	struct ipu_scale_q_data *q_data;
-> +	struct vb2_queue *vq;
-> +	struct ipu_scale_ctx *ctx = fh_to_ctx(priv);
-> +	int ret;
-> +
-> +	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
-> +	if (!vq)
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, f->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	if (vb2_is_busy(vq)) {
-> +		v4l2_err(&ctx->ipu_scaler->v4l2_dev, "%s queue busy\n",
-> +			 __func__);
-> +		return -EBUSY;
-> +	}
-> +
-> +	ret = ipu_s_fmt(file, priv, f, &q_data->cur_fmt);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/*
-> +	 * Leave enough output space for worst-case overhead caused by 8
-> pixel
-> +	 * burst size: 7 RGBA pixels.
-> +	 */
-> +	q_data->cur_fmt.sizeimage = f->fmt.pix.sizeimage;
-> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		f->fmt.pix.sizeimage += 7 * 4;
-> +
-> +	/* Reset cropping/composing rectangle */
-> +	q_data->rect.left = 0;
-> +	q_data->rect.top = 0;
-> +	q_data->rect.width = q_data->cur_fmt.width;
-> +	q_data->rect.height = q_data->cur_fmt.height;
-> +
-> +	/* reset scaling ctrl */
-> +	ctx->ctrl = IPU_IMAGE_SCALE_PIXELPERFECT;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_selection(struct file *file, void *priv,
-> +			      struct v4l2_selection *s)
-> +{
-> +	struct ipu_scale_ctx *ctx = fh_to_ctx(priv);
-> +	struct ipu_scale_q_data *q_data;
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_CROP:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +			return -EINVAL;
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = q_data->cur_fmt.width;
-> +		s->r.height = q_data->cur_fmt.height;
-> +		break;
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +			return -EINVAL;
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = q_data->cur_fmt.width;
-> +		s->r.height = q_data->cur_fmt.height;
-> +		break;
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +			return -EINVAL;
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +		s->r = q_data->rect;
-> +		break;
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +			return -EINVAL;
-> +		q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = q_data->cur_fmt.width;
-> +		s->r.height = q_data->cur_fmt.height;
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_selection(struct file *file, void *priv,
-> +			      struct v4l2_selection *s)
-> +{
-> +	struct ipu_scale_ctx *ctx = fh_to_ctx(priv);
-> +	struct ipu_scale_q_data *q_data;
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_CROP:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +			return -EINVAL;
-> +		break;
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +			return -EINVAL;
-> +		ctx->ctrl = IPU_IMAGE_SCALE_ROUND_DOWN;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	q_data = get_q_data(ctx, s->type);
-> +
-> +	/* The input's frame width to the IC must be a multiple of 8
-> pixels
-> +	 * When performing resizing the frame width must be multiple of
-> burst
-> +	 * size - 8 or 16 pixels as defined by CB#_BURST_16 parameter.
-> +	 */
-> +	if (s->flags & V4L2_SEL_FLAG_GE)
-> +		s->r.width = round_up(s->r.width, 8);
-> +	if (s->flags & V4L2_SEL_FLAG_LE)
-> +		s->r.width = round_down(s->r.width, 8);
-> +	s->r.width = clamp_t(unsigned int, s->r.width, 8,
-> +			     round_down(q_data->cur_fmt.width, 8));
-> +	s->r.height = clamp_t(unsigned int, s->r.height, 1,
-> +			      q_data->cur_fmt.height);
-> +	s->r.left = clamp_t(unsigned int, s->r.left, 0,
-> +			    q_data->cur_fmt.width - s->r.width);
-> +	s->r.top = clamp_t(unsigned int, s->r.top, 0,
-> +			   q_data->cur_fmt.height - s->r.height);
-> +
-> +	/* V4L2_SEL_FLAG_KEEP_CONFIG is only valid for subdevices */
-> +	q_data->rect = s->r;
-> +	ctx->num_tiles = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_enum_framesizes(struct file *file, void *fh,
-> +				  struct v4l2_frmsizeenum *fsize)
-> +{
-> +	return ipu_enum_framesizes(file, fh, fsize); }
-> +
-> +static const struct v4l2_ioctl_ops ipu_scale_ioctl_ops = {
-> +	.vidioc_querycap	= vidioc_querycap,
-> +
-> +	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
-> +	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt,
-> +
-> +	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
-> +	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
-> +	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
-> +	.vidioc_s_fmt_vid_out	= vidioc_s_fmt,
-> +
-> +	.vidioc_g_selection	= vidioc_g_selection,
-> +	.vidioc_s_selection	= vidioc_s_selection,
-> +
-> +	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
-> +	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
-> +
-> +	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
-> +	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
-> +	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
-> +	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
-> +
-> +	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
-> +	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
-> +
-> +	.vidioc_enum_framesizes = vidioc_enum_framesizes, };
-> +
-> +static void ipu_scale_skip_run(struct work_struct *work) {
-> +	struct ipu_scale_ctx *ctx = container_of(work, struct
-> ipu_scale_ctx,
-> +						 skip_run);
-> +
-> +	v4l2_m2m_job_finish(ctx->ipu_scaler->m2m_dev, ctx->fh.m2m_ctx); }
-> +
-> +
-> +/*
-> + * Queue operations
-> + */
-> +
-> +static int ipu_scale_queue_setup(struct vb2_queue *vq,
-> +		const struct v4l2_format *fmt,
-> +		unsigned int *nbuffers,
-> +		unsigned int *nplanes, unsigned int sizes[],
-> +		void *alloc_ctxs[])
-> +{
-> +	struct ipu_scale_ctx *ctx = vb2_get_drv_priv(vq);
-> +	struct ipu_scale_q_data *q_data;
-> +	unsigned int size, count = *nbuffers;
-> +	struct v4l2_pix_format *pix;
-> +
-> +	q_data = get_q_data(ctx, vq->type);
-> +	pix = &q_data->cur_fmt;
-> +
-> +	size = pix->sizeimage;
-> +	/*
-> +	 * Leave enough output space for worst-case overhead caused by 8
-> pixel
-> +	 * burst size: 7 RGBA pixels.
-> +	 */
-> +	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		size += 7 * 4;
-> +
-> +	while (size * count > MEM2MEM_VID_MEM_LIMIT)
-> +		(count)--;
-> +
-> +	*nplanes = 1;
-> +	*nbuffers = count;
-> +	sizes[0] = size;
-> +
-> +	ctx->alloc_ctx = vb2_dma_contig_init_ctx(ctx->ipu_scaler->dev);
-> +	if (IS_ERR(ctx->alloc_ctx))
-> +		return PTR_ERR(ctx->alloc_ctx);
-> +
-> +	alloc_ctxs[0] = ctx->alloc_ctx;
-> +
-> +	dev_dbg(ctx->ipu_scaler->dev, "get %d buffer(s) of size %d
-> each.\n",
-> +		count, size);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ipu_scale_buf_prepare(struct vb2_buffer *vb) {
-> +	struct ipu_scale_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct ipu_scale_q_data *q_data;
-> +	struct v4l2_pix_format *pix;
-> +	unsigned int plane_size;
-> +
-> +	dev_dbg(ctx->ipu_scaler->dev, "type: %d\n", vb->vb2_queue->type);
-> +
-> +	q_data = get_q_data(ctx, vb->vb2_queue->type);
-> +	pix = &q_data->cur_fmt;
-> +	plane_size = pix->sizeimage;
-> +
-> +	/*
-> +	 * Leave enough output space for worst-case overhead caused by 8
-> pixel
-> +	 * burst size: 7 RGBA pixels.
-> +	 */
-> +	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		plane_size += 7 * 4;
-> +	if (vb2_plane_size(vb, 0) < plane_size) {
-> +		dev_dbg(ctx->ipu_scaler->dev,
-> +				"%s data will not fit into plane (%lu <
-%lu)\n",
-> +				__func__, vb2_plane_size(vb, 0),
-> +				(long)plane_size);
-> +		return -EINVAL;
-> +	}
-> +
-> +	vb2_set_plane_payload(vb, 0, pix->sizeimage);
-> +
-> +	return 0;
-> +}
-> +
-> +static void ipu_scale_buf_queue(struct vb2_buffer *vb) {
-> +	struct ipu_scale_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb); }
-> +
-> +static void ipu_scale_stop_streaming(struct vb2_queue *q) {
-> +	struct ipu_scale_ctx *ctx = vb2_get_drv_priv(q);
-> +	struct vb2_buffer *buf;
-> +
-> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		while ((buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
-> +			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
-> +	} else {
-> +		while ((buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx)))
-> +			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
-> +	}
-> +}
-> +
-> +static struct vb2_ops ipu_scale_qops = {
-> +	.queue_setup	= ipu_scale_queue_setup,
-> +	.buf_prepare	= ipu_scale_buf_prepare,
-> +	.buf_queue	= ipu_scale_buf_queue,
-> +	.wait_prepare	= vb2_ops_wait_prepare,
-> +	.wait_finish	= vb2_ops_wait_finish,
-> +	.stop_streaming = ipu_scale_stop_streaming, };
-> +
-> +static int queue_init(void *priv, struct vb2_queue *src_vq,
-> +		      struct vb2_queue *dst_vq)
-> +{
-> +	struct ipu_scale_ctx *ctx = priv;
-> +	int ret;
-> +
-> +	memset(src_vq, 0, sizeof(*src_vq));
-> +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> +	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-> +	src_vq->drv_priv = ctx;
-> +	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> +	src_vq->ops = &ipu_scale_qops;
-> +	src_vq->mem_ops = &vb2_dma_contig_memops;
-> +	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	src_vq->lock = &ctx->ipu_scaler->dev_mutex;
-> +
-> +	ret = vb2_queue_init(src_vq);
-> +	if (ret)
-> +		return ret;
-> +
-> +	memset(dst_vq, 0, sizeof(*dst_vq));
-> +	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-> +	dst_vq->drv_priv = ctx;
-> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> +	dst_vq->ops = &ipu_scale_qops;
-> +	dst_vq->mem_ops = &vb2_dma_contig_memops;
-> +	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	dst_vq->lock = &ctx->ipu_scaler->dev_mutex;
-> +
-> +	return vb2_queue_init(dst_vq);
-> +}
-> +
-> +/*
-> + * File operations
-> + */
-> +static int ipu_scale_open(struct file *file) {
-> +	struct ipu_scale_dev *ipu_scaler = video_drvdata(file);
-> +	struct ipu_scale_ctx *ctx = NULL;
-> +	const int width = 720;
-> +	const int height = 576;
-> +	int i;
-> +
-> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-> +	if (!ctx)
-> +		return -ENOMEM;
-> +
-> +	INIT_WORK(&ctx->skip_run, ipu_scale_skip_run);
-> +	INIT_WORK(&ctx->work, ipu_scaler_work);
-> +	init_completion(&ctx->completion);
-> +	v4l2_fh_init(&ctx->fh, video_devdata(file));
-> +	file->private_data = &ctx->fh;
-> +	v4l2_fh_add(&ctx->fh);
-> +	ctx->ipu_scaler = ipu_scaler;
-> +
-> +	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(ipu_scaler->m2m_dev, ctx,
-> +					    &queue_init);
-> +	if (IS_ERR(ctx->fh.m2m_ctx)) {
-> +		int ret = PTR_ERR(ctx->fh.m2m_ctx);
-> +
-> +		kfree(ctx);
-> +		return ret;
-> +	}
-> +
-> +	for (i = 0; i < 2; i++) {
-> +		ctx->q_data[i].cur_fmt.width = width;
-> +		ctx->q_data[i].cur_fmt.height = height;
-> +		ctx->q_data[i].cur_fmt.bytesperline = width;
-> +		ctx->q_data[i].cur_fmt.pixelformat = V4L2_PIX_FMT_YUV420;
-> +		ctx->q_data[i].cur_fmt.sizeimage = width * height * 3 / 2;
-> +		ctx->q_data[i].cur_fmt.colorspace = V4L2_COLORSPACE_REC709;
-> +		ctx->q_data[i].rect.left = 0;
-> +		ctx->q_data[i].rect.top = 0;
-> +		ctx->q_data[i].rect.width = width;
-> +		ctx->q_data[i].rect.height = height;
-> +	}
-> +
-> +	ctx->ctrl = IPU_IMAGE_SCALE_PIXELPERFECT;
-> +	ctx->num_tiles = 0;
-> +
-> +	atomic_inc(&ipu_scaler->num_inst);
-> +
-> +	dev_dbg(ipu_scaler->dev, "Created instance %p, m2m_ctx: %p\n",
-> +			ctx, ctx->fh.m2m_ctx);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ipu_scale_release(struct file *file) {
-> +	struct ipu_scale_dev *ipu_scaler = video_drvdata(file);
-> +	struct ipu_scale_ctx *ctx = fh_to_ctx(file->private_data);
-> +
-> +	dev_dbg(ipu_scaler->dev, "Releasing instance %p\n", ctx);
-> +
-> +	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
-> +	v4l2_fh_del(&ctx->fh);
-> +	v4l2_fh_exit(&ctx->fh);
-> +	kfree(ctx->icc);
-> +	kfree(ctx);
-> +
-> +	atomic_dec(&ipu_scaler->num_inst);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_file_operations ipu_scale_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.open		= ipu_scale_open,
-> +	.release	= ipu_scale_release,
-> +	.poll		= v4l2_m2m_fop_poll,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.mmap		= v4l2_m2m_fop_mmap,
-> +};
-> +
-> +static struct video_device ipu_scale_videodev = {
-> +	.name		= MEM2MEM_NAME,
-> +	.fops		= &ipu_scale_fops,
-> +	.ioctl_ops	= &ipu_scale_ioctl_ops,
-> +	.minor		= -1,
-> +	.release	= video_device_release,
-> +	.vfl_dir	= VFL_DIR_M2M,
-> +};
-> +
-> +static struct v4l2_m2m_ops m2m_ops = {
-> +	.device_run	= device_run,
-> +	.job_ready	= job_ready,
-> +	.job_abort	= job_abort,
-> +};
-> +
-> +static u64 vout_dmamask = ~(u32)0;
-> +
-> +static int ipu_scale_probe(struct platform_device *pdev) {
-> +	struct ipu_scale_dev *ipu_scaler;
-> +	struct video_device *vfd;
-> +	struct ipu_soc *ipu = dev_get_drvdata(pdev->dev.parent);
-> +	int ret;
-> +
-> +	pdev->dev.dma_mask = &vout_dmamask;
-> +	pdev->dev.coherent_dma_mask = 0xffffffff;
-> +
-> +	ipu_scaler = devm_kzalloc(&pdev->dev, sizeof(*ipu_scaler),
-> GFP_KERNEL);
-> +	if (!ipu_scaler)
-> +		return -ENOMEM;
-> +
-> +	ipu_scaler->ipu = ipu;
-> +	ipu_scaler->dev = &pdev->dev;
-> +
-> +	spin_lock_init(&ipu_scaler->irqlock);
-> +	mutex_init(&ipu_scaler->dev_mutex);
-> +
-> +	ret = v4l2_device_register(&pdev->dev, &ipu_scaler->v4l2_dev);
-> +	if (ret)
-> +		return ret;
-> +
-> +	atomic_set(&ipu_scaler->num_inst, 0);
-> +
-> +	vfd = video_device_alloc();
-> +	if (!vfd) {
-> +		dev_err(ipu_scaler->dev, "Failed to allocate video
-> device\n");
-> +		ret = -ENOMEM;
-> +		goto unreg_dev;
-> +	}
-> +
-> +	*vfd = ipu_scale_videodev;
-> +	vfd->lock = &ipu_scaler->dev_mutex;
-> +	vfd->v4l2_dev = &ipu_scaler->v4l2_dev;
-> +
-> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +	if (ret) {
-> +		dev_err(ipu_scaler->dev, "Failed to register video
-> device\n");
-> +		goto rel_vdev;
-> +	}
-> +
-> +	video_set_drvdata(vfd, ipu_scaler);
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s",
-> ipu_scale_videodev.name);
-> +	ipu_scaler->vfd = vfd;
-> +	dev_dbg(ipu_scaler->dev, "Device registered as /dev/video%d\n",
-> +		vfd->num);
-> +
-> +	platform_set_drvdata(pdev, ipu_scaler);
-> +
-> +	ipu_scaler->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +	if (IS_ERR(ipu_scaler->m2m_dev)) {
-> +		dev_err(ipu_scaler->dev, "Failed to init mem2mem device\n");
-> +		ret = PTR_ERR(ipu_scaler->m2m_dev);
-> +		goto err_m2m;
-> +	}
-> +
-> +	return 0;
-> +
-> +	v4l2_m2m_release(ipu_scaler->m2m_dev);
-> +err_m2m:
-> +	video_unregister_device(ipu_scaler->vfd);
-> +rel_vdev:
-> +	video_device_release(vfd);
-> +unreg_dev:
-> +	v4l2_device_unregister(&ipu_scaler->v4l2_dev);
-> +
-> +	return ret;
-> +}
-> +
-> +static int ipu_scale_remove(struct platform_device *pdev) {
-> +	struct ipu_scale_dev *ipu_scaler =
-> +		(struct ipu_scale_dev *)platform_get_drvdata(pdev);
-> +
-> +	v4l2_m2m_release(ipu_scaler->m2m_dev);
-> +	video_unregister_device(ipu_scaler->vfd);
-> +	v4l2_device_unregister(&ipu_scaler->v4l2_dev);
-> +	kfree(ipu_scaler);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct platform_device_id ipu_scale_id[] = {
-> +	{ "imx-ipuv3-scaler" },
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(platform, ipu_scale_id);
-> +
-> +static struct platform_driver ipu_scale_pdrv = {
-> +	.probe		= ipu_scale_probe,
-> +	.remove		= ipu_scale_remove,
-> +	.driver		= {
-> +		.name	= "imx-ipuv3-scaler",
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static void __exit ipu_scale_exit(void) {
-> +	platform_driver_unregister(&ipu_scale_pdrv);
-> +}
-> +
-> +static int __init ipu_scale_init(void)
-> +{
-> +	return  platform_driver_register(&ipu_scale_pdrv);
-> +}
-> +
-> +module_init(ipu_scale_init);
-> +module_exit(ipu_scale_exit);
-> +
-> +MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
-> +MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de>");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/platform/imx/imx-ipu.c
-> b/drivers/media/platform/imx/imx-ipu.c
-> index c1b8637..402cc8b 100644
-> --- a/drivers/media/platform/imx/imx-ipu.c
-> +++ b/drivers/media/platform/imx/imx-ipu.c
-> @@ -102,7 +102,7 @@ struct ipu_fmt *ipu_find_fmt_rgb(unsigned int
-> pixelformat)  }  EXPORT_SYMBOL_GPL(ipu_find_fmt_rgb);
-> 
-> -static struct ipu_fmt *ipu_find_fmt(unsigned long pixelformat)
-> +struct ipu_fmt *ipu_find_fmt(unsigned long pixelformat)
->  {
->  	struct ipu_fmt *fmt;
-> 
-> diff --git a/drivers/media/platform/imx/imx-ipu.h
-> b/drivers/media/platform/imx/imx-ipu.h
-> index 51c0982..288ee79 100644
-> --- a/drivers/media/platform/imx/imx-ipu.h
-> +++ b/drivers/media/platform/imx/imx-ipu.h
-> @@ -16,6 +16,7 @@ int ipu_enum_fmt_yuv(struct file *file, void *fh,
->  		struct v4l2_fmtdesc *f);
->  struct ipu_fmt *ipu_find_fmt_rgb(unsigned int pixelformat);  struct
-> ipu_fmt *ipu_find_fmt_yuv(unsigned int pixelformat);
-> +struct ipu_fmt *ipu_find_fmt(unsigned long pixelformat);
->  int ipu_try_fmt(struct file *file, void *fh,
->  		struct v4l2_format *f);
->  int ipu_try_fmt_rgb(struct file *file, void *fh,
-> --
-> 2.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+Based on an earlier patch from Philipp Zabel:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/81411
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Changes since v1:
+- Fix NV61 and NV42 descriptions.
+- Merge the switch for the compressed flag into the main switch.
+- In the default case add a -BE suffix instead of a BE- prefix.
+- Verified that gcc compiles this using O(log N) comparisons.
+- Add comments why the coding style isn't followed here.
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 199 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 192 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 09ad8dd..2b3fdf6 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1101,6 +1101,182 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	return ops->vidioc_enum_output(file, fh, p);
+ }
+ 
++static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
++{
++	const unsigned sz = sizeof(fmt->description);
++	const char *descr = NULL;
++	u32 flags = 0;
++
++	/*
++	 * We depart from the normal coding style here since the descriptions
++	 * should be aligned so it is easy to see which descriptions will be
++	 * longer than 31 characters (the max length for a description).
++	 * And frankly, this is easier to read anyway.
++	 *
++	 * Note that gcc will use O(log N) comparisons to find the right case.
++	 */
++	switch (fmt->pixelformat) {
++	/* Max description length mask:	descr = "0123456789012345678901234567890" */
++	case V4L2_PIX_FMT_RGB332:	descr = "8-bit RGB 3-3-2"; break;
++	case V4L2_PIX_FMT_RGB444:	descr = "16-bit A/XRGB 4-4-4-4"; break;
++	case V4L2_PIX_FMT_ARGB444:	descr = "16-bit ARGB 4-4-4-4"; break;
++	case V4L2_PIX_FMT_XRGB444:	descr = "16-bit XRGB 4-4-4-4"; break;
++	case V4L2_PIX_FMT_RGB555:	descr = "16-bit A/XRGB 1-5-5-5"; break;
++	case V4L2_PIX_FMT_ARGB555:	descr = "16-bit ARGB 1-5-5-5"; break;
++	case V4L2_PIX_FMT_XRGB555:	descr = "16-bit XRGB 1-5-5-5"; break;
++	case V4L2_PIX_FMT_RGB565:	descr = "16-bit RGB 5-6-5"; break;
++	case V4L2_PIX_FMT_RGB555X:	descr = "16-bit A/XRGB 1-5-5-5 BE"; break;
++	case V4L2_PIX_FMT_ARGB555X:	descr = "16-bit ARGB 1-5-5-5 BE"; break;
++	case V4L2_PIX_FMT_XRGB555X:	descr = "16-bit XRGB 1-5-5-5 BE"; break;
++	case V4L2_PIX_FMT_RGB565X:	descr = "16-bit RGB 5-6-5 BE"; break;
++	case V4L2_PIX_FMT_BGR666:	descr = "18-bit BGRX 6-6-6-14"; break;
++	case V4L2_PIX_FMT_BGR24:	descr = "24-bit BGR 8-8-8"; break;
++	case V4L2_PIX_FMT_RGB24:	descr = "24-bit RGB 8-8-8"; break;
++	case V4L2_PIX_FMT_BGR32:	descr = "32-bit BGRA/X 8-8-8-8"; break;
++	case V4L2_PIX_FMT_ABGR32:	descr = "32-bit BGRA 8-8-8-8"; break;
++	case V4L2_PIX_FMT_XBGR32:	descr = "32-bit BGRX 8-8-8-8"; break;
++	case V4L2_PIX_FMT_RGB32:	descr = "32-bit A/XRGB 8-8-8-8"; break;
++	case V4L2_PIX_FMT_ARGB32:	descr = "32-bit ARGB 8-8-8-8"; break;
++	case V4L2_PIX_FMT_XRGB32:	descr = "32-bit XRGB 8-8-8-8"; break;
++	case V4L2_PIX_FMT_GREY:		descr = "8-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y4:		descr = "4-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y6:		descr = "6-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y10:		descr = "10-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y12:		descr = "12-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
++	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
++	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
++	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
++	case V4L2_PIX_FMT_YVU420:	descr = "Planar YVU 4:2:0"; break;
++	case V4L2_PIX_FMT_YUYV:		descr = "YUYV 4:2:2"; break;
++	case V4L2_PIX_FMT_YYUV:		descr = "YYUV 4:2:2"; break;
++	case V4L2_PIX_FMT_YVYU:		descr = "YVYU 4:2:2"; break;
++	case V4L2_PIX_FMT_UYVY:		descr = "UYVY 4:2:2"; break;
++	case V4L2_PIX_FMT_VYUY:		descr = "VYUY 4:2:2"; break;
++	case V4L2_PIX_FMT_YUV422P:	descr = "Planar YVU 4:2:2"; break;
++	case V4L2_PIX_FMT_YUV411P:	descr = "Planar YUV 4:1:1"; break;
++	case V4L2_PIX_FMT_Y41P:		descr = "YUV 4:1:1 (Packed)"; break;
++	case V4L2_PIX_FMT_YUV444:	descr = "16-bit A/XYUV 4-4-4-4"; break;
++	case V4L2_PIX_FMT_YUV555:	descr = "16-bit A/XYUV 1-5-5-5"; break;
++	case V4L2_PIX_FMT_YUV565:	descr = "16-bit YUV 5-6-5"; break;
++	case V4L2_PIX_FMT_YUV32:	descr = "32-bit A/XYUV 8-8-8-8"; break;
++	case V4L2_PIX_FMT_YUV410:	descr = "Planar YUV 4:1:0"; break;
++	case V4L2_PIX_FMT_YUV420:	descr = "Planar YUV 4:2:0"; break;
++	case V4L2_PIX_FMT_HI240:	descr = "8-bit Dithered RGB (BTTV)"; break;
++	case V4L2_PIX_FMT_HM12:		descr = "YUV 4:2:0 (16x16 Macroblocks)"; break;
++	case V4L2_PIX_FMT_M420:		descr = "YUV 4:2:0 (M420)"; break;
++	case V4L2_PIX_FMT_NV12:		descr = "Y/CbCr 4:2:0"; break;
++	case V4L2_PIX_FMT_NV21:		descr = "Y/CrCb 4:2:0"; break;
++	case V4L2_PIX_FMT_NV16:		descr = "Y/CbCr 4:2:2"; break;
++	case V4L2_PIX_FMT_NV61:		descr = "Y/CrCb 4:2:2"; break;
++	case V4L2_PIX_FMT_NV24:		descr = "Y/CbCr 4:4:4"; break;
++	case V4L2_PIX_FMT_NV42:		descr = "Y/CrCb 4:4:4"; break;
++	case V4L2_PIX_FMT_NV12M:	descr = "Y/CbCr 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_NV21M:	descr = "Y/CrCb 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_NV16M:	descr = "Y/CbCr 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_NV61M:	descr = "Y/CrCb 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_NV12MT:	descr = "Y/CbCr 4:2:0 (64x32 MB, N-C)"; break;
++	case V4L2_PIX_FMT_NV12MT_16X16:	descr = "Y/CbCr 4:2:0 (16x16 MB, N-C)"; break;
++	case V4L2_PIX_FMT_YUV420M:	descr = "Planar YUV 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_YVU420M:	descr = "Planar YVU 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_SBGGR8:	descr = "8-bit Bayer BGBG/GRGR"; break;
++	case V4L2_PIX_FMT_SGBRG8:	descr = "8-bit Bayer GBGB/RGRG"; break;
++	case V4L2_PIX_FMT_SGRBG8:	descr = "8-bit Bayer GRGR/BGBG"; break;
++	case V4L2_PIX_FMT_SRGGB8:	descr = "8-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SBGGR10:	descr = "10-bit Bayer BGBG/GRGR"; break;
++	case V4L2_PIX_FMT_SGBRG10:	descr = "10-bit Bayer GBGB/RGRG"; break;
++	case V4L2_PIX_FMT_SGRBG10:	descr = "10-bit Bayer GRGR/BGBG"; break;
++	case V4L2_PIX_FMT_SRGGB10:	descr = "10-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
++	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
++	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
++	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SBGGR10P:	descr = "10-bit Bayer BGBG/GRGR Packed"; break;
++	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
++	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
++	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
++	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
++	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
++	case V4L2_PIX_FMT_SRGGB10ALAW8:	descr = "8-bit Bayer RGRG/GBGB (A-law)"; break;
++	case V4L2_PIX_FMT_SBGGR10DPCM8:	descr = "8-bit Bayer BGBG/GRGR (DPCM)"; break;
++	case V4L2_PIX_FMT_SGBRG10DPCM8:	descr = "8-bit Bayer GBGB/RGRG (DPCM)"; break;
++	case V4L2_PIX_FMT_SGRBG10DPCM8:	descr = "8-bit Bayer GRGR/BGBG (DPCM)"; break;
++	case V4L2_PIX_FMT_SRGGB10DPCM8:	descr = "8-bit Bayer RGRG/GBGB (DPCM)"; break;
++	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR (Exp.)"; break;
++	case V4L2_PIX_FMT_SN9C20X_I420:	descr = "GSPCA SN9C20X I420";
++	case V4L2_PIX_FMT_SPCA501:	descr = "GSPCA SPCA501"; break;
++	case V4L2_PIX_FMT_SPCA505:	descr = "GSPCA SPCA505"; break;
++	case V4L2_PIX_FMT_SPCA508:	descr = "GSPCA SPCA508"; break;
++	case V4L2_PIX_FMT_STV0680:	descr = "GSPCA STV0680"; break;
++	case V4L2_PIX_FMT_TM6000:	descr = "A/V + VBI Mux Packet"; break;
++	case V4L2_PIX_FMT_CIT_YYVYUY:	descr = "GSPCA CIT YYVYUY"; break;
++	case V4L2_PIX_FMT_KONICA420:	descr = "GSPCA KONICA420"; break;
++	case V4L2_SDR_FMT_CU8:		descr = "Complex U8 (Emulated)"; break;
++	case V4L2_SDR_FMT_CU16LE:	descr = "Complex U16LE (Emulated)"; break;
++	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
++	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
++	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++
++	default:
++		/* Compressed formats */
++		flags = V4L2_FMT_FLAG_COMPRESSED;
++		switch (fmt->pixelformat) {
++		/* Max description length mask:	descr = "0123456789012345678901234567890" */
++		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
++		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
++		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
++		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
++		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
++		case V4L2_PIX_FMT_H264_NO_SC:	descr = "H.264 (No Start Codes)"; break;
++		case V4L2_PIX_FMT_H264_MVC:	descr = "H.264 MVC"; break;
++		case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
++		case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
++		case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
++		case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
++		case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
++		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
++		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
++		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
++		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
++		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
++		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
++		case V4L2_PIX_FMT_PWC1:		descr = "Raw Philips Webcam Type (Old)"; break;
++		case V4L2_PIX_FMT_PWC2:		descr = "Raw Philips Webcam Type (New)"; break;
++		case V4L2_PIX_FMT_ET61X251:	descr = "GSPCA ET61X251"; break;
++		case V4L2_PIX_FMT_SPCA561:	descr = "GSPCA SPCA561"; break;
++		case V4L2_PIX_FMT_PAC207:	descr = "GSPCA PAC207"; break;
++		case V4L2_PIX_FMT_MR97310A:	descr = "GSPCA MR97310A"; break;
++		case V4L2_PIX_FMT_JL2005BCD:	descr = "GSPCA JL2005BCD"; break;
++		case V4L2_PIX_FMT_SN9C2028:	descr = "GSPCA SN9C2028"; break;
++		case V4L2_PIX_FMT_SQ905C:	descr = "GSPCA SQ905C"; break;
++		case V4L2_PIX_FMT_PJPG:		descr = "GSPCA PJPG"; break;
++		case V4L2_PIX_FMT_OV511:	descr = "GSPCA OV511"; break;
++		case V4L2_PIX_FMT_OV518:	descr = "GSPCA OV518"; break;
++		case V4L2_PIX_FMT_JPGL:		descr = "JPEG Lite"; break;
++		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
++		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
++		default:
++			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
++			if (fmt->description[0])
++				return;
++			flags = 0;
++			snprintf(fmt->description, sz, "%c%c%c%c%s",
++					(char)(fmt->pixelformat & 0x7f),
++					(char)((fmt->pixelformat >> 8) & 0x7f),
++					(char)((fmt->pixelformat >> 16) & 0x7f),
++					(char)((fmt->pixelformat >> 24) & 0x7f),
++					(fmt->pixelformat & (1 << 31)) ? "-BE" : "");
++			break;
++		}
++	}
++
++	if (descr)
++		WARN_ON(strlcpy(fmt->description, descr, sz) >= sz);
++	fmt->flags = flags;
++}
++
+ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -1110,34 +1286,43 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
++	int ret = -EINVAL;
+ 
+ 	switch (p->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_cap))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
++		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_cap_mplane))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, arg);
++		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_overlay))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_overlay(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_vid_overlay(file, fh, arg);
++		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_vid_out))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_out(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_vid_out(file, fh, arg);
++		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_vid_out_mplane))
+ 			break;
+-		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
++		break;
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
+ 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_enum_fmt_sdr_cap))
+ 			break;
+-		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
++		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
++		break;
+ 	}
+-	return -EINVAL;
++	if (ret == 0)
++		v4l_fill_fmtdesc(p);
++	return ret;
+ }
+ 
+ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+-- 
+2.1.4
 
