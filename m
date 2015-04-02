@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53220 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779AbbDPTWi (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38769 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750747AbbDBLfF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 15:22:38 -0400
-Date: Thu, 16 Apr 2015 21:22:35 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v8 1/1] media: i2c/adp1653: Devicetree support for adp1653
-Message-ID: <20150416192235.GA8188@amd>
-References: <1429141034-29237-1-git-send-email-sakari.ailus@iki.fi>
- <20150416052442.GA31095@earth>
- <20150416055817.GA2749@amd>
- <20150416162905.GA3181@earth>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150416162905.GA3181@earth>
+	Thu, 2 Apr 2015 07:35:05 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1459A2A00AB
+	for <linux-media@vger.kernel.org>; Thu,  2 Apr 2015 13:34:33 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/3] cx18: v4l2_compliance fixes
+Date: Thu,  2 Apr 2015 13:34:28 +0200
+Message-Id: <1427974471-24804-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> > > This will reduce complexity in the driver and should be fairly easy
-> > > to implement, since there is no adp1653 platform code user in the
-> > > mainline kernel anyways.
-> > 
-> > I'd hate to break out of tree users for very little gain.
-...
-> So let's have a look at the advantages of removing the power gpio:
+Various cx18 v4l2_compliance fixes. Note that this patch series relies
+on https://patchwork.linuxtv.org/patch/29045/ being merged first.
 
-One change per patch. My change did what it said, "add a device tree
-support", if you want to do second change "break existing interface",
-feel free doing it as a separate patch.
-									Pavel
+Regards,
+
+	Hans
+
+Hans Verkuil (3):
+  cx18: add support for control events
+  cx18: fix VIDIOC_ENUMINPUT: wrong std value
+  cx18: replace cropping ioctls by selection ioctls.
+
+ drivers/media/pci/cx18/cx18-fileops.c | 25 +++++++++++++------
+ drivers/media/pci/cx18/cx18-ioctl.c   | 47 +++++++++++++++++++----------------
+ drivers/media/pci/cx18/cx18-streams.c |  6 ++++-
+ 3 files changed, 48 insertions(+), 30 deletions(-)
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.4
+
