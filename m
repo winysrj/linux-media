@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:35709 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031191AbbD2Ace (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39849 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752619AbbDBP0V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 20:32:34 -0400
+	Thu, 2 Apr 2015 11:26:21 -0400
+Message-ID: <551D5F7C.4080400@xs4all.nl>
+Date: Thu, 02 Apr 2015 17:25:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150428113658.GE3188@valkosipuli.retiisi.org.uk>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
- <1430205530-20873-6-git-send-email-j.anaszewski@samsung.com> <20150428113658.GE3188@valkosipuli.retiisi.org.uk>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 28 Apr 2015 17:32:13 -0700
-Message-ID: <CAK5ve-J-HdS3omcSHT657GhfCrno5U=y=9jcXs=U=1e0mkLdZA@mail.gmail.com>
-Subject: Re: [PATCH v6 05/10] leds: Add driver for AAT1290 flash LED controller
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: Jan Kara <jack@suse.cz>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
+	David Airlie <airlied@linux.ie>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH 0/9 v2] Helper to abstract vma handling in media layer
+References: <1426593399-6549-1-git-send-email-jack@suse.cz> <20150402150258.GA31277@quack.suse.cz>
+In-Reply-To: <20150402150258.GA31277@quack.suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 28, 2015 at 4:36 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Tue, Apr 28, 2015 at 09:18:45AM +0200, Jacek Anaszewski wrote:
->> This patch adds a driver for the 1.5A Step-Up Current Regulator
->> for Flash LEDs. The device is programmed through a Skyworks proprietary
->> AS2Cwire serial digital interface.
+On 04/02/2015 05:02 PM, Jan Kara wrote:
+>   Hello,
+> 
+> On Tue 17-03-15 12:56:30, Jan Kara wrote:
+>>   After a long pause I'm sending second version of my patch series to abstract
+>> vma handling from the various media drivers. After this patch set drivers have
+>> to know much less details about vmas, their types, and locking. My motivation
+>> for the series is that I want to change get_user_pages() locking and I want to
+>> handle subtle locking details in as few places as possible.
 >>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-Applied, thanks,
--Bryan
+>> The core of the series is the new helper get_vaddr_pfns() which is given a
+>> virtual address and it fills in PFNs into provided array. If PFNs correspond to
+>> normal pages it also grabs references to these pages. The difference from
+>> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
+>> mappings which is what the media drivers need.
+>>
+>> I have tested the patches with vivid driver so at least vb2 code got some
+>> exposure. Conversion of other drivers was just compile-tested so I'd like to
+>> ask respective maintainers if they could have a look.  Also I'd like to ask mm
+>> folks to check patch 2/9 implementing the helper. Thanks!
+>   Ping? Any reactions?
 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+For patch 1/9:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+For the other patches I do not feel qualified to give Acks. I've Cc-ed Pawel and
+Marek who have a better understanding of the mm internals than I do. Hopefully
+they can review the code.
+
+It definitely looks like a good idea, and if nobody else will comment on the vb2
+patches in the next 2 weeks, then I'll try to review it myself (for whatever that's
+worth).
+
+Regards,
+
+	Hans
