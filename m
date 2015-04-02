@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:37574 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753150AbbDCM6h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 08:58:37 -0400
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-To: linux-pm@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 5/7] [media] v4l2-core: Implement dev_pm_ops.prepare()
-Date: Fri,  3 Apr 2015 14:57:54 +0200
-Message-Id: <1428065887-16017-6-git-send-email-tomeu.vizoso@collabora.com>
-In-Reply-To: <1428065887-16017-1-git-send-email-tomeu.vizoso@collabora.com>
-References: <1428065887-16017-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:36238 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876AbbDBMDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Apr 2015 08:03:30 -0400
+Subject: [PATCH 0/2] NEC scancodes and protocols in keymaps
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: sean@mess.org, mchehab@osg.samsung.com
+Date: Thu, 02 Apr 2015 14:02:57 +0200
+Message-ID: <20150402120047.20068.31662.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Have it return 1 so that video devices that are runtime-suspended won't
-be suspended when the system goes to a sleep state. This can make resume
-times considerably shorter because these devices don't need to be
-resumed when the system is awaken.
+The following two patches should show more clearly what I mean by
+adding protocols to the keytables (and letting userspace add
+keytable entries with explicit protocol information). Consider
+it a basis for discussion.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Each patch has a separate description, please refer to those for
+more information.
+
 ---
- drivers/media/v4l2-core/v4l2-dev.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index e2b8b3e..b74e3d3 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -219,9 +219,19 @@ static void v4l2_device_release(struct device *cd)
- 		v4l2_device_put(v4l2_dev);
- }
- 
-+static int video_device_prepare(struct device *dev)
-+{
-+	return 1;
-+}
-+
-+static const struct dev_pm_ops video_device_pm_ops = {
-+	.prepare = video_device_prepare,
-+};
-+
- static struct class video_class = {
- 	.name = VIDEO_NAME,
- 	.dev_groups = video_device_groups,
-+	.pm = &video_device_pm_ops,
- };
- 
- struct video_device *video_devdata(struct file *file)
--- 
-2.3.4
+David Härdeman (2):
+      rc-core: use the full 32 bits for NEC scancodes
+      rc-core: don't throw away protocol information
 
+
+ drivers/media/rc/ati_remote.c            |    1 
+ drivers/media/rc/imon.c                  |    7 +
+ drivers/media/rc/ir-nec-decoder.c        |   26 ---
+ drivers/media/rc/rc-main.c               |  233 ++++++++++++++++++++++++------
+ drivers/media/usb/dvb-usb-v2/af9015.c    |   22 +--
+ drivers/media/usb/dvb-usb-v2/af9035.c    |   23 +--
+ drivers/media/usb/dvb-usb-v2/az6007.c    |   16 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c  |   20 +--
+ drivers/media/usb/dvb-usb/dib0700_core.c |   24 +--
+ drivers/media/usb/em28xx/em28xx-input.c  |   37 +----
+ include/media/rc-core.h                  |   26 +++
+ include/media/rc-map.h                   |   23 ++-
+ 12 files changed, 264 insertions(+), 194 deletions(-)
+
+--
+David Härdeman
