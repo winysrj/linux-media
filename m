@@ -1,53 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:36209 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751846AbbDAXzx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2015 19:55:53 -0400
-Date: Thu, 2 Apr 2015 01:55:20 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
-Message-ID: <20150401235520.GA4642@hardeman.nu>
-References: <cover.1426801061.git.sean@mess.org>
- <20150330211819.GA18426@hardeman.nu>
- <20150331204716.6795177d@concha.lan>
- <20150401221941.GC4721@hardeman.nu>
- <20150401201016.616fca34@recife.lan>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33785 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753597AbbDCRNN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:13:13 -0400
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 08/14] SH: use clkdev_add_table()
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150401201016.616fca34@recife.lan>
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Ye59T-0001BR-KY@rmk-PC.arm.linux.org.uk>
+Date: Fri, 03 Apr 2015 18:13:03 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 01, 2015 at 08:10:16PM -0300, Mauro Carvalho Chehab wrote:
->Em Thu, 02 Apr 2015 00:19:41 +0200
->David Härdeman <david@hardeman.nu> escreveu:
->
->> On Tue, Mar 31, 2015 at 08:47:16PM -0300, Mauro Carvalho Chehab wrote:
->> >Em Mon, 30 Mar 2015 23:18:19 +0200
->> >David Härdeman <david@hardeman.nu> escreveu:
->> >> On Thu, Mar 19, 2015 at 09:50:11PM +0000, Sean Young wrote:
->> >> Second, if we expose protocol type (which we should, not doing so is
->> >> throwing away valuable information) we should tackle the NEC scancode
->> >> question. I've already explained my firm conviction that always
->> >> reporting NEC as a 32 bit scancode is the only sane thing to do. Mauro
->> >> is of the opinion that NEC16/24/32 should be essentially different
->> >> protocols.
->> >
->> >Changing NEC would break userspace, as existing tables won't work.
->> >So, no matter what I think, changing it won't happen as we're not
->> >allowed to break userspace.
->> 
->> I have no idea what breakage you're talking about. Sean's patches would
->> introduce new API, so they can't break anything. 
->
->Sure, but changing RX would break, and using 32 bits just for TX,
->while keeping 16/24/32 for RX would be too messy.
+We have always had an efficient way of registering a table of clock
+lookups - it's called clkdev_add_table().  However, some people seem
+to really love writing inefficient and unnecessary code.
 
-Sorry, I still don't follow...why and how would RX break?
+Convert SH to use the correct interface.
 
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/sh/kernel/cpu/sh4a/clock-sh7734.c | 3 +--
+ arch/sh/kernel/cpu/sh4a/clock-sh7757.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-sh7785.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-sh7786.c | 4 ++--
+ arch/sh/kernel/cpu/sh4a/clock-shx3.c   | 4 ++--
+ 5 files changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
+index 1fdf1ee672de..7f54bf2f453d 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7734.c
+@@ -246,8 +246,7 @@ int __init arch_clk_init(void)
+ 	for (i = 0; i < ARRAY_SIZE(main_clks); i++)
+ 		ret |= clk_register(main_clks[i]);
+ 
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+index 9a28fdb36387..e40ec2c97ad1 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+@@ -141,8 +141,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
+index 17d0ea55a5a2..8eb6e62340c9 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7785.c
+@@ -164,8 +164,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
+index bec2a83f1ba5..5e50e7ebeff0 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7786.c
+@@ -179,8 +179,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-shx3.c b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
+index 9a49a44f6f94..605221d1448a 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-shx3.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-shx3.c
+@@ -138,8 +138,8 @@ int __init arch_clk_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(clks); i++)
+ 		ret |= clk_register(clks[i]);
+-	for (i = 0; i < ARRAY_SIZE(lookups); i++)
+-		clkdev_add(&lookups[i]);
++
++	clkdev_add_table(lookups, ARRAY_SIZE(lookups));
+ 
+ 	if (!ret)
+ 		ret = sh_clk_div4_register(div4_clks, ARRAY_SIZE(div4_clks),
 -- 
-David Härdeman
+1.8.3.1
+
