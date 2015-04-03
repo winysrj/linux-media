@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51004 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751560AbbDJWKY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 18:10:24 -0400
-Date: Sat, 11 Apr 2015 01:10:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
-Message-ID: <20150410221017.GJ20756@valkosipuli.retiisi.org.uk>
-References: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi>
- <1428614706-8367-5-git-send-email-sakari.ailus@iki.fi>
- <CA+V-a8uUTTzwP=hOiPAacT33K0cXDoy_gGNB5JAHSsY_LeHL_Q@mail.gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:41045 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751030AbbDCDP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Apr 2015 23:15:29 -0400
+Date: Fri, 3 Apr 2015 00:15:22 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.1] Xilinx video pipeline drivers
+Message-ID: <20150403001522.50874cc1@recife.lan>
+In-Reply-To: <5245308.M2sog0XFbh@avalon>
+References: <5245308.M2sog0XFbh@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8uUTTzwP=hOiPAacT33K0cXDoy_gGNB5JAHSsY_LeHL_Q@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Laurent,
 
-Thank you for the review.
+Em Wed, 11 Mar 2015 22:47:37 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-On Fri, Apr 10, 2015 at 10:54:08PM +0100, Lad, Prabhakar wrote:
-> Hi Sakari,
+> Hi Mauro,
 > 
-> Thanks for the patch.
+> The following changes since commit ae3da40179c66001afad608f972bdb57d50d1e66:
 > 
-> On Thu, Apr 9, 2015 at 10:25 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > Instead of parsing the link-frequencies property in the driver, let
-> > v4l2_of_alloc_parse_endpoint() do it.
-> >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/i2c/smiapp/smiapp-core.c |   40 ++++++++++++++++----------------
-> >  1 file changed, 20 insertions(+), 20 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> > index 557f25d..4a2e8d3 100644
-> > --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> > +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> > @@ -2975,9 +2975,9 @@ static int smiapp_resume(struct device *dev)
-> >  static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
-> >  {
-> >         struct smiapp_platform_data *pdata;
-> > -       struct v4l2_of_endpoint bus_cfg;
-> > +       struct v4l2_of_endpoint *bus_cfg;
-> >         struct device_node *ep;
-> > -       uint32_t asize;
-> > +       int i;
-> >         int rval;
-> >
-> >         if (!dev->of_node)
-> > @@ -2987,13 +2987,17 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
-> >         if (!ep)
-> >                 return NULL;
-> >
-> > +       bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
-> > +       if (IS_ERR(bus_cfg)) {
-> > +               rval = PTR_ERR(bus_cfg);
+>   v4l2-subdev: remove enum_framesizes/intervals (2015-03-06 10:01:44 +0100)
 > 
-> this assignment  is not required.
+> are available in the git repository at:
 > 
-> Apart from that the patch looks good.
+>   git://linuxtv.org/pinchartl/media.git xilinx
 > 
-> Reviewed-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> for you to fetch changes up to 5fc7561dba773afd95169aba32f53a01facaf22a:
+> 
+>   v4l: xilinx: Add Test Pattern Generator driver (2015-03-11 22:43:48 +0200)
+> 
+> Please note that the series depends and is based on Hans' for-v4.1g branch for 
+> which he has sent a pull request.
 
-Good point. I'll remove it.
+This didn't merge ok. Not sure if "for-v4.1g" branch was merged or not, but
+I merged already all pending requests from Hans, leaving this one to the
+end.
 
-There's another case of the same in the function, I'll send a separate patch
-on that. I'll send a pull request on these soonish.
+Could you please check if what you need is already there and rebase your
+work?
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks!
+Mauro
