@@ -1,242 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:36832 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964785AbbDXHEV (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47251 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751953AbbDCKXN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 03:04:21 -0400
-Received: by lagv1 with SMTP id v1so28719629lag.3
-        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 00:04:19 -0700 (PDT)
-From: Vasily Khoruzhick <anarsoul@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Vasily Khoruzhick <anarsoul@gmail.com>
-Subject: [PATCH v2 2/2] gspca: sn9c2028: Add gain and autogain controls Genius Videocam Live v2
-Date: Fri, 24 Apr 2015 10:04:04 +0300
-Message-Id: <1429859044-18071-2-git-send-email-anarsoul@gmail.com>
-In-Reply-To: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
-References: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
+	Fri, 3 Apr 2015 06:23:13 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E9E6A2A009F
+	for <linux-media@vger.kernel.org>; Fri,  3 Apr 2015 12:22:40 +0200 (CEST)
+Message-ID: <551E69F0.5030305@xs4all.nl>
+Date: Fri, 03 Apr 2015 12:22:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] cx88: v4l2-compliance fixes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Autogain algorithm is very simple, if average luminance is low - increase gain,
-if it's high - decrease gain. Gain granularity is low enough for this algo to
-stabilize quickly.
+Fix three v4l2-compliance failures:
 
-Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+- the colorspace wasn't set in vidioc_try_fmt_vid_cap().
+- the field wasn't set in v4l2_buffer when vb2_buffer_done() was called.
+- the sequence wasn't set in v4l2_buffer when vb2_buffer_done() was called.
+  This fix also removes the unused buf->count field and starts the count
+  at 0 instead of 1.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v2: According to Hans, header lenght is 12 bytes, so drop 2 redundant bytes
-
- drivers/media/usb/gspca/sn9c2028.c | 122 +++++++++++++++++++++++++++++++++++++
- drivers/media/usb/gspca/sn9c2028.h |  18 +++++-
- 2 files changed, 137 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-index 317b02c..107200e 100644
---- a/drivers/media/usb/gspca/sn9c2028.c
-+++ b/drivers/media/usb/gspca/sn9c2028.c
-@@ -34,6 +34,16 @@ struct sd {
- 	struct gspca_dev gspca_dev;  /* !! must be the first item */
- 	u8 sof_read;
- 	u16 model;
-+
-+#define MIN_AVG_LUM 8500
-+#define MAX_AVG_LUM 10000
-+	int avg_lum;
-+	u8 avg_lum_l;
-+
-+	struct { /* autogain and gain control cluster */
-+		struct v4l2_ctrl *autogain;
-+		struct v4l2_ctrl *gain;
-+	};
- };
+diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+index c38d5a1..72d5b5f 100644
+--- a/drivers/media/pci/cx88/cx88-core.c
++++ b/drivers/media/pci/cx88/cx88-core.c
+@@ -519,6 +519,8 @@ void cx88_wakeup(struct cx88_core *core,
+ 	buf = list_entry(q->active.next,
+ 			 struct cx88_buffer, list);
+ 	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
++	buf->vb.v4l2_buf.field = core->field;
++	buf->vb.v4l2_buf.sequence = q->count++;
+ 	list_del(&buf->list);
+ 	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+ }
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index 9834454..34f5057 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -173,7 +173,7 @@ int cx8802_start_dma(struct cx8802_dev    *dev,
  
- struct init_command {
-@@ -252,6 +262,78 @@ static int run_start_commands(struct gspca_dev *gspca_dev,
+ 	/* reset counter */
+ 	cx_write(MO_TS_GPCNTRL, GP_COUNT_CONTROL_RESET);
+-	q->count = 1;
++	q->count = 0;
+ 
+ 	/* enable irqs */
+ 	dprintk( 1, "setting the interrupt mask\n" );
+@@ -216,8 +216,6 @@ static int cx8802_restart_queue(struct cx8802_dev    *dev,
+ 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
+ 		buf, buf->vb.v4l2_buf.index);
+ 	cx8802_start_dma(dev, q, buf);
+-	list_for_each_entry(buf, &q->active, list)
+-		buf->count = q->count++;
  	return 0;
  }
  
-+static void set_gain(struct gspca_dev *gspca_dev, s32 g)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	struct init_command genius_vcam_live_gain_cmds[] = {
-+		{{0x1d, 0x25, 0x10 /* This byte is gain */,
-+		  0x20, 0xab, 0x00}, 0},
-+	};
-+	if (!gspca_dev->streaming)
-+		return;
-+
-+	switch (sd->model) {
-+	case 0x7003:
-+		genius_vcam_live_gain_cmds[0].instruction[2] = g;
-+		run_start_commands(gspca_dev, genius_vcam_live_gain_cmds,
-+				   ARRAY_SIZE(genius_vcam_live_gain_cmds));
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct gspca_dev *gspca_dev =
-+		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
-+	struct sd *sd = (struct sd *)gspca_dev;
-+
-+	gspca_dev->usb_err = 0;
-+
-+	if (!gspca_dev->streaming)
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	/* standalone gain control */
-+	case V4L2_CID_GAIN:
-+		set_gain(gspca_dev, ctrl->val);
-+		break;
-+	/* autogain */
-+	case V4L2_CID_AUTOGAIN:
-+		set_gain(gspca_dev, sd->gain->val);
-+		break;
-+	}
-+	return gspca_dev->usb_err;
-+}
-+
-+static const struct v4l2_ctrl_ops sd_ctrl_ops = {
-+	.s_ctrl = sd_s_ctrl,
-+};
-+
-+
-+static int sd_init_controls(struct gspca_dev *gspca_dev)
-+{
-+	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
-+	struct sd *sd = (struct sd *)gspca_dev;
-+
-+	gspca_dev->vdev.ctrl_handler = hdl;
-+	v4l2_ctrl_handler_init(hdl, 2);
-+
-+	switch (sd->model) {
-+	case 0x7003:
-+		sd->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-+			V4L2_CID_GAIN, 0, 20, 1, 0);
-+		sd->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-+			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
- static int start_spy_cam(struct gspca_dev *gspca_dev)
- {
- 	struct init_command spy_start_commands[] = {
-@@ -641,6 +723,9 @@ static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
- 	if (r < 0)
- 		return r;
+@@ -260,7 +258,6 @@ void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf)
+ 	if (list_empty(&cx88q->active)) {
+ 		dprintk( 1, "queue is empty - first active\n" );
+ 		list_add_tail(&buf->list, &cx88q->active);
+-		buf->count    = cx88q->count++;
+ 		dprintk(1,"[%p/%d] %s - first active\n",
+ 			buf, buf->vb.v4l2_buf.index, __func__);
  
-+	if (sd->gain)
-+		set_gain(gspca_dev, v4l2_ctrl_g_ctrl(sd->gain));
-+
- 	return r;
+@@ -269,7 +266,6 @@ void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf)
+ 		dprintk( 1, "queue is not empty - append to active\n" );
+ 		prev = list_entry(cx88q->active.prev, struct cx88_buffer, list);
+ 		list_add_tail(&buf->list, &cx88q->active);
+-		buf->count    = cx88q->count++;
+ 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+ 		dprintk( 1, "[%p/%d] %s - append to active\n",
+ 			buf, buf->vb.v4l2_buf.index, __func__);
+diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
+index 32eb7fd..7510e80 100644
+--- a/drivers/media/pci/cx88/cx88-vbi.c
++++ b/drivers/media/pci/cx88/cx88-vbi.c
+@@ -59,7 +59,7 @@ static int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
+ 
+ 	/* reset counter */
+ 	cx_write(MO_VBI_GPCNTRL, GP_COUNT_CONTROL_RESET);
+-	q->count = 1;
++	q->count = 0;
+ 
+ 	/* enable irqs */
+ 	cx_set(MO_PCI_INTMSK, core->pci_irqmask | PCI_INT_VIDINT);
+@@ -102,8 +102,6 @@ int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
+ 	dprintk(2,"restart_queue [%p/%d]: restart dma\n",
+ 		buf, buf->vb.v4l2_buf.index);
+ 	cx8800_start_vbi_dma(dev, q, buf);
+-	list_for_each_entry(buf, &q->active, list)
+-		buf->count = q->count++;
+ 	return 0;
  }
  
-@@ -757,6 +842,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 		return -ENXIO;
+@@ -175,7 +173,6 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	if (list_empty(&q->active)) {
+ 		list_add_tail(&buf->list, &q->active);
+ 		cx8800_start_vbi_dma(dev, q, buf);
+-		buf->count    = q->count++;
+ 		dprintk(2,"[%p/%d] vbi_queue - first active\n",
+ 			buf, buf->vb.v4l2_buf.index);
+ 
+@@ -183,7 +180,6 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
+ 		prev = list_entry(q->active.prev, struct cx88_buffer, list);
+ 		list_add_tail(&buf->list, &q->active);
+-		buf->count    = q->count++;
+ 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+ 		dprintk(2,"[%p/%d] buffer_queue - append to active\n",
+ 			buf, buf->vb.v4l2_buf.index);
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 860c98fc..a74a432 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -370,7 +370,7 @@ static int start_video_dma(struct cx8800_dev    *dev,
+ 
+ 	/* reset counter */
+ 	cx_write(MO_VIDY_GPCNTRL,GP_COUNT_CONTROL_RESET);
+-	q->count = 1;
++	q->count = 0;
+ 
+ 	/* enable irqs */
+ 	cx_set(MO_PCI_INTMSK, core->pci_irqmask | PCI_INT_VIDINT);
+@@ -423,8 +423,6 @@ static int restart_video_queue(struct cx8800_dev    *dev,
+ 		dprintk(2,"restart_queue [%p/%d]: restart dma\n",
+ 			buf, buf->vb.v4l2_buf.index);
+ 		start_video_dma(dev, q, buf);
+-		list_for_each_entry(buf, &q->active, list)
+-			buf->count = q->count++;
  	}
- 
-+	sd->avg_lum = -1;
-+
- 	return err_code;
+ 	return 0;
  }
+@@ -523,7 +521,6 @@ static void buffer_queue(struct vb2_buffer *vb)
  
-@@ -776,6 +863,39 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 		PERR("Camera Stop command failed");
+ 	if (list_empty(&q->active)) {
+ 		list_add_tail(&buf->list, &q->active);
+-		buf->count    = q->count++;
+ 		dprintk(2,"[%p/%d] buffer_queue - first active\n",
+ 			buf, buf->vb.v4l2_buf.index);
+ 
+@@ -531,7 +528,6 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 		buf->risc.cpu[0] |= cpu_to_le32(RISC_IRQ1);
+ 		prev = list_entry(q->active.prev, struct cx88_buffer, list);
+ 		list_add_tail(&buf->list, &q->active);
+-		buf->count    = q->count++;
+ 		prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
+ 		dprintk(2, "[%p/%d] buffer_queue - append to active\n",
+ 			buf, buf->vb.v4l2_buf.index);
+@@ -771,6 +767,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 		(f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+ 		f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	return 0;
  }
- 
-+static void do_autogain(struct gspca_dev *gspca_dev, int avg_lum)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	s32 cur_gain = v4l2_ctrl_g_ctrl(sd->gain);
-+
-+	if (avg_lum == -1)
-+		return;
-+
-+	if (avg_lum < MIN_AVG_LUM) {
-+		if (cur_gain == sd->gain->maximum)
-+			return;
-+		cur_gain++;
-+		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
-+	}
-+	if (avg_lum > MAX_AVG_LUM) {
-+		if (cur_gain == sd->gain->minimum)
-+			return;
-+		cur_gain--;
-+		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
-+	}
-+
-+}
-+
-+static void sd_dqcallback(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	if (sd->autogain == NULL || !v4l2_ctrl_g_ctrl(sd->autogain))
-+		return;
-+
-+	do_autogain(gspca_dev, sd->avg_lum);
-+}
-+
- /* Include sn9c2028 sof detection functions */
- #include "sn9c2028.h"
- 
-@@ -810,8 +930,10 @@ static const struct sd_desc sd_desc = {
- 	.name = MODULE_NAME,
- 	.config = sd_config,
- 	.init = sd_init,
-+	.init_controls = sd_init_controls,
- 	.start = sd_start,
- 	.stopN = sd_stopN,
-+	.dq_callback = sd_dqcallback,
- 	.pkt_scan = sd_pkt_scan,
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index 7748ca9..af29413 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -327,7 +327,6 @@ struct cx88_buffer {
+ 	/* cx88 specific */
+ 	unsigned int           bpl;
+ 	struct cx88_riscmem    risc;
+-	u32                    count;
  };
  
-diff --git a/drivers/media/usb/gspca/sn9c2028.h b/drivers/media/usb/gspca/sn9c2028.h
-index 8fd1d3e..f85bc10 100644
---- a/drivers/media/usb/gspca/sn9c2028.h
-+++ b/drivers/media/usb/gspca/sn9c2028.h
-@@ -21,8 +21,15 @@
-  *
-  */
- 
--static const unsigned char sn9c2028_sof_marker[5] =
--	{ 0xff, 0xff, 0x00, 0xc4, 0xc4 };
-+static const unsigned char sn9c2028_sof_marker[] = {
-+	0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96,
-+	0x00,
-+	0x00, /* seq */
-+	0x00,
-+	0x00,
-+	0x00, /* avg luminance lower 8 bit */
-+	0x00, /* avg luminance higher 8 bit */
-+};
- 
- static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
- 					unsigned char *m, int len)
-@@ -32,8 +39,13 @@ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
- 
- 	/* Search for the SOF marker (fixed part) in the header */
- 	for (i = 0; i < len; i++) {
--		if (m[i] == sn9c2028_sof_marker[sd->sof_read]) {
-+		if ((m[i] == sn9c2028_sof_marker[sd->sof_read]) ||
-+		    (sd->sof_read > 5)) {
- 			sd->sof_read++;
-+			if (sd->sof_read == 11)
-+				sd->avg_lum_l = m[i];
-+			if (sd->sof_read == 12)
-+				sd->avg_lum = (m[i] << 8) + sd->avg_lum_l;
- 			if (sd->sof_read == sizeof(sn9c2028_sof_marker)) {
- 				PDEBUG(D_FRAM,
- 					"SOF found, bytes to analyze: %u."
--- 
-2.3.5
-
+ struct cx88_dmaqueue {
