@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:35344 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbbDJWNg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 18:13:36 -0400
-Received: by widdi4 with SMTP id di4so11476631wid.0
-        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2015 15:13:35 -0700 (PDT)
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: i2c: ov2659: Use v4l2_of_alloc_parse_endpoint()
-Date: Fri, 10 Apr 2015 23:13:28 +0100
-Message-Id: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from muru.com ([72.249.23.125]:41781 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752117AbbDCXx6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2015 19:53:58 -0400
+Date: Fri, 3 Apr 2015 16:50:04 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 12/14] ARM: omap2: use clkdev_add_alias()
+Message-ID: <20150403235003.GF18048@atomide.com>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+ <E1Ye59o-0001Bh-3u@rmk-PC.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <E1Ye59o-0001Bh-3u@rmk-PC.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+* Russell King <rmk+kernel@arm.linux.org.uk> [150403 10:14]:
+> When creating aliases of existing clkdev clocks, use clkdev_add_alias()
+> isntead of open coding the lookup and clk_lookup creation.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Instead of parsing the link-frequencies property in the driver, let
-v4l2_of_alloc_parse_endpoint() do it.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- This patch depends on https://patchwork.kernel.org/patch/6190901/
- 
- drivers/media/i2c/ov2659.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index edebd11..c1e310b 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -1340,8 +1340,8 @@ static struct ov2659_platform_data *
- ov2659_get_pdata(struct i2c_client *client)
- {
- 	struct ov2659_platform_data *pdata;
-+	struct v4l2_of_endpoint *bus_cfg;
- 	struct device_node *endpoint;
--	int ret;
- 
- 	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
- 		return client->dev.platform_data;
-@@ -1350,18 +1350,27 @@ ov2659_get_pdata(struct i2c_client *client)
- 	if (!endpoint)
- 		return NULL;
- 
-+	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
-+	if (IS_ERR(bus_cfg)) {
-+		pdata = NULL;
-+		goto done;
-+	}
-+
- 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		goto done;
- 
--	ret = of_property_read_u64(endpoint, "link-frequencies",
--				   &pdata->link_frequency);
--	if (ret) {
--		dev_err(&client->dev, "link-frequencies property not found\n");
-+	if (bus_cfg->nr_of_link_frequencies != 1) {
-+		dev_err(&client->dev,
-+			"link-frequencies property not found or too many\n");
- 		pdata = NULL;
-+		goto done;
- 	}
- 
-+	pdata->link_frequency = bus_cfg->link_frequencies[0];
-+
- done:
-+	v4l2_of_free_endpoint(bus_cfg);
- 	of_node_put(endpoint);
- 	return pdata;
- }
--- 
-2.1.0
-
+> ---
+>  arch/arm/mach-omap2/omap_device.c | 24 +++++++++---------------
+>  1 file changed, 9 insertions(+), 15 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index be9541e18650..521c32e7778e 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -47,7 +47,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+>  		       const char *clk_name)
+>  {
+>  	struct clk *r;
+> -	struct clk_lookup *l;
+> +	int rc;
+>  
+>  	if (!clk_alias || !clk_name)
+>  		return;
+> @@ -62,21 +62,15 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+>  		return;
+>  	}
+>  
+> -	r = clk_get(NULL, clk_name);
+> -	if (IS_ERR(r)) {
+> -		dev_err(&od->pdev->dev,
+> -			"clk_get for %s failed\n", clk_name);
+> -		return;
+> +	rc = clk_add_alias(clk_alias, dev_name(&od->pdev->dev), clk_name, NULL);
+> +	if (rc) {
+> +		if (rc == -ENODEV || rc == -ENOMEM)
+> +			dev_err(&od->pdev->dev,
+> +				"clkdev_alloc for %s failed\n", clk_alias);
+> +		else
+> +			dev_err(&od->pdev->dev,
+> +				"clk_get for %s failed\n", clk_name);
+>  	}
+> -
+> -	l = clkdev_alloc(r, clk_alias, dev_name(&od->pdev->dev));
+> -	if (!l) {
+> -		dev_err(&od->pdev->dev,
+> -			"clkdev_alloc for %s failed\n", clk_alias);
+> -		return;
+> -	}
+> -
+> -	clkdev_add(l);
+>  }
+>  
+>  /**
+> -- 
+> 1.8.3.1
+> 
