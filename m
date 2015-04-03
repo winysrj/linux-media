@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:49970 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751211AbbDEKyC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2015 06:54:02 -0400
-Date: Sun, 5 Apr 2015 12:53:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kassey Li <kassey1216@gmail.com>
-cc: linux-media@vger.kernel.org, kasseyl@nvidia.com
-Subject: Re: [PATCH V2] [media] V4L: soc-camera: add SPI device support
-In-Reply-To: <1422864417-7296-1-git-send-email-kassey1216@gmail.com>
-Message-ID: <Pine.LNX.4.64.1504051244360.20924@axis700.grange>
-References: <1422864417-7296-1-git-send-email-kassey1216@gmail.com>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33793 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753531AbbDCRNW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:13:22 -0400
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Cc: Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	Gregory Clement <gregory.clement@free-electrons.com>
+Subject: [PATCH 10/14] ARM: orion: use clkdev_create()
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
+Date: Fri, 03 Apr 2015 18:13:13 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kassey,
+clkdev_create() is a shorter way to write clkdev_alloc() followed by
+clkdev_add().  Use this instead.
 
-Thanks for updating your patch and addressing my comments! In your reply 
-to v1 of this patch you said, that you would add DT support in v2, i.e. in 
-this version, right? Is it now present in this patch? If yes - can you 
-explain to me how it works? For I2C the soc_camera_host_register() 
-function calls scan_of_host() always when an OF node is present in the 
-camera hostdevice, i.e. it would also be called in your SPI case, but the 
-soc_of_bind() function, called there, explicitly uses I2C binding, so, it 
-won't work for SPI. Could you explain?
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/plat-orion/common.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Besides, you place your SPI support functions under #ifdef 
-CONFIG_I2C_BOARDINFO, which doesn't make much sense for SPI.
+diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+index f5b00f41c4f6..2235081a04ee 100644
+--- a/arch/arm/plat-orion/common.c
++++ b/arch/arm/plat-orion/common.c
+@@ -28,11 +28,7 @@
+ void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+ 			     struct clk *clk)
+ {
+-	struct clk_lookup *cl;
+-
+-	cl = clkdev_alloc(clk, con_id, dev_id);
+-	if (cl)
+-		clkdev_add(cl);
++	clkdev_create(clk, con_id, "%s", dev_id);
+ }
+ 
+ /* Create clkdev entries for all orion platforms except kirkwood.
+-- 
+1.8.3.1
 
-Thanks
-Guennadi
-
-On Mon, 2 Feb 2015, Kassey Li wrote:
-
-> From: Kassey Li <kasseyl@nvidia.com>
-> 
-> This adds support for spi interface sub device for
-> soc_camera.
-> 
-> Signed-off-by: Kassey Li <kasseyl@nvidia.com>
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |   94 ++++++++++++++++++++++++
->  include/media/soc_camera.h                     |    4 +
->  2 files changed, 98 insertions(+)
-
-[patch omitted]
