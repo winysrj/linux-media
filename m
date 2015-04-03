@@ -1,119 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54787 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751790AbbDJCpT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Apr 2015 22:45:19 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 98A602A0082
-	for <linux-media@vger.kernel.org>; Fri, 10 Apr 2015 04:45:10 +0200 (CEST)
-Date: Fri, 10 Apr 2015 04:45:10 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150410024510.98A602A0082@tschai.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35237 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbbDCDoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2015 23:44:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	Carlos =?ISO-8859-1?Q?Sanmart=EDn?= Bustos <carsanbu@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4] v4l: mt9v032: Add OF support
+Date: Fri, 03 Apr 2015 06:43:54 +0300
+Message-ID: <21661171.kVBHEenSxY@avalon>
+In-Reply-To: <1427814533.2969.61.camel@pengutronix.de>
+References: <1426685926-22946-1-git-send-email-laurent.pinchart@ideasonboard.com> <1427814533.2969.61.camel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Philipp,
 
-Results of the daily build of media_tree:
+Thank you for the review.
 
-date:		Fri Apr 10 04:00:23 CEST 2015
-git branch:	test
-git hash:	be8e58d93fba531b12ef2fce4fb33c9c5fb5b69f
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+On Tuesday 31 March 2015 17:08:53 Philipp Zabel wrote:
+> Am Mittwoch, den 18.03.2015, 15:38 +0200 schrieb Laurent Pinchart:
+> > Parse DT properties into a platform data structure when a DT node is
+> > available.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > ---
+> > 
+> > Changes since v3:
+> > 
+> > - Use /bits/ 64 in the DT bindings example
+> > - Remove the parent I2C master node from the DT bindings example
+> > - Use devm_kcalloc() to allocate array
+> > 
+> > Changes since v2:
+> > 
+> > - Use of_graph_get_next_endpoint()
+> > 
+> > Changes since v1:
+> > 
+> > - Add MT9V02[24] compatible strings
+> > - Prefix all compatible strings with "aptina,"
+> > - Use "link-frequencies" instead of "link-freqs"
+> > ---
+> > 
+> >  .../devicetree/bindings/media/i2c/mt9v032.txt      | 39 ++++++++++++
+> >  MAINTAINERS                                        |  1 +
+> >  drivers/media/i2c/mt9v032.c                        | 69 ++++++++++++++++-
+> >  3 files changed, 108 insertions(+), 1 deletion(-)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/media/i2c/mt9v032.txt
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+[snip]
 
-Detailed results are available here:
+> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> > index 255ea91..697be25 100644
+> > --- a/drivers/media/i2c/mt9v032.c
+> > +++ b/drivers/media/i2c/mt9v032.c
+> > @@ -17,6 +17,8 @@
+> >  #include <linux/i2c.h>
+> >  #include <linux/log2.h>
+> >  #include <linux/mutex.h>
+> > +#include <linux/of.h>
+> > +#include <linux/of_gpio.h>
+> 
+> I think of_gpio is not needed in mt9v032.c. Otherwise,
+> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+You're right. The bad news is that the patch has been merged already. The good 
+news is that you can submit a patch to fix this ;-) I can also fix it myself 
+if you prefer.
 
-Full logs are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Laurent Pinchart
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
