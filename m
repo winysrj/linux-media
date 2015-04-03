@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9518 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243AbbDNM6v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2015 08:58:51 -0400
-Message-id: <552D0F05.9000706@samsung.com>
-Date: Tue, 14 Apr 2015 14:58:45 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, mchehab@osg.samsung.com,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Jurgen Kramer <gtmkramer@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] [media] vb2: remove unused variable
-References: <8477099.Iv3RkyDk0C@wuerfel>
-In-reply-to: <8477099.Iv3RkyDk0C@wuerfel>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33815 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753470AbbDCRNo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:13:44 -0400
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Stephen Boyd <sboyd@codeaurora.org>
+Subject: [PATCH 14/14] clk: s2mps11: use clkdev_create()
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Ye59y-0001Bq-DQ@rmk-PC.arm.linux.org.uk>
+Date: Fri, 03 Apr 2015 18:13:34 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+clkdev_create() is a shorter way to write clkdev_alloc() followed by
+clkdev_add().  Use this instead.
 
-On 2015-04-10 22:24, Arnd Bergmann wrote:
-> A recent bug fix removed all uses of the 'fileio' variable in
-> vb2_thread_stop(), which now causes warnings in a lot of
-> ARM defconfig builds:
->
-> drivers/media/v4l2-core/videobuf2-core.c:3228:26: warning: unused variable 'fileio' [-Wunused-variable]
->
-> This removes the variable as well. The commit that introduced
-> the warning was marked for 3.18+ backports, so this should
-> probably be backported too.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 0e661006370b7 ("[media] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()")
-> Cc: <stable@vger.kernel.org>      # for v3.18 and up
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/clk/clk-s2mps11.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index c11aee7db884..d3f7bf0db61e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -3225,7 +3225,6 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
->   int vb2_thread_stop(struct vb2_queue *q)
->   {
->   	struct vb2_threadio_data *threadio = q->threadio;
-> -	struct vb2_fileio_data *fileio = q->fileio;
->   	int err;
->   
->   	if (threadio == NULL)
->
->
-
-Best regards
+diff --git a/drivers/clk/clk-s2mps11.c b/drivers/clk/clk-s2mps11.c
+index bfa1e64e267d..9b13a303d3f8 100644
+--- a/drivers/clk/clk-s2mps11.c
++++ b/drivers/clk/clk-s2mps11.c
+@@ -242,14 +242,12 @@ static int s2mps11_clk_probe(struct platform_device *pdev)
+ 			goto err_reg;
+ 		}
+ 
+-		s2mps11_clk->lookup = clkdev_alloc(s2mps11_clk->clk,
++		s2mps11_clk->lookup = clkdev_create(s2mps11_clk->clk,
+ 					s2mps11_name(s2mps11_clk), NULL);
+ 		if (!s2mps11_clk->lookup) {
+ 			ret = -ENOMEM;
+ 			goto err_lup;
+ 		}
+-
+-		clkdev_add(s2mps11_clk->lookup);
+ 	}
+ 
+ 	for (i = 0; i < S2MPS11_CLKS_NUM; i++) {
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.8.3.1
 
