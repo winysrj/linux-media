@@ -1,176 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:18135 "EHLO
-	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758408AbbDVXDp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 19:03:45 -0400
-From: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-To: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	"Srinivas Kandagatla" <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	"Jean Delvare" <jdelvare@suse.de>
-CC: <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-ide@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
-	Anatol Pomazau <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	<bcm-kernel-feedback-list@broadcom.com>,
-	Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-Subject: [PATCHv3 3/4] usb: ehci-platform: Use devm_of_phy_get_by_index
-Date: Wed, 22 Apr 2015 16:04:12 -0700
-Message-ID: <1429743853-10254-4-git-send-email-arun.ramamurthy@broadcom.com>
-In-Reply-To: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:25973 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457AbbDCKxo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 06:53:44 -0400
+Message-id: <551E711C.2080802@samsung.com>
+Date: Fri, 03 Apr 2015 12:53:16 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net
+Subject: Re: [PATCH v1 09/11] DT: Add documentation for exynos4-is 'flashes'
+ property
+References: <1426863811-12516-1-git-send-email-j.anaszewski@samsung.com>
+ <1426863811-12516-10-git-send-email-j.anaszewski@samsung.com>
+ <20150325010641.GI18321@valkosipuli.retiisi.org.uk>
+ <55127732.7020004@samsung.com>
+In-reply-to: <55127732.7020004@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Getting phys by index instead of phy names so that we do
-not have to create a naming scheme when multiple phys
-are present
+Hello,
 
-Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-Reviewed-by: Ray Jui <rjui@broadcom.com>
-Reviewed-by: Scott Branden <sbranden@broadcom.com>
----
- drivers/usb/host/ehci-platform.c | 69 ++++++++++++++--------------------------
- 1 file changed, 24 insertions(+), 45 deletions(-)
+On 25/03/15 09:52, Jacek Anaszewski wrote:
+> On 03/25/2015 02:06 AM, Sakari Ailus wrote:
+>> On Fri, Mar 20, 2015 at 04:03:29PM +0100, Jacek Anaszewski wrote:
+>>> This patch adds a description of 'flashes' property
+>>> to the samsung-fimc.txt.
+>>>
+>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>> ---
+>>>   .../devicetree/bindings/media/samsung-fimc.txt     |    8 ++++++++
+>>>   1 file changed, 8 insertions(+)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>> index 922d6f8..cb0e263 100644
+>>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>>> @@ -40,6 +40,13 @@ should be inactive. For the "active-a" state the camera port A must be activated
+>>>   and the port B deactivated and for the state "active-b" it should be the other
+>>>   way around.
+>>>
+>>> +Optional properties:
+>>> +
+>>> +- flashes - Array of phandles to the flash LEDs that can be controlled by the
+>>> +	    sub-devices contained in this media device. Flash LED is
+>>> +	    represented by a child node of a flash LED device
+>>
+>> This should be in
+>> Documentation/devicetree/bindings/media/video-interfaces.txt.
+>>
+>> Should flash devices be associated with sensors somehow rather than ISPs?
+>> That's how they commonly are arranged, however that doesn't limit placing
+>> them in silly places.
+>>
+>> I'm not necessarily saying the flashes-property should be present in
+>> sensor's DT nodes, but it'd be good to be able to make the association if
+>> it's there.
 
-diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
-index d8a75a5..145bf19 100644
---- a/drivers/usb/host/ehci-platform.c
-+++ b/drivers/usb/host/ehci-platform.c
-@@ -88,15 +88,13 @@ static int ehci_platform_power_on(struct platform_device *dev)
- 	}
- 
- 	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
--		if (priv->phys[phy_num]) {
--			ret = phy_init(priv->phys[phy_num]);
--			if (ret)
--				goto err_exit_phy;
--			ret = phy_power_on(priv->phys[phy_num]);
--			if (ret) {
--				phy_exit(priv->phys[phy_num]);
--				goto err_exit_phy;
--			}
-+		ret = phy_init(priv->phys[phy_num]);
-+		if (ret)
-+			goto err_exit_phy;
-+		ret = phy_power_on(priv->phys[phy_num]);
-+		if (ret) {
-+			phy_exit(priv->phys[phy_num]);
-+			goto err_exit_phy;
- 		}
- 	}
- 
-@@ -104,10 +102,8 @@ static int ehci_platform_power_on(struct platform_device *dev)
- 
- err_exit_phy:
- 	while (--phy_num >= 0) {
--		if (priv->phys[phy_num]) {
--			phy_power_off(priv->phys[phy_num]);
--			phy_exit(priv->phys[phy_num]);
--		}
-+		phy_power_off(priv->phys[phy_num]);
-+		phy_exit(priv->phys[phy_num]);
- 	}
- err_disable_clks:
- 	while (--clk >= 0)
-@@ -123,10 +119,8 @@ static void ehci_platform_power_off(struct platform_device *dev)
- 	int clk, phy_num;
- 
- 	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
--		if (priv->phys[phy_num]) {
--			phy_power_off(priv->phys[phy_num]);
--			phy_exit(priv->phys[phy_num]);
--		}
-+		phy_power_off(priv->phys[phy_num]);
-+		phy_exit(priv->phys[phy_num]);
- 	}
- 
- 	for (clk = EHCI_MAX_CLKS - 1; clk >= 0; clk--)
-@@ -154,7 +148,6 @@ static int ehci_platform_probe(struct platform_device *dev)
- 	struct usb_ehci_pdata *pdata = dev_get_platdata(&dev->dev);
- 	struct ehci_platform_priv *priv;
- 	struct ehci_hcd *ehci;
--	const char *phy_name;
- 	int err, irq, phy_num, clk = 0;
- 
- 	if (usb_disabled())
-@@ -204,36 +197,22 @@ static int ehci_platform_probe(struct platform_device *dev)
- 
- 		priv->num_phys = of_count_phandle_with_args(dev->dev.of_node,
- 				"phys", "#phy-cells");
--		priv->num_phys = priv->num_phys > 0 ? priv->num_phys : 1;
- 
--		priv->phys = devm_kcalloc(&dev->dev, priv->num_phys,
--				sizeof(struct phy *), GFP_KERNEL);
--		if (!priv->phys)
--			return -ENOMEM;
-+		if (priv->num_phys > 0) {
-+			priv->phys = devm_kcalloc(&dev->dev, priv->num_phys,
-+					    sizeof(struct phy *), GFP_KERNEL);
-+			if (!priv->phys)
-+				return -ENOMEM;
-+		} else
-+			priv->num_phys = 0;
- 
- 		for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
--				err = of_property_read_string_index(
--						dev->dev.of_node,
--						"phy-names", phy_num,
--						&phy_name);
--
--				if (err < 0) {
--					if (priv->num_phys > 1) {
--						dev_err(&dev->dev, "phy-names not provided");
--						goto err_put_hcd;
--					} else
--						phy_name = "usb";
--				}
--
--				priv->phys[phy_num] = devm_phy_get(&dev->dev,
--						phy_name);
--				if (IS_ERR(priv->phys[phy_num])) {
--					err = PTR_ERR(priv->phys[phy_num]);
--					if ((priv->num_phys > 1) ||
--					    (err == -EPROBE_DEFER))
--						goto err_put_hcd;
--					priv->phys[phy_num] = NULL;
--				}
-+			priv->phys[phy_num] = devm_of_phy_get_by_index(
-+					&dev->dev, dev->dev.of_node, phy_num);
-+			if (IS_ERR(priv->phys[phy_num])) {
-+				err = PTR_ERR(priv->phys[phy_num]);
-+					goto err_put_hcd;
-+			}
- 		}
- 
- 		for (clk = 0; clk < EHCI_MAX_CLKS; clk++) {
+IMHO 'flashes' is a misleading name, these are simply high brightness LEDs
+which can work as camera flash or auxiliary light for camcording, in context of
+a camera device.
+
+The led DT nodes which the entries of above flashes property is pointing to
+have a text label, which presumably could be used to associate a LED device
+with an image sensor. That said, I think we should allow a property as above
+'flashes' be placed in aggregate camera node and also in sensor device node.
+I think it should be left to the bridge/ISP binding to choose one option or
+the other.
+
+For now I would propose to rename the "flashes" property to "samsung,leds" or
+"leds" and leave it in "camera" node.
+
+> I know of a SoC, which drives the flash from its on-chip ISP. The GPIO
+> connected to the flash controller's external strobe pin can be
+> configured so that the signal is routed to it from the ISP or from
+> CPU (for software strobe mode).
+> 
+> I think that Sylwester could say more in this subject.
+> 
+> 
+>>> +	    (see Documentation/devicetree/bindings/leds/common.txt).
+>>> +
+>>>   The 'camera' node must include at least one 'fimc' child node.
+>>>
+>>>
+>>> @@ -166,6 +173,7 @@ Example:
+>>>   		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+>>>   		pinctrl-names = "default";
+>>>   		pinctrl-0 = <&cam_port_a_clk_active>;
+>>> +		flashes = <&camera_flash>, <&system_torch>;
+>>>   		status = "okay";
+>>>   		#address-cells = <1>;
+>>>   		#size-cells = <1>;
+>>
+>> There will be other kind of devices that have somewhat similar relationship.
+>> They just haven't been defined yet. Lens controllers or EEPROM for instance.
+>> The two are an integral part of a module, something which is not modelled in
+>> DT in any way, but perhaps should be.
+
+Indeed, I'd say it belongs to a particular image sensor (camera module) binding
+to describe each its physical subdevices, i.e. if a pointer to lens or EEPROM
+is needed in the main module DT node.
+
+> Do you suggest using more generic name than 'flashes'?
+
+
 -- 
-2.3.4
-
+Regards,
+Sylwester
