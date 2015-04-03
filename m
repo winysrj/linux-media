@@ -1,50 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59900 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030443AbbD1Poe (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42407 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752459AbbDCLgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 11:44:34 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 08/14] avoid going past input/audio array
-Date: Tue, 28 Apr 2015 12:43:47 -0300
-Message-Id: <f5d61bc605459af7274e70e73c60cba84f9a02b8.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+	Fri, 3 Apr 2015 07:36:25 -0400
+Message-ID: <551E7B16.3010203@xs4all.nl>
+Date: Fri, 03 Apr 2015 13:35:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Paramanand Singh <paramanand.singh@linaro.org>
+Subject: Re: [PATCH] add Android makefile for libv4l2 and libv4lconvert
+References: <CA+M3ks6QkoAxe8oOFMTkLE_NsgJA6qsXa9KoVhCuR759A9y0sA@mail.gmail.com>
+In-Reply-To: <CA+M3ks6QkoAxe8oOFMTkLE_NsgJA6qsXa9KoVhCuR759A9y0sA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/pci/ivtv/ivtv-driver.c:832 ivtv_init_struct2() error: buffer overflow 'itv->card->video_inputs' 6 <= 6
+Hi Benjamin,
 
-That happens because nof_inputs and nof_audio_inputs can be initialized
-as IVTV_CARD_MAX_VIDEO_INPUTS, instead of IVTV_CARD_MAX_VIDEO_INPUTS - 1.
+On 03/27/2015 09:29 AM, Benjamin Gaignard wrote:
+> Hello,
+> 
+> On behalf of Paramanand, I would have to have your opinion on this patch.
+> The goal is to enable more v4l2 lib features on Android to be able to
+> do video decoding using v4l2 devices.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Can you repost the patch? It is mangled, tabs seems to be replaced by spaces
+or just lost and some lines wrapped around.
 
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
-index c2e60b4f292d..8616fa8193bc 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.c
-+++ b/drivers/media/pci/ivtv/ivtv-driver.c
-@@ -805,11 +805,11 @@ static void ivtv_init_struct2(struct ivtv *itv)
- {
- 	int i;
- 
--	for (i = 0; i < IVTV_CARD_MAX_VIDEO_INPUTS; i++)
-+	for (i = 0; i < IVTV_CARD_MAX_VIDEO_INPUTS - 1; i++)
- 		if (itv->card->video_inputs[i].video_type == 0)
- 			break;
- 	itv->nof_inputs = i;
--	for (i = 0; i < IVTV_CARD_MAX_AUDIO_INPUTS; i++)
-+	for (i = 0; i < IVTV_CARD_MAX_AUDIO_INPUTS - 1; i++)
- 		if (itv->card->audio_inputs[i].audio_type == 0)
- 			break;
- 	itv->nof_audio_inputs = i;
--- 
-2.1.0
+Thanks!
 
+	Hans
