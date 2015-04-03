@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:35222 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964991AbbD1MIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 08:08:01 -0400
-Received: by widdi4 with SMTP id di4so137335984wid.0
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2015 05:08:00 -0700 (PDT)
-Date: Tue, 28 Apr 2015 14:07:56 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:36331 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751856AbbDCH3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2015 03:29:07 -0400
+Date: Fri, 3 Apr 2015 09:28:33 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
-	Luke Hart <luke.hart@birchleys.eu>,
-	Anil Belur <askb23@gmail.com>,
-	Haneen Mohammed <hamohammed.sa@gmail.com>,
-	Vaishali Thakkar <vthakkar1994@gmail.com>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] radio-bcm2048: remove unused var
-Message-ID: <20150428120756.GE604@pali>
-References: <5784d4a9f48f7661ab1814ef4e8d210fa065bafb.1430222617.git.mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, sean@mess.org
+Subject: Re: [PATCH 0/2] NEC scancodes and protocols in keymaps
+Message-ID: <20150403072833.GA26445@hardeman.nu>
+References: <20150402120047.20068.31662.stgit@zeus.muc.hardeman.nu>
+ <20150402135637.28ec4dbf@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <5784d4a9f48f7661ab1814ef4e8d210fa065bafb.1430222617.git.mchehab@osg.samsung.com>
+In-Reply-To: <20150402135637.28ec4dbf@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 28 April 2015 09:03:41 Mauro Carvalho Chehab wrote:
-> drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_i2c_driver_probe':
-> drivers/staging/media/bcm2048/radio-bcm2048.c:2596:11: warning: variable 'skip_release' set but not used [-Wunused-but-set-variable]
->   int err, skip_release = 0;
->            ^
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index e9d0691b21d3..5e11a78ceef3 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -2593,7 +2593,7 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
->  					const struct i2c_device_id *id)
->  {
->  	struct bcm2048_device *bdev;
-> -	int err, skip_release = 0;
-> +	int err;
->  
->  	bdev = kzalloc(sizeof(*bdev), GFP_KERNEL);
->  	if (!bdev) {
-> @@ -2646,7 +2646,6 @@ free_sysfs:
->  	bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
->  free_registration:
->  	video_unregister_device(&bdev->videodev);
-> -	skip_release = 1;
->  free_irq:
->  	if (client->irq)
->  		free_irq(client->irq, bdev);
+On Thu, Apr 02, 2015 at 01:56:37PM -0300, Mauro Carvalho Chehab wrote:
+>Em Thu, 02 Apr 2015 14:02:57 +0200
+>David H‰rdeman <david@hardeman.nu> escreveu:
+>
+>> The following two patches should show more clearly what I mean by
+>> adding protocols to the keytables (and letting userspace add
+>> keytable entries with explicit protocol information). Consider
+>> it a basis for discussion.
+>> 
+>> Each patch has a separate description, please refer to those for
+>> more information.
+>
+>Interesting approach. It would be good to also have a patch for
+>v4l-utils rc-keycode userspace, for it to use the new way when
+>available. An option to fallback to the old way would also be
+>useful, in order to allow testing the backward compatibility.
 
-Looks good to me, so
-
-Acked-by: Pali Roh√°r <pali.rohar@gmail.com>
+Ok, yes, that'd be good to have, I'll look into it.
 
 -- 
-Pali Roh√°r
-pali.rohar@gmail.com
+David H‰rdeman
