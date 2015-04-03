@@ -1,238 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vn0-f47.google.com ([209.85.216.47]:36622 "EHLO
-	mail-vn0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932208AbbD0Rbo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 13:31:44 -0400
-Received: by vnbf62 with SMTP id f62so12842394vnb.3
-        for <linux-media@vger.kernel.org>; Mon, 27 Apr 2015 10:31:43 -0700 (PDT)
-Message-ID: <1430155899.2724.0.camel@localhost>
-Subject: Re: [PATCH v2] ivtv: use arch_phys_wc_add() and require PAT disabled
-From: Andy Walls <andy@silverblocksystems.net>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: awalls@md.metrocast.net, linux-media@vger.kernel.org,
-	luto@amacapital.net, mst@redhat.com, linux-kernel@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Stefan Bader <stefan.bader@canonical.com>,
-	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
-	Borislav Petkov <bp@suse.de>, Davidlohr Bueso <dbueso@suse.de>,
-	konrad.wilk@oracle.com, ville.syrjala@linux.intel.com,
-	david.vrabel@citrix.com, jbeulich@suse.com, toshi.kani@hp.com,
-	Roger Pau =?ISO-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>,
-	ivtv-devel@ivtvdriver.org, xen-devel@lists.xensource.com
-Date: Mon, 27 Apr 2015 13:31:39 -0400
-In-Reply-To: <1430152994-17051-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1430152994-17051-1-git-send-email-mcgrof@do-not-panic.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23581 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702AbbDCM4O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 08:56:14 -0400
+Message-id: <551E8DEA.5070205@samsung.com>
+Date: Fri, 03 Apr 2015 14:56:10 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2015-04-27 at 09:43 -0700, Luis R. Rodriguez wrote:
-> From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> 
-> We are burrying direct access to MTRR code support on
-> x86 in order to take advantage of PAT. In the future we
-> also want to make the default behaviour of ioremap_nocache()
-> to use strong UC, use of mtrr_add() on those systems
-> would make write-combining void.
-> 
-> In order to help both enable us to later make strong
-> UC default and in order to phase out direct MTRR access
-> code port the driver over to arch_phys_wc_add() and
-> annotate that the device driver requires systems to
-> boot with PAT disabled, with the nopat kernel parameter.
-> 
-> This is a worthy comprmise given that the hardware is
-> really rare these days, and perhaps only some lost souls
-> in some third world country are expected to be using this
-> feature of the device driver.
-> 
-> Cc: Andy Walls <awalls@md.metrocast.net>
+Hi Sakari,
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+On 04/03/2015 02:09 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Tue, Mar 31, 2015 at 03:52:37PM +0200, Jacek Anaszewski wrote:
+>> Description of flash LEDs related properties was not precise regarding
+>> the state of corresponding settings in case a property is missing.
+>> Add relevant statements.
+>> Removed is also the requirement making the flash-max-microamp
+>> property obligatory for flash LEDs. It was inconsistent as the property
+>> is defined as optional. Devices which require the property will have
+>> to assert this in their DT bindings.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> Cc: Pavel Machek <pavel@ucw.cz>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>>   Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
+>>   1 file changed, 9 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+>> index 747c538..21a25e4 100644
+>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>> @@ -29,13 +29,15 @@ Optional properties for child nodes:
+>>        "ide-disk" - LED indicates disk activity
+>>        "timer" - LED flashes at a fixed, configurable rate
+>>
+>> -- max-microamp : maximum intensity in microamperes of the LED
+>> -		 (torch LED for flash devices)
+>> -- flash-max-microamp : maximum intensity in microamperes of the
+>> -                       flash LED; it is mandatory if the LED should
+>> -		       support the flash mode
+>> -- flash-timeout-us : timeout in microseconds after which the flash
+>> -                     LED is turned off
+>> +- max-microamp : Maximum intensity in microamperes of the LED
+>> +		 (torch LED for flash devices). If omitted this will default
+>> +		 to the maximum current allowed by the device.
+>> +- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
+>> +		       If omitted this will default to the maximum
+>> +		       current allowed by the device.
+>> +- flash-timeout-us : Timeout in microseconds after which the flash
+>> +                     LED is turned off. If omitted this will default to the
+>> +		     maximum timeout allowed by the device.
+>>
+>>
+>>   Examples:
+>
+> Pavel pointed out that the brightness between maximum current and the
+> maximum *allowed* another current might not be noticeable,leading a
+> potential spelling error to cause the LED being run at too high current.
 
-Regards,
-Andy
+Where did he point this out? Do you think about the current version
+of the leds/common.txt documentation or there was some other message,
+that I don't see?
 
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: Andy Lutomirski <luto@amacapital.net>
-> Cc: Suresh Siddha <sbsiddha@gmail.com>
-> Cc: Ingo Molnar <mingo@elte.hu>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Juergen Gross <jgross@suse.com>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Dave Airlie <airlied@redhat.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Antonino Daplas <adaplas@gmail.com>
-> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Michael S. Tsirkin <mst@redhat.com>
-> Cc: Stefan Bader <stefan.bader@canonical.com>
-> Cc: Ville Syrjälä <syrjala@sci.fi>
-> Cc: Mel Gorman <mgorman@suse.de>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Davidlohr Bueso <dbueso@suse.de>
-> Cc: konrad.wilk@oracle.com
-> Cc: ville.syrjala@linux.intel.com
-> Cc: david.vrabel@citrix.com
-> Cc: jbeulich@suse.com
-> Cc: toshi.kani@hp.com
-> Cc: Roger Pau Monné <roger.pau@citrix.com>
-> Cc: linux-fbdev@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: ivtv-devel@ivtvdriver.org
-> Cc: linux-media@vger.kernel.org
-> Cc: xen-devel@lists.xensource.com
-> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> ---
-> 
-> This v2 moves the PAT bail out error check on to ivtvfb_init()
-> as per Andy's request. It also removes some comment about TODO
-> items for PAT.
-> 
->  drivers/media/pci/ivtv/Kconfig  |  3 +++
->  drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++-------------------------
->  2 files changed, 26 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
-> index dd6ee57e..b2a7f88 100644
-> --- a/drivers/media/pci/ivtv/Kconfig
-> +++ b/drivers/media/pci/ivtv/Kconfig
-> @@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
->  	  This is used in the Hauppauge PVR-350 card. There is a driver
->  	  homepage at <http://www.ivtvdriver.org>.
->  
-> +	  If you have this hardware you will need to boot with PAT disabled
-> +	  on your x86 systems, use the nopat kernel parameter.
-> +
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called ivtvfb.
-> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> index 9ff1230..8761e3e 100644
-> --- a/drivers/media/pci/ivtv/ivtvfb.c
-> +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> @@ -44,8 +44,8 @@
->  #include <linux/ivtvfb.h>
->  #include <linux/slab.h>
->  
-> -#ifdef CONFIG_MTRR
-> -#include <asm/mtrr.h>
-> +#ifdef CONFIG_X86_64
-> +#include <asm/pat.h>
->  #endif
->  
->  #include "ivtv-driver.h"
-> @@ -155,12 +155,11 @@ struct osd_info {
->  	/* Buffer size */
->  	u32 video_buffer_size;
->  
-> -#ifdef CONFIG_MTRR
->  	/* video_base rounded down as required by hardware MTRRs */
->  	unsigned long fb_start_aligned_physaddr;
->  	/* video_base rounded up as required by hardware MTRRs */
->  	unsigned long fb_end_aligned_physaddr;
-> -#endif
-> +	int wc_cookie;
->  
->  	/* Store the buffer offset */
->  	int set_osd_coords_x;
-> @@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
->  static int ivtvfb_init_io(struct ivtv *itv)
->  {
->  	struct osd_info *oi = itv->osd_info;
-> +	/* Find the largest power of two that maps the whole buffer */
-> +	int size_shift = 31;
->  
->  	mutex_lock(&itv->serialize_lock);
->  	if (ivtv_init_on_first_open(itv)) {
-> @@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
->  			oi->video_pbase, oi->video_vbase,
->  			oi->video_buffer_size / 1024);
->  
-> -#ifdef CONFIG_MTRR
-> -	{
-> -		/* Find the largest power of two that maps the whole buffer */
-> -		int size_shift = 31;
-> -
-> -		while (!(oi->video_buffer_size & (1 << size_shift))) {
-> -			size_shift--;
-> -		}
-> -		size_shift++;
-> -		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
-> -		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
-> -		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
-> -		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
-> -		if (mtrr_add(oi->fb_start_aligned_physaddr,
-> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
-> -			     MTRR_TYPE_WRCOMB, 1) < 0) {
-> -			IVTVFB_INFO("disabled mttr\n");
-> -			oi->fb_start_aligned_physaddr = 0;
-> -			oi->fb_end_aligned_physaddr = 0;
-> -		}
-> -	}
-> -#endif
-> -
-> +	while (!(oi->video_buffer_size & (1 << size_shift)))
-> +		size_shift--;
-> +	size_shift++;
-> +	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
-> +	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
-> +	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
-> +	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
-> +	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
-> +					 oi->fb_end_aligned_physaddr -
-> +					 oi->fb_start_aligned_physaddr);
->  	/* Blank the entire osd. */
->  	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
->  
-> @@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
->  
->  	/* Release pseudo palette */
->  	kfree(oi->ivtvfb_info.pseudo_palette);
-> -
-> -#ifdef CONFIG_MTRR
-> -	if (oi->fb_end_aligned_physaddr) {
-> -		mtrr_del(-1, oi->fb_start_aligned_physaddr,
-> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
-> -	}
-> -#endif
-> -
-> +	arch_phys_wc_del(oi->wc_cookie);
->  	kfree(oi);
->  	itv->osd_info = NULL;
->  }
-> @@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
->  	int registered = 0;
->  	int err;
->  
-> +#ifdef CONFIG_X86_64
-> +	if (WARN(pat_enabled,
-> +		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
-> +		return EINVAL;
-> +	}
-> +#endif
-> +
->  	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
->  		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
->  		     IVTV_MAX_CARDS - 1);
+Besides, I can't understand your point. Could you express it in other
+words, please?
 
+> The three drivers I've looked also require these properties, which I think
+> is in the line with the above.
 
+These properties were introduced two months ago and there is no merged
+driver which require them. It means that the drivers that are currently
+in the mainline assume that they can set the maximum current (please
+note that max-microamp property refers to non-flash LEDs too).
+The modifications I proposed just validate the current status.
+
+> How about either dropping the patch, or changing maximum to minimum and
+> will to should? The drivers could also behave this way instead of requiring
+> the properties, but I don't think there's anything wrong with requiring the
+> properties either.
+>
+> I think this is worth considering now as we can't change this later without
+> breaking something.
+>
+
+-- 
+Best Regards,
+Jacek Anaszewski
