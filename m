@@ -1,96 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56943 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751402AbbDOX6W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 19:58:22 -0400
-Date: Thu, 16 Apr 2015 01:58:16 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-To: Andy Walls <awalls@md.metrocast.net>,
-	Hyong-Youb Kim <hykim@myri.com>, netdev@vger.kernel.org
-Cc: Andy Lutomirski <luto@amacapital.net>,
-	Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>, dave.hansen@linux.intel.com,
-	plagnioj@jcrosoft.com, tglx@linutronix.de,
-	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	x86@kernel.org
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150415235816.GG5622@wotan.suse.de>
-References: <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
- <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
- <1428695379.6646.69.camel@misato.fc.hp.com>
- <20150410210538.GB5622@wotan.suse.de>
- <1428699490.21794.5.camel@misato.fc.hp.com>
- <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
- <20150411012938.GC5622@wotan.suse.de>
- <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
- <20150413174938.GE5622@wotan.suse.de>
- <1429137531.1899.28.camel@palomino.walls.org>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49404 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752560AbbDCJ3k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2015 05:29:40 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7ED6A2A009F
+	for <linux-media@vger.kernel.org>; Fri,  3 Apr 2015 11:29:07 +0200 (CEST)
+Message-ID: <551E5D63.7040407@xs4all.nl>
+Date: Fri, 03 Apr 2015 11:29:07 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1429137531.1899.28.camel@palomino.walls.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 6/5] v4l2-dv-timings: log new V4L2_DV_FL_IS_CE_VIDEO flag
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Andy, thanks for your review,  adding Hyong-Youb Kim for  review of the
-full range ioremap_wc() idea below.
+Add support for the new flag to v4l2_print_dv_timings().
 
-On Wed, Apr 15, 2015 at 06:38:51PM -0400, Andy Walls wrote:
-> Hi All,
-> 
-> On Mon, 2015-04-13 at 19:49 +0200, Luis R. Rodriguez wrote:
-> > From the beginning it seems only framebuffer devices used MTRR/WC,
-> [snip]
-> >  The ivtv device is a good example of the worst type of
-> > situations and these days. So perhap __arch_phys_wc_add() and a
-> > ioremap_ucminus() might be something more than transient unless hardware folks
-> > get a good memo or already know how to just Do The Right Thing (TM).
-> 
-> Just to reiterate a subtle point, use of the ivtvfb is *optional*.  A
-> user may or may not load it.  When the user does load the ivtvfb driver,
-> the ivtv driver has already been initialized and may have functions of
-> the card already in use by userspace.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Follow-up to:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/89447
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-I suspected this and its why I note that a rewrite to address a clean
-split with separate ioremap seems rather difficult in this case.
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index b1d8dbb..c0e9638 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -282,7 +282,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->vsync, bt->vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
+ 			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
+@@ -290,7 +290,9 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
+ 			" REDUCED_FPS" : "",
+ 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
+-			" HALF_LINE" : "");
++			" HALF_LINE" : "",
++			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
++			" CE_VIDEO" : "");
+ 	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
+ 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
+-- 
+2.1.4
 
-> Hopefully no one is trying to use the OSD as framebuffer and the video
-> decoder/output engine for video display at the same time. 
-
-Worst case concern I have also is the implications of having overlapping
-ioremap() calls (as proposed in my last reply) for different memory types
-and having the different virtual memory addresse used by different parts
-of the driver. Its not clear to me what the hardware implications of this
-are.
-
->  But the video
-> decoder/output device nodes may already be open for performing ioctl()
-> functions so unmapping the decoder IO space out from under them, when
-> loading the ivtvfb driver module, might not be a good thing. 
-
-Using overlapping ioremap() calls with different memory types would address
-this concern provided hardware won't barf both on the device and CPU. Hardware
-folks could provide feedback or an ivtvfb user could test the patch supplied
-on both non-PAT and PAT systems. Even so, who knows,  this might work on some
-systems while not on others, only hardware folks would know.
-
-An alternative... is to just ioremap_wc() the entire region, including
-MMIO registers for these old devices. I see one ethernet driver that does
-this, myri10ge, and am curious how and why they ended up deciding this
-and if they have run into any issues. I wonder if this is a reasonable
-comrpomise for these 2 remaining corner cases.
-
-  Luis
