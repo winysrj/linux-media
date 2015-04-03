@@ -1,77 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60602 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753403AbbDXORE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 10:17:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/5] vivid-tpg: add full range BT.2020 support
-Date: Fri, 24 Apr 2015 16:16:24 +0200
-Message-Id: <1429884986-38671-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33760 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672AbbDCRMn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:12:43 -0400
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Daniel Mack <daniel@zonque.org>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias() prototype
+ in linux/clk.h
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
+Date: Fri, 03 Apr 2015 18:12:37 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+clk_add_alias() is provided by clkdev, and is not part of the clk API.
+Howver, it is prototyped in two locations: linux/clkdev.h and
+linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
+version in linux/clk.h.
 
-In order to be consistent with the other Y'CbCr encodings add
-support for full range V4L2_YCBCR_ENC_BT2020.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/media/platform/vivid/vivid-tpg.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ arch/arm/mach-davinci/da850.c        |  1 +
+ arch/arm/mach-omap1/board-nokia770.c |  2 +-
+ arch/arm/mach-pxa/eseries.c          |  1 +
+ arch/arm/mach-pxa/lubbock.c          |  1 +
+ arch/arm/mach-pxa/tosa.c             |  1 +
+ include/linux/clk.h                  | 13 -------------
+ 6 files changed, 5 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-index 59bdbae..a7ead15 100644
---- a/drivers/media/platform/vivid/vivid-tpg.c
-+++ b/drivers/media/platform/vivid/vivid-tpg.c
-@@ -489,6 +489,12 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
- 		{ COEFF(-0.1396, 224), COEFF(-0.3604, 224), COEFF(0.5, 224)     },
- 		{ COEFF(0.5, 224),     COEFF(-0.4598, 224), COEFF(-0.0402, 224) },
- 	};
-+	static const int bt2020_full[3][3] = {
-+		{ COEFF(0.2627, 255),  COEFF(0.6780, 255),  COEFF(0.0593, 255)  },
-+		{ COEFF(-0.1396, 255), COEFF(-0.3604, 255), COEFF(0.5, 255)     },
-+		{ COEFF(0.5, 255),     COEFF(-0.4698, 255), COEFF(-0.0402, 255) },
-+	};
-+
- 	bool full = tpg->real_quantization == V4L2_QUANTIZATION_FULL_RANGE;
- 	unsigned y_offset = full ? 0 : 16;
- 	int lin_y, yc;
-@@ -500,7 +506,7 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
- 		rgb2ycbcr(full ? bt601_full : bt601, r, g, b, y_offset, y, cb, cr);
- 		break;
- 	case V4L2_YCBCR_ENC_BT2020:
--		rgb2ycbcr(bt2020, r, g, b, 16, y, cb, cr);
-+		rgb2ycbcr(full ? bt2020_full : bt2020, r, g, b, y_offset, y, cb, cr);
- 		break;
- 	case V4L2_YCBCR_ENC_BT2020_CONST_LUM:
- 		lin_y = (COEFF(0.2627, 255) * rec709_to_linear(r) +
-@@ -582,6 +588,11 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
- 		{ COEFF(1, 219), COEFF(-0.1646, 224), COEFF(-0.5714, 224) },
- 		{ COEFF(1, 219), COEFF(1.8814, 224),  COEFF(0, 224)       },
- 	};
-+	static const int bt2020_full[3][3] = {
-+		{ COEFF(1, 255), COEFF(0, 255),       COEFF(1.4746, 255)  },
-+		{ COEFF(1, 255), COEFF(-0.1646, 255), COEFF(-0.5714, 255) },
-+		{ COEFF(1, 255), COEFF(1.8814, 255),  COEFF(0, 255)       },
-+	};
- 	bool full = tpg->real_quantization == V4L2_QUANTIZATION_FULL_RANGE;
- 	unsigned y_offset = full ? 0 : 16;
- 	int lin_r, lin_g, lin_b, lin_y;
-@@ -593,7 +604,7 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
- 		ycbcr2rgb(full ? bt601_full : bt601, y, cb, cr, y_offset, r, g, b);
- 		break;
- 	case V4L2_YCBCR_ENC_BT2020:
--		ycbcr2rgb(bt2020, y, cb, cr, 16, r, g, b);
-+		ycbcr2rgb(full ? bt2020_full : bt2020, y, cb, cr, y_offset, r, g, b);
- 		break;
- 	case V4L2_YCBCR_ENC_BT2020_CONST_LUM:
- 		y -= 16 << 4;
+diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
+index 45ce065e7170..3b8740c083c4 100644
+--- a/arch/arm/mach-davinci/da850.c
++++ b/arch/arm/mach-davinci/da850.c
+@@ -11,6 +11,7 @@
+  * is licensed "as is" without any warranty of any kind, whether express
+  * or implied.
+  */
++#include <linux/clkdev.h>
+ #include <linux/gpio.h>
+ #include <linux/init.h>
+ #include <linux/clk.h>
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 85089d821982..3bc59390a943 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -7,6 +7,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/clkdev.h>
+ #include <linux/irq.h>
+ #include <linux/gpio.h>
+ #include <linux/kernel.h>
+@@ -14,7 +15,6 @@
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+-#include <linux/clk.h>
+ #include <linux/omapfb.h>
+ 
+ #include <linux/spi/spi.h>
+diff --git a/arch/arm/mach-pxa/eseries.c b/arch/arm/mach-pxa/eseries.c
+index cfb864173ce3..4427bf26ea47 100644
+--- a/arch/arm/mach-pxa/eseries.c
++++ b/arch/arm/mach-pxa/eseries.c
+@@ -10,6 +10,7 @@
+  *
+  */
+ 
++#include <linux/clkdev.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/gpio.h>
+diff --git a/arch/arm/mach-pxa/lubbock.c b/arch/arm/mach-pxa/lubbock.c
+index d8a1be619f21..235f2d9318c1 100644
+--- a/arch/arm/mach-pxa/lubbock.c
++++ b/arch/arm/mach-pxa/lubbock.c
+@@ -11,6 +11,7 @@
+  *  it under the terms of the GNU General Public License version 2 as
+  *  published by the Free Software Foundation.
+  */
++#include <linux/clkdev.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+diff --git a/arch/arm/mach-pxa/tosa.c b/arch/arm/mach-pxa/tosa.c
+index 7780d1faa06f..92e56d8a24d8 100644
+--- a/arch/arm/mach-pxa/tosa.c
++++ b/arch/arm/mach-pxa/tosa.c
+@@ -12,6 +12,7 @@
+  *
+  */
+ 
++#include <linux/clkdev.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index d1ac9f3ab24b..c94a34a8a1b3 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -467,19 +467,6 @@ static inline void clk_disable_unprepare(struct clk *clk)
+ 	clk_unprepare(clk);
+ }
+ 
+-/**
+- * clk_add_alias - add a new clock alias
+- * @alias: name for clock alias
+- * @alias_dev_name: device name
+- * @id: platform specific clock name
+- * @dev: device
+- *
+- * Allows using generic clock names for drivers by adding a new alias.
+- * Assumes clkdev, see clkdev.h for more info.
+- */
+-int clk_add_alias(const char *alias, const char *alias_dev_name, char *id,
+-			struct device *dev);
+-
+ struct device_node;
+ struct of_phandle_args;
+ 
 -- 
-2.1.4
+1.8.3.1
 
