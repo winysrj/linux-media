@@ -1,61 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39624 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754559AbbDTI21 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 04:28:27 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 0/5] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
-Date: Mon, 20 Apr 2015 10:28:19 +0200
-Message-Id: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36108 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005AbbDCVoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 17:44:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	sakari.ailus@iki.fi
+Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
+Date: Sat, 04 Apr 2015 00:44:35 +0300
+Message-ID: <36620233.VbNiGUfDRt@avalon>
+In-Reply-To: <E1Ye59O-0001BJ-Gq@rmk-PC.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59O-0001BJ-Gq@rmk-PC.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
-draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
-decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
-poll should immediately return and all following VIDIOC_DQBUF should return
--EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
-(or STREAMOFF/STREAMON).
+Hi Russell,
 
-Changes since v4:
- - Split documentation changes back out into the first patch.
- - Changes according to Pawel's feedback, except for the POLLHUP suggestion.
+Thank you for the patch;
 
-regards
-Philipp
+On Friday 03 April 2015 18:12:58 Russell King wrote:
+> No merged platform supplies xclks via platform data.  As we want to
+> slightly change the clkdev interface, rather than fixing this unused
+> code, remove it instead.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Peter Seiderer (1):
-  [media] videodev2: Add V4L2_BUF_FLAG_LAST
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Philipp Zabel (4):
-  [media] DocBook media: document mem2mem draining flow
-  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
-  [media] coda: Set last buffer flag and fix EOS event
-  [media] s5p-mfc: Set last buffer flag
+with one caveat though : it conflicts with patches queued for v4.1 in the 
+media tree. I'll post a rebased version in a reply to your e-mail. How would 
+you like to handle the conflict ?
 
- Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
- .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  9 +++++++-
- .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  8 ++++++-
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
- drivers/media/platform/coda/coda-bit.c             |  4 ++--
- drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
- drivers/media/platform/coda/coda.h                 |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
- drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
- drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++++++++-
- include/media/videobuf2-core.h                     | 13 +++++++++++
- include/trace/events/v4l2.h                        |  3 ++-
- include/uapi/linux/videodev2.h                     |  2 ++
- 13 files changed, 94 insertions(+), 23 deletions(-)
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 18 ------------------
+>  drivers/media/platform/omap3isp/isp.h |  1 -
+>  include/media/omap3isp.h              |  6 ------
+>  3 files changed, 25 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index deca80903c3a..4d8078b9d010
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -281,7 +281,6 @@ static const struct clk_init_data isp_xclk_init_data = {
+> 
+>  static int isp_xclk_init(struct isp_device *isp)
+>  {
+> -	struct isp_platform_data *pdata = isp->pdata;
+>  	struct clk_init_data init;
+>  	unsigned int i;
+> 
+> @@ -311,20 +310,6 @@ static int isp_xclk_init(struct isp_device *isp)
+>  		xclk->clk = clk_register(NULL, &xclk->hw);
+>  		if (IS_ERR(xclk->clk))
+>  			return PTR_ERR(xclk->clk);
+> -
+> -		if (pdata->xclks[i].con_id == NULL &&
+> -		    pdata->xclks[i].dev_id == NULL)
+> -			continue;
+> -
+> -		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+> -		if (xclk->lookup == NULL)
+> -			return -ENOMEM;
+> -
+> -		xclk->lookup->con_id = pdata->xclks[i].con_id;
+> -		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+> -		xclk->lookup->clk = xclk->clk;
+> -
+> -		clkdev_add(xclk->lookup);
+>  	}
+> 
+>  	return 0;
+> @@ -339,9 +324,6 @@ static void isp_xclk_cleanup(struct isp_device *isp)
+> 
+>  		if (!IS_ERR(xclk->clk))
+>  			clk_unregister(xclk->clk);
+> -
+> -		if (xclk->lookup)
+> -			clkdev_drop(xclk->lookup);
+>  	}
+>  }
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index cfdfc8714b6b..d41c98bbdfe7
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -122,7 +122,6 @@ enum isp_xclk_id {
+>  struct isp_xclk {
+>  	struct isp_device *isp;
+>  	struct clk_hw hw;
+> -	struct clk_lookup *lookup;
+>  	struct clk *clk;
+>  	enum isp_xclk_id id;
+> 
+> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+> index 398279dd1922..a9798525d01e 100644
+> --- a/include/media/omap3isp.h
+> +++ b/include/media/omap3isp.h
+> @@ -152,13 +152,7 @@ struct isp_v4l2_subdevs_group {
+>  	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+>  };
+> 
+> -struct isp_platform_xclk {
+> -	const char *dev_id;
+> -	const char *con_id;
+> -};
+> -
+>  struct isp_platform_data {
+> -	struct isp_platform_xclk xclks[2];
+>  	struct isp_v4l2_subdevs_group *subdevs;
+>  	void (*set_constraints)(struct isp_device *isp, bool enable);
+>  };
 
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
