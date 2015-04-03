@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57742 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753363AbbDHWGw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 18:06:52 -0400
-Date: Thu, 9 Apr 2015 01:06:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 1/4] v4l: of: Remove the head field in struct
- v4l2_of_endpoint
-Message-ID: <20150408220616.GW20756@valkosipuli.retiisi.org.uk>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
- <1428361053-20411-2-git-send-email-sakari.ailus@iki.fi>
- <2590752.PorL0aNYep@avalon>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47087 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142AbbDCUhe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 16:37:34 -0400
+Date: Fri, 3 Apr 2015 22:37:30 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	cooloney@gmail.com, rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+Message-ID: <20150403203730.GA13009@amd>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+ <551E8DEA.5070205@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2590752.PorL0aNYep@avalon>
+In-Reply-To: <551E8DEA.5070205@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi!
 
-On Tue, Apr 07, 2015 at 01:11:34PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
+> >>+- flash-timeout-us : Timeout in microseconds after which the flash
+> >>+                     LED is turned off. If omitted this will default to the
+> >>+		     maximum timeout allowed by the device.
+> >>
+> >>
+> >>  Examples:
+> >
+> >Pavel pointed out that the brightness between maximum current and the
+> >maximum *allowed* another current might not be noticeable,leading a
+> >potential spelling error to cause the LED being run at too high current.
 > 
-> Thank you for the patch.
-> 
-> On Tuesday 07 April 2015 01:57:29 Sakari Ailus wrote:
-> > The field is unused. Remove it.
-> 
-> Do you know what the field was added for in the first place ?
+> Where did he point this out? Do you think about the current version
+> of the leds/common.txt documentation or there was some other message,
+> that I don't see?
 
-Frankly I have to admit I have no idea. It's part of the original patch
-which adds V4L2 OF support:
+Date: Thu, 2 Apr 2015 22:30:44 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv3] media: i2c/adp1653: devicetree support for adp1653
 
----
-commit 99fd133f907afdb430942d8d2ae53faa438adfe8
-Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date:   Wed Sep 26 05:24:03 2012 -0300
+> Besides, I can't understand your point. Could you express it in other
+> words, please?
 
-    [media] Add a V4L2 OF parser
-    
-    Add a V4L2 OF parser, implementing bindings documented in
-    Documentation/devicetree/bindings/media/video-interfaces.txt.
-    [s.nawrocki@samsung.com: various corrections and improvements
-    since the initial version]
-    
-    Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-    Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-    Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
-
-It looks like the intent has been that the field is used in order to keep a
-list of structs of this kind, but no-one is using it for that purpose at the
-moment.
-
+Typo in device tree would cause hardware damage. But idea. Make the
+properties mandatory.
+								Pavel
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
