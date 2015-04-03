@@ -1,70 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56284 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752252AbbDAPiY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2015 11:38:24 -0400
-Message-ID: <1427902693.6445.29.camel@nilsson.home.kraxel.org>
-Subject: Re: [PATCH v2 1/4] break kconfig dependency loop
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: John Hunter <zhjwpku@gmail.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	virtio-dev@lists.oasis-open.org,
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:38643 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491AbbDCQLv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 12:11:51 -0400
+Received: by igbqf9 with SMTP id qf9so97834377igb.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2015 09:11:51 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 3 Apr 2015 19:11:50 +0300
+Message-ID: <CAAZRmGwHjjVy6ecUe5oGiu4X3f0McVacu_RvAxop_NYqGEdedA@mail.gmail.com>
+Subject: Re: [v4l-utils] dvbv5-scan stores incorrect channel data for DVB-S
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mst@redhat.com, open list <linux-kernel@vger.kernel.org>,
-	airlied@redhat.com,
-	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>
-Date: Wed, 01 Apr 2015 17:38:13 +0200
-In-Reply-To: <CAEG8a3+Wp-jgtwKmcBhG2gVAOP2tQ5MHuJwYe-m2HwYQRB06HQ@mail.gmail.com>
-References: <1427894130-14228-1-git-send-email-kraxel@redhat.com>
-	 <1427894130-14228-2-git-send-email-kraxel@redhat.com>
-	 <CAEG8a3+Wp-jgtwKmcBhG2gVAOP2tQ5MHuJwYe-m2HwYQRB06HQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mi, 2015-04-01 at 22:55 +0800, John Hunter wrote:
-> Hi Gerd,
-> I've read the patches about the virtio-gpu, it's a nice design.
-> As far as I know, there are two other drivers used by qemu, CIRRUS and
-> BOCHS.
-> I have a question about the relationship of these three drivers, is
-> that the virtio-gpu
-> designed to replace the other two drivers? I mean are the CIRRUS and
-> BOCHS
-> going to be deprecated in the future?
+Hi Antti & Mauro,
 
-qemu has a bunch of different virtual graphics cards, and these are the
-drivers for them.  cirrus used to be the default gfx card until recently
-(qemu older then version 2.2).  stdvga (bochs driver) is the current
-default.  So expect them to be around for a while.
+It seems that dvbv5-scan makes a scan of channels, set the parameters
+it gets in the initial scan file, but then reads in the frequency from
+the driver before writing the channel file. It seems to get a much
+lower frequency (I understand this is the LNB frequency) from the
+driver:
 
-virtio-gpu will not replace them.
+Scanning frequency #1 11265000
+FREQUENCY = 11265000
+...
+Got parameters for DVBS2:
+FREQUENCY = 1515000
 
-> Actually, this is a problem by Martin Peres who is the GSoC xorg
-> administor. 
-> My proposal is "Convert the BOCHS and CIRRUS drivers to atomic
-> mode-setting".
+Now the question is, is the issue in the driver side or in the
+dvbv5-scan side? You two probably have the best insight into this as
+you wrote the driver and the dvbv5-scan utility.
 
-Surely makes sense for bochs and you shouldn't find major blockers.
-Not sure this is a reasonable task size for gsoc given it took me only a
-few days to convert virtio-gpu to atomic modesetting.  But maybe fine if
-you are new to drm kernel hacking and therefore the task includes
-learning alot new stuff.
-
-I have my doubts it'll work out for cirrus though, due to the small
-amount of video memory it has (and other limitations, because we mimic
-hardware from the 90ies here).  Current code is already swapping
-framebuffers in and out of video ram because of that.  So atomic
-modesetting, page flip, running wayland on that beast all is going to be
-problematic I expect.
-
-See also:
-https://www.kraxel.org/blog/2014/10/qemu-using-cirrus-considered-harmful/
-
-HTH,
-  Gerd
+Thanks,
+-olli
 
 
 
+---------- Earlier message ----------
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: 23 March 2015 at 17:37
+Subject: [v4l-utils] dvbv5-scan stores incorrect channel data for DVB-S
+To: linux-media <linux-media@vger.kernel.org>
+
+
+Hi,
+
+I noticed that when doing a channel scan using dvbv5-scan the scan
+results in a bogus dvb_channel.conf file.
+
+During the scan the correct frequency is printed out:
+
+Scanning frequency #1 11265000
+Service Viasat History HD, provider (null): reserved
+Service TV6 HD Sweden, provider (null): reserved
+Service Viasat Explore HD, provider (null): reserved
+Service Viasat 4  HD, provider (null): reserved
+Service Viasat Nature/Crime HD, provider (null): reserved
+Service TV3 HD Danmark, provider (null): reserved
+
+But in the dvb_channels.conf all channels have wrong frequencies, example:
+
+[Viasat History HD]
+SERVICE_ID = 2600
+VIDEO_PID = 2601
+AUDIO_PID = 2602 2603 2604 2605 2606
+PID_06 = 106 105 104 103 102 101 100
+SAT_NUMBER = 0
+LNB = UNIVERSAL
+FREQUENCY = 1515000
+INVERSION = OFF
+SYMBOL_RATE = 30000000
+INNER_FEC = 3/4
+MODULATION = PSK/8
+PILOT = ON
+ROLLOFF = 25
+POLARIZATION = HORIZONTAL
+STREAM_ID = 0
+DELIVERY_SYSTEM = DVBS2
+
+olli@dl160:~$ dvbv5-scan --version
+dvbv5-scan version 1.6.2
+
+olli@dl160:~$ dvbv5-scan -l UNIVERSAL -S 0
+~/documents/dvb/initial_scan_data/dvbs/s4e8.conf > ~/output.txt
+
+Initial scan file: http://paste.ubuntu.com/10661471/
+Resulting output.txt: http://paste.ubuntu.com/10661520/
+Resulting dvb_channel.conf: http://paste.ubuntu.com/10661485/
+Same scan, this time with very verbose
+settings:http://paste.ubuntu.com/10661568/
+
+Cheers,
+-olli
