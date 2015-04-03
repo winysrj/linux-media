@@ -1,45 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:34922 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030265AbbD1QZk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 12:25:40 -0400
-Received: by lbbuc2 with SMTP id uc2so4284lbb.2
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2015 09:25:39 -0700 (PDT)
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33754 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205AbbDCRMc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:12:32 -0400
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: [PATCH 01/14] clk: update clk API documentation to clarify
+ clk_round_rate()
 MIME-Version: 1.0
-In-Reply-To: <CAB0d6Ed==Eia5O8_hYZRcd9zsoFNC2naLh1MO-YOVPp8pdTfpg@mail.gmail.com>
-References: <CAB0d6Ed==Eia5O8_hYZRcd9zsoFNC2naLh1MO-YOVPp8pdTfpg@mail.gmail.com>
-Date: Tue, 28 Apr 2015 13:25:38 -0300
-Message-ID: <CAB0d6EdNV8hqnmLYb2tKB-y21+QpeTJ36AWs0RvjChN+VwTgRg@mail.gmail.com>
-Subject: Fwd: UVC Camera on BeagleBoneBlack does not achieve good resolutions
- for preview
-From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <E1Ye58t-0001At-NZ@rmk-PC.arm.linux.org.uk>
+Date: Fri, 03 Apr 2015 18:12:27 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The idea is that rate = clk_round_rate(clk, r) is equivalent to:
 
-I'm facing a problem on BeagleBoneBlack. For capturing pictures on a
-USB UVC capture board camera I have to stick with a camera preview
-streaming with a very low resolution of 320x240 otherwise I cannot get
-the camera preview streaming.
+	clk_set_rate(clk, r);
+	rate = clk_get_rate(clk);
 
-I'm using Rowboat Android and a v4l2 camera hardware HAL.
+except that clk_round_rate() does not change the hardware in any way.
 
-However the same camera achieve 640x480 preview on other devices.
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ include/linux/clk.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-Not sure where to start investigating, might be it a kernel issue
-(it's odd because on the other devices the kernel is older).
-
-Or is there any hardware issue on BBB?
-
-Any suggestions would help a lot.
-
-Thanks.
-
+diff --git a/include/linux/clk.h b/include/linux/clk.h
+index 8381bbfbc308..d1ac9f3ab24b 100644
+--- a/include/linux/clk.h
++++ b/include/linux/clk.h
+@@ -288,6 +288,20 @@ void devm_clk_put(struct device *dev, struct clk *clk);
+  * @clk: clock source
+  * @rate: desired clock rate in Hz
+  *
++ * This answers the question "if I were to pass @rate to clk_set_rate(),
++ * what clock rate would I end up with?" without changing the hardware
++ * in any way.  In other words:
++ *
++ *   rate = clk_round_rate(clk, r);
++ *
++ * and:
++ *
++ *   clk_set_rate(clk, r);
++ *   rate = clk_get_rate(clk);
++ *
++ * are equivalent except the former does not modify the clock hardware
++ * in any way.
++ *
+  * Returns rounded clock rate in Hz, or negative errno.
+  */
+ long clk_round_rate(struct clk *clk, unsigned long rate);
 -- 
-Regards,
-Coutinho
-www.phiinnovations.com
+1.8.3.1
+
