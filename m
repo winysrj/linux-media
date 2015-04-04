@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40697 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751106AbbDUNy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:54:56 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4C4BE2A0089
-	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 15:54:29 +0200 (CEST)
-Message-ID: <55365695.8080006@xs4all.nl>
-Date: Tue, 21 Apr 2015 15:54:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:35515 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752507AbbDDMxS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2015 08:53:18 -0400
+Date: Sat, 4 Apr 2015 13:53:04 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Daniel Mack <daniel@zonque.org>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>
+Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias()
+ prototype in linux/clk.h
+Message-ID: <20150404125303.GE4027@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+ <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
+ <87lhi8rrmd.fsf@free.fr>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] Fill in the description for VIDIOC_ENUM_FMT
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87lhi8rrmd.fsf@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure standard format descriptions by filling it in in the v4l2 core.
-Currently these descriptions are all over the place and every driver dreams
-up its own description. That's not good.
+On Sat, Apr 04, 2015 at 02:43:22PM +0200, Robert Jarzmik wrote:
+> Russell King <rmk+kernel@arm.linux.org.uk> writes:
+> 
+> > clk_add_alias() is provided by clkdev, and is not part of the clk API.
+> > Howver, it is prototyped in two locations: linux/clkdev.h and
+> > linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
+> > version in linux/clk.h.
+> >
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> 
+> Actually, this serie fixes a regression I've seen in linux-next, and
+> which was triggering the Oops in [1] on lubbock. With your serie, the
+> kernel boots fine.
 
-Regards,
+Yes, this series does fix a regression - I mentioned that the per-user
+clk patches broke quite a bit of this code in the cover to the series.
 
-	Hans
-
-The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
-
-  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2c
-
-for you to fetch changes up to b1a4374e55d847ae0b17b33c52a974de833ce228:
-
-  vivid: drop format description (2015-04-21 15:39:49 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
-      v4l2-pci-skeleton: drop format description
-      vim2m: drop format description
-      vivid: drop format description
-
- Documentation/video4linux/v4l2-pci-skeleton.c   |   2 -
- drivers/media/platform/vim2m.c                  |   4 --
- drivers/media/platform/vivid/vivid-core.h       |   1 -
- drivers/media/platform/vivid/vivid-vid-cap.c    |   4 --
- drivers/media/platform/vivid/vivid-vid-common.c |  50 -------------------
- drivers/media/v4l2-core/v4l2-ioctl.c            | 199 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
- 6 files changed, 192 insertions(+), 68 deletions(-)
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
