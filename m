@@ -1,204 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52127 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753622AbbDHKIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 06:08:46 -0400
-Date: Wed, 8 Apr 2015 07:08:39 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jaedon Shin <jaedon.shin@gmail.com>
-Cc: Changbing Xiong <cb.xiong@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] dmxdev: fix possible race conditions in
- dvb_dmxdev_buffer_read
-Message-ID: <20150408070839.272933e1@recife.lan>
-In-Reply-To: <1419908734-57798-1-git-send-email-jaedon.shin@gmail.com>
-References: <1419908734-57798-1-git-send-email-jaedon.shin@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55929 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751781AbbDDC1l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2015 22:27:41 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 305402A009F
+	for <linux-media@vger.kernel.org>; Sat,  4 Apr 2015 04:27:08 +0200 (CEST)
+Date: Sat, 04 Apr 2015 04:27:08 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150404022708.305402A009F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Em Tue, 30 Dec 2014 12:05:34 +0900
-Jaedon Shin <jaedon.shin@gmail.com> escreveu:
+Results of the daily build of media_tree:
 
-> This patch splits the dvb_dmxdev_buffer_read into dvb_dvr_read and
-> dvb_demux_read that fixes to unlock mutex before sleeping.
-> 
-> There are race conditions executing the DMX_ADD_PID and the DMX_REMOVE_PID
-> in the dvb_demux_do_ioctl when dvb_demux_read is waiting for data.
-> 
-> Signed-off-by: Jaedon Shin <jaedon.shin@gmail.com>
-> ---
->  drivers/media/dvb-core/dmxdev.c | 94 ++++++++++++++++++++++++++++++++---------
->  1 file changed, 75 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-> index abff803..c2564b0 100644
-> --- a/drivers/media/dvb-core/dmxdev.c
-> +++ b/drivers/media/dvb-core/dmxdev.c
-> @@ -57,10 +57,11 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
->  	return dvb_ringbuffer_write(buf, src, len);
->  }
->  
-> -static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
-> +static ssize_t dvb_dmxdev_buffer_read(struct dmxdev_filter *dmxdevfilter,
->  				      int non_blocking, char __user *buf,
->  				      size_t count, loff_t *ppos)
->  {
-> +	struct dvb_ringbuffer *src = &dmxdevfilter->buffer;
->  	size_t todo;
->  	ssize_t avail;
->  	ssize_t ret = 0;
-> @@ -75,16 +76,21 @@ static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
->  	}
->  
->  	for (todo = count; todo > 0; todo -= ret) {
-> -		if (non_blocking && dvb_ringbuffer_empty(src)) {
-> -			ret = -EWOULDBLOCK;
-> -			break;
-> -		}
-> +		if (dvb_ringbuffer_empty(src)) {
-> +			mutex_unlock(&dmxdevfilter->mutex);
->  
-> -		ret = wait_event_interruptible(src->queue,
-> -					       !dvb_ringbuffer_empty(src) ||
-> -					       (src->error != 0));
-> -		if (ret < 0)
-> -			break;
-> +			if (non_blocking)
-> +				return -EWOULDBLOCK;
-> +
-> +			ret = wait_event_interruptible(src->queue,
-> +					!dvb_ringbuffer_empty(src) ||
-> +					(src->error != 0));
-> +			if (ret < 0)
-> +				return ret;
-> +
-> +			if (mutex_lock_interruptible(&dmxdevfilter->mutex))
-> +				return -ERESTARTSYS;
-> +		}
->  
->  		if (src->error) {
->  			ret = src->error;
-> @@ -242,13 +248,63 @@ static ssize_t dvb_dvr_read(struct file *file, char __user *buf, size_t count,
->  {
->  	struct dvb_device *dvbdev = file->private_data;
->  	struct dmxdev *dmxdev = dvbdev->priv;
-> +	struct dvb_ringbuffer *src = &dmxdev->dvr_buffer;
-> +	size_t todo;
-> +	ssize_t avail;
-> +	ssize_t ret = 0;
->  
-> -	if (dmxdev->exit)
-> +	if (mutex_lock_interruptible(&dmxdev->mutex))
-> +		return -ERESTARTSYS;
-> +
-> +	if (dmxdev->exit) {
-> +		mutex_unlock(&dmxdev->mutex);
->  		return -ENODEV;
-> +	}
-> +
-> +	if (src->error) {
-> +		ret = src->error;
-> +		dvb_ringbuffer_flush(src);
-> +		mutex_unlock(&dmxdev->mutex);
-> +		return ret;
-> +	}
-> +
-> +	for (todo = count; todo > 0; todo -= ret) {
-> +		if (dvb_ringbuffer_empty(src)) {
-> +			mutex_unlock(&dmxdev->mutex);
->  
-> -	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
-> -				      file->f_flags & O_NONBLOCK,
-> -				      buf, count, ppos);
-> +			if (file->f_flags & O_NONBLOCK)
-> +				return -EWOULDBLOCK;
-> +
-> +			ret = wait_event_interruptible(src->queue,
-> +					!dvb_ringbuffer_empty(src) ||
-> +					(src->error != 0));
-> +			if (ret < 0)
-> +				return ret;
-> +
-> +			if (mutex_lock_interruptible(&dmxdev->mutex))
-> +				return -ERESTARTSYS;
-> +		}
+date:		Sat Apr  4 04:00:42 CEST 2015
+git branch:	test
+git hash:	a5562f65b1371a0988b707c10c44fcc2bba56990
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-Hmm... you're replicating what's there at dvb_dmxdev_buffer_read()
-with a few additions bellow.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
 
-Instead, please do it in a way that we'll have just one copy of the
-code. The DVB ringbuf logic is already complex enough without code
-duplication.
+Detailed results are available here:
 
-This would also make easier for reviewers to check the changes at
-the logic.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-> +
-> +		if (src->error) {
-> +			ret = src->error;
-> +			dvb_ringbuffer_flush(src);
-> +			break;
-> +		}
-> +
-> +		avail = dvb_ringbuffer_avail(src);
-> +		if (avail > todo)
-> +			avail = todo;
-> +
-> +		ret = dvb_ringbuffer_read_user(src, buf, avail);
-> +		if (ret < 0)
-> +			break;
-> +
-> +		buf += ret;
-> +	}
-> +
-> +	mutex_unlock(&dmxdev->mutex);
-> +
-> +	return (count - todo) ? (count - todo) : ret;
->  }
->  
->  static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-> @@ -283,7 +339,6 @@ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
->  
->  	return 0;
->  }
-> -
->  static inline void dvb_dmxdev_filter_state_set(struct dmxdev_filter
->  					       *dmxdevfilter, int state)
->  {
-> @@ -904,7 +959,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
->  		hcount = 3 + dfil->todo;
->  		if (hcount > count)
->  			hcount = count;
-> -		result = dvb_dmxdev_buffer_read(&dfil->buffer,
-> +		result = dvb_dmxdev_buffer_read(dfil,
->  						file->f_flags & O_NONBLOCK,
->  						buf, hcount, ppos);
->  		if (result < 0) {
-> @@ -925,7 +980,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
->  	}
->  	if (count > dfil->todo)
->  		count = dfil->todo;
-> -	result = dvb_dmxdev_buffer_read(&dfil->buffer,
-> +	result = dvb_dmxdev_buffer_read(dfil,
->  					file->f_flags & O_NONBLOCK,
->  					buf, count, ppos);
->  	if (result < 0)
-> @@ -947,11 +1002,12 @@ dvb_demux_read(struct file *file, char __user *buf, size_t count,
->  	if (dmxdevfilter->type == DMXDEV_TYPE_SEC)
->  		ret = dvb_dmxdev_read_sec(dmxdevfilter, file, buf, count, ppos);
->  	else
-> -		ret = dvb_dmxdev_buffer_read(&dmxdevfilter->buffer,
-> +		ret = dvb_dmxdev_buffer_read(dmxdevfilter,
->  					     file->f_flags & O_NONBLOCK,
->  					     buf, count, ppos);
->  
-> -	mutex_unlock(&dmxdevfilter->mutex);
-> +	if (mutex_is_locked(&dmxdevfilter->mutex))
-> +		mutex_unlock(&dmxdevfilter->mutex);
->  	return ret;
->  }
->  
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
