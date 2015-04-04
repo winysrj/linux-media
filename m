@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58895 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752468AbbDBPDE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 11:03:04 -0400
-Date: Thu, 2 Apr 2015 17:02:58 +0200
-From: Jan Kara <jack@suse.cz>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
-	David Airlie <airlied@linux.ie>, Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/9 v2] Helper to abstract vma handling in media layer
-Message-ID: <20150402150258.GA31277@quack.suse.cz>
-References: <1426593399-6549-1-git-send-email-jack@suse.cz>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42577 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751998AbbDDOzQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Apr 2015 10:55:16 -0400
+Message-ID: <551FFB32.2020309@xs4all.nl>
+Date: Sat, 04 Apr 2015 16:54:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1426593399-6549-1-git-send-email-jack@suse.cz>
+To: linux-media@vger.kernel.org
+CC: corbet@lwn.net
+Subject: Re: [PATCHv3 00/22] marvell-ccic: drop and fix formats
+References: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1426333621-21474-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello,
-
-On Tue 17-03-15 12:56:30, Jan Kara wrote:
->   After a long pause I'm sending second version of my patch series to abstract
-> vma handling from the various media drivers. After this patch set drivers have
-> to know much less details about vmas, their types, and locking. My motivation
-> for the series is that I want to change get_user_pages() locking and I want to
-> handle subtle locking details in as few places as possible.
+On 03/14/2015 12:46 PM, Hans Verkuil wrote:
+> This v3 patch series replaces patch 18 from the first series.
 > 
-> The core of the series is the new helper get_vaddr_pfns() which is given a
-> virtual address and it fills in PFNs into provided array. If PFNs correspond to
-> normal pages it also grabs references to these pages. The difference from
-> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
-> mappings which is what the media drivers need.
+> Patch 18 and 19 are unchanged from patches 18 and 21 from the
+> second series.
 > 
-> I have tested the patches with vivid driver so at least vb2 code got some
-> exposure. Conversion of other drivers was just compile-tested so I'd like to
-> ask respective maintainers if they could have a look.  Also I'd like to ask mm
-> folks to check patch 2/9 implementing the helper. Thanks!
-  Ping? Any reactions?
+> Patches 20-21 replace the RGB444 format by the newly defined XBGR444
+> format (X means that the 'alpha' channel should be ignored and is not
+> filled in). The actual layout in memory remains unchanged.
+> 
+> Patch 22 fixes the Bayer format.
+> 
+> All tested on my OLPC XO-1 laptop.
 
-								Honza
+Jon, ping!
 
--- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+Patch 18 is merged and I have your Ack for patch 19, but I'd like your Ack
+as well for patches 20-22, if possible.
+
+Regards,
+
+	Hans
