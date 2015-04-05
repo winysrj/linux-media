@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:12687 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259AbbDHLu3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 07:50:29 -0400
-Message-ID: <552513B4.4050001@cisco.com>
-Date: Wed, 08 Apr 2015 13:40:36 +0200
-From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:36235 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320AbbDEJE5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2015 05:04:57 -0400
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Hans Verkuil <hansverk@cisco.com>, kernel@pengutronix.de,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC 00/12] TC358743 async subdev and dt support
-References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+Date: Sun, 5 Apr 2015 11:04:56 +0200
+Message-ID: <CAMuHMdWue2Pw15j_2ikhSQWxOMGLLO4ojmmyxSvZ=9YwD_+14w@mail.gmail.com>
+Subject: Re: [PATCH 00/14] Fix fallout from per-user struct clk patches
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>,
+	Gregory Clement <gregory.clement@free-electrons.com>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Roland Stigge <stigge@antcom.de>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Stephen Boyd <sboyd@codeaurora.org>,
+	Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-Hans forwarded this patch series to me now, since I haven't received if 
-for some reason. I will prioritize upstreaming of the driver the next 
-couple of days and create a new RFC. I will also go through your patches 
-and give you feedback!
+Hi Russell,
 
-Regards,
-Mats
+On Fri, Apr 3, 2015 at 7:11 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Sorry for posting this soo close to the 4.1 merge window, I had
+> completely forgotten about this chunk of work I did earlier this
+> month.
+>
+> The per-user struct clk patches rather badly broke clkdev and
+> various other places.  This was reported, but was forgotten about.
+> Really, the per-user clk stuff should've been reverted, but we've
+> lived with it far too long for that.
+>
+> So, our only other option is to now rush these patches into 4.1
+> and hope for the best.
+>
+> The series cleans up quite a number of places too...
 
+Thanks for your patches!
 
-On 03/30/2015 01:10 PM, Philipp Zabel wrote:
-> Hi Mats,
->
-> did you have time to work on the TC358743 driver some more in the meanwhile?
-> These are the changes I have made locally to v1 to get it to work on i.MX6.
->
-> regards
-> Philipp
->
-> Mats Randgaard (1):
->    [media] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
->
-> Philipp Zabel (11):
->    [media] tc358743: register v4l2 asynchronous subdevice
->    [media] tc358743: support probe from device tree
->    [media] tc358743: fix set_pll to enable PLL with default frequency
->    [media] tc358743: fix lane number calculation to include blanking
->    [media] tc358743: split set_csi into set_csi and start_csi
->    [media] tc358743: also set TCLK_TRAILCNT and TCLK_POSTCNT
->    [media] tc358743: parse MIPI CSI-2 endpoint, support noncontinuous
->      clock
->    [media] tc358743: add direct interrupt handling
->    [media] tc358743: detect chip by ChipID instead of IntMask
->    [media] tc358743: don't return E2BIG from G_EDID
->    [media] tc358743: allow event subscription
->
->   MAINTAINERS                        |    6 +
->   drivers/media/i2c/Kconfig          |   12 +
->   drivers/media/i2c/Makefile         |    1 +
->   drivers/media/i2c/tc358743.c       | 1979 ++++++++++++++++++++++++++++++++++++
->   drivers/media/i2c/tc358743_regs.h  |  670 ++++++++++++
->   include/media/tc358743.h           |   89 ++
->   include/uapi/linux/v4l2-controls.h |    4 +
->   7 files changed, 2761 insertions(+)
->   create mode 100644 drivers/media/i2c/tc358743.c
->   create mode 100644 drivers/media/i2c/tc358743_regs.h
->   create mode 100644 include/media/tc358743.h
->
+Can you please tell which are critical fixes for regressions, and which are
+cleanups? It's not so obvious to me from the patch descriptions.
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
