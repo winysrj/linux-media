@@ -1,42 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45333 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751207AbbDXOQ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 10:16:56 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 750E22A002F
-	for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 16:16:27 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] vivid-tpg: fixes/improvements
-Date: Fri, 24 Apr 2015 16:16:21 +0200
-Message-Id: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:37304 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbbDEOOL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2015 10:14:11 -0400
+Date: Sun, 5 Apr 2015 15:13:39 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: ALSA Development Mailing List <alsa-devel@alsa-project.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>,
+	Gregory Clement <gregory.clement@free-electrons.com>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Mark Brown <broonie@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Roland Stigge <stigge@antcom.de>,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Stephen Boyd <sboyd@codeaurora.org>,
+	Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/14] Fix fallout from per-user struct clk patches
+Message-ID: <20150405141339.GF4027@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+ <CAMuHMdWue2Pw15j_2ikhSQWxOMGLLO4ojmmyxSvZ=9YwD_+14w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWue2Pw15j_2ikhSQWxOMGLLO4ojmmyxSvZ=9YwD_+14w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun, Apr 05, 2015 at 11:04:56AM +0200, Geert Uytterhoeven wrote:
+> Hi Russell,
+> 
+> On Fri, Apr 3, 2015 at 7:11 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > Sorry for posting this soo close to the 4.1 merge window, I had
+> > completely forgotten about this chunk of work I did earlier this
+> > month.
+> >
+> > The per-user struct clk patches rather badly broke clkdev and
+> > various other places.  This was reported, but was forgotten about.
+> > Really, the per-user clk stuff should've been reverted, but we've
+> > lived with it far too long for that.
+> >
+> > So, our only other option is to now rush these patches into 4.1
+> > and hope for the best.
+> >
+> > The series cleans up quite a number of places too...
+> 
+> Thanks for your patches!
+> 
+> Can you please tell which are critical fixes for regressions, and which are
+> cleanups? It's not so obvious to me from the patch descriptions.
 
-- Add logging
-- Add full range variants of several Y'CbCr encodings to be
-  consistent with the existing encodings
-- Ignore quantization range for the XV601/709 encodings as that
-  does not apply for those encodings
-
-	Hans
-
-Hans Verkuil (5):
-  vivid-tpg: add tpg_log_status()
-  vivid-tpg: add full range SMPTE 240M support
-  vivid-tpg: add full range BT.2020 support
-  vivid-tpg: add full range BT.2020C support
-  vivid-tpg: fix XV601/709 Y'CbCr encoding
-
- drivers/media/platform/vivid/vivid-core.c |  13 +++-
- drivers/media/platform/vivid/vivid-tpg.c  | 109 ++++++++++++++++++++++++------
- drivers/media/platform/vivid/vivid-tpg.h  |   1 +
- 3 files changed, 103 insertions(+), 20 deletions(-)
+The 5th one is the most important as far as fixing the regression caused
+by the per-user clk patches.
 
 -- 
-2.1.4
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
