@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:38399 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752085AbbDDAQW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 20:16:22 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	ldv-project@linuxtesting.org, linux-media@vger.kernel.org,
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:24132
+	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753148AbbDEMOp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2015 08:14:45 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] marvell-ccic: fix memory leak on failure path in cafe_smbus_setup()
-Date: Sat,  4 Apr 2015 03:16:01 +0300
-Message-Id: <1428106561-12623-1-git-send-email-khoroshilov@ispras.ru>
+Subject: [PATCH 4/16] [media] as102: fix error return code
+Date: Sun,  5 Apr 2015 14:06:23 +0200
+Message-Id: <1428235596-4757-4-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1428235596-4757-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1428235596-4757-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If i2c_add_adapter() fails, adap is not deallocated.
+Return a negative error code on failure.
 
-Found by Linux Driver Verification project (linuxtesting.org).
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+// <smpl>
+@@
+identifier ret; expression e1,e2;
+@@
+(
+if (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/platform/marvell-ccic/cafe-driver.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/media/usb/as102/as102_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
-index 562845361246..9d45505370cd 100644
---- a/drivers/media/platform/marvell-ccic/cafe-driver.c
-+++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
-@@ -339,17 +339,21 @@ static int cafe_smbus_setup(struct cafe_camera *cam)
- 	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
- 	if (adap == NULL)
- 		return -ENOMEM;
--	cam->mcam.i2c_adapter = adap;
--	cafe_smbus_enable_irq(cam);
- 	adap->owner = THIS_MODULE;
- 	adap->algo = &cafe_smbus_algo;
- 	strcpy(adap->name, "cafe_ccic");
- 	adap->dev.parent = &cam->pdev->dev;
- 	i2c_set_adapdata(adap, cam);
- 	ret = i2c_add_adapter(adap);
--	if (ret)
-+	if (ret) {
- 		printk(KERN_ERR "Unable to register cafe i2c adapter\n");
--	return ret;
-+		kfree(adap);
-+		return ret;
-+	}
-+
-+	cam->mcam.i2c_adapter = adap;
-+	cafe_smbus_enable_irq(cam);
-+	return 0;
- }
- 
- static void cafe_smbus_shutdown(struct cafe_camera *cam)
--- 
-1.9.1
+diff --git a/drivers/media/usb/as102/as102_drv.c b/drivers/media/usb/as102/as102_drv.c
+index 8be1474..9dd7c7c 100644
+--- a/drivers/media/usb/as102/as102_drv.c
++++ b/drivers/media/usb/as102/as102_drv.c
+@@ -337,6 +337,7 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
+ 				       &as102_dev->bus_adap,
+ 				       as102_dev->elna_cfg);
+ 	if (!as102_dev->dvb_fe) {
++		ret = -ENODEV;
+ 		dev_err(dev, "%s: as102_attach() failed: %d",
+ 		    __func__, ret);
+ 		goto efereg;
 
