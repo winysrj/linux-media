@@ -1,98 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59768 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753951AbbDUNRX (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47918 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751407AbbDEC25 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:17:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 4 Apr 2015 22:28:57 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id EA6B02A008E
+	for <linux-media@vger.kernel.org>; Sun,  5 Apr 2015 04:28:21 +0200 (CEST)
+Date: Sun, 05 Apr 2015 04:28:21 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/15] vivid: add request support for video capture.
-Date: Tue, 21 Apr 2015 14:58:56 +0200
-Message-Id: <1429621138-17213-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150405022821.EA6B02A008E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-In order to test the request API in applications we add request support to
-vivid. The brightness, contrast, saturation and hue controls now can be used
-in requests. Those were chosen because the test pattern generator supports
-those controls and will adjust the TPG colors accordingly, so this gives a
-good visual feedback.
+Results of the daily build of media_tree:
 
-Just before a buffer with a specific request is ready to be filled, any
-controls set for that request are applied and the TPG will use the new
-values for filling in the buffer, so this matches what a well-written driver
-will do in actual hardware.
+date:		Sun Apr  5 04:00:14 CEST 2015
+git branch:	test
+git hash:	a5562f65b1371a0988b707c10c44fcc2bba56990
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-Finally, support for req_queue is added using the new v4l2_device_req_queue
-helper function.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.c        | 2 ++
- drivers/media/platform/vivid/vivid-ctrls.c       | 4 ++++
- drivers/media/platform/vivid/vivid-kthread-cap.c | 2 ++
- 3 files changed, 8 insertions(+)
+Detailed results are available here:
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index d33f164..23c5bc0 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -669,6 +669,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		return ret;
- 	}
- 	dev->v4l2_dev.release = vivid_dev_release;
-+	dev->v4l2_dev.req_queue = v4l2_device_req_queue;
- 
- 	/* start detecting feature set */
- 
-@@ -1044,6 +1045,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
-+		q->allow_requests = 1;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 2b90700..bb66608 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -1301,12 +1301,16 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
- 		for (i = 0; i < MAX_INPUTS; i++)
- 			dev->input_brightness[i] = 128;
-+		v4l2_ctrl_s_max_reqs(dev->brightness, VIDEO_MAX_FRAME);
- 		dev->contrast = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
- 			V4L2_CID_CONTRAST, 0, 255, 1, 128);
-+		v4l2_ctrl_s_max_reqs(dev->contrast, VIDEO_MAX_FRAME);
- 		dev->saturation = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
- 			V4L2_CID_SATURATION, 0, 255, 1, 128);
-+		v4l2_ctrl_s_max_reqs(dev->saturation, VIDEO_MAX_FRAME);
- 		dev->hue = v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
- 			V4L2_CID_HUE, -128, 128, 1, 0);
-+		v4l2_ctrl_s_max_reqs(dev->hue, VIDEO_MAX_FRAME);
- 		v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
- 			V4L2_CID_HFLIP, 0, 1, 1, 0);
- 		v4l2_ctrl_new_std(hdl_user_vid, &vivid_user_vid_ctrl_ops,
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index 1727f54..6b4d3b7 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -681,6 +681,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 	if (!list_empty(&dev->vid_cap_active)) {
- 		vid_cap_buf = list_entry(dev->vid_cap_active.next, struct vivid_buffer, list);
- 		list_del(&vid_cap_buf->list);
-+		v4l2_ctrl_apply_request(dev->vid_cap_dev.ctrl_handler,
-+					vid_cap_buf->vb.v4l2_buf.request);
- 	}
- 	if (!list_empty(&dev->vbi_cap_active)) {
- 		if (dev->field_cap != V4L2_FIELD_ALTERNATE ||
--- 
-2.1.4
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
