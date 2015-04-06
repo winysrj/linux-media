@@ -1,120 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:30395 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158AbbC0NuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:50:17 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: [PATCH v2 04/11] DT: Add documentation for the mfd Maxim max77693
-Date: Fri, 27 Mar 2015 14:49:38 +0100
-Message-id: <1427464185-27950-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
-References: <1427464185-27950-1-git-send-email-j.anaszewski@samsung.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:36513 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752989AbbDFL0m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2015 07:26:42 -0400
+Subject: [PATCH 2/4] ir-keytable: replace more sysfs if-else code with loops
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 06 Apr 2015 13:26:08 +0200
+Message-ID: <20150406112608.23289.58902.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150406112326.23289.28902.stgit@zeus.muc.hardeman.nu>
+References: <20150406112326.23289.28902.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-the flash cell of the Maxim max77693 multifunctional device.
+Document the sysfs1 interface in protocol_map[] and replace some
+more if-else code with loops.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- Documentation/devicetree/bindings/mfd/max77693.txt |   61 ++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+ utils/keytable/keytable.c |  124 ++++++++++++++++++++-------------------------
+ 1 file changed, 55 insertions(+), 69 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-index 38e6440..15c546ea 100644
---- a/Documentation/devicetree/bindings/mfd/max77693.txt
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -76,7 +76,53 @@ Optional properties:
-     Valid values: 4300000, 4700000, 4800000, 4900000
-     Default: 4300000
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index 2ca693f..949eed9 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -109,36 +109,37 @@ enum sysfs_protocols {
  
-+- led : the LED submodule device node
+ struct protocol_map_entry {
+ 	const char *name;
++	const char *sysfs1_name;
+ 	enum sysfs_protocols sysfs_protocol;
+ };
+ 
+ const struct protocol_map_entry protocol_map[] = {
+-	{ "unknown",	SYSFS_UNKNOWN	},
+-	{ "other",	SYSFS_OTHER	},
+-	{ "lirc",	SYSFS_LIRC	},
+-	{ "rc-5",	SYSFS_RC5	},
+-	{ "rc5",	SYSFS_RC5	},
+-	{ "rc-5x",	SYSFS_INVALID	},
+-	{ "rc5x",	SYSFS_INVALID	},
+-	{ "jvc",	SYSFS_JVC	},
+-	{ "sony",	SYSFS_SONY	},
+-	{ "sony12",	SYSFS_INVALID	},
+-	{ "sony15",	SYSFS_INVALID	},
+-	{ "sony20",	SYSFS_INVALID	},
+-	{ "nec",	SYSFS_NEC	},
+-	{ "sanyo",	SYSFS_SANYO	},
+-	{ "mce-kbd",	SYSFS_MCE_KBD	},
+-	{ "mce_kbd",	SYSFS_MCE_KBD	},
+-	{ "rc-6",	SYSFS_RC6	},
+-	{ "rc6",	SYSFS_RC6	},
+-	{ "rc-6-0",	SYSFS_INVALID	},
+-	{ "rc-6-6a-20",	SYSFS_INVALID	},
+-	{ "rc-6-6a-24",	SYSFS_INVALID	},
+-	{ "rc-6-6a-32",	SYSFS_INVALID	},
+-	{ "rc-6-mce",	SYSFS_INVALID	},
+-	{ "sharp",	SYSFS_SHARP	},
+-	{ "xmp",	SYSFS_XMP	},
+-	{ NULL,		SYSFS_INVALID	},
++	{ "unknown",	NULL,		SYSFS_UNKNOWN	},
++	{ "other",	NULL,		SYSFS_OTHER	},
++	{ "lirc",	NULL,		SYSFS_LIRC	},
++	{ "rc-5",	"/rc5_decoder",	SYSFS_RC5	},
++	{ "rc5",	NULL,		SYSFS_RC5	},
++	{ "rc-5x",	NULL,		SYSFS_INVALID	},
++	{ "rc5x",	NULL,		SYSFS_INVALID	},
++	{ "jvc",	"/jvc_decoder",	SYSFS_JVC	},
++	{ "sony",	"/sony_decoder",SYSFS_SONY	},
++	{ "sony12",	NULL,		SYSFS_INVALID	},
++	{ "sony15",	NULL,		SYSFS_INVALID	},
++	{ "sony20",	NULL,		SYSFS_INVALID	},
++	{ "nec",	"/nec_decoder",	SYSFS_NEC	},
++	{ "sanyo",	NULL,		SYSFS_SANYO	},
++	{ "mce-kbd",	NULL,		SYSFS_MCE_KBD	},
++	{ "mce_kbd",	NULL,		SYSFS_MCE_KBD	},
++	{ "rc-6",	"/rc6_decoder",	SYSFS_RC6	},
++	{ "rc6",	NULL,		SYSFS_RC6	},
++	{ "rc-6-0",	NULL,		SYSFS_INVALID	},
++	{ "rc-6-6a-20",	NULL,		SYSFS_INVALID	},
++	{ "rc-6-6a-24",	NULL,		SYSFS_INVALID	},
++	{ "rc-6-6a-32",	NULL,		SYSFS_INVALID	},
++	{ "rc-6-mce",	NULL,		SYSFS_INVALID	},
++	{ "sharp",	NULL,		SYSFS_SHARP	},
++	{ "xmp",	"/xmp_decoder",	SYSFS_XMP	},
++	{ NULL,		NULL,		SYSFS_INVALID	},
+ };
+ 
+ static enum sysfs_protocols parse_sysfs_protocol(const char *name, bool all_allowed)
+@@ -886,7 +887,7 @@ static int v1_get_sw_enabled_protocol(char *dirname)
+ }
+ 
+ static int v1_set_sw_enabled_protocol(struct rc_device *rc_dev,
+-				   char *dirname, int enabled)
++				      const char *dirname, int enabled)
+ {
+ 	FILE *fp;
+ 	char name[512];
+@@ -1084,30 +1085,20 @@ static int get_attribs(struct rc_device *rc_dev, char *sysfs_name)
+ 		} else if (strstr(cur->name, "/supported_protocols")) {
+ 			rc_dev->version = VERSION_1;
+ 			rc_dev->supported = v1_get_hw_protocols(cur->name);
+-		} else if (strstr(cur->name, "/nec_decoder")) {
+-			rc_dev->supported |= SYSFS_NEC;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_NEC;
+-		} else if (strstr(cur->name, "/rc5_decoder")) {
+-			rc_dev->supported |= SYSFS_RC5;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_RC5;
+-		} else if (strstr(cur->name, "/rc6_decoder")) {
+-			rc_dev->supported |= SYSFS_RC6;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_RC6;
+-		} else if (strstr(cur->name, "/jvc_decoder")) {
+-			rc_dev->supported |= SYSFS_JVC;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_JVC;
+-		} else if (strstr(cur->name, "/sony_decoder")) {
+-			rc_dev->supported |= SYSFS_SONY;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_SONY;
+-		} else if (strstr(cur->name, "/xmp_decoder")) {
+-			rc_dev->supported |= SYSFS_XMP;
+-			if (v1_get_sw_enabled_protocol(cur->name))
+-				rc_dev->current |= SYSFS_XMP;
++		} else {
++			const struct protocol_map_entry *pme;
 +
-+There are two LED outputs available - FLED1 and FLED2. Each of them can
-+control a separate LED or they can be connected together to double
-+the maximum current for a single connected LED. One LED is represented
-+by one child node.
++			for (pme = protocol_map; pme->name; pme++) {
++				if (!pme->sysfs1_name)
++					continue;
 +
-+Required properties:
-+- compatible : Must be "maxim,max77693-led".
++				if (strstr(cur->name, pme->sysfs1_name)) {
++					rc_dev->supported |= pme->sysfs_protocol;
++					if (v1_get_sw_enabled_protocol(cur->name))
++						rc_dev->supported |= pme->sysfs_protocol;
++					break;
++				}
++			}
+ 		}
+ 	}
+ 
+@@ -1130,24 +1121,19 @@ static int set_proto(struct rc_device *rc_dev)
+ 	}
+ 
+ 	if (rc_dev->type == SOFTWARE_DECODER) {
+-		if (rc_dev->supported & SYSFS_NEC)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/nec_decoder",
+-						      rc_dev->current & SYSFS_NEC);
+-		if (rc_dev->supported & SYSFS_RC5)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/rc5_decoder",
+-						      rc_dev->current & SYSFS_RC5);
+-		if (rc_dev->supported & SYSFS_RC6)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/rc6_decoder",
+-						      rc_dev->current & SYSFS_RC6);
+-		if (rc_dev->supported & SYSFS_JVC)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/jvc_decoder",
+-						      rc_dev->current & SYSFS_JVC);
+-		if (rc_dev->supported & SYSFS_SONY)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/sony_decoder",
+-						      rc_dev->current & SYSFS_SONY);
+-		if (rc_dev->supported & SYSFS_XMP)
+-			rc += v1_set_sw_enabled_protocol(rc_dev, "/xmp_decoder",
+-						      rc_dev->current & SYSFS_XMP);
++		const struct protocol_map_entry *pme;
 +
-+Optional properties:
-+- maxim,trigger-type : Flash trigger type.
-+	Possible trigger types:
-+		LEDS_TRIG_TYPE_EDGE (0) - Rising edge of the signal triggers
-+			the flash,
-+		LEDS_TRIG_TYPE_LEVEL (1) - Strobe pulse length controls duration
-+			of the flash.
-+- maxim,boost-mode :
-+	In boost mode the device can produce up to 1.2A of total current
-+	on both outputs. The maximum current on each output is reduced
-+	to 625mA then. If not enabled explicitly, boost setting defaults to
-+	LEDS_BOOST_FIXED in case both current sources are used.
-+	Possible values:
-+		LEDS_BOOST_OFF (0) - no boost,
-+		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-+		LEDS_BOOST_FIXED (2) - fixed mode.
-+- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-+- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-+	if chip estimates that system voltage could drop below this level due
-+	to flash power consumption.
++		for (pme = protocol_map; pme->name; pme++) {
++			if (!pme->sysfs1_name)
++				continue;
 +
-+Required properties of the LED child node:
-+- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-+		device current output identifiers: 0 - FLED1, 1 - FLED2
++			if (!(rc_dev->supported & pme->sysfs_protocol))
++				continue;
 +
-+Optional properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+- max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 250000
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 15625 - 1000000
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+		Range: 62500 - 1000000
++			rc += v1_set_sw_enabled_protocol(rc_dev, pme->sysfs1_name,
++							 rc_dev->current & pme->sysfs_protocol);
++		}
 +
- Example:
-+#include <dt-bindings/leds/common.h>
-+
- 	max77693@66 {
- 		compatible = "maxim,max77693";
- 		reg = <0x66>;
-@@ -117,5 +163,20 @@ Example:
- 			maxim,thermal-regulation-celsius = <75>;
- 			maxim,battery-overcurrent-microamp = <3000000>;
- 			maxim,charge-input-threshold-microvolt = <4300000>;
-+
-+		led {
-+			compatible = "maxim,max77693-led";
-+			maxim,trigger-type = <LEDS_TRIG_TYPE_LEVEL>;
-+			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-+			maxim,boost-mvout = <5000>;
-+			maxim,mvsys-min = <2400>;
-+
-+			camera_flash: flash-led {
-+				label = "max77693-flash";
-+				led-sources = <0>, <1>;
-+				max-microamp = <500000>;
-+				flash-max-microamp = <1250000>;
-+				flash-timeout-us = <1000000>;
-+			};
- 		};
- 	};
--- 
-1.7.9.5
+ 	} else {
+ 		rc = v1_set_hw_protocols(rc_dev);
+ 	}
 
