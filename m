@@ -1,84 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:40629 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666AbbDHOpd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 10:45:33 -0400
-Message-id: <55253F08.3040409@samsung.com>
-Date: Wed, 08 Apr 2015 16:45:28 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: pavel@ucw.cz, sakari.ailus@iki.fi,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
- related properties
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
- <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
- <5524FCEF.7060901@samsung.com> <552517DD.2040905@samsung.com>
-In-reply-to: <552517DD.2040905@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56145 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752626AbbDFC2e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2015 22:28:34 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0C3EA2A0003
+	for <linux-media@vger.kernel.org>; Mon,  6 Apr 2015 04:28:28 +0200 (CEST)
+Date: Mon, 06 Apr 2015 04:28:27 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150406022828.0C3EA2A0003@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 08/04/15 13:58, Jacek Anaszewski wrote:
->>> --- a/Documentation/devicetree/bindings/leds/common.txt
->>> >> +++ b/Documentation/devicetree/bindings/leds/common.txt
->>> >> @@ -29,13 +29,15 @@ Optional properties for child nodes:
->>> >>        "ide-disk" - LED indicates disk activity
->>> >>        "timer" - LED flashes at a fixed, configurable rate
->>> >>
->>> >> -- max-microamp : maximum intensity in microamperes of the LED
->>> >> -		 (torch LED for flash devices)
->>> >> -- flash-max-microamp : maximum intensity in microamperes of the
->>> >> -                       flash LED; it is mandatory if the LED should
->>> >> -		       support the flash mode
->>> >> -- flash-timeout-us : timeout in microseconds after which the flash
->>> >> -                     LED is turned off
->>> >> +- max-microamp : Maximum intensity in microamperes of the LED
->>> >> +		 (torch LED for flash devices). If omitted this will default
->>> >> +		 to the maximum current allowed by the device.
->>> >> +- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
->>> >> +		       If omitted this will default to the maximum
->>> >> +		       current allowed by the device.
->>> >> +- flash-timeout-us : Timeout in microseconds after which the flash
->>> >> +                     LED is turned off. If omitted this will default to the
->>> >> +		     maximum timeout allowed by the device.
->> >
->> > Sorry about late comments on that, but since we can still change these
->> > properties and it seems we're going to do that, I'd like throw in my
->> > few preferences on the colour of this bike...
->> >
->> > IMO "max-microamp" is a poor property name, how about:
->> >
->> > s/max-microamp/led-max-current-ua,
->> > s/flash-max-microamp/flash-max-current-ua,
->> >
->> > so we have more consistent set of properties like:
->> >
->> > led-max-current-ua
->> > flash-max-current-ua
->> > flash-timeout-us
->
-> The "-microamp' suffix is consistent with regulator bindings.
-> Please refer to [1].
+Results of the daily build of media_tree:
 
-OK, in a perfect world we would have clean and consistent notation of
-units. If it's acked let's leave it, I didn't know it was, sorry about
-that.
+date:		Mon Apr  6 04:00:15 CEST 2015
+git branch:	test
+git hash:	a5562f65b1371a0988b707c10c44fcc2bba56990
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-When I read yesterday Documentation/devicetree/bindings/leds/common.txt
-the set of new properties looked rather sloppy, especially "max-microamp"
-looked incomplete to me, as if the subject was missing.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
 
-Anyway, I'll just get used to it, let's complete this whole Flash/LED
-integration story.
+Detailed results are available here:
 
--- 
-Thanks,
-Sylwester
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
