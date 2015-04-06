@@ -1,78 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34896 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbbDUM7r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 08:59:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 02/15] videodev2.h: add request to v4l2_ext_controls
-Date: Tue, 21 Apr 2015 14:58:45 +0200
-Message-Id: <1429621138-17213-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.codeaurora.org ([198.145.29.96]:46845 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752726AbbDFTEY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2015 15:04:24 -0400
+Message-ID: <5522D8B5.7050205@codeaurora.org>
+Date: Mon, 06 Apr 2015 12:04:21 -0700
+From: Stephen Boyd <sboyd@codeaurora.org>
+MIME-Version: 1.0
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Russell King <rmk+kernel@arm.linux.org.uk>
+CC: alsa-devel@alsa-project.org, linux-sh@vger.kernel.org,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias() prototype
+ in linux/clk.h
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk> <87lhi8rrmd.fsf@free.fr>
+In-Reply-To: <87lhi8rrmd.fsf@free.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/04/15 05:43, Robert Jarzmik wrote:
+> Russell King <rmk+kernel@arm.linux.org.uk> writes:
+>
+>> clk_add_alias() is provided by clkdev, and is not part of the clk API.
+>> Howver, it is prototyped in two locations: linux/clkdev.h and
+>> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
+>> version in linux/clk.h.
+>>
+>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+>
+> Actually, this serie fixes a regression I've seen in linux-next, and which was
+> triggering the Oops in [1] on lubbock. With your serie, the kernel boots fine.
+>
+>
 
-The ctrl_class is fairly pointless when used with drivers that use the control
-framework: you can just fill in 0 and it will just work fine. There are still
-some old unconverted drivers that do not support 0 and instead want the control
-class there. The idea being that all controls in the list all belong to that
-class. This was done to simplify drivers in the absence of the control framework.
+Is this with the lubbock_defconfig? Is it a regression in 4.0-rc series
+or is it due to some pending -next patches interacting with the per-user
+clock patches? It looks like the latter because __clk_get_hw() should be
+inlined on lubbock_defconfig where CONFIG_COMMON_CLK=n.
 
-When using the control framework the framework itself is smart enough to allow
-controls of any class to be included in the control list.
-
-Since request IDs are in the range 1..65535 (or so, in any case a relatively
-small non-zero positive integer) it makes sense to effectively rename ctrl_class
-to request. Set it to 0 and you get the normal behavior (you change the current
-control value), set it to a request ID and you get/set the control for
-that request.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 7 +++++--
- include/uapi/linux/videodev2.h       | 5 ++++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 119121f..74af586 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -563,8 +563,11 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
- 
--	pr_cont("class=0x%x, count=%d, error_idx=%d",
--			p->ctrl_class, p->count, p->error_idx);
-+	if (V4L2_CTRL_ID2CLASS(p->ctrl_class))
-+		pr_cont("class=0x%x, ", p->ctrl_class);
-+	else
-+		pr_cont("request=%u, ", p->request);
-+	pr_cont("count=%d, error_idx=%d", p->count, p->error_idx);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2269152..388e376 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1382,7 +1382,10 @@ struct v4l2_ext_control {
- } __attribute__ ((packed));
- 
- struct v4l2_ext_controls {
--	__u32 ctrl_class;
-+	union {
-+		__u32 ctrl_class;
-+		__u32 request;
-+	};
- 	__u32 count;
- 	__u32 error_idx;
- 	__u32 reserved[2];
 -- 
-2.1.4
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
