@@ -1,68 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:33569 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327AbbDTHL5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 03:11:57 -0400
+Received: from vader.hardeman.nu ([95.142.160.32]:36541 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753191AbbDFSlh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2015 14:41:37 -0400
+Date: Mon, 6 Apr 2015 20:41:00 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sergio Serrano <sergio.badalona@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: using TSOP receiver without lircd
+Message-ID: <20150406184100.GA23493@hardeman.nu>
+References: <CAK-SLvBcZG5VN4BkUV+jS0z_xqXpVwJFMXfMaQF7kfFxJ7En9A@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.44L0.1504171331050.1319-100000@iolanthe.rowland.org>
-References: <1429284290-25153-3-git-send-email-tomeu.vizoso@collabora.com> <Pine.LNX.4.44L0.1504171331050.1319-100000@iolanthe.rowland.org>
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Date: Mon, 20 Apr 2015 09:11:36 +0200
-Message-ID: <CAAObsKCP4dTvOPB=XrZexauHmdC99JYkc6cYKoaT-vZjnLaynw@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] [media] uvcvideo: Remain runtime-suspended at sleeps
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK-SLvBcZG5VN4BkUV+jS0z_xqXpVwJFMXfMaQF7kfFxJ7En9A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17 April 2015 at 19:32, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Fri, 17 Apr 2015, Tomeu Vizoso wrote:
+On Mon, Apr 06, 2015 at 06:01:52PM +0200, Sergio Serrano wrote:
+>Hi members!
 >
->> When the system goes to sleep and afterwards resumes, a significant
->> amount of time is spent suspending and resuming devices that were
->> already runtime-suspended.
->>
->> By setting the power.force_direct_complete flag, the PM core will ignore
->> the state of descendant devices and the device will be let in
->> runtime-suspend.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
->> index 5970dd6..ae75a70 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1945,6 +1945,8 @@ static int uvc_probe(struct usb_interface *intf,
->>                       "supported.\n", ret);
->>       }
->>
->> +     intf->dev.parent->power.force_direct_complete = true;
+>In the hope that someone can help me, I has come to this mailing list after
+>contacting David Hardeman (thank you!).
+>He has already given me some clues. This is my scenario.
 >
-> This seems wrong.  The uvc driver is bound to intf, not to intf's
-> parent.  So it would be okay for the driver to set
-> intf->dev.power.force_direct_complete, but it's wrong to set
-> intf->dev.parent->power.force_direct_complete.
+>I'm using a OMAP2 processor and capturing TSOP34836 (remote RC5 compatible)
+>signals through GPIO+interrupt. I have created the /dev/lirc0 device , here
+>comes my question: If possible I don't want to deal with LIRC and irrecord
+>stuff. Is it possible? What will be the first steps?
 
-Agreed.
+Your next step would be a kernel driver that receives the GPIO
+interrupts and feeds them into rc-core as "edge" events.
 
-Thanks,
+drivers/media/rc/gpio-ir-recv.c is probably what you want as a starting
+point (though you'll need to find a way to feed it the right
+parameters...)
 
-Tomeu
+Regards,
+David
 
-> Alan Stern
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
