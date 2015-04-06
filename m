@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37569 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbbD2XGY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37691 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752751AbbDFW7A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 19:06:24 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Joe Perches <joe@perches.com>
-Subject: [PATCH 23/27] ttusb-dec: fix bad indentation
-Date: Wed, 29 Apr 2015 20:06:08 -0300
-Message-Id: <303d0172eafad11a4eac6aa94384d45a58b22f93.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+	Mon, 6 Apr 2015 18:59:00 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v3 1/4] v4l: of: Remove the head field in struct v4l2_of_endpoint
+Date: Tue,  7 Apr 2015 01:57:29 +0300
+Message-Id: <1428361053-20411-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
+References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/ttusb-dec/ttusb_dec.c:1434 ttusb_dec_init_stb() warn: inconsistent indenting
+The field is unused. Remove it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ include/media/v4l2-of.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index 15ab584cf265..322b53a4f1dd 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -1431,8 +1431,8 @@ static int ttusb_dec_init_stb(struct ttusb_dec *dec)
- 			       __func__, model);
- 			return -ENOENT;
- 		}
--			if (version >= 0x01770000)
--				dec->can_playback = 1;
-+		if (version >= 0x01770000)
-+			dec->can_playback = 1;
- 	}
- 	return 0;
- }
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index f831c9c..f66b92c 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -57,7 +57,6 @@ struct v4l2_of_bus_parallel {
+  * @base: struct of_endpoint containing port, id, and local of_node
+  * @bus_type: bus type
+  * @bus: bus configuration data structure
+- * @head: list head for this structure
+  */
+ struct v4l2_of_endpoint {
+ 	struct of_endpoint base;
+@@ -66,7 +65,6 @@ struct v4l2_of_endpoint {
+ 		struct v4l2_of_bus_parallel parallel;
+ 		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
+ 	} bus;
+-	struct list_head head;
+ };
+ 
+ /**
 -- 
-2.1.0
+1.7.10.4
 
