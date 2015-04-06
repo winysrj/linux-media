@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39199 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbbDGJnE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 05:43:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
-Date: Tue, 07 Apr 2015 12:42:52 +0300
-Message-ID: <1894989.AGoQvgsks0@avalon>
-In-Reply-To: <20150405142034.GG4027@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <36620233.VbNiGUfDRt@avalon> <20150405142034.GG4027@n2100.arm.linux.org.uk>
+Received: from vader.hardeman.nu ([95.142.160.32]:36503 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752834AbbDFLXj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2015 07:23:39 -0400
+Subject: [PATCH 0/2] NEC scancodes and protocols in keymaps - v2
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 06 Apr 2015 13:23:03 +0200
+Message-ID: <20150406112204.23209.27664.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Russell,
+The following two patches should show more clearly what I mean by
+adding protocols to the keytables (and letting userspace add
+keytable entries with explicit protocol information). Consider
+it a basis for discussion.
 
-On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
-> On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
-> > Hi Russell,
-> > 
-> > Thank you for the patch;
-> > 
-> > On Friday 03 April 2015 18:12:58 Russell King wrote:
-> > > No merged platform supplies xclks via platform data.  As we want to
-> > > slightly change the clkdev interface, rather than fixing this unused
-> > > code, remove it instead.
-> > > 
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > with one caveat though : it conflicts with patches queued for v4.1 in the
-> > media tree. I'll post a rebased version in a reply to your e-mail. How
-> > would you like to handle the conflict ?
-> 
-> How bad is the conflict?
+Each patch has a separate description, please refer to those for
+more information.
 
-It's not too bad, it's mostly a context-related conflict. There are two 
-additional lines to remove (plus the associated comment) from isp_xclk_init(), 
-as your patch makes a loop now terminate with if (condition) continue;. Those 
-two lines could be removed later, keeping them doesn't break anything.
+v2: fix some bugs found while implementing support in ir-keytables.
 
--- 
-Regards,
+---
 
-Laurent Pinchart
+David Härdeman (2):
+      rc-core: use the full 32 bits for NEC scancodes
+      rc-core: don't throw away protocol information
 
+
+ drivers/media/rc/ati_remote.c            |    1 
+ drivers/media/rc/imon.c                  |    7 +
+ drivers/media/rc/ir-nec-decoder.c        |   26 ---
+ drivers/media/rc/rc-main.c               |  234 ++++++++++++++++++++++++------
+ drivers/media/usb/dvb-usb-v2/af9015.c    |   22 +--
+ drivers/media/usb/dvb-usb-v2/af9035.c    |   25 +--
+ drivers/media/usb/dvb-usb-v2/az6007.c    |   16 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c  |   20 +--
+ drivers/media/usb/dvb-usb/dib0700_core.c |   24 +--
+ drivers/media/usb/em28xx/em28xx-input.c  |   37 +----
+ include/media/rc-core.h                  |   26 +++
+ include/media/rc-map.h                   |   23 ++-
+ 12 files changed, 266 insertions(+), 195 deletions(-)
+
+--
+David Härdeman
