@@ -1,34 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:34978 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771AbbDBRCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2015 13:02:33 -0400
-Received: by lahf3 with SMTP id f3so63997504lah.2
-        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2015 10:02:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <551D38A5.9020104@xs4all.nl>
-References: <551D38A5.9020104@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Thu, 2 Apr 2015 19:02:11 +0200
-Message-ID: <CAPybu_0gfixU2fn7LAa3WkCxWoBxS7gmwThVX1M2U0i4XHberQ@mail.gmail.com>
-Subject: Re: [PATCHv2] v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37688 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751948AbbDFW7A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2015 18:59:00 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v3 0/4] Add link-frequencies to struct v4l2_of_endpoint
+Date: Tue,  7 Apr 2015 01:57:28 +0300
+Message-Id: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+Hi folks,
 
-On Thu, Apr 2, 2015 at 2:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+This set changes the interface which is used to parse the properties of the
+endpoint for media devices.
 
-> +       case V4L2_PIX_FMT_Y16:          descr = "16-bit Greyscale"; break;
+changes since v2:
 
-What about  "16-bit Greyscale LE" ?
+- Rebased on current media-tree
 
+v2 can be found here:
 
-Regards!
-
+http://www.spinics.net/lists/linux-media/msg88058.html
 
 -- 
-Ricardo Ribalda
+Regards,
+Sakari
+
