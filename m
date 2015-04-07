@@ -1,96 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:38699 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbbDHKZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 06:25:51 -0400
-Received: by wiun10 with SMTP id n10so52402781wiu.1
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2015 03:25:49 -0700 (PDT)
+Received: from down.free-electrons.com ([37.187.137.238]:48354 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755848AbbDGNUN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 09:20:13 -0400
+Message-ID: <5523D985.60800@free-electrons.com>
+Date: Tue, 07 Apr 2015 15:20:05 +0200
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <027f01d07141$4b600020$e2200060$%debski@samsung.com>
-References: <1425637110-12100-1-git-send-email-p.zabel@pengutronix.de>
- <1426589206.3709.14.camel@pengutronix.de> <550851A7.8070004@xs4all.nl> <027f01d07141$4b600020$e2200060$%debski@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 8 Apr 2015 19:19:29 +0900
-Message-ID: <CAMm-=zDxfig-8O9PMvN_ZX86rQka8iyufBYptEG6G0KHGYTPfA@mail.gmail.com>
-Subject: Re: [PATCH v3 0/5] Signalling last decoded frame by
- V4L2_BUF_FLAG_LAST and -EPIPE
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	LMML <linux-media@vger.kernel.org>, kernel@pengutronix.de,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Content-Type: text/plain; charset=UTF-8
+To: Andrew Lunn <andrew@lunn.ch>,
+	Russell King <rmk+kernel@arm.linux.org.uk>
+CC: alsa-devel@alsa-project.org, Jason Cooper <jason@lakedaemon.net>,
+	linux-sh@vger.kernel.org,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org,
+	Mike Turquette <mturquette@linaro.org>,
+	Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk> <20150404001729.GA14824@lunn.ch>
+In-Reply-To: <20150404001729.GA14824@lunn.ch>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Andrew, Russell,
 
-On Tue, Apr 7, 2015 at 11:44 PM, Kamil Debski <k.debski@samsung.com> wrote:
-> Hi,
->
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, March 17, 2015 5:09 PM
+On 04/04/2015 02:17, Andrew Lunn wrote:
+> On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
+>> clkdev_create() is a shorter way to write clkdev_alloc() followed by
+>> clkdev_add().  Use this instead.
 >>
->> On 03/17/2015 11:46 AM, Philipp Zabel wrote:
->> > Hi,
->> >
->> > Am Freitag, den 06.03.2015, 11:18 +0100 schrieb Philipp Zabel:
->> >> At the V4L2 codec API session during ELC-E 2014, we agreed that for
->> >> the decoder draining flow, after a V4L2_DEC_CMD_STOP decoder command
->> >> was issued, the last decoded buffer should get dequeued with a
->> >> V4L2_BUF_FLAG_LAST set. After that, poll should immediately return
->> >> and all following VIDIOC_DQBUF should return -EPIPE until the stream
->> is stopped or decoding continued via V4L2_DEC_CMD_START.
->> >> (or STREAMOFF/STREAMON).
->> >>
->> >> Changes since v2:
->> >>  - Made V4L2_BUF_FLAG_LAST known to trace events
->> >>
->> >> regards
->> >> Philipp
->> >>
->> >> Peter Seiderer (1):
->> >>   [media] videodev2: Add V4L2_BUF_FLAG_LAST
->> >>
->> >> Philipp Zabel (4):
->> >>   [media] videobuf2: return -EPIPE from DQBUF after the last buffer
->> >>   [media] coda: Set last buffer flag and fix EOS event
->> >>   [media] s5p-mfc: Set last buffer flag
->> >>   [media] DocBooc: mention mem2mem codecs for encoder/decoder
->> >> commands
->> >>
->> >>  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
->> >>  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  6 ++++-
->> >>  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  5 +++-
->> >>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
->> >>  drivers/media/platform/coda/coda-bit.c             |  4 ++--
->> >>  drivers/media/platform/coda/coda-common.c          | 27 +++++++++--
->> -----------
->> >>  drivers/media/platform/coda/coda.h                 |  3 +++
->> >>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
->> >>  drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
->> >>  drivers/media/v4l2-core/videobuf2-core.c           | 18
->> ++++++++++++++-
->> >>  include/media/videobuf2-core.h                     | 10 ++++++++
->> >>  include/trace/events/v4l2.h                        |  3 ++-
->> >>  include/uapi/linux/videodev2.h                     |  2 ++
->> >>  13 files changed, 84 insertions(+), 23 deletions(-)
->> >
->> > are there any further changes that I should make to this series?
->>
->> I'd like to see some Acks, esp. from Kamil and Pawel.
->>
->> I'll take another look as well, probably on Friday.
->>
->
-> The patches look good to me, the 4th version is already queued in my tree.
-> However I would like to see your opinion. Especially from you Pawel :)
+>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> Acked-by: Andrew Lunn <andrew@lunn.ch>
 
-Sorry for the delay, I've been very busy lately, but I really need to
-take a look at them. I'll do my best to review this weekend. Putting
-on my calendar.
+This change makes sens however what about Thomas' comment: removing
+orion_clkdev_add() entirely and directly using lkdev_create() all over
+the place:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/327294.html
+
+Then what would be the path for this patch?
+
+As there is a dependency on the 6th patch of this series: "clkdev: add
+clkdev_create() helper" which should be merged through the clk tree, I
+think the best option is that this patch would be also managed by the
+clk tree maintainer (I added them in CC).
+
+
+Thanks,
+
+Gregory
+
+
+> 
+> 	  Andrew
+> 
+>> ---
+>>  arch/arm/plat-orion/common.c | 6 +-----
+>>  1 file changed, 1 insertion(+), 5 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+>> index f5b00f41c4f6..2235081a04ee 100644
+>> --- a/arch/arm/plat-orion/common.c
+>> +++ b/arch/arm/plat-orion/common.c
+>> @@ -28,11 +28,7 @@
+>>  void __init orion_clkdev_add(const char *con_id, const char *dev_id,
+>>  			     struct clk *clk)
+>>  {
+>> -	struct clk_lookup *cl;
+>> -
+>> -	cl = clkdev_alloc(clk, con_id, dev_id);
+>> -	if (cl)
+>> -		clkdev_add(cl);
+>> +	clkdev_create(clk, con_id, "%s", dev_id);
+>>  }
+>>  
+>>  /* Create clkdev entries for all orion platforms except kirkwood.
+>> -- 
+>> 1.8.3.1
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+
+
 -- 
-Regards,
-Pawel
+Gregory Clement, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
