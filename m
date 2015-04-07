@@ -1,67 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:14114 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755514AbbDII7F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 04:59:05 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2 1/3] media: atmel-isi: remove the useless code which disable isi
-Date: Thu, 9 Apr 2015 17:01:46 +0800
-Message-ID: <1428570108-4961-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1428570108-4961-1-git-send-email-josh.wu@atmel.com>
-References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:33099 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846AbbDGITs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 04:19:48 -0400
+Received: by oblw8 with SMTP id w8so27409134obl.0
+        for <linux-media@vger.kernel.org>; Tue, 07 Apr 2015 01:19:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Date: Tue, 7 Apr 2015 10:19:32 +0200
+Message-ID: <CAL8zT=j9999EDjNqEtNw6EN3xmMSZ665YyjhgXH1Da2nZ_zchA@mail.gmail.com>
+Subject: Gefen Toolbox HD pattern signal generator serial control
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>,
+	Pablo ANTON <pablo.anton@vodalys-labs.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To program ISI control register, the pixel clock should be enabled.
-So without pixel clock (from sensor) enabled, disable ISI controller is
-not make sense. So this patch remove those code.
+Hi !
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+As we are using this pattern generator for our tests and needed to
+control it with an automated system, we wrote a little library and a
+tool to control it :
 
-Changes in v2:
-- this file is new added.
+https://github.com/Vodalys/gtbhdsiggen
 
- drivers/media/platform/soc_camera/atmel-isi.c | 5 -----
- 1 file changed, 5 deletions(-)
+Please, feel free to comment, fork, modify :) !
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index c125b1d..31254b4 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -131,8 +131,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 		return -EINVAL;
- 	}
- 
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
- 	cfg2 = isi_readl(isi, ISI_CFG2);
- 	/* Set YCC swap mode */
- 	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
-@@ -843,7 +841,6 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 
- 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
- 
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
- 	isi_writel(isi, ISI_CFG1, cfg1);
- 
- 	return 0;
-@@ -1022,8 +1019,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
- 		isi->width_flags |= 1 << 9;
- 
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
- 	irq = platform_get_irq(pdev, 0);
- 	if (IS_ERR_VALUE(irq)) {
- 		ret = irq;
--- 
-1.9.1
-
+JM
