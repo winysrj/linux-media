@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54773 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbbDUNTw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:19:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Hyun Kwon <hyun.kwon@xilinx.com>,
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:41029 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752636AbbDGMpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 08:45:45 -0400
+Date: Tue, 7 Apr 2015 13:45:36 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] v4l: xilinx: harmless buffer overflow
-Date: Tue, 21 Apr 2015 16:20 +0300
-Message-ID: <1496059.xVrMZN3Nsa@avalon>
-In-Reply-To: <20150421093110.GD12098@mwanda>
-References: <20150421093110.GD12098@mwanda>
+	sakari.ailus@iki.fi
+Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
+Message-ID: <20150407124536.GK4027@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+ <36620233.VbNiGUfDRt@avalon>
+ <20150405142034.GG4027@n2100.arm.linux.org.uk>
+ <1894989.AGoQvgsks0@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1894989.AGoQvgsks0@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
-
-Thank you for the patch.
-
-On Tuesday 21 April 2015 12:31:10 Dan Carpenter wrote:
-> My static checker warns that the name of the port can be 15 characters
-> when you consider the NUL terminator and that's one more than the 14
-> characters in name[].  Maybe it's an off-by-one?
->
-> It's unlikely that we hit the limit and even if we do the overflow will
-> only affect one of the two bytes of padding so it's harmless.  Still
-> let's fix it and also change the sprintf() to snprintf().
+On Tue, Apr 07, 2015 at 12:42:52PM +0300, Laurent Pinchart wrote:
+> Hello Russell,
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
+> > On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
+> > > Hi Russell,
+> > > 
+> > > Thank you for the patch;
+> > > 
+> > > On Friday 03 April 2015 18:12:58 Russell King wrote:
+> > > > No merged platform supplies xclks via platform data.  As we want to
+> > > > slightly change the clkdev interface, rather than fixing this unused
+> > > > code, remove it instead.
+> > > > 
+> > > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > > 
+> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > > with one caveat though : it conflicts with patches queued for v4.1 in the
+> > > media tree. I'll post a rebased version in a reply to your e-mail. How
+> > > would you like to handle the conflict ?
+> > 
+> > How bad is the conflict?
 > 
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
-> b/drivers/media/platform/xilinx/xilinx-dma.c index efde88a..98e50e4 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> @@ -653,7 +653,7 @@ static const struct v4l2_file_operations xvip_dma_fops =
-> { int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma
-> *dma, enum v4l2_buf_type type, unsigned int port)
->  {
-> -	char name[14];
-> +	char name[16];
+> It's not too bad, it's mostly a context-related conflict. There are two 
+> additional lines to remove (plus the associated comment) from isp_xclk_init(), 
+> as your patch makes a loop now terminate with if (condition) continue;. Those 
+> two lines could be removed later, keeping them doesn't break anything.
 
-Being pedantic we could use name[15], but it wouldn't make any difference.
-
->  	int ret;
-> 
->  	dma->xdev = xdev;
-> @@ -725,7 +725,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev,
-> struct xvip_dma *dma, }
-> 
->  	/* ... and the DMA channel. */
-> -	sprintf(name, "port%u", port);
-> +	snprintf(name, sizeof(name), "port%u", port);
-
-Nitpicking again, I'd say that sprintf is enough as we know it won't overflow. 
-However, as the sprintf implementation is a wrapper around vsnprintf with size 
-set to INT_MAX, using snprintf won't incur any runtime performance penalty.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
->  	dma->dma = dma_request_slave_channel(dma->xdev->dev, name);
->  	if (dma->dma == NULL) {
->  		dev_err(dma->xdev->dev, "no VDMA channel found\n");
+I think it's fine to take it through the media tree as the series doesn't
+have any dependencies on this patch.  It was merely attempting to get rid
+of stuff so that we could move closer to clkdev dealing with a clk_hw
+rather than a struct clk - but I never made it that far with the series.
+Maybe at a later date... :)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
