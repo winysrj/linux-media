@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39237 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbbDGKLW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 06:11:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 1/4] v4l: of: Remove the head field in struct v4l2_of_endpoint
-Date: Tue, 07 Apr 2015 13:11:34 +0300
-Message-ID: <2590752.PorL0aNYep@avalon>
-In-Reply-To: <1428361053-20411-2-git-send-email-sakari.ailus@iki.fi>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-2-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from andre.telenet-ops.be ([195.130.132.53]:50331 "EHLO
+	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754393AbbDGNrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 09:47:49 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] [media] vb2: Remove unused variable fileio in vb2_thread_stop()
+Date: Tue,  7 Apr 2015 15:47:50 +0200
+Message-Id: <1428414470-29114-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+drivers/media/v4l2-core/videobuf2-core.c: In function 'vb2_thread_stop':
+drivers/media/v4l2-core/videobuf2-core.c:3228:26: warning: unused variable 'fileio' [-Wunused-variable]
 
-Thank you for the patch.
+Fixes: 0e661006370b7e7f ("[media] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-On Tuesday 07 April 2015 01:57:29 Sakari Ailus wrote:
-> The field is unused. Remove it.
-
-Do you know what the field was added for in the first place ?
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  include/media/v4l2-of.h |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index f831c9c..f66b92c 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -57,7 +57,6 @@ struct v4l2_of_bus_parallel {
->   * @base: struct of_endpoint containing port, id, and local of_node
->   * @bus_type: bus type
->   * @bus: bus configuration data structure
-> - * @head: list head for this structure
->   */
->  struct v4l2_of_endpoint {
->  	struct of_endpoint base;
-> @@ -66,7 +65,6 @@ struct v4l2_of_endpoint {
->  		struct v4l2_of_bus_parallel parallel;
->  		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
->  	} bus;
-> -	struct list_head head;
->  };
-> 
->  /**
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index cc16e76a24933c41..471b171cec3dabfa 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -3225,7 +3225,6 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
+ int vb2_thread_stop(struct vb2_queue *q)
+ {
+ 	struct vb2_threadio_data *threadio = q->threadio;
+-	struct vb2_fileio_data *fileio = q->fileio;
+ 	int err;
+ 
+ 	if (threadio == NULL)
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
