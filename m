@@ -1,106 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34353 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757425AbbDVTFY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 15:05:24 -0400
-Date: Wed, 22 Apr 2015 21:05:20 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-To: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-	Andy Lutomirski <luto@amacapital.net>,
-	mike.marciniszyn@intel.com, infinipath@intel.com,
-	linux-rdma@vger.kernel.org, awalls@md.metrocast.net,
-	Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ville Syrj?l? <syrjala@sci.fi>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
-	mcgrof@do-not-panic.com
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150422190520.GL5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
- <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de>
- <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de>
- <20150422161755.GA19500@obsidianresearch.com>
- <1429728791.121496.10.camel@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39231 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbbDGKKB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 06:10:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
+Date: Tue, 07 Apr 2015 13:10:20 +0300
+Message-ID: <3264259.HtLEAUTuYM@avalon>
+In-Reply-To: <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
+References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1429728791.121496.10.camel@redhat.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 02:53:11PM -0400, Doug Ledford wrote:
-> On Wed, 2015-04-22 at 10:17 -0600, Jason Gunthorpe wrote:
-> > On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
-> > > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
-> > > > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
-> > > > > > Mike, do you think the time is right to just remove the iPath driver?
-> > > > > 
-> > > > > With PAT now being default the driver effectively won't work
-> > > > > with write-combining on modern kernels. Even if systems are old
-> > > > > they likely had PAT support, when upgrading kernels PAT will work
-> > > > > but write-combing won't on ipath.
-> > > > 
-> > > > Sorry, do you mean the driver already doesn't get WC? Or do you mean
-> > > > after some more pending patches are applied?
-> > > 
-> > > No, you have to consider the system used and the effects of calls used
-> > > on the driver in light of this table:
-> > 
-> > So, just to be clear:
-> > 
-> > At some point Linux started setting the PAT bits during
-> > ioremap_nocache, which overrides MTRR, and at that point the driver
-> > became broken on all PAT capable systems?
-> > 
-> > Not only that, but we've only just noticed it now, and no user ever
-> > complained?
-> > 
-> > So that means either no users exist, or all users are on non-PAT
-> > systems?
-> > 
-> > This driver only works on x86-64 systems. Are there any x86-64 systems
-> > that are not PAT capable? IIRC even the first Opteron had PAT, but my
-> > memory is fuzzy from back then :|
-> > 
-> > > Another option in order to enable this type of checks at run time
-> > > and still be able to build the driver on standard distributions and
-> > > just prevent if from loading on PAT systems is to have some code in
-> > > place which would prevent the driver from loading if PAT was
-> > > enabled, this would enable folks to disable PAT via a kernel command
-> > > line option, and if that was used then the driver probe would
-> > > complete.
-> > 
-> > This seems like a reasonble option to me. At the very least we might
-> > learn if anyone is still using these cards.
-> > 
-> > I'd also love to remove the driver if it turns out there are actually
-> > no users. qib substantially replaces it except for a few very old
-> > cards.
+Hi Sakari,
+
+Thank you for the patch.
+
+On Tuesday 07 April 2015 01:57:32 Sakari Ailus wrote:
+> Instead of parsing the link-frequencies property in the driver, let
+> v4l2_of_alloc_parse_endpoint() do it.
 > 
-> To be precise, the split is that ipath powers the old HTX bus cards that
-> only work in AMD systems,
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/i2c/smiapp/smiapp-core.c |   40 +++++++++++++++--------------
+>  1 file changed, 20 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> b/drivers/media/i2c/smiapp/smiapp-core.c index 557f25d..4a2e8d3 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2975,9 +2975,9 @@ static int smiapp_resume(struct device *dev)
+>  static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+>  {
+>  	struct smiapp_platform_data *pdata;
+> -	struct v4l2_of_endpoint bus_cfg;
+> +	struct v4l2_of_endpoint *bus_cfg;
+>  	struct device_node *ep;
+> -	uint32_t asize;
+> +	int i;
+>  	int rval;
+> 
+>  	if (!dev->of_node)
+> @@ -2987,13 +2987,17 @@ static struct smiapp_platform_data
+> *smiapp_get_pdata(struct device *dev) if (!ep)
+>  		return NULL;
+> 
+> +	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
+> +	if (IS_ERR(bus_cfg)) {
+> +		rval = PTR_ERR(bus_cfg);
+> +		goto out_err;
+> +	}
+> +
+>  	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+>  	if (!pdata)
+>  		goto out_err;
+> 
+> -	v4l2_of_parse_endpoint(ep, &bus_cfg);
+> -
+> -	switch (bus_cfg.bus_type) {
+> +	switch (bus_cfg->bus_type) {
+>  	case V4L2_MBUS_CSI2:
+>  		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
+>  		break;
+> @@ -3002,7 +3006,7 @@ static struct smiapp_platform_data
+> *smiapp_get_pdata(struct device *dev) goto out_err;
+>  	}
+> 
+> -	pdata->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
+> +	pdata->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+>  	dev_dbg(dev, "lanes %u\n", pdata->lanes);
+> 
+>  	/* xshutdown GPIO is optional */
+> @@ -3022,34 +3026,30 @@ static struct smiapp_platform_data
+> *smiapp_get_pdata(struct device *dev) dev_dbg(dev, "reset %d, nvm %d, clk
+> %d, csi %d\n", pdata->xshutdown, pdata->nvm_size, pdata->ext_clk,
+> pdata->csi_signalling_mode);
+> 
+> -	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
+> -	if (rval) {
+> -		dev_warn(dev, "can't get link-frequencies array size\n");
+> +	if (!bus_cfg->nr_of_link_frequencies) {
 
-Do those systems have PAT support? CAn anyone check if PAT is enabled
-if booted on a recent kernel?
+Now that I see it being used, nr_of_link_frequencies feels a bit long. 
+num_link_freqs could be an alternative. I'll let you decide. But for this 
+patch,
 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
- Luis
+> +		dev_warn(dev, "no link frequencies defined\n");
+>  		goto out_err;
+>  	}
+> 
+> -	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
+> +	pdata->op_sys_clock = devm_kcalloc(
+> +		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
+> +		sizeof(*pdata->op_sys_clock), GFP_KERNEL);
+>  	if (!pdata->op_sys_clock) {
+>  		rval = -ENOMEM;
+>  		goto out_err;
+>  	}
+> 
+> -	asize /= sizeof(*pdata->op_sys_clock);
+> -	rval = of_property_read_u64_array(
+> -		ep, "link-frequencies", pdata->op_sys_clock, asize);
+> -	if (rval) {
+> -		dev_warn(dev, "can't get link-frequencies\n");
+> -		goto out_err;
+> +	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
+> +		pdata->op_sys_clock[i] = bus_cfg->link_frequencies[i];
+> +		dev_dbg(dev, "freq %d: %lld\n", i, pdata->op_sys_clock[i]);
+>  	}
+> 
+> -	for (; asize > 0; asize--)
+> -		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
+> -			pdata->op_sys_clock[asize - 1]);
+> -
+> +	v4l2_of_free_endpoint(bus_cfg);
+>  	of_node_put(ep);
+>  	return pdata;
+> 
+>  out_err:
+> +	v4l2_of_free_endpoint(bus_cfg);
+>  	of_node_put(ep);
+>  	return NULL;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
