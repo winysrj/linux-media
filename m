@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37246 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622AbbD0HaD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 03:30:03 -0400
-Received: from tschai.cisco.com (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 559F32A0095
-	for <linux-media@vger.kernel.org>; Mon, 27 Apr 2015 09:29:56 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] Fix compiler warnings
-Date: Mon, 27 Apr 2015 09:29:50 +0200
-Message-Id: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39213 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbbDGJrf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 05:47:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 2/4] v4l: of: Instead of zeroing bus_type and bus field separately, unify this
+Date: Tue, 07 Apr 2015 12:47:56 +0300
+Message-ID: <14728842.HyHhcxnctu@avalon>
+In-Reply-To: <1428361053-20411-3-git-send-email-sakari.ailus@iki.fi>
+References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-3-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Sakari,
 
-Various patches to fix compiler warnings. Some of these appeared after
-I switched to gcc-5.1.0 for the daily build.
+Thank you for the patch.
 
-There is one more warning in a davinci driver remaining, I've asked
-Prabhakar to look at that one.
+On Tuesday 07 April 2015 01:57:30 Sakari Ailus wrote:
+> Clean the entire struct starting from bus_type. As more fields are added, no
+> changes will be needed in the function to reset their value explicitly.
 
-Regards,
+I would s/Clean/Clear/ or s/Clean/Zero/. Same for the comment in the code. 
+Apart from that,
 
-	Hans
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Hans Verkuil (5):
-  s5c73m3/s5k5baf/s5k6aa: fix compiler warnings
-  s3c-camif: fix compiler warnings
-  cx24123/mb86a20s/s921: fix compiler warnings
-  dib8000: fix compiler warning
-  radio-bcm2048: fix compiler warning
-
- drivers/media/dvb-frontends/cx24123.h            | 2 +-
- drivers/media/dvb-frontends/dib8000.h            | 2 +-
- drivers/media/dvb-frontends/mb86a20s.h           | 2 +-
- drivers/media/dvb-frontends/s921.h               | 2 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c         | 2 +-
- drivers/media/i2c/s5k5baf.c                      | 2 +-
- drivers/media/i2c/s5k6aa.c                       | 2 +-
- drivers/media/platform/s3c-camif/camif-capture.c | 4 ++--
- drivers/staging/media/bcm2048/radio-bcm2048.c    | 3 +--
- 9 files changed, 10 insertions(+), 11 deletions(-)
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-of.c |    5 +++--
+>  include/media/v4l2-of.h           |    1 +
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index 83143d3..3ac6348 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -149,8 +149,9 @@ int v4l2_of_parse_endpoint(const struct device_node
+> *node, int rval;
+> 
+>  	of_graph_parse_endpoint(node, &endpoint->base);
+> -	endpoint->bus_type = 0;
+> -	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
+> +	/* Zero fields from bus_type to until the end */
+> +	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
+> +	       offsetof(typeof(*endpoint), bus_type));
+> 
+>  	rval = v4l2_of_parse_csi_bus(node, endpoint);
+>  	if (rval)
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index f66b92c..5bbdfbf 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -60,6 +60,7 @@ struct v4l2_of_bus_parallel {
+>   */
+>  struct v4l2_of_endpoint {
+>  	struct of_endpoint base;
+> +	/* Fields below this line will be cleaned by v4l2_of_parse_endpoint() */
+>  	enum v4l2_mbus_type bus_type;
+>  	union {
+>  		struct v4l2_of_bus_parallel parallel;
 
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
