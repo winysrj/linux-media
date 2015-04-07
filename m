@@ -1,84 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:50984 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbbD1HVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 03:21:04 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v6 04/10] DT: Add documentation for the Skyworks AAT1290
-Date: Tue, 28 Apr 2015 09:18:44 +0200
-Message-id: <1430205530-20873-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39199 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753456AbbDGJnE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 05:43:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	sakari.ailus@iki.fi
+Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
+Date: Tue, 07 Apr 2015 12:42:52 +0300
+Message-ID: <1894989.AGoQvgsks0@avalon>
+In-Reply-To: <20150405142034.GG4027@n2100.arm.linux.org.uk>
+References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <36620233.VbNiGUfDRt@avalon> <20150405142034.GG4027@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree binding documentation for
-1.5A Step-Up Current Regulator for Flash LEDs.
+Hello Russell,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: devicetree@vger.kernel.org
----
- .../devicetree/bindings/leds/leds-aat1290.txt      |   41 ++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
+> On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
+> > Hi Russell,
+> > 
+> > Thank you for the patch;
+> > 
+> > On Friday 03 April 2015 18:12:58 Russell King wrote:
+> > > No merged platform supplies xclks via platform data.  As we want to
+> > > slightly change the clkdev interface, rather than fixing this unused
+> > > code, remove it instead.
+> > > 
+> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > with one caveat though : it conflicts with patches queued for v4.1 in the
+> > media tree. I'll post a rebased version in a reply to your e-mail. How
+> > would you like to handle the conflict ?
+> 
+> How bad is the conflict?
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-new file mode 100644
-index 0000000..ef88b9c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -0,0 +1,41 @@
-+* Skyworks Solutions, Inc. AAT1290 Current Regulator for Flash LEDs
-+
-+The device is controlled through two pins: FL_EN and EN_SET. The pins when,
-+asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
-+respectively.
-+
-+Required properties:
-+
-+- compatible : Must be "skyworks,aat1290".
-+- flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
-+- enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
-+
-+A discrete LED element connected to the device must be represented by a child
-+node - see Documentation/devicetree/bindings/leds/common.txt.
-+
-+Required properties of the LED child node:
-+- led-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-+                       Maximum flash LED supply current can be calculated using
-+                       following formula: I = 1A * 162kohm / Rset.
-+- flash-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-+                     Maximum flash timeout can be calculated using following
-+                     formula: T = 8.82 * 10^9 * Ct.
-+
-+Optional properties of the LED child node:
-+- label : see Documentation/devicetree/bindings/leds/common.txt
-+
-+Example (by Ct = 220nF, Rset = 160kohm):
-+
-+aat1290 {
-+	compatible = "skyworks,aat1290";
-+	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
-+	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
-+
-+	camera_flash: flash-led {
-+		label = "aat1290-flash";
-+		led-max-microamp = <520833>;
-+		flash-max-microamp = <1012500>;
-+		flash-timeout-us = <1940000>;
-+	};
-+};
+It's not too bad, it's mostly a context-related conflict. There are two 
+additional lines to remove (plus the associated comment) from isp_xclk_init(), 
+as your patch makes a loop now terminate with if (condition) continue;. Those 
+two lines could be removed later, keeping them doesn't break anything.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
