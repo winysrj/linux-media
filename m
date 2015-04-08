@@ -1,141 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45432 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932392AbbDMSj1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 14:39:27 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Daniel Vetter <daniel.vetter@intel.com>
-Subject: [RFC/PATCH v2 3/5] drm/rcar-du: Add VSP1 support to the planes allocator
-Date: Mon, 13 Apr 2015 21:39:45 +0300
-Message-Id: <1428950387-6913-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:35358 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbbDHMjP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 08:39:15 -0400
+Date: Wed, 8 Apr 2015 13:35:54 +0100
+From: Luis de Bethencourt <luis@debethencourt.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Subject: Re: [PATCH] media: cxd2099: move pre-init values out of init()
+Message-ID: <20150408123554.GA17914@biggie>
+References: <20150208205536.GA31543@turing>
+ <20150408080903.1fdc7c4e@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150408080903.1fdc7c4e@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The R8A7790 DU can source frames directly from the VSP1 devices VSPD0
-and VSPD1. VSPD0 feeds DU0/1 plane 0, and VSPD1 feeds either DU2 plane 0
-or DU0/1 plane 1.
+On Wed, Apr 08, 2015 at 08:09:03AM -0300, Mauro Carvalho Chehab wrote:
+> Em Sun, 8 Feb 2015 20:55:36 +0000
+> luisbg <luis@debethencourt.com> escreveu:
+> 
+> > Improve code readability by moving out all pre-init values from the init
+> > function.
+> > 
+> > Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+> > ---
+> >  drivers/staging/media/cxd2099/cxd2099.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+> > index 657ea48..bafe36f 100644
+> > --- a/drivers/staging/media/cxd2099/cxd2099.c
+> > +++ b/drivers/staging/media/cxd2099/cxd2099.c
+> > @@ -300,7 +300,6 @@ static int init(struct cxd *ci)
+> >  	int status;
+> >  
+> >  	mutex_lock(&ci->lock);
+> > -	ci->mode = -1;
+> >  	do {
+> >  		status = write_reg(ci, 0x00, 0x00);
+> >  		if (status < 0)
+> > @@ -420,7 +419,6 @@ static int init(struct cxd *ci)
+> >  		status = write_regm(ci, 0x09, 0x08, 0x08);
+> >  		if (status < 0)
+> >  			break;
+> > -		ci->cammode = -1;
+> >  		cam_mode(ci, 0);
+> >  	} while (0);
+> >  	mutex_unlock(&ci->lock);
+> > @@ -711,6 +709,8 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+> >  
+> >  	ci->en = en_templ;
+> >  	ci->en.data = ci;
+> > +	ci->mode = -1;
+> > +	ci->cammode = -1;
+> 
+> This actually changes the logic, as, cammode is == -1 only if the
+> do {} while loop succeeds.
+> 
+> Also, calling cam_mode(ci, 0) will change cammode to 0. Btw, for
+> it to work, ci->mode should be initialized earlier.
+> 
+> So, this patch looks very wrong on my eyes, except if you found
+> a real bug on it.
+> 
+> Have you tested it on a real device? What bug does it fix?
+> 
+> Regards,
+> Mauro
+> 
 
-Allocate the correct fixed plane when sourcing frames from VSPD0 or
-VSPD1, and allocate planes in reverse index order otherwise to ensure
-maximum availability of planes 0 and 1.
+Apologies. You are right and this patch is completely wrong.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 40 ++++++++++++++++++++++++++++-----
- drivers/gpu/drm/rcar-du/rcar_du_plane.c |  1 +
- drivers/gpu/drm/rcar-du/rcar_du_plane.h |  7 ++++++
- 3 files changed, 43 insertions(+), 5 deletions(-)
+I submitted this while reading the code of a few drivers to learn from them.
+I should've retracted it before you spent time reviewing it. Sorry for that.
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-index fb052bca574f..17f89bfca8f8 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
-@@ -244,11 +244,41 @@ static unsigned int rcar_du_plane_hwmask(struct rcar_du_plane_state *state)
- 	return mask;
- }
- 
--static int rcar_du_plane_hwalloc(unsigned int num_planes, unsigned int free)
-+/*
-+ * The R8A7790 DU can source frames directly from the VSP1 devices VSPD0 and
-+ * VSPD1. VSPD0 feeds DU0/1 plane 0, and VSPD1 feeds either DU2 plane 0 or
-+ * DU0/1 plane 1.
-+ *
-+ * Allocate the correct fixed plane when sourcing frames from VSPD0 or VSPD1,
-+ * and allocate planes in reverse index order otherwise to ensure maximum
-+ * availability of planes 0 and 1.
-+ *
-+ * The caller is responsible for ensuring that the requested source is
-+ * compatible with the DU revision.
-+ */
-+static int rcar_du_plane_hwalloc(struct rcar_du_plane *plane,
-+				 struct rcar_du_plane_state *state,
-+				 unsigned int free)
- {
--	unsigned int i;
-+	unsigned int num_planes = state->format->planes;
-+	int fixed = -1;
-+	int i;
-+
-+	if (state->source == RCAR_DU_PLANE_VSPD0) {
-+		/* VSPD0 feeds plane 0 on DU0/1. */
-+		if (plane->group->index != 0)
-+			return -EINVAL;
-+
-+		fixed = 0;
-+	} else if (state->source == RCAR_DU_PLANE_VSPD1) {
-+		/* VSPD1 feeds plane 1 on DU0/1 or plane 0 on DU2. */
-+		fixed = plane->group->index == 0 ? 1 : 0;
-+	}
-+
-+	if (fixed >= 0)
-+		return free & (1 << fixed) ? fixed : -EBUSY;
- 
--	for (i = 0; i < RCAR_DU_NUM_HW_PLANES; ++i) {
-+	for (i = RCAR_DU_NUM_HW_PLANES - 1; i >= 0; --i) {
- 		if (!(free & (1 << i)))
- 			continue;
- 
-@@ -256,7 +286,7 @@ static int rcar_du_plane_hwalloc(unsigned int num_planes, unsigned int free)
- 			break;
- 	}
- 
--	return i == RCAR_DU_NUM_HW_PLANES ? -EBUSY : i;
-+	return i < 0 ? -EBUSY : i;
- }
- 
- static int rcar_du_atomic_check(struct drm_device *dev,
-@@ -372,7 +402,7 @@ static int rcar_du_atomic_check(struct drm_device *dev,
- 		    !rcar_du_plane_needs_realloc(plane, plane_state))
- 			continue;
- 
--		idx = rcar_du_plane_hwalloc(plane_state->format->planes,
-+		idx = rcar_du_plane_hwalloc(plane, plane_state,
- 					group_free_planes[plane->group->index]);
- 		if (idx < 0) {
- 			dev_dbg(rcdu->dev, "%s: no available hardware plane\n",
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-index 210e5c3fd982..80e4dba78aef 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-@@ -288,6 +288,7 @@ static void rcar_du_plane_reset(struct drm_plane *plane)
- 		return;
- 
- 	state->hwindex = -1;
-+	state->source = RCAR_DU_PLANE_MEMORY;
- 	state->alpha = 255;
- 	state->colorkey = RCAR_DU_COLORKEY_NONE;
- 	state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : 1;
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-index abff0ebeb195..81c2d361a94f 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-@@ -28,6 +28,12 @@ struct rcar_du_group;
- #define RCAR_DU_NUM_KMS_PLANES		9
- #define RCAR_DU_NUM_HW_PLANES		8
- 
-+enum rcar_du_plane_source {
-+	RCAR_DU_PLANE_MEMORY,
-+	RCAR_DU_PLANE_VSPD0,
-+	RCAR_DU_PLANE_VSPD1,
-+};
-+
- struct rcar_du_plane {
- 	struct drm_plane plane;
- 	struct rcar_du_group *group;
-@@ -51,6 +57,7 @@ struct rcar_du_plane_state {
- 
- 	const struct rcar_du_format_info *format;
- 	int hwindex;		/* 0-based, -1 means unused */
-+	enum rcar_du_plane_source source;
- 
- 	unsigned int alpha;
- 	unsigned int colorkey;
--- 
-2.0.5
+Thanks,
+Luis
 
+> >  	init(ci);
+> >  	dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+> >  	return &ci->en;
