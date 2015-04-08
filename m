@@ -1,86 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:35358 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbbDHMjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 08:39:15 -0400
-Date: Wed, 8 Apr 2015 13:35:54 +0100
-From: Luis de Bethencourt <luis@debethencourt.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Subject: Re: [PATCH] media: cxd2099: move pre-init values out of init()
-Message-ID: <20150408123554.GA17914@biggie>
-References: <20150208205536.GA31543@turing>
- <20150408080903.1fdc7c4e@recife.lan>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:12687 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259AbbDHLu3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 07:50:29 -0400
+Message-ID: <552513B4.4050001@cisco.com>
+Date: Wed, 08 Apr 2015 13:40:36 +0200
+From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150408080903.1fdc7c4e@recife.lan>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Hans Verkuil <hansverk@cisco.com>, kernel@pengutronix.de,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC 00/12] TC358743 async subdev and dt support
+References: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1427713856-10240-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 08, 2015 at 08:09:03AM -0300, Mauro Carvalho Chehab wrote:
-> Em Sun, 8 Feb 2015 20:55:36 +0000
-> luisbg <luis@debethencourt.com> escreveu:
-> 
-> > Improve code readability by moving out all pre-init values from the init
-> > function.
-> > 
-> > Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
-> > ---
-> >  drivers/staging/media/cxd2099/cxd2099.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
-> > index 657ea48..bafe36f 100644
-> > --- a/drivers/staging/media/cxd2099/cxd2099.c
-> > +++ b/drivers/staging/media/cxd2099/cxd2099.c
-> > @@ -300,7 +300,6 @@ static int init(struct cxd *ci)
-> >  	int status;
-> >  
-> >  	mutex_lock(&ci->lock);
-> > -	ci->mode = -1;
-> >  	do {
-> >  		status = write_reg(ci, 0x00, 0x00);
-> >  		if (status < 0)
-> > @@ -420,7 +419,6 @@ static int init(struct cxd *ci)
-> >  		status = write_regm(ci, 0x09, 0x08, 0x08);
-> >  		if (status < 0)
-> >  			break;
-> > -		ci->cammode = -1;
-> >  		cam_mode(ci, 0);
-> >  	} while (0);
-> >  	mutex_unlock(&ci->lock);
-> > @@ -711,6 +709,8 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
-> >  
-> >  	ci->en = en_templ;
-> >  	ci->en.data = ci;
-> > +	ci->mode = -1;
-> > +	ci->cammode = -1;
-> 
-> This actually changes the logic, as, cammode is == -1 only if the
-> do {} while loop succeeds.
-> 
-> Also, calling cam_mode(ci, 0) will change cammode to 0. Btw, for
-> it to work, ci->mode should be initialized earlier.
-> 
-> So, this patch looks very wrong on my eyes, except if you found
-> a real bug on it.
-> 
-> Have you tested it on a real device? What bug does it fix?
-> 
-> Regards,
-> Mauro
-> 
+Hi Philipp,
+Hans forwarded this patch series to me now, since I haven't received if 
+for some reason. I will prioritize upstreaming of the driver the next 
+couple of days and create a new RFC. I will also go through your patches 
+and give you feedback!
 
-Apologies. You are right and this patch is completely wrong.
+Regards,
+Mats
 
-I submitted this while reading the code of a few drivers to learn from them.
-I should've retracted it before you spent time reviewing it. Sorry for that.
 
-Thanks,
-Luis
+On 03/30/2015 01:10 PM, Philipp Zabel wrote:
+> Hi Mats,
+>
+> did you have time to work on the TC358743 driver some more in the meanwhile?
+> These are the changes I have made locally to v1 to get it to work on i.MX6.
+>
+> regards
+> Philipp
+>
+> Mats Randgaard (1):
+>    [media] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
+>
+> Philipp Zabel (11):
+>    [media] tc358743: register v4l2 asynchronous subdevice
+>    [media] tc358743: support probe from device tree
+>    [media] tc358743: fix set_pll to enable PLL with default frequency
+>    [media] tc358743: fix lane number calculation to include blanking
+>    [media] tc358743: split set_csi into set_csi and start_csi
+>    [media] tc358743: also set TCLK_TRAILCNT and TCLK_POSTCNT
+>    [media] tc358743: parse MIPI CSI-2 endpoint, support noncontinuous
+>      clock
+>    [media] tc358743: add direct interrupt handling
+>    [media] tc358743: detect chip by ChipID instead of IntMask
+>    [media] tc358743: don't return E2BIG from G_EDID
+>    [media] tc358743: allow event subscription
+>
+>   MAINTAINERS                        |    6 +
+>   drivers/media/i2c/Kconfig          |   12 +
+>   drivers/media/i2c/Makefile         |    1 +
+>   drivers/media/i2c/tc358743.c       | 1979 ++++++++++++++++++++++++++++++++++++
+>   drivers/media/i2c/tc358743_regs.h  |  670 ++++++++++++
+>   include/media/tc358743.h           |   89 ++
+>   include/uapi/linux/v4l2-controls.h |    4 +
+>   7 files changed, 2761 insertions(+)
+>   create mode 100644 drivers/media/i2c/tc358743.c
+>   create mode 100644 drivers/media/i2c/tc358743_regs.h
+>   create mode 100644 include/media/tc358743.h
+>
 
-> >  	init(ci);
-> >  	dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
-> >  	return &ci->en;
