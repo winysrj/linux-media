@@ -1,96 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:33497 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965980AbbDVQx0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 12:53:26 -0400
-Received: by layy10 with SMTP id y10so179622899lay.0
-        for <linux-media@vger.kernel.org>; Wed, 22 Apr 2015 09:53:25 -0700 (PDT)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55074 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676AbbDHKgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 06:36:24 -0400
+Date: Wed, 8 Apr 2015 12:36:22 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>, sakari.ailus@iki.fi,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+Message-ID: <20150408103622.GB17245@amd>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <5524FCEF.7060901@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20150422152328.GB5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de> <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de> <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de>
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Wed, 22 Apr 2015 09:53:03 -0700
-Message-ID: <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-To: "Luis R. Rodriguez" <mcgrof@suse.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Mike Marciniszyn <infinipath@intel.com>,
-	linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Ville Syrj?l?" <syrjala@sci.fi>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5524FCEF.7060901@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 8:23 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
->> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
->> > > Mike, do you think the time is right to just remove the iPath driver?
->> >
->> > With PAT now being default the driver effectively won't work
->> > with write-combining on modern kernels. Even if systems are old
->> > they likely had PAT support, when upgrading kernels PAT will work
->> > but write-combing won't on ipath.
->>
->> Sorry, do you mean the driver already doesn't get WC? Or do you mean
->> after some more pending patches are applied?
->
-> No, you have to consider the system used and the effects of calls used
-> on the driver in light of this table:
->
-> ----------------------------------------------------------------------
-> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
-> ----------------------------------------------------------------------
->                                                   Non-PAT |  PAT
->      PAT
->      |PCD
->      ||PWT
->      |||
-> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
-> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
-> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
-> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
-> ----------------------------------------------------------------------
->
-> (*) denotes implementation defined and is discouraged
->
-> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
-> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
-> the default. When that flip occurs it will mean ipath cannot get
-> write-combining on both non-PAT and PAT systems. Now that is for
-> the future, lets review the current situation for ipath.
->
-> For PAT capable systems if mtrr_add() is used today on a Linux system on a
-> region mapped with ioremap_nocache() that will mean you effectively nullify the
-> mtrr_add() effect as the combinatorial effect above yields an effective memory
-> type of UC.
+On Wed 2015-04-08 12:03:27, Sylwester Nawrocki wrote:
+> Hello,
+> 
+> On 31/03/15 15:52, Jacek Anaszewski wrote:
+> > Description of flash LEDs related properties was not precise regarding
+> > the state of corresponding settings in case a property is missing.
+> > Add relevant statements.
+> > Removed is also the requirement making the flash-max-microamp
+> > property obligatory for flash LEDs. It was inconsistent as the property
+> > is defined as optional. Devices which require the property will have
+> > to assert this in their DT bindings.
+> > 
+> > Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > Cc: Bryan Wu <cooloney@gmail.com>
+> > Cc: Richard Purdie <rpurdie@rpsys.net>
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Cc: devicetree@vger.kernel.org
+> > ---
+> >  Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
+> >  1 file changed, 9 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> > index 747c538..21a25e4 100644
+> > --- a/Documentation/devicetree/bindings/leds/common.txt
+> > +++ b/Documentation/devicetree/bindings/leds/common.txt
+> > @@ -29,13 +29,15 @@ Optional properties for child nodes:
+> >       "ide-disk" - LED indicates disk activity
+> >       "timer" - LED flashes at a fixed, configurable rate
+> >  
+> > -- max-microamp : maximum intensity in microamperes of the LED
+> > -		 (torch LED for flash devices)
+> > -- flash-max-microamp : maximum intensity in microamperes of the
+> > -                       flash LED; it is mandatory if the LED should
+> > -		       support the flash mode
+> > -- flash-timeout-us : timeout in microseconds after which the flash
+> > -                     LED is turned off
+> > +- max-microamp : Maximum intensity in microamperes of the LED
+> > +		 (torch LED for flash devices). If omitted this will default
+> > +		 to the maximum current allowed by the device.
+> > +- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
+> > +		       If omitted this will default to the maximum
+> > +		       current allowed by the device.
+> > +- flash-timeout-us : Timeout in microseconds after which the flash
+> > +                     LED is turned off. If omitted this will default to the
+> > +		     maximum timeout allowed by the device.
+> 
+> Sorry about late comments on that, but since we can still change these
+> properties and it seems we're going to do that, I'd like throw in my
+> few preferences on the colour of this bike...
 
-Are you sure?  I thought that ioremap_nocache currently is UC-, so
-mtrr_add + ioremap_nocache gets WC even on PAT systems.
+Lets not paint bikes here.
 
-Going forward, when mtrr_add is gone, this will change, of course.
-
---Andy
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
