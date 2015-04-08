@@ -1,69 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26491 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419AbbD2KDC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 06:03:02 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
-Subject: [PATCH v5 01/11] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-Date: Wed, 29 Apr 2015 12:02:34 +0200
-Message-id: <1430301765-22202-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
-References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:52142 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753741AbbDHLcX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 07:32:23 -0400
+Date: Wed, 8 Apr 2015 08:32:17 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sifan Naeem <sifan.naeem@imgtec.com>
+Cc: <james.hogan@imgtec.com>, <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] rc: img-ir: Add and enable sys clock for IR
+Message-ID: <20150408083217.5e1dee7a@recife.lan>
+In-Reply-To: <1422984629-13313-1-git-send-email-sifan.naeem@imgtec.com>
+References: <1422984629-13313-1-git-send-email-sifan.naeem@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-Exynos4x12 SoCs. These are required by the HDMI CEC device.
+Em Tue, 3 Feb 2015 17:30:29 +0000
+Sifan Naeem <sifan.naeem@imgtec.com> escreveu:
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi |    7 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi |    7 +++++++
- 2 files changed, 14 insertions(+)
+> Gets a handle to the system clock, already described in the binding
+> document, and calls the appropriate common clock
+> framework functions to mark it prepared/enabled, the common clock
+> framework initially enables the clock and doesn't disable it at least
+> until the device/driver is removed.
+> The system clock to IR is needed for the driver to communicate with the
+> IR hardware via MMIO accesses on the system bus, so it must not be
+> disabled during use or the driver will malfunction.
 
-diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-index a7c2128..9331c62 100644
---- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-@@ -820,6 +820,13 @@
- 			samsung,pin-pud = <1>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
- 
- 	pinctrl@03860000 {
-diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-index c141931..875464e 100644
---- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-@@ -885,6 +885,13 @@
- 			samsung,pin-pud = <0>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
- 
- 	pinctrl@03860000 {
--- 
-1.7.9.5
+Hmm... patchwork has two versions of this patch, but I have only one on
+my e-mail.
 
+Could you please check if I applied the right one? If not, please
+send me an email with a fixup patch.
+
+Thanks!
+Mauro
+
+> 
+> Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+> ---
+>  drivers/media/rc/img-ir/img-ir-core.c |   13 +++++++++----
+>  drivers/media/rc/img-ir/img-ir.h      |    2 ++
+>  2 files changed, 11 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
+> index 77c78de..783dd21 100644
+> --- a/drivers/media/rc/img-ir/img-ir-core.c
+> +++ b/drivers/media/rc/img-ir/img-ir-core.c
+> @@ -60,6 +60,8 @@ static void img_ir_setup(struct img_ir_priv *priv)
+>  
+>  	if (!IS_ERR(priv->clk))
+>  		clk_prepare_enable(priv->clk);
+> +	if (!IS_ERR(priv->sys_clk))
+> +		clk_prepare_enable(priv->sys_clk);
+>  }
+>  
+>  static void img_ir_ident(struct img_ir_priv *priv)
+> @@ -110,10 +112,11 @@ static int img_ir_probe(struct platform_device *pdev)
+>  	priv->clk = devm_clk_get(&pdev->dev, "core");
+>  	if (IS_ERR(priv->clk))
+>  		dev_warn(&pdev->dev, "cannot get core clock resource\n");
+> -	/*
+> -	 * The driver doesn't need to know about the system ("sys") or power
+> -	 * modulation ("mod") clocks yet
+> -	 */
+> +
+> +	/* Get sys clock */
+> +	priv->sys_clk = devm_clk_get(&pdev->dev, "sys");
+> +	if (IS_ERR(priv->sys_clk))
+> +		dev_warn(&pdev->dev, "cannot get sys clock resource\n");
+>  
+>  	/* Set up raw & hw decoder */
+>  	error = img_ir_probe_raw(priv);
+> @@ -152,6 +155,8 @@ static int img_ir_remove(struct platform_device *pdev)
+>  
+>  	if (!IS_ERR(priv->clk))
+>  		clk_disable_unprepare(priv->clk);
+> +	if (!IS_ERR(priv->sys_clk))
+> +		clk_disable_unprepare(priv->sys_clk);
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
+> index 2ddf560..f1387c0 100644
+> --- a/drivers/media/rc/img-ir/img-ir.h
+> +++ b/drivers/media/rc/img-ir/img-ir.h
+> @@ -138,6 +138,7 @@ struct clk;
+>   * @dev:		Platform device.
+>   * @irq:		IRQ number.
+>   * @clk:		Input clock.
+> + * @sys_clk:		System clock.
+>   * @reg_base:		Iomem base address of IR register block.
+>   * @lock:		Protects IR registers and variables in this struct.
+>   * @raw:		Driver data for raw decoder.
+> @@ -147,6 +148,7 @@ struct img_ir_priv {
+>  	struct device		*dev;
+>  	int			irq;
+>  	struct clk		*clk;
+> +	struct clk		*sys_clk;
+>  	void __iomem		*reg_base;
+>  	spinlock_t		lock;
+>  
