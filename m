@@ -1,305 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:11539 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422742AbbD2KDh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51625 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751177AbbDHJLh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 06:03:37 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH v5 08/11] cec: adv7604: add cec support.
-Date: Wed, 29 Apr 2015 12:02:41 +0200
-Message-id: <1430301765-22202-9-git-send-email-k.debski@samsung.com>
-In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
-References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+	Wed, 8 Apr 2015 05:11:37 -0400
+Date: Wed, 8 Apr 2015 12:11:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+Message-ID: <20150408091129.GT20756@valkosipuli.retiisi.org.uk>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+ <5524ECDC.1070609@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5524ECDC.1070609@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hi Jacek,
 
-Add CEC support to the adv7604 driver.
+On Wed, Apr 08, 2015 at 10:54:52AM +0200, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 04/03/2015 02:09 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Tue, Mar 31, 2015 at 03:52:37PM +0200, Jacek Anaszewski wrote:
+> >>Description of flash LEDs related properties was not precise regarding
+> >>the state of corresponding settings in case a property is missing.
+> >>Add relevant statements.
+> >>Removed is also the requirement making the flash-max-microamp
+> >>property obligatory for flash LEDs. It was inconsistent as the property
+> >>is defined as optional. Devices which require the property will have
+> >>to assert this in their DT bindings.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>Cc: Bryan Wu <cooloney@gmail.com>
+> >>Cc: Richard Purdie <rpurdie@rpsys.net>
+> >>Cc: Pavel Machek <pavel@ucw.cz>
+> >>Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>Cc: devicetree@vger.kernel.org
+> >>---
+> >>  Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
+> >>  1 file changed, 9 insertions(+), 7 deletions(-)
+> >>
+> >>diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+> >>index 747c538..21a25e4 100644
+> >>--- a/Documentation/devicetree/bindings/leds/common.txt
+> >>+++ b/Documentation/devicetree/bindings/leds/common.txt
+> >>@@ -29,13 +29,15 @@ Optional properties for child nodes:
+> >>       "ide-disk" - LED indicates disk activity
+> >>       "timer" - LED flashes at a fixed, configurable rate
+> >>
+> >>-- max-microamp : maximum intensity in microamperes of the LED
+> >>-		 (torch LED for flash devices)
+> >>-- flash-max-microamp : maximum intensity in microamperes of the
+> >>-                       flash LED; it is mandatory if the LED should
+> >>-		       support the flash mode
+> >>-- flash-timeout-us : timeout in microseconds after which the flash
+> >>-                     LED is turned off
+> >>+- max-microamp : Maximum intensity in microamperes of the LED
+> >>+		 (torch LED for flash devices). If omitted this will default
+> >>+		 to the maximum current allowed by the device.
+> >>+- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
+> >>+		       If omitted this will default to the maximum
+> >>+		       current allowed by the device.
+> >>+- flash-timeout-us : Timeout in microseconds after which the flash
+> >>+                     LED is turned off. If omitted this will default to the
+> >>+		     maximum timeout allowed by the device.
+> >>
+> >>
+> >>  Examples:
+> >
+> >Pavel pointed out that the brightness between maximum current and the
+> >maximum *allowed* another current might not be noticeable, leading a
+> >potential spelling error to cause the LED being run at too high current.
+> 
+> I think that a board designed so that it can be damaged because of
+> software bugs should be considered not eligible for commercial use.
+> Any self-esteeming manufacturer will not connect a LED to the output
+> that can produce the current greater than the LED's absolute maximum
+> current.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-[k.debski@samsung.com: add missing methods cec/io_write_and_or]
-[k.debski@samsung.com: change adv7604 to adv76xx in added functions]
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/i2c/adv7604.c |  207 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 206 insertions(+), 1 deletion(-)
+The maximum current *is* used to prevent potential hardware damage. This is
+how mobile phones typically are, probably also the one you're using. :-) I
+don't believe there's really a difference between vendors in this respect.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 60ffcf0..4921276 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -38,6 +38,7 @@
- #include <linux/workqueue.h>
- 
- #include <media/adv7604.h>
-+#include <media/cec.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-dv-timings.h>
-@@ -77,6 +78,8 @@ MODULE_LICENSE("GPL");
- 
- #define ADV76XX_OP_SWAP_CB_CR				(1 << 0)
- 
-+#define ADV76XX_MAX_ADDRS (3)
-+
- enum adv76xx_type {
- 	ADV7604,
- 	ADV7611,
-@@ -159,6 +162,10 @@ struct adv76xx_state {
- 	u16 spa_port_a[2];
- 	struct v4l2_fract aspect_ratio;
- 	u32 rgb_quantization_range;
-+	u8   cec_addr[ADV76XX_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
-+
- 	struct workqueue_struct *work_queues;
- 	struct delayed_work delayed_work_enable_hotplug;
- 	bool restart_stdi_once;
-@@ -424,7 +431,15 @@ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_IO, reg, val);
- }
- 
--static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int io_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				  u8 val)
-+{
-+	return io_write(sd, reg, (io_read(sd, reg) & mask) | val);
-+}
-+
-+
-+static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				   u8 val)
- {
- 	return io_write(sd, reg, (io_read(sd, reg) & ~mask) | val);
- }
-@@ -457,6 +472,12 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CEC, reg, val);
- }
- 
-+static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				   u8 val)
-+{
-+	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+}
-+
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -1865,6 +1886,183 @@ static int adv76xx_set_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static void adv76xx_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_ARB_LOST);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_OK);
-+		return;
-+	}
-+}
-+
-+static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
-+{
-+	struct cec_msg msg;
-+	u8 cec_irq;
-+
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x4d) & 0x0f;
-+	if (!cec_irq)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv76xx_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
-+		}
-+	}
-+
-+	/* note: the bit order is swapped between 0x4d and 0x4e */
-+	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
-+		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
-+	io_write(sd, 0x4e, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static int adv76xx_cec_enable(struct v4l2_subdev *sd, bool enable)
-+{
-+	struct adv76xx_state *state = to_state(sd);
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_and_or(sd, 0x2a, 0xfe, 0x01);	/* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_and_or(sd, 0x11, 0xfe, 0);  /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_and_or(sd, 0x50, 0xf0, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_and_or(sd, 0x50, 0xf0, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_and_or(sd, 0x27, 0x8f, 0x70);
-+		/* power down cec section */
-+		cec_write_and_or(sd, 0x2a, 0xfe, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv76xx_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
-+{
-+	struct adv76xx_state *state = to_state(sd);
-+	unsigned i, free_idx = ADV76XX_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	for (i = 0; i < ADV76XX_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV76XX_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV76XX_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV76XX_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_and_or(sd, 0x27, 0xef, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_and_or(sd, 0x28, 0xf0, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_and_or(sd, 0x27, 0xdf, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_and_or(sd, 0x28, 0x0f, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_and_or(sd, 0x27, 0xbf, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_and_or(sd, 0x29, 0xf0, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv76xx_cec_transmit(struct v4l2_subdev *sd, struct cec_msg *msg)
-+{
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	if (len == 1)
-+		/* allow for one retry for polling */
-+		cec_write_and_or(sd, 0x12, 0xf8, 1);
-+	else
-+		/* allow for three retries */
-+		cec_write_and_or(sd, 0x12, 0xf8, 3);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
-+	/* For some reason sometimes the
-+	 * transmit won't start.
-+	 * Doing it twice seems to help ?
-+	*/
-+	cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
-+static void adv76xx_cec_transmit_timed_out(struct v4l2_subdev *sd)
-+{
-+	cec_write_and_or(sd, 0x11, 0xfe, 0);  /* disable tx */
-+}
-+
- static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -1910,6 +2108,9 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+	/* cec */
-+	adv76xx_cec_isr(sd, handled);
-+
- 	/* tx 5v detect */
- 	tx_5v = io_read(sd, 0x70) & info->cable_det_mask;
- 	if (tx_5v) {
-@@ -2304,6 +2505,10 @@ static const struct v4l2_subdev_video_ops adv76xx_video_ops = {
- 	.s_dv_timings = adv76xx_s_dv_timings,
- 	.g_dv_timings = adv76xx_g_dv_timings,
- 	.query_dv_timings = adv76xx_query_dv_timings,
-+	.cec_enable = adv76xx_cec_enable,
-+	.cec_log_addr = adv76xx_cec_log_addr,
-+	.cec_transmit = adv76xx_cec_transmit,
-+	.cec_transmit_timed_out = adv76xx_cec_transmit_timed_out,
- };
- 
- static const struct v4l2_subdev_pad_ops adv76xx_pad_ops = {
+We still lack a proper way to model the temperature of the flash LED, so
+what we have now is a bit incomplete, but at least it prevents causing
+damage unintentionally.
+
+> The DT properties could be useful for devices like aat1290 device I was
+> writing a driver for, which has the maximum current and timeout values
+> depending on corresponding capacitor and resistor values respectively.
+> Such devices should make the properties required in their bindings.
+> 
+> >The three drivers I've looked also require these properties, which I think
+> >is in the line with the above.
+> >
+> >How about either dropping the patch, or changing maximum to minimum and
+> >will to should? The drivers could also behave this way instead of requiring
+> >the properties, but I don't think there's anything wrong with requiring the
+> >properties either.
+> 
+> As I mentioned in the previous message in this subject, the max-microamp
+> property refers also to non-flash LEDs. Since existing LED class devices
+> does not require them, then it should be left optional and default to
+> max. It would however be inconsistent with flash LEDs related
+> properties.
+
+I do agree with Pavel here, these should be mandatory (at least for new
+drivers) OR default to minimum.
+
 -- 
-1.7.9.5
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
