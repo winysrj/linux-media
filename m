@@ -1,74 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39138 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932225AbbDXTxS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 15:53:18 -0400
-Date: Fri, 24 Apr 2015 14:53:02 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<tony@atomide.com>, <sre@kernel.org>, <pali.rohar@gmail.com>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 12/15] dt: bindings: Add lane-polarity property to
- endpoint nodes
-Message-ID: <20150424195302.GA12032@ti.com>
-References: <1427324259-18438-1-git-send-email-sakari.ailus@iki.fi>
- <1427324259-18438-13-git-send-email-sakari.ailus@iki.fi>
- <20150424194100.GG24270@ti.com>
- <20150424194933.GF27451@valkosipuli.retiisi.org.uk>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:35383 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753490AbbDHBZ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 21:25:56 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20150424194933.GF27451@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1427809965-25540-3-git-send-email-j.anaszewski@samsung.com>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com> <1427809965-25540-3-git-send-email-j.anaszewski@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Tue, 7 Apr 2015 18:25:35 -0700
+Message-ID: <CAK5ve-Jw5v5toKx4fJt-5wqT2OJrJFwCaq_gxsuqBUaPAWed3g@mail.gmail.com>
+Subject: Re: [PATCH v4 02/12] leds: unify the location of led-trigger API
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari Ailus <sakari.ailus@iki.fi> wrote on Fri [2015-Apr-24 22:49:33 +0300]:
-> Hi Benoit,
-> 
-> On Fri, Apr 24, 2015 at 02:41:00PM -0500, Benoit Parrot wrote:
-> > Sakari Ailus <sakari.ailus@iki.fi> wrote on Thu [2015-Mar-26 00:57:36 +0200]:
-> > > Add lane-polarity property to endpoint nodes. This essentially tells that
-> > > the order of the differential signal wires is inverted.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > >  Documentation/devicetree/bindings/media/video-interfaces.txt |    6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > index 571b4c6..9cd2a36 100644
-> > > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > @@ -106,6 +106,12 @@ Optional endpoint properties
-> > >  - link-frequencies: Allowed data bus frequencies. For MIPI CSI-2, for
-> > >    instance, this is the actual frequency of the bus, not bits per clock per
-> > >    lane value. An array of 64-bit unsigned integers.
-> > > +- lane-polarities: an array of polarities of the lanes starting from the clock
-> > > +  lane and followed by the data lanes in the same order as in data-lanes.
-> > > +  Valid values are 0 (normal) and 1 (inverted). The length of the array
-> > > +  should be the combined length of data-lanes and clock-lanes properties.
-> > > +  If the lane-polarities property is omitted, the value must be interpreted
-> > > +  as 0 (normal). This property is valid for serial busses only.
-> > >  
-> > 
-> > I am interested in this functionality.
-> > But I do have the following question.
-> > If the lane-polarities property is not specified, shouldn't the
-> > relevant struct member (bus->lane_polarities[i]) be set to 0?
-> 
-> This is done in the caller function; endpoint->bus is zeroed in
-> v4l2_of_parse_endpoint(). I believe reading rest of the properties relies on
-> the same.
+On Tue, Mar 31, 2015 at 6:52 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> Part of led-trigger API was in the private drivers/leds/leds.h header.
+> Move it to the include/linux/leds.h header to unify the API location
+> and announce it as public. It has been already exported from
+> led-triggers.c with EXPORT_SYMBOL_GPL macro.
+>
 
-Dang, missed that.
-Sorry for the noise.
+Applied, thanks.
 
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+-Bryan
+
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  drivers/leds/leds.h  |   24 ------------------------
+>  include/linux/leds.h |   24 ++++++++++++++++++++++++
+>  2 files changed, 24 insertions(+), 24 deletions(-)
+>
+> diff --git a/drivers/leds/leds.h b/drivers/leds/leds.h
+> index 79efe57..bc89d7a 100644
+> --- a/drivers/leds/leds.h
+> +++ b/drivers/leds/leds.h
+> @@ -13,7 +13,6 @@
+>  #ifndef __LEDS_H_INCLUDED
+>  #define __LEDS_H_INCLUDED
+>
+> -#include <linux/device.h>
+>  #include <linux/rwsem.h>
+>  #include <linux/leds.h>
+>
+> @@ -50,27 +49,4 @@ void led_stop_software_blink(struct led_classdev *led_cdev);
+>  extern struct rw_semaphore leds_list_lock;
+>  extern struct list_head leds_list;
+>
+> -#ifdef CONFIG_LEDS_TRIGGERS
+> -void led_trigger_set_default(struct led_classdev *led_cdev);
+> -void led_trigger_set(struct led_classdev *led_cdev,
+> -                       struct led_trigger *trigger);
+> -void led_trigger_remove(struct led_classdev *led_cdev);
+> -
+> -static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
+> -{
+> -       return led_cdev->trigger_data;
+> -}
+> -
+> -#else
+> -#define led_trigger_set_default(x) do {} while (0)
+> -#define led_trigger_set(x, y) do {} while (0)
+> -#define led_trigger_remove(x) do {} while (0)
+> -#define led_get_trigger_data(x) (NULL)
+> -#endif
+> -
+> -ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+> -                       const char *buf, size_t count);
+> -ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
+> -                       char *buf);
+> -
+>  #endif /* __LEDS_H_INCLUDED */
+> diff --git a/include/linux/leds.h b/include/linux/leds.h
+> index 9a2b000..0579708 100644
+> --- a/include/linux/leds.h
+> +++ b/include/linux/leds.h
+> @@ -12,6 +12,7 @@
+>  #ifndef __LINUX_LEDS_H_INCLUDED
+>  #define __LINUX_LEDS_H_INCLUDED
+>
+> +#include <linux/device.h>
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+>  #include <linux/rwsem.h>
+> @@ -222,6 +223,29 @@ struct led_trigger {
+>         struct list_head  next_trig;
+>  };
+>
+> +#ifdef CONFIG_LEDS_TRIGGERS
+> +void led_trigger_set_default(struct led_classdev *led_cdev);
+> +void led_trigger_set(struct led_classdev *led_cdev,
+> +                       struct led_trigger *trigger);
+> +void led_trigger_remove(struct led_classdev *led_cdev);
+> +
+> +static inline void *led_get_trigger_data(struct led_classdev *led_cdev)
+> +{
+> +       return led_cdev->trigger_data;
+> +}
+> +
+> +#else
+> +#define led_trigger_set_default(x) do {} while (0)
+> +#define led_trigger_set(x, y) do {} while (0)
+> +#define led_trigger_remove(x) do {} while (0)
+> +#define led_get_trigger_data(x) (NULL)
+> +#endif
+> +
+> +ssize_t led_trigger_store(struct device *dev, struct device_attribute *attr,
+> +                       const char *buf, size_t count);
+> +ssize_t led_trigger_show(struct device *dev, struct device_attribute *attr,
+> +                       char *buf);
+> +
+>  /* Registration functions for complex triggers */
+>  extern int led_trigger_register(struct led_trigger *trigger);
+>  extern void led_trigger_unregister(struct led_trigger *trigger);
+> --
+> 1.7.9.5
+>
