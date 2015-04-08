@@ -1,76 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:35311 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031026AbbDWVLa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 17:11:30 -0400
-Received: by labbd9 with SMTP id bd9so21975639lab.2
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:28 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 01/12] si2168: add support for gapped clock
-Date: Fri, 24 Apr 2015 00:11:00 +0300
-Message-Id: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:52133 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751330AbbDHLJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 07:09:10 -0400
+Date: Wed, 8 Apr 2015 08:09:03 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: luisbg <luis@debethencourt.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Subject: Re: [PATCH] media: cxd2099: move pre-init values out of init()
+Message-ID: <20150408080903.1fdc7c4e@recife.lan>
+In-Reply-To: <20150208205536.GA31543@turing>
+References: <20150208205536.GA31543@turing>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a parameter in si2168_config to support gapped clock.
+Em Sun, 8 Feb 2015 20:55:36 +0000
+luisbg <luis@debethencourt.com> escreveu:
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c      | 3 +++
- drivers/media/dvb-frontends/si2168.h      | 3 +++
- drivers/media/dvb-frontends/si2168_priv.h | 1 +
- 3 files changed, 7 insertions(+)
+> Improve code readability by moving out all pre-init values from the init
+> function.
+> 
+> Signed-off-by: Luis de Bethencourt <luis.bg@samsung.com>
+> ---
+>  drivers/staging/media/cxd2099/cxd2099.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+> index 657ea48..bafe36f 100644
+> --- a/drivers/staging/media/cxd2099/cxd2099.c
+> +++ b/drivers/staging/media/cxd2099/cxd2099.c
+> @@ -300,7 +300,6 @@ static int init(struct cxd *ci)
+>  	int status;
+>  
+>  	mutex_lock(&ci->lock);
+> -	ci->mode = -1;
+>  	do {
+>  		status = write_reg(ci, 0x00, 0x00);
+>  		if (status < 0)
+> @@ -420,7 +419,6 @@ static int init(struct cxd *ci)
+>  		status = write_regm(ci, 0x09, 0x08, 0x08);
+>  		if (status < 0)
+>  			break;
+> -		ci->cammode = -1;
+>  		cam_mode(ci, 0);
+>  	} while (0);
+>  	mutex_unlock(&ci->lock);
+> @@ -711,6 +709,8 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+>  
+>  	ci->en = en_templ;
+>  	ci->en.data = ci;
+> +	ci->mode = -1;
+> +	ci->cammode = -1;
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 5db588e..29a5936 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -508,6 +508,8 @@ static int si2168_init(struct dvb_frontend *fe)
- 	/* set ts mode */
- 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
- 	cmd.args[4] |= dev->ts_mode;
-+	if (dev->ts_clock_gapped)
-+		cmd.args[4] |= 0x40;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -688,6 +690,7 @@ static int si2168_probe(struct i2c_client *client,
- 	*config->fe = &dev->fe;
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
-+	dev->ts_clock_gapped = config->ts_clock_gapped;
- 	dev->fw_loaded = false;
- 
- 	i2c_set_clientdata(client, dev);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index 70d702a..3225d0c 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -42,6 +42,9 @@ struct si2168_config {
- 
- 	/* TS clock inverted */
- 	bool ts_clock_inv;
-+
-+	/* TS clock gapped */
-+	bool ts_clock_gapped;
- };
- 
- #endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index d7efce8..d2589e3 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -38,6 +38,7 @@ struct si2168_dev {
- 	bool fw_loaded;
- 	u8 ts_mode;
- 	bool ts_clock_inv;
-+	bool ts_clock_gapped;
- };
- 
- /* firmware command struct */
--- 
-1.9.1
+This actually changes the logic, as, cammode is == -1 only if the
+do {} while loop succeeds.
 
+Also, calling cam_mode(ci, 0) will change cammode to 0. Btw, for
+it to work, ci->mode should be initialized earlier.
+
+So, this patch looks very wrong on my eyes, except if you found
+a real bug on it.
+
+Have you tested it on a real device? What bug does it fix?
+
+Regards,
+Mauro
+
+>  	init(ci);
+>  	dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+>  	return &ci->en;
