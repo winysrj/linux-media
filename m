@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33833 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbbDCRQq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:16:46 -0400
-Date: Fri, 3 Apr 2015 18:16:37 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Daniel Mack <daniel@zonque.org>,
-	Gregory Clement <gregory.clement@free-electrons.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Roland Stigge <stigge@antcom.de>,
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Stephen Boyd <sboyd@codeaurora.org>,
-	Takashi Iwai <tiwai@suse.de>, Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/14] Fix fallout from per-user struct clk patches
-Message-ID: <20150403171637.GA29798@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57792 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754152AbbDHWNk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 18:13:40 -0400
+Date: Thu, 9 Apr 2015 01:13:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
+Message-ID: <20150408221334.GZ20756@valkosipuli.retiisi.org.uk>
+References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
+ <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
+ <3264259.HtLEAUTuYM@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
+In-Reply-To: <3264259.HtLEAUTuYM@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 03, 2015 at 06:11:49PM +0100, Russell King - ARM Linux wrote:
-> Sorry for posting this soo close to the 4.1 merge window, I had
-> completely forgotten about this chunk of work I did earlier this
-> month.
+Hi Laurent,
 
-Correction - earlier _last_ month - 1st/2nd March to be exact.
+On Tue, Apr 07, 2015 at 01:10:20PM +0300, Laurent Pinchart wrote:
+> > @@ -3022,34 +3026,30 @@ static struct smiapp_platform_data
+> > *smiapp_get_pdata(struct device *dev) dev_dbg(dev, "reset %d, nvm %d, clk
+> > %d, csi %d\n", pdata->xshutdown, pdata->nvm_size, pdata->ext_clk,
+> > pdata->csi_signalling_mode);
+> > 
+> > -	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
+> > -	if (rval) {
+> > -		dev_warn(dev, "can't get link-frequencies array size\n");
+> > +	if (!bus_cfg->nr_of_link_frequencies) {
+> 
+> Now that I see it being used, nr_of_link_frequencies feels a bit long. 
+> num_link_freqs could be an alternative. I'll let you decide. But for this 
+> patch,
+
+It's long, I agree, but still used in only a small number of places in
+drivers. I'd prefer to keep it as-is also as the name matches the name of
+the property.
+
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks.
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
