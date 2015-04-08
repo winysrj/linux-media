@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:36552 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933028AbbD1KJ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 06:09:56 -0400
-Received: by wizk4 with SMTP id k4so133716356wiz.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2015 03:09:55 -0700 (PDT)
-Date: Tue, 28 Apr 2015 11:09:51 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51128 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbbDHJR0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 05:17:26 -0400
+Date: Wed, 8 Apr 2015 11:17:24 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 02/10] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150428100951.GO11956@x1>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
- <1430205530-20873-3-git-send-email-j.anaszewski@samsung.com>
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+Message-ID: <20150408091724.GD5646@amd>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+ <5524ECDC.1070609@samsung.com>
+ <20150408091129.GT20756@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1430205530-20873-3-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <20150408091129.GT20756@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 28 Apr 2015, Jacek Anaszewski wrote:
+Hi!
 
-> This patch adds device tree binding documentation for
-> the flash cell of the Maxim max77693 multifunctional device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: devicetree@vger.kernel.org
-> ---
->  Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++++++++++++++++++++
->  1 file changed, 67 insertions(+)
+> > I think that a board designed so that it can be damaged because of
+> > software bugs should be considered not eligible for commercial
+> > use.
 
-Requires a LED Ack.
+Hello? It is 2015. Yes, that was nice rule... in 1995 or so :-).
 
+> > As I mentioned in the previous message in this subject, the max-microamp
+> > property refers also to non-flash LEDs. Since existing LED class devices
+> > does not require them, then it should be left optional and default to
+> > max. It would however be inconsistent with flash LEDs related
+> > properties.
+
+For non-flash LEDs and backward compatibility, I guess you are
+right. Inconsistency is fine in this case...
+									Pavel
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
