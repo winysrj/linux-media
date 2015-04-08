@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39506 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743AbbDGOiR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 10:38:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH 07/14] media: omap3isp: remove unused clkdev
-Date: Tue, 07 Apr 2015 17:38:41 +0300
-Message-ID: <1734484.Zgs1aYnH8A@avalon>
-In-Reply-To: <20150407124536.GK4027@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <1894989.AGoQvgsks0@avalon> <20150407124536.GK4027@n2100.arm.linux.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53161 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751300AbbDHL7d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 07:59:33 -0400
+Date: Wed, 8 Apr 2015 14:59:26 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 06/12] of: Add Skyworks Solutions, Inc. vendor prefix
+Message-ID: <20150408115926.GV20756@valkosipuli.retiisi.org.uk>
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-7-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1427809965-25540-7-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+On Tue, Mar 31, 2015 at 03:52:42PM +0200, Jacek Anaszewski wrote:
+> Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> index 42b3dab..4cd18bb 100644
+> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
+> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+> @@ -163,6 +163,7 @@ ricoh	Ricoh Co. Ltd.
+>  rockchip	Fuzhou Rockchip Electronics Co., Ltd
+>  samsung	Samsung Semiconductor
+>  sandisk	Sandisk Corporation
+> +skyworks	Skyworks Solutions, Inc.
 
-On Tuesday 07 April 2015 13:45:36 Russell King - ARM Linux wrote:
-> On Tue, Apr 07, 2015 at 12:42:52PM +0300, Laurent Pinchart wrote:
-> > On Sunday 05 April 2015 15:20:34 Russell King - ARM Linux wrote:
-> > > On Sat, Apr 04, 2015 at 12:44:35AM +0300, Laurent Pinchart wrote:
-> > > > Hi Russell,
-> > > > 
-> > > > Thank you for the patch;
-> > > > 
-> > > > On Friday 03 April 2015 18:12:58 Russell King wrote:
-> > > > > No merged platform supplies xclks via platform data.  As we want to
-> > > > > slightly change the clkdev interface, rather than fixing this unused
-> > > > > code, remove it instead.
-> > > > > 
-> > > > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > > > 
-> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > 
-> > > > with one caveat though : it conflicts with patches queued for v4.1 in
-> > > > the media tree. I'll post a rebased version in a reply to your e-mail.
-> > > > How would you like to handle the conflict ?
-> > > 
-> > > How bad is the conflict?
-> > 
-> > It's not too bad, it's mostly a context-related conflict. There are two
-> > additional lines to remove (plus the associated comment) from
-> > isp_xclk_init(), as your patch makes a loop now terminate with if
-> > (condition) continue;. Those two lines could be removed later, keeping
-> > them doesn't break anything.
->
-> I think it's fine to take it through the media tree as the series doesn't
-> have any dependencies on this patch.  It was merely attempting to get rid
-> of stuff so that we could move closer to clkdev dealing with a clk_hw
-> rather than a struct clk - but I never made it that far with the series.
-> Maybe at a later date... :)
+Please maintain the alphabetic order. With that fixed,
 
-:-) I'll take the patch and send a pull request.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+>  sbs	Smart Battery System
+>  schindler	Schindler
+>  seagate	Seagate Technology PLC
 
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
