@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:36374 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031035AbbDWVLb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 17:11:31 -0400
-Received: by lagv1 with SMTP id v1so21949428lag.3
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:30 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
-Date: Fri, 24 Apr 2015 00:11:01 +0300
-Message-Id: <1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
-References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:52139 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754154AbbDHLXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 07:23:54 -0400
+Date: Wed, 8 Apr 2015 08:23:42 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/1] media: Correctly notify about the failed pipeline
+ validation
+Message-ID: <20150408082342.1ff93eef@recife.lan>
+In-Reply-To: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the dvbsky driver to support gapped clock instead of the current
-hack.
+Em Thu, 12 Feb 2015 15:43:11 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> On the place of the source entity name, the sink entity name was printed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index defe4ac..d894481 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -283,9 +283,9 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>  			if (ret < 0 && ret != -ENOIOCTLCMD) {
+>  				dev_dbg(entity->parent->dev,
+>  					"link validation failed for \"%s\":%u -> \"%s\":%u, error %d\n",
+> -					entity->name, link->source->index,
+> -					link->sink->entity->name,
+> -					link->sink->index, ret);
+> +					link->source->entity->name,
+> +					link->source->index,
+> +					entity->name, link->sink->index, ret);
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index cdf59bc..0f73b1d 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -615,7 +615,8 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
- 	memset(&si2168_config, 0, sizeof(si2168_config));
- 	si2168_config.i2c_adapter = &i2c_adapter;
- 	si2168_config.fe = &adap->fe[0];
--	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_gapped = true;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
- 	info.addr = 0x64;
--- 
-1.9.1
+This should likely be reviewed by Laurent, but the above code
+seems weird to me...
 
+1) Why should it print the link source, instead of the sink?
+I suspect that the code here should take into account the chosen
+pad:
+
+                        struct media_pad *pad = link->sink->entity == entity
+                                                ? link->sink : link->source;
+
+2) Assuming that your patch is right, why are you printing the
+link->sink->index, instead of link->source->index?
+
+Regards,
+Mauro
