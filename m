@@ -1,98 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3468 "EHLO mga09.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:52127 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752929AbbDANse (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2015 09:48:34 -0400
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Gerd Hoffmann <kraxel@redhat.com>, dri-devel@lists.freedesktop.org,
-	virtio-dev@lists.oasis-open.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, mst@redhat.com,
-	open list <linux-kernel@vger.kernel.org>, airlied@redhat.com,
-	"open list\:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/4] break kconfig dependency loop
-In-Reply-To: <1427894130-14228-2-git-send-email-kraxel@redhat.com>
-References: <1427894130-14228-1-git-send-email-kraxel@redhat.com> <1427894130-14228-2-git-send-email-kraxel@redhat.com>
-Date: Wed, 01 Apr 2015 16:47:12 +0300
-Message-ID: <87wq1wot9b.fsf@intel.com>
+	id S1753622AbbDHKIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 06:08:46 -0400
+Date: Wed, 8 Apr 2015 07:08:39 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jaedon Shin <jaedon.shin@gmail.com>
+Cc: Changbing Xiong <cb.xiong@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] dmxdev: fix possible race conditions in
+ dvb_dmxdev_buffer_read
+Message-ID: <20150408070839.272933e1@recife.lan>
+In-Reply-To: <1419908734-57798-1-git-send-email-jaedon.shin@gmail.com>
+References: <1419908734-57798-1-git-send-email-jaedon.shin@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 01 Apr 2015, Gerd Hoffmann <kraxel@redhat.com> wrote:
-> After adding virtio-gpu I get this funky kconfig dependency loop.
->
-> scripts/kconfig/conf --oldconfig Kconfig
-> drivers/video/fbdev/Kconfig:5:error: recursive dependency detected!
-> drivers/video/fbdev/Kconfig:5:  symbol FB is selected by DRM_KMS_FB_HELPER
-> drivers/gpu/drm/Kconfig:34:     symbol DRM_KMS_FB_HELPER is selected by DRM_VIRTIO_GPU
-> drivers/gpu/drm/virtio/Kconfig:1:       symbol DRM_VIRTIO_GPU depends on VIRTIO
-> drivers/virtio/Kconfig:1:       symbol VIRTIO is selected by REMOTEPROC
-> drivers/remoteproc/Kconfig:4:   symbol REMOTEPROC is selected by OMAP_REMOTEPROC
-> drivers/remoteproc/Kconfig:12:  symbol OMAP_REMOTEPROC depends on OMAP_IOMMU
-> drivers/iommu/Kconfig:141:      symbol OMAP_IOMMU is selected by VIDEO_OMAP3
-> drivers/media/platform/Kconfig:96:      symbol VIDEO_OMAP3 depends on VIDEO_V4L2
-> drivers/media/v4l2-core/Kconfig:6:      symbol VIDEO_V4L2 depends on I2C
-> drivers/i2c/Kconfig:7:  symbol I2C is selected by FB_DDC
-> drivers/video/fbdev/Kconfig:59: symbol FB_DDC is selected by FB_CYBER2000_DDC
-> drivers/video/fbdev/Kconfig:374:        symbol FB_CYBER2000_DDC depends on FB_CYBER2000
-> drivers/video/fbdev/Kconfig:362:        symbol FB_CYBER2000 depends on FB
->
-> Making VIDEO_OMAP3 depend on OMAP_IOMMU instead of selecting it breaks the
-> loop, which looks like the best way to handle it to me.  I'm open to better
-> suggestions though.
+Hi,
 
-I think part of the problem is that "select" is often used not as
-documented [1] but rather as "show my config in menuconfig for
-convenience even if my dependency is not met, and select the dependency
-even though I know it can screw up the dependency chain".
+Em Tue, 30 Dec 2014 12:05:34 +0900
+Jaedon Shin <jaedon.shin@gmail.com> escreveu:
 
-In light of the documentation, your patch seems to DTRT. (Disclaimer: I
-don't work with the drivers in question, hence no Reviewed-by.)
-
-In the big picture, it feels like menuconfig needs a way to display
-items whose dependencies are not met, and a way to recursively enable
-said items and all their dependencies when told. This would reduce the
-resistance to sticking with "select" when clearly "depends" is what's
-meant.
-
-BR,
-Jani.
-
-
-[1] Documentation/kbuild/kconfig-language.txt: "In general use select
-only for non-visible symbols (no prompts anywhere) and for symbols with
-no dependencies. That will limit the usefulness but on the other hand
-avoid the illegal configurations all over."
-
-
->
-> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> This patch splits the dvb_dmxdev_buffer_read into dvb_dvr_read and
+> dvb_demux_read that fixes to unlock mutex before sleeping.
+> 
+> There are race conditions executing the DMX_ADD_PID and the DMX_REMOVE_PID
+> in the dvb_demux_do_ioctl when dvb_demux_read is waiting for data.
+> 
+> Signed-off-by: Jaedon Shin <jaedon.shin@gmail.com>
 > ---
->  drivers/media/platform/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index d9b872b..fc21734 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -87,8 +87,8 @@ config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
->  	depends on HAS_DMA
-> +	depends on OMAP_IOMMU
->  	select ARM_DMA_USE_IOMMU
-> -	select OMAP_IOMMU
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  Driver for an OMAP 3 camera controller.
-> -- 
-> 1.8.3.1
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>  drivers/media/dvb-core/dmxdev.c | 94 ++++++++++++++++++++++++++++++++---------
+>  1 file changed, 75 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+> index abff803..c2564b0 100644
+> --- a/drivers/media/dvb-core/dmxdev.c
+> +++ b/drivers/media/dvb-core/dmxdev.c
+> @@ -57,10 +57,11 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
+>  	return dvb_ringbuffer_write(buf, src, len);
+>  }
+>  
+> -static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
+> +static ssize_t dvb_dmxdev_buffer_read(struct dmxdev_filter *dmxdevfilter,
+>  				      int non_blocking, char __user *buf,
+>  				      size_t count, loff_t *ppos)
+>  {
+> +	struct dvb_ringbuffer *src = &dmxdevfilter->buffer;
+>  	size_t todo;
+>  	ssize_t avail;
+>  	ssize_t ret = 0;
+> @@ -75,16 +76,21 @@ static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
+>  	}
+>  
+>  	for (todo = count; todo > 0; todo -= ret) {
+> -		if (non_blocking && dvb_ringbuffer_empty(src)) {
+> -			ret = -EWOULDBLOCK;
+> -			break;
+> -		}
+> +		if (dvb_ringbuffer_empty(src)) {
+> +			mutex_unlock(&dmxdevfilter->mutex);
+>  
+> -		ret = wait_event_interruptible(src->queue,
+> -					       !dvb_ringbuffer_empty(src) ||
+> -					       (src->error != 0));
+> -		if (ret < 0)
+> -			break;
+> +			if (non_blocking)
+> +				return -EWOULDBLOCK;
+> +
+> +			ret = wait_event_interruptible(src->queue,
+> +					!dvb_ringbuffer_empty(src) ||
+> +					(src->error != 0));
+> +			if (ret < 0)
+> +				return ret;
+> +
+> +			if (mutex_lock_interruptible(&dmxdevfilter->mutex))
+> +				return -ERESTARTSYS;
+> +		}
+>  
+>  		if (src->error) {
+>  			ret = src->error;
+> @@ -242,13 +248,63 @@ static ssize_t dvb_dvr_read(struct file *file, char __user *buf, size_t count,
+>  {
+>  	struct dvb_device *dvbdev = file->private_data;
+>  	struct dmxdev *dmxdev = dvbdev->priv;
+> +	struct dvb_ringbuffer *src = &dmxdev->dvr_buffer;
+> +	size_t todo;
+> +	ssize_t avail;
+> +	ssize_t ret = 0;
+>  
+> -	if (dmxdev->exit)
+> +	if (mutex_lock_interruptible(&dmxdev->mutex))
+> +		return -ERESTARTSYS;
+> +
+> +	if (dmxdev->exit) {
+> +		mutex_unlock(&dmxdev->mutex);
+>  		return -ENODEV;
+> +	}
+> +
+> +	if (src->error) {
+> +		ret = src->error;
+> +		dvb_ringbuffer_flush(src);
+> +		mutex_unlock(&dmxdev->mutex);
+> +		return ret;
+> +	}
+> +
+> +	for (todo = count; todo > 0; todo -= ret) {
+> +		if (dvb_ringbuffer_empty(src)) {
+> +			mutex_unlock(&dmxdev->mutex);
+>  
+> -	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
+> -				      file->f_flags & O_NONBLOCK,
+> -				      buf, count, ppos);
+> +			if (file->f_flags & O_NONBLOCK)
+> +				return -EWOULDBLOCK;
+> +
+> +			ret = wait_event_interruptible(src->queue,
+> +					!dvb_ringbuffer_empty(src) ||
+> +					(src->error != 0));
+> +			if (ret < 0)
+> +				return ret;
+> +
+> +			if (mutex_lock_interruptible(&dmxdev->mutex))
+> +				return -ERESTARTSYS;
+> +		}
 
--- 
-Jani Nikula, Intel Open Source Technology Center
+Hmm... you're replicating what's there at dvb_dmxdev_buffer_read()
+with a few additions bellow.
+
+Instead, please do it in a way that we'll have just one copy of the
+code. The DVB ringbuf logic is already complex enough without code
+duplication.
+
+This would also make easier for reviewers to check the changes at
+the logic.
+
+> +
+> +		if (src->error) {
+> +			ret = src->error;
+> +			dvb_ringbuffer_flush(src);
+> +			break;
+> +		}
+> +
+> +		avail = dvb_ringbuffer_avail(src);
+> +		if (avail > todo)
+> +			avail = todo;
+> +
+> +		ret = dvb_ringbuffer_read_user(src, buf, avail);
+> +		if (ret < 0)
+> +			break;
+> +
+> +		buf += ret;
+> +	}
+> +
+> +	mutex_unlock(&dmxdev->mutex);
+> +
+> +	return (count - todo) ? (count - todo) : ret;
+>  }
+>  
+>  static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+> @@ -283,7 +339,6 @@ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+>  
+>  	return 0;
+>  }
+> -
+>  static inline void dvb_dmxdev_filter_state_set(struct dmxdev_filter
+>  					       *dmxdevfilter, int state)
+>  {
+> @@ -904,7 +959,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
+>  		hcount = 3 + dfil->todo;
+>  		if (hcount > count)
+>  			hcount = count;
+> -		result = dvb_dmxdev_buffer_read(&dfil->buffer,
+> +		result = dvb_dmxdev_buffer_read(dfil,
+>  						file->f_flags & O_NONBLOCK,
+>  						buf, hcount, ppos);
+>  		if (result < 0) {
+> @@ -925,7 +980,7 @@ static ssize_t dvb_dmxdev_read_sec(struct dmxdev_filter *dfil,
+>  	}
+>  	if (count > dfil->todo)
+>  		count = dfil->todo;
+> -	result = dvb_dmxdev_buffer_read(&dfil->buffer,
+> +	result = dvb_dmxdev_buffer_read(dfil,
+>  					file->f_flags & O_NONBLOCK,
+>  					buf, count, ppos);
+>  	if (result < 0)
+> @@ -947,11 +1002,12 @@ dvb_demux_read(struct file *file, char __user *buf, size_t count,
+>  	if (dmxdevfilter->type == DMXDEV_TYPE_SEC)
+>  		ret = dvb_dmxdev_read_sec(dmxdevfilter, file, buf, count, ppos);
+>  	else
+> -		ret = dvb_dmxdev_buffer_read(&dmxdevfilter->buffer,
+> +		ret = dvb_dmxdev_buffer_read(dmxdevfilter,
+>  					     file->f_flags & O_NONBLOCK,
+>  					     buf, count, ppos);
+>  
+> -	mutex_unlock(&dmxdevfilter->mutex);
+> +	if (mutex_is_locked(&dmxdevfilter->mutex))
+> +		mutex_unlock(&dmxdevfilter->mutex);
+>  	return ret;
+>  }
+>  
