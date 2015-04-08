@@ -1,48 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:36238 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876AbbDBMDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 08:03:30 -0400
-Subject: [PATCH 0/2] NEC scancodes and protocols in keymaps
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: sean@mess.org, mchehab@osg.samsung.com
-Date: Thu, 02 Apr 2015 14:02:57 +0200
-Message-ID: <20150402120047.20068.31662.stgit@zeus.muc.hardeman.nu>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:5294 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753815AbbDHN4S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 09:56:18 -0400
+From: Sifan Naeem <Sifan.Naeem@imgtec.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: James Hogan <James.Hogan@imgtec.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] rc: img-ir: Add and enable sys clock for IR
+Date: Wed, 8 Apr 2015 13:56:14 +0000
+Message-ID: <A0E307549471DA4DBAF2DE2DE6CBFB7E495D1CED@hhmail02.hh.imgtec.org>
+References: <1422984629-13313-1-git-send-email-sifan.naeem@imgtec.com>
+ <20150408083217.5e1dee7a@recife.lan>
+In-Reply-To: <20150408083217.5e1dee7a@recife.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following two patches should show more clearly what I mean by
-adding protocols to the keytables (and letting userspace add
-keytable entries with explicit protocol information). Consider
-it a basis for discussion.
+Hi Mauro,
 
-Each patch has a separate description, please refer to those for
-more information.
+I sent you a v2 of this patch on 4th February:
 
----
-
-David Härdeman (2):
-      rc-core: use the full 32 bits for NEC scancodes
-      rc-core: don't throw away protocol information
+From: Sifan Naeem 
+Sent: 04 February 2015 16:48
+To: James Hogan; mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org; linux-media@vger.kernel.org; Sifan Naeem
+Subject: [PATCH v2] rc: img-ir: Add and enable sys clock for img-ir
 
 
- drivers/media/rc/ati_remote.c            |    1 
- drivers/media/rc/imon.c                  |    7 +
- drivers/media/rc/ir-nec-decoder.c        |   26 ---
- drivers/media/rc/rc-main.c               |  233 ++++++++++++++++++++++++------
- drivers/media/usb/dvb-usb-v2/af9015.c    |   22 +--
- drivers/media/usb/dvb-usb-v2/af9035.c    |   23 +--
- drivers/media/usb/dvb-usb-v2/az6007.c    |   16 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c  |   20 +--
- drivers/media/usb/dvb-usb/dib0700_core.c |   24 +--
- drivers/media/usb/em28xx/em28xx-input.c  |   37 +----
- include/media/rc-core.h                  |   26 +++
- include/media/rc-map.h                   |   23 ++-
- 12 files changed, 264 insertions(+), 194 deletions(-)
+Unfortunately, while trying to improve the commit message in v2 I had changed the last word of the patch name from IR to img-ir.
 
---
-David Härdeman
+Do you want me to do a diff between the 2 patches and send you a new patch?
+
+Sifan
+
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@osg.samsung.com]
+> Sent: 08 April 2015 12:32
+> To: Sifan Naeem
+> Cc: James Hogan; linux-kernel@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: [PATCH] rc: img-ir: Add and enable sys clock for IR
+> 
+> Em Tue, 3 Feb 2015 17:30:29 +0000
+> Sifan Naeem <sifan.naeem@imgtec.com> escreveu:
+> 
+> > Gets a handle to the system clock, already described in the binding
+> > document, and calls the appropriate common clock framework functions
+> > to mark it prepared/enabled, the common clock framework initially
+> > enables the clock and doesn't disable it at least until the
+> > device/driver is removed.
+> > The system clock to IR is needed for the driver to communicate with
+> > the IR hardware via MMIO accesses on the system bus, so it must not be
+> > disabled during use or the driver will malfunction.
+> 
+> Hmm... patchwork has two versions of this patch, but I have only one on my
+> e-mail.
+> 
+> Could you please check if I applied the right one? If not, please send me an
+> email with a fixup patch.
+> 
+> Thanks!
+> Mauro
+> 
+> >
+> > Signed-off-by: Sifan Naeem <sifan.naeem@imgtec.com>
+> > ---
+> >  drivers/media/rc/img-ir/img-ir-core.c |   13 +++++++++----
+> >  drivers/media/rc/img-ir/img-ir.h      |    2 ++
+> >  2 files changed, 11 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/media/rc/img-ir/img-ir-core.c
+> > b/drivers/media/rc/img-ir/img-ir-core.c
+> > index 77c78de..783dd21 100644
+> > --- a/drivers/media/rc/img-ir/img-ir-core.c
+> > +++ b/drivers/media/rc/img-ir/img-ir-core.c
+> > @@ -60,6 +60,8 @@ static void img_ir_setup(struct img_ir_priv *priv)
+> >
+> >  	if (!IS_ERR(priv->clk))
+> >  		clk_prepare_enable(priv->clk);
+> > +	if (!IS_ERR(priv->sys_clk))
+> > +		clk_prepare_enable(priv->sys_clk);
+> >  }
+> >
+> >  static void img_ir_ident(struct img_ir_priv *priv) @@ -110,10 +112,11
+> > @@ static int img_ir_probe(struct platform_device *pdev)
+> >  	priv->clk = devm_clk_get(&pdev->dev, "core");
+> >  	if (IS_ERR(priv->clk))
+> >  		dev_warn(&pdev->dev, "cannot get core clock resource\n");
+> > -	/*
+> > -	 * The driver doesn't need to know about the system ("sys") or
+> power
+> > -	 * modulation ("mod") clocks yet
+> > -	 */
+> > +
+> > +	/* Get sys clock */
+> > +	priv->sys_clk = devm_clk_get(&pdev->dev, "sys");
+> > +	if (IS_ERR(priv->sys_clk))
+> > +		dev_warn(&pdev->dev, "cannot get sys clock resource\n");
+> >
+> >  	/* Set up raw & hw decoder */
+> >  	error = img_ir_probe_raw(priv);
+> > @@ -152,6 +155,8 @@ static int img_ir_remove(struct platform_device
+> > *pdev)
+> >
+> >  	if (!IS_ERR(priv->clk))
+> >  		clk_disable_unprepare(priv->clk);
+> > +	if (!IS_ERR(priv->sys_clk))
+> > +		clk_disable_unprepare(priv->sys_clk);
+> >  	return 0;
+> >  }
+> >
+> > diff --git a/drivers/media/rc/img-ir/img-ir.h
+> > b/drivers/media/rc/img-ir/img-ir.h
+> > index 2ddf560..f1387c0 100644
+> > --- a/drivers/media/rc/img-ir/img-ir.h
+> > +++ b/drivers/media/rc/img-ir/img-ir.h
+> > @@ -138,6 +138,7 @@ struct clk;
+> >   * @dev:		Platform device.
+> >   * @irq:		IRQ number.
+> >   * @clk:		Input clock.
+> > + * @sys_clk:		System clock.
+> >   * @reg_base:		Iomem base address of IR register block.
+> >   * @lock:		Protects IR registers and variables in this struct.
+> >   * @raw:		Driver data for raw decoder.
+> > @@ -147,6 +148,7 @@ struct img_ir_priv {
+> >  	struct device		*dev;
+> >  	int			irq;
+> >  	struct clk		*clk;
+> > +	struct clk		*sys_clk;
+> >  	void __iomem		*reg_base;
+> >  	spinlock_t		lock;
+> >
