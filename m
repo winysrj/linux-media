@@ -1,183 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52204 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753252AbbDHUoN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 16:44:13 -0400
-Date: Wed, 8 Apr 2015 17:43:12 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Brendan McGrath <redmcg@redmandi.dyndns.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Linux-Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCHv4] [media] saa7164: use an MSI interrupt when available
-Message-ID: <20150408174312.317c7823@recife.lan>
-In-Reply-To: <1426303659-4937-1-git-send-email-redmcg@redmandi.dyndns.org>
-References: <1425168893-5251-1-git-send-email-redmcg@redmandi.dyndns.org>
-	<1426303659-4937-1-git-send-email-redmcg@redmandi.dyndns.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:20297 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbbDHIy7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 04:54:59 -0400
+Message-id: <5524ECDC.1070609@samsung.com>
+Date: Wed, 08 Apr 2015 10:54:52 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
+ related properties
+References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
+ <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+ <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150403120910.GL20756@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Brendan,
+Hi Sakari,
 
-The idea is good, 
-Some comments bellow.
+On 04/03/2015 02:09 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Tue, Mar 31, 2015 at 03:52:37PM +0200, Jacek Anaszewski wrote:
+>> Description of flash LEDs related properties was not precise regarding
+>> the state of corresponding settings in case a property is missing.
+>> Add relevant statements.
+>> Removed is also the requirement making the flash-max-microamp
+>> property obligatory for flash LEDs. It was inconsistent as the property
+>> is defined as optional. Devices which require the property will have
+>> to assert this in their DT bindings.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> Cc: Pavel Machek <pavel@ucw.cz>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>>   Documentation/devicetree/bindings/leds/common.txt |   16 +++++++++-------
+>>   1 file changed, 9 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
+>> index 747c538..21a25e4 100644
+>> --- a/Documentation/devicetree/bindings/leds/common.txt
+>> +++ b/Documentation/devicetree/bindings/leds/common.txt
+>> @@ -29,13 +29,15 @@ Optional properties for child nodes:
+>>        "ide-disk" - LED indicates disk activity
+>>        "timer" - LED flashes at a fixed, configurable rate
+>>
+>> -- max-microamp : maximum intensity in microamperes of the LED
+>> -		 (torch LED for flash devices)
+>> -- flash-max-microamp : maximum intensity in microamperes of the
+>> -                       flash LED; it is mandatory if the LED should
+>> -		       support the flash mode
+>> -- flash-timeout-us : timeout in microseconds after which the flash
+>> -                     LED is turned off
+>> +- max-microamp : Maximum intensity in microamperes of the LED
+>> +		 (torch LED for flash devices). If omitted this will default
+>> +		 to the maximum current allowed by the device.
+>> +- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
+>> +		       If omitted this will default to the maximum
+>> +		       current allowed by the device.
+>> +- flash-timeout-us : Timeout in microseconds after which the flash
+>> +                     LED is turned off. If omitted this will default to the
+>> +		     maximum timeout allowed by the device.
+>>
+>>
+>>   Examples:
+>
+> Pavel pointed out that the brightness between maximum current and the
+> maximum *allowed* another current might not be noticeable, leading a
+> potential spelling error to cause the LED being run at too high current.
 
-Em Sat, 14 Mar 2015 14:27:39 +1100
-Brendan McGrath <redmcg@redmandi.dyndns.org> escreveu:
+I think that a board designed so that it can be damaged because of
+software bugs should be considered not eligible for commercial use.
+Any self-esteeming manufacturer will not connect a LED to the output
+that can produce the current greater than the LED's absolute maximum
+current.
 
-> Enhances driver to use an MSI interrupt when available.
-> 
-> Adds the module option 'enable_msi' (type bool) which by default is
-> enabled. Can be set to 'N' to disable.
-> 
-> Fixes (or can reduce the occurrence of) a crash which is most commonly
-> reported when both digital tuners of the saa7164 chip is in use. A reported example can
-> be found here:
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/83948
-> 
-> Reviewed-by: Steven Toth <stoth@kernellabs.com>
-> Signed-off-by: Brendan McGrath <redmcg@redmandi.dyndns.org>
-> ---
-> Changes since v3:
->   - fixes a conflict with a commit (3f845f3c4cf4) made to the media_tree after v3 was created (only the unified context has been changed)
->   - corrected comments to reflect that the reported incident occured more commonly when multiple tuners were in use (not multiple saa7164 chips as previously stated)
-> 
-> 
->  drivers/media/pci/saa7164/saa7164-core.c | 40 ++++++++++++++++++++++++++++++--
->  drivers/media/pci/saa7164/saa7164.h      |  1 +
->  2 files changed, 39 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-> index 9cf3c6c..7635598 100644
-> --- a/drivers/media/pci/saa7164/saa7164-core.c
-> +++ b/drivers/media/pci/saa7164/saa7164-core.c
-> @@ -85,6 +85,11 @@ module_param(guard_checking, int, 0644);
->  MODULE_PARM_DESC(guard_checking,
->  	"enable dma sanity checking for buffer overruns");
->  
-> +static bool enable_msi = true;
-> +module_param(enable_msi, bool, 0444);
-> +MODULE_PARM_DESC(enable_msi,
-> +		"enable the use of an msi interrupt if available");
-> +
->  static unsigned int saa7164_devcount;
->  
->  static DEFINE_MUTEX(devlist);
-> @@ -1230,8 +1235,34 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
->  		goto fail_irq;
->  	}
->  
-> -	err = request_irq(pci_dev->irq, saa7164_irq,
-> -		IRQF_SHARED, dev->name, dev);
-> +	/* irq bit */
-> +	if (enable_msi)
-> +		err = pci_enable_msi(pci_dev);
+The DT properties could be useful for devices like aat1290 device I was
+writing a driver for, which has the maximum current and timeout values
+depending on corresponding capacitor and resistor values respectively.
+Such devices should make the properties required in their bindings.
 
-It is worth printing a warning about that.
+> The three drivers I've looked also require these properties, which I think
+> is in the line with the above.
+>
+> How about either dropping the patch, or changing maximum to minimum and
+> will to should? The drivers could also behave this way instead of requiring
+> the properties, but I don't think there's anything wrong with requiring the
+> properties either.
 
-> +
-> +	if (!err && enable_msi) {
-> +		/* no error - so request an msi interrupt */
-> +		err = request_irq(pci_dev->irq, saa7164_irq, 0,
-> +				  dev->name, dev);
-> +
-> +		if (err) {
-> +			/* fall back to legacy interrupt */
-> +			printk(KERN_ERR "%s() Failed to get an MSI interrupt."
-> +			       " Falling back to a shared IRQ\n", __func__);
-> +			pci_disable_msi(pci_dev);
-> +		} else {
-> +			dev->msi = true;
-> +		}
-> +	}
+As I mentioned in the previous message in this subject, the max-microamp
+property refers also to non-flash LEDs. Since existing LED class devices
+does not require them, then it should be left optional and default to
+max. It would however be inconsistent with flash LEDs related
+properties.
 
-It would be better to join this if with the next one, in order
-to make clear that both belong to the enable_msi logic. Something like:
 
-static bool saa7164_enable_msi(struct device *pci_dev)
-{
-	if (!enable_msi)
-		return false;
+> I think this is worth considering now as we can't change this later without
+> breaking something.
+>
 
-	err = pci_enable_msi(pci_dev);
-	if (err) {
-		printf(KERN_ERR "%s() Failed to enable MSI"
-		       " Falling back to a shared IRQ\n", __func__);
-		return false;
-	}
-	err = request_irq(pci_dev->irq, saa7164_irq, 0,
-			  dev->name, dev);
-	if (err) {
-		printk(KERN_ERR "%s() Failed to get an MSI interrupt."
-		       " Falling back to a shared IRQ\n", __func__);
-		pci_disable_msi(pci_dev);
-		return false;
-	}
-	return true;
-}
-
-Then, at the probe function, you could simply do:
-
-	if (saa7164_enable_msi(pci_dev)) {
-		dev->msi = true;
-	} else {
-		/* SOME_FALLBACK_CODE */
-	}
-
-The probe function is already complex enough. Breaking it into small
-inlined functions makes easier to review. The removal of the if's
-is an extra bonus, as the code size will likely be a little bit smaller.
-
-> +
-> +	if ((!enable_msi) || err) {
-> +		dev->msi = false;
-
-No need, as dev was initialized with kzalloc(), with zeroes all fields.
-
-Also, you can simplify the "if" clause to:
-
-	if (!dev->msi) {
-
-That makes clearer that the code below is to be used when MSI is not
-enabled or not initialized properly.
-
-> +		/* if we have an error (i.e. we don't have an interrupt)
-> +			 or msi is not enabled - fallback to shared interrupt */
-> +
-> +		err = request_irq(pci_dev->irq, saa7164_irq,
-> +				  IRQF_SHARED, dev->name, dev);
-> +	}
-> +
->  	if (err < 0) {
->  		printk(KERN_ERR "%s: can't get IRQ %d\n", dev->name,
->  			pci_dev->irq);
-> @@ -1439,6 +1470,11 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
->  	/* unregister stuff */
->  	free_irq(pci_dev->irq, dev);
->  
-> +	if (dev->msi) {
-> +		pci_disable_msi(pci_dev);
-> +		dev->msi = false;
-> +	}
-> +
->  	pci_disable_device(pci_dev);
->  
->  	mutex_lock(&devlist);
-> diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-> index cd1a07c..6df4b252 100644
-> --- a/drivers/media/pci/saa7164/saa7164.h
-> +++ b/drivers/media/pci/saa7164/saa7164.h
-> @@ -459,6 +459,7 @@ struct saa7164_dev {
->  	/* Interrupt status and ack registers */
->  	u32 int_status;
->  	u32 int_ack;
-> +	u32 msi;
-
-Should be bool instead of u32.
-
->  
->  	struct cmd			cmds[SAA_CMD_MAX_MSG_UNITS];
->  	struct mutex			lock;
+-- 
+Best Regards,
+Jacek Anaszewski
