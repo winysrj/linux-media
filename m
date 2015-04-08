@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:36170 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932660AbbDQPZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2015 11:25:51 -0400
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-To: linux-pm@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 2/2] [media] uvcvideo: Remain runtime-suspended at sleeps
-Date: Fri, 17 Apr 2015 17:24:50 +0200
-Message-Id: <1429284290-25153-3-git-send-email-tomeu.vizoso@collabora.com>
-In-Reply-To: <1429284290-25153-1-git-send-email-tomeu.vizoso@collabora.com>
-References: <1429284290-25153-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from bgl-iport-3.cisco.com ([72.163.197.27]:16424 "EHLO
+	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717AbbDHNU0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 09:20:26 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 2/2] v4l2-dv-timings: fix rounding in hblank and hsync calculation
+Date: Wed,  8 Apr 2015 18:39:29 +0530
+Message-Id: <1428498569-6751-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1428498569-6751-1-git-send-email-prladdha@cisco.com>
+References: <1428498569-6751-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the system goes to sleep and afterwards resumes, a significant
-amount of time is spent suspending and resuming devices that were
-already runtime-suspended.
+Changed the rounding calculation for hblank and hsync to match it
+to equations in standards. Currently hblank and hsync are rounded
+down. hblank needs to be rounded to nearest multiple of twice the
+cell granularity. hsync needs to be rounded to nearest multiple of
+cell granularity.
 
-By setting the power.force_direct_complete flag, the PM core will ignore
-the state of descendant devices and the device will be let in
-runtime-suspend.
-
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 5970dd6..ae75a70 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1945,6 +1945,8 @@ static int uvc_probe(struct usb_interface *intf,
- 			"supported.\n", ret);
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 5e114ee..4b8ec4e 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -570,14 +570,15 @@ bool v4l2_detect_gtf(unsigned frame_height,
+ 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
+ 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
  
-+	intf->dev.parent->power.force_direct_complete = true;
-+
- 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
- 	usb_enable_autosuspend(udev);
- 	return 0;
+-	h_blank = h_blank - h_blank % (2 * GTF_CELL_GRAN);
++	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
++		  (2 * GTF_CELL_GRAN);
+ 	frame_width = image_width + h_blank;
+ 
+ 	pix_clk = (image_width + h_blank) * hfreq;
+ 	pix_clk = pix_clk / GTF_PXL_CLK_GRAN * GTF_PXL_CLK_GRAN;
+ 
+ 	hsync = (frame_width * 8 + 50) / 100;
+-	hsync = hsync - hsync % GTF_CELL_GRAN;
++	hsync = ((hsync + GTF_CELL_GRAN / 2) / GTF_CELL_GRAN) * GTF_CELL_GRAN;
+ 
+ 	h_fp = h_blank / 2 - hsync;
+ 
 -- 
-2.3.5
+1.9.1
 
