@@ -1,43 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59189 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965462AbbD1MGU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 08:06:20 -0400
-Date: Tue, 28 Apr 2015 15:05:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com
-Subject: Re: [PATCH v6 07/10] Documentation: leds: Add description of
- v4l2-flash sub-device
-Message-ID: <20150428120546.GG3188@valkosipuli.retiisi.org.uk>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
- <1430205530-20873-8-git-send-email-j.anaszewski@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40592 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751266AbbDHNu2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 09:50:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: Correctly notify about the failed pipeline validation
+Date: Wed, 08 Apr 2015 16:50:48 +0300
+Message-ID: <4424832.AmZfJ0mdjq@avalon>
+In-Reply-To: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1430205530-20873-8-git-send-email-j.anaszewski@samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hello Sakari,
 
-On Tue, Apr 28, 2015 at 09:18:47AM +0200, Jacek Anaszewski wrote:
-...
-> +On remove the v4l2_flash_release function has to be called, which takes one
-> +argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-> +
-> +Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
-> +v4l2 flash API.
+Thank you for the patch.
 
-s/v4l2 flash API/V4L2 flash wrapper/ .
+On Thursday 12 February 2015 15:43:11 Sakari Ailus wrote:
+> On the place of the source entity name, the sink entity name was printed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. It's a bit late for v4.1, can it wait for v4.2 ?
+
+> ---
+>  drivers/media/media-entity.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index defe4ac..d894481 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -283,9 +283,9 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, if (ret < 0 && ret != -ENOIOCTLCMD) {
+>  				dev_dbg(entity->parent->dev,
+>  					"link validation failed for \"%s\":%u -> \"%s\":%u, error 
+%d\n",
+> -					entity->name, link->source->index,
+> -					link->sink->entity->name,
+> -					link->sink->index, ret);
+> +					link->source->entity->name,
+> +					link->source->index,
+> +					entity->name, link->sink->index, ret);
+>  				goto error;
+>  			}
+>  		}
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
