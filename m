@@ -1,226 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:33278 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbbD3UgW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 16:36:22 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de, mingo@elte.hu, tglx@linutronix.de, hpa@zytor.com,
-	plagnioj@jcrosoft.com, tomi.valkeinen@ti.com,
-	daniel.vetter@intel.com, airlied@linux.ie
-Cc: dledford@redhat.com, awalls@md.metrocast.net, syrjala@sci.fi,
-	luto@amacapital.net, mst@redhat.com, cocci@systeme.lip6.fr,
-	linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Stefan Bader <stefan.bader@canonical.com>,
-	Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>, konrad.wilk@oracle.com,
-	ville.syrjala@linux.intel.com, david.vrabel@citrix.com,
-	jbeulich@suse.com, toshi.kani@hp.com,
-	=?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>,
-	linux-fbdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, xen-devel@lists.xensource.com
-Subject: [PATCH v5 4/6] ivtv: use arch_phys_wc_add() and require PAT disabled
-Date: Thu, 30 Apr 2015 13:25:18 -0700
-Message-Id: <1430425520-22275-5-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from mga09.intel.com ([134.134.136.24]:40050 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751368AbbDHLdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2015 07:33:32 -0400
+Message-ID: <55251209.1030004@linux.intel.com>
+Date: Wed, 08 Apr 2015 14:33:29 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/1] media: Correctly notify about the failed
+ pipeline validation
+References: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com> <20150408082342.1ff93eef@recife.lan>
+In-Reply-To: <20150408082342.1ff93eef@recife.lan>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Hi Mauro,
 
-We are burrying direct access to MTRR code support on
-x86 in order to take advantage of PAT. In the future we
-also want to make the default behaviour of ioremap_nocache()
-to use strong UC, use of mtrr_add() on those systems
-would make write-combining void.
+Mauro Carvalho Chehab wrote:
+> Em Thu, 12 Feb 2015 15:43:11 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+>> On the place of the source entity name, the sink entity name was printed.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  drivers/media/media-entity.c | 6 +++---
+>>  1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index defe4ac..d894481 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -283,9 +283,9 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>>  			if (ret < 0 && ret != -ENOIOCTLCMD) {
+>>  				dev_dbg(entity->parent->dev,
+>>  					"link validation failed for \"%s\":%u -> \"%s\":%u, error %d\n",
+>> -					entity->name, link->source->index,
+>> -					link->sink->entity->name,
+>> -					link->sink->index, ret);
+>> +					link->source->entity->name,
+>> +					link->source->index,
+>> +					entity->name, link->sink->index, ret);
+> 
+> This should likely be reviewed by Laurent, but the above code
+> seems weird to me...
+> 
+> 1) Why should it print the link source, instead of the sink?
+> I suspect that the code here should take into account the chosen
+> pad:
+> 
+>                         struct media_pad *pad = link->sink->entity == entity
+>                                                 ? link->sink : link->source;
 
-In order to help both enable us to later make strong
-UC default and in order to phase out direct MTRR access
-code port the driver over to arch_phys_wc_add() and
-annotate that the device driver requires systems to
-boot with PAT disabled, with the nopat kernel parameter.
+Link validation is only performed on sink pads. This is checked a few
+lines above this, so the pad here is always the sink pad. Instead of
+link->sink->index I could have used pad->index but the pad and thus the
+integer value is the same.
 
-This is a worthy comprmise given that the hardware is
-really rare these days, and perhaps only some lost souls
-in some third world country are expected to be using this
-feature of the device driver.
+> 
+> 2) Assuming that your patch is right, why are you printing the
+> link->sink->index, instead of link->source->index?
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: Ville Syrjälä <syrjala@sci.fi>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: konrad.wilk@oracle.com
-Cc: ville.syrjala@linux.intel.com
-Cc: david.vrabel@citrix.com
-Cc: jbeulich@suse.com
-Cc: toshi.kani@hp.com
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: ivtv-devel@ivtvdriver.org
-Cc: linux-media@vger.kernel.org
-Cc: xen-devel@lists.xensource.com
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/media/pci/ivtv/Kconfig  |  3 +++
- drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++-------------------------
- 2 files changed, 26 insertions(+), 35 deletions(-)
+The source pad index is prited as well. The end result is, after the patch:
 
-diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
-index dd6ee57e..b2a7f88 100644
---- a/drivers/media/pci/ivtv/Kconfig
-+++ b/drivers/media/pci/ivtv/Kconfig
-@@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
- 	  This is used in the Hauppauge PVR-350 card. There is a driver
- 	  homepage at <http://www.ivtvdriver.org>.
- 
-+	  If you have this hardware you will need to boot with PAT disabled
-+	  on your x86 systems, use the nopat kernel parameter.
-+
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ivtvfb.
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 9ff1230..7685ae3 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -44,8 +44,8 @@
- #include <linux/ivtvfb.h>
- #include <linux/slab.h>
- 
--#ifdef CONFIG_MTRR
--#include <asm/mtrr.h>
-+#ifdef CONFIG_X86_64
-+#include <asm/pat.h>
- #endif
- 
- #include "ivtv-driver.h"
-@@ -155,12 +155,11 @@ struct osd_info {
- 	/* Buffer size */
- 	u32 video_buffer_size;
- 
--#ifdef CONFIG_MTRR
- 	/* video_base rounded down as required by hardware MTRRs */
- 	unsigned long fb_start_aligned_physaddr;
- 	/* video_base rounded up as required by hardware MTRRs */
- 	unsigned long fb_end_aligned_physaddr;
--#endif
-+	int wc_cookie;
- 
- 	/* Store the buffer offset */
- 	int set_osd_coords_x;
-@@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
- static int ivtvfb_init_io(struct ivtv *itv)
- {
- 	struct osd_info *oi = itv->osd_info;
-+	/* Find the largest power of two that maps the whole buffer */
-+	int size_shift = 31;
- 
- 	mutex_lock(&itv->serialize_lock);
- 	if (ivtv_init_on_first_open(itv)) {
-@@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
- 			oi->video_pbase, oi->video_vbase,
- 			oi->video_buffer_size / 1024);
- 
--#ifdef CONFIG_MTRR
--	{
--		/* Find the largest power of two that maps the whole buffer */
--		int size_shift = 31;
--
--		while (!(oi->video_buffer_size & (1 << size_shift))) {
--			size_shift--;
--		}
--		size_shift++;
--		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
--		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
--		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
--		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
--		if (mtrr_add(oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
--			     MTRR_TYPE_WRCOMB, 1) < 0) {
--			IVTVFB_INFO("disabled mttr\n");
--			oi->fb_start_aligned_physaddr = 0;
--			oi->fb_end_aligned_physaddr = 0;
--		}
--	}
--#endif
--
-+	while (!(oi->video_buffer_size & (1 << size_shift)))
-+		size_shift--;
-+	size_shift++;
-+	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
-+	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
-+	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
-+	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
-+	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
-+					 oi->fb_end_aligned_physaddr -
-+					 oi->fb_start_aligned_physaddr);
- 	/* Blank the entire osd. */
- 	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
- 
-@@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
- 
- 	/* Release pseudo palette */
- 	kfree(oi->ivtvfb_info.pseudo_palette);
--
--#ifdef CONFIG_MTRR
--	if (oi->fb_end_aligned_physaddr) {
--		mtrr_del(-1, oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
--	}
--#endif
--
-+	arch_phys_wc_del(oi->wc_cookie);
- 	kfree(oi);
- 	itv->osd_info = NULL;
- }
-@@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
- 	int registered = 0;
- 	int err;
- 
-+#ifdef CONFIG_X86_64
-+	if (WARN(pat_enabled(),
-+		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
-+		return EINVAL;
-+	}
-+#endif
-+
- 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
- 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
- 		     IVTV_MAX_CARDS - 1);
+	source entity:source pad -> sink entity:sink pad
+
+Before it was:
+
+	sink entity:source pad -> sink entity:sink pad
+
+Which indeed was wrong.
+
 -- 
-2.3.2.209.gd67f9d5.dirty
+Regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
