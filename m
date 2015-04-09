@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39062 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40199 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751692AbbDPXUS (ORCPT
+	by vger.kernel.org with ESMTP id S1753396AbbDIV0E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 19:20:18 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6C2E160093
-	for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 02:20:14 +0300 (EEST)
-Date: Fri, 17 Apr 2015 02:20:13 +0300
+	Thu, 9 Apr 2015 17:26:04 -0400
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.2] Improved V4L2 of endpoint interface with
- link-frequencies
-Message-ID: <20150416232013.GJ27451@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH v4 2/4] v4l: of: Instead of zeroing bus_type and bus field separately, unify this
+Date: Fri, 10 Apr 2015 00:25:04 +0300
+Message-Id: <1428614706-8367-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi>
+References: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Zero the entire struct starting from bus_type. As more fields are added, no
+changes will be needed in the function to reset their value explicitly.
 
-Here are patches to
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-of.c |    5 +++--
+ include/media/v4l2-of.h           |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-- add a new interface for parsing variable sized property arrays (the old
-  v4l2_of_parse_endpoint() could be removed later on),
-- parse the link-frequencies endpoint property and
-- use the above in the smiapp driver.
-
-Please pull.
-
-The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
-
-  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git v4l2-of-array
-
-for you to fetch changes up to 4df51de61c33aa3e739230704d18eb08415b739e:
-
-  smiapp: Use v4l2_of_alloc_parse_endpoint() (2015-04-17 00:36:27 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (4):
-      v4l: of: Remove the head field in struct v4l2_of_endpoint
-      v4l: of: Instead of zeroing bus_type and bus field separately, unify this
-      v4l: of: Parse variable length properties --- link-frequencies
-      smiapp: Use v4l2_of_alloc_parse_endpoint()
-
- drivers/media/i2c/smiapp/smiapp-core.c |   38 +++++++------
- drivers/media/v4l2-core/v4l2-of.c      |   92 +++++++++++++++++++++++++++++++-
- include/media/v4l2-of.h                |   20 ++++++-
- 3 files changed, 126 insertions(+), 24 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 83143d3..3ac6348 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -149,8 +149,9 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 	int rval;
+ 
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+-	endpoint->bus_type = 0;
+-	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
++	/* Zero fields from bus_type to until the end */
++	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
++	       offsetof(typeof(*endpoint), bus_type));
+ 
+ 	rval = v4l2_of_parse_csi_bus(node, endpoint);
+ 	if (rval)
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index f66b92c..6c85c07 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -60,6 +60,7 @@ struct v4l2_of_bus_parallel {
+  */
+ struct v4l2_of_endpoint {
+ 	struct of_endpoint base;
++	/* Fields below this line will be zeroed by v4l2_of_parse_endpoint() */
+ 	enum v4l2_mbus_type bus_type;
+ 	union {
+ 		struct v4l2_of_bus_parallel parallel;
 -- 
-Kind regards,
+1.7.10.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
