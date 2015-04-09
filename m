@@ -1,271 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60058 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbbD3OIy (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43268 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751761AbbDIG0F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 11/22] saa7134-dvb: get rid of wprintk() macro
-Date: Thu, 30 Apr 2015 11:08:31 -0300
-Message-Id: <03ed56999f40f531f025fe58b6b40f8915cd277e.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+	Thu, 9 Apr 2015 02:26:05 -0400
+Message-ID: <55261B75.1070400@xs4all.nl>
+Date: Thu, 09 Apr 2015 08:25:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, Pavel Machek <pavel@ucw.cz>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [git:media_tree/master] [media] Add device tree support to adp1653
+ flash driver
+References: <E1Yg11T-00074E-Hx@www.linuxtv.org>
+In-Reply-To: <E1Yg11T-00074E-Hx@www.linuxtv.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-wprintk() macro is now just a wrapper for pr_warn(). Get rid of
-it!
+Hi Pawel,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This driver doesn't compile:
 
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index c7d9896a454e..7e0091343c87 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -85,9 +85,6 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- #define dprintk(fmt, arg...)	do { if (debug) \
- 	printk(KERN_DEBUG "%s/dvb: " fmt, dev->name , ## arg); } while(0)
- 
--/* Print a warning */
--#define wprintk(fmt, arg...) \
--	pr_warn("%s/dvb: " fmt, dev->name, ## arg)
- 
- /* ------------------------------------------------------------------
-  * mt352 based DVB-T cards
-@@ -259,7 +256,7 @@ static int kworld_sbtvd_gate_ctrl(struct dvb_frontend* fe, int enable)
- 	struct i2c_msg msg = {.addr = 0x4b, .flags = 0, .buf = initmsg, .len = 2};
- 
- 	if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1) {
--		wprintk("could not access the I2C gate\n");
-+		pr_warn("could not access the I2C gate\n");
- 		return -EIO;
- 	}
- 	if (enable)
-@@ -267,7 +264,7 @@ static int kworld_sbtvd_gate_ctrl(struct dvb_frontend* fe, int enable)
- 	else
- 		msg.buf = msg_disable;
- 	if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1) {
--		wprintk("could not access the I2C gate\n");
-+		pr_warn("could not access the I2C gate\n");
- 		return -EIO;
- 	}
- 	msleep(20);
-@@ -370,7 +367,7 @@ static int philips_tda6651_pll_set(struct dvb_frontend *fe)
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 	if (i2c_transfer(&dev->i2c_adap, &tuner_msg, 1) != 1) {
--		wprintk("could not write to tuner at addr: 0x%02x\n",
-+		pr_warn("could not write to tuner at addr: 0x%02x\n",
- 			addr << 1);
- 		return -EIO;
- 	}
-@@ -557,8 +554,7 @@ static int tda8290_i2c_gate_ctrl( struct dvb_frontend* fe, int enable)
- 		tda8290_msg.buf = tda8290_open;
- 	}
- 	if (i2c_transfer(state->i2c, &tda8290_msg, 1) != 1) {
--		struct saa7134_dev *dev = fe->dvb->priv;
--		wprintk("could not access tda8290 I2C gate\n");
-+		pr_warn("could not access tda8290 I2C gate\n");
- 		return -EIO;
- 	}
- 	msleep(20);
-@@ -620,7 +616,7 @@ static int configure_tda827x_fe(struct saa7134_dev *dev,
- 			       &dev->i2c_adap, tuner_conf))
- 			return 0;
- 
--		wprintk("no tda827x tuner found at addr: %02x\n",
-+		pr_warn("no tda827x tuner found at addr: %02x\n",
- 				cdec_conf->tuner_address);
- 	}
- 	return -EINVAL;
-@@ -1042,8 +1038,7 @@ static int md8800_set_voltage2(struct dvb_frontend *fe, fe_sec_voltage_t voltage
- 
- static int md8800_set_high_voltage2(struct dvb_frontend *fe, long arg)
- {
--	struct saa7134_dev *dev = fe->dvb->priv;
--	wprintk("%s: sorry can't set high LNB supply voltage from here\n", __func__);
-+	pr_warn("%s: sorry can't set high LNB supply voltage from here\n", __func__);
- 	return -EIO;
- }
- 
-@@ -1402,13 +1397,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 			if (fe0->dvb.frontend) {
- 				if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x63,
- 									&dev->i2c_adap, 0) == NULL) {
--					wprintk("%s: Lifeview Trio, No tda826x found!\n", __func__);
-+					pr_warn("%s: Lifeview Trio, No tda826x found!\n", __func__);
- 					goto detach_frontend;
- 				}
- 				if (dvb_attach(isl6421_attach, fe0->dvb.frontend,
- 					       &dev->i2c_adap,
- 					       0x08, 0, 0, false) == NULL) {
--					wprintk("%s: Lifeview Trio, No ISL6421 found!\n", __func__);
-+					pr_warn("%s: Lifeview Trio, No ISL6421 found!\n", __func__);
- 					goto detach_frontend;
- 				}
- 			}
-@@ -1423,12 +1418,12 @@ static int dvb_init(struct saa7134_dev *dev)
- 			if (dvb_attach(tda827x_attach,fe0->dvb.frontend,
- 				   ads_tech_duo_config.tuner_address, &dev->i2c_adap,
- 								&ads_duo_cfg) == NULL) {
--				wprintk("no tda827x tuner found at addr: %02x\n",
-+				pr_warn("no tda827x tuner found at addr: %02x\n",
- 					ads_tech_duo_config.tuner_address);
- 				goto detach_frontend;
- 			}
- 		} else
--			wprintk("failed to attach tda10046\n");
-+			pr_warn("failed to attach tda10046\n");
- 		break;
- 	case SAA7134_BOARD_TEVION_DVBT_220RF:
- 		if (configure_tda827x_fe(dev, &tevion_dvbt220rf_config,
-@@ -1451,7 +1446,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 
- 				if (dvb_attach(tda826x_attach, fe0->dvb.frontend,
- 						0x60, &dev->i2c_adap, 0) == NULL) {
--					wprintk("%s: Medion Quadro, no tda826x "
-+					pr_warn("%s: Medion Quadro, no tda826x "
- 						"found !\n", __func__);
- 					goto detach_frontend;
- 				}
-@@ -1460,7 +1455,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 					fe->ops.i2c_gate_ctrl(fe, 1);
- 					if (dvb_attach(isl6405_attach, fe,
- 							&dev->i2c_adap, 0x08, 0, 0) == NULL) {
--						wprintk("%s: Medion Quadro, no ISL6405 "
-+						pr_warn("%s: Medion Quadro, no ISL6405 "
- 							"found !\n", __func__);
- 						goto detach_frontend;
- 					}
-@@ -1520,13 +1515,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (fe0->dvb.frontend) {
- 			if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x60,
- 				       &dev->i2c_adap, 0) == NULL) {
--				wprintk("%s: No tda826x found!\n", __func__);
-+				pr_warn("%s: No tda826x found!\n", __func__);
- 				goto detach_frontend;
- 			}
- 			if (dvb_attach(isl6421_attach, fe0->dvb.frontend,
- 				       &dev->i2c_adap,
- 				       0x08, 0, 0, false) == NULL) {
--				wprintk("%s: No ISL6421 found!\n", __func__);
-+				pr_warn("%s: No ISL6421 found!\n", __func__);
- 				goto detach_frontend;
- 			}
- 		}
-@@ -1594,12 +1589,12 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (fe0->dvb.frontend) {
- 			if (dvb_attach(tda826x_attach, fe0->dvb.frontend, 0x60,
- 					&dev->i2c_adap, 0) == NULL) {
--				wprintk("%s: No tda826x found!\n", __func__);
-+				pr_warn("%s: No tda826x found!\n", __func__);
- 				goto detach_frontend;
- 			}
- 			if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 					&dev->i2c_adap, 0, 0) == NULL) {
--				wprintk("%s: No lnbp21 found!\n", __func__);
-+				pr_warn("%s: No lnbp21 found!\n", __func__);
- 				goto detach_frontend;
- 			}
- 		}
-@@ -1631,7 +1626,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 			struct dvb_frontend *fe;
- 			if (dvb_attach(dvb_pll_attach, fe0->dvb.frontend, 0x60,
- 				  &dev->i2c_adap, DVB_PLL_PHILIPS_SD1878_TDA8261) == NULL) {
--				wprintk("%s: MD7134 DVB-S, no SD1878 "
-+				pr_warn("%s: MD7134 DVB-S, no SD1878 "
- 					"found !\n", __func__);
- 				goto detach_frontend;
- 			}
-@@ -1640,7 +1635,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 			fe->ops.i2c_gate_ctrl(fe, 1);
- 			if (dvb_attach(isl6405_attach, fe,
- 					&dev->i2c_adap, 0x08, 0, 0) == NULL) {
--				wprintk("%s: MD7134 DVB-S, no ISL6405 "
-+				pr_warn("%s: MD7134 DVB-S, no ISL6405 "
- 					"found !\n", __func__);
- 				goto detach_frontend;
- 			}
-@@ -1672,13 +1667,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 				if (dvb_attach(tda826x_attach,
- 						fe0->dvb.frontend, 0x60,
- 						&dev->i2c_adap, 0) == NULL) {
--					wprintk("%s: Asus Tiger 3in1, no "
-+					pr_warn("%s: Asus Tiger 3in1, no "
- 						"tda826x found!\n", __func__);
- 					goto detach_frontend;
- 				}
- 				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 						&dev->i2c_adap, 0, 0) == NULL) {
--					wprintk("%s: Asus Tiger 3in1, no lnbp21"
-+					pr_warn("%s: Asus Tiger 3in1, no lnbp21"
- 						" found!\n", __func__);
- 					goto detach_frontend;
- 			       }
-@@ -1697,13 +1692,13 @@ static int dvb_init(struct saa7134_dev *dev)
- 				if (dvb_attach(tda826x_attach,
- 					       fe0->dvb.frontend, 0x60,
- 					       &dev->i2c_adap, 0) == NULL) {
--					wprintk("%s: Asus My Cinema PS3-100, no "
-+					pr_warn("%s: Asus My Cinema PS3-100, no "
- 						"tda826x found!\n", __func__);
- 					goto detach_frontend;
- 				}
- 				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
- 					       &dev->i2c_adap, 0, 0) == NULL) {
--					wprintk("%s: Asus My Cinema PS3-100, no lnbp21"
-+					pr_warn("%s: Asus My Cinema PS3-100, no lnbp21"
- 						" found!\n", __func__);
- 					goto detach_frontend;
- 				}
-@@ -1751,7 +1746,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (fe0->dvb.frontend) {
- 			if (dvb_attach(zl10036_attach, fe0->dvb.frontend,
- 					&avertv_a700_tuner, &dev->i2c_adap) == NULL) {
--				wprintk("%s: No zl10036 found!\n",
-+				pr_warn("%s: No zl10036 found!\n",
- 					__func__);
- 			}
- 		}
-@@ -1762,7 +1757,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 		if (fe0->dvb.frontend)
- 			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
- 					0x60, &dev->i2c_adap) == NULL)
--				wprintk("%s: No zl10039 found!\n",
-+				pr_warn("%s: No zl10039 found!\n",
- 					__func__);
- 
- 		break;
-@@ -1775,7 +1770,7 @@ static int dvb_init(struct saa7134_dev *dev)
- 					fe0->dvb.frontend,
- 					&dev->i2c_adap,
- 					&videomate_t750_qt1010_config) == NULL)
--				wprintk("error attaching QT1010\n");
-+				pr_warn("error attaching QT1010\n");
- 		}
- 		break;
- 	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
-@@ -1851,12 +1846,12 @@ static int dvb_init(struct saa7134_dev *dev)
- 			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
- 			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
- 					0x60, &dev->i2c_adap) == NULL)
--				wprintk("%s: No zl10039 found!\n",
-+				pr_warn("%s: No zl10039 found!\n",
- 					__func__);
- 		}
- 		break;
- 	default:
--		wprintk("Huh? unknown DVB card?\n");
-+		pr_warn("Huh? unknown DVB card?\n");
- 		break;
- 	}
- 
--- 
-2.1.0
+On 04/08/2015 10:46 PM, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+> 
+> Subject: [media] Add device tree support to adp1653 flash driver
+> Author:  Pavel Machek <pavel@ucw.cz>
+> Date:    Fri Mar 13 17:48:40 2015 -0300
+> 
+> Nokia N900 is switching to device tree, make sure we can use flash
+> there, too.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+>  .../devicetree/bindings/media/i2c/adp1653.txt      |   37 ++++++++
+>  drivers/media/i2c/adp1653.c                        |   90 ++++++++++++++++++--
+>  2 files changed, 118 insertions(+), 9 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=b6100f10bdc2019a65297d2597c388de2f7dd653
+> 
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index 873fe19..0341009 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -306,9 +309,17 @@ adp1653_init_device(struct adp1653_flash *flash)
+>  static int
+>  __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  {
+> -	int ret;
+> +	int ret = 0;
+> +
+> +	if (flash->platform_data->power) {
+> +		ret = flash->platform_data->power(&flash->subdev, on);
+> +	} else {
+> +		gpio_set_value(flash->platform_data->power_gpio, on);
+
+The power_gpio field is not found in struct adp1653_platform_data.
+
+Can you fix this?
+
+I'm also getting this warning:
+
+adp1653.c:433:6: warning: unused variable 'gpio' [-Wunused-variable]
+  int gpio;
+      ^
+
+Please fix that as well.
+
+Strange, this patch seems to have been merged without anyone compiling it first.
+
+Regards,
+
+	Hans
+
+> +		if (on)
+> +			/* Some delay is apparently required. */
+> +			udelay(20);
+> +	}
+>  
+> -	ret = flash->platform_data->power(&flash->subdev, on);
+>  	if (ret < 0)
+>  		return ret;
+>  
 
