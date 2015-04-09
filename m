@@ -1,142 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755908AbbDOUh3 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49688 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754807AbbDICVW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 16:37:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: Repurpose the v4l2_plane data_offset field
-Date: Wed, 15 Apr 2015 23:37:27 +0300
-Message-ID: <1663968.IkQMnejUTA@avalon>
-In-Reply-To: <20150414201004.GA27451@valkosipuli.retiisi.org.uk>
-References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com> <1429040689-23808-2-git-send-email-laurent.pinchart@ideasonboard.com> <20150414201004.GA27451@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 8 Apr 2015 22:21:22 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CAA162A0097
+	for <linux-media@vger.kernel.org>; Thu,  9 Apr 2015 04:21:15 +0200 (CEST)
+Date: Thu, 09 Apr 2015 04:21:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150409022115.CAA162A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the review.
+Results of the daily build of media_tree:
 
-On Tuesday 14 April 2015 23:10:05 Sakari Ailus wrote:
-> On Tue, Apr 14, 2015 at 10:44:48PM +0300, Laurent Pinchart wrote:
-> > The data_offset field has been introduced along with the multiplane API
-> > to convey header size information between kernelspace and userspace.
-> > It's not used by any mainline driver except vivid (for testing purpose).
-> > 
-> > A different data offset is needed to allow data capture to or data
-> > output from a userspace-selected offset within a buffer (mainly for the
-> > DMABUF and MMAP memory types). As the data_offset field already has the
-> > right name and is unused, repurpose it.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/io.xml | 19 +++++++++++--------
-> >  include/uapi/linux/videodev2.h         |  6 ++++--
-> >  2 files changed, 15 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > b/Documentation/DocBook/media/v4l/io.xml index 1c17f80..416c05a 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -870,7 +870,7 @@ should set this to 0.</entry>
-> > 
-> >  	      If the application sets this to 0 for an output stream, then
-> >  	      <structfield>bytesused</structfield> will be set to the size of
-> >  	      the
-> >  	      plane (see the <structfield>length</structfield> field of this
-> >  	      struct)
-> > -	      by the driver. Note that the actual image data starts at
-> > +	      by the driver. Note that the actual plane data content starts 
-at
-> >  	      <structfield>data_offset</structfield> which may not be 
-0.</entry>
-> >  	  </row>
-> >  	  <row>
-> > @@ -917,13 +917,16 @@ should set this to 0.</entry>
-> >  	    <entry>__u32</entry>
-> >  	    <entry><structfield>data_offset</structfield></entry>
-> >  	    <entry></entry>
-> > -	    <entry>Offset in bytes to video data in the plane.
-> > -	      Drivers must set this field when 
-<structfield>type</structfield>
-> > -	      refers to an input stream, applications when it refers to an
-> > output stream. -	      Note that data_offset is included in
-> > <structfield>bytesused</structfield>. -	      So the size of the image 
-in
-> > the plane is
-> > -	     
-> > <structfield>bytesused</structfield>-<structfield>data_offset</structfiel
-> > d> at -	      offset <structfield>data_offset</structfield> from the 
-start
-> > of the plane. +	    <entry>Offset in bytes from the start of the plane
-> > buffer to the start of +	      captured or output data. Applications 
-set
-> > this field for all stream types +	      when calling the <link
-> > linkend="vidioc-qbuf">VIDIOC_PREPARE_BUF</link> or +	      <link
-> > linkend="vidioc-qbuf">VIDIOC_QBUF</link> ioctls to instruct the driver +	
-> >      to capture or output data starting at an offset in the plane buffer.
-> > If the +	      requested data offset doesn't match device or driver
-> > constraints, device +	      drivers must return the &EINVAL; and either
-> > leave the field value untouched +	      if they support data offsets, 
-or
-> > set it to 0 if they don't support data +	      offsets at all. Note that
-> > <structfield>data_offset</structfield> is not +	      included in
-> > <structfield>bytesused</structfield>.
-> 
-> At most 80 characters per line would be nice.
+date:		Thu Apr  9 04:00:17 CEST 2015
+git branch:	test
+git hash:	b6100f10bdc2019a65297d2597c388de2f7dd653
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-I've followed the coding style of the file, but I can certainly change that, 
-no issue.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-> How does the user discover what data_offsets are possible if the driver
-> returns an error if the data_offset does not match hardware capabilities?
-> 
-> I'd rather have the driver to adjust data_offset to match what it can do. If
-> the user needs to know that the data_offset was not modified, it should
-> check the field value after QBUF/PREPARE_BUF.
+Detailed results are available here:
 
-I've discussed this with Hans before, and we thought negotiating data_offset 
-wasn't very useful. data_offset values used by applications are pretty much 
-mandatory, if you need to write the UV plane of an NV12 image at a given 
-offset in a Y+UV contiguous buffer, using a different negotiated offset is 
-pointless. Feel free to point us to use cases though.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> >  	    </entry>
-> >  	  </row>
-> >  	  <row>
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index fa376f7..261fb66 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -706,8 +706,10 @@ struct v4l2_requestbuffers {
-> >   *			pointing to this plane
-> >   * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
-> >   *			descriptor associated with this plane
-> > - * @data_offset:	offset in the plane to the start of data; usually 0,
-> > - *			unless there is a header in front of the data
-> > + * @data_offset:	offset in bytes from the start of the plane buffer to
-> > + *			the start of data; usually 0 unless applications need to
-> > + *			capture data to or output data from elsewhere than the
-> > + *			start of the buffer
-> >   *
-> >   * Multi-planar buffers consist of one or more planes, e.g. an YCbCr
-> >   buffer
-> >   * with two planes can have one plane for Y, and another for interleaved
-> >   CbCr
+Full logs are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Laurent Pinchart
+The Media Infrastructure API from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
