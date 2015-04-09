@@ -1,205 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54149 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756238AbbDOWPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 18:15:23 -0400
-Date: Thu, 16 Apr 2015 00:15:17 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-To: Andy Lutomirski <luto@amacapital.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	X86 ML <x86@kernel.org>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150415221517.GF5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:57486 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932786AbbDIKVh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Apr 2015 06:21:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Kamil Debski <k.debski@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/7] v4l2: convert video ops to pad ops
+Date: Thu,  9 Apr 2015 12:21:21 +0200
+Message-Id: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 15, 2015 at 01:42:47PM -0700, Andy Lutomirski wrote:
-> On Mon, Apr 13, 2015 at 10:49 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> 
-> > c) ivtv: the driver does not have the PCI space mapped out separately, and
-> > in fact it actually does not do the math for the framebuffer, instead it lets
-> > the device's own CPU do that and assume where its at, see
-> > ivtvfb_get_framebuffer() and CX2341X_OSD_GET_FRAMEBUFFER, it has a get
-> > but not a setter. Its not clear if the firmware would make a split easy.
-> > We'd need ioremap_ucminus() here too and __arch_phys_wc_add().
-> >
-> 
-> IMO this should be conceptually easy to split.  Once we get the
-> framebuffer address, just unmap it (or don't prematurely map it) and
-> then ioremap the thing.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The driver has split code for handling framebuffer devices, the framebuffer
-base address will also vary depending on the type of device it has, for
-some its on the encoder, for others its on the decoder. We'd have to account
-for the removal of the framebuffer on either of those regions, and would also
-need some vetting that the driver doesn't use areas beyond that for MMIO.
-Using the trick you suggest though we could overlap ioremap calls and if that
-truly works on PAT and non-PAT adding a new ioremap_wc() could do the trick,
-I'd appreciate a Tested-by or Acked-by to be done with this. Mauro, any chance
-we can get a tested-by of ivtvfb for both non-PAT and PAT systems with this:
+This patch series converts duplicate video ops to pad ops.
 
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 9ff1230..1838738 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -44,10 +44,6 @@
- #include <linux/ivtvfb.h>
- #include <linux/slab.h>
- 
--#ifdef CONFIG_MTRR
--#include <asm/mtrr.h>
--#endif
--
- #include "ivtv-driver.h"
- #include "ivtv-cards.h"
- #include "ivtv-i2c.h"
-@@ -155,12 +151,11 @@ struct osd_info {
- 	/* Buffer size */
- 	u32 video_buffer_size;
- 
--#ifdef CONFIG_MTRR
- 	/* video_base rounded down as required by hardware MTRRs */
- 	unsigned long fb_start_aligned_physaddr;
- 	/* video_base rounded up as required by hardware MTRRs */
- 	unsigned long fb_end_aligned_physaddr;
--#endif
-+	int wc_cookie;
- 
- 	/* Store the buffer offset */
- 	int set_osd_coords_x;
-@@ -1099,6 +1094,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
- static int ivtvfb_init_io(struct ivtv *itv)
- {
- 	struct osd_info *oi = itv->osd_info;
-+	/* Find the largest power of two that maps the whole buffer */
-+	int size_shift = 31;
- 
- 	mutex_lock(&itv->serialize_lock);
- 	if (ivtv_init_on_first_open(itv)) {
-@@ -1120,7 +1117,7 @@ static int ivtvfb_init_io(struct ivtv *itv)
- 	oi->video_buffer_size = 1704960;
- 
- 	oi->video_pbase = itv->base_addr + IVTV_DECODER_OFFSET + oi->video_rbase;
--	oi->video_vbase = itv->dec_mem + oi->video_rbase;
-+	oi->video_vbase = ioremap_wc(oi->video_pbase, oi->video_buffer_size);
- 
- 	if (!oi->video_vbase) {
- 		IVTVFB_ERR("abort, video memory 0x%x @ 0x%lx isn't mapped!\n",
-@@ -1132,29 +1129,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
- 			oi->video_pbase, oi->video_vbase,
- 			oi->video_buffer_size / 1024);
- 
--#ifdef CONFIG_MTRR
--	{
--		/* Find the largest power of two that maps the whole buffer */
--		int size_shift = 31;
--
--		while (!(oi->video_buffer_size & (1 << size_shift))) {
--			size_shift--;
--		}
--		size_shift++;
--		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
--		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
--		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
--		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
--		if (mtrr_add(oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
--			     MTRR_TYPE_WRCOMB, 1) < 0) {
--			IVTVFB_INFO("disabled mttr\n");
--			oi->fb_start_aligned_physaddr = 0;
--			oi->fb_end_aligned_physaddr = 0;
--		}
--	}
--#endif
--
-+	while (!(oi->video_buffer_size & (1 << size_shift)))
-+		size_shift--;
-+	size_shift++;
-+	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
-+	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
-+	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
-+	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
-+	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
-+					 oi->fb_end_aligned_physaddr -
-+					 oi->fb_start_aligned_physaddr);
- 	/* Blank the entire osd. */
- 	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
- 
-@@ -1172,14 +1156,8 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
- 
- 	/* Release pseudo palette */
- 	kfree(oi->ivtvfb_info.pseudo_palette);
--
--#ifdef CONFIG_MTRR
--	if (oi->fb_end_aligned_physaddr) {
--		mtrr_del(-1, oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
--	}
--#endif
--
-+	iounmap(oi->video_vbase);
-+	arch_phys_wc_del(oi->wc_cookie);
- 	kfree(oi);
- 	itv->osd_info = NULL;
- }
+Patches 1-6 convert enum/g/try/s_mbus_fmt and patch 7 converts
+g/s_crop and cropcap.
 
-> 
-> > From the beginning it seems only framebuffer devices used MTRR/WC, lately it
-> > seems infiniband drivers also find good use for for it for PIO TX buffers to
-> > blast some sort of data, in the future I would not be surprised if other
-> > devices found use for it.
-> 
-> IMO the Infiniband maintainers should fix their code.  Especially in
-> the server space, there aren't that many MTRRs to go around.  I wrote
-> arch_phys_wc_add in the first place because my server *ran out of
-> MTRRs*.
-> 
-> Hey, IB people: can you fix your drivers to use arch_phys_wc_add
-> (which is permitted to be a no-op) along with ioremap_wc?  Your users
-> will thank you.
+Patch 7 has been posted before:
 
-Provided the above ivtv driver changes are OK this would be the *last* and only
-driver required to be changed.
+http://www.spinics.net/lists/linux-media/msg84776.html
 
-> > It may be true that the existing drivers that
-> > requires the above type of work are corner cases -- but I wouldn't hold my
-> > breath for that. The ivtv device is a good example of the worst type of
-> > situations and these days. So perhap __arch_phys_wc_add() and a
-> > ioremap_ucminus() might be something more than transient unless hardware folks
-> > get a good memo or already know how to just Do The Right Thing (TM).
-> 
-> I disagree.  We should try to NACK any new code that can't function
-> without MTRRs.
-> 
-> (Plus, ARM is growing in popularity in the server space, and ARM quite
-> sensibly doesn't have MTRRs.)
+Patch 7 remains an RFC since I still have not been able to test this
+on actual hardware.
 
-Great, happy with this, but we need to address the last few drivers and their
-exisitng code then.
+Note that the calls to set_fmt(V4L2_SUBDEV_FORMAT_TRY) in bridge drivers
+all assume that pad is 0. Which is actually true for these specific
+drivers, but may not be true in the future. In that case the
+struct v4l2_subdev_pad_config pad_cfg local variable should become an
+array of at least (pad + 1) elements.
 
- Luis
+But we'll handle that when we need it.
+
+My intention is to get patches 1-6 in for 4.2, preferably asap to get
+as much testing time as possible. These patches touch on many drivers
+so the sooner they are merged, the easier it is for developers to work
+on top of them.
+
+The moral of the story: never accept patches that add duplicate ops
+without removing the old ones as well. It seems that every time I end
+up being the sucker that does the work, and it is a really boring and
+unpleasant job. Next time I'll Nack such patches.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (7):
+  v4l2: replace enum_mbus_fmt by enum_mbus_code
+  v4l2: replace video op g_mbus_fmt by pad op get_fmt
+  v4l2: replace try_mbus_fmt by set_fmt
+  v4l2: replace s_mbus_fmt by set_fmt
+  v4l2: replace try_mbus_fmt by set_fmt in bridge drivers
+  v4l2: replace s_mbus_fmt by set_fmt in bridge drivers
+  v4l2: remove g/s_crop and cropcap from video ops
+
+ drivers/media/i2c/adv7170.c                        |  42 ++++--
+ drivers/media/i2c/adv7175.c                        |  42 ++++--
+ drivers/media/i2c/adv7183.c                        |  61 ++++----
+ drivers/media/i2c/adv7842.c                        |  25 ++--
+ drivers/media/i2c/ak881x.c                         |  67 +++++----
+ drivers/media/i2c/cx25840/cx25840-core.c           |  15 +-
+ drivers/media/i2c/ml86v7667.c                      |  29 ++--
+ drivers/media/i2c/mt9v011.c                        |  53 +++----
+ drivers/media/i2c/ov7670.c                         |  38 ++---
+ drivers/media/i2c/saa6752hs.c                      |  42 ++++--
+ drivers/media/i2c/saa7115.c                        |  16 ++-
+ drivers/media/i2c/saa717x.c                        |  16 ++-
+ drivers/media/i2c/soc_camera/imx074.c              | 108 +++++++-------
+ drivers/media/i2c/soc_camera/mt9m001.c             | 113 +++++++++------
+ drivers/media/i2c/soc_camera/mt9m111.c             | 114 ++++++++-------
+ drivers/media/i2c/soc_camera/mt9t031.c             | 126 +++++++++-------
+ drivers/media/i2c/soc_camera/mt9t112.c             | 101 ++++++++-----
+ drivers/media/i2c/soc_camera/mt9v022.c             | 111 ++++++++------
+ drivers/media/i2c/soc_camera/ov2640.c              | 103 ++++++-------
+ drivers/media/i2c/soc_camera/ov5642.c              | 113 ++++++++-------
+ drivers/media/i2c/soc_camera/ov6650.c              | 117 ++++++++-------
+ drivers/media/i2c/soc_camera/ov772x.c              |  85 ++++++-----
+ drivers/media/i2c/soc_camera/ov9640.c              |  73 +++++-----
+ drivers/media/i2c/soc_camera/ov9740.c              |  76 +++++-----
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          | 118 +++++++--------
+ drivers/media/i2c/soc_camera/tw9910.c              |  88 ++++++------
+ drivers/media/i2c/sr030pc30.c                      |  62 ++++----
+ drivers/media/i2c/tvp514x.c                        |  55 +------
+ drivers/media/i2c/tvp5150.c                        | 111 +++++++-------
+ drivers/media/i2c/tvp7002.c                        |  48 -------
+ drivers/media/i2c/vs6624.c                         |  55 +++----
+ drivers/media/pci/cx18/cx18-av-core.c              |  16 ++-
+ drivers/media/pci/cx18/cx18-controls.c             |  13 +-
+ drivers/media/pci/cx18/cx18-ioctl.c                |  12 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |  12 +-
+ drivers/media/pci/ivtv/ivtv-controls.c             |  12 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c                |  12 +-
+ drivers/media/pci/saa7134/saa7134-empress.c        |  32 +++--
+ drivers/media/platform/am437x/am437x-vpfe.c        |  25 +---
+ drivers/media/platform/blackfin/bfin_capture.c     |  40 ++++--
+ drivers/media/platform/davinci/vpfe_capture.c      |  19 +--
+ drivers/media/platform/marvell-ccic/mcam-core.c    |  19 ++-
+ drivers/media/platform/omap3isp/ispvideo.c         |  88 ++++++++----
+ drivers/media/platform/s5p-tv/hdmi_drv.c           |  12 +-
+ drivers/media/platform/s5p-tv/mixer_drv.c          |  15 +-
+ drivers/media/platform/s5p-tv/sdo_drv.c            |  14 +-
+ drivers/media/platform/sh_vou.c                    |  74 +++++-----
+ drivers/media/platform/soc_camera/atmel-isi.c      |  74 +++++-----
+ drivers/media/platform/soc_camera/mx2_camera.c     | 131 +++++++++--------
+ drivers/media/platform/soc_camera/mx3_camera.c     | 123 +++++++++-------
+ drivers/media/platform/soc_camera/omap1_camera.c   | 119 ++++++++-------
+ drivers/media/platform/soc_camera/pxa_camera.c     | 116 ++++++++-------
+ drivers/media/platform/soc_camera/rcar_vin.c       | 135 +++++++++--------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     | 147 ++++++++++---------
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  35 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     | 160 ++++++++-------------
+ .../platform/soc_camera/soc_camera_platform.c      |  69 +++++----
+ drivers/media/platform/soc_camera/soc_scale_crop.c | 122 +++++++++-------
+ drivers/media/platform/soc_camera/soc_scale_crop.h |   6 +-
+ drivers/media/platform/via-camera.c                |  19 ++-
+ drivers/media/usb/cx231xx/cx231xx-417.c            |  12 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |  23 +--
+ drivers/media/usb/em28xx/em28xx-camera.c           |  12 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |  12 +-
+ drivers/media/usb/go7007/s2250-board.c             |  18 ++-
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c            |  17 ++-
+ drivers/staging/media/omap4iss/iss_video.c         |  88 ++++++++----
+ include/media/soc_camera.h                         |   7 +-
+ include/media/v4l2-subdev.h                        |  19 ---
+ 69 files changed, 2241 insertions(+), 1861 deletions(-)
+
+-- 
+2.1.4
+
