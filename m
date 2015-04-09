@@ -1,111 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-am1on0137.outbound.protection.outlook.com ([157.56.112.137]:29328
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752157AbbDQIBs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2015 04:01:48 -0400
-Date: Fri, 17 Apr 2015 17:00:46 +0900
-From: Hyong-Youb Kim <hkim@cspi.com>
-To: "Luis R. Rodriguez" <mcgrof@suse.com>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Hyong-Youb Kim <hykim@myri.com>, <netdev@vger.kernel.org>,
-	Andy Lutomirski <luto@amacapital.net>,
-	Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Roland Dreier <roland@purestorage.com>,
-	"Juergen Gross" <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Felix Fietkau <nbd@openwrt.org>,
-	"Benjamin Poirier" <bpoirier@suse.de>,
-	<dave.hansen@linux.intel.com>, <plagnioj@jcrosoft.com>,
-	<tglx@linutronix.de>,
-	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	<linux-fbdev@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<x86@kernel.org>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150417080046.GA4620@hykim-PC>
-References: <20150410210538.GB5622@wotan.suse.de>
- <1428699490.21794.5.camel@misato.fc.hp.com>
- <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
- <20150411012938.GC5622@wotan.suse.de>
- <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
- <20150413174938.GE5622@wotan.suse.de>
- <1429137531.1899.28.camel@palomino.walls.org>
- <20150415235816.GG5622@wotan.suse.de>
- <20150416041837.GA5712@hykim-PC>
- <20150416185426.GH5622@wotan.suse.de>
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:36250 "EHLO
+	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753758AbbDIP1K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 11:27:10 -0400
+Received: by qku63 with SMTP id 63so127912444qku.3
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2015 08:27:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20150416185426.GH5622@wotan.suse.de>
+In-Reply-To: <trinity-697dde81-bae2-4f42-b8af-ea4e14573136-1428592989284@3capp-gmx-bs54>
+References: <trinity-697dde81-bae2-4f42-b8af-ea4e14573136-1428592989284@3capp-gmx-bs54>
+Date: Thu, 9 Apr 2015 11:27:09 -0400
+Message-ID: <CAGoCfizGF+8SHMT34_c5eoJ7z9Tmm_c_=Gfp1dPxNH-=L8PaxA@mail.gmail.com>
+Subject: Re: kconf syntax error when doing make menuconfig
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Amex@gmx.de
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 16, 2015 at 08:54:26PM +0200, Luis R. Rodriguez wrote:
-> > Without WC, descriptors would end up as multiple 4B or 8B MWr packets
-> > to the NIC, which has a pretty big performance impact on this
-> > particular NIC.
-> 
-> How big are the descriptors?
+> i also get this with make xconfig. just running ./build, however, works
 
-Some are 64B (a batch of eight 8B descriptors).  Some are 16B.
+Yeah, I've seen that before.  It's a whitespace bug in the KConfig
+file.  Just open it in a text editor, go to the line in question, and
+fix the leading whitespace to match all the other entries (If I
+recall, you'll actually see it occur in two or three places).
 
-> > Most registers that do not want WC are actually in BAR2, which is not
-> > mapped as WC.  For registers that are in BAR0, we do "write to the
-> > register; wmb".  If we want to wait till the NIC has seen the write,
-> > we do "write; wmb; read".
-> 
-> Interesting, thanks, yeah using this as a work around to the problem sounds
-> plausible however it still would require likely making just as many changes to
-> the ivtv and ipath driver as to just do a proper split. I do wonder however if
-> this sort of work around can be generalized somehow though so that others could
-> use, if this sort of thing is going to become prevalent. If so then this would
-> serve two purposes: work around for the corner cases of MTRR use on Linux and
-> also these sorts of device constraints.
+It's a trivial fix - feel free to submit a patch so people don't hit
+it in the future.
 
-These Myricom devices are very non-standard in my opinion, at least in
-the Ethernet world.  Few, if any, other devices depend so much on WC
-like these do.  I think almost all devices now have rings in host
-memory.  The NIC pulls them via DMA.  No need for WC, and no need to
-special case registers...
+Devin
 
-> In order to determine if this is likely to be generally useful could you elaborate
-> a bit more about the detals of the performance issues of not bursting writes
-> for the descriptor on this device.
-
-For this particular Myricom device, performance penalty stems from the
-use of slow path in the firmware.  They are not about how effectively
-we use PCI Express or latency or bandwidth.  Small MWr packets end up
-casuing slow path processing via the firmware in this device.
-
-There are HPC low latency NICs that use WC for different reasons.  To
-reduce latency as much as possible, some of these copy small packets
-to the NIC memory via PIO (BAR0, and so on), instead of DMA.  They
-want WC mapping to minimize PCI Express packets/transactions.
-
-I do not know about video adapters and their use for WC.
-
-> Even if that is done a conversion over to this work around seems it may require
-> device specific nitpicks. For instance I note in myri10ge_submit_req() for
-> small writes you just do a reverse write and do the first set last, then
-> finally the last 32 bits are rewritten, I guess to trigger something?
-
-Right.  The device polls the last word to start sending, DMA, etc.
-
-> > This approach has worked for this device for many years.  I cannot say
-> > whether it works for other devices, though.
-> 
-> I think it should but the more interesting question would be exactly
-> *why* it was needed for this device, who determined that, and why?
-
-Hopefully, the above text answers some of your questions.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
