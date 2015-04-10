@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41151 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103AbbD0P4v (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49020 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554AbbDJRZY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 11:56:51 -0400
-From: Fabien Dessenne <fabien.dessenne@st.com>
-To: <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 0/3] Add media bdisp driver for stihxxx platforms
-Date: Mon, 27 Apr 2015 17:56:41 +0200
-Message-ID: <1430150204-22944-1-git-send-email-fabien.dessenne@st.com>
+	Fri, 10 Apr 2015 13:25:24 -0400
+Message-ID: <55280783.20405@infradead.org>
+Date: Fri, 10 Apr 2015 10:25:23 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+CC: linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: linux-next: Tree for Apr 10 (media/i2c/adp1653)
+References: <20150410211806.574ae8f9@canb.auug.org.au> <5528071C.2040102@infradead.org>
+In-Reply-To: <5528071C.2040102@infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches adds the support of v4l2 2D blitter driver for
-STMicroelectronics SOC.
+[change email address for maintainer]
 
-The following features are supported and tested:
-- Color format conversion (RGB32, RGB24, RGB16, NV12, YUV420P)
-- Copy
-- Scale
-- Flip
-- Deinterlace
-- Wide (4K) picture support
-- Crop
+On 04/10/15 10:23, Randy Dunlap wrote:
+> On 04/10/15 04:18, Stephen Rothwell wrote:
+>> Hi all,
+>>
+>> Changes since 20150409:
+>>
+> 
+> on i386:
+> 
+>   CC [M]  drivers/media/i2c/adp1653.o
+> ../drivers/media/i2c/adp1653.c: In function '__adp1653_set_power':
+> ../drivers/media/i2c/adp1653.c:317:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+>    gpio_set_value(flash->platform_data->power_gpio, on);
+>                                       ^
+> ../drivers/media/i2c/adp1653.c:336:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+>    gpio_set_value(flash->platform_data->power_gpio, 0);
+>                                       ^
+> ../drivers/media/i2c/adp1653.c: In function 'adp1653_of_init':
+> ../drivers/media/i2c/adp1653.c:471:4: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+>   pd->power_gpio = of_get_gpio_flags(node, 0, &flags);
+>     ^
+> ../drivers/media/i2c/adp1653.c:472:8: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+>   if (pd->power_gpio < 0) {
+>         ^
+> ../drivers/media/i2c/adp1653.c:433:6: warning: unused variable 'gpio' [-Wunused-variable]
+>   int gpio;
+>       ^
+> 
+> 
+> 
 
-This driver uses the v4l2 mem2mem framework and its implementation was largely
-inspired by the Exynos G-Scaler (exynos-gsc) driver.
-
-The driver is mainly implemented across two files:
-- bdisp-v4l2.c
-- bdisp-hw.c
-bdisp-v4l2.c uses v4l2_m2m to manage the V4L2 interface with the userland. It
-calls the HW services that are implemented in bdisp-hw.c.
-
-The additional bdisp-debug.c file manages some debugfs entries.
-
-Fabien Dessenne (3):
-  [media] bdisp: add DT bindings documentation
-  [media] bdisp: 2D blitter driver using v4l2 mem2mem framework
-  [media] bdisp: add debug file system
-
- .../devicetree/bindings/media/st,stih4xx.txt       |   32 +
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/bdisp/Kconfig               |    9 +
- drivers/media/platform/bdisp/Makefile              |    3 +
- drivers/media/platform/bdisp/bdisp-debug.c         |  668 +++++++++
- drivers/media/platform/bdisp/bdisp-filter.h        |  346 +++++
- drivers/media/platform/bdisp/bdisp-hw.c            |  823 +++++++++++
- drivers/media/platform/bdisp/bdisp-reg.h           |  235 +++
- drivers/media/platform/bdisp/bdisp-v4l2.c          | 1492 ++++++++++++++++++++
- drivers/media/platform/bdisp/bdisp.h               |  220 +++
- 11 files changed, 3840 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
- create mode 100644 drivers/media/platform/bdisp/Kconfig
- create mode 100644 drivers/media/platform/bdisp/Makefile
- create mode 100644 drivers/media/platform/bdisp/bdisp-debug.c
- create mode 100644 drivers/media/platform/bdisp/bdisp-filter.h
- create mode 100644 drivers/media/platform/bdisp/bdisp-hw.c
- create mode 100644 drivers/media/platform/bdisp/bdisp-reg.h
- create mode 100644 drivers/media/platform/bdisp/bdisp-v4l2.c
- create mode 100644 drivers/media/platform/bdisp/bdisp.h
 
 -- 
-1.9.1
-
+~Randy
