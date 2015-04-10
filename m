@@ -1,44 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21189 "EHLO mga09.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:52382 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932318AbbDHNyA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 09:54:00 -0400
-Message-ID: <552532C2.2040806@linux.intel.com>
-Date: Wed, 08 Apr 2015 16:53:06 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+	id S932440AbbDJNOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2015 09:14:55 -0400
+Date: Fri, 10 Apr 2015 10:14:48 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.1] mem2mem changes for 4.1
+Message-ID: <20150410101448.75d11f3d@recife.lan>
+In-Reply-To: <02df01d071e3$e21c1330$a6543990$%debski@samsung.com>
+References: <02df01d071e3$e21c1330$a6543990$%debski@samsung.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: Correctly notify about the failed
- pipeline validation
-References: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com> <4424832.AmZfJ0mdjq@avalon>
-In-Reply-To: <4424832.AmZfJ0mdjq@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Wed, 08 Apr 2015 12:07:54 +0200
+Kamil Debski <k.debski@samsung.com> escreveu:
 
-Laurent Pinchart wrote:
-> Hello Sakari,
->
-> Thank you for the patch.
->
-> On Thursday 12 February 2015 15:43:11 Sakari Ailus wrote:
->> On the place of the source entity name, the sink entity name was printed.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> and applied to my tree. It's a bit late for v4.1, can it wait for v4.2 ?
+> The following changes since commit c8c7c44b7cf5ef7163e4bd6aedbdeb6f6031ee3e:
+> 
+>   [media] s5p-jpeg: Remove some unused functions (2015-04-07 08:15:15 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/kdebski/media_tree_2.git for-4.1-v2
+> 
+> for you to fetch changes up to 8dae02ffa32db8193513ee0a3c6dcd277e653954:
+> 
+>   coda: Add tracing support (2015-04-08 11:54:12 +0200)
+> 
+> ----------------------------------------------------------------
+> Kamil Debski (4):
+>       vb2: split the io_flags member of vb2_queue into a bit field
+>       vb2: add allow_zero_bytesused flag to the vb2_queue struct
+>       coda: set allow_zero_bytesused flag for vb2_queue_init
+>       s5p-mfc: set allow_zero_bytesused flag for vb2_queue_init
+> 
+> Peter Seiderer (2):
+>       coda: check kasprintf return value in coda_open
+>       coda: fix double call to debugfs_remove
+> 
+> Philipp Zabel (16):
+>       v4l2-mem2mem: no need to initialize b in v4l2_m2m_next_buf and
+> v4l2_m2m_buf_remove
+>       gpu: ipu-v3: Add missing IDMAC channel names
+>       gpu: ipu-v3: Add mem2mem image conversion support to IC
+>       gpu: ipu-v3: Register scaler platform device
 
-Thanks!
+I didn't merge the above patches, as they lack an ack from DRM maintainer.
 
-v4.2 is fine. This is just a bug fix in a debug print. I wouldn't bother 
-with stable or v4.1.
+If the DRM maintainer prefers to merge via his tree, I'm happy to give
+my ack as well.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+>       coda: bitrate can only be set in kbps steps
+>       coda: bitstream payload is unsigned
+>       coda: use strlcpy instead of snprintf
+>       coda: allocate per-context buffers from REQBUFS
+>       coda: allocate bitstream buffer from REQBUFS, size depends on the
+> format
+>       coda: move parameter buffer in together with context buffer allocation
+>       coda: remove duplicate error messages for buffer allocations
+>       coda: fail to start streaming if userspace set invalid formats
+>       coda: call SEQ_END when the first queue is stopped
+>       coda: fix fill bitstream errors in nonstreaming case
+>       coda: drop dma_sync_single_for_device in coda_bitstream_queue
+>       coda: Add tracing support
+> 
+> Sascha Hauer (2):
+>       imx-ipu: Add ipu media common code
+>       imx-ipu: Add i.MX IPUv3 scaler driver
+> 
+>  drivers/gpu/ipu-v3/ipu-common.c             |    2 +
+>  drivers/gpu/ipu-v3/ipu-ic.c                 |  787 +++++++++++++++++++++++-
+>  drivers/media/platform/Kconfig              |    2 +
+>  drivers/media/platform/Makefile             |    1 +
+>  drivers/media/platform/coda/Makefile        |    2 +
+>  drivers/media/platform/coda/coda-bit.c      |  205 +++++--
+>  drivers/media/platform/coda/coda-common.c   |  113 ++--
+>  drivers/media/platform/coda/coda-jpeg.c     |    1 +
+>  drivers/media/platform/coda/coda.h          |   18 +-
+>  drivers/media/platform/coda/trace.h         |  203 +++++++
+>  drivers/media/platform/imx/Kconfig          |   11 +
+>  drivers/media/platform/imx/Makefile         |    2 +
+>  drivers/media/platform/imx/imx-ipu-scaler.c |  869
+> +++++++++++++++++++++++++++
+>  drivers/media/platform/imx/imx-ipu.c        |  313 ++++++++++
+>  drivers/media/platform/imx/imx-ipu.h        |   36 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c    |    7 +
+>  drivers/media/v4l2-core/v4l2-mem2mem.c      |    4 +-
+>  drivers/media/v4l2-core/videobuf2-core.c    |   56 +-
+>  include/media/videobuf2-core.h              |   20 +-
+>  include/video/imx-ipu-v3.h                  |   49 +-
+>  20 files changed, 2535 insertions(+), 166 deletions(-)
+>  create mode 100644 drivers/media/platform/coda/trace.h
+>  create mode 100644 drivers/media/platform/imx/Kconfig
+>  create mode 100644 drivers/media/platform/imx/Makefile
+>  create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
+>  create mode 100644 drivers/media/platform/imx/imx-ipu.c
+>  create mode 100644 drivers/media/platform/imx/imx-ipu.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
