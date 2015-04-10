@@ -1,87 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44212 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661AbbDLMV5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51347 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751767AbbDJWnf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Apr 2015 08:21:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Tero Kristo <t-kristo@ti.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] [media] omap4iss: avoid broken OMAP4 dependency
-Date: Sun, 12 Apr 2015 15:22:24 +0300
-Message-ID: <62125726.UhoJzFudPk@avalon>
-In-Reply-To: <3292592.cickJMVhRq@wuerfel>
-References: <3292592.cickJMVhRq@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 10 Apr 2015 18:43:35 -0400
+Received: from lanttu.localdomain (lanttu.localdomain [192.168.5.64])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id ED19B6009F
+	for <linux-media@vger.kernel.org>; Sat, 11 Apr 2015 01:43:32 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] smiapp: Remove useless rval assignment in smiapp_get_pdata()
+Date: Sat, 11 Apr 2015 01:42:47 +0300
+Message-Id: <1428705767-3241-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+The value is not used after the assignment.
 
-Thank you for the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-On Friday 10 April 2015 22:20:20 Arnd Bergmann wrote:
-> The omap4iss driver uses an interface that used to be provided
-> by OMAP4 but has now been removed and replaced with a WARN_ON(1)
-> statement, which likely broke the iss_csiphy code at runtime.
-> 
-> It also broke compiling the driver when CONFIG_ARCH_OMAP2PLUS
-> is set, which is implied by OMAP4:
-> 
-> drivers/staging/media/omap4iss/iss_csiphy.c: In function
-> 'omap4iss_csiphy_config':
-> drivers/staging/media/omap4iss/iss_csiphy.c:167:2: error: implicit
-> declaration of function 'omap4_ctrl_pad_writel'
-> [-Werror=implicit-function-declaration] omap4_ctrl_pad_writel(cam_rx_ctrl,
->
-> In turn, this broke ARM allyesconfig builds. Replacing the
-> omap4_ctrl_pad_writel call with WARN_ON(1) won't make the
-> situation any worse than it already is, but fixes the build
-> problem.
-
-I've fixed the problem properly by switching to the syscon API. I'll send the 
-patch as a separate reply, let's discuss there how to handle the issue.
-
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: efde234674d9 ("ARM: OMAP4+: control: remove support for legacy pad
-> read/write")
-> ---
-> diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
-> b/drivers/staging/media/omap4iss/iss_csiphy.c index
-> 7c3d55d811ef..24f56ed90ac3 100644
-> --- a/drivers/staging/media/omap4iss/iss_csiphy.c
-> +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-> 
-> @@ -140,9 +140,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
->  	 * - bit [18] : CSIPHY1 CTRLCLK enable
->  	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
->  	 */
-> -	cam_rx_ctrl = omap4_ctrl_pad_readl(
-> -			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-> -
-> +	cam_rx_ctrl = WARN_ON(1);
-> 
->  	if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1) {
->  		cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-> @@ -166,8 +164,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
->  		cam_rx_ctrl |= OMAP4_CAMERARX_CSI22_CTRLCLKEN_MASK;
->  	}
-> 
-> -	omap4_ctrl_pad_writel(cam_rx_ctrl,
-> -		 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-> +	WARN_ON(1);
-> 
->  	/* Reset used lane count */
->  	csi2->phy->used_data_lanes = 0;
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 636ebd6..4b1e112 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3032,10 +3032,8 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
+ 	pdata->op_sys_clock = devm_kcalloc(
+ 		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
+ 		sizeof(*pdata->op_sys_clock), GFP_KERNEL);
+-	if (!pdata->op_sys_clock) {
+-		rval = -ENOMEM;
++	if (!pdata->op_sys_clock)
+ 		goto out_err;
+-	}
+ 
+ 	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
+ 		pdata->op_sys_clock[i] = bus_cfg->link_frequencies[i];
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
