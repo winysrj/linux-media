@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33793 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531AbbDCRNW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:13:22 -0400
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>,
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-	Gregory Clement <gregory.clement@free-electrons.com>
-Subject: [PATCH 10/14] ARM: orion: use clkdev_create()
+Received: from mout.kundenserver.de ([212.227.126.131]:49818 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258AbbDJUYZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2015 16:24:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Jurgen Kramer <gtmkramer@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] vb2: remove unused variable
+Date: Fri, 10 Apr 2015 22:24:17 +0200
+Message-ID: <8477099.Iv3RkyDk0C@wuerfel>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
-Date: Fri, 03 Apr 2015 18:13:13 +0100
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clkdev_create() is a shorter way to write clkdev_alloc() followed by
-clkdev_add().  Use this instead.
+A recent bug fix removed all uses of the 'fileio' variable in
+vb2_thread_stop(), which now causes warnings in a lot of
+ARM defconfig builds:
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/plat-orion/common.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+drivers/media/v4l2-core/videobuf2-core.c:3228:26: warning: unused variable 'fileio' [-Wunused-variable]
 
-diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
-index f5b00f41c4f6..2235081a04ee 100644
---- a/arch/arm/plat-orion/common.c
-+++ b/arch/arm/plat-orion/common.c
-@@ -28,11 +28,7 @@
- void __init orion_clkdev_add(const char *con_id, const char *dev_id,
- 			     struct clk *clk)
+This removes the variable as well. The commit that introduced
+the warning was marked for 3.18+ backports, so this should
+probably be backported too.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 0e661006370b7 ("[media] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()")
+Cc: <stable@vger.kernel.org>      # for v3.18 and up
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index c11aee7db884..d3f7bf0db61e 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -3225,7 +3225,6 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
+ int vb2_thread_stop(struct vb2_queue *q)
  {
--	struct clk_lookup *cl;
--
--	cl = clkdev_alloc(clk, con_id, dev_id);
--	if (cl)
--		clkdev_add(cl);
-+	clkdev_create(clk, con_id, "%s", dev_id);
- }
+ 	struct vb2_threadio_data *threadio = q->threadio;
+-	struct vb2_fileio_data *fileio = q->fileio;
+ 	int err;
  
- /* Create clkdev entries for all orion platforms except kirkwood.
--- 
-1.8.3.1
+ 	if (threadio == NULL)
 
