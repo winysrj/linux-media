@@ -1,92 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42912 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751252AbbD0KZR (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45874 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554AbbDJRXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 06:25:17 -0400
-Message-ID: <553E0E86.4080002@xs4all.nl>
-Date: Mon, 27 Apr 2015 12:25:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 10 Apr 2015 13:23:41 -0400
+Message-ID: <5528071C.2040102@infradead.org>
+Date: Fri, 10 Apr 2015 10:23:40 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
-References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1429794192-20541-7-git-send-email-k.debski@samsung.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+CC: linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: linux-next: Tree for Apr 10 (media/i2c/adp1653)
+References: <20150410211806.574ae8f9@canb.auug.org.au>
+In-Reply-To: <20150410211806.574ae8f9@canb.auug.org.au>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/23/2015 03:03 PM, Kamil Debski wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
+On 04/10/15 04:18, Stephen Rothwell wrote:
+> Hi all,
 > 
-> The added HDMI CEC framework provides a generic kernel interface for
-> HDMI CEC devices.
-> 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> [k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
-> [k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
-> [k.debski@samsung.com: change kthread handling when setting logical
-> address]
-> [k.debski@samsung.com: code cleanup and fixes]
-> [k.debski@samsung.com: add missing CEC commands to match spec]
-> [k.debski@samsung.com: add RC framework support]
-> [k.debski@samsung.com: move and edit documentation]
-> [k.debski@samsung.com: add vendor id reporting]
-> [k.debski@samsung.com: add possibility to clear assigned logical
-> addresses]
-> [k.debski@samsung.com: documentation fixes, clenaup and expansion]
-> [k.debski@samsung.com: reorder of API structs and add reserved fields]
-> [k.debski@samsung.com: fix handling of events and fix 32/64bit timespec
-> problem]
-> [k.debski@samsung.com: add cec.h to include/uapi/linux/Kbuild]
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> ---
->  Documentation/cec.txt     |  396 ++++++++++++++++
->  drivers/media/Kconfig     |    6 +
->  drivers/media/Makefile    |    2 +
->  drivers/media/cec.c       | 1161 +++++++++++++++++++++++++++++++++++++++++++++
->  include/media/cec.h       |  140 ++++++
->  include/uapi/linux/Kbuild |    1 +
->  include/uapi/linux/cec.h  |  303 ++++++++++++
->  7 files changed, 2009 insertions(+)
->  create mode 100644 Documentation/cec.txt
->  create mode 100644 drivers/media/cec.c
->  create mode 100644 include/media/cec.h
->  create mode 100644 include/uapi/linux/cec.h
+> Changes since 20150409:
 > 
 
-> +	case CEC_S_ADAP_LOG_ADDRS: {
-> +		struct cec_log_addrs log_addrs;
-> +
-> +		if (!(adap->capabilities & CEC_CAP_LOG_ADDRS))
-> +			return -ENOTTY;
-> +		if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
-> +			return -EFAULT;
-> +		err = cec_claim_log_addrs(adap, &log_addrs, true);
+on i386:
 
-Currently CEC_S_ADAP_LOG_ADDRS is always blocking, but since we have CEC_EVENT_READY
-I think it makes sense to just return in non-blocking mode and have cec_claim_log_addrs
-generate CEC_EVENT_READY when done. Userspace can then call G_ADAP_LOG_ADDRS to discover
-the result.
+  CC [M]  drivers/media/i2c/adp1653.o
+../drivers/media/i2c/adp1653.c: In function '__adp1653_set_power':
+../drivers/media/i2c/adp1653.c:317:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+   gpio_set_value(flash->platform_data->power_gpio, on);
+                                      ^
+../drivers/media/i2c/adp1653.c:336:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+   gpio_set_value(flash->platform_data->power_gpio, 0);
+                                      ^
+../drivers/media/i2c/adp1653.c: In function 'adp1653_of_init':
+../drivers/media/i2c/adp1653.c:471:4: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+  pd->power_gpio = of_get_gpio_flags(node, 0, &flags);
+    ^
+../drivers/media/i2c/adp1653.c:472:8: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
+  if (pd->power_gpio < 0) {
+        ^
+../drivers/media/i2c/adp1653.c:433:6: warning: unused variable 'gpio' [-Wunused-variable]
+  int gpio;
+      ^
 
-What do you think?
 
-Regards,
 
-	Hans
-
-> +		if (err)
-> +			return err;
-> +
-> +		if (copy_to_user(parg, &log_addrs, sizeof(log_addrs)))
-> +			return -EFAULT;
-> +		break;
-> +	}
-
+-- 
+~Randy
