@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:37680 "EHLO quartz.orcorp.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964865AbbDUW6Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 18:58:24 -0400
-Date: Tue, 21 Apr 2015 16:57:32 -0600
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: "Luis R. Rodriguez" <mcgrof@suse.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com,
-	infinipath@intel.com, linux-rdma@vger.kernel.org,
-	awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
-	mcgrof@do-not-panic.com
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150421225732.GA17356@obsidianresearch.com>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150421224601.GY5622@wotan.suse.de>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:57782 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbbDJJr0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2015 05:47:26 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0NML00LJI4PJBA40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Apr 2015 10:51:19 +0100 (BST)
+Message-id: <55279C28.5080900@samsung.com>
+Date: Fri, 10 Apr 2015 11:47:20 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v4 1/4] v4l: of: Remove the head field in struct
+ v4l2_of_endpoint
+References: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi>
+ <1428614706-8367-2-git-send-email-sakari.ailus@iki.fi>
+In-reply-to: <1428614706-8367-2-git-send-email-sakari.ailus@iki.fi>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 12:46:01AM +0200, Luis R. Rodriguez wrote:
+Hi Sakari,
 
-> are talking about annotating the qib driver as "known to be broken without PAT"
-> and since the ipath driver needs considerable work to be ported to
-> use PAT (the
+On 09/04/15 23:25, Sakari Ailus wrote:
+> The field is unused. Remove it.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  include/media/v4l2-of.h |    2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index f831c9c..f66b92c 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -57,7 +57,6 @@ struct v4l2_of_bus_parallel {
+>   * @base: struct of_endpoint containing port, id, and local of_node
+>   * @bus_type: bus type
+>   * @bus: bus configuration data structure
+> - * @head: list head for this structure
+>   */
+>  struct v4l2_of_endpoint {
+>  	struct of_endpoint base;
+> @@ -66,7 +65,6 @@ struct v4l2_of_endpoint {
+>  		struct v4l2_of_bus_parallel parallel;
+>  		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
+>  	} bus;
+> -	struct list_head head;
+>  };
 
-This only seems to be true for one of the chips that driver supports,
-not all possibilities.
+I don't remember what this list_head was originally intended for,
+probably for some code in soc_camera on which didn't the works were
+postponed or abandoned. Presumably now such code would likely live
+in drivers/of/base.c anyway.
 
-> userspace register is just one area) I wanted to review if we can just remove
-> MTRR use on the ipath driver and annotate write-combining with PAT as a TODO
-> item.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-AFAIK, dropping MTRR support will completely break the performance to
-the point the driver is unusable. If we drop MTRR we may as well
-remove the driver.
-
-Mike, do you think the time is right to just remove the iPath driver?
-
-Jason
+-- 
+Regards,
+Sylwester
