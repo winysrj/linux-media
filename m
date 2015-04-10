@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:37608 "EHLO m12-18.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757433AbbDPNLh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 09:11:37 -0400
-From: weiyj_lk@163.com
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kiran Padwal <kiran.padwal@smartplayin.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH -next] staging: dt3155v4l: remove unused including <linux/version.h>
-Date: Thu, 16 Apr 2015 21:08:38 +0800
-Message-Id: <1429189718-23900-1-git-send-email-weiyj_lk@163.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.126.130]:59391 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbbDJUaZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2015 16:30:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] exynos4_is: exynos4-fimc requires i2c
+Date: Fri, 10 Apr 2015 22:30:14 +0200
+Message-ID: <19181630.veBMiO50KX@wuerfel>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Without i2c, we can get a build error:
 
-Remove including <linux/version.h> that don't need it.
+drivers/media/platform/exynos4-is/fimc-is-i2c.c: In function 'fimc_is_i2c_probe':
+drivers/media/platform/exynos4-is/fimc-is-i2c.c:58:8: error: implicit declaration of function 'i2c_add_adapter' [-Werror=implicit-function-declaration]
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/staging/media/dt3155v4l/dt3155v4l.c | 1 -
- 1 file changed, 1 deletion(-)
+The dependency already exists for exynos-fimc-lite and s5p-fimc,
+but is missing for exynos4-fimc.
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index e60a53e..7946ee0 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -19,7 +19,6 @@
-  ***************************************************************************/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index b7b2e472240a..40423c6c5324 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -57,6 +57,7 @@ endif
  
- #include <linux/module.h>
--#include <linux/version.h>
- #include <linux/stringify.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
+ config VIDEO_EXYNOS4_FIMC_IS
+ 	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
++	depends on I2C
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	depends on OF
 
