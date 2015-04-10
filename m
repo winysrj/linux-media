@@ -1,108 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52382 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932440AbbDJNOz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 09:14:55 -0400
-Date: Fri, 10 Apr 2015 10:14:48 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.1] mem2mem changes for 4.1
-Message-ID: <20150410101448.75d11f3d@recife.lan>
-In-Reply-To: <02df01d071e3$e21c1330$a6543990$%debski@samsung.com>
-References: <02df01d071e3$e21c1330$a6543990$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:33034 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753828AbbDJV2i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2015 17:28:38 -0400
+Received: by wgin8 with SMTP id n8so29518290wgi.0
+        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2015 14:28:37 -0700 (PDT)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: i2c: ov2659: add VIDEO_V4L2_SUBDEV_API dependency
+Date: Fri, 10 Apr 2015 22:28:33 +0100
+Message-Id: <1428701313-16367-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 08 Apr 2015 12:07:54 +0200
-Kamil Debski <k.debski@samsung.com> escreveu:
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-> The following changes since commit c8c7c44b7cf5ef7163e4bd6aedbdeb6f6031ee3e:
-> 
->   [media] s5p-jpeg: Remove some unused functions (2015-04-07 08:15:15 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/kdebski/media_tree_2.git for-4.1-v2
-> 
-> for you to fetch changes up to 8dae02ffa32db8193513ee0a3c6dcd277e653954:
-> 
->   coda: Add tracing support (2015-04-08 11:54:12 +0200)
-> 
-> ----------------------------------------------------------------
-> Kamil Debski (4):
->       vb2: split the io_flags member of vb2_queue into a bit field
->       vb2: add allow_zero_bytesused flag to the vb2_queue struct
->       coda: set allow_zero_bytesused flag for vb2_queue_init
->       s5p-mfc: set allow_zero_bytesused flag for vb2_queue_init
-> 
-> Peter Seiderer (2):
->       coda: check kasprintf return value in coda_open
->       coda: fix double call to debugfs_remove
-> 
-> Philipp Zabel (16):
->       v4l2-mem2mem: no need to initialize b in v4l2_m2m_next_buf and
-> v4l2_m2m_buf_remove
->       gpu: ipu-v3: Add missing IDMAC channel names
->       gpu: ipu-v3: Add mem2mem image conversion support to IC
->       gpu: ipu-v3: Register scaler platform device
+this patch adds dependency of VIDEO_V4L2_SUBDEV_API
+for VIDEO_OV2659 so that it doesn't complain for random
+config builds.
 
-I didn't merge the above patches, as they lack an ack from DRM maintainer.
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/i2c/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If the DRM maintainer prefers to merge via his tree, I'm happy to give
-my ack as well.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 6f30ea7..8b05681 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -468,7 +468,7 @@ config VIDEO_SMIAPP_PLL
+ 
+ config VIDEO_OV2659
+ 	tristate "OmniVision OV2659 sensor support"
+-	depends on VIDEO_V4L2 && I2C
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
+-- 
+2.1.0
 
->       coda: bitrate can only be set in kbps steps
->       coda: bitstream payload is unsigned
->       coda: use strlcpy instead of snprintf
->       coda: allocate per-context buffers from REQBUFS
->       coda: allocate bitstream buffer from REQBUFS, size depends on the
-> format
->       coda: move parameter buffer in together with context buffer allocation
->       coda: remove duplicate error messages for buffer allocations
->       coda: fail to start streaming if userspace set invalid formats
->       coda: call SEQ_END when the first queue is stopped
->       coda: fix fill bitstream errors in nonstreaming case
->       coda: drop dma_sync_single_for_device in coda_bitstream_queue
->       coda: Add tracing support
-> 
-> Sascha Hauer (2):
->       imx-ipu: Add ipu media common code
->       imx-ipu: Add i.MX IPUv3 scaler driver
-> 
->  drivers/gpu/ipu-v3/ipu-common.c             |    2 +
->  drivers/gpu/ipu-v3/ipu-ic.c                 |  787 +++++++++++++++++++++++-
->  drivers/media/platform/Kconfig              |    2 +
->  drivers/media/platform/Makefile             |    1 +
->  drivers/media/platform/coda/Makefile        |    2 +
->  drivers/media/platform/coda/coda-bit.c      |  205 +++++--
->  drivers/media/platform/coda/coda-common.c   |  113 ++--
->  drivers/media/platform/coda/coda-jpeg.c     |    1 +
->  drivers/media/platform/coda/coda.h          |   18 +-
->  drivers/media/platform/coda/trace.h         |  203 +++++++
->  drivers/media/platform/imx/Kconfig          |   11 +
->  drivers/media/platform/imx/Makefile         |    2 +
->  drivers/media/platform/imx/imx-ipu-scaler.c |  869
-> +++++++++++++++++++++++++++
->  drivers/media/platform/imx/imx-ipu.c        |  313 ++++++++++
->  drivers/media/platform/imx/imx-ipu.h        |   36 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc.c    |    7 +
->  drivers/media/v4l2-core/v4l2-mem2mem.c      |    4 +-
->  drivers/media/v4l2-core/videobuf2-core.c    |   56 +-
->  include/media/videobuf2-core.h              |   20 +-
->  include/video/imx-ipu-v3.h                  |   49 +-
->  20 files changed, 2535 insertions(+), 166 deletions(-)
->  create mode 100644 drivers/media/platform/coda/trace.h
->  create mode 100644 drivers/media/platform/imx/Kconfig
->  create mode 100644 drivers/media/platform/imx/Makefile
->  create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
->  create mode 100644 drivers/media/platform/imx/imx-ipu.c
->  create mode 100644 drivers/media/platform/imx/imx-ipu.h
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
