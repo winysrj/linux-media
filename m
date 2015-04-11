@@ -1,78 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38521 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964833AbbD0NrW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54087 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752344AbbDKMsl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 09:47:22 -0400
-Message-ID: <553E3DE3.7070506@xs4all.nl>
-Date: Mon, 27 Apr 2015 15:47:15 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 11 Apr 2015 08:48:41 -0400
+Date: Sat, 11 Apr 2015 15:48:38 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] media: i2c: ov2659: Use v4l2_of_alloc_parse_endpoint()
+Message-ID: <20150411124838.GM20756@valkosipuli.retiisi.org.uk>
+References: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-CC: Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>
-Subject: Re: [PATCH v5 2/5] [media] videodev2: Add V4L2_BUF_FLAG_LAST
-References: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de> <1429518504-14880-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1429518504-14880-3-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/20/2015 10:28 AM, Philipp Zabel wrote:
-> From: Peter Seiderer <ps.report@gmx.net>
+Hi Prabhakar,
+
+On Fri, Apr 10, 2015 at 11:13:28PM +0100, Lad Prabhakar wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 > 
-> This v4l2_buffer flag can be used by drivers to mark a capture buffer
-> as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
-> command was issued.
+> Instead of parsing the link-frequencies property in the driver, let
+> v4l2_of_alloc_parse_endpoint() do it.
 > 
-> Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > ---
-> Changes since v4:
->  - Split out DocBook changes into a separate patch.
-> ---
->  include/trace/events/v4l2.h    | 3 ++-
->  include/uapi/linux/videodev2.h | 2 ++
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-> index b9bb1f2..32c33aa 100644
-> --- a/include/trace/events/v4l2.h
-> +++ b/include/trace/events/v4l2.h
-> @@ -58,7 +58,8 @@
->  		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
->  		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
->  		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
-> -		{ V4L2_BUF_FLAG_TIMESTAMP_COPY,	     "TIMESTAMP_COPY" })
-> +		{ V4L2_BUF_FLAG_TIMESTAMP_COPY,	     "TIMESTAMP_COPY" },      \
-> +		{ V4L2_BUF_FLAG_LAST,                "LAST" })
+>  This patch depends on https://patchwork.kernel.org/patch/6190901/
 >  
->  #define show_timecode_flags(flags)					  \
->  	__print_flags(flags, "|",					  \
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index fbdc360..c642c10 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -809,6 +809,8 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-> +/* mem2mem encoder/decoder */
-> +#define V4L2_BUF_FLAG_LAST			0x00100000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+>  drivers/media/i2c/ov2659.c | 19 ++++++++++++++-----
+>  1 file changed, 14 insertions(+), 5 deletions(-)
 > 
+> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+> index edebd11..c1e310b 100644
+> --- a/drivers/media/i2c/ov2659.c
+> +++ b/drivers/media/i2c/ov2659.c
+> @@ -1340,8 +1340,8 @@ static struct ov2659_platform_data *
+>  ov2659_get_pdata(struct i2c_client *client)
+>  {
+>  	struct ov2659_platform_data *pdata;
+> +	struct v4l2_of_endpoint *bus_cfg;
+>  	struct device_node *endpoint;
+> -	int ret;
+>  
+>  	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+>  		return client->dev.platform_data;
+> @@ -1350,18 +1350,27 @@ ov2659_get_pdata(struct i2c_client *client)
+>  	if (!endpoint)
+>  		return NULL;
+>  
+> +	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
+> +	if (IS_ERR(bus_cfg)) {
+> +		pdata = NULL;
+> +		goto done;
+> +	}
+> +
+>  	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+>  	if (!pdata)
+>  		goto done;
+>  
+> -	ret = of_property_read_u64(endpoint, "link-frequencies",
+> -				   &pdata->link_frequency);
+> -	if (ret) {
+> -		dev_err(&client->dev, "link-frequencies property not found\n");
+> +	if (bus_cfg->nr_of_link_frequencies != 1) {
 
+I wonder if it should be considered a problem if the array is larger than
+one item. I would not, even if the rest of the entries wouldn't be used by
+the driver at the moment. Up to you.
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+> +		dev_err(&client->dev,
+> +			"link-frequencies property not found or too many\n");
+>  		pdata = NULL;
+> +		goto done;
+>  	}
+>  
+> +	pdata->link_frequency = bus_cfg->link_frequencies[0];
+> +
+>  done:
+> +	v4l2_of_free_endpoint(bus_cfg);
+>  	of_node_put(endpoint);
+>  	return pdata;
+>  }
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
