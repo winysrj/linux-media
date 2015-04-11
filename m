@@ -1,293 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37352 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102AbbDTHTY (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52031 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751706AbbDKK4f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 03:19:24 -0400
-Message-ID: <5534A864.2010100@xs4all.nl>
-Date: Mon, 20 Apr 2015 09:19:00 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] Add support for interlaced format in detect cvt/gtf
-References: <1428497877-6593-1-git-send-email-prladdha@cisco.com> <1428497877-6593-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1428497877-6593-2-git-send-email-prladdha@cisco.com>
-Content-Type: text/plain; charset=windows-1252
+	Sat, 11 Apr 2015 06:56:35 -0400
+Message-ID: <1428749792.17822.101.camel@x220>
+Subject: Re: [PATCH] [media] dvb-usb/dvb-usb-v2: use IS_REACHABLE
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org
+Date: Sat, 11 Apr 2015 12:56:32 +0200
+In-Reply-To: <2280698.HtVfESyfme@wuerfel>
+References: <2280698.HtVfESyfme@wuerfel>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prashant, 
-
-A few comments:
-
-On 04/08/2015 02:57 PM, Prashant Laddha wrote:
-> Extended detect_cvt/gtf API to indicate the scan type (interlaced
-> or progressive). In case of interlaced, the vertical front and back
-> porch and vsync values for both (odd,even) fields are considered to
-> derive image height. Populated vsync, verical front, back porch
-> values in bt timing structure for even and odd fields and updated
-> the flags appropriately.
+On Fri, 2015-04-10 at 22:28 +0200, Arnd Bergmann wrote:
+> Tha ARM randconfig builds came up with another rare build
+> failure for the dib3000mc driver, when dibusb is built-in
+> and dib3000mc is a loadable module:
 > 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Martin Bugge <marbugge@cisco.com>
-> Cc: Mats Randgaard <matrandg@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+> ERROR: "dibusb_dib3000mc_frontend_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
+> ERROR: "dibusb_dib3000mc_tuner_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
+> 
+> Apparently this used to be a valid configuration (build-time,
+> not run-time), but broke as part of a cleanup.
+> I tried reverting the cleanup, but saw that the code was still
+> wrong then. This tries to fix the code properly, by moving the
+> problematic functions into a new file that now is built as a
+> loadable module or built-in, whichever is correct for a particular
+> configuration. It fixes the regression as well as the run-time
+> problem that already existed before.
+> 
+> I have also checked the two other files that were changed in
+> the original cleanup, and found them to be correct in either
+> version, so I do not touch that part.
+> 
+> As this is a rather obscure bug, there is no need for backports.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 028c70ff42783 ("[media] dvb-usb/dvb-usb-v2: use IS_ENABLED")
 > ---
->  drivers/media/i2c/adv7604.c                  |  4 +++
->  drivers/media/i2c/adv7842.c                  |  8 ++++--
->  drivers/media/platform/vivid/vivid-vid-cap.c |  5 ++--
->  drivers/media/v4l2-core/v4l2-dv-timings.c    | 39 ++++++++++++++++++++++++----
->  include/media/v4l2-dv-timings.h              |  6 +++--
->  5 files changed, 51 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 1e58537..bdc1d6d 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1304,11 +1304,15 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
->  	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
->  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
->  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
-> +			stdi->interlaced ? V4L2_DV_INTERLACED :
-> +					   V4L2_DV_PROGRESSIVE,
->  			timings))
->  		return 0;
->  	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
->  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
->  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
-> +			stdi->interlaced ? V4L2_DV_INTERLACED :
-> +					   V4L2_DV_PROGRESSIVE,
->  			state->aspect_ratio, timings))
->  		return 0;
->  
-> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-> index 7c215ee..b93ad27 100644
-> --- a/drivers/media/i2c/adv7842.c
-> +++ b/drivers/media/i2c/adv7842.c
-> @@ -1333,12 +1333,16 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
->  	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
->  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
->  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
-> -			    timings))
-> +			stdi->interlaced ? V4L2_DV_INTERLACED :
-> +					   V4L2_DV_PROGRESSIVE,
-> +			timings))
->  		return 0;
->  	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
->  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
->  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
-> -			    state->aspect_ratio, timings))
-> +			stdi->interlaced ? V4L2_DV_INTERLACED :
-> +					   V4L2_DV_PROGRESSIVE,
-> +			state->aspect_ratio, timings))
->  		return 0;
->  
->  	v4l2_dbg(2, debug, sd,
-> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-> index ede168a..5e2b712 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-> @@ -1620,7 +1620,7 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
->  
->  	if (bt->standards == 0 || (bt->standards & V4L2_DV_BT_STD_CVT)) {
->  		if (v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
-> -				    bt->polarities, timings))
-> +				    bt->polarities, bt->interlaced, timings))
->  			return true;
->  	}
->  
-> @@ -1631,7 +1631,8 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
->  				  &aspect_ratio.numerator,
->  				  &aspect_ratio.denominator);
->  		if (v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
-> -				    bt->polarities, aspect_ratio, timings))
-> +				    bt->polarities, bt->interlaced,
-> +				    aspect_ratio, timings))
->  			return true;
->  	}
->  	return false;
-> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> index b1d8dbb..80e4722 100644
-> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> @@ -335,6 +335,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
->   * @vsync - the height of the vertical sync in lines.
->   * @polarities - the horizontal and vertical polarities (same as struct
->   *		v4l2_bt_timings polarities).
-> + * @scan - V4L2_DV_INTERLACED or V4L2_DV_PROGRESSIVE
+>  drivers/media/usb/dvb-usb/Kconfig            |  20 +++-
+>  drivers/media/usb/dvb-usb/Makefile           |   3 +
+>  drivers/media/usb/dvb-usb/dibusb-common.c    | 158 -------------------------
+>  drivers/media/usb/dvb-usb/dibusb-mc-common.c | 168 +++++++++++++++++++++++++++
+>  4 files changed, 186 insertions(+), 163 deletions(-)
 
-This is a peculiar name, I would just go with 'interlaced'. I also would make it a
-'bool', and not pass in V4L2_DV_INTERLACED or V4L2_DV_PROGRESSIVE. In normal (i.e.
-not-vivid) use cases the interlaced state is typically read from a register, and in
-those cases using a bool makes more sense.
+(dibusb-mc-common.c is a new file, so you'd expect here a line reading
+    create mode 100644 drivers/media/usb/dvb-usb/dibusb-mc-common.c
 
->   * @fmt - the resulting timings.
->   *
->   * This function will attempt to detect if the given values correspond to a
-> @@ -346,7 +347,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
->   * detection function.
->   */
->  bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-> -		u32 polarities, struct v4l2_dv_timings *fmt)
-> +		u32 polarities, u32 scan, struct v4l2_dv_timings *fmt)
->  {
->  	int  v_fp, v_bp, h_fp, h_bp, hsync;
->  	int  frame_width, image_height, image_width;
-> @@ -378,7 +379,12 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
->  		if (v_bp < CVT_MIN_V_BPORCH)
->  			v_bp = CVT_MIN_V_BPORCH;
->  	}
-> -	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+Or do not all versions of git do that?)
+
+> --- a/drivers/media/usb/dvb-usb/Kconfig
+> +++ b/drivers/media/usb/dvb-usb/Kconfig
+
+> +config DVB_USB_DIB3000MC
+> +	tristate
+> +	depends on DVB_USB
+> +	select DVB_DIB3000MC
+> +	help
+> +	  This is a module with helper functions for accessing the
+> +	  DIB3000MC from USB DVB devices. It must be a separate module
+> +	  in case DVB_USB is built-in and DVB_DIB3000MC is a module,
+> +	  and gets selected automatically when needed.
+
+> --- a/drivers/media/usb/dvb-usb/Makefile
+> +++ b/drivers/media/usb/dvb-usb/Makefile
+ 
+> +dvb-usb-dibusb-mc-common-objs := dibusb-mc-common.o
+> +obj-$(CONFIG_DVB_USB_DIB3000MC)	+= dvb-usb-dibusb-mc-common.o
+
+To make sure I'm reading this change correctly: this will create a
+module named dvb-usb-dibusb-mc-common.ko if DVB_USB_DIB3000MC is set to
+'m', right?
+
+(If I'm wrong you can stop reading here.)
+
+> --- /dev/null
+> +++ b/drivers/media/usb/dvb-usb/dibusb-mc-common.c
+> @@ -0,0 +1,168 @@
+> +/* Common methods for dibusb-based-receivers.
+> + *
+> + * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
+> + *
+> + *	This program is free software; you can redistribute it and/or modify it
+> + *	under the terms of the GNU General Public License as published by the Free
+> + *	Software Foundation, version 2.
+> + *
+> + * see Documentation/dvb/README.dvb-usb for more information
+> + */
 > +
-> +	if (scan == V4L2_DV_INTERLACED)
-> +		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp)
-> +				& ~0x1;
-
-I would keep this on one line, even though it'll be longer than 80 chars. It's more
-readable that way.
-
-> +	else
-> +		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
->  
->  	/* Aspect ratio based on vsync */
->  	switch (vsync) {
-> @@ -448,11 +454,19 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
->  	fmt->bt.hsync = hsync;
->  	fmt->bt.vsync = vsync;
->  	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
-> -	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-> +	fmt->bt.vbackporch = v_bp;
->  	fmt->bt.pixelclock = pix_clk;
->  	fmt->bt.standards = V4L2_DV_BT_STD_CVT;
->  	if (reduced_blanking)
->  		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-> +	if (scan == V4L2_DV_INTERLACED) {
-> +		fmt->bt.interlaced = V4L2_DV_INTERLACED;
-> +		fmt->bt.il_vfrontporch = v_fp;
-> +		fmt->bt.il_vsync = vsync;
-> +		fmt->bt.il_vbackporch = v_bp + 1;
-> +		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
-> +	} else
-> +		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
-
-Add '{' '}' to the last else as well. Either both 'if' and 'else' are simple single statements
-without curly brackets, or both parts use curly brackets. It looks very unbalanced otherwise,
-and I actually thought checkpatch checked for this.
-
->  	return true;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
-> @@ -491,6 +505,7 @@ EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
->   * @vsync - the height of the vertical sync in lines.
->   * @polarities - the horizontal and vertical polarities (same as struct
->   *		v4l2_bt_timings polarities).
-> + * @scan - V4L2_DV_INTERLACED or V4L2_DV_PROGRESSIVE
->   * @aspect - preferred aspect ratio. GTF has no method of determining the
->   *		aspect ratio in order to derive the image width from the
->   *		image height, so it has to be passed explicitly. Usually
-> @@ -506,6 +521,7 @@ bool v4l2_detect_gtf(unsigned frame_height,
->  		unsigned hfreq,
->  		unsigned vsync,
->  		u32 polarities,
-> +		u32 scan,
->  		struct v4l2_fract aspect,
->  		struct v4l2_dv_timings *fmt)
->  {
-> @@ -528,7 +544,12 @@ bool v4l2_detect_gtf(unsigned frame_height,
-
-Same comments I made for detect_cvt are valid here are well.
-
->  	/* Vertical */
->  	v_fp = GTF_V_FP;
->  	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
-> -	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+> +#include <linux/kconfig.h>
+> +#include "dibusb.h"
 > +
-> +	if (scan == V4L2_DV_INTERLACED)
-> +		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp)
-> +				& ~0x1;
-> +	else
-> +		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
->  
->  	if (aspect.numerator == 0 || aspect.denominator == 0) {
->  		aspect.numerator = 16;
-> @@ -569,11 +590,19 @@ bool v4l2_detect_gtf(unsigned frame_height,
->  	fmt->bt.hsync = hsync;
->  	fmt->bt.vsync = vsync;
->  	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
-> -	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-> +	fmt->bt.vbackporch = v_bp;
->  	fmt->bt.pixelclock = pix_clk;
->  	fmt->bt.standards = V4L2_DV_BT_STD_GTF;
->  	if (!default_gtf)
->  		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-> +	if (scan == V4L2_DV_INTERLACED) {
-> +		fmt->bt.interlaced = V4L2_DV_INTERLACED;
-> +		fmt->bt.il_vfrontporch = v_fp;
-> +		fmt->bt.il_vsync = vsync;
-> +		fmt->bt.il_vbackporch = v_bp + 1;
-> +		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
-> +	} else
-> +		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
->  	return true;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_detect_gtf);
-> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-> index 4becc67..91a6871 100644
-> --- a/include/media/v4l2-dv-timings.h
-> +++ b/include/media/v4l2-dv-timings.h
-> @@ -117,6 +117,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
->   * @vsync - the height of the vertical sync in lines.
->   * @polarities - the horizontal and vertical polarities (same as struct
->   *		v4l2_bt_timings polarities).
-> + * @scan - V4L2_DV_INTERLACED or V4L2_DV_PROGRESSIVE
->   * @fmt - the resulting timings.
->   *
->   * This function will attempt to detect if the given values correspond to a
-> @@ -124,7 +125,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
->   * in with the found CVT timings.
->   */
->  bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-> -		u32 polarities, struct v4l2_dv_timings *fmt);
-> +		u32 polarities, u32 scan, struct v4l2_dv_timings *fmt);
->  
->  /** v4l2_detect_gtf - detect if the given timings follow the GTF standard
->   * @frame_height - the total height of the frame (including blanking) in lines.
-> @@ -132,6 +133,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
->   * @vsync - the height of the vertical sync in lines.
->   * @polarities - the horizontal and vertical polarities (same as struct
->   *		v4l2_bt_timings polarities).
-> + * @scan - V4L2_DV_INTERLACED or V4L2_DV_PROGRESSIVE
->   * @aspect - preferred aspect ratio. GTF has no method of determining the
->   *		aspect ratio in order to derive the image width from the
->   *		image height, so it has to be passed explicitly. Usually
-> @@ -144,7 +146,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
->   * in with the found GTF timings.
->   */
->  bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
-> -		u32 polarities, struct v4l2_fract aspect,
-> +		u32 polarities, u32 scan, struct v4l2_fract aspect,
->  		struct v4l2_dv_timings *fmt);
->  
->  /** v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
-> 
+> +/* 3000MC/P stuff */
+> +// Config Adjacent channels  Perf -cal22
+> +static struct dibx000_agc_config dib3000p_mt2060_agc_config = {
+> +	.band_caps = BAND_VHF | BAND_UHF,
+> +	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
+> +
+> +	.agc1_max = 48497,
+> +	.agc1_min = 23593,
+> +	.agc2_max = 46531,
+> +	.agc2_min = 24904,
+> +
+> +	.agc1_pt1 = 0x65,
+> +	.agc1_pt2 = 0x69,
+> +
+> +	.agc1_slope1 = 0x51,
+> +	.agc1_slope2 = 0x27,
+> +
+> +	.agc2_pt1 = 0,
+> +	.agc2_pt2 = 0x33,
+> +
+> +	.agc2_slope1 = 0x35,
+> +	.agc2_slope2 = 0x37,
+> +};
+> +
+> +static struct dib3000mc_config stk3000p_dib3000p_config = {
+> +	&dib3000p_mt2060_agc_config,
+> +
+> +	.max_time     = 0x196,
+> +	.ln_adc_level = 0x1cc7,
+> +
+> +	.output_mpeg2_in_188_bytes = 1,
+> +
+> +	.agc_command1 = 1,
+> +	.agc_command2 = 1,
+> +};
+> +
+> +static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
+> +	.band_caps = BAND_VHF | BAND_UHF,
+> +	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
+> +
+> +	.agc1_max = 56361,
+> +	.agc1_min = 22282,
+> +	.agc2_max = 47841,
+> +	.agc2_min = 36045,
+> +
+> +	.agc1_pt1 = 0x3b,
+> +	.agc1_pt2 = 0x6b,
+> +
+> +	.agc1_slope1 = 0x55,
+> +	.agc1_slope2 = 0x1d,
+> +
+> +	.agc2_pt1 = 0,
+> +	.agc2_pt2 = 0x0a,
+> +
+> +	.agc2_slope1 = 0x95,
+> +	.agc2_slope2 = 0x1e,
+> +};
+> +
+> +static struct dib3000mc_config mod3000p_dib3000p_config = {
+> +	&dib3000p_panasonic_agc_config,
+> +
+> +	.max_time     = 0x51,
+> +	.ln_adc_level = 0x1cc7,
+> +
+> +	.output_mpeg2_in_188_bytes = 1,
+> +
+> +	.agc_command1 = 1,
+> +	.agc_command2 = 1,
+> +};
+> +
+> +int dibusb_dib3000mc_frontend_attach(struct dvb_usb_adapter *adap)
+> +{
+> +	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
+> +	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) ==
+> +			USB_PID_LITEON_DVB_T_WARM) {
+> +		msleep(1000);
+> +	}
+> +
+> +	adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
+> +					 &adap->dev->i2c_adap,
+> +					 DEFAULT_DIB3000P_I2C_ADDRESS,
+> +					 &mod3000p_dib3000p_config);
+> +	if ((adap->fe_adap[0].fe) == NULL)
+> +		adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
+> +						 &adap->dev->i2c_adap,
+> +						 DEFAULT_DIB3000MC_I2C_ADDRESS,
+> +						 &mod3000p_dib3000p_config);
+> +	if ((adap->fe_adap[0].fe) != NULL) {
+> +		if (adap->priv != NULL) {
+> +			struct dibusb_state *st = adap->priv;
+> +			st->ops.pid_parse = dib3000mc_pid_parse;
+> +			st->ops.pid_ctrl  = dib3000mc_pid_control;
+> +		}
+> +		return 0;
+> +	}
+> +	return -ENODEV;
+> +}
+> +EXPORT_SYMBOL(dibusb_dib3000mc_frontend_attach);
+> +
+> +static struct mt2060_config stk3000p_mt2060_config = {
+> +	0x60
+> +};
+> +
+> +int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
+> +{
+> +	struct dibusb_state *st = adap->priv;
+> +	u8 a,b;
+> +	u16 if1 = 1220;
+> +	struct i2c_adapter *tun_i2c;
+> +
+> +	// First IF calibration for Liteon Sticks
+> +	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
+> +	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_LITEON_DVB_T_WARM) {
+> +
+> +		dibusb_read_eeprom_byte(adap->dev,0x7E,&a);
+> +		dibusb_read_eeprom_byte(adap->dev,0x7F,&b);
+> +
+> +		if (a == 0x00)
+> +			if1 += b;
+> +		else if (a == 0x80)
+> +			if1 -= b;
+> +		else
+> +			warn("LITE-ON DVB-T: Strange IF1 calibration :%2X %2X\n", a, b);
+> +
+> +	} else if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_DIBCOM &&
+> +		   le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_DIBCOM_MOD3001_WARM) {
+> +		u8 desc;
+> +		dibusb_read_eeprom_byte(adap->dev, 7, &desc);
+> +		if (desc == 2) {
+> +			a = 127;
+> +			do {
+> +				dibusb_read_eeprom_byte(adap->dev, a, &desc);
+> +				a--;
+> +			} while (a > 7 && (desc == 0xff || desc == 0x00));
+> +			if (desc & 0x80)
+> +				if1 -= (0xff - desc);
+> +			else
+> +				if1 += desc;
+> +		}
+> +	}
+> +
+> +	tun_i2c = dib3000mc_get_tuner_i2c_master(adap->fe_adap[0].fe, 1);
+> +	if (dvb_attach(mt2060_attach, adap->fe_adap[0].fe, tun_i2c, &stk3000p_mt2060_config, if1) == NULL) {
+> +		/* not found - use panasonic pll parameters */
+> +		if (dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60, tun_i2c, DVB_PLL_ENV57H1XD5) == NULL)
+> +			return -ENOMEM;
+> +	} else {
+> +		st->mt2060_present = 1;
+> +		/* set the correct parameters for the dib3000p */
+> +		dib3000mc_set_config(adap->fe_adap[0].fe, &stk3000p_dib3000p_config);
+> +	}
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(dibusb_dib3000mc_tuner_attach);
 
-This patch is incomplete. After changing the API all users of the API must be changed as
-well in the same patch, otherwise a kernel with this patch won't compile and a 'git bisect'
-may fail.
+But without a MODULE_LICENSE() macro loading that module will taint the
+kernel (see set_license() in kernel/module.c). So, although it seems
+this driver can do without most of the usual module boilerplate, a
+MODULE_LICENSE() macro would still be needed.
 
-When you make your final patch series, it is best to initially stick in 'false' as the
-new interlaced argument wherever it is use, and change the callers one by one in later
-patches.
 
-I think this was meant to be an 'RFC' patch (i.e. not quite ready for merging), it's
-good to mark it as such ([RFC PATCH]) to prevent it from being accidentally merged.
+Paul Bolle
 
-Regards,
-
-	Hans
