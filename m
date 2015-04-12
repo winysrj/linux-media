@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33808 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbbDCRNg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:13:36 -0400
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Cc: Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH 13/14] ASoC: migor: use clkdev_create()
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44347 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895AbbDLOsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Apr 2015 10:48:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH] v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
+Date: Sun, 12 Apr 2015 17:48:56 +0300
+Message-ID: <7568783.Noo5L2SBz3@avalon>
+In-Reply-To: <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
+References: <3292592.cickJMVhRq@wuerfel> <1428841693-15109-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Ye59t-0001Bl-8o@rmk-PC.arm.linux.org.uk>
-Date: Fri, 03 Apr 2015 18:13:29 +0100
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clkdev_create() is a shorter way to write clkdev_alloc() followed by
-clkdev_add().  Use this instead.
+Hi Sakari,
 
-Acked-by: Mark Brown <broonie@kernel.org>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- sound/soc/sh/migor.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Thank you for the review.
 
-diff --git a/sound/soc/sh/migor.c b/sound/soc/sh/migor.c
-index 82f582344fe7..672bcd4c252b 100644
---- a/sound/soc/sh/migor.c
-+++ b/sound/soc/sh/migor.c
-@@ -162,12 +162,11 @@ static int __init migor_init(void)
- 	if (ret < 0)
- 		return ret;
- 
--	siumckb_lookup = clkdev_alloc(&siumckb_clk, "siumckb_clk", NULL);
-+	siumckb_lookup = clkdev_create(&siumckb_clk, "siumckb_clk", NULL);
- 	if (!siumckb_lookup) {
- 		ret = -ENOMEM;
- 		goto eclkdevalloc;
- 	}
--	clkdev_add(siumckb_lookup);
- 
- 	/* Port number used on this machine: port B */
- 	migor_snd_device = platform_device_alloc("soc-audio", 1);
+On Sunday 12 April 2015 17:31:09 Sakari Ailus wrote:
+> On Sun, Apr 12, 2015 at 03:28:13PM +0300, Laurent Pinchart wrote:
+> > diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
+> > b/drivers/staging/media/omap4iss/iss_csiphy.c index 7c3d55d..748607f
+> > 100644
+> > --- a/drivers/staging/media/omap4iss/iss_csiphy.c
+> > +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
+> > @@ -13,6 +13,7 @@
+> > 
+> >  #include <linux/delay.h>
+> >  #include <linux/device.h>
+> > +#include <linux/regmap.h>
+> > 
+> >  #include "../../../../arch/arm/mach-omap2/control.h"
+> > 
+> > @@ -140,9 +141,11 @@ int omap4iss_csiphy_config(struct iss_device *iss,
+> >  	 * - bit [18] : CSIPHY1 CTRLCLK enable
+> >  	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
+> >  	 */
+> > -	cam_rx_ctrl = omap4_ctrl_pad_readl(
+> > -			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
+> > -
+> > +	/*
+> > +	 * TODO: When implementing DT support specify the CONTROL_CAMERA_RX
+> > +	 * register offset in the syscon property instead of hardcoding it.
+> > +	 */
+> > +	regmap_read(iss->syscon, 0x68, &cam_rx_ctrl);
+> 
+> Do you use platform data now? I guess the address is the same on all SoCs
+> that use the OMAP 4 ISS?
+
+Yes I use platform data for now. The address is the same on all SoCs on which 
+I've tested the driver, which is a single SoC :-) I'll research that when 
+implementing DT bindings.
+
+> Acked-by: Sakari Alius <sakari.ailus@iki.fi>
+
+Thank you.
+
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
