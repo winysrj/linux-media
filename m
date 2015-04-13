@@ -1,88 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51498 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751086AbbDUNFf (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45432 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663AbbDMSja (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:05:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 12/15] v4l2-device: add v4l2_device_req_queue
-Date: Tue, 21 Apr 2015 14:58:55 +0200
-Message-Id: <1429621138-17213-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 13 Apr 2015 14:39:30 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Daniel Vetter <daniel.vetter@intel.com>
+Subject: [RFC/PATCH v2 5/5] drm/rcar-du: Restart the DU group when a plane source changes
+Date: Mon, 13 Apr 2015 21:39:47 +0300
+Message-Id: <1428950387-6913-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Plane sources are configured by the VSPS bit in the PnDDCR4 register.
+Although the datasheet states that the bit is updated during vertical
+blanking, it seems that updates only occur when the DU group is held in
+reset through the DSYSR.DRES bit. Restart the group if the source
+changes.
 
-The v4l2_device_req_queue() function is a helper that can be used
-as the req_queue callback in simple cases: it will walk over all
-registered video_devices and call vb2_qbuf_request() for each video
-device.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c | 25 +++++++++++++++++++++++++
- include/media/v4l2-device.h           |  3 +++
- 2 files changed, 28 insertions(+)
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 10 ++++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_group.c |  2 ++
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c | 22 ++++++++++++++++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |  1 +
+ 4 files changed, 31 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index cdb2d72..5f073ad 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -29,6 +29,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/videobuf2-core.h>
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 7d0b8ef9bea2..969d49ab0d09 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -249,6 +249,8 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
+ 		}
+ 	}
  
- int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
++	mutex_lock(&rcrtc->group->lock);
++
+ 	/* Select display timing and dot clock generator 2 for planes associated
+ 	 * with superposition controller 2.
+ 	 */
+@@ -260,15 +262,19 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
+ 		 * split, or through a module parameter). Flicker would then
+ 		 * occur only if we need to break the pre-association.
+ 		 */
+-		mutex_lock(&rcrtc->group->lock);
+ 		if (rcar_du_group_read(rcrtc->group, DPTSR) != dptsr) {
+ 			rcar_du_group_write(rcrtc->group, DPTSR, dptsr);
+ 			if (rcrtc->group->used_crtcs)
+ 				rcar_du_group_restart(rcrtc->group);
+ 		}
+-		mutex_unlock(&rcrtc->group->lock);
+ 	}
+ 
++	/* Restart the group if plane sources have changed. */
++	if (rcrtc->group->planes.need_restart)
++		rcar_du_group_restart(rcrtc->group);
++
++	mutex_unlock(&rcrtc->group->lock);
++
+ 	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? DS2PR : DS1PR,
+ 			    dspr);
+ }
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+index 71f50bf45581..101997e6e531 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
+@@ -154,6 +154,8 @@ void rcar_du_group_start_stop(struct rcar_du_group *rgrp, bool start)
+ 
+ void rcar_du_group_restart(struct rcar_du_group *rgrp)
  {
-@@ -295,3 +296,27 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 		module_put(sd->owner);
++	rgrp->planes.need_restart = false;
++
+ 	__rcar_du_group_start_stop(rgrp, false);
+ 	__rcar_du_group_start_stop(rgrp, true);
  }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+index 07802639ac99..0bf2aaaf91e6 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+@@ -357,9 +357,27 @@ static void rcar_du_plane_atomic_update(struct drm_plane *plane,
+ 					struct drm_plane_state *old_state)
+ {
+ 	struct rcar_du_plane *rplane = to_rcar_plane(plane);
++	struct rcar_du_plane_state *old_rstate;
++	struct rcar_du_plane_state *new_rstate;
+ 
+-	if (plane->state->crtc)
+-		rcar_du_plane_setup(rplane);
++	if (!plane->state->crtc)
++		return;
 +
-+int v4l2_device_req_queue(struct v4l2_device *v4l2_dev, u16 request)
-+{
-+	struct video_device *vdev;
-+	struct video_device *tmp;
-+	int err;
++	rcar_du_plane_setup(rplane);
 +
-+	if (request == 0)
-+		return -EINVAL;
++	/* Check whether the source has changed from memory to live source or
++	 * from live source to memory. The source has been configured by the
++	 * VSPS bit in the PnDDCR4 register. Although the datasheet states that
++	 * the bit is updated during vertical blanking, it seems that updates
++	 * only occur when the DU group is held in reset through the DSYSR.DRES
++	 * bit. We thus need to restart the group if the source changes.
++	 */
++	old_rstate = to_rcar_du_plane_state(old_state);
++	new_rstate = to_rcar_du_plane_state(plane->state);
 +
-+	list_for_each_entry_safe(vdev, tmp, &v4l2_dev->vdevs, list) {
-+		if (vdev->queue == NULL || !vdev->queue->allow_requests)
-+			continue;
-+		if (vdev->lock && mutex_lock_interruptible(vdev->lock))
-+			return -ERESTARTSYS;
-+		err = vb2_qbuf_request(vdev->queue, request, NULL);
-+		if (vdev->lock)
-+			mutex_unlock(vdev->lock);
-+		if (err)
-+			return err;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_device_req_queue);
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 6484e54..3595475 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -130,6 +130,9 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 		sd->v4l2_dev->notify(sd, notification, arg);
++	if ((old_rstate->source == RCAR_DU_PLANE_MEMORY) !=
++	    (new_rstate->source == RCAR_DU_PLANE_MEMORY))
++		rplane->group->planes.need_restart = true;
  }
  
-+/* For each registered video_device struct call vb2_qbuf_request(). */
-+int v4l2_device_req_queue(struct v4l2_device *v4l2_dev, u16 request);
-+
- /* Iterate over all subdevs. */
- #define v4l2_device_for_each_subdev(sd, v4l2_dev)			\
- 	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)
+ static const struct drm_plane_helper_funcs rcar_du_plane_helper_funcs = {
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+index 9a6132899d59..694b44c151b6 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+@@ -47,6 +47,7 @@ static inline struct rcar_du_plane *to_rcar_plane(struct drm_plane *plane)
+ 
+ struct rcar_du_planes {
+ 	struct rcar_du_plane planes[RCAR_DU_NUM_KMS_PLANES];
++	bool need_restart;
+ 
+ 	struct drm_property *alpha;
+ 	struct drm_property *colorkey;
 -- 
-2.1.4
+2.0.5
 
