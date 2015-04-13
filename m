@@ -1,52 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60045 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbbD3OIy (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45419 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754649AbbDMSjY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 21/22] saa7134-i2c: simplify debug dump and use pr_info()
-Date: Thu, 30 Apr 2015 11:08:41 -0300
-Message-Id: <8d5ae1f75b73956520a8e497c3ff02c10ed59cfa.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+	Mon, 13 Apr 2015 14:39:24 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Daniel Vetter <daniel.vetter@intel.com>
+Subject: [RFC/PATCH v2 0/5] Add live source objects to DRM
+Date: Mon, 13 Apr 2015 21:39:42 +0300
+Message-Id: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of implement its own hexdump logic, use the printk
-format, and convert to use pr_info().
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Here's a proposal for a different approach to live source in DRM based on an
+idea by Daniel Vetter. The previous version can be found at
+http://lists.freedesktop.org/archives/dri-devel/2015-March/079319.html.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
-index b140143dba7d..ef3c33e3757d 100644
---- a/drivers/media/pci/saa7134/saa7134-i2c.c
-+++ b/drivers/media/pci/saa7134/saa7134-i2c.c
-@@ -369,13 +369,12 @@ saa7134_i2c_eeprom(struct saa7134_dev *dev, unsigned char *eedata, int len)
- 		       dev->name,err);
- 		return -1;
- 	}
--	for (i = 0; i < len; i++) {
--		if (0 == (i % 16))
--			pr_info("%s: i2c eeprom %02x:",dev->name,i);
--		printk(" %02x",eedata[i]);
--		if (15 == (i % 16))
--			printk("\n");
-+
-+	for (i = 0; i < len; i+= 16) {
-+		int size = (len - i) > 16 ? 16 : len - i;
-+		pr_info("i2c eeprom %02x: %*ph\n", i, size, &eedata[i]);
- 	}
-+
- 	return 0;
- }
- 
+The need comes from the Renesas R-Car SoCs in which a video processing engine
+(named VSP1) that operates from memory to memory has one output directly
+connected to a plane of the display engine (DU) without going through memory.
+
+The VSP1 is supported by a V4L2 driver. While it could be argued that it
+should instead be supported directly by the DRM rcar-du driver, this wouldn't
+be a good idea for at least two reasons. First, the R-Car SoCs contain several
+VSP1 instances, of which only a subset have a direct DU connection. The only
+other instances operate solely in memory to memory mode. Then, the VSP1 is a
+video processing engine and not a display engine. Its features are easily
+supported by the V4L2 API, but don't map to the DRM/KMS API. Significant
+changes to DRM/KMS would be required, beyond what is in my opinion an
+acceptable scope for a display API.
+
+Now that the need to interface two separate devices supported by two different
+drivers in two separate subsystems has been established, we need an API to do
+so. It should be noted that while that API doesn't exist in the mainline
+kernel, the need isn't limited to Renesas SoCs.
+
+This patch set proposes one possible solution for the problem in the form of a
+new DRM object named live source. Live sources are created by drivers to model
+hardware connections between a plane input and an external source, and are
+attached to planes through the KMS userspace API.
+
+Patch 1/5 adds live source objects to DRM, with an in-kernel API for drivers
+to register the sources, and a userspace API to enumerate them.
+
+Patch 2/5 implements connection between live sources and planes through
+framebuffers. It introduces a new live source flag for framebuffers. When a
+framebuffer is created with that flag set, a live source is associated with
+the framebuffer instead of buffer objects. The framebuffer can then be used
+with a plane to connect it with the live source. This is the biggest
+difference compared to the previous approach, and has several benefits:
+
+- Changes are less intrusive in the DRM core
+- The implementation supports both the legacy API and atomic updates without
+  any code specific to either
+- No changes to existing drivers are needed
+- The framebuffer format and size configuration API is reused
+
+The framebuffer format and size should ideally be validated using information
+queried directly from the driver that supports the live source device, but
+I've decided not to implement such communication between V4L2 and DRM/KMS at
+the moment to keep the proposal simple.
+
+Patches 3/5 to 5/5 then implement support for live sources in the R-Car DU
+driver. The rcar_du_live_framebuffer structure and its associated helper
+functions could be moved to the DRM core later if other drivers need a similar
+implementation. I've decided to keep them in the rcar-du driver for now as
+it's not clear yet what other drivers might need.
+
+Once again nothing here is set in stone.
+
+Laurent Pinchart (5):
+  drm: Add live source object
+  drm: Connect live source to framebuffers
+  drm/rcar-du: Add VSP1 support to the planes allocator
+  drm/rcar-du: Add VSP1 live source support
+  drm/rcar-du: Restart the DU group when a plane source changes
+
+ drivers/gpu/drm/drm_crtc.c              | 287 +++++++++++++++++++++++++++++---
+ drivers/gpu/drm/drm_ioctl.c             |   2 +
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |  10 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c   |   6 +-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.h   |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_group.c |  21 ++-
+ drivers/gpu/drm/rcar-du/rcar_du_group.h |   2 +
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 132 ++++++++++++++-
+ drivers/gpu/drm/rcar-du/rcar_du_kms.h   |   3 +
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c | 191 ++++++++++++++++-----
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |  11 ++
+ drivers/gpu/drm/rcar-du/rcar_du_regs.h  |   1 +
+ include/drm/drm_crtc.h                  |  35 ++++
+ include/uapi/drm/drm.h                  |   3 +
+ include/uapi/drm/drm_mode.h             |  23 +++
+ 15 files changed, 647 insertions(+), 83 deletions(-)
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
