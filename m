@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39688 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400AbbDBOus (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2015 10:50:48 -0400
-Date: Thu, 2 Apr 2015 16:50:46 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH/RFC v13 04/13] DT: Add documentation for the mfd Maxim
- max77693
-Message-ID: <20150402145046.GD18125@amd>
-References: <1426175114-14876-1-git-send-email-j.anaszewski@samsung.com>
- <1426175114-14876-5-git-send-email-j.anaszewski@samsung.com>
- <20150323120743.GG24422@x1>
- <20150323142202.GA23919@amd>
- <20150323150213.GN24804@x1>
- <20150323154807.GA13297@amd>
- <20150323155937.GQ24804@x1>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:35333 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259AbbDMGcS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2015 02:32:18 -0400
+Received: by widdi4 with SMTP id di4so59435426wid.0
+        for <linux-media@vger.kernel.org>; Sun, 12 Apr 2015 23:32:16 -0700 (PDT)
+Received: from jemma-pc.denson.org.uk ([2001:470:6ad2:1:beae:c5ff:fe8c:e4a7])
+        by mx.google.com with ESMTPSA id it5sm11270233wid.3.2015.04.12.23.32.15
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 12 Apr 2015 23:32:16 -0700 (PDT)
+Message-ID: <552B62EF.8050705@gmail.com>
+Date: Mon, 13 Apr 2015 07:32:15 +0100
+From: Jemma Denson <jdenson@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150323155937.GQ24804@x1>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for TechniSat Skystar S2
+References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
+In-Reply-To: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2015-03-23 15:59:37, Lee Jones wrote:
-> On Mon, 23 Mar 2015, Pavel Machek wrote:
-> 
-> > On Mon 2015-03-23 15:02:13, Lee Jones wrote:
-> > > On Mon, 23 Mar 2015, Pavel Machek wrote:
-> > > > On Mon 2015-03-23 12:07:43, Lee Jones wrote:
-> > > > > This patch requires a DT Ack.
-> > > > 
-> > > > No, it requires DT people to be notified -- and they were, few times
-> > > > by now.
-> > > > 
-> > > > They clearly don't care.
-> > > 
-> > > Well fortunately for the Kernel community, I do care.  And as this
-> > > patch adds 3 new DT properties, has been through many iterations
-> > > already with vast changes made over that period and there is still
-> > > some controversy looming, I'm saying that it _does_ require a DT
-> > > Ack.
-> > 
-> > Can you help get that ack, then? As a maintainer, you have better
-> > chance getting reply from DT people than patch submitter.
-> 
-> Hopefully they will see my plea a couple of replies back.
-> 
-> If that fails I'll go poke them via other means.  Failing that I'll go
-> see them in person and continually hit them with wet fish until one of
-> them relents.
+Oh, I was doing this the wrong way then. I did have some preamble to
+this but it seems to have been stripped.
 
-Can I request footage of the last steps on the youtube? (IOW ping, I
-don't think I seen any replies from DT maintainers...)
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Anyway, this patch adds support for the Technisat Skystar S2 - this
+has been tried before but the cx24120 driver was a bit out of shape
+and it didn't got any further:
+https://patchwork.linuxtv.org/patch/10575/
+
+It is an old card, but currently being sold off for next to nothing,
+so it's proving quite popular of late.
+Noticing it's quite similar to the cx24116 and cx24117 I've rewritten
+the driver in a similar way. There were a few registers and commands
+from those drivers missing from this one I've tested out and found
+they do something so they've been added in to speed up tuning and to
+make get_frontend return something useful.
+
+I've only got access to 28.2E, but everything I've tried seems to work
+OK, on both the v3 and v5 APIs. Assuming I've read the APIs and some
+of the modern drivers OK it should be doing things in the reasonably
+modern way, but if anything else needs doing let me know.
