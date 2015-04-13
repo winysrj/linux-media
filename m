@@ -1,112 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49837 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751625AbbDVSb7 convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:35493 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184AbbDMFnk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 14:31:59 -0400
-Date: Wed, 22 Apr 2015 15:31:46 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>,
-	media workshop ML <media-workshop@linuxtv.org>
-Subject: [DRAFT 1] Linux Media Summit report - March, 26 2015 - San Jose -
- CA - USA
-Message-ID: <20150422153146.5dd9fce7@recife.lan>
+	Mon, 13 Apr 2015 01:43:40 -0400
+Received: by widdi4 with SMTP id di4so58404476wid.0
+        for <linux-media@vger.kernel.org>; Sun, 12 Apr 2015 22:43:37 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1427219214-5368-2-git-send-email-p.zabel@pengutronix.de>
+References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de> <1427219214-5368-2-git-send-email-p.zabel@pengutronix.de>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Mon, 13 Apr 2015 14:42:57 +0900
+Message-ID: <CAMm-=zDTumuxqyfZh+dVTMXCX8k7aeD5CW1N7KrSQOhmWY4-7Q@mail.gmail.com>
+Subject: Re: [PATCH v4 1/4] [media] videodev2: Add V4L2_BUF_FLAG_LAST
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the first draft for the Linux Media Summit Report.
+Hi,
+Thanks for working on this!
 
-Please note that the items 3 to 5 are not in good shape. In special,
-nobody took Etherpad notes on item 4.
+On Wed, Mar 25, 2015 at 2:46 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> From: Peter Seiderer <ps.report@gmx.net>
+>
+> This v4l2_buffer flag can be used by drivers to mark a capture buffer
+> as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
+> command was issued.
+> The DocBook is updated to mention mem2mem codecs and the mem2mem draining flow
+> signals in the VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and VIDIOC_ENCODER_CMD
+> V4L2_ENC_CMD_STOP documentation.
+>
+> Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v3:
+>  - Added DocBook update mentioning V4L2_BUF_FLAG_LAST in the encoder/decoder
+>    stop command documentation.
+> ---
+>  Documentation/DocBook/media/v4l/io.xml                 | 10 ++++++++++
+>  Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml |  6 +++++-
+>  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |  5 ++++-
+>  include/trace/events/v4l2.h                            |  3 ++-
+>  include/uapi/linux/videodev2.h                         |  2 ++
+>  5 files changed, 23 insertions(+), 3 deletions(-)
+>
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 1c17f80..f3b8bc0 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -1129,6 +1129,16 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
+>  in which case caches have not been used.</entry>
+>           </row>
+>           <row>
+> +           <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
+> +           <entry>0x00100000</entry>
+> +           <entry>Last buffer produced by the hardware. mem2mem codec drivers
+> +set this flag on the capture queue for the last buffer when the
+> +<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
+> +<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. After the
+> +queue is drained, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will
 
-Please review. I'll publish a second (final?) draft after having some
-feedback.
+Perhaps just s/After the queue is drained, the/Any subsequent/ ? This
+would make it more clear I feel.
+DQBUF of LAST is the end of draining.
 
-Regards,
-Mauro
+> +not block anymore, but return an &EPIPE;.</entry>
+> +         </row>
+> +         <row>
+>             <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+>             <entry>0x0000e000</entry>
+>             <entry>Mask for timestamp types below. To test the
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+> index 9215627..cbb7135 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+> @@ -197,7 +197,11 @@ be muted when playing back at a non-standard speed.
+>  this command does nothing. This command has two flags:
+>  if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
+>  set the picture to black after it stopped decoding. Otherwise the last image will
+> -repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
+> +repeat. mem2mem decoders will stop producing new frames altogether. They will send
+> +a <constant>V4L2_EVENT_EOS</constant> event after the last frame was decoded and
 
--
+s/was decoded/has been decoded and all frames are ready to be dequeued/
 
-Linux Media Summit - March, 26 2015 - San Jose - CA - USA
- 
- 
-Attendees:
+> +will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag when there will
+> +be no new buffers produced to dequeue.
 
+To make the timing description more explicit, s/when there will be no
+new buffers produced to dequeue./on the final buffer being dequeued/
+perhaps?
+EOS indicates "no more buffers will be produced and all are ready to
+be dequeued", while LAST indicates "final buffer being dequeued".
 
-    Angelos Manousaridis <amanous@gmail.com>
-    Bob Moragues <bob.moragues@lge.com>
-    Chris Kohn
-    Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-    Hans Verkuil <hverkuil@xs4all.nl>
-    Hyun Kwon
-    Karthik Poduval <karthik.poduval@gmail.com>
-    Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-    Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-    Michal Lebik
-    Mohammed CHERIFI mcherifi@cisco.com
-    Rafael Chehab <chehabrafael@gmail.com>
-    Ron Birkett
-    Schuyler Patton
-    Shuah Khan <shuahkh@osg.samsung.com>
+> +If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
+>  stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
+>  will keep decoding until timestamp >= pts or until the last of the pending data from
+>  its internal buffers was decoded.
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+> index 0619ca5..e9cf601 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+> @@ -129,7 +129,10 @@ this command.</entry>
+>  encoding will continue until the end of the current <wordasword>Group
+>  Of Pictures</wordasword>, otherwise encoding will stop immediately.
+>  When the encoder is already stopped, this command does
+> -nothing.</entry>
+> +nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
+> +after the last frame was encoded and will set the
+> +<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the capture queue when
+> +there will be no new buffers produced to dequeue</entry>
 
-1) Media Controller support for DVB
-Mauro presented a set of slides (add link) showing how the DVB pipelines look like and underlined that several topics needs to be addressed by the Media controller:
+I'd propose the same here.
 
-a) dynamic creation/removal of pipelines
-b) change media_entity_pipeline_start to also define the final entity
-c) how to setup pipelines that also envolve audio and DRM?
-d) how to lock the media controller pipeline between enabling a pipeline and starting it, in 
-
-How to do complex pipelines in DVB?
- 
-- The DVB demux can filter MPEG-TS traffic (either in hardware or in software) and can send multiplexed TS to the dvr node, elementary streams to the demux node and can create network interfaces for elementary streams (ES) via the net node.
-- a given set of elementary streams can go to one of those three options only, or it can be sent directly to a GPU and/or an ALSA pipeline.
-- there is support for hardware PID filtering at the Kernel, but no support (yet) for a real hw demuxer that splits the MPEG TS into separate DMA MPEG-TS and/or ES streams.
-- frontend device node is to be attached to the demod entity and it will control the demod, the tuner and a possible LNA via the active Media Controller links.
-- dvr/net/demux device nodes are attached to the demux entity.
-- the net interfaces are not (yet) represented via MC: we need the ability to remove entities dynamically for that, and we are not really sure if we want this at all. So, it as agreed to wait for support for removing entities to arrive, then this need can be discussed again.
-- For now we can safely assume that there is only one Satellite Equipment Control (SEC) in each active data path that goes through a tuner/demod. So each frontend will control just one SEC.
-  Should we encounter really complex scenarios, then we should consider having device nodes for SEC entities.
-
-It was decided that:
-- The Satellite Equipment Control (SEC) should be an entity, linking them to the connector
-- Deprecated osd, teletext, video and audio device nodes are only used in av7110. The av7110 driver uses lots of deprecated stuff, we should move this to staging and deprecate the whole driver and see who starts yelling.
-- Document the high-level overview of DVB (Mauro). Layout needs to be changed to be in line with the other APIs (Hans?).
-- Mauro will rename “frontend” entity to “demod” at the Media Controller, as the frontend is actually a set of elements.
-- Laurent will prepare a proposal of reporting device nodes via a new entity properties API addition
- 
-2) Media Tokens
-
-Shuah submitted some RFC Patches: https://git.kernel.org/cgit/linux/kernel/git/shuah/linux.git
-
-- Changes from the previous RFC:
-   - simplified after switching au0828 to vb2
-   - token created by the bridge driver
-
-It was decided that:
-- Preference for using the Media Controller. That requires that MC support for Alsa is added, the usbaudio driver then needs to find and hook into the MC from the bridge driver.
-- The RFC patches will help to identify on what places the driver should be touched
-- Shuag from Samsung is willing to do the changes at ALSA; Rafael is willing to add MC support at au0828/au8522.
-- Media controler dev (mdev) will have to be created as a dev resource on the parent device to the bridge device similar to media tokens
-- Need a new media_device_create() interace to allocate it as a device resource. This routine will either return media device if one is created or create it.
-- Both au0828 and ALSA will first call media_device_create(). Coordinate register/unregister??
-  
-3) FPGA/Project ARA: dynamic reconfiguration (http://www.projectara.com/)
-- partial pipeline removal: controlled removal in the case of FPGA reconfiguration. subdevs/entities will be removed: unsupported today.
-- no notification in MC when things change: we likely need an event mechanism.
-- adding entities: doable, might need to add links in a 'pending' state, to be made into a normal link once all streaming is stopped.
-- subdevs: add refcounting, remove calls subdev_unregister(). Internal release callback when the refcount goes to 0.
-- Removal of subdevs will lead to holes (missing entities) in the MC graph.
-- reuse entity IDs? Mauro doesn't like it, Laurent/Hans undecided.
-- if one entity has a pointer to another it has to take a refcount. Possible locking issues. Needs analysis.
- 
-4) Update on ongoing projects
-
-5) Android Camera v3
- 
-The Khronos OpenKCam API addresses the same needs as the Android Camera HAL v3 API, and is quite similar in concept. We should make sure that our API can support OpenKCam.
-The specification isn't public, but it's based on the FCam API (Nokia research project) which should be available publicly.
- 
+-- 
+Thanks,
+Pawel
