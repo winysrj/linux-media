@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45328 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755464AbbDYPn3 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50070 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751708AbbDMOV3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2015 11:43:29 -0400
+	Mon, 13 Apr 2015 10:21:29 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DC4002A0099
+	for <linux-media@vger.kernel.org>; Mon, 13 Apr 2015 16:21:14 +0200 (CEST)
+Message-ID: <552BD0DA.1080503@xs4all.nl>
+Date: Mon, 13 Apr 2015 16:21:14 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/12] dt3155v4l: remove unused statistics
-Date: Sat, 25 Apr 2015 17:42:41 +0200
-Message-Id: <1429976571-34872-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429976571-34872-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429976571-34872-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT FIXES FOR v4.1] marvell-ccic fix
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This one was part of a 4.1 pull request that never made it in time for 4.1,
+but this fix should really go to 4.1 since the marvell-ccic driver is
+currently broken (swapped color components).
 
-Remove struct dt3155_stats since it isn't used.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/dt3155v4l/dt3155v4l.c |  3 ---
- drivers/staging/media/dt3155v4l/dt3155v4l.h | 16 ----------------
- 2 files changed, 19 deletions(-)
+	Hans
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index 07cf8c3..5734dde 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -304,11 +304,8 @@ static irqreturn_t dt3155_irq_handler_even(int irq, void *dev_id)
- 		ipd->field_count++;
- 		return IRQ_HANDLED; /* start of field irq */
- 	}
--	if ((tmp & FLD_START) && (tmp & FLD_END_ODD))
--		ipd->stats.start_before_end++;
- 	tmp = ioread32(ipd->regs + CSR1) & (FLD_CRPT_EVEN | FLD_CRPT_ODD);
- 	if (tmp) {
--		ipd->stats.corrupted_fields++;
- 		iowrite32(FIFO_EN | SRST | FLD_CRPT_ODD | FLD_CRPT_EVEN |
- 						FLD_DN_ODD | FLD_DN_EVEN |
- 						CAP_CONT_EVEN | CAP_CONT_ODD,
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.h b/drivers/staging/media/dt3155v4l/dt3155v4l.h
-index 5aeee75..b4cb412 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.h
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.h
-@@ -153,21 +153,6 @@
- #define DMA_STRIDE 640
- #endif
- 
--/**
-- * struct dt3155_stats - statistics structure
-- *
-- * @free_bufs_empty:	no free image buffers
-- * @corrupted_fields:	corrupted fields
-- * @dma_map_failed:	dma mapping failed
-- * @start_before_end:	new started before old ended
-- */
--struct dt3155_stats {
--	int free_bufs_empty;
--	int corrupted_fields;
--	int dma_map_failed;
--	int start_before_end;
--};
--
- /*    per board private data structure   */
- /**
-  * struct dt3155_priv - private data structure
-@@ -195,7 +180,6 @@ struct dt3155_priv {
- 	struct list_head dmaq;
- 	spinlock_t lock;
- 	unsigned int field_count;
--	struct dt3155_stats stats;
- 	void __iomem *regs;
- 	int users;
- 	u8 csr2, config;
--- 
-2.1.4
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
 
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.1i
+
+for you to fetch changes up to 0b2838093effc6ee07705b04c0ad3293c2bf7f6a:
+
+  marvell-ccic: fix Y'CbCr ordering (2015-04-13 16:18:51 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      marvell-ccic: fix Y'CbCr ordering
+
+ drivers/media/platform/marvell-ccic/mcam-core.c | 14 +++++++-------
+ drivers/media/platform/marvell-ccic/mcam-core.h |  8 ++++----
+ 2 files changed, 11 insertions(+), 11 deletions(-)
