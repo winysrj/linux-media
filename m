@@ -1,45 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55595 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017AbbDFFvg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2015 01:51:36 -0400
-Message-ID: <55221EB8.7080403@ti.com>
-Date: Mon, 6 Apr 2015 11:20:48 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	<alsa-devel@alsa-project.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-sh@vger.kernel.org>
-CC: Kevin Hilman <khilman@deeprootsystems.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Daniel Mack <daniel@zonque.org>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias() prototype
- in linux/clk.h
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
-In-Reply-To: <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45384 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbbDMSAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2015 14:00:53 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH] v4l: vsp1: Don't sleep in atomic context
+Date: Mon, 13 Apr 2015 21:01:16 +0300
+Message-Id: <1428948076-4971-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 03 April 2015 10:42 PM, Russell King wrote:
-> clk_add_alias() is provided by clkdev, and is not part of the clk API.
-> Howver, it is prototyped in two locations: linux/clkdev.h and
-> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
-> version in linux/clk.h.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/mach-davinci/da850.c        |  1 +
+The vsp1_entity_is_streaming() function is called in atomic context when
+queuing buffers, and sleeps due to a mutex. As the mutex just protects
+access to one structure field, fix this by replace the mutex with a
+spinlock.
 
-For the DaVinci change:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_entity.c | 18 +++++++++---------
+ drivers/media/platform/vsp1/vsp1_entity.h |  4 ++--
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+This bug seems to have been there since the very first version of the VSP1
+driver and never got caught. Amazing...
 
-Thanks,
-Sekhar
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 79af71d5e270..622acd1c8d58 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -24,22 +24,24 @@
+ 
+ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
+ {
++	unsigned long flags;
+ 	bool streaming;
+ 
+-	mutex_lock(&entity->lock);
++	spin_lock_irqsave(&entity->lock, flags);
+ 	streaming = entity->streaming;
+-	mutex_unlock(&entity->lock);
++	spin_unlock_irqrestore(&entity->lock, flags);
+ 
+ 	return streaming;
+ }
+ 
+ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ {
++	unsigned long flags;
+ 	int ret;
+ 
+-	mutex_lock(&entity->lock);
++	spin_lock_irqsave(&entity->lock, flags);
+ 	entity->streaming = streaming;
+-	mutex_unlock(&entity->lock);
++	spin_unlock_irqrestore(&entity->lock, flags);
+ 
+ 	if (!streaming)
+ 		return 0;
+@@ -49,9 +51,9 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ 
+ 	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
+ 	if (ret < 0) {
+-		mutex_lock(&entity->lock);
++		spin_lock_irqsave(&entity->lock, flags);
+ 		entity->streaming = false;
+-		mutex_unlock(&entity->lock);
++		spin_unlock_irqrestore(&entity->lock, flags);
+ 	}
+ 
+ 	return ret;
+@@ -193,7 +195,7 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 	if (i == ARRAY_SIZE(vsp1_routes))
+ 		return -EINVAL;
+ 
+-	mutex_init(&entity->lock);
++	spin_lock_init(&entity->lock);
+ 
+ 	entity->vsp1 = vsp1;
+ 	entity->source_pad = num_pads - 1;
+@@ -228,6 +230,4 @@ void vsp1_entity_destroy(struct vsp1_entity *entity)
+ 	if (entity->subdev.ctrl_handler)
+ 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
+ 	media_entity_cleanup(&entity->subdev.entity);
+-
+-	mutex_destroy(&entity->lock);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index aa20aaa58208..b634013b0958 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -14,7 +14,7 @@
+ #define __VSP1_ENTITY_H__
+ 
+ #include <linux/list.h>
+-#include <linux/mutex.h>
++#include <linux/spinlock.h>
+ 
+ #include <media/v4l2-subdev.h>
+ 
+@@ -73,7 +73,7 @@ struct vsp1_entity {
+ 
+ 	struct vsp1_video *video;
+ 
+-	struct mutex lock;		/* Protects the streaming field */
++	spinlock_t lock;		/* Protects the streaming field */
+ 	bool streaming;
+ };
+ 
+-- 
+Regards,
+
+Laurent Pinchart
 
