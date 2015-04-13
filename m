@@ -1,81 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:50359 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755830AbbDGOUr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 10:20:47 -0400
-Message-ID: <5523E7B7.9010005@free-electrons.com>
-Date: Tue, 07 Apr 2015 16:20:39 +0200
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:15039 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932232AbbDMKRq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2015 06:17:46 -0400
+Message-ID: <552B97AD.8080509@atmel.com>
+Date: Mon, 13 Apr 2015 18:17:17 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Andrew Lunn <andrew@lunn.ch>, alsa-devel@alsa-project.org,
-	Jason Cooper <jason@lakedaemon.net>, linux-sh@vger.kernel.org,
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org,
-	Mike Turquette <mturquette@linaro.org>,
-	Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk> <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk> <20150404001729.GA14824@lunn.ch> <5523D985.60800@free-electrons.com> <20150407140117.GN4027@n2100.arm.linux.org.uk>
-In-Reply-To: <20150407140117.GN4027@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v2 1/3] media: atmel-isi: remove the useless code which
+ disable isi
+References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com> <1428570108-4961-2-git-send-email-josh.wu@atmel.com> <2109629.IWfKzc1IIn@avalon>
+In-Reply-To: <2109629.IWfKzc1IIn@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Hi, Laurent
 
-On 07/04/2015 16:01, Russell King - ARM Linux wrote:
-> On Tue, Apr 07, 2015 at 03:20:05PM +0200, Gregory CLEMENT wrote:
->> Hi Andrew, Russell,
+On 4/12/2015 9:10 PM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Thursday 09 April 2015 17:01:46 Josh Wu wrote:
+>> To program ISI control register, the pixel clock should be enabled.
+> That's an awful hardware design :-(
+
+yes, But I need to live with this.
+
+>
+>> So without pixel clock (from sensor) enabled, disable ISI controller is
+>> not make sense. So this patch remove those code.
 >>
->> On 04/04/2015 02:17, Andrew Lunn wrote:
->>> On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
->>>> clkdev_create() is a shorter way to write clkdev_alloc() followed by
->>>> clkdev_add().  Use this instead.
->>>>
->>>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->>>
->>> Acked-by: Andrew Lunn <andrew@lunn.ch>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
 >>
->> This change makes sens however what about Thomas' comment: removing
->> orion_clkdev_add() entirely and directly using lkdev_create() all over
->> the place:
->> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/327294.html
+>> Changes in v2:
+>> - this file is new added.
 >>
->> Then what would be the path for this patch?
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 5 -----
+>>   1 file changed, 5 deletions(-)
 >>
->> As there is a dependency on the 6th patch of this series: "clkdev: add
->> clkdev_create() helper" which should be merged through the clk tree, I
->> think the best option is that this patch would be also managed by the
->> clk tree maintainer (I added them in CC).
-> 
-> Let me remind people that clkdev is *NOT* part of clk, and that I'm the
-> maintainer for clkdev.
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>> b/drivers/media/platform/soc_camera/atmel-isi.c index c125b1d..31254b4
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -131,8 +131,6 @@ static int configure_geometry(struct atmel_isi *isi, u32
+>> width, return -EINVAL;
+>>   	}
+>>
+>> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>> -
+>>   	cfg2 = isi_readl(isi, ISI_CFG2);
+> Can the configuration registers be accessed when the pixel clock is disabled ?
 
-Sorry for the confusion, I quickly had a look on the MAINTAINERS file and
-didn't realized that the drivers/clk/clkdev.c file was not part of clk
-(even if actually it was mentioned).
+yes, it can be accessed. The CFG1, CFG2 are not impacted.
 
-> 
-> I'm getting rather pissed off with people taking work away from me, even
-> when I'm named in the MAINTAINERS file.  These patches are going through
-> my tree unless there's a good reason for them not to.  They are _not_
-> going through the clk tree.
+So far as I know only the ISI_CR is impacted, we can 
+disable/enable/reset ISI by set ISI_CR.
+Since ISI_CR register will work with pixel clock, so you need to poll 
+the ISI_SR to verify your control of ISI is effective.
 
-So, as you are going to take care of all the patches it is even simpler.
-You can take this one too: in mvebu there is no change on this file for
-this release so there won't be any conflict.
+Best Regards,
+Josh Wu
 
-Thanks,
+>
+>>   	/* Set YCC swap mode */
+>>   	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
+>> @@ -843,7 +841,6 @@ static int isi_camera_set_bus_param(struct
+>> soc_camera_device *icd)
+>>
+>>   	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+>>
+>> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>>   	isi_writel(isi, ISI_CFG1, cfg1);
+>>
+>>   	return 0;
+>> @@ -1022,8 +1019,6 @@ static int atmel_isi_probe(struct platform_device
+>> *pdev) if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+>>   		isi->width_flags |= 1 << 9;
+>>
+>> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>> -
+>>   	irq = platform_get_irq(pdev, 0);
+>>   	if (IS_ERR_VALUE(irq)) {
+>>   		ret = irq;
 
-Gregory
-
-
-
-
--- 
-Gregory Clement, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
