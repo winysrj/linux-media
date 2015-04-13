@@ -1,60 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40592 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45432 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266AbbDHNu2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 09:50:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: Correctly notify about the failed pipeline validation
-Date: Wed, 08 Apr 2015 16:50:48 +0300
-Message-ID: <4424832.AmZfJ0mdjq@avalon>
-In-Reply-To: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1423748591-19402-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	with ESMTP id S932392AbbDMSj1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2015 14:39:27 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Daniel Vetter <daniel.vetter@intel.com>
+Subject: [RFC/PATCH v2 3/5] drm/rcar-du: Add VSP1 support to the planes allocator
+Date: Mon, 13 Apr 2015 21:39:45 +0300
+Message-Id: <1428950387-6913-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+The R8A7790 DU can source frames directly from the VSP1 devices VSPD0
+and VSPD1. VSPD0 feeds DU0/1 plane 0, and VSPD1 feeds either DU2 plane 0
+or DU0/1 plane 1.
 
-Thank you for the patch.
+Allocate the correct fixed plane when sourcing frames from VSPD0 or
+VSPD1, and allocate planes in reverse index order otherwise to ensure
+maximum availability of planes 0 and 1.
 
-On Thursday 12 February 2015 15:43:11 Sakari Ailus wrote:
-> On the place of the source entity name, the sink entity name was printed.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 40 ++++++++++++++++++++++++++++-----
+ drivers/gpu/drm/rcar-du/rcar_du_plane.c |  1 +
+ drivers/gpu/drm/rcar-du/rcar_du_plane.h |  7 ++++++
+ 3 files changed, 43 insertions(+), 5 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. It's a bit late for v4.1, can it wait for v4.2 ?
-
-> ---
->  drivers/media/media-entity.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index defe4ac..d894481 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -283,9 +283,9 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, if (ret < 0 && ret != -ENOIOCTLCMD) {
->  				dev_dbg(entity->parent->dev,
->  					"link validation failed for \"%s\":%u -> \"%s\":%u, error 
-%d\n",
-> -					entity->name, link->source->index,
-> -					link->sink->entity->name,
-> -					link->sink->index, ret);
-> +					link->source->entity->name,
-> +					link->source->index,
-> +					entity->name, link->sink->index, ret);
->  				goto error;
->  			}
->  		}
-
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_kms.c b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+index fb052bca574f..17f89bfca8f8 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_kms.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_kms.c
+@@ -244,11 +244,41 @@ static unsigned int rcar_du_plane_hwmask(struct rcar_du_plane_state *state)
+ 	return mask;
+ }
+ 
+-static int rcar_du_plane_hwalloc(unsigned int num_planes, unsigned int free)
++/*
++ * The R8A7790 DU can source frames directly from the VSP1 devices VSPD0 and
++ * VSPD1. VSPD0 feeds DU0/1 plane 0, and VSPD1 feeds either DU2 plane 0 or
++ * DU0/1 plane 1.
++ *
++ * Allocate the correct fixed plane when sourcing frames from VSPD0 or VSPD1,
++ * and allocate planes in reverse index order otherwise to ensure maximum
++ * availability of planes 0 and 1.
++ *
++ * The caller is responsible for ensuring that the requested source is
++ * compatible with the DU revision.
++ */
++static int rcar_du_plane_hwalloc(struct rcar_du_plane *plane,
++				 struct rcar_du_plane_state *state,
++				 unsigned int free)
+ {
+-	unsigned int i;
++	unsigned int num_planes = state->format->planes;
++	int fixed = -1;
++	int i;
++
++	if (state->source == RCAR_DU_PLANE_VSPD0) {
++		/* VSPD0 feeds plane 0 on DU0/1. */
++		if (plane->group->index != 0)
++			return -EINVAL;
++
++		fixed = 0;
++	} else if (state->source == RCAR_DU_PLANE_VSPD1) {
++		/* VSPD1 feeds plane 1 on DU0/1 or plane 0 on DU2. */
++		fixed = plane->group->index == 0 ? 1 : 0;
++	}
++
++	if (fixed >= 0)
++		return free & (1 << fixed) ? fixed : -EBUSY;
+ 
+-	for (i = 0; i < RCAR_DU_NUM_HW_PLANES; ++i) {
++	for (i = RCAR_DU_NUM_HW_PLANES - 1; i >= 0; --i) {
+ 		if (!(free & (1 << i)))
+ 			continue;
+ 
+@@ -256,7 +286,7 @@ static int rcar_du_plane_hwalloc(unsigned int num_planes, unsigned int free)
+ 			break;
+ 	}
+ 
+-	return i == RCAR_DU_NUM_HW_PLANES ? -EBUSY : i;
++	return i < 0 ? -EBUSY : i;
+ }
+ 
+ static int rcar_du_atomic_check(struct drm_device *dev,
+@@ -372,7 +402,7 @@ static int rcar_du_atomic_check(struct drm_device *dev,
+ 		    !rcar_du_plane_needs_realloc(plane, plane_state))
+ 			continue;
+ 
+-		idx = rcar_du_plane_hwalloc(plane_state->format->planes,
++		idx = rcar_du_plane_hwalloc(plane, plane_state,
+ 					group_free_planes[plane->group->index]);
+ 		if (idx < 0) {
+ 			dev_dbg(rcdu->dev, "%s: no available hardware plane\n",
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+index 210e5c3fd982..80e4dba78aef 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
+@@ -288,6 +288,7 @@ static void rcar_du_plane_reset(struct drm_plane *plane)
+ 		return;
+ 
+ 	state->hwindex = -1;
++	state->source = RCAR_DU_PLANE_MEMORY;
+ 	state->alpha = 255;
+ 	state->colorkey = RCAR_DU_COLORKEY_NONE;
+ 	state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : 1;
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+index abff0ebeb195..81c2d361a94f 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
+@@ -28,6 +28,12 @@ struct rcar_du_group;
+ #define RCAR_DU_NUM_KMS_PLANES		9
+ #define RCAR_DU_NUM_HW_PLANES		8
+ 
++enum rcar_du_plane_source {
++	RCAR_DU_PLANE_MEMORY,
++	RCAR_DU_PLANE_VSPD0,
++	RCAR_DU_PLANE_VSPD1,
++};
++
+ struct rcar_du_plane {
+ 	struct drm_plane plane;
+ 	struct rcar_du_group *group;
+@@ -51,6 +57,7 @@ struct rcar_du_plane_state {
+ 
+ 	const struct rcar_du_format_info *format;
+ 	int hwindex;		/* 0-based, -1 means unused */
++	enum rcar_du_plane_source source;
+ 
+ 	unsigned int alpha;
+ 	unsigned int colorkey;
 -- 
-Regards,
-
-Laurent Pinchart
+2.0.5
 
