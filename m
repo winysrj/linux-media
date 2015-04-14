@@ -1,46 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37615 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbbD2XGZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45872 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025AbbDNHVb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 19:06:25 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 25/27] usbvision: fix bad indentation
-Date: Wed, 29 Apr 2015 20:06:10 -0300
-Message-Id: <059321071ca9d62dab15cff63d1a6ffc68701fc1.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+	Tue, 14 Apr 2015 03:21:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Bin Chen <bin.chen@linaro.org>
+Subject: [PATCH] uvcvideo: Implement DMABUF exporter role
+Date: Tue, 14 Apr 2015 10:21:52 +0300
+Message-Id: <1428996112-9895-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/usbvision/usbvision-core.c:2395 usbvision_init_isoc() warn: inconsistent indenting
+Now that videobuf2-vmalloc supports exporting buffers, add support for
+the DMABUF exporter role by plugging in the videobuf2 ioctl helper.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c  | 13 +++++++++++++
+ drivers/media/usb/uvc/uvcvideo.h  |  2 ++
+ 3 files changed, 27 insertions(+)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
-index 44b0c28d69b6..7c04ef697fb6 100644
---- a/drivers/media/usb/usbvision/usbvision-core.c
-+++ b/drivers/media/usb/usbvision/usbvision-core.c
-@@ -2390,8 +2390,8 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index efb9828..61a47bbe 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -272,6 +272,18 @@ int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ 	return ret;
+ }
  
- 	/* Submit all URBs */
- 	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++) {
--			err_code = usb_submit_urb(usbvision->sbuf[buf_idx].urb,
--						 GFP_KERNEL);
-+		err_code = usb_submit_urb(usbvision->sbuf[buf_idx].urb,
-+					 GFP_KERNEL);
- 		if (err_code) {
- 			dev_err(&usbvision->dev->dev,
- 				"%s: usb_submit_urb(%d) failed: error %d\n",
++int uvc_export_buffer(struct uvc_video_queue *queue,
++		      struct v4l2_exportbuffer *exp)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_expbuf(&queue->queue, exp);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
+ int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
+ 		       int nonblocking)
+ {
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index c4b1ac6..69d0180 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -723,6 +723,18 @@ static int uvc_ioctl_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	return uvc_queue_buffer(&stream->queue, buf);
+ }
+ 
++static int uvc_ioctl_expbuf(struct file *file, void *fh,
++			    struct v4l2_exportbuffer *exp)
++{
++	struct uvc_fh *handle = fh;
++	struct uvc_streaming *stream = handle->stream;
++
++	if (!uvc_has_privileges(handle))
++		return -EBUSY;
++
++	return uvc_export_buffer(&stream->queue, exp);
++}
++
+ static int uvc_ioctl_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ {
+ 	struct uvc_fh *handle = fh;
+@@ -1478,6 +1490,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
+ 	.vidioc_reqbufs = uvc_ioctl_reqbufs,
+ 	.vidioc_querybuf = uvc_ioctl_querybuf,
+ 	.vidioc_qbuf = uvc_ioctl_qbuf,
++	.vidioc_expbuf = uvc_ioctl_expbuf,
+ 	.vidioc_dqbuf = uvc_ioctl_dqbuf,
+ 	.vidioc_create_bufs = uvc_ioctl_create_bufs,
+ 	.vidioc_streamon = uvc_ioctl_streamon,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 2bd895c..180efb2 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -641,6 +641,8 @@ extern int uvc_create_buffers(struct uvc_video_queue *queue,
+ 		struct v4l2_create_buffers *v4l2_cb);
+ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
++extern int uvc_export_buffer(struct uvc_video_queue *queue,
++		struct v4l2_exportbuffer *exp);
+ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf, int nonblocking);
+ extern int uvc_queue_streamon(struct uvc_video_queue *queue,
 -- 
-2.1.0
+2.0.5
 
