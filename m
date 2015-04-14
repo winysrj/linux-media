@@ -1,102 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36200 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751842AbbDUNKP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49240 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753441AbbDNUKM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:10:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 09/15] v4l2: add initial V4L2_REQ_CMD_QUEUE support
-Date: Tue, 21 Apr 2015 14:58:52 +0200
-Message-Id: <1429621138-17213-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 14 Apr 2015 16:10:12 -0400
+Date: Tue, 14 Apr 2015 23:10:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: Repurpose the v4l2_plane data_offset field
+Message-ID: <20150414201004.GA27451@valkosipuli.retiisi.org.uk>
+References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1429040689-23808-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429040689-23808-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Add the V4L2_REQ_CMD_QUEUE command and the req_queue callback to struct
-v4l2_device. Call it if set from v4l2-ioctl.c and v4l2-subdev.c. Make sure
-in v4l2-ioctl.c to unlock any current lock first (and relock afterwards).
-That way req_queue is called with the assurance that there are no video_device
-locks taken. Since req_queue operates device-wide that would make that code
-much more complex.
+Thank you for the patchset.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c  | 11 +++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c |  6 ++++++
- include/media/v4l2-device.h           |  2 ++
- include/uapi/linux/videodev2.h        |  1 +
- 4 files changed, 20 insertions(+)
+On Tue, Apr 14, 2015 at 10:44:48PM +0300, Laurent Pinchart wrote:
+> The data_offset field has been introduced along with the multiplane API
+> to convey header size information between kernelspace and userspace.
+> It's not used by any mainline driver except vivid (for testing purpose).
+> 
+> A different data offset is needed to allow data capture to or data
+> output from a userspace-selected offset within a buffer (mainly for the
+> DMABUF and MMAP memory types). As the data_offset field already has the
+> right name and is unused, repurpose it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/DocBook/media/v4l/io.xml | 19 +++++++++++--------
+>  include/uapi/linux/videodev2.h         |  6 ++++--
+>  2 files changed, 15 insertions(+), 10 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 1c17f80..416c05a 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -870,7 +870,7 @@ should set this to 0.</entry>
+>  	      If the application sets this to 0 for an output stream, then
+>  	      <structfield>bytesused</structfield> will be set to the size of the
+>  	      plane (see the <structfield>length</structfield> field of this struct)
+> -	      by the driver. Note that the actual image data starts at
+> +	      by the driver. Note that the actual plane data content starts at
+>  	      <structfield>data_offset</structfield> which may not be 0.</entry>
+>  	  </row>
+>  	  <row>
+> @@ -917,13 +917,16 @@ should set this to 0.</entry>
+>  	    <entry>__u32</entry>
+>  	    <entry><structfield>data_offset</structfield></entry>
+>  	    <entry></entry>
+> -	    <entry>Offset in bytes to video data in the plane.
+> -	      Drivers must set this field when <structfield>type</structfield>
+> -	      refers to an input stream, applications when it refers to an output stream.
+> -	      Note that data_offset is included in <structfield>bytesused</structfield>.
+> -	      So the size of the image in the plane is
+> -	      <structfield>bytesused</structfield>-<structfield>data_offset</structfield> at
+> -	      offset <structfield>data_offset</structfield> from the start of the plane.
+> +	    <entry>Offset in bytes from the start of the plane buffer to the start of
+> +	      captured or output data. Applications set this field for all stream types
+> +	      when calling the <link linkend="vidioc-qbuf">VIDIOC_PREPARE_BUF</link> or
+> +	      <link linkend="vidioc-qbuf">VIDIOC_QBUF</link> ioctls to instruct the driver
+> +	      to capture or output data starting at an offset in the plane buffer. If the
+> +	      requested data offset doesn't match device or driver constraints, device
+> +	      drivers must return the &EINVAL; and either leave the field value untouched
+> +	      if they support data offsets, or set it to 0 if they don't support data
+> +	      offsets at all. Note that <structfield>data_offset</structfield> is not
+> +	      included in <structfield>bytesused</structfield>.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 51830c2..44c33f3 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1996,6 +1996,17 @@ static int v4l_request_cmd(const struct v4l2_ioctl_ops *ops,
- 		return v4l2_ctrl_delete_request(vfh->ctrl_handler, p->request);
- 	case V4L2_REQ_CMD_APPLY:
- 		return v4l2_ctrl_apply_request(vfh->ctrl_handler, p->request);
-+	case V4L2_REQ_CMD_QUEUE:
-+		if (vfd->v4l2_dev->req_queue == NULL)
-+			return -ENOSYS;
-+		if (p->request == 0)
-+			return -EINVAL;
-+		if (vfd->lock)
-+			mutex_unlock(vfd->lock);
-+		ret = vfd->v4l2_dev->req_queue(vfd->v4l2_dev, p->request);
-+		if (vfd->lock)
-+			mutex_lock(vfd->lock);
-+		return ret;
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index cabbddc..7113b95 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -266,6 +266,12 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		case V4L2_REQ_CMD_APPLY:
- 			return v4l2_ctrl_apply_request(vfh->ctrl_handler,
- 						       p->request);
-+		case V4L2_REQ_CMD_QUEUE:
-+			if (sd->v4l2_dev->req_queue == NULL)
-+				return -ENOSYS;
-+			if (p->request == 0)
-+				return -EINVAL;
-+			return sd->v4l2_dev->req_queue(sd->v4l2_dev, p->request);
- 		default:
- 			return -EINVAL;
- 		}
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 9c58157..603e7f3 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -62,6 +62,8 @@ struct v4l2_device {
- 	struct kref ref;
- 	/* Release function that is called when the ref count goes to 0. */
- 	void (*release)(struct v4l2_device *v4l2_dev);
-+	/* Queue a request */
-+	int (*req_queue)(struct v4l2_device *v4l2_dev, u16 request);
- };
- 
- static inline void v4l2_device_get(struct v4l2_device *v4l2_dev)
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 98a7717..f3164f6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2089,6 +2089,7 @@ struct v4l2_create_buffers {
- #define V4L2_REQ_CMD_END	(1)
- #define V4L2_REQ_CMD_DELETE	(2)
- #define V4L2_REQ_CMD_APPLY	(3)
-+#define V4L2_REQ_CMD_QUEUE	(4)
- 
- struct v4l2_request_cmd {
- 	__u32 cmd;
+At most 80 characters per line would be nice.
+
+How does the user discover what data_offsets are possible if the driver
+returns an error if the data_offset does not match hardware capabilities?
+
+I'd rather have the driver to adjust data_offset to match what it can do. If
+the user needs to know that the data_offset was not modified, it should
+check the field value after QBUF/PREPARE_BUF.
+
+>  	    </entry>
+>  	  </row>
+>  	  <row>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index fa376f7..261fb66 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -706,8 +706,10 @@ struct v4l2_requestbuffers {
+>   *			pointing to this plane
+>   * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
+>   *			descriptor associated with this plane
+> - * @data_offset:	offset in the plane to the start of data; usually 0,
+> - *			unless there is a header in front of the data
+> + * @data_offset:	offset in bytes from the start of the plane buffer to
+> + *			the start of data; usually 0 unless applications need to
+> + *			capture data to or output data from elsewhere than the
+> + *			start of the buffer
+>   *
+>   * Multi-planar buffers consist of one or more planes, e.g. an YCbCr buffer
+>   * with two planes can have one plane for Y, and another for interleaved CbCr
+
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
