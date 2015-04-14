@@ -1,39 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51282 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751469AbbDCVrI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46621 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbbDNTo4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 17:47:08 -0400
-Date: Sat, 4 Apr 2015 00:46:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Tue, 14 Apr 2015 15:44:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-api@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v1.1 07/14] media: omap3isp: remove unused clkdev
-Message-ID: <20150403214633.GQ20756@valkosipuli.retiisi.org.uk>
-References: <1428097502-19593-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1428097502-19593-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH/RFC 0/2] Repurpose the v4l2_plane data_offset field
+Date: Tue, 14 Apr 2015 22:44:47 +0300
+Message-Id: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 04, 2015 at 12:45:02AM +0300, Laurent Pinchart wrote:
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> No merged platform supplies xclks via platform data.  As we want to
-> slightly change the clkdev interface, rather than fixing this unused
-> code, remove it instead.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Hello,
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+The v4l2_plane data_offset field has been introduced at the same time as the
+the multiplane API to convey header size information between kernelspace and
+userspace.
+
+The API then became slightly controversial, both because different developers
+understood the purpose of the field differently (resulting for instance in an
+out-of-tree driver abusing the field for a different purpose), and because of
+competing proposals (see for instance "[RFC] Multi format stream support" at
+http://www.spinics.net/lists/linux-media/msg69130.html).
+
+Furthermore, the data_offset field isn't used by any mainline driver except
+vivid (for testing purpose).
+
+I need a different data offset in planes to allow data capture to or data
+output from a userspace-selected offset within a buffer (mainly for the
+DMABUF and MMAP memory types). As the data_offset field already has the
+right name, is unused, and ill-defined, I propose repurposing it. This is what
+this RFC is about.
+
+If the proposal is accepted I'll add another patch to update data_offset usage
+in the vivid driver.
+
+Laurent Pinchart (2):
+  v4l: Repurpose the v4l2_plane data_offset field
+  videobuf2: Repurpose the v4l2_plane data_offset field
+
+ Documentation/DocBook/media/v4l/io.xml   | 19 +++++++------
+ drivers/media/v4l2-core/videobuf2-core.c | 46 +++++++++++++++++++++++---------
+ include/media/videobuf2-core.h           |  4 +++
+ include/media/videobuf2-dma-contig.h     |  2 +-
+ include/uapi/linux/videodev2.h           |  6 +++--
+ 5 files changed, 54 insertions(+), 23 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
