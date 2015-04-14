@@ -1,303 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:16555 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932174AbbD1HVo (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:34910 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbbDNJyR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 03:21:44 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v6 10/10] leds: aat1290: add support for V4L2 Flash sub-device
-Date: Tue, 28 Apr 2015 09:18:50 +0200
-Message-id: <1430205530-20873-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 14 Apr 2015 05:54:17 -0400
+Received: by widdi4 with SMTP id di4so106026933wid.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2015 02:54:16 -0700 (PDT)
+Date: Tue, 14 Apr 2015 11:56:14 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-api@vger.kernel.org, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC/PATCH v2 0/5] Add live source objects to DRM
+Message-ID: <20150414095614.GG6092@phenom.ffwll.local>
+References: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-driver. The support allows for V4L2 Flash sub-device to take the control
-of the LED Flash class device.
+On Mon, Apr 13, 2015 at 09:39:42PM +0300, Laurent Pinchart wrote:
+> Hello,
+> 
+> Here's a proposal for a different approach to live source in DRM based on an
+> idea by Daniel Vetter. The previous version can be found at
+> http://lists.freedesktop.org/archives/dri-devel/2015-March/079319.html.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/leds/Kconfig        |    1 +
- drivers/leds/leds-aat1290.c |  137 +++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 132 insertions(+), 6 deletions(-)
+msm is also interested in a drm/v4l bridge on the capture/writeback side.
+Although I haven't convinced them yet that rolling their own isn't
+awesome.
 
-diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index dd7834c..874df63 100644
---- a/drivers/leds/Kconfig
-+++ b/drivers/leds/Kconfig
-@@ -47,6 +47,7 @@ config LEDS_AAT1290
- 	depends on LEDS_CLASS_FLASH
- 	depends on GPIOLIB
- 	depends on OF
-+	depends on PINCTRL
- 	help
- 	 This option enables support for the LEDs on the AAT1290.
- 
-diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-index 03e5b96..f37f848 100644
---- a/drivers/leds/leds-aat1290.c
-+++ b/drivers/leds/leds-aat1290.c
-@@ -17,9 +17,11 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <media/v4l2-flash-led-class.h>
- 
- #define AAT1290_MOVIE_MODE_CURRENT_ADDR	17
- #define AAT1290_MAX_MM_CURR_PERCENT_0	16
-@@ -52,6 +54,8 @@ struct aat1290_led_config_data {
- 	u32 max_flash_current;
- 	/* maximum flash timeout */
- 	u32 max_flash_tm;
-+	/* external strobe capability */
-+	bool has_external_strobe;
- 	/* max LED brightness level */
- 	enum led_brightness max_brightness;
- };
-@@ -64,6 +68,8 @@ struct aat1290_led {
- 
- 	/* corresponding LED Flash class device */
- 	struct led_classdev_flash fled_cdev;
-+	/* V4L2 Flash device */
-+	struct v4l2_flash *v4l2_flash;
- 
- 	/* FLEN pin */
- 	struct gpio_desc *gpio_fl_en;
-@@ -230,11 +236,15 @@ static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
- }
- 
- static int aat1290_led_parse_dt(struct aat1290_led *led,
--			struct aat1290_led_config_data *cfg)
-+			struct aat1290_led_config_data *cfg,
-+			struct device_node **sub_node)
- {
- 	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
- 	struct device *dev = &led->pdev->dev;
- 	struct device_node *child_node;
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct pinctrl *pinctrl;
-+#endif
- 	int ret = 0;
- 
- 	led->gpio_fl_en = devm_gpiod_get(dev, "flen");
-@@ -251,6 +261,17 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
- 		return ret;
- 	}
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	pinctrl = devm_pinctrl_get_select_default(&led->pdev->dev);
-+	if (IS_ERR(pinctrl)) {
-+		cfg->has_external_strobe = false;
-+		dev_info(dev,
-+			 "No support for external strobe detected.\n");
-+	} else {
-+		cfg->has_external_strobe = true;
-+	}
-+#endif
-+
- 	child_node = of_get_next_available_child(dev->of_node, NULL);
- 	if (!child_node) {
- 		dev_err(dev, "No DT child node found for connected LED.\n");
-@@ -288,6 +309,8 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
- 
- 	of_node_put(child_node);
- 
-+	*sub_node = child_node;
-+
- 	return ret;
- }
- 
-@@ -316,7 +339,8 @@ int init_mm_current_scale(struct aat1290_led *led,
- 	int i, max_mm_current =
- 			AAT1290_MAX_MM_CURRENT(cfg->max_flash_current);
- 
--	led->mm_current_scale = kzalloc(sizeof(max_mm_current_percent),
-+	led->mm_current_scale = devm_kzalloc(&led->pdev->dev,
-+					sizeof(max_mm_current_percent),
- 					GFP_KERNEL);
- 	if (!led->mm_current_scale)
- 		return -ENOMEM;
-@@ -329,11 +353,12 @@ int init_mm_current_scale(struct aat1290_led *led,
- }
- 
- static int aat1290_led_get_configuration(struct aat1290_led *led,
--					struct aat1290_led_config_data *cfg)
-+					struct aat1290_led_config_data *cfg,
-+					struct device_node **sub_node)
- {
- 	int ret;
- 
--	ret = aat1290_led_parse_dt(led, cfg);
-+	ret = aat1290_led_parse_dt(led, cfg, sub_node);
- 	if (ret < 0)
- 		return ret;
- 	/*
-@@ -346,7 +371,10 @@ static int aat1290_led_get_configuration(struct aat1290_led *led,
- 
- 	aat1290_led_validate_mm_current(led, cfg);
- 
--	kfree(led->mm_current_scale);
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+#else
-+	devm_kfree(&led->pdev->dev, led->mm_current_scale);
-+#endif
- 
- 	return 0;
- }
-@@ -365,6 +393,83 @@ static void aat1290_init_flash_timeout(struct aat1290_led *led,
- 	setting->val = setting->max;
- }
- 
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+enum led_brightness aat1290_intensity_to_brightness(
-+					struct v4l2_flash *v4l2_flash,
-+					s32 intensity)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+	int i;
-+
-+	for (i = AAT1290_MM_CURRENT_SCALE_SIZE - 1; i >= 0; --i)
-+		if (intensity >= led->mm_current_scale[i])
-+			return i + 1;
-+
-+	return 1;
-+}
-+
-+s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
-+					enum led_brightness brightness)
-+{
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-+
-+	return led->mm_current_scale[brightness - 1];
-+}
-+
-+static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
-+						bool enable)
-+{
-+	struct aat1290_led *led = fled_cdev_to_led(v4l2_flash->fled_cdev);
-+	struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-+	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-+	struct pinctrl *pinctrl;
-+
-+	gpiod_direction_output(led->gpio_fl_en, 0);
-+	gpiod_direction_output(led->gpio_en_set, 0);
-+
-+	led->movie_mode = false;
-+	led_cdev->brightness = 0;
-+
-+	pinctrl = devm_pinctrl_get_select(&led->pdev->dev,
-+						enable ? "isp" : "host");
-+	if (IS_ERR(pinctrl)) {
-+		dev_warn(&led->pdev->dev, "Unable to switch strobe source.\n");
-+		return PTR_ERR(pinctrl);
-+	}
-+
-+	return 0;
-+}
-+
-+static void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-+					struct aat1290_led_config_data *led_cfg,
-+					struct v4l2_flash_config *v4l2_sd_cfg)
-+{
-+	struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
-+	struct led_flash_setting *s;
-+
-+	strlcpy(v4l2_sd_cfg->dev_name, led_cdev->name,
-+		sizeof(v4l2_sd_cfg->dev_name));
-+
-+	s = &v4l2_sd_cfg->intensity;
-+	s->min = led->mm_current_scale[0];
-+	s->max = led_cfg->max_mm_current;
-+	s->step = 1;
-+	s->val = s->max;
-+
-+	v4l2_sd_cfg->has_external_strobe = led_cfg->has_external_strobe;
-+}
-+
-+static const struct v4l2_flash_ops v4l2_flash_ops = {
-+	.external_strobe_set = aat1290_led_external_strobe_set,
-+	.intensity_to_led_brightness = aat1290_intensity_to_brightness,
-+	.led_brightness_to_intensity = aat1290_brightness_to_intensity,
-+};
-+#else
-+#define aat1290_init_v4l2_flash_config(led, led_cfg, v4l2_sd_cfg)
-+#endif
-+
- static const struct led_flash_ops flash_ops = {
- 	.strobe_set = aat1290_led_flash_strobe_set,
- 	.timeout_set = aat1290_led_flash_timeout_set,
-@@ -373,10 +478,14 @@ static const struct led_flash_ops flash_ops = {
- static int aat1290_led_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-+	struct device_node *sub_node = NULL;
- 	struct aat1290_led *led;
- 	struct led_classdev *led_cdev;
- 	struct led_classdev_flash *fled_cdev;
- 	struct aat1290_led_config_data led_cfg = {};
-+#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-+	struct v4l2_flash_config v4l2_sd_cfg = {};
-+#endif
- 	int ret;
- 
- 	led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-@@ -390,7 +499,7 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	fled_cdev->ops = &flash_ops;
- 	led_cdev = &fled_cdev->led_cdev;
- 
--	ret = aat1290_led_get_configuration(led, &led_cfg);
-+	ret = aat1290_led_get_configuration(led, &led_cfg, &sub_node);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -410,8 +519,23 @@ static int aat1290_led_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_flash_register;
- 
-+	aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
-+
-+	led_cdev->dev->of_node = sub_node;
-+
-+	/* Create V4L2 Flash subdev. */
-+	led->v4l2_flash = v4l2_flash_init(fled_cdev,
-+					  &v4l2_flash_ops,
-+					  &v4l2_sd_cfg);
-+	if (IS_ERR(led->v4l2_flash)) {
-+		ret = PTR_ERR(led->v4l2_flash);
-+		goto error_v4l2_flash_init;
-+	}
-+
- 	return 0;
- 
-+error_v4l2_flash_init:
-+	led_classdev_flash_unregister(fled_cdev);
- err_flash_register:
- 	mutex_destroy(&led->lock);
- 
-@@ -422,6 +546,7 @@ static int aat1290_led_remove(struct platform_device *pdev)
- {
- 	struct aat1290_led *led = platform_get_drvdata(pdev);
- 
-+	v4l2_flash_release(led->v4l2_flash);
- 	led_classdev_flash_unregister(&led->fled_cdev);
- 	cancel_work_sync(&led->work_brightness_set);
- 
+> The need comes from the Renesas R-Car SoCs in which a video processing engine
+> (named VSP1) that operates from memory to memory has one output directly
+> connected to a plane of the display engine (DU) without going through memory.
+> 
+> The VSP1 is supported by a V4L2 driver. While it could be argued that it
+> should instead be supported directly by the DRM rcar-du driver, this wouldn't
+> be a good idea for at least two reasons. First, the R-Car SoCs contain several
+> VSP1 instances, of which only a subset have a direct DU connection. The only
+> other instances operate solely in memory to memory mode. Then, the VSP1 is a
+> video processing engine and not a display engine. Its features are easily
+> supported by the V4L2 API, but don't map to the DRM/KMS API. Significant
+> changes to DRM/KMS would be required, beyond what is in my opinion an
+> acceptable scope for a display API.
+> 
+> Now that the need to interface two separate devices supported by two different
+> drivers in two separate subsystems has been established, we need an API to do
+> so. It should be noted that while that API doesn't exist in the mainline
+> kernel, the need isn't limited to Renesas SoCs.
+> 
+> This patch set proposes one possible solution for the problem in the form of a
+> new DRM object named live source. Live sources are created by drivers to model
+> hardware connections between a plane input and an external source, and are
+> attached to planes through the KMS userspace API.
+> 
+> Patch 1/5 adds live source objects to DRM, with an in-kernel API for drivers
+> to register the sources, and a userspace API to enumerate them.
+> 
+> Patch 2/5 implements connection between live sources and planes through
+> framebuffers. It introduces a new live source flag for framebuffers. When a
+> framebuffer is created with that flag set, a live source is associated with
+> the framebuffer instead of buffer objects. The framebuffer can then be used
+> with a plane to connect it with the live source. This is the biggest
+> difference compared to the previous approach, and has several benefits:
+> 
+> - Changes are less intrusive in the DRM core
+> - The implementation supports both the legacy API and atomic updates without
+>   any code specific to either
+> - No changes to existing drivers are needed
+> - The framebuffer format and size configuration API is reused
+> 
+> The framebuffer format and size should ideally be validated using information
+> queried directly from the driver that supports the live source device, but
+> I've decided not to implement such communication between V4L2 and DRM/KMS at
+> the moment to keep the proposal simple.
+> 
+> Patches 3/5 to 5/5 then implement support for live sources in the R-Car DU
+> driver. The rcar_du_live_framebuffer structure and its associated helper
+> functions could be moved to the DRM core later if other drivers need a similar
+> implementation. I've decided to keep them in the rcar-du driver for now as
+> it's not clear yet what other drivers might need.
+> 
+> Once again nothing here is set in stone.
+
+Yeah, this looks rather nice&tidy. A few questions/ideas:
+- Should we also go right ahead and add live sinks here with this and
+  enumerate both live sinks and sources as live resources or something
+  similar? The only big difference I see is that sinks will have different
+  attachment points than sources.
+
+- Not fully sure about possible_planes. I guess if the justification is
+  that the drm core can take care of some input validation for drivers
+  then it's useful. But if the idea is that userspace can use this to
+  figure out the routing then I think this won't work.
+
+- Do we need other basic checks like max/min width/height? Same concern as
+  above.
+
+- I think a live_resource_create callback would be useful so that the
+  driver can check additional constraints (maybe just some size will work
+  if e.g. it feeds directly into an mpeg encoder). Also I think we should
+  figure out whether the addfb2 call or only attaching the live
+  source/sink locks down the configuration on the v4l side of things.
+  Imo locking down the settings has the advantage that you can do that all
+  upfront on both v4l and drm side, and then immediately start the
+  pipeline with just connecting it.
+
+- Some helper to connect the drm and v4l side of things might be useful,
+  especially to make sure you don't end up with incompatible settings on
+  either end. Ties in with the above question of where we want to lock
+  down the settings.
+
+- Do we need some additional properties on live sources/sinks to at least
+  make the connection with v4l? Or is the idea that we'll do this with the
+  media link framework (in which case another part of some helper)?
+
+Ok that's it for first thoughts from me.
+-Daniel
+
+> 
+> Laurent Pinchart (5):
+>   drm: Add live source object
+>   drm: Connect live source to framebuffers
+>   drm/rcar-du: Add VSP1 support to the planes allocator
+>   drm/rcar-du: Add VSP1 live source support
+>   drm/rcar-du: Restart the DU group when a plane source changes
+> 
+>  drivers/gpu/drm/drm_crtc.c              | 287 +++++++++++++++++++++++++++++---
+>  drivers/gpu/drm/drm_ioctl.c             |   2 +
+>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |  10 +-
+>  drivers/gpu/drm/rcar-du/rcar_du_drv.c   |   6 +-
+>  drivers/gpu/drm/rcar-du/rcar_du_drv.h   |   3 +
+>  drivers/gpu/drm/rcar-du/rcar_du_group.c |  21 ++-
+>  drivers/gpu/drm/rcar-du/rcar_du_group.h |   2 +
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 132 ++++++++++++++-
+>  drivers/gpu/drm/rcar-du/rcar_du_kms.h   |   3 +
+>  drivers/gpu/drm/rcar-du/rcar_du_plane.c | 191 ++++++++++++++++-----
+>  drivers/gpu/drm/rcar-du/rcar_du_plane.h |  11 ++
+>  drivers/gpu/drm/rcar-du/rcar_du_regs.h  |   1 +
+>  include/drm/drm_crtc.h                  |  35 ++++
+>  include/uapi/drm/drm.h                  |   3 +
+>  include/uapi/drm/drm_mode.h             |  23 +++
+>  15 files changed, 647 insertions(+), 83 deletions(-)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+
 -- 
-1.7.9.5
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
