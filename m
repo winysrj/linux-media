@@ -1,55 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:34484 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938AbbD2IE5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 04:04:57 -0400
-Message-ID: <55408DE7.3020906@cisco.com>
-Date: Wed, 29 Apr 2015 09:53:11 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from cantor2.suse.de ([195.135.220.15]:56943 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751402AbbDOX6W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 19:58:22 -0400
+Date: Thu, 16 Apr 2015 01:58:16 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Andy Walls <awalls@md.metrocast.net>,
+	Hyong-Youb Kim <hykim@myri.com>, netdev@vger.kernel.org
+Cc: Andy Lutomirski <luto@amacapital.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>, dave.hansen@linux.intel.com,
+	plagnioj@jcrosoft.com, tglx@linutronix.de,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	x86@kernel.org
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150415235816.GG5622@wotan.suse.de>
+References: <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
+ <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+ <1428695379.6646.69.camel@misato.fc.hp.com>
+ <20150410210538.GB5622@wotan.suse.de>
+ <1428699490.21794.5.camel@misato.fc.hp.com>
+ <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+ <20150411012938.GC5622@wotan.suse.de>
+ <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+ <20150413174938.GE5622@wotan.suse.de>
+ <1429137531.1899.28.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: S_CTRL must be called twice  to set volatile controls
-References: <5540895A.5060102@samsung.com>
-In-Reply-To: <5540895A.5060102@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429137531.1899.28.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hey Andy, thanks for your review,  adding Hyong-Youb Kim for  review of the
+full range ioremap_wc() idea below.
 
-On 04/29/15 09:33, Jacek Anaszewski wrote:
-> Hi,
+On Wed, Apr 15, 2015 at 06:38:51PM -0400, Andy Walls wrote:
+> Hi All,
 > 
-> After testing my v4l2-flash helpers patch [1] with the recent patches
-> for v4l2-ctrl.c ([2] and [3]) s_ctrl op isn't called despite setting
-> the value that should be aligned to the other step than default one.
+> On Mon, 2015-04-13 at 19:49 +0200, Luis R. Rodriguez wrote:
+> > From the beginning it seems only framebuffer devices used MTRR/WC,
+> [snip]
+> >  The ivtv device is a good example of the worst type of
+> > situations and these days. So perhap __arch_phys_wc_add() and a
+> > ioremap_ucminus() might be something more than transient unless hardware folks
+> > get a good memo or already know how to just Do The Right Thing (TM).
 > 
-> This happens for V4L2_CID_FLASH_TORCH_INTENSITY control with
-> V4L2_CTRL_FLAG_VOLATILE flag.
-> 
-> The situation improves after setting V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
-> flag for the control. Is this flag required now for volatile controls
-> to be writable?
+> Just to reiterate a subtle point, use of the ivtvfb is *optional*.  A
+> user may or may not load it.  When the user does load the ivtvfb driver,
+> the ivtv driver has already been initialized and may have functions of
+> the card already in use by userspace.
 
-Yes, you need that if you want to be able to write to a volatile control.
+I suspected this and its why I note that a rewrite to address a clean
+split with separate ioremap seems rather difficult in this case.
 
-It was added for exactly that purpose.
+> Hopefully no one is trying to use the OSD as framebuffer and the video
+> decoder/output engine for video display at the same time. 
 
-Why is V4L2_CID_FLASH_TORCH_INTENSITY volatile? Volatile typically only
-makes sense if the hardware itself is modifying the value without the
-software knowing about it.
+Worst case concern I have also is the implications of having overlapping
+ioremap() calls (as proposed in my last reply) for different memory types
+and having the different virtual memory addresse used by different parts
+of the driver. Its not clear to me what the hardware implications of this
+are.
 
-Regards,
+>  But the video
+> decoder/output device nodes may already be open for performing ioctl()
+> functions so unmapping the decoder IO space out from under them, when
+> loading the ivtvfb driver module, might not be a good thing. 
 
-	Hans
+Using overlapping ioremap() calls with different memory types would address
+this concern provided hardware won't barf both on the device and CPU. Hardware
+folks could provide feedback or an ivtvfb user could test the patch supplied
+on both non-PAT and PAT systems. Even so, who knows,  this might work on some
+systems while not on others, only hardware folks would know.
 
-> 
-> [1] http://www.spinics.net/lists/linux-media/msg89004.html
-> [2] 45f014c5 [media] media/v4l2-ctrls: Always execute EXECUTE_ON_WRITE ctrls
-> [3] b08d8d26 [media] media/v4l2-ctrls: volatiles should not generate CH_VALUE
+An alternative... is to just ioremap_wc() the entire region, including
+MMIO registers for these old devices. I see one ethernet driver that does
+this, myri10ge, and am curious how and why they ended up deciding this
+and if they have run into any issues. I wonder if this is a reasonable
+comrpomise for these 2 remaining corner cases.
+
+  Luis
