@@ -1,94 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39106 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751086AbbDUNFZ (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:34371 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114AbbDOXws (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:05:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/15] v4l2-ctrls: implement delete request(s)
-Date: Tue, 21 Apr 2015 14:58:50 +0200
-Message-Id: <1429621138-17213-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 Apr 2015 19:52:48 -0400
+Received: by laat2 with SMTP id t2so44637358laa.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2015 16:52:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1429138212.1899.34.camel@palomino.walls.org>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <1429138212.1899.34.camel@palomino.walls.org>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Wed, 15 Apr 2015 16:52:26 -0700
+Message-ID: <CALCETrU9FEoXgWxV+XXwRdKTxUxYj7CD3ropnFb4Pq1cMkucaQ@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>, linux-rdma@vger.kernel.org,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 15, 2015 at 3:50 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Wed, 2015-04-15 at 13:42 -0700, Andy Lutomirski wrote:
+>> On Mon, Apr 13, 2015 at 10:49 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+>>
+>> > c) ivtv: the driver does not have the PCI space mapped out separately, and
+>> > in fact it actually does not do the math for the framebuffer, instead it lets
+>> > the device's own CPU do that and assume where its at, see
+>> > ivtvfb_get_framebuffer() and CX2341X_OSD_GET_FRAMEBUFFER, it has a get
+>> > but not a setter. Its not clear if the firmware would make a split easy.
+>> > We'd need ioremap_ucminus() here too and __arch_phys_wc_add().
+>> >
+>>
+>> IMO this should be conceptually easy to split.  Once we get the
+>> framebuffer address, just unmap it (or don't prematurely map it) and
+>> then ioremap the thing.
+>
+> Not so easy.  The main ivtv driver has already set up the PCI device and
+> done the mapping for the MPEG-2 decoder/video output engine.  The video
+> decoder/output device nodes might already be open by user space calling
+> into the main driver, before the ivtvfb module is even loaded.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 42 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h           |  1 +
- 2 files changed, 43 insertions(+)
+Surely the MPEG-2 decoder/video engine won't overlap the framebuffer,
+though.  Am I missing something?
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 93c51cc..43fb3c2 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3566,6 +3566,48 @@ unlock:
- }
- EXPORT_SYMBOL(v4l2_ctrl_apply_request);
- 
-+int v4l2_ctrl_delete_request(struct v4l2_ctrl_handler *hdl, unsigned request)
-+{
-+	struct v4l2_ctrl_ref *ref;
-+	unsigned i;
-+
-+	if (hdl == NULL || request == 0)
-+		return -EINVAL;
-+
-+	mutex_lock(hdl->lock);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *master;
-+
-+		if (ref->ctrl->max_reqs == 0)
-+			continue;
-+		master = ref->ctrl->cluster[0];
-+		if (ref->ctrl != master)
-+			continue;
-+		if (master->handler != hdl)
-+			v4l2_ctrl_lock(master);
-+		for (i = 0; i < master->ncontrols; i++) {
-+			struct v4l2_ctrl *ctrl = master->cluster[i];
-+			struct v4l2_ctrl_req *req;
-+
-+			if (ctrl == NULL || ctrl->request_lists == NULL)
-+				continue;
-+
-+			if (request == 0) {
-+				free_requests(ctrl);
-+				continue;
-+			}
-+			req = get_request(ctrl, request);
-+			if (req)
-+				del_request(ctrl, req);
-+		}
-+		if (master->handler != hdl)
-+			v4l2_ctrl_unlock(master);
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_delete_request);
-+
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
- {
- 	if (ctrl == NULL)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 2d188a2..324db6d 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -810,6 +810,7 @@ static inline void v4l2_ctrl_s_max_reqs(struct v4l2_ctrl *ctrl, u16 max_reqs)
- }
- 
- int v4l2_ctrl_apply_request(struct v4l2_ctrl_handler *hdl, unsigned request);
-+int v4l2_ctrl_delete_request(struct v4l2_ctrl_handler *hdl, unsigned request);
- 
- /* Internal helper functions that deal with control events. */
- extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+--Andy
+
+>
+> This could be mitigated by integrating all the ivtvfb module code into
+> the main ivtv module.  But even then not every PVR-350 owner wants to
+> use the video output OSD as a framebuffer.  Users might just want an
+> actual OSD overlaying their TV video playback.
+>
+> Regards,
+> Andy
+>
+
+
+
 -- 
-2.1.4
-
+Andy Lutomirski
+AMA Capital Management, LLC
