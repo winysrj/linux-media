@@ -1,72 +1,352 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:44855 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757125AbbDWJ5B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 05:57:01 -0400
-From: Prashant Laddha <prladdha@cisco.com>
+Received: from www.netup.ru ([77.72.80.15]:35817 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754191AbbDOKPf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 06:15:35 -0400
+From: serjk@netup.ru
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Martin Bugge <marbugge@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH v2 2/4] v4l2-dv-timings: fix rounding in hblank and hsync calculation
-Date: Wed, 22 Apr 2015 23:02:35 +0530
-Message-Id: <1429723957-8308-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1429723957-8308-1-git-send-email-prladdha@cisco.com>
-References: <fix for rounding errors in cvt/gtf calculation>
- <1429723957-8308-1-git-send-email-prladdha@cisco.com>
+Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
+	Kozlov Sergey <serjk@netup.ru>
+Subject: [PATCH V2 3/5] [media] lnbh25: LNBH25 SEC controller driver
+Date: Wed, 15 Apr 2015 13:07:48 +0300
+Message-Id: <1429092470-29697-4-git-send-email-serjk@netup.ru>
+In-Reply-To: <1429092470-29697-1-git-send-email-serjk@netup.ru>
+References: <1429092470-29697-1-git-send-email-serjk@netup.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changed the rounding calculation for hblank and hsync to match it
-to equations in cvt and gtf standards.
+From: Kozlov Sergey <serjk@netup.ru>
 
-In cvt calculation, hsync needs to be rounded down.
+Add DVB SEC frontend driver for STM LNBH25PQR chip.
 
-In gtf calculations, hblank needs to be rounded to nearest multiple
-of twice the cell granularity and hsync needs to be rounded to the
-nearest multiple of cell granularity.
+Changes in version 2:
+    - rename MAINTAINERS entry
+    - fix coding style
+    - use dynamic debug instead of module-specifig debug parameter
+    - fix I2C bus error handling
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Kozlov Sergey <serjk@netup.ru>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ MAINTAINERS                          |    9 ++
+ drivers/media/dvb-frontends/Kconfig  |    8 ++
+ drivers/media/dvb-frontends/Makefile |    1 +
+ drivers/media/dvb-frontends/lnbh25.c |  192 ++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/lnbh25.h |   56 ++++++++++
+ 5 files changed, 266 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/lnbh25.c
+ create mode 100644 drivers/media/dvb-frontends/lnbh25.h
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 32aa25f..16c8ac5 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -436,8 +436,8 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 		h_bp = h_blank / 2;
- 		frame_width = image_width + h_blank;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9950fbe..4695cdc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6287,6 +6287,15 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/dvb-frontends/horus3a*
  
--		hsync = (frame_width * 8 + 50) / 100;
--		hsync = hsync - hsync % CVT_CELL_GRAN;
-+		hsync = frame_width * 8 / 100;
-+		hsync = (hsync / CVT_CELL_GRAN) * CVT_CELL_GRAN;
- 		h_fp = h_blank - hsync - h_bp;
- 	}
++MEDIA DRIVERS FOR LNBH25
++M:	Sergey Kozlov <serjk@netup.ru>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://netup.tv/
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	drivers/media/dvb-frontends/lnbh25*
++
+ MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
+ M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ P:	LinuxTV.org Project
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index d178aca..eec0405 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -695,6 +695,14 @@ comment "SEC control devices for DVB-S"
  
-@@ -552,14 +552,15 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
- 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
+ source "drivers/media/dvb-frontends/drx39xyj/Kconfig"
  
--	h_blank = h_blank - h_blank % (2 * GTF_CELL_GRAN);
-+	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
-+		  (2 * GTF_CELL_GRAN);
- 	frame_width = image_width + h_blank;
- 
- 	pix_clk = (image_width + h_blank) * hfreq;
- 	pix_clk = pix_clk / GTF_PXL_CLK_GRAN * GTF_PXL_CLK_GRAN;
- 
- 	hsync = (frame_width * 8 + 50) / 100;
--	hsync = hsync - hsync % GTF_CELL_GRAN;
-+	hsync = ((hsync + GTF_CELL_GRAN / 2) / GTF_CELL_GRAN) * GTF_CELL_GRAN;
- 
- 	h_fp = h_blank / 2 - hsync;
- 
++config DVB_LNBH25
++	tristate "LNBH25 SEC controller"
++	depends on DVB_CORE && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  An SEC control chip.
++	  Say Y when you want to support this chip.
++
+ config DVB_LNBP21
+ 	tristate "LNBP21/LNBH24 SEC controllers"
+ 	depends on DVB_CORE && I2C
+diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+index 0b19c10..06a0d21 100644
+--- a/drivers/media/dvb-frontends/Makefile
++++ b/drivers/media/dvb-frontends/Makefile
+@@ -56,6 +56,7 @@ obj-$(CONFIG_DVB_LGDT330X) += lgdt330x.o
+ obj-$(CONFIG_DVB_LGDT3305) += lgdt3305.o
+ obj-$(CONFIG_DVB_LG2160) += lg2160.o
+ obj-$(CONFIG_DVB_CX24123) += cx24123.o
++obj-$(CONFIG_DVB_LNBH25) += lnbh25.o
+ obj-$(CONFIG_DVB_LNBP21) += lnbp21.o
+ obj-$(CONFIG_DVB_LNBP22) += lnbp22.o
+ obj-$(CONFIG_DVB_ISL6405) += isl6405.o
+diff --git a/drivers/media/dvb-frontends/lnbh25.c b/drivers/media/dvb-frontends/lnbh25.c
+new file mode 100644
+index 0000000..e44a088
+--- /dev/null
++++ b/drivers/media/dvb-frontends/lnbh25.c
+@@ -0,0 +1,192 @@
++/*
++ * lnbh25.c
++ *
++ * Driver for LNB supply and control IC LNBH25
++ *
++ * Copyright (C) 2014 NetUP Inc.
++ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
++ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++
++#include "dvb_frontend.h"
++#include "lnbh25.h"
++
++/**
++ * struct lnbh25_priv - LNBH25 driver private data
++ * @i2c:		pointer to the I2C adapter structure
++ * @i2c_address:	I2C address of LNBH25 SEC chip
++ * @config:		Registers configuration:
++ *			offset 0: 1st register address, always 0x02 (DATA1)
++ *			offset 1: DATA1 register value
++ *			offset 2: DATA2 register value
++ */
++struct lnbh25_priv {
++	struct i2c_adapter	*i2c;
++	u8			i2c_address;
++	u8			config[3];
++};
++
++#define LNBH25_STATUS_OFL	0x1
++#define LNBH25_STATUS_VMON	0x4
++#define LNBH25_VSEL_13		0x03
++#define LNBH25_VSEL_18		0x0a
++
++static int lnbh25_read_vmon(struct lnbh25_priv *priv)
++{
++	int i, ret;
++	u8 addr = 0x00;
++	u8 status[6];
++	struct i2c_msg msg[2] = {
++		{
++			.addr = priv->i2c_address,
++			.flags = 0,
++			.len = 1,
++			.buf = &addr
++		}, {
++			.addr = priv->i2c_address,
++			.flags = I2C_M_RD,
++			.len = sizeof(status),
++			.buf = status
++		}
++	};
++
++	for (i = 0; i < 2; i++) {
++		ret = i2c_transfer(priv->i2c, &msg[i], 1);
++		if (ret >= 0 && ret != 1)
++			ret = -EIO;
++		if (ret < 0) {
++			dev_dbg(&priv->i2c->dev,
++				"%s(): I2C transfer %d failed (%d)\n",
++				__func__, i, ret);
++			return ret;
++		}
++	}
++#if defined(CONFIG_DYNAMIC_DEBUG)
++	dynamic_hex_dump("lnbh25_read_vmon: ", DUMP_PREFIX_OFFSET,
++		16, 1, status, sizeof(status), false);
++#endif
++
++	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0) {
++		dev_err(&priv->i2c->dev,
++			"%s(): voltage in failure state, status reg 0x%x\n",
++			__func__, status[0]);
++		return -EIO;
++	}
++	return 0;
++}
++
++static int lnbh25_set_voltage(struct dvb_frontend *fe,
++			      fe_sec_voltage_t voltage)
++{
++	int ret;
++	u8 data1_reg;
++	const char *vsel;
++	struct lnbh25_priv *priv = fe->sec_priv;
++	struct i2c_msg msg = {
++		.addr = priv->i2c_address,
++		.flags = 0,
++		.len = sizeof(priv->config),
++		.buf = priv->config
++	};
++
++	switch (voltage) {
++	case SEC_VOLTAGE_OFF:
++		data1_reg = 0x00;
++		vsel = "Off";
++		break;
++	case SEC_VOLTAGE_13:
++		data1_reg = LNBH25_VSEL_13;
++		vsel = "13V";
++		break;
++	case SEC_VOLTAGE_18:
++		data1_reg = LNBH25_VSEL_18;
++		vsel = "18V";
++		break;
++	default:
++		return -EINVAL;
++	}
++	priv->config[1] = data1_reg;
++	dev_dbg(&priv->i2c->dev,
++		"%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
++		__func__, vsel, priv->i2c_address,
++		priv->config[0], priv->config[1], priv->config[2]);
++	ret = i2c_transfer(priv->i2c, &msg, 1);
++	if (ret >= 0 && ret != 1)
++		ret = -EIO;
++	if (ret < 0) {
++		dev_err(&priv->i2c->dev, "%s(): I2C transfer error (%d)\n",
++			__func__, ret);
++		return ret;
++	}
++	if (voltage != SEC_VOLTAGE_OFF) {
++		msleep(120);
++		ret = lnbh25_read_vmon(priv);
++	} else {
++		msleep(20);
++		ret = 0;
++	}
++	return ret;
++}
++
++static void lnbh25_release(struct dvb_frontend *fe)
++{
++	struct lnbh25_priv *priv = fe->sec_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF);
++	kfree(fe->sec_priv);
++	fe->sec_priv = NULL;
++}
++
++struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
++				   struct lnbh25_config *cfg,
++				   struct i2c_adapter *i2c)
++{
++	struct lnbh25_priv *priv;
++
++	dev_dbg(&i2c->dev, "%s()\n", __func__);
++	priv = kzalloc(sizeof(struct lnbh25_priv), GFP_KERNEL);
++	if (!priv)
++		return NULL;
++	priv->i2c_address = (cfg->i2c_address >> 1);
++	priv->i2c = i2c;
++	priv->config[0] = 0x02;
++	priv->config[1] = 0x00;
++	priv->config[2] = cfg->data2_config;
++	fe->sec_priv = priv;
++	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF)) {
++		dev_err(&i2c->dev,
++			"%s(): no LNBH25 found at I2C addr 0x%02x\n",
++			__func__, priv->i2c_address);
++		kfree(priv);
++		fe->sec_priv = NULL;
++		return NULL;
++	}
++
++	fe->ops.release_sec = lnbh25_release;
++	fe->ops.set_voltage = lnbh25_set_voltage;
++
++	dev_err(&i2c->dev, "%s(): attached at I2C addr 0x%02x\n",
++		__func__, priv->i2c_address);
++	return fe;
++}
++EXPORT_SYMBOL(lnbh25_attach);
++
++MODULE_DESCRIPTION("ST LNBH25 driver");
++MODULE_AUTHOR("info@netup.ru");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/lnbh25.h b/drivers/media/dvb-frontends/lnbh25.h
+new file mode 100644
+index 0000000..7fc5123
+--- /dev/null
++++ b/drivers/media/dvb-frontends/lnbh25.h
+@@ -0,0 +1,56 @@
++/*
++ * lnbh25.c
++ *
++ * Driver for LNB supply and control IC LNBH25
++ *
++ * Copyright (C) 2014 NetUP Inc.
++ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
++ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef LNBH25_H
++#define LNBH25_H
++
++#include <linux/i2c.h>
++#include <linux/kconfig.h>
++#include <linux/dvb/frontend.h>
++
++/* 22 kHz tone enabled. Tone output controlled by DSQIN pin */
++#define	LNBH25_TEN	0x01
++/* Low power mode activated (used only with 22 kHz tone output disabled) */
++#define LNBH25_LPM	0x02
++/* DSQIN input pin is set to receive external 22 kHz TTL signal source */
++#define LNBH25_EXTM	0x04
++
++struct lnbh25_config {
++	u8	i2c_address;
++	u8	data2_config;
++};
++
++#if IS_ENABLED(CONFIG_DVB_LNBH25)
++struct dvb_frontend *lnbh25_attach(
++	struct dvb_frontend *fe,
++	struct lnbh25_config *cfg,
++	struct i2c_adapter *i2c);
++#else
++static inline dvb_frontend *lnbh25_attach(
++	struct dvb_frontend *fe,
++	struct lnbh25_config *cfg,
++	struct i2c_adapter *i2c)
++{
++	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	return NULL;
++}
++#endif
++
++#endif
 -- 
-1.9.1
+1.7.10.4
 
