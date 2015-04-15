@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44326 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752657AbbD0HaI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 03:30:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mout.gmx.net ([212.227.17.22]:54410 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755074AbbDOUJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 16:09:10 -0400
+Date: Wed, 15 Apr 2015 22:08:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 2/5] s3c-camif: fix compiler warnings
-Date: Mon, 27 Apr 2015 09:29:52 +0200
-Message-Id: <1430119795-16527-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/7] v4l2: replace enum_mbus_fmt by enum_mbus_code
+In-Reply-To: <1428574888-46407-2-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1504152204330.32631@axis700.grange>
+References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl>
+ <1428574888-46407-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 9 Apr 2015, Hans Verkuil wrote:
 
-Fix these compiler warnings that appeared after switching to gcc-5.1.0:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Replace all calls to the enum_mbus_fmt video op by the pad
+> enum_mbus_code op and remove the duplicate video op.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> ---
 
-drivers/media/platform/s3c-camif/camif-capture.c: In function 'sensor_set_power':
-drivers/media/platform/s3c-camif/camif-capture.c:118:10: warning: logical not is only applied to the left hand side of comparison [-Wlogical-not-parentheses]
-  if (!on == camif->sensor.power_count)
-          ^
-drivers/media/platform/s3c-camif/camif-capture.c: In function 'sensor_set_streaming':
-drivers/media/platform/s3c-camif/camif-capture.c:134:10: warning: logical not is only applied to the left hand side of comparison [-Wlogical-not-parentheses]
-  if (!on == camif->sensor.stream_count)
-          ^
+[snip]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/s3c-camif/camif-capture.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+> index 441e0fd..ef8682c 100644
+> --- a/drivers/media/i2c/soc_camera/mt9m111.c
+> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
+> @@ -839,13 +839,14 @@ static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
+>  #endif
+>  };
+>  
+> -static int mt9m111_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+> -			    u32 *code)
+> +static int mt9m111_enum_mbus_code(struct v4l2_subdev *sd,
+> +		struct v4l2_subdev_pad_config *cfg,
+> +		struct v4l2_subdev_mbus_code_enum *code)
+>  {
+> -	if (index >= ARRAY_SIZE(mt9m111_colour_fmts))
+> +	if (code->code || code->index >= ARRAY_SIZE(mt9m111_colour_fmts))
 
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index f6a61b9..db4d7d2 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -115,7 +115,7 @@ static int sensor_set_power(struct camif_dev *camif, int on)
- 	struct cam_sensor *sensor = &camif->sensor;
- 	int err = 0;
- 
--	if (!on == camif->sensor.power_count)
-+	if (camif->sensor.power_count == !on)
- 		err = v4l2_subdev_call(sensor->sd, core, s_power, on);
- 	if (!err)
- 		sensor->power_count += on ? 1 : -1;
-@@ -131,7 +131,7 @@ static int sensor_set_streaming(struct camif_dev *camif, int on)
- 	struct cam_sensor *sensor = &camif->sensor;
- 	int err = 0;
- 
--	if (!on == camif->sensor.stream_count)
-+	if (camif->sensor.stream_count == !on)
- 		err = v4l2_subdev_call(sensor->sd, video, s_stream, on);
- 	if (!err)
- 		sensor->stream_count += on ? 1 : -1;
--- 
-2.1.4
+Didn't you mean 
 
++	if (code->pad || code->index >= ARRAY_SIZE(mt9m111_colour_fmts))
+
+?
+
+>  		return -EINVAL;
+>  
+> -	*code = mt9m111_colour_fmts[index].code;
+> +	code->code = mt9m111_colour_fmts[code->index].code;
+>  	return 0;
+>  }
+>  
+> @@ -871,13 +872,17 @@ static struct v4l2_subdev_video_ops mt9m111_subdev_video_ops = {
+>  	.s_crop		= mt9m111_s_crop,
+>  	.g_crop		= mt9m111_g_crop,
+>  	.cropcap	= mt9m111_cropcap,
+> -	.enum_mbus_fmt	= mt9m111_enum_fmt,
+>  	.g_mbus_config	= mt9m111_g_mbus_config,
+>  };
+>  
+> +static const struct v4l2_subdev_pad_ops mt9m111_subdev_pad_ops = {
+> +	.enum_mbus_code = mt9m111_enum_mbus_code,
+> +};
+> +
+>  static struct v4l2_subdev_ops mt9m111_subdev_ops = {
+>  	.core	= &mt9m111_subdev_core_ops,
+>  	.video	= &mt9m111_subdev_video_ops,
+> +	.pad	= &mt9m111_subdev_pad_ops,
+>  };
+>  
+>  /*
+
+[snip]
+
+Apart from that for soc-camera:
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
