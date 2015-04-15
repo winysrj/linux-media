@@ -1,131 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:34238 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756931AbbDVP72 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 11:59:28 -0400
-MIME-Version: 1.0
-In-Reply-To: <20150422155446.GF5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de> <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de> <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de> <20150422155446.GF5622@wotan.suse.de>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Wed, 22 Apr 2015 08:59:07 -0700
-Message-ID: <CAB=NE6UAhw4777mFsQtT5NLdKc-BQDwwZBZpphYOymWuajTZxA@mail.gmail.com>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Cc: Andy Lutomirski <luto@amacapital.net>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Mike Marciniszyn <infinipath@intel.com>,
-	linux-rdma@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>,
+Received: from cantor2.suse.de ([195.135.220.15]:54149 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756238AbbDOWPX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 18:15:23 -0400
+Date: Thu, 16 Apr 2015 00:15:17 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Andy Lutomirski <luto@amacapital.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>,
 	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	Hal Rosenstock <hal.rosenstock@gmail.com>,
 	Sean Hefty <sean.hefty@intel.com>,
 	Suresh Siddha <sbsiddha@gmail.com>,
 	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
 	Roland Dreier <roland@purestorage.com>,
 	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
 	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
 	Vlastimil Babka <vbabka@suse.cz>,
 	Davidlohr Bueso <dbueso@suse.de>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
 	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
-	"Ville Syrj?l?" <syrjala@sci.fi>,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
 	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Content-Type: text/plain; charset=UTF-8
+	X86 ML <x86@kernel.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150415221517.GF5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 8:54 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
->> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
->> > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
->> > > > Mike, do you think the time is right to just remove the iPath driver?
->> > >
->> > > With PAT now being default the driver effectively won't work
->> > > with write-combining on modern kernels. Even if systems are old
->> > > they likely had PAT support, when upgrading kernels PAT will work
->> > > but write-combing won't on ipath.
->> >
->> > Sorry, do you mean the driver already doesn't get WC? Or do you mean
->> > after some more pending patches are applied?
->>
->> No, you have to consider the system used and the effects of calls used
->> on the driver in light of this table:
->>
->> ----------------------------------------------------------------------
->> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
->> ----------------------------------------------------------------------
->>                                                   Non-PAT |  PAT
->>      PAT
->>      |PCD
->>      ||PWT
->>      |||
->> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
->> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
->> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
->> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
->> ----------------------------------------------------------------------
->>
->> (*) denotes implementation defined and is discouraged
->>
->> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
->> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
->> the default. When that flip occurs it will mean ipath cannot get
->> write-combining on both non-PAT and PAT systems. Now that is for
->> the future, lets review the current situation for ipath.
->>
->> For PAT capable systems if mtrr_add() is used today on a Linux system on a
->> region mapped with ioremap_nocache() that will mean you effectively nullify the
->> mtrr_add() effect as the combinatorial effect above yields an effective memory
->> type of UC.  For PAT systems you want to use ioremap_wc() on the region in
->> which you need write-combining followed by arch_phys_wc_add() which will *only*
->> call mtrr_add() *iff* PAT was not enabled. This also means we need to split
->> the ioremap'd areas so that the area that is using ioremap_nocache() can never
->> get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
->> split just as was done for the qib driver.
->>
->> Now we could just say that leaving things as-is is a non-issue if you are OK
->> with non-write-combining effects being the default behaviour left on the ipath
->> driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
->> driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
->> have any effect. We just typically don't want to see use of ioremap_nocache()
->> paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
->> ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
->> on non-PAT systems. If the ipath driver is not going to get he work required
->> to split the regions though perhaps we can live with a corner case driver that
->> annotates PAT must be disabled on the systems that use it and convert it to
->> arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
->> With this strategy if and when ipath driver gets a split done it would gain WC
->> on both PAT and non-PAT.
->
-> Folks, after some thought I do believe the above temporary strategy would
-> avoid issues and would not have to stir people up to go and make code
-> changes. We can use the same strategy for both ivtv and ipath:
->
->   * Annotate via Kconfig for the driver that it depends on !X86_PAT
->     that will ensure that PAT systems won't use it, and convert it
->     to use arch_phys_wc_add() to help phase out direct access to mtrr_add()
->
-> This would be correct given that the current situation on the driver
-> makes write-combining non-effective on PAT systems, we in fact gain
-> avoiding these type of use-cases, and annotate this as a big TODO item
-> for folks who do want it for PAT systems.
->
-> Thoughts?
+On Wed, Apr 15, 2015 at 01:42:47PM -0700, Andy Lutomirski wrote:
+> On Mon, Apr 13, 2015 at 10:49 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> 
+> > c) ivtv: the driver does not have the PCI space mapped out separately, and
+> > in fact it actually does not do the math for the framebuffer, instead it lets
+> > the device's own CPU do that and assume where its at, see
+> > ivtvfb_get_framebuffer() and CX2341X_OSD_GET_FRAMEBUFFER, it has a get
+> > but not a setter. Its not clear if the firmware would make a split easy.
+> > We'd need ioremap_ucminus() here too and __arch_phys_wc_add().
+> >
+> 
+> IMO this should be conceptually easy to split.  Once we get the
+> framebuffer address, just unmap it (or don't prematurely map it) and
+> then ioremap the thing.
 
-Another option in order to enable this type of checks at run time and
-still be able to build the driver on standard distributions and just
-prevent if from loading on PAT systems is to have some code in place
-which would prevent the driver from loading if PAT was enabled, this
-would enable folks to disable PAT via a kernel command line option,
-and if that was used then the driver probe would complete.
+The driver has split code for handling framebuffer devices, the framebuffer
+base address will also vary depending on the type of device it has, for
+some its on the encoder, for others its on the decoder. We'd have to account
+for the removal of the framebuffer on either of those regions, and would also
+need some vetting that the driver doesn't use areas beyond that for MMIO.
+Using the trick you suggest though we could overlap ioremap calls and if that
+truly works on PAT and non-PAT adding a new ioremap_wc() could do the trick,
+I'd appreciate a Tested-by or Acked-by to be done with this. Mauro, any chance
+we can get a tested-by of ivtvfb for both non-PAT and PAT systems with this:
+
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 9ff1230..1838738 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -44,10 +44,6 @@
+ #include <linux/ivtvfb.h>
+ #include <linux/slab.h>
+ 
+-#ifdef CONFIG_MTRR
+-#include <asm/mtrr.h>
+-#endif
+-
+ #include "ivtv-driver.h"
+ #include "ivtv-cards.h"
+ #include "ivtv-i2c.h"
+@@ -155,12 +151,11 @@ struct osd_info {
+ 	/* Buffer size */
+ 	u32 video_buffer_size;
+ 
+-#ifdef CONFIG_MTRR
+ 	/* video_base rounded down as required by hardware MTRRs */
+ 	unsigned long fb_start_aligned_physaddr;
+ 	/* video_base rounded up as required by hardware MTRRs */
+ 	unsigned long fb_end_aligned_physaddr;
+-#endif
++	int wc_cookie;
+ 
+ 	/* Store the buffer offset */
+ 	int set_osd_coords_x;
+@@ -1099,6 +1094,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
+ static int ivtvfb_init_io(struct ivtv *itv)
+ {
+ 	struct osd_info *oi = itv->osd_info;
++	/* Find the largest power of two that maps the whole buffer */
++	int size_shift = 31;
+ 
+ 	mutex_lock(&itv->serialize_lock);
+ 	if (ivtv_init_on_first_open(itv)) {
+@@ -1120,7 +1117,7 @@ static int ivtvfb_init_io(struct ivtv *itv)
+ 	oi->video_buffer_size = 1704960;
+ 
+ 	oi->video_pbase = itv->base_addr + IVTV_DECODER_OFFSET + oi->video_rbase;
+-	oi->video_vbase = itv->dec_mem + oi->video_rbase;
++	oi->video_vbase = ioremap_wc(oi->video_pbase, oi->video_buffer_size);
+ 
+ 	if (!oi->video_vbase) {
+ 		IVTVFB_ERR("abort, video memory 0x%x @ 0x%lx isn't mapped!\n",
+@@ -1132,29 +1129,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
+ 			oi->video_pbase, oi->video_vbase,
+ 			oi->video_buffer_size / 1024);
+ 
+-#ifdef CONFIG_MTRR
+-	{
+-		/* Find the largest power of two that maps the whole buffer */
+-		int size_shift = 31;
+-
+-		while (!(oi->video_buffer_size & (1 << size_shift))) {
+-			size_shift--;
+-		}
+-		size_shift++;
+-		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
+-		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
+-		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
+-		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
+-		if (mtrr_add(oi->fb_start_aligned_physaddr,
+-			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
+-			     MTRR_TYPE_WRCOMB, 1) < 0) {
+-			IVTVFB_INFO("disabled mttr\n");
+-			oi->fb_start_aligned_physaddr = 0;
+-			oi->fb_end_aligned_physaddr = 0;
+-		}
+-	}
+-#endif
+-
++	while (!(oi->video_buffer_size & (1 << size_shift)))
++		size_shift--;
++	size_shift++;
++	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
++	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
++	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
++	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
++	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
++					 oi->fb_end_aligned_physaddr -
++					 oi->fb_start_aligned_physaddr);
+ 	/* Blank the entire osd. */
+ 	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
+ 
+@@ -1172,14 +1156,8 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
+ 
+ 	/* Release pseudo palette */
+ 	kfree(oi->ivtvfb_info.pseudo_palette);
+-
+-#ifdef CONFIG_MTRR
+-	if (oi->fb_end_aligned_physaddr) {
+-		mtrr_del(-1, oi->fb_start_aligned_physaddr,
+-			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
+-	}
+-#endif
+-
++	iounmap(oi->video_vbase);
++	arch_phys_wc_del(oi->wc_cookie);
+ 	kfree(oi);
+ 	itv->osd_info = NULL;
+ }
+
+> 
+> > From the beginning it seems only framebuffer devices used MTRR/WC, lately it
+> > seems infiniband drivers also find good use for for it for PIO TX buffers to
+> > blast some sort of data, in the future I would not be surprised if other
+> > devices found use for it.
+> 
+> IMO the Infiniband maintainers should fix their code.  Especially in
+> the server space, there aren't that many MTRRs to go around.  I wrote
+> arch_phys_wc_add in the first place because my server *ran out of
+> MTRRs*.
+> 
+> Hey, IB people: can you fix your drivers to use arch_phys_wc_add
+> (which is permitted to be a no-op) along with ioremap_wc?  Your users
+> will thank you.
+
+Provided the above ivtv driver changes are OK this would be the *last* and only
+driver required to be changed.
+
+> > It may be true that the existing drivers that
+> > requires the above type of work are corner cases -- but I wouldn't hold my
+> > breath for that. The ivtv device is a good example of the worst type of
+> > situations and these days. So perhap __arch_phys_wc_add() and a
+> > ioremap_ucminus() might be something more than transient unless hardware folks
+> > get a good memo or already know how to just Do The Right Thing (TM).
+> 
+> I disagree.  We should try to NACK any new code that can't function
+> without MTRRs.
+> 
+> (Plus, ARM is growing in popularity in the server space, and ARM quite
+> sensibly doesn't have MTRRs.)
+
+Great, happy with this, but we need to address the last few drivers and their
+exisitng code then.
 
  Luis
