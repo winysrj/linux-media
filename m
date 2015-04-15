@@ -1,149 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:50917 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752134AbbDCKLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 06:11:32 -0400
-Date: Fri, 3 Apr 2015 11:11:30 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
-Message-ID: <20150403101129.GA568@gofer.mess.org>
-References: <cover.1426801061.git.sean@mess.org>
- <20150330211819.GA18426@hardeman.nu>
- <20150331204716.6795177d@concha.lan>
- <20150401221941.GC4721@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150401221941.GC4721@hardeman.nu>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52655 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751373AbbDPAxr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 20:53:47 -0400
+Message-ID: <1429142387.1899.57.camel@palomino.walls.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+From: Andy Walls <awalls@md.metrocast.net>
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
+Date: Wed, 15 Apr 2015 19:59:47 -0400
+In-Reply-To: <CALCETrUFtEMYh8i00ke0f939=17bAQxMDOBZMn_3yk3Nz1AnFA@mail.gmail.com>
+References: <20150410171750.GA5622@wotan.suse.de>
+	 <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
+	 <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+	 <1428695379.6646.69.camel@misato.fc.hp.com>
+	 <20150410210538.GB5622@wotan.suse.de>
+	 <1428699490.21794.5.camel@misato.fc.hp.com>
+	 <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+	 <20150411012938.GC5622@wotan.suse.de>
+	 <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+	 <20150413174938.GE5622@wotan.suse.de>
+	 <1429137531.1899.28.camel@palomino.walls.org>
+	 <CALCETrUFtEMYh8i00ke0f939=17bAQxMDOBZMn_3yk3Nz1AnFA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 02, 2015 at 12:19:41AM +0200, David Härdeman wrote:
-> On Tue, Mar 31, 2015 at 08:47:16PM -0300, Mauro Carvalho Chehab wrote:
-> >Em Mon, 30 Mar 2015 23:18:19 +0200
-> >David Härdeman <david@hardeman.nu> escreveu:
-> >> And on a much more general level...I still think we should start from
-> >> scratch with a rc specific chardev with it's own API that is generic
-> >> enough to cover both scancode / raw ir / future / other protocols (not
-> >> that such an undertaking would preclude adding stuff to the lirc API of
-> >> course).
+On Wed, 2015-04-15 at 16:42 -0700, Andy Lutomirski wrote:
+> On Wed, Apr 15, 2015 at 3:38 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+
 > >
-> >Starting from scratch sounds a bad idea. We don't do that on Linux,
-> >except when we really screwed everything very badly.
 > 
-> LIRC...IR specific....rc-core....not IR specific...and the lirc IOCTL
-> API is pretty badly screwed. Have you had a closer look at it?
-
-LIRC is IR specific, yes. If something else comes along we can think
-about something new, but not before that.
-
-> I'm not saying we should throw away the lirc module/device, it'll have
-> to stay around for a long time. But we should design a v2.
-
-What is wrong with lirc that requires a redesign?
-
-> If you've looked at my patches the idea is basically:
+> IMO the right solution would be to avoid ioremapping the whole bar at
+> startup.  Instead ioremap pieces once the driver learns what they are.
+> This wouldn't have any of these problems -- you'd ioremap() register
+> regions and you'd ioremap_wc() the framebuffer once you find it.  If
+> there are regions of unknown purpose, just don't map them all.
 > 
-> RC device is plugged in, /dev/rc/rc0 is created by udev
-> 
-> Applications wishing to muck about with RC devices do:
-> 
-> 	int fd;
-> 	int ver;
-> 	int type;
-> 
-> 	fd = open("/dev/rc/rc0")
-> 
-> 	ver = ioctl(fd, RCIOCGVERSION);
-> 	if (ver != 1)
-> 		warn("New RC API version");
-> 
-> 	type = ioctl(fd, RCIOCGVERSION);
+> Would this be feasible?
 
-lirc uses feature bits. As we know from filesystems features are much
-better than versioning. I'm sure there are other examples.
+Feasible? Maybe.
 
-> 	switch (type) {
-> 	case RC_DRIVER_SCANCODE:
-> 		debug("Scancode hardware");
-> 		break;
-> 	case RC_DRIVER_IR_RAW:
-> 		debug("Raw IR hardware");
-> 		break;
-> 	default:
-> 		debug("Unknown hardware type");
-> 		break;
-> 	}
-
-lirc_zilog can send both raw IR and scancodes (although I don't know how
-to do raw IR yet). So with lirc you would do:
-
-	unsigned features;
-
-	ioctl(fd, LIRC_GET_FEATURES, &features);
-
-	if (features & LIRC_CAN_SEND_MODE2) 
-		// can send raw IR
-
-	if (features & LIRC_CAN_SEND_SCANCODE) // needs my patches
-		// can send scancodes
+Worth the time and effort for end-of-life, convential PCI hardware so I
+can have an optimally performing X display on a Standard Def Analog TV
+screen?   Nope. I don't have that level of nostalgia.
 
 
-> And then they can do further operations depending on the type of the
-> device. For example, for raw IR devices you can read() raw IR
-> pulse/space timings or (if the hardware supports TX) write() raw IR
-> timings.
-> 
-> Other examples of ioctls are (all four work using structs with all the
-> relevant parameters):
-> 
-> * RCIOCSIRRX
-> 	set all RX parameters in one go (and return the result since
-> 	the exact values requested might not be supported)
+We sort of know where some things are in the MMIO space due to
+experimentation and past efforts examining the firmware binary.
 
-Putting everything in one big struct isn't really future-proof, and it
-doesn't tell you which parts are supported by the hardware.
+Documentation/video4linux/cx2341x/fw-*.txt documents some things.  The
+driver code actually codifies a little bit more knowledge.
 
-> * RCIOCSIRTX
-> 	same as RCIOCSIRRX but for TX
+The driver code for doing transfers between host and card is complex and
+fragile with some streams that use DMA, other streams that use PIO,
+digging VBI data straight out of card memory, and scatter-gather being
+broken on newer firmwares.  Playing around with ioremapping will be hard
+to get right and likely cause something in the code to break for the
+primary use case of the ivtv supported cards. 
 
-That would have to be a different struct for RX and TX.
-
-RX is different from TX. You want to set a carrier range for RX, and 
-a specific carrier for TX. You want a duty cycle for TX but not for RX,
-carrier reports for RX but that makes no sense for TX.
-
-> * RCIOCGIRRX
-> 	get all RX parameters
-> * RCIOCGIRTX
-> 	get all TX parameters
-> 
-> These ioctls only work with RC_DRIVER_IR_RAW hardware. Others can be
-> defined for other kinds of hardware.
-
-The cec patches going round at the moment create their own character 
-devices. rc-core is only a side note in that system; IR and CEC are
-so widely different it doesn't really make sense to share character
-devices.
-
-> Then there's one more thing, and that's multiple keytables per rc
-> device. Each keytable has one associated input device (so there's a
-> 1-to-N mapping between rc devices and input devices). Userspace can
-> create/destroy additional keytables and add/remove scancode<->keycode
-> mappings per keytable. The idea is that you'd be able to e.g. define one
-> keytable per physical remote control (the thing you hold in your hand,
-> not the receiver/transmitter), and each would get its own input device.
-> Those input devices can then be used by different applications (so you
-> could have that old VCR remote control the PVR software while the TV
-> remote controls your Kodi frontend). An idea I borrowed from Jon Smirl
-> (who posted a similar proof-of-concept based on debugfs back in the
-> days).
-
-That would be very nice thing to have, but that is a separate from this.
+Regards,
+Andy
 
 
-Sean
