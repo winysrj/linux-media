@@ -1,67 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:41005 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320AbbDGMmm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 08:42:42 -0400
-Date: Tue, 7 Apr 2015 13:42:25 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	alsa-devel@alsa-project.org, linux-sh@vger.kernel.org,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias()
- prototype in linux/clk.h
-Message-ID: <20150407124225.GI4027@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
- <E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk>
- <87lhi8rrmd.fsf@free.fr>
- <5522D8B5.7050205@codeaurora.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5522D8B5.7050205@codeaurora.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:54337 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752289AbbDOOHz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 10:07:55 -0400
+Message-id: <552E70B5.1060406@samsung.com>
+Date: Wed, 15 Apr 2015 16:07:49 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v5 03/10] leds: Add support for max77693 mfd flash cell
+References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+ <1429080520-10687-4-git-send-email-j.anaszewski@samsung.com>
+ <20150415093007.GG27451@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150415093007.GG27451@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 06, 2015 at 12:04:21PM -0700, Stephen Boyd wrote:
-> On 04/04/15 05:43, Robert Jarzmik wrote:
-> > Russell King <rmk+kernel@arm.linux.org.uk> writes:
-> >
-> >> clk_add_alias() is provided by clkdev, and is not part of the clk API.
-> >> Howver, it is prototyped in two locations: linux/clkdev.h and
-> >> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
-> >> version in linux/clk.h.
-> >>
-> >> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> >
-> > Actually, this serie fixes a regression I've seen in linux-next, and which was
-> > triggering the Oops in [1] on lubbock. With your serie, the kernel boots fine.
-> >
-> >
-> 
-> Is this with the lubbock_defconfig? Is it a regression in 4.0-rc series
-> or is it due to some pending -next patches interacting with the per-user
-> clock patches? It looks like the latter because __clk_get_hw() should be
-> inlined on lubbock_defconfig where CONFIG_COMMON_CLK=n.
+Hi Sakari,
 
-It's a regression with anything that uses clk_add_alias() or which
-open codes the aliasing of clocks, or registration of clocks into
-clkdev.  It's quite nasty.
+Thanks for the review.
 
-The problem is that the way you updated clkdev, by adding __clk_get_hw()
-at clk_get() time, the struct clk which we're passing in there could
-well have been already clk_put()'d, and therefore freed, and no longer
-valid.
+On 04/15/2015 11:30 AM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Wed, Apr 15, 2015 at 08:48:33AM +0200, Jacek Anaszewski wrote:
+> ...
+>> +static int max77693_led_parse_dt(struct max77693_led_device *led,
+>> +				struct max77693_led_config_data *cfg)
+>> +{
+>> +	struct device *dev = &led->pdev->dev;
+>> +	struct max77693_sub_led *sub_leds = led->sub_leds;
+>> +	struct device_node *node = dev->of_node, *child_node;
+>> +	struct property *prop;
+>> +	u32 led_sources[2];
+>> +	int i, ret, fled_id;
+>> +
+>> +	of_property_read_u32(node, "maxim,boost-mode", &cfg->boost_mode);
+>> +	of_property_read_u32(node, "maxim,boost-mvout", &cfg->boost_vout);
+>> +	of_property_read_u32(node, "maxim,mvsys-min", &cfg->low_vsys);
+>> +
+>> +	for_each_available_child_of_node(node, child_node) {
+>> +		prop = of_find_property(child_node, "led-sources", NULL);
+>> +		if (prop) {
+>> +			const __be32 *srcs = NULL;
+>> +
+>> +			for (i = 0; i < ARRAY_SIZE(led_sources); ++i) {
+>> +				srcs = of_prop_next_u32(prop, srcs,
+>> +							&led_sources[i]);
+>> +				if (!srcs)
+>> +					break;
+>> +			}
+>> +		} else {
+>> +			dev_err(dev,
+>> +				"led-sources DT property missing\n");
+>> +			return -EINVAL;
+>
+> If you exit the loop in the middle, I think you'll need to do
+> of_node_put(child_node) first.
 
-It's a regression ever since the per-user clk patches went in, caused
-_entirely_ by those patches.
+Not all drivers seem to stick to this, but I checked and this is
+indeed required. Not intuitive though.
+
+>> +		}
+>> +
+>> +		if (i == 2) {
+>> +			fled_id = FLED1;
+>> +			led->fled_mask = FLED1_IOUT | FLED2_IOUT;
+>> +		} else if (led_sources[0] == FLED1) {
+>> +			fled_id = FLED1;
+>> +			led->fled_mask |= FLED1_IOUT;
+>> +		} else if (led_sources[0] == FLED2) {
+>> +			fled_id = FLED2;
+>> +			led->fled_mask |= FLED2_IOUT;
+>> +		} else {
+>> +			dev_err(dev,
+>> +				"Wrong led-sources DT property value.\n");
+>> +			return -EINVAL;
+>
+> Same here.
+>
+>> +		}
+>> +
+>> +		sub_leds[fled_id].fled_id = fled_id;
+>> +
+>> +		cfg->label[fled_id] =
+>> +			of_get_property(child_node, "label", NULL) ? :
+>> +						child_node->name;
+>
+> I think you should copy the string here, or keep a reference to child_node.
+
+Many led drivers does the same. I am wondering whether this is a bug.
+
+> of_property_read_string() might be useful.
+>
+>> +
+>> +		ret = of_property_read_u32(child_node, "led-max-microamp",
+>> +					&cfg->iout_torch_max[fled_id]);
+>> +		if (ret < 0) {
+>> +			cfg->iout_torch_max[fled_id] = TORCH_IOUT_MIN;
+>> +			dev_warn(dev, "led-max-microamp DT property missing\n");
+>> +		}
+>> +
+>> +		ret = of_property_read_u32(child_node, "flash-max-microamp",
+>> +					&cfg->iout_flash_max[fled_id]);
+>> +		if (ret < 0) {
+>> +			cfg->iout_flash_max[fled_id] = FLASH_IOUT_MIN;
+>> +			dev_warn(dev,
+>> +				 "flash-max-microamp DT property missing\n");
+>> +		}
+>> +
+>> +		ret = of_property_read_u32(child_node, "flash-max-timeout-us",
+>> +					&cfg->flash_timeout_max[fled_id]);
+>> +		if (ret < 0) {
+>> +			cfg->flash_timeout_max[fled_id] = FLASH_TIMEOUT_MIN;
+>> +			dev_warn(dev,
+>> +				 "flash-max-timeout-us DT property missing\n");
+>> +		}
+>> +
+>> +		if (++cfg->num_leds == 2 ||
+>> +		    (max77693_fled_used(led, FLED1) &&
+>> +		     max77693_fled_used(led, FLED2)))
+>
+> of_node_put(child_node);
+>
+>> +			break;
+>> +	}
+>> +
+>> +	if (cfg->num_leds == 0) {
+>> +		dev_err(dev, "No DT child node found for connected LED(s).\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return 0;
+>
+> With these matters addressed,
+>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+
 
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+Best Regards,
+Jacek Anaszewski
