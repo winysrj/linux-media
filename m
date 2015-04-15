@@ -1,129 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41122 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752194AbbDWHce (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53147 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756045AbbDOJat (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 03:32:34 -0400
-Message-ID: <55389FA9.6070702@xs4all.nl>
-Date: Thu, 23 Apr 2015 09:30:49 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 15 Apr 2015 05:30:49 -0400
+Date: Wed, 15 Apr 2015 12:30:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v5 03/10] leds: Add support for max77693 mfd flash cell
+Message-ID: <20150415093007.GG27451@valkosipuli.retiisi.org.uk>
+References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+ <1429080520-10687-4-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	media workshop ML <media-workshop@linuxtv.org>
-Subject: Re: [DRAFT 1] Linux Media Summit report - March, 26 2015 - San Jose
- - CA - USA
-References: <20150422153146.5dd9fce7@recife.lan>
-In-Reply-To: <20150422153146.5dd9fce7@recife.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429080520-10687-4-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/15 20:31, Mauro Carvalho Chehab wrote:
-> This is the first draft for the Linux Media Summit Report.
-> 
-> Please note that the items 3 to 5 are not in good shape. In special,
-> nobody took Etherpad notes on item 4.
+Hi Jacek,
 
-Item 4 was just me presenting on ongoing projects. As far as I remember
-there was no discussion and a link to my presentation would be enough.
-I know I mailed it to you.
+On Wed, Apr 15, 2015 at 08:48:33AM +0200, Jacek Anaszewski wrote:
+...
+> +static int max77693_led_parse_dt(struct max77693_led_device *led,
+> +				struct max77693_led_config_data *cfg)
+> +{
+> +	struct device *dev = &led->pdev->dev;
+> +	struct max77693_sub_led *sub_leds = led->sub_leds;
+> +	struct device_node *node = dev->of_node, *child_node;
+> +	struct property *prop;
+> +	u32 led_sources[2];
+> +	int i, ret, fled_id;
+> +
+> +	of_property_read_u32(node, "maxim,boost-mode", &cfg->boost_mode);
+> +	of_property_read_u32(node, "maxim,boost-mvout", &cfg->boost_vout);
+> +	of_property_read_u32(node, "maxim,mvsys-min", &cfg->low_vsys);
+> +
+> +	for_each_available_child_of_node(node, child_node) {
+> +		prop = of_find_property(child_node, "led-sources", NULL);
+> +		if (prop) {
+> +			const __be32 *srcs = NULL;
+> +
+> +			for (i = 0; i < ARRAY_SIZE(led_sources); ++i) {
+> +				srcs = of_prop_next_u32(prop, srcs,
+> +							&led_sources[i]);
+> +				if (!srcs)
+> +					break;
+> +			}
+> +		} else {
+> +			dev_err(dev,
+> +				"led-sources DT property missing\n");
+> +			return -EINVAL;
 
-> 
-> Please review. I'll publish a second (final?) draft after having some
-> feedback.
-> 
-> Regards,
-> Mauro
-> 
-> -
-> 
-> Linux Media Summit - March, 26 2015 - San Jose - CA - USA
->  
->  
-> Attendees:
-> 
-> 
->     Angelos Manousaridis <amanous@gmail.com>
->     Bob Moragues <bob.moragues@lge.com>
->     Chris Kohn
->     Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->     Hans Verkuil <hverkuil@xs4all.nl>
->     Hyun Kwon
->     Karthik Poduval <karthik.poduval@gmail.com>
->     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->     Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->     Michal Lebik
->     Mohammed CHERIFI mcherifi@cisco.com
->     Rafael Chehab <chehabrafael@gmail.com>
->     Ron Birkett
->     Schuyler Patton
->     Shuah Khan <shuahkh@osg.samsung.com>
-> 
-> 1) Media Controller support for DVB
-> Mauro presented a set of slides (add link) showing how the DVB pipelines look like and underlined that several topics needs to be addressed by the Media controller:
-> 
-> a) dynamic creation/removal of pipelines
-> b) change media_entity_pipeline_start to also define the final entity
-> c) how to setup pipelines that also envolve audio and DRM?
-> d) how to lock the media controller pipeline between enabling a pipeline and starting it, in 
-> 
-> How to do complex pipelines in DVB?
->  
-> - The DVB demux can filter MPEG-TS traffic (either in hardware or in software) and can send multiplexed TS to the dvr node, elementary streams to the demux node and can create network interfaces for elementary streams (ES) via the net node.
-> - a given set of elementary streams can go to one of those three options only, or it can be sent directly to a GPU and/or an ALSA pipeline.
-> - there is support for hardware PID filtering at the Kernel, but no support (yet) for a real hw demuxer that splits the MPEG TS into separate DMA MPEG-TS and/or ES streams.
-> - frontend device node is to be attached to the demod entity and it will control the demod, the tuner and a possible LNA via the active Media Controller links.
-> - dvr/net/demux device nodes are attached to the demux entity.
-> - the net interfaces are not (yet) represented via MC: we need the ability to remove entities dynamically for that, and we are not really sure if we want this at all. So, it as agreed to wait for support for removing entities to arrive, then this need can be discussed again.
-> - For now we can safely assume that there is only one Satellite Equipment Control (SEC) in each active data path that goes through a tuner/demod. So each frontend will control just one SEC.
->   Should we encounter really complex scenarios, then we should consider having device nodes for SEC entities.
-> 
-> It was decided that:
-> - The Satellite Equipment Control (SEC) should be an entity, linking them to the connector
-> - Deprecated osd, teletext, video and audio device nodes are only used in av7110. The av7110 driver uses lots of deprecated stuff, we should move this to staging and deprecate the whole driver and see who starts yelling.
-> - Document the high-level overview of DVB (Mauro). Layout needs to be changed to be in line with the other APIs (Hans?).
-> - Mauro will rename “frontend” entity to “demod” at the Media Controller, as the frontend is actually a set of elements.
-> - Laurent will prepare a proposal of reporting device nodes via a new entity properties API addition
->  
-> 2) Media Tokens
-> 
-> Shuah submitted some RFC Patches: https://git.kernel.org/cgit/linux/kernel/git/shuah/linux.git
-> 
-> - Changes from the previous RFC:
->    - simplified after switching au0828 to vb2
->    - token created by the bridge driver
-> 
-> It was decided that:
-> - Preference for using the Media Controller. That requires that MC support for Alsa is added, the usbaudio driver then needs to find and hook into the MC from the bridge driver.
-> - The RFC patches will help to identify on what places the driver should be touched
-> - Shuag
+If you exit the loop in the middle, I think you'll need to do
+of_node_put(child_node) first.
 
-Shuag -> Shuah :-)
+> +		}
+> +
+> +		if (i == 2) {
+> +			fled_id = FLED1;
+> +			led->fled_mask = FLED1_IOUT | FLED2_IOUT;
+> +		} else if (led_sources[0] == FLED1) {
+> +			fled_id = FLED1;
+> +			led->fled_mask |= FLED1_IOUT;
+> +		} else if (led_sources[0] == FLED2) {
+> +			fled_id = FLED2;
+> +			led->fled_mask |= FLED2_IOUT;
+> +		} else {
+> +			dev_err(dev,
+> +				"Wrong led-sources DT property value.\n");
+> +			return -EINVAL;
 
-> from Samsung is willing to do the changes at ALSA; Rafael is willing to add MC support at au0828/au8522.
-> - Media controler dev (mdev) will have to be created as a dev resource on the parent device to the bridge device similar to media tokens
-> - Need a new media_device_create() interace to allocate it as a device resource. This routine will either return media device if one is created or create it.
-> - Both au0828 and ALSA will first call media_device_create(). Coordinate register/unregister??
->   
-> 3) FPGA/Project ARA: dynamic reconfiguration (http://www.projectara.com/)
-> - partial pipeline removal: controlled removal in the case of FPGA reconfiguration. subdevs/entities will be removed: unsupported today.
-> - no notification in MC when things change: we likely need an event mechanism.
-> - adding entities: doable, might need to add links in a 'pending' state, to be made into a normal link once all streaming is stopped.
-> - subdevs: add refcounting, remove calls subdev_unregister(). Internal release callback when the refcount goes to 0.
-> - Removal of subdevs will lead to holes (missing entities) in the MC graph.
-> - reuse entity IDs? Mauro doesn't like it, Laurent/Hans undecided.
-> - if one entity has a pointer to another it has to take a refcount. Possible locking issues. Needs analysis.
->  
-> 4) Update on ongoing projects
-> 
-> 5) Android Camera v3
->  
-> The Khronos OpenKCam API addresses the same needs as the Android Camera HAL v3 API, and is quite similar in concept. We should make sure that our API can support OpenKCam.
-> The specification isn't public, but it's based on the FCam API (Nokia research project) which should be available publicly.
+Same here.
 
-Regards,
+> +		}
+> +
+> +		sub_leds[fled_id].fled_id = fled_id;
+> +
+> +		cfg->label[fled_id] =
+> +			of_get_property(child_node, "label", NULL) ? :
+> +						child_node->name;
 
-	Hans
+I think you should copy the string here, or keep a reference to child_node.
 
+of_property_read_string() might be useful.
+
+> +
+> +		ret = of_property_read_u32(child_node, "led-max-microamp",
+> +					&cfg->iout_torch_max[fled_id]);
+> +		if (ret < 0) {
+> +			cfg->iout_torch_max[fled_id] = TORCH_IOUT_MIN;
+> +			dev_warn(dev, "led-max-microamp DT property missing\n");
+> +		}
+> +
+> +		ret = of_property_read_u32(child_node, "flash-max-microamp",
+> +					&cfg->iout_flash_max[fled_id]);
+> +		if (ret < 0) {
+> +			cfg->iout_flash_max[fled_id] = FLASH_IOUT_MIN;
+> +			dev_warn(dev,
+> +				 "flash-max-microamp DT property missing\n");
+> +		}
+> +
+> +		ret = of_property_read_u32(child_node, "flash-max-timeout-us",
+> +					&cfg->flash_timeout_max[fled_id]);
+> +		if (ret < 0) {
+> +			cfg->flash_timeout_max[fled_id] = FLASH_TIMEOUT_MIN;
+> +			dev_warn(dev,
+> +				 "flash-max-timeout-us DT property missing\n");
+> +		}
+> +
+> +		if (++cfg->num_leds == 2 ||
+> +		    (max77693_fled_used(led, FLED1) &&
+> +		     max77693_fled_used(led, FLED2)))
+
+of_node_put(child_node);
+
+> +			break;
+> +	}
+> +
+> +	if (cfg->num_leds == 0) {
+> +		dev_err(dev, "No DT child node found for connected LED(s).\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+
+With these matters addressed,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
