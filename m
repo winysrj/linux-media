@@ -1,75 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36200 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754530AbbDUNKJ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58820 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752154AbbDOXiF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:10:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 10/15] vb2: add helper function to queue request-specific buffer.
-Date: Tue, 21 Apr 2015 14:58:53 +0200
-Message-Id: <1429621138-17213-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 Apr 2015 19:38:05 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: pavel@ucw.cz, linux-leds@vger.kernel.org
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	sre@ring0.de
+Subject: [PATCH v8 1/1] media: i2c/adp1653: Devicetree support for adp1653
+Date: Thu, 16 Apr 2015 02:37:13 +0300
+Message-Id: <1429141034-29237-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Pavel Machek <pavel@ucw.cz>
 
-The vb2_qbuf_request() function will queue any buffers for the given request
-that are in state PREPARED.
+Add device tree support for adp1653 flash LED driver.
 
-Useful when drivers have to implement the req_queue callback.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 18 ++++++++++++++++++
- include/media/videobuf2-core.h           |  1 +
- 2 files changed, 19 insertions(+)
+Hi folks,
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index da513b1..4ab65b6 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1923,6 +1923,24 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
+Here's an updated adp1653 DT patch, with changes since v7:
+
+- Include of.h and gpio/consumer.h instead of of_gpio.h and gpio.h.
+
+- Don't initialise ret as zero in __adp1653_set_power(), check ret only when
+  it's been set.
+
+- Don't check for node non-NULL in adp1653_of_init(). It never is NULL.
+
+- Remove temporary variable val in adp1653_of_init().
+
+- If the device has no of_node, check that platform data is non-NULL;
+  otherwise return an error.
+
+- Assign flash->platform_data only if dev->of_node is NULL.
+
+ drivers/media/i2c/adp1653.c |  100 ++++++++++++++++++++++++++++++++++++++-----
+ include/media/adp1653.h     |    8 ++--
+ 2 files changed, 95 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index 873fe19..c70abab 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -8,6 +8,7 @@
+  * Contributors:
+  *	Sakari Ailus <sakari.ailus@iki.fi>
+  *	Tuukka Toivonen <tuukkat76@gmail.com>
++ *	Pavel Machek <pavel@ucw.cz>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -34,6 +35,8 @@
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/gpio/consumer.h>
+ #include <media/adp1653.h>
+ #include <media/v4l2-device.h>
  
-+int vb2_qbuf_request(struct vb2_queue *q, u16 request, struct vb2_buffer **p_buf)
-+{
-+	int buffer;
-+
-+	for (buffer = 0; buffer < q->num_buffers; buffer++) {
-+		struct vb2_buffer *vb = q->bufs[buffer];
-+
-+		if (vb->v4l2_buf.request == request &&
-+		    vb->state == VB2_BUF_STATE_PREPARED) {
-+			if (p_buf)
-+				*p_buf = vb;
-+			return vb2_qbuf(q, &vb->v4l2_buf);
-+		}
+@@ -308,16 +311,28 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+ {
+ 	int ret;
+ 
+-	ret = flash->platform_data->power(&flash->subdev, on);
+-	if (ret < 0)
+-		return ret;
++	if (flash->platform_data->power) {
++		ret = flash->platform_data->power(&flash->subdev, on);
++		if (ret < 0)
++			return ret;
++	} else {
++		gpiod_set_value(flash->platform_data->enable_gpio, on);
++		if (on)
++			/* Some delay is apparently required. */
++			udelay(20);
 +	}
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(vb2_qbuf_request);
+ 
+ 	if (!on)
+ 		return 0;
+ 
+ 	ret = adp1653_init_device(flash);
+-	if (ret < 0)
++	if (ret >= 0)
++		return ret;
 +
- /**
-  * __vb2_wait_for_done_vb() - wait for a buffer to become available
-  * for dequeuing
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index a3e3596..82fa2a6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -461,6 +461,7 @@ void vb2_queue_release(struct vb2_queue *q);
- void vb2_queue_error(struct vb2_queue *q);
++	if (flash->platform_data->power)
+ 		flash->platform_data->power(&flash->subdev, 0);
++	else
++		gpiod_set_value(flash->platform_data->enable_gpio, 0);
  
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
-+int vb2_qbuf_request(struct vb2_queue *q, u16 request, struct vb2_buffer **p_buf);
- int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 	return ret;
+ }
+@@ -407,21 +422,85 @@ static int adp1653_resume(struct device *dev)
  
+ #endif /* CONFIG_PM */
+ 
++static int adp1653_of_init(struct i2c_client *client,
++			   struct adp1653_flash *flash,
++			   struct device_node *node)
++{
++	struct adp1653_platform_data *pd;
++	struct device_node *child;
++
++	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
++	if (!pd)
++		return -ENOMEM;
++	flash->platform_data = pd;
++
++	child = of_get_child_by_name(node, "flash");
++	if (!child)
++		return -EINVAL;
++
++	if (of_property_read_u32(child, "flash-timeout-us",
++				 &pd->max_flash_timeout))
++		goto err;
++
++	if (of_property_read_u32(child, "flash-max-microamp",
++				 &pd->max_flash_intensity))
++		goto err;
++
++	pd->max_flash_intensity /= 1000;
++
++	if (of_property_read_u32(child, "led-max-microamp",
++				 &pd->max_torch_intensity))
++		goto err;
++
++	pd->max_torch_intensity /= 1000;
++	of_node_put(child);
++
++	child = of_get_child_by_name(node, "indicator");
++	if (!child)
++		return -EINVAL;
++
++	if (of_property_read_u32(child, "led-max-microamp",
++				 &pd->max_indicator_intensity))
++		goto err;
++
++	of_node_put(child);
++
++	pd->enable_gpio = devm_gpiod_get(&client->dev, "enable");
++	if (!pd->enable_gpio) {
++		dev_err(&client->dev, "Error getting GPIO\n");
++		return -EINVAL;
++	}
++
++	return 0;
++err:
++	dev_err(&client->dev, "Required property not found\n");
++	of_node_put(child);
++	return -EINVAL;
++}
++
++
+ static int adp1653_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *devid)
+ {
+ 	struct adp1653_flash *flash;
+ 	int ret;
+ 
+-	/* we couldn't work without platform data */
+-	if (client->dev.platform_data == NULL)
+-		return -ENODEV;
+-
+ 	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+ 	if (flash == NULL)
+ 		return -ENOMEM;
+ 
+-	flash->platform_data = client->dev.platform_data;
++	if (client->dev.of_node) {
++		ret = adp1653_of_init(client, flash, client->dev.of_node);
++		if (ret)
++			return ret;
++	} else {
++		if (!client->dev.platform_data) {
++			dev_err(&client->dev,
++				"Neither DT not platform data provided\n");
++			return EINVAL;
++		}
++		flash->platform_data = client->dev.platform_data;
++	}
+ 
+ 	mutex_init(&flash->power_lock);
+ 
+@@ -442,6 +521,7 @@ static int adp1653_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ free_and_quit:
++	dev_err(&client->dev, "adp1653: failed to register device\n");
+ 	v4l2_ctrl_handler_free(&flash->ctrls);
+ 	return ret;
+ }
+@@ -464,7 +544,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
+ 
+-static struct dev_pm_ops adp1653_pm_ops = {
++static const struct dev_pm_ops adp1653_pm_ops = {
+ 	.suspend	= adp1653_suspend,
+ 	.resume		= adp1653_resume,
+ };
+diff --git a/include/media/adp1653.h b/include/media/adp1653.h
+index 1d9b48a..9779c85 100644
+--- a/include/media/adp1653.h
++++ b/include/media/adp1653.h
+@@ -100,9 +100,11 @@ struct adp1653_platform_data {
+ 	int (*power)(struct v4l2_subdev *sd, int on);
+ 
+ 	u32 max_flash_timeout;		/* flash light timeout in us */
+-	u32 max_flash_intensity;	/* led intensity, flash mode */
+-	u32 max_torch_intensity;	/* led intensity, torch mode */
+-	u32 max_indicator_intensity;	/* indicator led intensity */
++	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
++	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
++	u32 max_indicator_intensity;	/* indicator led intensity, uA */
++
++	struct gpio_desc *enable_gpio;	/* for device-tree based boot */
+ };
+ 
+ #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
 -- 
-2.1.4
+1.7.10.4
 
