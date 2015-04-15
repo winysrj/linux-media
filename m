@@ -1,78 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-4.cisco.com ([72.163.197.28]:62885 "EHLO
-	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756988AbbDWJ47 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 05:56:59 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Martin Bugge <marbugge@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH v2 3/4] v4l2-dv-timings: add sanity checks in cvt,gtf calculations
-Date: Wed, 22 Apr 2015 23:02:36 +0530
-Message-Id: <1429723957-8308-4-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1429723957-8308-1-git-send-email-prladdha@cisco.com>
-References: <fix for rounding errors in cvt/gtf calculation>
- <1429723957-8308-1-git-send-email-prladdha@cisco.com>
+Received: from terminus.zytor.com ([198.137.202.10]:34615 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756547AbbDOU5E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 16:57:04 -0400
+Message-ID: <552ED06E.8030303@zytor.com>
+Date: Wed, 15 Apr 2015 13:56:14 -0700
+From: "H. Peter Anvin" <hpa@zytor.com>
+MIME-Version: 1.0
+To: Andy Lutomirski <luto@amacapital.net>,
+	"Luis R. Rodriguez" <mcgrof@suse.com>, linux-rdma@vger.kernel.org
+CC: Toshi Kani <toshi.kani@hp.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Wrong values of hfreq and image height can lead to strange timings.
-Avoid timing calculations for such values.
+On 04/15/2015 01:42 PM, Andy Lutomirski wrote:
+> 
+> I disagree.  We should try to NACK any new code that can't function
+> without MTRRs.
+> 
+> (Plus, ARM is growing in popularity in the server space, and ARM quite
+> sensibly doesn't have MTRRs.)
+> 
 
-Suggested By: Martin Bugge <marbugge@cisco.com>
+<NOT SPEAKING FOR INTEL HERE>
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Yes.  People need to understand that MTRRs are fundamentally a
+transitional solution, a replacement for the KEN# logic in the P4 and P5
+generation processors.  The KEN# logic in the chipset would notify the
+CPU that a specific address should not be cached, without affecting the
+software (which may have been written for x86s built before caching
+existed, even.)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 16c8ac5..4e09792 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -365,6 +365,9 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 	else
- 		return false;
- 
-+	if (hfreq == 0)
-+		return false;
-+
- 	/* Vertical */
- 	if (reduced_blanking) {
- 		v_fp = CVT_RB_V_FPORCH;
-@@ -382,6 +385,9 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 	}
- 	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
- 
-+	if (image_height < 0)
-+		return false;
-+
- 	/* Aspect ratio based on vsync */
- 	switch (vsync) {
- 	case 4:
-@@ -527,12 +533,18 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 	else
- 		return false;
- 
-+	if (hfreq == 0)
-+		return false;
-+
- 	/* Vertical */
- 	v_fp = GTF_V_FP;
- 
- 	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 500000) / 1000000 - vsync;
- 	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
- 
-+	if (image_height < 0)
-+		return false;
-+
- 	if (aspect.numerator == 0 || aspect.denominator == 0) {
- 		aspect.numerator = 16;
- 		aspect.denominator = 9;
--- 
-1.9.1
+MTRRs move this to the head end, so the CPU knows ahead of time what to
+do, as is required with newer architectures.  It also enabled write
+combining in a transparent fashion.  However, it is still transitional;
+it is there to describe the underlying constraints of the memory system
+so that code which doesn't use paging can run at all, but the only thing
+that can actually scale is PAT.
+
+	-hpa
 
