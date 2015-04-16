@@ -1,265 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40350 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750876AbbDIVsX (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:36446 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108AbbDPTT2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Apr 2015 17:48:23 -0400
-Date: Fri, 10 Apr 2015 00:47:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andrew Morton <akpm@osdl.org>, pali.rohar@gmail.com,
-	sre@debian.org, sre@ring0.de,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, galak@codeaurora.org,
-	bcousson@baylibre.com, m.chehab@samsung.com,
-	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: Re: [PATCHv7] media: i2c/adp1653: Devicetree support for adp1653
-Message-ID: <20150409214739.GD20756@valkosipuli.retiisi.org.uk>
-References: <20150402203417.GA6336@amd>
- <20150403083353.GA21070@amd>
- <20150403113216.GK20756@valkosipuli.retiisi.org.uk>
- <20150403202624.GA4308@amd>
- <20150403213655.GO20756@valkosipuli.retiisi.org.uk>
- <20150404074337.GA31064@amd>
- <20150404102435.GR20756@valkosipuli.retiisi.org.uk>
- <20150404171116.GA15025@Nokia-N900>
- <20150404200307.GS20756@valkosipuli.retiisi.org.uk>
- <20150409074238.GA22603@amd>
+	Thu, 16 Apr 2015 15:19:28 -0400
+Received: by lagv1 with SMTP id v1so64330857lag.3
+        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2015 12:19:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150409074238.GA22603@amd>
+In-Reply-To: <1429146083.1899.94.camel@palomino.walls.org>
+References: <20150410171750.GA5622@wotan.suse.de> <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
+ <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+ <1428695379.6646.69.camel@misato.fc.hp.com> <20150410210538.GB5622@wotan.suse.de>
+ <1428699490.21794.5.camel@misato.fc.hp.com> <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+ <20150411012938.GC5622@wotan.suse.de> <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+ <20150413174938.GE5622@wotan.suse.de> <1429137531.1899.28.camel@palomino.walls.org>
+ <CALCETrUFtEMYh8i00ke0f939=17bAQxMDOBZMn_3yk3Nz1AnFA@mail.gmail.com>
+ <1429142387.1899.57.camel@palomino.walls.org> <CALCETrWRjGYqcYPNizrbiVFwFHhrLf=8NTTCLVZh7Q6MgAWj=Q@mail.gmail.com>
+ <1429146083.1899.94.camel@palomino.walls.org>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Thu, 16 Apr 2015 12:19:05 -0700
+Message-ID: <CALCETrX9xWtaw=1abNK1WSNgkAfR3b1gVpTeTC2Rn93SAJv4_w@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Juergen Gross <jgross@suse.com>, X86 ML <x86@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Borislav Petkov <bp@suse.de>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"H. Peter Anvin" <hpa@zytor.com>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Davidlohr Bueso <dbueso@suse.de>, linux-media@vger.kernel.org,
+	Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On Apr 15, 2015 6:54 PM, "Andy Walls" <awalls@md.metrocast.net> wrote:
+>
+> On Wed, 2015-04-15 at 17:58 -0700, Andy Lutomirski wrote:
+> > On Wed, Apr 15, 2015 at 4:59 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > > On Wed, 2015-04-15 at 16:42 -0700, Andy Lutomirski wrote:
+> > >> On Wed, Apr 15, 2015 at 3:38 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > >
+> > >> >
+> > >>
+> > >> IMO the right solution would be to avoid ioremapping the whole bar at
+> > >> startup.  Instead ioremap pieces once the driver learns what they are.
+> > >> This wouldn't have any of these problems -- you'd ioremap() register
+> > >> regions and you'd ioremap_wc() the framebuffer once you find it.  If
+> > >> there are regions of unknown purpose, just don't map them all.
+> > >>
+> > >> Would this be feasible?
+> > >
+> > > Feasible? Maybe.
+> > >
+> > > Worth the time and effort for end-of-life, convential PCI hardware so I
+> > > can have an optimally performing X display on a Standard Def Analog TV
+> > > screen?   Nope. I don't have that level of nostalgia.
+> > >
+> >
+> > The point is actually to let us unexport or delete mtrr_add.
+>
+> Understood.
+>
+>
+> >   We can
+> > either severely regress performance on ivtv on PAT-capable hardware if
+> > we naively switch it to arch_phys_wc_add or we can do something else.
+> > The something else remains to be determined.
+>
+> Maybe ioremap the decoder register area as UC, and ioremap the rest of
+> the decoder region to WC. (Does that suck up too many PAT resources?
 
-(Cc linux-media. Media related patches should be sent there.)
+PAT resources are unlimited.
 
-On Thu, Apr 09, 2015 at 09:42:38AM +0200, Pavel Machek wrote:
-> 
-> Add device tree support for adp1653 flash LED driver.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> ---
-> 
-> Second part of a patch after documentation was merged.
-> 
-> Please apply,
-> 							Pavel
-> 
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index 873fe19..d703636 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -8,6 +8,7 @@
->   * Contributors:
->   *	Sakari Ailus <sakari.ailus@iki.fi>
->   *	Tuukka Toivonen <tuukkat76@gmail.com>
-> + *	Pavel Machek <pavel@ucw.cz>
->   *
->   * This program is free software; you can redistribute it and/or
->   * modify it under the terms of the GNU General Public License
-> @@ -34,6 +35,8 @@
->  #include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/gpio.h>
+> Then add PCI reads following any sort of singleton PCI writes in the WC
+> region.  I assume PCI rules about write postings before reads still
+> apply when WC is set.
+>
 
-As Sebastian suggested, linux/of.h and linux/gpio/consumer.h should be used.
+I think we need sfence, too, but that's easy.  We also lose the write
+sizes.  That is, adjacent writes get combined.  Maybe that's okay.
 
->  #include <media/adp1653.h>
->  #include <media/v4l2-device.h>
->  
-> @@ -306,9 +309,17 @@ adp1653_init_device(struct adp1653_flash *flash)
->  static int
->  __adp1653_set_power(struct adp1653_flash *flash, int on)
->  {
-> -	int ret;
-> +	int ret = 0;
-> +
-> +	if (flash->platform_data->power) {
-> +		ret = flash->platform_data->power(&flash->subdev, on);
-> +	} else {
-> +		gpiod_set_value(flash->platform_data->enable_gpio, on);
-> +		if (on)
-> +			/* Some delay is apparently required. */
-> +			udelay(20);
-> +	}
->  
-> -	ret = flash->platform_data->power(&flash->subdev, on);
->  	if (ret < 0)
->  		return ret;
+> > >
+> > > We sort of know where some things are in the MMIO space due to
+> > > experimentation and past efforts examining the firmware binary.
+> > >
+> > > Documentation/video4linux/cx2341x/fw-*.txt documents some things.  The
+> > > driver code actually codifies a little bit more knowledge.
+> > >
+> > > The driver code for doing transfers between host and card is complex and
+> > > fragile with some streams that use DMA, other streams that use PIO,
+> > > digging VBI data straight out of card memory, and scatter-gather being
+> > > broken on newer firmwares.  Playing around with ioremapping will be hard
+> > > to get right and likely cause something in the code to break for the
+> > > primary use case of the ivtv supported cards.
+> >
+> > Ick.
+>
+> Yeah.
+>
+> > If the only thing that really wants WC is the esoteric framebuffer
+> > thing,
+>
+> That appears to be it.
+>
+> >  could we just switch to arch_phys_wc_add and assume that no one
+> > will care about the regression on new CPUs with ivtv cards?
+>
+> That's on the table in my mind.  Not sure if it is the friendliest thing
+> to do to users.  Quite honestly though, modern graphics cards have much
+> better ouput resolution and performance.  Anyone with a modern system
+> really should be using one.  (i.e. MythTV gave up on support for PVR-350
+> output for video playback years ago in May 2010.)
+>
+>
+> BTW, my 2005 system with multiple conventional PCI slots in it shows a
+> 'pat' flag in /proc/cpuinfo.  (AMD Athlon(tm) 64 X2 Dual Core Processor
+> 4200+)  I didn't know it was considered "new". :)
 
-Please check ret after assigning it. The assignment in declaration is
-unnecessary.
+Tons of CPUs have that ability, but we often turn it off due to errata
+on older CPUs.
 
->  
-> @@ -316,8 +327,13 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
->  		return 0;
->  
->  	ret = adp1653_init_device(flash);
-> -	if (ret < 0)
-> +	if (ret >= 0)
-> +		return ret;
-> +
-> +	if (flash->platform_data->power)
->  		flash->platform_data->power(&flash->subdev, 0);
-> +	else
-> +		gpiod_set_value(flash->platform_data->enable_gpio, 0);
->  
->  	return ret;
->  }
-> @@ -407,21 +423,78 @@ static int adp1653_resume(struct device *dev)
->  
->  #endif /* CONFIG_PM */
->  
-> +static int adp1653_of_init(struct i2c_client *client,
-> +			   struct adp1653_flash *flash,
-> +			   struct device_node *node)
-> +{
-> +	u32 val;
-> +	struct adp1653_platform_data *pd;
-> +	struct device_node *child = NULL;
+--Andy
 
-The NULL assignment can be removed.
-
-> +
-> +	if (!node)
-> +		return -EINVAL;
-
-node is always non-NULL here; no need to check.
-
-> +
-> +	pd = devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
-> +	if (!pd)
-> +		return -ENOMEM;
-> +	flash->platform_data = pd;
-> +
-> +	child = of_get_child_by_name(node, "flash");
-> +	if (!child)
-> +		return -EINVAL;
-> +
-> +	if (of_property_read_u32(child, "flash-timeout-us", &val))
-
-You could read the values directly to the appropriate struct
-adp1653_platform_data field.
-
-> +		goto err;
-> +
-> +	pd->max_flash_timeout = val;
-> +	if (of_property_read_u32(child, "flash-max-microamp", &val))
-> +		goto err;
-> +	pd->max_flash_intensity = val/1000;
-> +
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-> +		goto err;
-> +	pd->max_torch_intensity = val/1000;
-> +	of_node_put(child);
-> +
-> +	child = of_get_child_by_name(node, "indicator");
-> +	if (!child)
-> +		return -EINVAL;
-> +	if (of_property_read_u32(child, "max-microamp", &val))
-
-Let's wait a bit the resolution of the property name. I'm in principle fine
-with both. I can do the change once it's been decided, hopefully very soon.
-
-> +		goto err;
-> +	pd->max_indicator_intensity = val;
-> +
-> +	of_node_put(child);
-> +
-> +	pd->enable_gpio = devm_gpiod_get(&client->dev, "enable");
-> +	if (!pd->enable_gpio) {
-> +		dev_err(&client->dev, "Error getting GPIO\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +err:
-> +	dev_err(&client->dev, "Required property not found\n");
-> +	of_node_put(child);
-> +	return -EINVAL;
-> +}
-> +
-> +
->  static int adp1653_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *devid)
->  {
->  	struct adp1653_flash *flash;
->  	int ret;
->  
-> -	/* we couldn't work without platform data */
-> -	if (client->dev.platform_data == NULL)
-> -		return -ENODEV;
-> -
->  	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
->  	if (flash == NULL)
->  		return -ENOMEM;
->  
->  	flash->platform_data = client->dev.platform_data;
-
-I think it'd be cleaner to make the assignment only if not using of, i.e.
-add else branch to the if below.
-
-> +	if (client->dev.of_node) {
-> +		ret = adp1653_of_init(client, flash, client->dev.of_node);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	mutex_init(&flash->power_lock);
->  
-> @@ -442,6 +515,7 @@ static int adp1653_probe(struct i2c_client *client,
->  	return 0;
->  
->  free_and_quit:
-> +	dev_err(&client->dev, "adp1653: failed to register device\n");
->  	v4l2_ctrl_handler_free(&flash->ctrls);
->  	return ret;
->  }
-> @@ -464,7 +538,7 @@ static const struct i2c_device_id adp1653_id_table[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
->  
-> -static struct dev_pm_ops adp1653_pm_ops = {
-> +static const struct dev_pm_ops adp1653_pm_ops = {
->  	.suspend	= adp1653_suspend,
->  	.resume		= adp1653_resume,
->  };
-> diff --git a/include/media/adp1653.h b/include/media/adp1653.h
-> index 1d9b48a..34b505e 100644
-> --- a/include/media/adp1653.h
-> +++ b/include/media/adp1653.h
-> @@ -100,9 +100,11 @@ struct adp1653_platform_data {
->  	int (*power)(struct v4l2_subdev *sd, int on);
->  
->  	u32 max_flash_timeout;		/* flash light timeout in us */
-> -	u32 max_flash_intensity;	/* led intensity, flash mode */
-> -	u32 max_torch_intensity;	/* led intensity, torch mode */
-> -	u32 max_indicator_intensity;	/* indicator led intensity */
-> +	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
-> +	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
-> +	u32 max_indicator_intensity;	/* indicator led intensity, uA */
-> +
-> +	struct gpio_desc *enable_gpio;	/* for device-tree based boot */
->  };
->  
->  #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subdev)
-> 
-
-Let me know if you're going to send v8 or if I can make the changes. I think
-we're pretty much done then.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
+> Regards,
+> Andy
+>
+>
