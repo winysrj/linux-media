@@ -1,50 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41045 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030AbbDCDP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 23:15:29 -0400
-Date: Fri, 3 Apr 2015 00:15:22 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.1] Xilinx video pipeline drivers
-Message-ID: <20150403001522.50874cc1@recife.lan>
-In-Reply-To: <5245308.M2sog0XFbh@avalon>
-References: <5245308.M2sog0XFbh@avalon>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:34750 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864AbbDPUzA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2015 16:55:00 -0400
+Received: by laat2 with SMTP id t2so66080602laa.1
+        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2015 13:54:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1428574888-46407-7-git-send-email-hverkuil@xs4all.nl>
+References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl> <1428574888-46407-7-git-send-email-hverkuil@xs4all.nl>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 16 Apr 2015 21:54:28 +0100
+Message-ID: <CA+V-a8u3BaODyopxt16LVx-TX0z09fRBhZocJLt5mB-NZVcqXQ@mail.gmail.com>
+Subject: Re: [PATCH 6/7] v4l2: replace s_mbus_fmt by set_fmt in bridge drivers
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-Em Wed, 11 Mar 2015 22:47:37 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Thanks for the patch.
 
-> Hi Mauro,
-> 
-> The following changes since commit ae3da40179c66001afad608f972bdb57d50d1e66:
-> 
->   v4l2-subdev: remove enum_framesizes/intervals (2015-03-06 10:01:44 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/pinchartl/media.git xilinx
-> 
-> for you to fetch changes up to 5fc7561dba773afd95169aba32f53a01facaf22a:
-> 
->   v4l: xilinx: Add Test Pattern Generator driver (2015-03-11 22:43:48 +0200)
-> 
-> Please note that the series depends and is based on Hans' for-v4.1g branch for 
-> which he has sent a pull request.
+On Thu, Apr 9, 2015 at 11:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Replace all calls to s_mbus_fmt in bridge drivers by calls to the
+> set_fmt pad op.
+>
+> Remove the old try/s_mbus_fmt video ops since they are now no longer used.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> ---
+>  drivers/media/pci/cx18/cx18-controls.c             | 13 +++--
+>  drivers/media/pci/cx18/cx18-ioctl.c                | 12 +++--
+>  drivers/media/pci/cx23885/cx23885-video.c          | 12 +++--
+>  drivers/media/pci/ivtv/ivtv-controls.c             | 12 +++--
+>  drivers/media/pci/ivtv/ivtv-ioctl.c                | 12 +++--
+>  drivers/media/pci/saa7134/saa7134-empress.c        | 10 ++--
+>  drivers/media/platform/am437x/am437x-vpfe.c        | 19 ++-----
+>  drivers/media/platform/blackfin/bfin_capture.c     |  8 +--
+>  drivers/media/platform/marvell-ccic/mcam-core.c    |  8 +--
+>  drivers/media/platform/sh_vou.c                    | 61 ++++++++++++----------
+>  drivers/media/platform/soc_camera/atmel-isi.c      | 27 +++++-----
+>  drivers/media/platform/soc_camera/mx2_camera.c     | 35 +++++++------
+>  drivers/media/platform/soc_camera/mx3_camera.c     | 31 ++++++-----
+>  drivers/media/platform/soc_camera/omap1_camera.c   | 44 +++++++++-------
+>  drivers/media/platform/soc_camera/pxa_camera.c     | 33 ++++++------
+>  drivers/media/platform/soc_camera/rcar_vin.c       |  4 +-
+>  .../platform/soc_camera/sh_mobile_ceu_camera.c     |  8 +--
+>  drivers/media/platform/soc_camera/soc_scale_crop.c | 37 +++++++------
+>  drivers/media/platform/via-camera.c                |  8 +--
+>  drivers/media/usb/cx231xx/cx231xx-417.c            | 12 +++--
+>  drivers/media/usb/cx231xx/cx231xx-video.c          | 23 ++++----
+>  drivers/media/usb/em28xx/em28xx-camera.c           | 12 +++--
+>  drivers/media/usb/go7007/go7007-v4l2.c             | 12 +++--
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c            | 17 +++---
+>  include/media/v4l2-subdev.h                        |  8 ---
+>  25 files changed, 256 insertions(+), 222 deletions(-)
+>
+for am437x
 
-This didn't merge ok. Not sure if "for-v4.1g" branch was merged or not, but
-I merged already all pending requests from Hans, leaving this one to the
-end.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Could you please check if what you need is already there and rebase your
-work?
-
-Thanks!
-Mauro
+Cheers,
+--Prabhakar Lad
