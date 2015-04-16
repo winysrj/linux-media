@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp02.atmel.com ([204.2.163.16]:3886 "EHLO
-	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933798AbbDII66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 04:58:58 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2 0/3] media: atmel-isi: rework on the clock part and add runtime pm support
-Date: Thu, 9 Apr 2015 17:01:45 +0800
-Message-ID: <1428570108-4961-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:33846 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242AbbDPKDi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2015 06:03:38 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20150415191218.GC32654@mwanda>
+References: <20150415191218.GC32654@mwanda>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 16 Apr 2015 11:03:06 +0100
+Message-ID: <CA+V-a8uo_F8pFEQoFx9rzdygwtPSb-BDDVx4Dfi_-wwDVjBHLQ@mail.gmail.com>
+Subject: Re: [media] i2c: ov2659: signedness bug inov2659_set_fmt()
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Benoit Parrot <bparrot@ti.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series fix the peripheral clock code and enable runtime pm
-support.
-Also it clean up the code which is for the compatiblity of mck.
+On Wed, Apr 15, 2015 at 8:12 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> This needs to be signed or there is a risk of hitting a forever loop.
+>
+> Fixes: c4c0283ab3cd ('[media] media: i2c: add support for omnivision's ov2659 sensor')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Changes in v2:
-- merged v1 two patch into one.
-- use runtime_pm_put() instead of runtime_pm_put_sync()
-- enable peripheral clock before access ISI registers.
-- totally remove clock_start()/clock_stop() as they are optional.
+Cheers,
+--Prabhakar Lad
 
-Josh Wu (3):
-  media: atmel-isi: remove the useless code which disable isi
-  media: atmel-isi: add runtime pm support
-  media: atmel-isi: remove mck back compatiable code as it's not need
-
- drivers/media/platform/soc_camera/atmel-isi.c | 101 ++++++++++++--------------
- 1 file changed, 45 insertions(+), 56 deletions(-)
-
--- 
-1.9.1
-
+> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+> index edebd11..d700a1d 100644
+> --- a/drivers/media/i2c/ov2659.c
+> +++ b/drivers/media/i2c/ov2659.c
+> @@ -1102,7 +1102,7 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
+>                           struct v4l2_subdev_format *fmt)
+>  {
+>         struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -       unsigned int index = ARRAY_SIZE(ov2659_formats);
+> +       int index = ARRAY_SIZE(ov2659_formats);
+>         struct v4l2_mbus_framefmt *mf = &fmt->format;
+>         const struct ov2659_framesize *size = NULL;
+>         struct ov2659 *ov2659 = to_ov2659(sd);
