@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:8146 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933012AbbD1LMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 07:12:15 -0400
-From: Antonio Ospite <ao2@ao2.it>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Antonio Ospite <ao2@ao2.it>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 07/12] trivial: [media] cx25821: cx25821-medusa-reg.h: fix 0x0x prefix
-Date: Tue, 28 Apr 2015 13:11:26 +0200
-Message-Id: <1430219491-5076-8-git-send-email-ao2@ao2.it>
-In-Reply-To: <1430219491-5076-1-git-send-email-ao2@ao2.it>
-References: <1430219491-5076-1-git-send-email-ao2@ao2.it>
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.180]:63833 "EHLO
+	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751615AbbDPUJc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2015 16:09:32 -0400
+Date: Thu, 16 Apr 2015 22:03:26 +0200
+From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] rc-core: use an IDA rather than a bitmap
+Message-ID: <20150416220326.30aa6801@mir>
+In-Reply-To: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
+References: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the 0x0x prefix in integer constants.
+Hi
 
-In this case a padding 0 must also be inserted to make the constants
-look like all the other 16 bits ones.
+On 2015-04-02, David Härdeman wrote:
+> This patch changes rc-core to use the kernel facilities that are already
+> available for handling unique numbers instead of rolling its own bitmap
+> stuff.
+> 
+> Stefan, this should apply cleanly to the media git tree...could you test it?
+> ---
+>  drivers/media/rc/rc-ir-raw.c |    2 +-
+>  drivers/media/rc/rc-main.c   |   40 ++++++++++++++++++++--------------------
+>  include/media/rc-core.h      |    4 ++--
+>  3 files changed, 23 insertions(+), 23 deletions(-)
 
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/pci/cx25821/cx25821-medusa-reg.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Just some preliminary feedback after two weeks of testing. 
 
-diff --git a/drivers/media/pci/cx25821/cx25821-medusa-reg.h b/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-index c98ac94..2e10643 100644
---- a/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-+++ b/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-@@ -84,9 +84,9 @@
- #define	ABIST_BIN4_VGA3				0x01D4
- #define	ABIST_BIN5_VGA4				0x01D8
- #define	ABIST_BIN6_VGA5				0x01DC
--#define	ABIST_BIN7_VGA6				0x0x1E0
--#define	ABIST_CLAMP_A				0x0x1E4
--#define	ABIST_CLAMP_B				0x0x1E8
-+#define	ABIST_BIN7_VGA6				0x01E0
-+#define	ABIST_CLAMP_A				0x01E4
-+#define	ABIST_CLAMP_B				0x01E8
- #define	ABIST_CLAMP_C				0x01EC
- #define	ABIST_CLAMP_D				0x01F0
- #define	ABIST_CLAMP_E				0x01F4
--- 
-2.1.4
+So far the problem with multiple rc_core devices fighting over the same 
+sysfs file hasn't occured again, but it's a bit too early to be 
+completely sure about it (probably 4-5 more weeks before I can be 
+(relatively) confident that the problem is really gone). 
 
+With this patch applied, everything continues to work fine for me; I 
+haven't noticed any problems.
+
+Thanks a lot
+	Stefan Lippers-Hollmann
