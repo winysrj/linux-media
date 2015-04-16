@@ -1,55 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41786 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031075AbbD1XGj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 19:06:39 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH 08/13] cx24116: fix a buffer overflow when checking userspace params
-Date: Tue, 28 Apr 2015 20:06:15 -0300
-Message-Id: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
-In-Reply-To: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
-References: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
+Received: from mail-db3on0136.outbound.protection.outlook.com ([157.55.234.136]:31970
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750859AbbDPEvv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2015 00:51:51 -0400
+Date: Thu, 16 Apr 2015 13:18:37 +0900
+From: Hyong-Youb Kim <hkim@cspi.com>
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Hyong-Youb Kim <hykim@myri.com>, <netdev@vger.kernel.org>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	<dave.hansen@linux.intel.com>, <plagnioj@jcrosoft.com>,
+	<tglx@linutronix.de>,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	<linux-fbdev@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<x86@kernel.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150416041837.GA5712@hykim-PC>
+References: <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+ <1428695379.6646.69.camel@misato.fc.hp.com>
+ <20150410210538.GB5622@wotan.suse.de>
+ <1428699490.21794.5.camel@misato.fc.hp.com>
+ <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+ <20150411012938.GC5622@wotan.suse.de>
+ <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+ <20150413174938.GE5622@wotan.suse.de>
+ <1429137531.1899.28.camel@palomino.walls.org>
+ <20150415235816.GG5622@wotan.suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20150415235816.GG5622@wotan.suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The maximum size for a DiSEqC command is 6, according to the
-userspace API. However, the code allows to write up much more values:
-	drivers/media/dvb-frontends/cx24116.c:983 cx24116_send_diseqc_msg() error: buffer overflow 'd->msg' 6 <= 23
+On Thu, Apr 16, 2015 at 01:58:16AM +0200, Luis R. Rodriguez wrote:
+> 
+> An alternative... is to just ioremap_wc() the entire region, including
+> MMIO registers for these old devices. I see one ethernet driver that does
+> this, myri10ge, and am curious how and why they ended up deciding this
+> and if they have run into any issues. I wonder if this is a reasonable
+> comrpomise for these 2 remaining corner cases.
+> 
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+For myri10ge, it a performance thing.  Descriptor rings are in NIC
+memory BAR0, not in host memory.  Say, to send a packet, the driver
+writes the send descriptor to the ioremap'd NIC memory.  It is a
+multi-word descriptor.  So, to send it as one PCIE MWr transaction,
+the driver maps the whole BAR0 as WC and does "copy descriptor; wmb".
 
-diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-index 2916d7c74a1d..7bc68b355c0b 100644
---- a/drivers/media/dvb-frontends/cx24116.c
-+++ b/drivers/media/dvb-frontends/cx24116.c
-@@ -963,6 +963,10 @@ static int cx24116_send_diseqc_msg(struct dvb_frontend *fe,
- 	struct cx24116_state *state = fe->demodulator_priv;
- 	int i, ret;
- 
-+	/* Validate length */
-+	if (d->msg_len > sizeof(d->msg))
-+                return -EINVAL;
-+
- 	/* Dump DiSEqC message */
- 	if (debug) {
- 		printk(KERN_INFO "cx24116: %s(", __func__);
-@@ -974,10 +978,6 @@ static int cx24116_send_diseqc_msg(struct dvb_frontend *fe,
- 		printk(") toneburst=%d\n", toneburst);
- 	}
- 
--	/* Validate length */
--	if (d->msg_len > (CX24116_ARGLEN - CX24116_DISEQC_MSGOFS))
--		return -EINVAL;
--
- 	/* DiSEqC message */
- 	for (i = 0; i < d->msg_len; i++)
- 		state->dsec_cmd.args[CX24116_DISEQC_MSGOFS + i] = d->msg[i];
--- 
-2.1.0
+Without WC, descriptors would end up as multiple 4B or 8B MWr packets
+to the NIC, which has a pretty big performance impact on this
+particular NIC.
 
+Most registers that do not want WC are actually in BAR2, which is not
+mapped as WC.  For registers that are in BAR0, we do "write to the
+register; wmb".  If we want to wait till the NIC has seen the write,
+we do "write; wmb; read".
+
+This approach has worked for this device for many years.  I cannot say
+whether it works for other devices, though.
