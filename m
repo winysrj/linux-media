@@ -1,85 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44326 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622AbbD0HaM (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46574 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751665AbbDPCB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 03:30:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/5] cx24123/mb86a20s/s921: fix compiler warnings
-Date: Mon, 27 Apr 2015 09:29:53 +0200
-Message-Id: <1430119795-16527-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 Apr 2015 22:01:26 -0400
+Message-ID: <1429146457.1899.99.camel@palomino.walls.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Hyong-Youb Kim <hykim@myri.com>, netdev@vger.kernel.org,
+	Andy Lutomirski <luto@amacapital.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>, dave.hansen@linux.intel.com,
+	plagnioj@jcrosoft.com, tglx@linutronix.de,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	x86@kernel.org
+Date: Wed, 15 Apr 2015 21:07:37 -0400
+In-Reply-To: <20150415235816.GG5622@wotan.suse.de>
+References: <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
+	 <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+	 <1428695379.6646.69.camel@misato.fc.hp.com>
+	 <20150410210538.GB5622@wotan.suse.de>
+	 <1428699490.21794.5.camel@misato.fc.hp.com>
+	 <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+	 <20150411012938.GC5622@wotan.suse.de>
+	 <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+	 <20150413174938.GE5622@wotan.suse.de>
+	 <1429137531.1899.28.camel@palomino.walls.org>
+	 <20150415235816.GG5622@wotan.suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 2015-04-16 at 01:58 +0200, Luis R. Rodriguez wrote:
+> Hey Andy, thanks for your review,  adding Hyong-Youb Kim for  review of the
+> full range ioremap_wc() idea below.
+> 
+> On Wed, Apr 15, 2015 at 06:38:51PM -0400, Andy Walls wrote:
+> > Hi All,
+> > 
+> > On Mon, 2015-04-13 at 19:49 +0200, Luis R. Rodriguez wrote:
+> > > From the beginning it seems only framebuffer devices used MTRR/WC,
+> > [snip]
+> > >  The ivtv device is a good example of the worst type of
+> > > situations and these days. So perhap __arch_phys_wc_add() and a
+> > > ioremap_ucminus() might be something more than transient unless hardware folks
+> > > get a good memo or already know how to just Do The Right Thing (TM).
+> > 
+> > Just to reiterate a subtle point, use of the ivtvfb is *optional*.  A
+> > user may or may not load it.  When the user does load the ivtvfb driver,
+> > the ivtv driver has already been initialized and may have functions of
+> > the card already in use by userspace.
+> 
+> I suspected this and its why I note that a rewrite to address a clean
+> split with separate ioremap seems rather difficult in this case.
+> 
+> > Hopefully no one is trying to use the OSD as framebuffer and the video
+> > decoder/output engine for video display at the same time. 
+> 
+> Worst case concern I have also is the implications of having overlapping
+> ioremap() calls (as proposed in my last reply) for different memory types
+> and having the different virtual memory addresse used by different parts
+> of the driver. Its not clear to me what the hardware implications of this
+> are.
+> 
+> >  But the video
+> > decoder/output device nodes may already be open for performing ioctl()
+> > functions so unmapping the decoder IO space out from under them, when
+> > loading the ivtvfb driver module, might not be a good thing. 
+> 
+> Using overlapping ioremap() calls with different memory types would address
+> this concern provided hardware won't barf both on the device and CPU. Hardware
+> folks could provide feedback or an ivtvfb user could test the patch supplied
+> on both non-PAT and PAT systems. Even so, who knows,  this might work on some
+> systems while not on others, only hardware folks would know.
 
-In file included from drivers/media/common/b2c2/flexcop-fe-tuner.c:13:0:
-drivers/media/dvb-frontends/cx24123.h:54:2: warning: 'cx24123_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
-  cx24123_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-  ^
-In file included from drivers/media/usb/em28xx/em28xx-dvb.c:46:0:
-drivers/media/dvb-frontends/s921.h:40:2: warning: 's921_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
-  s921_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-  ^
-In file included from drivers/media/usb/em28xx/em28xx-dvb.c:55:0:
-drivers/media/dvb-frontends/mb86a20s.h:49:2: warning: 'mb86a20s_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
-  mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-  ^
-In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
-drivers/media/dvb-frontends/mb86a20s.h:49:2: warning: 'mb86a20s_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
-  mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-  ^
+The CX2341[56] firmware+hardware has a track record for being really
+picky about sytem hardware.  It's primary symptoms are for the DMA
+engine or Mailbox protocol to get hung up.  So yeah, it could barf
+easily on some users.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb-frontends/cx24123.h  | 2 +-
- drivers/media/dvb-frontends/mb86a20s.h | 2 +-
- drivers/media/dvb-frontends/s921.h     | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+> An alternative... is to just ioremap_wc() the entire region, including
+> MMIO registers for these old devices.
 
-diff --git a/drivers/media/dvb-frontends/cx24123.h b/drivers/media/dvb-frontends/cx24123.h
-index 758aee5..975f3c9 100644
---- a/drivers/media/dvb-frontends/cx24123.h
-+++ b/drivers/media/dvb-frontends/cx24123.h
-@@ -50,7 +50,7 @@ static inline struct dvb_frontend *cx24123_attach(
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
--static struct i2c_adapter *
-+static inline struct i2c_adapter *
- 	cx24123_get_tuner_i2c_adapter(struct dvb_frontend *fe)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-diff --git a/drivers/media/dvb-frontends/mb86a20s.h b/drivers/media/dvb-frontends/mb86a20s.h
-index f749c8a..a113282 100644
---- a/drivers/media/dvb-frontends/mb86a20s.h
-+++ b/drivers/media/dvb-frontends/mb86a20s.h
-@@ -45,7 +45,7 @@ static inline struct dvb_frontend *mb86a20s_attach(
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
--static struct i2c_adapter *
-+static inline struct i2c_adapter *
- 	mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-diff --git a/drivers/media/dvb-frontends/s921.h b/drivers/media/dvb-frontends/s921.h
-index 7d3999a..f5b722d 100644
---- a/drivers/media/dvb-frontends/s921.h
-+++ b/drivers/media/dvb-frontends/s921.h
-@@ -36,7 +36,7 @@ static inline struct dvb_frontend *s921_attach(
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
--static struct i2c_adapter *
-+static inline struct i2c_adapter *
- 	s921_get_tuner_i2c_adapter(struct dvb_frontend *fe)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
--- 
-2.1.4
+That's my thought; as long as implementing PCI write then read can force
+writes to be posted and that setting that many pages as WC doesn't cause
+some sort of PAT resource exhaustion. (I know very little about PAT).
+
+>  I see one ethernet driver that does
+> this, myri10ge, and am curious how and why they ended up deciding this
+> and if they have run into any issues. I wonder if this is a reasonable
+> comrpomise for these 2 remaining corner cases.
+> 
+>   Luis
+
+Regards,
+Andy
 
