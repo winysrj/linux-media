@@ -1,254 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from meg8.auburn.edu ([131.204.2.75]:12602 "EHLO meg8.auburn.edu"
+Received: from mail.kernel.org ([198.145.29.136]:36034 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755AbbDSVES (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2015 17:04:18 -0400
-Date: Sun, 19 Apr 2015 16:09:24 -0500
-From: Theodore Kilgore <kilgota@auburn.edu>
-To: Vasily Khoruzhick <anarsoul@gmail.com>
-CC: Hans de Goede <hdegoede@redhat.com>, <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 2/2] gspca: sn9c2028: Add gain and autogain controls
- Genius Videocam Live v2
-In-Reply-To: <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
-Message-ID: <alpine.LNX.2.20.1504191605100.23471@khayyam.home.com>
-References: <1429469565-2695-1-git-send-email-anarsoul@gmail.com> <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
+	id S1753026AbbDPFZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2015 01:25:15 -0400
+Date: Thu, 16 Apr 2015 07:24:42 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: pavel@ucw.cz, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v8 1/1] media: i2c/adp1653: Devicetree support for adp1653
+Message-ID: <20150416052442.GA31095@earth>
+References: <1429141034-29237-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="US-ASCII"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
+Content-Disposition: inline
+In-Reply-To: <1429141034-29237-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, 19 Apr 2015, Vasily Khoruzhick wrote:
+Hi Sakari,
 
-> Autogain algorithm is very simple, if average luminance is low - increase gain,
-> if it's high - decrease gain. Gain granularity is low enough for this algo to
-> stabilize quickly.
->
-> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+Since this driver won't make it into 4.1 anyways, I have one more
+comment:
+
+On Thu, Apr 16, 2015 at 02:37:13AM +0300, Sakari Ailus wrote:
+> From: Pavel Machek <pavel@ucw.cz>
+>=20
+> Add device tree support for adp1653 flash LED driver.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > ---
-> drivers/media/usb/gspca/sn9c2028.c | 121 +++++++++++++++++++++++++++++++++++++
-> drivers/media/usb/gspca/sn9c2028.h |  20 +++++-
-> 2 files changed, 138 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-> index 317b02c..0ff390f 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.c
-> +++ b/drivers/media/usb/gspca/sn9c2028.c
-> @@ -34,6 +34,16 @@ struct sd {
-> 	struct gspca_dev gspca_dev;  /* !! must be the first item */
-> 	u8 sof_read;
-> 	u16 model;
-> +
-> +#define MIN_AVG_LUM 8500
-> +#define MAX_AVG_LUM 10000
-> +	int avg_lum;
-> +	u8 avg_lum_l;
-> +
-> +	struct { /* autogain and gain control cluster */
-> +		struct v4l2_ctrl *autogain;
-> +		struct v4l2_ctrl *gain;
-> +	};
-> };
->
-> struct init_command {
-> @@ -252,6 +262,77 @@ static int run_start_commands(struct gspca_dev *gspca_dev,
-> 	return 0;
-> }
->
-> +static void set_gain(struct gspca_dev *gspca_dev, s32 g)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	struct init_command genius_vcam_live_gain_cmds[] = {
-> +		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
-> +	};
-> +	if (!gspca_dev->streaming)
-> +		return;
-> +
-> +	switch (sd->model) {
-> +	case 0x7003:
-> +		genius_vcam_live_gain_cmds[0].instruction[2] = g;
-> +		run_start_commands(gspca_dev, genius_vcam_live_gain_cmds,
-> +				   ARRAY_SIZE(genius_vcam_live_gain_cmds));
-> +		break;
-> +	default:
-> +		break;
+> Hi folks,
+>=20
+> Here's an updated adp1653 DT patch, with changes since v7:
+>=20
+> - Include of.h and gpio/consumer.h instead of of_gpio.h and gpio.h.
+>=20
+> - Don't initialise ret as zero in __adp1653_set_power(), check ret only w=
+hen
+>   it's been set.
+>=20
+> - Don't check for node non-NULL in adp1653_of_init(). It never is NULL.
+>=20
+> - Remove temporary variable val in adp1653_of_init().
+>=20
+> - If the device has no of_node, check that platform data is non-NULL;
+>   otherwise return an error.
+>=20
+> - Assign flash->platform_data only if dev->of_node is NULL.
+>=20
+>  drivers/media/i2c/adp1653.c |  100 +++++++++++++++++++++++++++++++++++++=
++-----
+>  include/media/adp1653.h     |    8 ++--
+>  2 files changed, 95 insertions(+), 13 deletions(-)
+>=20
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index 873fe19..c70abab 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -8,6 +8,7 @@
+>   * Contributors:
+>   *	Sakari Ailus <sakari.ailus@iki.fi>
+>   *	Tuukka Toivonen <tuukkat76@gmail.com>
+> + *	Pavel Machek <pavel@ucw.cz>
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+> @@ -34,6 +35,8 @@
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <media/adp1653.h>
+>  #include <media/v4l2-device.h>
+> =20
+> @@ -308,16 +311,28 @@ __adp1653_set_power(struct adp1653_flash *flash, in=
+t on)
+>  {
+>  	int ret;
+> =20
+> -	ret =3D flash->platform_data->power(&flash->subdev, on);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (flash->platform_data->power) {
+> +		ret =3D flash->platform_data->power(&flash->subdev, on);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else {
+> +		gpiod_set_value(flash->platform_data->enable_gpio, on);
+> +		if (on)
+> +			/* Some delay is apparently required. */
+> +			udelay(20);
 > +	}
-> +}
+
+I suggest to remove the power callback from platform data. Instead
+you can require to setup a gpiod lookup table in the boardcode, if
+platform data based initialization is used (see for example si4713
+initialization in board-rx51-periphals.c).
+
+This will reduce complexity in the driver and should be fairly easy
+to implement, since there is no adp1653 platform code user in the
+mainline kernel anyways.
+
+>  	if (!on)
+>  		return 0;
+> =20
+>  	ret =3D adp1653_init_device(flash);
+> -	if (ret < 0)
+> +	if (ret >=3D 0)
+> +		return ret;
 > +
-> +static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
+> +	if (flash->platform_data->power)
+>  		flash->platform_data->power(&flash->subdev, 0);
+> +	else
+> +		gpiod_set_value(flash->platform_data->enable_gpio, 0);
+> =20
+>  	return ret;
+>  }
+> @@ -407,21 +422,85 @@ static int adp1653_resume(struct device *dev)
+> =20
+>  #endif /* CONFIG_PM */
+> =20
+> +static int adp1653_of_init(struct i2c_client *client,
+> +			   struct adp1653_flash *flash,
+> +			   struct device_node *node)
 > +{
-> +	struct gspca_dev *gspca_dev =
-> +		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
-> +	struct sd *sd = (struct sd *)gspca_dev;
+> +	struct adp1653_platform_data *pd;
+> +	struct device_node *child;
 > +
-> +	gspca_dev->usb_err = 0;
+> +	pd =3D devm_kzalloc(&client->dev, sizeof(*pd), GFP_KERNEL);
+> +	if (!pd)
+> +		return -ENOMEM;
+> +	flash->platform_data =3D pd;
 > +
-> +	if (!gspca_dev->streaming)
-> +		return 0;
+> +	child =3D of_get_child_by_name(node, "flash");
+> +	if (!child)
+> +		return -EINVAL;
 > +
-> +	switch (ctrl->id) {
-> +	/* standalone gain control */
-> +	case V4L2_CID_GAIN:
-> +		set_gain(gspca_dev, ctrl->val);
-> +		break;
-> +	/* autogain */
-> +	case V4L2_CID_AUTOGAIN:
-> +		set_gain(gspca_dev, sd->gain->val);
-> +		break;
-> +	}
-> +	return gspca_dev->usb_err;
-> +}
+> +	if (of_property_read_u32(child, "flash-timeout-us",
+> +				 &pd->max_flash_timeout))
+> +		goto err;
 > +
-> +static const struct v4l2_ctrl_ops sd_ctrl_ops = {
-> +	.s_ctrl = sd_s_ctrl,
-> +};
+> +	if (of_property_read_u32(child, "flash-max-microamp",
+> +				 &pd->max_flash_intensity))
+> +		goto err;
 > +
+> +	pd->max_flash_intensity /=3D 1000;
 > +
-> +static int sd_init_controls(struct gspca_dev *gspca_dev)
-> +{
-> +	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
-> +	struct sd *sd = (struct sd *)gspca_dev;
+> +	if (of_property_read_u32(child, "led-max-microamp",
+> +				 &pd->max_torch_intensity))
+> +		goto err;
 > +
-> +	gspca_dev->vdev.ctrl_handler = hdl;
-> +	v4l2_ctrl_handler_init(hdl, 2);
+> +	pd->max_torch_intensity /=3D 1000;
+> +	of_node_put(child);
 > +
-> +	switch (sd->model) {
-> +	case 0x7003:
-> +		sd->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-> +			V4L2_CID_GAIN, 0, 20, 1, 0);
-> +		sd->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-> +			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-> +		break;
-> +	default:
-> +		break;
+> +	child =3D of_get_child_by_name(node, "indicator");
+> +	if (!child)
+> +		return -EINVAL;
+> +
+> +	if (of_property_read_u32(child, "led-max-microamp",
+> +				 &pd->max_indicator_intensity))
+> +		goto err;
+> +
+> +	of_node_put(child);
+> +
+> +	pd->enable_gpio =3D devm_gpiod_get(&client->dev, "enable");
+> +	if (!pd->enable_gpio) {
+> +		dev_err(&client->dev, "Error getting GPIO\n");
+> +		return -EINVAL;
 > +	}
 > +
 > +	return 0;
+> +err:
+> +	dev_err(&client->dev, "Required property not found\n");
+> +	of_node_put(child);
+> +	return -EINVAL;
 > +}
-> static int start_spy_cam(struct gspca_dev *gspca_dev)
-> {
-> 	struct init_command spy_start_commands[] = {
-> @@ -641,6 +722,9 @@ static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
-> 	if (r < 0)
-> 		return r;
->
-> +	if (sd->gain)
-> +		set_gain(gspca_dev, v4l2_ctrl_g_ctrl(sd->gain));
 > +
-> 	return r;
-> }
->
-> @@ -757,6 +841,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
-> 		return -ENXIO;
-> 	}
->
-> +	sd->avg_lum = -1;
 > +
-> 	return err_code;
-> }
->
-> @@ -776,6 +862,39 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
-> 		PERR("Camera Stop command failed");
-> }
->
-> +static void do_autogain(struct gspca_dev *gspca_dev, int avg_lum)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +	s32 cur_gain = v4l2_ctrl_g_ctrl(sd->gain);
-> +
-> +	if (avg_lum == -1)
-> +		return;
-> +
-> +	if (avg_lum < MIN_AVG_LUM) {
-> +		if (cur_gain == sd->gain->maximum)
-> +			return;
-> +		cur_gain++;
-> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
+>  static int adp1653_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *devid)
+>  {
+>  	struct adp1653_flash *flash;
+>  	int ret;
+> =20
+> -	/* we couldn't work without platform data */
+> -	if (client->dev.platform_data =3D=3D NULL)
+> -		return -ENODEV;
+> -
+>  	flash =3D devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+>  	if (flash =3D=3D NULL)
+>  		return -ENOMEM;
+> =20
+> -	flash->platform_data =3D client->dev.platform_data;
+> +	if (client->dev.of_node) {
+> +		ret =3D adp1653_of_init(client, flash, client->dev.of_node);
+> +		if (ret)
+> +			return ret;
+> +	} else {
+> +		if (!client->dev.platform_data) {
+> +			dev_err(&client->dev,
+> +				"Neither DT not platform data provided\n");
+> +			return EINVAL;
+> +		}
+> +		flash->platform_data =3D client->dev.platform_data;
 > +	}
-> +	if (avg_lum > MAX_AVG_LUM) {
-> +		if (cur_gain == sd->gain->minimum)
-> +			return;
-> +		cur_gain--;
-> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
-> +	}
+> =20
+>  	mutex_init(&flash->power_lock);
+> =20
+> @@ -442,6 +521,7 @@ static int adp1653_probe(struct i2c_client *client,
+>  	return 0;
+> =20
+>  free_and_quit:
+> +	dev_err(&client->dev, "adp1653: failed to register device\n");
+>  	v4l2_ctrl_handler_free(&flash->ctrls);
+>  	return ret;
+>  }
+> @@ -464,7 +544,7 @@ static const struct i2c_device_id adp1653_id_table[] =
+=3D {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, adp1653_id_table);
+> =20
+> -static struct dev_pm_ops adp1653_pm_ops =3D {
+> +static const struct dev_pm_ops adp1653_pm_ops =3D {
+>  	.suspend	=3D adp1653_suspend,
+>  	.resume		=3D adp1653_resume,
+>  };
+> diff --git a/include/media/adp1653.h b/include/media/adp1653.h
+> index 1d9b48a..9779c85 100644
+> --- a/include/media/adp1653.h
+> +++ b/include/media/adp1653.h
+> @@ -100,9 +100,11 @@ struct adp1653_platform_data {
+>  	int (*power)(struct v4l2_subdev *sd, int on);
+> =20
+>  	u32 max_flash_timeout;		/* flash light timeout in us */
+> -	u32 max_flash_intensity;	/* led intensity, flash mode */
+> -	u32 max_torch_intensity;	/* led intensity, torch mode */
+> -	u32 max_indicator_intensity;	/* indicator led intensity */
+> +	u32 max_flash_intensity;	/* led intensity, flash mode, mA */
+> +	u32 max_torch_intensity;	/* led intensity, torch mode, mA */
+> +	u32 max_indicator_intensity;	/* indicator led intensity, uA */
 > +
-> +}
-> +
-> +static void sd_dqcallback(struct gspca_dev *gspca_dev)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	if (sd->autogain == NULL || !v4l2_ctrl_g_ctrl(sd->autogain))
-> +		return;
-> +
-> +	do_autogain(gspca_dev, sd->avg_lum);
-> +}
-> +
-> /* Include sn9c2028 sof detection functions */
-> #include "sn9c2028.h"
->
-> @@ -810,8 +929,10 @@ static const struct sd_desc sd_desc = {
-> 	.name = MODULE_NAME,
-> 	.config = sd_config,
-> 	.init = sd_init,
-> +	.init_controls = sd_init_controls,
-> 	.start = sd_start,
-> 	.stopN = sd_stopN,
-> +	.dq_callback = sd_dqcallback,
-> 	.pkt_scan = sd_pkt_scan,
-> };
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.h b/drivers/media/usb/gspca/sn9c2028.h
-> index 8fd1d3e..6f20c0f 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.h
-> +++ b/drivers/media/usb/gspca/sn9c2028.h
-> @@ -21,8 +21,17 @@
->  *
->  */
->
-> -static const unsigned char sn9c2028_sof_marker[5] =
-> -	{ 0xff, 0xff, 0x00, 0xc4, 0xc4 };
-> +static const unsigned char sn9c2028_sof_marker[] = {
-> +	0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96,
-> +	0x00,
-> +	0x00, /* seq */
-> +	0x00,
-> +	0x00,
-> +	0x00, /* avg luminance lower 8 bit */
-> +	0x00, /* avg luminance higher 8 bit */
-> +	0x00,
-> +	0x00,
-> +};
->
-> static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
-> 					unsigned char *m, int len)
-> @@ -32,8 +41,13 @@ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
->
-> 	/* Search for the SOF marker (fixed part) in the header */
-> 	for (i = 0; i < len; i++) {
-> -		if (m[i] == sn9c2028_sof_marker[sd->sof_read]) {
-> +		if ((m[i] == sn9c2028_sof_marker[sd->sof_read]) ||
-> +		    (sd->sof_read > 5)) {
-> 			sd->sof_read++;
-> +			if (sd->sof_read == 11)
-> +				sd->avg_lum_l = m[i];
-> +			if (sd->sof_read == 12)
-> +				sd->avg_lum = (m[i] << 8) + sd->avg_lum_l;
-> 			if (sd->sof_read == sizeof(sn9c2028_sof_marker)) {
-> 				PDEBUG(D_FRAM,
-> 					"SOF found, bytes to analyze: %u."
-> -- 
-> 2.3.5
+> +	struct gpio_desc *enable_gpio;	/* for device-tree based boot */
 
-Hello.
+IMHO this should become part of "struct adp1653_flash", so that
+adp1653_platform_data only contains variables, which should be
+filled by boardcode / manual DT parsing code.
 
-I do not know of this particular camera. But I am very pleased to see 
-continued interest in the sn9c2028 cameras. Congratulations for these two 
-patches.
+>  };
+> =20
+>  #define to_adp1653_flash(sd)	container_of(sd, struct adp1653_flash, subd=
+ev)
+> --=20
+> 1.7.10.4
+>=20
 
-Cheers,
+-- Sebastian
 
-Theodore Kilgore
+--rwEMma7ioTxnRzrJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJVL0eVAAoJENju1/PIO/qa3K8QAKc5DzOtiPgDAm7pvM240xlk
+1kf4eXp/MACygEykqkETs288OFzpmetUkVJc8iSWogYzRlvyomGA9hYIAzgScQwK
+JThYZUJJW1OmCcG7nWrb0ddOSkCKt1En0CZZ+CWGv+dk2SyML8KKN51VhHpkh/wT
++5aFDH6Jcs1Iwu9TUSgqGSnCgMZCropJbgKGDaEZbG55upYn+BkmT40TvetOJH7x
+720vwnabOEThJomP2DHbKtLi3++QqBPO0gIt6/976I/yWVMesrHtIio2GEK53KQ4
+MHvRBllccRk/DSbKWuJVVDREe3aZsGiqy5ffKpc7ullrGOsgZMLTR3l1a14u55Uq
+mTKauFLI7OHyKtZc0zdEi6Dwf2U7GEaIf4bd59WoGDMYNr8KyO8eWADBKpop7P3B
+muyj/28LqF3Qjt6+kjWyxiLzl8e4CrQz0rSRvYUaSmzUXkX8N7HsHNtEPBBEBLgh
++X6TtAIQlcKzQZxcWSwYg1+SzrGEHdZqjQB44jJizUPkOYFdPvQPXjZ0oKlADMLO
+2A1MIYM4VRdj+CInbYzV8PnitNz7fW5wY/zPbtkfcclpb2I3YnUHNFbPgQrxGtMq
+XZ+HBlpqcbhIu9tCXLwISPmaATdAt8KxwIU/gRyI1PfJsiY+iFcAr27jPFTAfFlj
+DeYSK8Z6oNiFv8kKa3QM
+=d1WW
+-----END PGP SIGNATURE-----
+
+--rwEMma7ioTxnRzrJ--
