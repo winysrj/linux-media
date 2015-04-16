@@ -1,42 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59141 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965942AbbD1PoB (ORCPT
+Received: from mta1.cl.cam.ac.uk ([128.232.25.21]:45342 "EHLO
+	mta1.cl.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473AbbDPJyY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 11:44:01 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 13/14] wl128x: fix int type for streg_cbdata
-Date: Tue, 28 Apr 2015 12:43:52 -0300
-Message-Id: <297efe76b68adffbbb4309cf335dcaa1522c8395.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+	Thu, 16 Apr 2015 05:54:24 -0400
+Received: from dirac.cl.cam.ac.uk ([128.232.65.23])
+	by mta1.cl.cam.ac.uk with esmtp (Exim 4.63)
+	(envelope-from <Markus.Kuhn@cl.cam.ac.uk>)
+	id 1YigKs-0007Vw-Pa
+	for linux-media@vger.kernel.org; Thu, 16 Apr 2015 10:43:50 +0100
+Message-ID: <552F8497.6010900@cl.cam.ac.uk>
+Date: Thu, 16 Apr 2015 10:44:55 +0100
+From: Markus Kuhn <Markus.Kuhn@cl.cam.ac.uk>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: honestech VIDBOX NW07 (eMPIA EM28284)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The streg_cbdata can have a negative error value. So, it should be
-an integer, and not u8, as reported by smatch:
-	drivers/media/radio/wl128x/fmdrv_common.c:1517 fmc_prepare() warn: assigning (-115) to unsigned variable 'fmdev->streg_cbdata'
+I've recently bought an "honestech VIDBOX for Mac pack"
+which contains an "honestech VIDBOX NW07" analog video to
+USB grabber device based on the eMPIA EM28284 chip. The only
+other chip on the PCB is a 24C32WP 4 kB serial EEPROM.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+USB ID = eb1a:5188
 
-diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-index a587c9bac930..dd203de5de95 100644
---- a/drivers/media/radio/wl128x/fmdrv.h
-+++ b/drivers/media/radio/wl128x/fmdrv.h
-@@ -210,7 +210,7 @@ struct fmdev {
- 	spinlock_t resp_skb_lock; /* To protect access to received SKB */
- 
- 	long flag;		/*  FM driver state machine info */
--	u8 streg_cbdata; /* status of ST registration */
-+	int streg_cbdata; /* status of ST registration */
- 
- 	struct sk_buff_head rx_q;	/* RX queue */
- 	struct tasklet_struct rx_task;	/* RX Tasklet */
+What is the status of Linux support for this device?
+
+I've written up all information that I have about it so far at
+
+   http://linuxtv.org/wiki/index.php/Honestech_Vidbox_NW07
+
+including a PCB photo and lsusb -v output.
+
+What can I do to help getting a Linux driver for it working?
+
+Markus
+
+http://www.honestech.com/main/DriverUpdates.asp#VIDBOXdrivers
+http://www.honestech.com/main/VIDBOXforMac.asp
+
 -- 
-2.1.0
-
+Markus Kuhn, Computer Laboratory, University of Cambridge
+http://www.cl.cam.ac.uk/~mgk25/ || CB3 0FD, Great Britain
