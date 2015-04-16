@@ -1,43 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:50331 "EHLO
-	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754393AbbDGNrt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 09:47:49 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH] [media] vb2: Remove unused variable fileio in vb2_thread_stop()
-Date: Tue,  7 Apr 2015 15:47:50 +0200
-Message-Id: <1428414470-29114-1-git-send-email-geert+renesas@glider.be>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44753 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751820AbbDPBzY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2015 21:55:24 -0400
+Message-ID: <1429146083.1899.94.camel@palomino.walls.org>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+From: Andy Walls <awalls@md.metrocast.net>
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
+Date: Wed, 15 Apr 2015 21:01:23 -0400
+In-Reply-To: <CALCETrWRjGYqcYPNizrbiVFwFHhrLf=8NTTCLVZh7Q6MgAWj=Q@mail.gmail.com>
+References: <20150410171750.GA5622@wotan.suse.de>
+	 <CALCETrUG=RiG8S9Gpiqm_0CxvxurxLTNKyuyPoFNX46EAauA+g@mail.gmail.com>
+	 <CAB=NE6XgNgu7i2OiDxFVJLWiEjbjBY17-dV7L3yi2+yzgMhEbw@mail.gmail.com>
+	 <1428695379.6646.69.camel@misato.fc.hp.com>
+	 <20150410210538.GB5622@wotan.suse.de>
+	 <1428699490.21794.5.camel@misato.fc.hp.com>
+	 <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+	 <20150411012938.GC5622@wotan.suse.de>
+	 <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+	 <20150413174938.GE5622@wotan.suse.de>
+	 <1429137531.1899.28.camel@palomino.walls.org>
+	 <CALCETrUFtEMYh8i00ke0f939=17bAQxMDOBZMn_3yk3Nz1AnFA@mail.gmail.com>
+	 <1429142387.1899.57.camel@palomino.walls.org>
+	 <CALCETrWRjGYqcYPNizrbiVFwFHhrLf=8NTTCLVZh7Q6MgAWj=Q@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/v4l2-core/videobuf2-core.c: In function 'vb2_thread_stop':
-drivers/media/v4l2-core/videobuf2-core.c:3228:26: warning: unused variable 'fileio' [-Wunused-variable]
+On Wed, 2015-04-15 at 17:58 -0700, Andy Lutomirski wrote:
+> On Wed, Apr 15, 2015 at 4:59 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Wed, 2015-04-15 at 16:42 -0700, Andy Lutomirski wrote:
+> >> On Wed, Apr 15, 2015 at 3:38 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >
+> >> >
+> >>
+> >> IMO the right solution would be to avoid ioremapping the whole bar at
+> >> startup.  Instead ioremap pieces once the driver learns what they are.
+> >> This wouldn't have any of these problems -- you'd ioremap() register
+> >> regions and you'd ioremap_wc() the framebuffer once you find it.  If
+> >> there are regions of unknown purpose, just don't map them all.
+> >>
+> >> Would this be feasible?
+> >
+> > Feasible? Maybe.
+> >
+> > Worth the time and effort for end-of-life, convential PCI hardware so I
+> > can have an optimally performing X display on a Standard Def Analog TV
+> > screen?   Nope. I don't have that level of nostalgia.
+> >
+> 
+> The point is actually to let us unexport or delete mtrr_add.
 
-Fixes: 0e661006370b7e7f ("[media] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/media/v4l2-core/videobuf2-core.c | 1 -
- 1 file changed, 1 deletion(-)
+Understood.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index cc16e76a24933c41..471b171cec3dabfa 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3225,7 +3225,6 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
- int vb2_thread_stop(struct vb2_queue *q)
- {
- 	struct vb2_threadio_data *threadio = q->threadio;
--	struct vb2_fileio_data *fileio = q->fileio;
- 	int err;
- 
- 	if (threadio == NULL)
--- 
-1.9.1
+
+>   We can
+> either severely regress performance on ivtv on PAT-capable hardware if
+> we naively switch it to arch_phys_wc_add or we can do something else.
+> The something else remains to be determined.
+
+Maybe ioremap the decoder register area as UC, and ioremap the rest of
+the decoder region to WC. (Does that suck up too many PAT resources?)
+Then add PCI reads following any sort of singleton PCI writes in the WC
+region.  I assume PCI rules about write postings before reads still
+apply when WC is set.
+
+> >
+> > We sort of know where some things are in the MMIO space due to
+> > experimentation and past efforts examining the firmware binary.
+> >
+> > Documentation/video4linux/cx2341x/fw-*.txt documents some things.  The
+> > driver code actually codifies a little bit more knowledge.
+> >
+> > The driver code for doing transfers between host and card is complex and
+> > fragile with some streams that use DMA, other streams that use PIO,
+> > digging VBI data straight out of card memory, and scatter-gather being
+> > broken on newer firmwares.  Playing around with ioremapping will be hard
+> > to get right and likely cause something in the code to break for the
+> > primary use case of the ivtv supported cards.
+> 
+> Ick.
+
+Yeah.
+
+> If the only thing that really wants WC is the esoteric framebuffer
+> thing,
+
+That appears to be it.
+
+>  could we just switch to arch_phys_wc_add and assume that no one
+> will care about the regression on new CPUs with ivtv cards?
+
+That's on the table in my mind.  Not sure if it is the friendliest thing
+to do to users.  Quite honestly though, modern graphics cards have much
+better ouput resolution and performance.  Anyone with a modern system
+really should be using one.  (i.e. MythTV gave up on support for PVR-350
+output for video playback years ago in May 2010.)
+
+
+BTW, my 2005 system with multiple conventional PCI slots in it shows a
+'pat' flag in /proc/cpuinfo.  (AMD Athlon(tm) 64 X2 Dual Core Processor
+4200+)  I didn't know it was considered "new". :)
+
+Regards,
+Andy
+
 
