@@ -1,203 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53387 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbbDTPom (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49776 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751148AbbDQMRW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 11:44:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC 0/2] Repurpose the v4l2_plane data_offset field
-Date: Mon, 20 Apr 2015 18:44:48 +0300
-Message-ID: <2114647.vLEMpM9qcY@avalon>
-In-Reply-To: <5534C405.9010307@xs4all.nl>
-References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150418130415.GM27451@valkosipuli.retiisi.org.uk> <5534C405.9010307@xs4all.nl>
+	Fri, 17 Apr 2015 08:17:22 -0400
+Message-ID: <5530F9BB.5010208@xs4all.nl>
+Date: Fri, 17 Apr 2015 14:16:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	'Hans Verkuil' <hansverk@cisco.com>
+Subject: Re: [RFC v3 5/9] cec: add new driver for cec support.
+References: <1426870363-18839-1-git-send-email-k.debski@samsung.com> <1426870363-18839-6-git-send-email-k.debski@samsung.com> <550C6208.6080504@xs4all.nl> <049901d075ec$7caabbc0$76003340$%debski@samsung.com>
+In-Reply-To: <049901d075ec$7caabbc0$76003340$%debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 04/13/2015 03:19 PM, Kamil Debski wrote:
+> Hi Hans,
+> 
+> Thank you so much for the review. 
+> 
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> Sent: Friday, March 20, 2015 7:08 PM
+>>
 
-On Monday 20 April 2015 11:16:53 Hans Verkuil wrote:
-> On 04/18/2015 03:04 PM, Sakari Ailus wrote:
-> > On Fri, Apr 17, 2015 at 12:27:41PM +0200, Hans Verkuil wrote:
-> >> On 04/14/2015 09:44 PM, Laurent Pinchart wrote:
-> >>> Hello,
-> >>> 
-> >>> The v4l2_plane data_offset field has been introduced at the same time as
-> >>> the the multiplane API to convey header size information between
-> >>> kernelspace and userspace.
-> >>> 
-> >>> The API then became slightly controversial, both because different
-> >>> developers understood the purpose of the field differently (resulting
-> >>> for instance in an out-of-tree driver abusing the field for a different
-> >>> purpose), and because of competing proposals (see for instance "[RFC]
-> >>> Multi format stream support" at
-> >>> http://www.spinics.net/lists/linux-media/msg69130.html).
-> >>> 
-> >>> Furthermore, the data_offset field isn't used by any mainline driver
-> >>> except vivid (for testing purpose).
-> >>> 
-> >>> I need a different data offset in planes to allow data capture to or
-> >>> data output from a userspace-selected offset within a buffer (mainly for
-> >>> the DMABUF and MMAP memory types). As the data_offset field already has
-> >>> the right name, is unused, and ill-defined, I propose repurposing it.
-> >>> This is what this RFC is about.
-> >>> 
-> >>> If the proposal is accepted I'll add another patch to update data_offset
-> >>> usage in the vivid driver.
-> >> 
-> >> I am skeptical about all this for a variety of reasons:
-> >> 
-> >> 1) The data_offset field is well-defined in the spec. There really is no
-> >> doubt about the meaning of the field.
-> > 
-> > I think that's debatable. :-) The specification doesn't say much what the
-> > data_offset is really about. For instance, it does not specify what may be
-> > in the buffer before data_offset.
-> 
-> That's correct. Now, it is my view that, while it would be nice if a fourcc
-> like value would be available to tell the format of that header, in
-> practice that format is so tied to a specific type of hardware that you
-> either know it (i.e. it is a custom app for that hardware), or you ignore
-> it altogether. There may be some exceptions for somewhat standardized types
-> of metadata (SMIA), but those never materialized as actual code.
-> 
-> > The kerneldoc documentation next to struct v4l2_plane suggests there might
-> > be a header, but that's primarily for driver developers rather than users.
-> > 
-> > I, for instance, understood data_offset to mean essentially how this set
-> > "re-purposes" it. I wonder if there are others who have originally
-> > understood it as such.
-> 
-> I know it was mis-understood, the spec was fairly vague in the past, and
-> while more specific you are right in that it does not actually tell the
-> reason for the field (i.e. skip headers).
-> 
-> In no way can you re-purpose the field, though.
-> 
-> 1) It is in use.
+<snip>
 
-It's of course hard to get an overall view of all users, but the more I look 
-at the problem the more it seems like both out-of-tree kernel drivers (in 
-particular a Marvell CSI-2 receiver driver) and userspace (in particular 
-gstreamer) have implemented support for the data_offset field as proposed in 
-this patch series. We could of course argue that this is incorrect, and that 
-there are out-of-tree drivers and userspace code that use data_offset for the 
-purpose it was initially envisioned for (I'm thinking about Cisco code 
-possibly, at least the one you've had the opportunity to review :-)). However, 
-if the majority of users use data_offset "incorrectly", maybe we should 
-consider that usage as being the de-facto standard and consider this series as 
-a documentation fix.
+>>> +In order for a CEC adapter to be configured it needs a physical
+>> address.
+>>> +This is normally assigned by the driver. It is either 0.0.0.0 for a
+>> TV (aka
+>>> +video receiver) or it is derived from the EDID that the source
+>> received
+>>> +from the sink. This is normally set by the driver before enabling
+>> the CEC
+>>> +adapter, or it is set from userspace in the case of CEC USB dongles
+>> (although
+>>> +embedded systems might also want to set this manually).
+>>
+>> I would actually expect that USB dongles read out the EDID from the
+>> source.
+>> I might be wrong, though.
+> 
+> EDID is communicated to the device by the TV on a different bus than
+> CEC, it is DDC. It is possible that the dongle also reads DDC messages.
+> My initial understanding was that a CEC USB dongle handles only CEC
+> messages and is passing through all other signals, such as DDC.
 
-The question is thus, what does the majority of the users do ?
+I checked against the libcec code (see link here: http://libcec.pulse-eight.com/)
+for my usb-cec dongle and it turns out the library reads out the edid from the
+monitor using xrandr (I think, see src/libcec/platform/X11/randr-edid.cpp) in
+order to get the physical address. So it is not using the dongle itself for
+that. Makes sense.
 
-> 2) If you thought it was confusing today, then that's nothing compared to
-> the confusion once you change the meaning from one kernel to another.
+>  
+>>> +
+>>> +After enabling the CEC adapter it has to be configured. The CEC
+>> adapter has
+>>> +to be informed for which CEC device types a logical address has to
+>> be found.
+>>
+>> I would say: 'a free (unused) logical address'.
+>>
+>>> +The CEC framework will attempt to find such logical addresses. If
+>> none are
+>>
+>> And here: 'find and claim'
+>>
+>>> +found, then it will fall back to logical address Unregistered (15).
+>>
+>> You probably need to add some documentation regarding
+>> cec_claim_log_addrs()
+>> and how drivers can use it. Also, while logical addresses are being
+>> claimed,
+>> are drivers or userspace allowed to transmit/receive other messages? Or
+>> just
+>> stall until this is finished?
 > 
-> Either keep the current meaning and improve the specification, or deprecate
-> it: warn when it is non-zero and just mark it as 'don't use' in the spec.
+> When sending a message the user space is free to set any source and
+> destination address. Hence, I see no need to wait until the logical
+> address is claimed.
 > 
-> >> 2) We really don't know who else might be using it, or which applications
-> >> might be using it (a lot of work was done in gstreamer recently, I
-> >> wonder if data_offset support was implemented there).
-> >> 
-> >> 3) You offer no alternative to this feature. Basically this is my main
-> >> objection. It is not at all unusual to have headers in front of the
-> >> frame data. We (Cisco) use it in one of our product series for example.
-> >> And I suspect it is something that happens especially in systems with an
-> >> FPGA that does custom processing, and those systems are exactly the ones
-> >> that are generally not upstreamed and so are not visible to us.
-> > 
-> > If you have a header before the image, the header probably has a format as
-> > well. Some headers are device specific whereas some are more generic. The
-> > SMIA standard, for example, does specify a metadata (header or footer!)
-> > format.
-> > 
-> > It'd be useful to be able to tell the user what kind of header there is.
-> > For that, the header could be located on a different plane, with a
-> > specific format.
-> > 
-> > There's room for format information in struct v4l2_plane_pix_format but
-> > hardly much else. It still would cover a number of potential use cases.
-> > 
-> > I might still consider making the planes independent of each other;
-> > conveniently there's 8 bytes of free space in struct
-> > v4l2_pix_format_mplane for alternative plane related information. It'd be
-> > nice to be able to do this without an additional buffer type since that's
-> > visible in a large number of other places: there's plenty of room in
-> > struct v4l2_plane for any video buffer related information.
+> If the user space is not waiting until the address and is sending
+> messages, then I guess it is done with full responsibility on the user
+> space.
 > 
-> Please don't confuse things: each struct v4l2_plane_pix_format relates to a
-> single buffer that contains the data for that plane. If one buffer contains
-> both metadata and actual image data, then that's all part of the same plane
-> since it was all transferred to the buffer with the same DMA transfer.
+> Regarding receiving, I guess it should be possible to receive broadcast
+> messages.
 > 
-> You cannot put the header/footer into separate planes since the only way to
-> achieve that would be a memcpy and the header/footer would still be part of
-> the actual plane data.
-> 
-> If the metadata arrives through its own DMA channel, then I would have no
-> objection to seeing that as a separate plane. But I think in general that
-> might be a bad idea because such metadata may come at an earlier/later time
-> compared to the image data, and usually apps want to receive things asap.
-> 
-> I still see it as a simple problem: I have a buffer, it contains a picture
-> of a given pixel format, but there may be a header and (currently not
-> implemented) a footer. Header and/or footer may have a format (also not
-> implemented yet).
-> 
-> Applications can use the offsets to ignore all those headers/footers and
-> just go straight to the image data. Or they use it to interpret the data in
-> the headers/footers.
-> 
-> Perhaps it is a total lack of imagination, but I really cannot see what else
-> it is you would need. Of course, you can think of really crazy schemes, but
-> then you likely need to just use a new pixelformat since it is so crazy
-> that it doesn't fit into anything existing.
-> 
-> The whole point of data_offset was that it is nuts to have to come up with a
-> new pixelformat for otherwise standard pixelformats that just happen to
-> have a header in front of them. You can't duplicate all pixel formats just
-> for that.
->
-> > Frame descriptors are not needed for this --- you're quite right in that.
-> > But the frame descriptors, when implemented, will very probably need plane
-> > specific formats in the end as not many receivers are able to separate
-> > different parts of the image to different buffers.
-> > 
-> >> IMHO the functionality it provides is very much relevant, and I would
-> >> like to see an alternative in place before it is repurposed.
-> >> 
-> >> But frankly, I really don't see why you would want to repurpose it.
-> >> Adding a new field (buf_offset) would do exactly what you want it to do
-> >> without causing an ABI change.
-> > 
-> > I said I ok with adding buf_offset field, but it might not be the best
-> > choice we can make: it's a temporary solution for a very specific problem,
-> > leaves the API with similar field names with different meanings
-> > (data_offset vs. buf_offset, where the other is about the header and the
-> > other about the data) and is not extensible. In addition, the size of the
-> > header is not specified; it might be smaller than what's between
-> > buf_offset and data_offset. Some devices produce footers as well;
-> > currently we have no way to specify how they are dealt with.
-> > 
-> > I'd like to at least investigate if we could have something more
-> > future-proof for this purpose.
-> 
-> Proposals welcome!
+> What do you think?
 
-I certainly second that :-) Sakari, do you have something in mind ?
+Fair enough, it just needs to be documented.
 
--- 
+<snip>
+
+>>> +Promiscuous mode
+>>> +----------------
+>>> +
+>>> +The promiscuous mode enables the userspace applications to read all
+>>> +messages on the CEC bus. This is similar to the promiscuous mode in
+>>> +network devices. In the normal mode messages not directed to the
+>> device
+>>> +(differentiated by the logical address of the CEC device) are not
+>>> +forwarded to the userspace. Same rule applies to the messages
+>> contailning
+>>> +remote control key codes. When promiscuous mode is enabled all
+>> messages
+>>> +can be read by userspace. Processing of the messages is still done,
+>> thus
+>>> +key codes will be both interpreted by the framework and available as
+>> an
+>>> +input device, but also raw messages containing these codes are sent
+>> to
+>>> +the userspace.
+>>
+>> Will messages that are processed by the driver or cec framework also be
+>> relayed to userspace in promiscuous mode? Will userspace be able to
+>> tell
+>> that it has been processed already?
+> 
+> All messages will be relayed to the user space and no there is no
+> possibility
+> to check whether the message was processed by the kernel already.
+
+Should we add that? To be honest, I'm not sure about that myself.
+
+Once thing I notice is that there are no reserved fields at the end of
+struct cec_msg. We should add that. Same with the other structs. It served
+us well with v4l2, and we should do the same with the cec API.
+
+Another upcoming problem is the use of struct timespec: this will have
+to change in the near future to one that is year 2038-safe. Unfortunately,
+there is no public 'struct timespec64' type yet. This mailinglist might
+provide answers w.r.t. the precise plans with timespec:
+http://lwn.net/Articles/640284/
+
+Also, we don't have 32-bit compat code for CEC. I wonder if it is a good
+idea to improve the layout of the structs to minimize 64/32-bit layout
+differences. I never paid attention to that when I made these structs as
+I always planned to do that at the end.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
