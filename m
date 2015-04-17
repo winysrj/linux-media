@@ -1,80 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:34361 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbbDUQEP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49464 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753910AbbDQPHV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 12:04:15 -0400
-Received: by wgso17 with SMTP id o17so218980677wgs.1
-        for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 09:04:14 -0700 (PDT)
+	Fri, 17 Apr 2015 11:07:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Querycap for subdevs, finding MC from device nodes
+Date: Fri, 17 Apr 2015 18:07:22 +0300
+Message-ID: <1768917.5uFxr7arIJ@avalon>
+In-Reply-To: <550D2EB9.5090806@xs4all.nl>
+References: <550D2EB9.5090806@xs4all.nl>
 MIME-Version: 1.0
-Reply-To: whittenburg@gmail.com
-In-Reply-To: <2148230.ZhqY8UHqWD@avalon>
-References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com>
-	<1885047.DP4uMGgtdr@avalon>
-	<CABcw_Om0fujOR+-O+zw6z_aor8ZgOpJiLUJ0pq4hrHP7v_tKCA@mail.gmail.com>
-	<2148230.ZhqY8UHqWD@avalon>
-Date: Tue, 21 Apr 2015 11:04:14 -0500
-Message-ID: <CABcw_O=HtCQkVnHk-ERCRKFbp0X7tSGQcU7L5133RQmD50yqsA@mail.gmail.com>
-Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
-From: Chris Whittenburg <whittenburg@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 17, 2015 at 4:39 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Chris,
->
-> On Thursday 16 April 2015 13:05:30 Chris Whittenburg wrote:
->> On Tue, Apr 7, 2015 at 10:51 AM, Laurent Pinchart wrote:
->> > Black level compensation is applied by the CCDC before writing raw frames
->> > to memory. If your raw frames are correct BLC is probably not to blame.
->> >
->> > The default contrast is x1.0 and the default brightness is +0.0, so I
->> > don't think those should be blame either.
->> >
->> > I suspect the RGB2RGB conversion matrix to be wrong. The default setting
->> > is supposed to handle fluorescent lighting. You could try setting the
->> > RGB2RGB matrix to the identity matrix and see if this helps. See
->> > http://git.ideasonboard.org/omap3-isp-live.git/blob/HEAD:/isp/controls.c#l
->> > 184 for sample code.
->> >
->> > Another matrix that could be worth being reprogrammed is the RGB2YUV
->> > matrix, which also defaults to fluorescent lighting. Sample code to
->> > reprogram it is available in the same location.
->>
->> I tried changing the rgb2rgb matrx to the identity matrix:
->>
->> {0x0100, 0x0000, 0x0000},
->> {0x0000, 0x0100, 0x0000},
->> {0x0000, 0x0000, 0x0100}
->>
->> And the csc (rgb2yuv) to this:
->> {256, 0, 0},
->> {0, 0, 0},
->> {0, 0, 0}
->>
->> But I couldn't see much, if any, difference.
->>
->> However, when I forced the gamma correction to be bypassed, it seemed to fix
->> it.
->>
->> Does that make sense?  I guess I don't understand it enough to understand if
->> gamma correction would have compressed all my luma values.
->
-> Yes, it makes sense. Gamma correction applies a non-linear transformation to
-> the pixel values and can explain the problems you were seeing.
->
-> I've checked the default rgb2rgb matrix, and it should work fine for your case
-> as all lines add up to 1.0. The default rgb2yuv matrix, however, limits Y
-> values to 220, so you should modify it.
+Hi Hans,
 
-I believe the formula used is:
-Y = CSCRY*Rin + CSCGY*Gin + CSCBY*Bin +Yoffset
+On Saturday 21 March 2015 09:41:29 Hans Verkuil wrote:
+> I've been thinking about extending v4l2-compliance with v4l-subdev tests.
+> 
+> However, there are a few missing pieces that are needed before this can be
+> done.
+> 
+> First of all is that there is no subdev equivalent to VIDIOC_QUERYCAP, i.e.
+> an ioctl that is guaranteed to always be available.
+> 
+> So I propose the following ioctl:
+> 
+> VIDIOC_SUBDEV_QUERYCAP(struct v4l2_subdev_capability);
+> 
+> struct v4l2_subdev_capability {
+> 	char name[V4L2_SUBDEV_NAME_SIZE];
+> 	__u32 version;			// same as KERNEL_VERSION like QUERYCAP does
+> 	__u32 device_caps;
+> 	__u32 pads;
+> 	__u32 entity_id;
+> 	__u32 reserved[40];
+> };
+> 
+> /* This v4l2_subdev is also a media entity and the entity_id field is valid
+> */ #define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
+> 
+> This will allow v4l2-compliance to discover that this is a bona fide v4l2
+> subdevice. All the information in the struct above can be filled in by
+> v4l2-subdev.c, no need to change drivers.
 
-If CSCRY=1.0, and Rin is in the range 0 to 255, then the resulting Y
-would be in the range [0, 255] as well, so why would the matrix limit
-Y values to 220?  Is it because Rin, Gin, and Bin have already been
-limited to the YCbCr range of [16, 240]?
+This looks quite good to me. There's a prerequisite though, we need to 
+formally define the naming scheme for subdevs, otherwise we'll expose yet 
+another ill-defined name that will cause issues later.
+
+> The reason I included 'pads' as well is that subdev drivers can have a
+> devnode without being an entity, but still support ioctls like
+> VIDIOC_SUBDEV_ENUM_MBUS_CODE. In that case v4l2-compliance needs to know
+> the number of pads in order to properly test. If it is an entity, then the
+> entity information can be obtained from the MC, see below how to find the
+> MC.
+
+Shouldn't we make it mandatory for subdevs to be entities if they want to 
+expose a subdev node ? Otherwise applications won't be able to find out how 
+the subdev relates to other subdevs and v4l2 devices, making the API quite 
+shaky in my opinion.
+
+> Note: I think it makes sense to extend VIDIOC_QUERYCAP as well with a
+> CAP_ENTITY and an entity_id.
+> 
+> The next step is to be able to associate a media device with a v4l2-subdev.
+> 
+> Originally I though of adding the major and minor numbers of the media
+> device to the capability struct, but I'd like to do that for
+> VIDIOC_QUERYCAP as well, and there are only 3 reserved fields (2 after
+> taking one for the entity_id).
+> 
+> Instead I think we can just implement the MEDIA_IOC_DEVICE_INFO ioctl: this
+> returns all info about the media_device, and it can easily be extended to
+> include the major and minor number of that device.
+
+Hmmm... I'm not too found of that approach. Can't userspace find the 
+corresponding media device through sysfs ? I'd like to point that the common 
+use case is to start from the media device and find the entities. Finding the 
+media device from a subdev is useful mostly for test tools, but it's not the 
+main use case.
+
+> Again, supporting this is easily done in the core, both for regular video
+> nodes and for subdev nodes, so drivers do not need to be changed.
+> 
+> This way you can easily find whether a V4L2 device node is an entity and
+> what the associated media controller is. All the information is available,
+> we just need to expose it.
+> 
+> Comments?
+
+Please see above :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
