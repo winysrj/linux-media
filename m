@@ -1,26 +1,10 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <odoukara@gmail.com>) id 1Yh32v-0006fv-94
-	for linux-dvb@linuxtv.org; Sat, 11 Apr 2015 23:34:35 +0200
-Received: from mail-wi0-f169.google.com ([209.85.212.169])
-	by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
-	[UNKNOWN:AES128-GCM-SHA256:128] for <linux-dvb@linuxtv.org>
-	id 1Yh32t-00025C-83; Sat, 11 Apr 2015 23:34:33 +0200
-Received: by wiun10 with SMTP id n10so30756415wiu.1
-	for <linux-dvb@linuxtv.org>; Sat, 11 Apr 2015 14:34:30 -0700 (PDT)
-Received: from [192.168.43.58] ([197.155.135.106])
-	by mx.google.com with ESMTPSA id gj7sm5710235wib.4.2015.04.11.14.34.28
-	for <linux-dvb@linuxtv.org>
-	(version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-	Sat, 11 Apr 2015 14:34:29 -0700 (PDT)
-From: Ousmane K Doukara <odoukara@gmail.com>
-Mime-Version: 1.0 (1.0)
-Message-Id: <26ECBE27-325F-493A-BF4A-3B4028777EBE@gmail.com>
-Date: Sat, 11 Apr 2015 21:34:24 +0000
-References: <CAADMPh6gTnWdhHxQVOi63qZYxgEAH45CizXzadHhTFpPNyv4Ag@mail.gmail.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] IP over DVBS
+MIME-Version: 1.0
+Date: Fri, 17 Apr 2015 19:29:05 +0530
+Message-ID: <CAPAqnGp0poptvEiMOk3oxs7=H8C5DOx-g0qpKZVQGQ_fa20-3Q@mail.gmail.com>
+From: Mahesh Dl <dl.mahesh@gmail.com>
+To: linux-dvb@linuxtv.org, mass@linuxtv.org
+Subject: [linux-dvb] DSMCC-MHP-TOOLS incremental carousel updates
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,21 +13,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0585239395=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0585239395==
+Content-Type: multipart/alternative; boundary=001a1147f248c7c1cc0513ebfb98
 
-> 
-> Hello all,
-> We have a linux set top box with Ethernet port and gsm sim card for return channel.
-> We receive IP over DVBS (MPE) and  Free to Air Tv programs. We would like to be able to decapsulate the IP data and send that to the Ethernet port. Tv programs should be handled by something like openpli.
-> Any help ?
+--001a1147f248c7c1cc0513ebfb98
+Content-Type: text/plain; charset=UTF-8
+
+Hello Marek Pikarski,
+
+First of all thank you for the dsmcc-mhp-tools, it made my test setup easy
+for carousel's. It works flawless so far, i use tscbrmuxer from opencaster
+for muxing with AV.
+
+As of now, i  am confused on "updating of version number for the module,
+once i update some files or folders in the carousel directory", i guess its
+already included in the package as it is mentioned in the README that
+incremental updates are supported. Please provide an example of command
+usage to achieve this.
+
+I use the inotify-tools to monitor the directory for carousel and can
+generate the new m2t file when ever there is a change in the directory. The
+command used to generate the m2t is  - dsmcc-oc --in=/home/root/dsmcc
+--out=test4.m2t --pid=0x07d3 -cid 0x00000001 --tag=0xb -ns -v .
+
+Please help.
+
+Thanks & Regards,
+Mahesh
+
+--001a1147f248c7c1cc0513ebfb98
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Hello=C2=A0Marek Pikarski,<div><br></div><div>First of all=
+ thank you for the dsmcc-mhp-tools, it made my test setup easy for carousel=
+&#39;s. It works flawless so far, i use tscbrmuxer from opencaster for muxi=
+ng with AV.</div><div><br></div><div>As of now, i =C2=A0am confused on &quo=
+t;updating of version number for the module, once i update some files or fo=
+lders in the carousel directory&quot;, i guess its already included in the =
+package as it is mentioned in the README that incremental updates are suppo=
+rted. Please provide an example of command usage to achieve this.</div><div=
+><br></div><div>I use the inotify-tools to monitor the directory for carous=
+el and can generate the new m2t file when ever there is a change in the dir=
+ectory. The command used to generate the m2t is =C2=A0- dsmcc-oc --in=3D/ho=
+me/root/dsmcc --out=3Dtest4.m2t --pid=3D0x07d3 -cid 0x00000001 --tag=3D0xb =
+-ns -v .</div><div><br></div><div>Please help.</div><div><br></div><div>Tha=
+nks &amp; Regards,</div><div>Mahesh</div></div>
+
+--001a1147f248c7c1cc0513ebfb98--
+
+
+--===============0585239395==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0585239395==--
