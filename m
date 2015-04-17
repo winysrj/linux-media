@@ -1,227 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:36220 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbbD2QjL (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34638 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751479AbbDQLrx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 12:39:11 -0400
-Received: by lagv1 with SMTP id v1so24480668lag.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 09:39:09 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCHv2 3/5] si2157: support selection of IF interface
-Date: Wed, 29 Apr 2015 19:38:52 +0300
-Message-Id: <1430325534-20937-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1430325534-20937-2-git-send-email-olli.salonen@iki.fi>
-References: <1430325534-20937-2-git-send-email-olli.salonen@iki.fi>
+	Fri, 17 Apr 2015 07:47:53 -0400
+Received: by widjs5 with SMTP id js5so32111146wid.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 04:47:52 -0700 (PDT)
+Message-ID: <5530F2E6.3070301@gmail.com>
+Date: Fri, 17 Apr 2015 12:47:50 +0100
+From: Jemma Denson <jdenson@gmail.com>
+MIME-Version: 1.0
+To: Patrick Boettcher <patrick.boettcher@posteo.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for TechniSat Skystar S2
+References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>	<552B62EF.8050705@gmail.com> <20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
+In-Reply-To: <20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The chips supported by the si2157 driver have two IF outputs (either
-pins 12+13 or pins 9+11). Instead of hardcoding the output to be used
-add an option to choose which output shall be used.
+On 17/04/15 10:06, Patrick Boettcher wrote:
+> I have my Skystar S2 pointed to 19.2E.
+That would be great if you could test on that, 28.2E can be a bit 
+conservative. The parts that I consider need testing are FEC and Pilot 
+on DVBS2 - I didn't have that much variety in FEC values, and as far as 
+I could tell everything is Pilot=ON on 28.2.
 
-As this patch changes the default behaviour, the IF interface is
-specified in each driver currently using si2157 driver. This is to
-keep bisectability.
+If it's not obvious from the code and comments, the values used for 
+tuning are in the modfec_table, and the pattern *seems* to match with 
+the modfec_lookup_table - for DVBS2, anyway. With DVBS the values for 
+setting and getting are different, and not just a straight +=0x2d 
+unfortunately.
+I did have a plan to merge these two tables together, and it would need 
+a seperate u8 val for setting and getting due to DVBS being odd.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++++
- drivers/media/pci/smipcie/smipcie.c     | 1 +
- drivers/media/tuners/si2157.c           | 4 +++-
- drivers/media/tuners/si2157.h           | 6 ++++++
- drivers/media/tuners/si2157_priv.h      | 1 +
- drivers/media/usb/cx231xx/cx231xx-dvb.c | 2 ++
- drivers/media/usb/dvb-usb-v2/af9035.c   | 1 +
- drivers/media/usb/dvb-usb-v2/dvbsky.c   | 2 ++
- drivers/media/usb/dvb-usb/cxusb.c       | 1 +
- drivers/media/usb/em28xx/em28xx-dvb.c   | 2 ++
- 10 files changed, 23 insertions(+), 1 deletion(-)
+Pilot was admittedly a bit of guesswork - it seems to be able to do the 
+same thing as the cx24117 driver, in that ON is |= 0x40 and AUTO is 
+|=0x80. To work out the fec values needed I had some code that looped 
+through from 0x01 to 0xff and found that, for example, 8PSK 2/3 worked 
+on 0x4d, 0x8d and 0xcd and failed to tune on 0x0d which made me realise 
+that the top two bits were infact pilot.
+It really does need testing with a S2 transponder which needs pilot off 
+- to check firstly that the tuning mask is correct, and also that 
+get_fec is doing the right thing with retrieving the value. I'm not 100% 
+sure that bit 8 signifies pilot in that register, but it seems to fit in 
+that that clock ratios needed are different which would be due to the 
+data rate being slightly lower when pilot is in use.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 745caab..37fd013 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1912,6 +1912,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			/* attach tuner */
- 			memset(&si2157_config, 0, sizeof(si2157_config));
- 			si2157_config.fe = fe0->dvb.frontend;
-+			si2157_config.if_port = 1;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 			info.addr = 0x60;
-@@ -1957,6 +1958,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		/* attach tuner */
- 		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = fe0->dvb.frontend;
-+		si2157_config.if_port = 1;
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 		info.addr = 0x60;
-@@ -2093,6 +2095,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		/* attach tuner */
- 		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = fe0->dvb.frontend;
-+		si2157_config.if_port = 1;
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 		info.addr = 0x60;
-@@ -2172,6 +2175,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			/* attach tuner */
- 			memset(&si2157_config, 0, sizeof(si2157_config));
- 			si2157_config.fe = fe0->dvb.frontend;
-+			si2157_config.if_port = 1;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 			info.addr = 0x60;
-diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-index 4115925..143fd78 100644
---- a/drivers/media/pci/smipcie/smipcie.c
-+++ b/drivers/media/pci/smipcie/smipcie.c
-@@ -657,6 +657,7 @@ static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = port->fe;
-+	si2157_config.if_port = 1;
- 
- 	memset(&client_info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index d74ae26..cdaf687 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -298,7 +298,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
- 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146)
- 		memcpy(cmd.args, "\x14\x00\x02\x07\x00\x01", 6);
- 	else
--		memcpy(cmd.args, "\x14\x00\x02\x07\x01\x00", 6);
-+		memcpy(cmd.args, "\x14\x00\x02\x07\x00\x00", 6);
-+	cmd.args[4] = dev->if_port;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2157_cmd_execute(client, &cmd);
-@@ -378,6 +379,7 @@ static int si2157_probe(struct i2c_client *client,
- 	i2c_set_clientdata(client, dev);
- 	dev->fe = cfg->fe;
- 	dev->inversion = cfg->inversion;
-+	dev->if_port = cfg->if_port;
- 	dev->fw_loaded = false;
- 	dev->chiptype = (u8)id->driver_data;
- 	dev->if_frequency = 5000000; /* default value of property 0x0706 */
-diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
-index a564c4a..4db97ab 100644
---- a/drivers/media/tuners/si2157.h
-+++ b/drivers/media/tuners/si2157.h
-@@ -34,6 +34,12 @@ struct si2157_config {
- 	 * Spectral Inversion
- 	 */
- 	bool inversion;
-+
-+	/*
-+	 * Port selection
-+	 * Select the RF interface to use (pins 9+11 or 12+13)
-+	 */
-+	u8 if_port;
- };
- 
- #endif
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index cd8fa5b..71a5f8c 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -28,6 +28,7 @@ struct si2157_dev {
- 	bool fw_loaded;
- 	bool inversion;
- 	u8 chiptype;
-+	u8 if_port;
- 	u32 if_frequency;
- };
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 610d567..66ee161 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -797,6 +797,7 @@ static int dvb_init(struct cx231xx *dev)
- 		/* attach tuner */
- 		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = dev->dvb->frontend;
-+		si2157_config.if_port = 1;
- 		si2157_config.inversion = true;
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 		info.addr = 0x60;
-@@ -852,6 +853,7 @@ static int dvb_init(struct cx231xx *dev)
- 		/* attach tuner */
- 		memset(&si2157_config, 0, sizeof(si2157_config));
- 		si2157_config.fe = dev->dvb->frontend;
-+		si2157_config.if_port = 1;
- 		si2157_config.inversion = true;
- 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 		info.addr = 0x60;
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 80a29f5..7b7f75d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1569,6 +1569,7 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
- 
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe[0];
-+	si2157_config.if_port = 1;
- 	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
- 			&si2157_config, state->i2c_adapter_demod);
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 0f73b1d..57c8c2d 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -549,6 +549,7 @@ static int dvbsky_t680c_attach(struct dvb_usb_adapter *adap)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe[0];
-+	si2157_config.if_port = 1;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 	info.addr = 0x60;
-@@ -633,6 +634,7 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe[0];
-+	si2157_config.if_port = 1;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 	info.addr = 0x60;
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index ffc3704..ab71511 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1350,6 +1350,7 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe_adap[0].fe;
-+	si2157_config.if_port = 1;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 	info.addr = 0x60;
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index a5b22c5..5b7c7c88 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1579,6 +1579,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			/* attach tuner */
- 			memset(&si2157_config, 0, sizeof(si2157_config));
- 			si2157_config.fe = dvb->fe[0];
-+			si2157_config.if_port = 1;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 			info.addr = 0x60;
-@@ -1639,6 +1640,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			/* attach tuner */
- 			memset(&si2157_config, 0, sizeof(si2157_config));
- 			si2157_config.fe = dvb->fe[0];
-+			si2157_config.if_port = 0;
- 			memset(&info, 0, sizeof(struct i2c_board_info));
- 			strlcpy(info.type, "si2146", I2C_NAME_SIZE);
- 			info.addr = 0x60;
--- 
-1.9.1
+> To prepare an integration into 4.2 (or at least 4.3) I suggest using my
+> media_tree on linuxtv.org .
+>
+> http://git.linuxtv.org/cgit.cgi/pb/media_tree.git/ cx24120-v2
+>
+> I added a checkpatch-patch on top of it. If you can, please base any
+> future work of yours on this tree until is has been integrated.
+Will do! If I can work out the SNR scale I have got plans to have this 
+work in the new way of doing this. Did you ever manage to obtain a 
+datasheet for this demod? I have tried contacting NXP but haven't 
+received anything back.
+
+> Please also tell me, whether you are OK with the comment I added around
+> your commit or not.
+Yes, that's OK.
 
