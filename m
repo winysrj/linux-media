@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35514 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556AbbD1IQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 04:16:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from plane.gmane.org ([80.91.229.3]:58513 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753548AbbDQVsl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2015 17:48:41 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1YjE7r-0000De-LC
+	for linux-media@vger.kernel.org; Fri, 17 Apr 2015 23:48:39 +0200
+Received: from 109-93-172-18.dynamic.isp.telekom.rs ([109.93.172.18])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 23:48:39 +0200
+Received: from predivan by 109-93-172-18.dynamic.isp.telekom.rs with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 23:48:39 +0200
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Arnd Bergman <arnd@arndb.de>,
-	Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL FOR v4.1] OMAP4 ISS fix
-Date: Tue, 28 Apr 2015 11:16:48 +0300
-Message-ID: <2435047.PJ6oufUfoi@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Pedja <predivan@open.telekom.rs>
+Subject: Re: [Regression?][kernel 4.0] BT848 module is nowhere to be found in menuconfig.
+Date: Fri, 17 Apr 2015 21:48:33 +0000 (UTC)
+Message-ID: <loom.20150417T234638-747@post.gmane.org>
+References: <loom.20150417T205343-342@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Pedja <predivan <at> open.telekom.rs> writes:
 
-Could you please pull the following OMAP4 ISS regression fox for v4.1 ? If 
-fixes a compilation breakage due to a change in the OMAP4 API.
+> It might be clearer with a few screenshots.
+> http://imgur.com/w8nE50e
 
-The following changes since commit cb0c9e1f6777287e81d9b48c264d980bf5014b48:
+Proper link (sorry)
+https://imgur.com/w8nE50e,nPEbUIr,k18Nr5f#0
+ 
 
-  [media] smiapp: Use v4l2_of_alloc_parse_endpoint() (2015-04-27 16:05:55 
--0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap4iss/fixes
-
-for you to fetch changes up to 2039b0a6114b4ebc26ac261467225cc4622753ca:
-
-  v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon 
-(2015-04-28 11:06:14 +0300)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
-
- drivers/staging/media/omap4iss/Kconfig      |  1 +
- drivers/staging/media/omap4iss/iss.c        | 11 +++++++++++
- drivers/staging/media/omap4iss/iss.h        |  4 ++++
- drivers/staging/media/omap4iss/iss_csiphy.c | 12 +++++++-----
- 4 files changed, 23 insertions(+), 5 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
 
