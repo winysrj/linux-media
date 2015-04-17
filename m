@@ -1,95 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54087 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752344AbbDKMsl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Apr 2015 08:48:41 -0400
-Date: Sat, 11 Apr 2015 15:48:38 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] media: i2c: ov2659: Use v4l2_of_alloc_parse_endpoint()
-Message-ID: <20150411124838.GM20756@valkosipuli.retiisi.org.uk>
-References: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:54838 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751041AbbDQUuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2015 16:50:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1YjDDB-0005w8-19
+	for linux-media@vger.kernel.org; Fri, 17 Apr 2015 22:50:05 +0200
+Received: from 109-93-172-18.dynamic.isp.telekom.rs ([109.93.172.18])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 22:50:04 +0200
+Received: from predivan by 109-93-172-18.dynamic.isp.telekom.rs with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2015 22:50:04 +0200
+To: linux-media@vger.kernel.org
+From: Pedja <predivan@open.telekom.rs>
+Subject: [Regression?][kernel 4.0] BT848 module is nowhere to be found in menuconfig.
+Date: Fri, 17 Apr 2015 20:46:01 +0000 (UTC)
+Message-ID: <loom.20150417T205343-342@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+CihJZiBJIGZja2VkIHNvbWV0aGluZyB1cCwgYXBvbG9naWVzIGluIGFkdmFuY2UpLgpUaGlzIGlzIHdoYXQgaGFwcGVucyB3aGVuIEkgcmV1c2UgLmNvbmZpZyBmcm9tIDMuMTkuNCB0byBidWlsZCA0LjAKLS0KdXNyL3NyYy9saW51eC00LjAK4p2vIGdyZXAgQlQ4NDggLmNvbmZpZwpDT05GSUdfVklERU9fQlQ4NDg9bQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIArina8gbWFrZSBtZW51Y29uZmlnCnNjcmlwdHMva2NvbmZpZy9tY29uZiBLY29uZmlnCmNvbmZpZ3VyYXRpb24gd3JpdHRlbiB0byAuY29uZmlnCgoqKiogRW5kIG9mIHRoZSBjb25maWd1cmF0aW9uLgoqKiogRXhlY3V0ZSAnbWFrZScgdG8gc3RhcnQgdGhlIGJ1aWxkIG9yIHRyeSAnbWFrZSBoZWxwJy4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAK4p2vIGdyZXAgQlQ4NDggLmNvbmZpZwpbMV0gICAgNTczNyBleGl0IDEgICAgIGdyZXAgLS1jb2xvcj1hdXRvIEJUODQ4IC5jb25maWcKCi0tLQpTYW1lIHRoaW5nIGhhcHBlbnMgaWYgSSB1c2UgJ21ha2Ugc2lsZW50b2xkY29uZmlnJyBvciAnbWFrZSBvbGRkZWZjb25maWcnLgoKQXMgc29vbiBhcyBJIHVwZGF0ZSAuY29uZmlnLCBtZW51Y29uZmlnIHNlY3Rpb24gZm9yIEJUODQ4IChWSURFT19CVDg0OCkgaXMgZ29uZS4KSXQgbWlnaHQgYmUgY2xlYXJlciB3aXRoIGEgZmV3IHNjcmVlbnNob3RzLgpodHRwOi8vaW1ndXIuY29tL3c4bkU1MGUKClRob3VnaHRzIChvdGhlciB0aGFuICdnbyBhd2F5Jyk/ClRoYW5rcy4KUGVkamE=
 
-On Fri, Apr 10, 2015 at 11:13:28PM +0100, Lad Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> Instead of parsing the link-frequencies property in the driver, let
-> v4l2_of_alloc_parse_endpoint() do it.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  This patch depends on https://patchwork.kernel.org/patch/6190901/
->  
->  drivers/media/i2c/ov2659.c | 19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> index edebd11..c1e310b 100644
-> --- a/drivers/media/i2c/ov2659.c
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -1340,8 +1340,8 @@ static struct ov2659_platform_data *
->  ov2659_get_pdata(struct i2c_client *client)
->  {
->  	struct ov2659_platform_data *pdata;
-> +	struct v4l2_of_endpoint *bus_cfg;
->  	struct device_node *endpoint;
-> -	int ret;
->  
->  	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
->  		return client->dev.platform_data;
-> @@ -1350,18 +1350,27 @@ ov2659_get_pdata(struct i2c_client *client)
->  	if (!endpoint)
->  		return NULL;
->  
-> +	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
-> +	if (IS_ERR(bus_cfg)) {
-> +		pdata = NULL;
-> +		goto done;
-> +	}
-> +
->  	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->  	if (!pdata)
->  		goto done;
->  
-> -	ret = of_property_read_u64(endpoint, "link-frequencies",
-> -				   &pdata->link_frequency);
-> -	if (ret) {
-> -		dev_err(&client->dev, "link-frequencies property not found\n");
-> +	if (bus_cfg->nr_of_link_frequencies != 1) {
-
-I wonder if it should be considered a problem if the array is larger than
-one item. I would not, even if the rest of the entries wouldn't be used by
-the driver at the moment. Up to you.
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-> +		dev_err(&client->dev,
-> +			"link-frequencies property not found or too many\n");
->  		pdata = NULL;
-> +		goto done;
->  	}
->  
-> +	pdata->link_frequency = bus_cfg->link_frequencies[0];
-> +
->  done:
-> +	v4l2_of_free_endpoint(bus_cfg);
->  	of_node_put(endpoint);
->  	return pdata;
->  }
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
