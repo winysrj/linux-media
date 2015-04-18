@@ -1,105 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45419 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754649AbbDMSjY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50700 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752618AbbDRNE0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 14:39:24 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Daniel Vetter <daniel.vetter@intel.com>
-Subject: [RFC/PATCH v2 0/5] Add live source objects to DRM
-Date: Mon, 13 Apr 2015 21:39:42 +0300
-Message-Id: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 18 Apr 2015 09:04:26 -0400
+Date: Sat, 18 Apr 2015 16:04:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH/RFC 0/2] Repurpose the v4l2_plane data_offset field
+Message-ID: <20150418130415.GM27451@valkosipuli.retiisi.org.uk>
+References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <5530E01D.3050105@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5530E01D.3050105@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hans,
 
-Here's a proposal for a different approach to live source in DRM based on an
-idea by Daniel Vetter. The previous version can be found at
-http://lists.freedesktop.org/archives/dri-devel/2015-March/079319.html.
+On Fri, Apr 17, 2015 at 12:27:41PM +0200, Hans Verkuil wrote:
+> Hi Laurent,
+> 
+> On 04/14/2015 09:44 PM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > The v4l2_plane data_offset field has been introduced at the same time as the
+> > the multiplane API to convey header size information between kernelspace and
+> > userspace.
+> > 
+> > The API then became slightly controversial, both because different developers
+> > understood the purpose of the field differently (resulting for instance in an
+> > out-of-tree driver abusing the field for a different purpose), and because of
+> > competing proposals (see for instance "[RFC] Multi format stream support" at
+> > http://www.spinics.net/lists/linux-media/msg69130.html).
+> > 
+> > Furthermore, the data_offset field isn't used by any mainline driver except
+> > vivid (for testing purpose).
+> > 
+> > I need a different data offset in planes to allow data capture to or data
+> > output from a userspace-selected offset within a buffer (mainly for the
+> > DMABUF and MMAP memory types). As the data_offset field already has the
+> > right name, is unused, and ill-defined, I propose repurposing it. This is what
+> > this RFC is about.
+> > 
+> > If the proposal is accepted I'll add another patch to update data_offset usage
+> > in the vivid driver.
+> 
+> I am skeptical about all this for a variety of reasons:
+> 
+> 1) The data_offset field is well-defined in the spec. There really is no doubt
+> about the meaning of the field.
 
-The need comes from the Renesas R-Car SoCs in which a video processing engine
-(named VSP1) that operates from memory to memory has one output directly
-connected to a plane of the display engine (DU) without going through memory.
+I think that's debatable. :-) The specification doesn't say much what the
+data_offset is really about. For instance, it does not specify what may be
+in the buffer before data_offset.
 
-The VSP1 is supported by a V4L2 driver. While it could be argued that it
-should instead be supported directly by the DRM rcar-du driver, this wouldn't
-be a good idea for at least two reasons. First, the R-Car SoCs contain several
-VSP1 instances, of which only a subset have a direct DU connection. The only
-other instances operate solely in memory to memory mode. Then, the VSP1 is a
-video processing engine and not a display engine. Its features are easily
-supported by the V4L2 API, but don't map to the DRM/KMS API. Significant
-changes to DRM/KMS would be required, beyond what is in my opinion an
-acceptable scope for a display API.
+The kerneldoc documentation next to struct v4l2_plane suggests there might
+be a header, but that's primarily for driver developers rather than users.
 
-Now that the need to interface two separate devices supported by two different
-drivers in two separate subsystems has been established, we need an API to do
-so. It should be noted that while that API doesn't exist in the mainline
-kernel, the need isn't limited to Renesas SoCs.
+I, for instance, understood data_offset to mean essentially how this set
+"re-purposes" it. I wonder if there are others who have originally
+understood it as such.
 
-This patch set proposes one possible solution for the problem in the form of a
-new DRM object named live source. Live sources are created by drivers to model
-hardware connections between a plane input and an external source, and are
-attached to planes through the KMS userspace API.
+> 
+> 2) We really don't know who else might be using it, or which applications might
+> be using it (a lot of work was done in gstreamer recently, I wonder if data_offset
+> support was implemented there).
+> 
+> 3) You offer no alternative to this feature. Basically this is my main objection.
+> It is not at all unusual to have headers in front of the frame data. We (Cisco)
+> use it in one of our product series for example. And I suspect it is something that
+> happens especially in systems with an FPGA that does custom processing, and those
+> systems are exactly the ones that are generally not upstreamed and so are not
+> visible to us.
 
-Patch 1/5 adds live source objects to DRM, with an in-kernel API for drivers
-to register the sources, and a userspace API to enumerate them.
+If you have a header before the image, the header probably has a format as
+well. Some headers are device specific whereas some are more generic. The
+SMIA standard, for example, does specify a metadata (header or footer!)
+format.
 
-Patch 2/5 implements connection between live sources and planes through
-framebuffers. It introduces a new live source flag for framebuffers. When a
-framebuffer is created with that flag set, a live source is associated with
-the framebuffer instead of buffer objects. The framebuffer can then be used
-with a plane to connect it with the live source. This is the biggest
-difference compared to the previous approach, and has several benefits:
+It'd be useful to be able to tell the user what kind of header there is. For
+that, the header could be located on a different plane, with a specific
+format.
 
-- Changes are less intrusive in the DRM core
-- The implementation supports both the legacy API and atomic updates without
-  any code specific to either
-- No changes to existing drivers are needed
-- The framebuffer format and size configuration API is reused
+There's room for format information in struct v4l2_plane_pix_format but
+hardly much else. It still would cover a number of potential use cases.
 
-The framebuffer format and size should ideally be validated using information
-queried directly from the driver that supports the live source device, but
-I've decided not to implement such communication between V4L2 and DRM/KMS at
-the moment to keep the proposal simple.
+I might still consider making the planes independent of each other;
+conveniently there's 8 bytes of free space in struct v4l2_pix_format_mplane
+for alternative plane related information. It'd be nice to be able to do
+this without an additional buffer type since that's visible in a large
+number of other places: there's plenty of room in struct v4l2_plane for
+any video buffer related information.
 
-Patches 3/5 to 5/5 then implement support for live sources in the R-Car DU
-driver. The rcar_du_live_framebuffer structure and its associated helper
-functions could be moved to the DRM core later if other drivers need a similar
-implementation. I've decided to keep them in the rcar-du driver for now as
-it's not clear yet what other drivers might need.
+Frame descriptors are not needed for this --- you're quite right in that.
+But the frame descriptors, when implemented, will very probably need plane
+specific formats in the end as not many receivers are able to separate
+different parts of the image to different buffers.
 
-Once again nothing here is set in stone.
+> 
+> IMHO the functionality it provides is very much relevant, and I would like to see
+> an alternative in place before it is repurposed.
+> 
+> But frankly, I really don't see why you would want to repurpose it. Adding a new
+> field (buf_offset) would do exactly what you want it to do without causing an ABI
+> change.
 
-Laurent Pinchart (5):
-  drm: Add live source object
-  drm: Connect live source to framebuffers
-  drm/rcar-du: Add VSP1 support to the planes allocator
-  drm/rcar-du: Add VSP1 live source support
-  drm/rcar-du: Restart the DU group when a plane source changes
+I said I ok with adding buf_offset field, but it might not be the best
+choice we can make: it's a temporary solution for a very specific problem,
+leaves the API with similar field names with different meanings (data_offset
+vs. buf_offset, where the other is about the header and the other about the
+data) and is not extensible. In addition, the size of the header is not
+specified; it might be smaller than what's between buf_offset and
+data_offset. Some devices produce footers as well; currently we have no way
+to specify how they are dealt with.
 
- drivers/gpu/drm/drm_crtc.c              | 287 +++++++++++++++++++++++++++++---
- drivers/gpu/drm/drm_ioctl.c             |   2 +
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |  10 +-
- drivers/gpu/drm/rcar-du/rcar_du_drv.c   |   6 +-
- drivers/gpu/drm/rcar-du/rcar_du_drv.h   |   3 +
- drivers/gpu/drm/rcar-du/rcar_du_group.c |  21 ++-
- drivers/gpu/drm/rcar-du/rcar_du_group.h |   2 +
- drivers/gpu/drm/rcar-du/rcar_du_kms.c   | 132 ++++++++++++++-
- drivers/gpu/drm/rcar-du/rcar_du_kms.h   |   3 +
- drivers/gpu/drm/rcar-du/rcar_du_plane.c | 191 ++++++++++++++++-----
- drivers/gpu/drm/rcar-du/rcar_du_plane.h |  11 ++
- drivers/gpu/drm/rcar-du/rcar_du_regs.h  |   1 +
- include/drm/drm_crtc.h                  |  35 ++++
- include/uapi/drm/drm.h                  |   3 +
- include/uapi/drm/drm_mode.h             |  23 +++
- 15 files changed, 647 insertions(+), 83 deletions(-)
+I'd like to at least investigate if we could have something more
+future-proof for this purpose.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
