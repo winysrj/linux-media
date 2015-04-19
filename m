@@ -1,109 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:34751 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820AbbDMMCJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 08:02:09 -0400
-Received: by laat2 with SMTP id t2so55221223laa.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Apr 2015 05:02:08 -0700 (PDT)
+Received: from gloria.sntech.de ([95.129.55.99]:38250 "EHLO gloria.sntech.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751610AbbDSMNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2015 08:13:45 -0400
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	Mikko Perttunen <mikko.perttunen@kapsi.fi>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Paul Walmsley <paul@pwsan.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	Emilio =?ISO-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH 1/2] clk: change clk_ops' ->round_rate() prototype
+Date: Sun, 19 Apr 2015 14:13:04 +0200
+Message-ID: <7408975.lBcgZIN9hf@diego>
+In-Reply-To: <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
+References: <1429255769-13639-1-git-send-email-boris.brezillon@free-electrons.com> <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
 MIME-Version: 1.0
-In-Reply-To: <20150411124838.GM20756@valkosipuli.retiisi.org.uk>
-References: <1428704008-29640-1-git-send-email-prabhakar.csengg@gmail.com> <20150411124838.GM20756@valkosipuli.retiisi.org.uk>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Mon, 13 Apr 2015 13:01:37 +0100
-Message-ID: <CA+V-a8sFO=aWZxOZKgVN4vyFYZZruc-Uv9yOQTSzEDh1yVa4KQ@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: ov2659: Use v4l2_of_alloc_parse_endpoint()
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Boris,
 
-Thanks for the review.
+Am Freitag, 17. April 2015, 09:29:28 schrieb Boris Brezillon:
+> Clock rates are stored in an unsigned long field, but ->round_rate()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lead
+> to long overflow if the clock rate exceed 2Ghz.
+> 
+> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> requested rate as a pointer so that it can be adjusted depending on
+> hardware capabilities.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
 
-On Sat, Apr 11, 2015 at 1:48 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Prabhakar,
->
-> On Fri, Apr 10, 2015 at 11:13:28PM +0100, Lad Prabhakar wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> Instead of parsing the link-frequencies property in the driver, let
->> v4l2_of_alloc_parse_endpoint() do it.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  This patch depends on https://patchwork.kernel.org/patch/6190901/
->>
->>  drivers/media/i2c/ov2659.c | 19 ++++++++++++++-----
->>  1 file changed, 14 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
->> index edebd11..c1e310b 100644
->> --- a/drivers/media/i2c/ov2659.c
->> +++ b/drivers/media/i2c/ov2659.c
->> @@ -1340,8 +1340,8 @@ static struct ov2659_platform_data *
->>  ov2659_get_pdata(struct i2c_client *client)
->>  {
->>       struct ov2659_platform_data *pdata;
->> +     struct v4l2_of_endpoint *bus_cfg;
->>       struct device_node *endpoint;
->> -     int ret;
->>
->>       if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
->>               return client->dev.platform_data;
->> @@ -1350,18 +1350,27 @@ ov2659_get_pdata(struct i2c_client *client)
->>       if (!endpoint)
->>               return NULL;
->>
->> +     bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
->> +     if (IS_ERR(bus_cfg)) {
->> +             pdata = NULL;
->> +             goto done;
->> +     }
->> +
->>       pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->>       if (!pdata)
->>               goto done;
->>
->> -     ret = of_property_read_u64(endpoint, "link-frequencies",
->> -                                &pdata->link_frequency);
->> -     if (ret) {
->> -             dev_err(&client->dev, "link-frequencies property not found\n");
->> +     if (bus_cfg->nr_of_link_frequencies != 1) {
->
-> I wonder if it should be considered a problem if the array is larger than
-> one item. I would not, even if the rest of the entries wouldn't be used by
-> the driver at the moment. Up to you.
->
-OK will drop the check for more than one entries.
+On a rk3288-veyron-pinky with the fix described below:
+Tested-by: Heiko Stuebner <heiko@sntech.de>
 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Thanks for the Ack.
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index fa5a00e..1462ddc 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -1640,8 +1643,10 @@ static struct clk_core *clk_calc_new_rates(struct
+> clk_core *clk, &parent_hw);
+>  		parent = parent_hw ? parent_hw->core : NULL;
+>  	} else if (clk->ops->round_rate) {
+> -		new_rate = clk->ops->round_rate(clk->hw, rate,
+> -						&best_parent_rate);
+> +		if (clk->ops->round_rate(clk->hw, &new_rate,
+> +					 &best_parent_rate))
+> +			return NULL;
+> +
+>  		if (new_rate < min_rate || new_rate > max_rate)
+>  			return NULL;
+>  	} else if (!parent || !(clk->flags & CLK_SET_RATE_PARENT)) {
 
-Cheers,
---Prabhakar Lad
+This is using new_rate uninitialized when calling into the round_rate
+callback. Which in turn pushed my PLLs up to 2.2GHz :-)
 
->
->> +             dev_err(&client->dev,
->> +                     "link-frequencies property not found or too many\n");
->>               pdata = NULL;
->> +             goto done;
->>       }
->>
->> +     pdata->link_frequency = bus_cfg->link_frequencies[0];
->> +
->>  done:
->> +     v4l2_of_free_endpoint(bus_cfg);
->>       of_node_put(endpoint);
->>       return pdata;
->>  }
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+I guess you'll need something like the following:
+
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index db4e4b2..afc7733 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1605,6 +1605,7 @@ static struct clk_core *clk_calc_new_rates(struct clk_core *clk,
+ 						    &parent_hw);
+ 		parent = parent_hw ? parent_hw->core : NULL;
+ 	} else if (clk->ops->round_rate) {
++		new_rate = rate;
+ 		if (clk->ops->round_rate(clk->hw, &new_rate,
+ 					 &best_parent_rate))
+ 			return NULL;
+
+
+
+
+> diff --git a/drivers/clk/rockchip/clk-pll.c b/drivers/clk/rockchip/clk-pll.c
+> index f8d3baf..bd408ef 100644
+> --- a/drivers/clk/rockchip/clk-pll.c
+> +++ b/drivers/clk/rockchip/clk-pll.c
+> @@ -63,8 +63,8 @@ static const struct rockchip_pll_rate_table
+> *rockchip_get_pll_settings( return NULL;
+>  }
+> 
+> -static long rockchip_pll_round_rate(struct clk_hw *hw,
+> -			    unsigned long drate, unsigned long *prate)
+> +static int rockchip_pll_round_rate(struct clk_hw *hw,
+> +			    unsigned long *drate, unsigned long *prate)
+>  {
+>  	struct rockchip_clk_pll *pll = to_rockchip_clk_pll(hw);
+>  	const struct rockchip_pll_rate_table *rate_table = pll->rate_table;
+> @@ -72,12 +72,15 @@ static long rockchip_pll_round_rate(struct clk_hw *hw,
+> 
+>  	/* Assumming rate_table is in descending order */
+>  	for (i = 0; i < pll->rate_count; i++) {
+> -		if (drate >= rate_table[i].rate)
+> -			return rate_table[i].rate;
+> +		if (*drate >= rate_table[i].rate) {
+> +			*drate = rate_table[i].rate;
+> +			return 0;
+> +		}
+>  	}
+> 
+>  	/* return minimum supported value */
+> -	return rate_table[i - 1].rate;
+> +	*drate = rate_table[i - 1].rate;
+> +	return 0;
+>  }
+> 
+>  /*
+
+The rockchip-part:
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+
+
+And as I've stumbled onto this recently too, the clock-maintainership has
+expanded to Stephen Boyd and linux-clk@vger.kernel.org .
+
+
+Heiko
