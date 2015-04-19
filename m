@@ -1,121 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46630 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965355AbbDXIMM (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51832 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751838AbbDSCnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 04:12:12 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 743B82A002F
-	for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 10:11:43 +0200 (CEST)
-Message-ID: <5539FABF.3080608@xs4all.nl>
-Date: Fri, 24 Apr 2015 10:11:43 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sat, 18 Apr 2015 22:43:08 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 41D5D2A008E
+	for <linux-media@vger.kernel.org>; Sun, 19 Apr 2015 04:42:47 +0200 (CEST)
+Date: Sun, 19 Apr 2015 04:42:47 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150419024247.41D5D2A008E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+Results of the daily build of media_tree:
 
-are available in the git repository at:
+date:		Sun Apr 19 04:00:15 CEST 2015
+git branch:	test
+git hash:	e183201b9e917daf2530b637b2f34f1d5afb934d
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2d
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-for you to fetch changes up to 01dcae42e1d19014a6c83258bc4944b56b111372:
+Detailed results are available here:
 
-  usbtv: fix v4l2-compliance issues (2015-04-24 10:09:46 +0200)
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-----------------------------------------------------------------
-Cheolhyun Park (1):
-      drx-j: Misspelled comment corrected
+Full logs are available here:
 
-Dan Carpenter (1):
-      i2c: ov2659: signedness bug inov2659_set_fmt()
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Geert Uytterhoeven (3):
-      v4l: xilinx: VIDEO_XILINX should depend on HAS_DMA
-      v4l: VIDEOBUF2_DMA_SG should depend on HAS_DMA
-      Input: TOUCHSCREEN_SUR40 should depend on HAS_DMA
+The Media Infrastructure API from this daily build is here:
 
-Hans Verkuil (7):
-      cx88: v4l2-compliance fixes
-      bttv: fix missing irq after reloading driver
-      DocBook/media: fix typo
-      DocBook/media: Improve G_EDID specification
-      saa7164: fix querycap warning
-      cx18: add missing caps for the PCM video device
-      usbtv: fix v4l2-compliance issues
-
-Jan Kara (1):
-      vb2: Push mmap_sem down to memops
-
-Julia Lawall (3):
-      si4713: fix error return code
-      as102: fix error return code
-      radio: fix error return code
-
-Lad, Prabhakar (1):
-      media: i2c: ov2659: add VIDEO_V4L2_SUBDEV_API dependency
-
-Prashant Laddha (4):
-      v4l2-dv-timings: fix rounding error in vsync_bp calculation
-      v4l2-dv-timings: fix rounding in hblank and hsync calculation
-      v4l2-dv-timings: add sanity checks in cvt,gtf calculations
-      v4l2-dv-timings: replace hsync magic number with a macro
-
-Steven Toth (6):
-      saa7164: I2C improvements for upcoming HVR2255/2205 boards
-      saa7164: Adding additional I2C debug.
-      saa7164: Improvements for I2C handling
-      saa7164: Add Digital TV support for the HVR2255 and HVR2205
-      saa7164: Copyright update
-      saa7164: fix HVR2255 ATSC inversion issue
-
-jean-michel.hautbois@vodalys.com (1):
-      media: adv7604: Fix masks used for querying timings in ADV7611
-
- Documentation/DocBook/media/v4l/controls.xml      |   4 +-
- Documentation/DocBook/media/v4l/vidioc-g-edid.xml |   7 +++
- drivers/input/touchscreen/Kconfig                 |   3 +-
- drivers/media/dvb-frontends/drx39xyj/drxj.c       |  38 ++++++------
- drivers/media/i2c/Kconfig                         |   2 +-
- drivers/media/i2c/adv7604.c                       |  69 +++++++++++++++++-----
- drivers/media/i2c/ov2659.c                        |   2 +-
- drivers/media/pci/bt8xx/bttv-driver.c             |   2 +
- drivers/media/pci/cx18/cx18-streams.c             |   1 +
- drivers/media/pci/cx88/cx88-core.c                |   2 +
- drivers/media/pci/cx88/cx88-mpeg.c                |   6 +-
- drivers/media/pci/cx88/cx88-vbi.c                 |   6 +-
- drivers/media/pci/cx88/cx88-video.c               |   7 +--
- drivers/media/pci/cx88/cx88.h                     |   1 -
- drivers/media/pci/saa7164/saa7164-api.c           |  21 +++++--
- drivers/media/pci/saa7164/saa7164-buffer.c        |   2 +-
- drivers/media/pci/saa7164/saa7164-bus.c           |   2 +-
- drivers/media/pci/saa7164/saa7164-cards.c         | 188 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/media/pci/saa7164/saa7164-cmd.c           |   2 +-
- drivers/media/pci/saa7164/saa7164-core.c          |   2 +-
- drivers/media/pci/saa7164/saa7164-dvb.c           | 232 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- drivers/media/pci/saa7164/saa7164-encoder.c       |  13 +++--
- drivers/media/pci/saa7164/saa7164-fw.c            |   2 +-
- drivers/media/pci/saa7164/saa7164-i2c.c           |   9 +--
- drivers/media/pci/saa7164/saa7164-reg.h           |   2 +-
- drivers/media/pci/saa7164/saa7164-types.h         |   2 +-
- drivers/media/pci/saa7164/saa7164-vbi.c           |  13 +++--
- drivers/media/pci/saa7164/saa7164.h               |   7 ++-
- drivers/media/platform/xilinx/Kconfig             |   2 +-
- drivers/media/radio/radio-timb.c                  |   4 +-
- drivers/media/radio/si4713/si4713.c               |   4 +-
- drivers/media/usb/as102/as102_drv.c               |   1 +
- drivers/media/usb/usbtv/usbtv-video.c             |  12 ++--
- drivers/media/v4l2-core/Kconfig                   |   2 +-
- drivers/media/v4l2-core/v4l2-dv-timings.c         |  29 +++++++---
- drivers/media/v4l2-core/videobuf2-core.c          |   2 -
- drivers/media/v4l2-core/videobuf2-dma-contig.c    |   7 +++
- drivers/media/v4l2-core/videobuf2-dma-sg.c        |   6 ++
- drivers/media/v4l2-core/videobuf2-vmalloc.c       |   6 +-
- 39 files changed, 605 insertions(+), 117 deletions(-)
+http://www.xs4all.nl/~hverkuil/spec/media.html
