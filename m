@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37638 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbbD2XG0 (ORCPT
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:33578 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178AbbDSIz6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 19:06:26 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 21/27] tda10086: change typecast to u64 to avoid smatch warnings
-Date: Wed, 29 Apr 2015 20:06:06 -0300
-Message-Id: <1acf7361dc975eea2f0fb7f620a7964ee1a8219d.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+	Sun, 19 Apr 2015 04:55:58 -0400
+Received: by oica37 with SMTP id a37so101535067oic.0
+        for <linux-media@vger.kernel.org>; Sun, 19 Apr 2015 01:55:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <55336719.5000301@xs4all.nl>
+References: <CAM_ZknVRzewY23-ZGJrZxEmLa2k6DXyxb1pH-1dJ9tLV7VZ03w@mail.gmail.com>
+	<55336719.5000301@xs4all.nl>
+Date: Sun, 19 Apr 2015 11:55:57 +0300
+Message-ID: <CAM_ZknUvD0=VSMvX-W1fh7MG5Mmj30dTkowER4UVM+RNMqr-Yw@mail.gmail.com>
+Subject: Re: On register r/w macros/procedures of drivers/media/pci
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"hans.verkuil" <hans.verkuil@cisco.com>, khalasa <khalasa@piap.pl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/tda10086.c:476 tda10086_get_frontend() warn: should 'tda10086_read_byte(state, 81) << 8' be a 64 bit type?
+On Sun, Apr 19, 2015 at 11:28 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Check the types of llmio and bbmio:
+>
+>         u32                     __iomem *lmmio;
+>         u8                      __iomem *bmmio;
+>
+> So the values of the pointers are the same, but the types are not.
+>
+> So 'lmmio + 1' == 'bmmio + sizeof(u32)' == 'bbmio + 4'.
+>
+> Since all the registers are defined as byte offsets relative to the start
+> of the memory map you cannot just do 'lmmio + reg' since that would be a
+> factor 4 off. Instead you have to divide by 4 to get it back in line.
+>
+> Frankly, I don't think lmmio is necessary at all since readl/writel don't
+> need a u32 pointer at all since they use void pointers. I never noticed
+> that when I cleaned up the tw68 driver. Using 'void __iomem *mmio' instead
+> of lmmio/bmmio and dropping the shifts in the tw_ macros would work just
+> as well.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> Hope this helps,
 
-diff --git a/drivers/media/dvb-frontends/tda10086.c b/drivers/media/dvb-frontends/tda10086.c
-index fcfe2e080cb0..f1a752187d08 100644
---- a/drivers/media/dvb-frontends/tda10086.c
-+++ b/drivers/media/dvb-frontends/tda10086.c
-@@ -472,8 +472,8 @@ static int tda10086_get_frontend(struct dvb_frontend *fe)
- 		return -EINVAL;
- 
- 	/* calculate the updated frequency (note: we convert from Hz->kHz) */
--	tmp64 = tda10086_read_byte(state, 0x52);
--	tmp64 |= (tda10086_read_byte(state, 0x51) << 8);
-+	tmp64 = ((u64)tda10086_read_byte(state, 0x52)
-+		| (tda10086_read_byte(state, 0x51) << 8));
- 	if (tmp64 & 0x8000)
- 		tmp64 |= 0xffffffffffff0000ULL;
- 	tmp64 = (tmp64 * (SACLK/1000ULL));
+Oh, indeed, I have forgot this basic thing of pointer arithmetics.
+Thanks a lot for elaboration and the proposed solution.
+
 -- 
-2.1.0
-
+Bluecherry developer.
