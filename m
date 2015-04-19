@@ -1,125 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51101 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932277AbbDJWQ5 (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:33768 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752179AbbDSSxE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 18:16:57 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com
-Subject: [PATCH v4.1 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
-Date: Sat, 11 Apr 2015 01:16:06 +0300
-Message-Id: <1428704166-921-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <CA+V-a8uUTTzwP=hOiPAacT33K0cXDoy_gGNB5JAHSsY_LeHL_Q@mail.gmail.com>
-References: <CA+V-a8uUTTzwP=hOiPAacT33K0cXDoy_gGNB5JAHSsY_LeHL_Q@mail.gmail.com>
+	Sun, 19 Apr 2015 14:53:04 -0400
+Received: by layy10 with SMTP id y10so112389974lay.0
+        for <linux-media@vger.kernel.org>; Sun, 19 Apr 2015 11:53:02 -0700 (PDT)
+From: Vasily Khoruzhick <anarsoul@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Vasily Khoruzhick <anarsoul@gmail.com>
+Subject: [PATCH 1/2] gspca: sn9c2028: Add support for Genius Videocam Live v2
+Date: Sun, 19 Apr 2015 21:52:44 +0300
+Message-Id: <1429469565-2695-1-git-send-email-anarsoul@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of parsing the link-frequencies property in the driver, let
-v4l2_of_alloc_parse_endpoint() do it.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reviewed-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
 ---
-since v4:
+ drivers/media/usb/gspca/sn9c2028.c | 120 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 119 insertions(+), 1 deletion(-)
 
-- Remove useless assignment to rval.
-
- drivers/media/i2c/smiapp/smiapp-core.c |   38 +++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 557f25d..636ebd6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2975,9 +2975,9 @@ static int smiapp_resume(struct device *dev)
- static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- {
- 	struct smiapp_platform_data *pdata;
--	struct v4l2_of_endpoint bus_cfg;
-+	struct v4l2_of_endpoint *bus_cfg;
- 	struct device_node *ep;
--	uint32_t asize;
-+	int i;
- 	int rval;
- 
- 	if (!dev->of_node)
-@@ -2987,13 +2987,15 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 	if (!ep)
- 		return NULL;
- 
-+	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
-+	if (IS_ERR(bus_cfg))
-+		goto out_err;
-+
- 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		goto out_err;
- 
--	v4l2_of_parse_endpoint(ep, &bus_cfg);
--
--	switch (bus_cfg.bus_type) {
-+	switch (bus_cfg->bus_type) {
- 	case V4L2_MBUS_CSI2:
- 		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
+diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
+index 39b6b2e..317b02c 100644
+--- a/drivers/media/usb/gspca/sn9c2028.c
++++ b/drivers/media/usb/gspca/sn9c2028.c
+@@ -2,6 +2,7 @@
+  * SN9C2028 library
+  *
+  * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
++ * Copyright (C) 2015 Vasily Khoruzhick <anarsoul@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -128,7 +129,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
+ 	status = -1;
+ 	for (i = 0; i < 256 && status < 2; i++)
+ 		status = sn9c2028_read1(gspca_dev);
+-	if (status != 2) {
++	if (status < 0) {
+ 		pr_err("long command status read error %d\n", status);
+ 		return (status < 0) ? status : -EIO;
+ 	}
+@@ -178,6 +179,9 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	case 0x7005:
+ 		PDEBUG(D_PROBE, "Genius Smart 300 camera");
  		break;
-@@ -3002,7 +3004,7 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 		goto out_err;
- 	}
- 
--	pdata->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
-+	pdata->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
- 	dev_dbg(dev, "lanes %u\n", pdata->lanes);
- 
- 	/* xshutdown GPIO is optional */
-@@ -3022,34 +3024,30 @@ static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
- 	dev_dbg(dev, "reset %d, nvm %d, clk %d, csi %d\n", pdata->xshutdown,
- 		pdata->nvm_size, pdata->ext_clk, pdata->csi_signalling_mode);
- 
--	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
--	if (rval) {
--		dev_warn(dev, "can't get link-frequencies array size\n");
-+	if (!bus_cfg->nr_of_link_frequencies) {
-+		dev_warn(dev, "no link frequencies defined\n");
- 		goto out_err;
- 	}
- 
--	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
-+	pdata->op_sys_clock = devm_kcalloc(
-+		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
-+		sizeof(*pdata->op_sys_clock), GFP_KERNEL);
- 	if (!pdata->op_sys_clock) {
- 		rval = -ENOMEM;
- 		goto out_err;
- 	}
- 
--	asize /= sizeof(*pdata->op_sys_clock);
--	rval = of_property_read_u64_array(
--		ep, "link-frequencies", pdata->op_sys_clock, asize);
--	if (rval) {
--		dev_warn(dev, "can't get link-frequencies\n");
--		goto out_err;
-+	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
-+		pdata->op_sys_clock[i] = bus_cfg->link_frequencies[i];
-+		dev_dbg(dev, "freq %d: %lld\n", i, pdata->op_sys_clock[i]);
- 	}
- 
--	for (; asize > 0; asize--)
--		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
--			pdata->op_sys_clock[asize - 1]);
--
-+	v4l2_of_free_endpoint(bus_cfg);
- 	of_node_put(ep);
- 	return pdata;
- 
- out_err:
-+	v4l2_of_free_endpoint(bus_cfg);
- 	of_node_put(ep);
- 	return NULL;
++	case 0x7003:
++		PDEBUG(D_PROBE, "Genius Videocam Live v2");
++		break;
+ 	case 0x8000:
+ 		PDEBUG(D_PROBE, "DC31VC");
+ 		break;
+@@ -530,6 +534,116 @@ static int start_genius_cam(struct gspca_dev *gspca_dev)
+ 				  ARRAY_SIZE(genius_start_commands));
  }
+ 
++static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
++{
++	int r;
++	struct sd *sd = (struct sd *) gspca_dev;
++	struct init_command genius_vcam_live_start_commands[] = {
++		{{0x0c, 0x01, 0x00, 0x00, 0x00, 0x00}, 0},
++		{{0x16, 0x01, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x10, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
++		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
++
++		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
++		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
++		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
++		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
++		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
++		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
++		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
++		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
++		{{0x1c, 0x20, 0x00, 0x2d, 0x00, 0x00}, 4},
++		{{0x13, 0x20, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x21, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x22, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x23, 0x01, 0x01, 0x00, 0x00}, 4},
++		{{0x13, 0x24, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
++		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
++		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
++		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
++		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
++		{{0x13, 0x2a, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x2b, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
++		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
++		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
++		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
++		{{0x12, 0x34, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x34, 0x01, 0xa1, 0x00, 0x00}, 4},
++		{{0x13, 0x35, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x01, 0x04, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x02, 0x92, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x25, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x26, 0x02, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x27, 0x88, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x30, 0x38, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x31, 0x2a, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x32, 0x2a, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x33, 0x2a, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x34, 0x02, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x5b, 0x0a, 0x00, 0x00, 0x00}, 4},
++		{{0x13, 0x25, 0x01, 0x28, 0x00, 0x00}, 4},
++		{{0x13, 0x26, 0x01, 0x1e, 0x00, 0x00}, 4},
++		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
++		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
++		{{0x13, 0x29, 0x01, 0x62, 0x00, 0x00}, 4},
++		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
++		{{0x13, 0x2d, 0x01, 0x03, 0x00, 0x00}, 4},
++		{{0x13, 0x2e, 0x01, 0x0f, 0x00, 0x00}, 4},
++		{{0x13, 0x2f, 0x01, 0x0c, 0x00, 0x00}, 4},
++		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x21, 0x2a, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x23, 0x28, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x11, 0x04, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x13, 0x03, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x15, 0xe0, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x16, 0x02, 0x00, 0x00, 0x00}, 4},
++		{{0x11, 0x17, 0x80, 0x00, 0x00, 0x00}, 4},
++		{{0x1c, 0x20, 0x00, 0x2a, 0x00, 0x00}, 1},
++		{{0x20, 0x34, 0xa1, 0x00, 0x00, 0x00}, 0},
++		/* Camera should start to capture now. */
++		{{0x12, 0x27, 0x01, 0x00, 0x00, 0x00}, 0},
++		{{0x1b, 0x32, 0x26, 0x00, 0x00, 0x00}, 0},
++		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
++	};
++
++	r = run_start_commands(gspca_dev, genius_vcam_live_start_commands,
++				  ARRAY_SIZE(genius_vcam_live_start_commands));
++	if (r < 0)
++		return r;
++
++	return r;
++}
++
+ static int start_vivitar_cam(struct gspca_dev *gspca_dev)
+ {
+ 	struct init_command vivitar_start_commands[] = {
+@@ -623,6 +737,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	case 0x7005:
+ 		err_code = start_genius_cam(gspca_dev);
+ 		break;
++	case 0x7003:
++		err_code = start_genius_videocam_live(gspca_dev);
++		break;
+ 	case 0x8001:
+ 		err_code = start_spy_cam(gspca_dev);
+ 		break;
+@@ -701,6 +818,7 @@ static const struct sd_desc sd_desc = {
+ /* -- module initialisation -- */
+ static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x0458, 0x7005)}, /* Genius Smart 300, version 2 */
++	{USB_DEVICE(0x0458, 0x7003)}, /* Genius Videocam Live v2  */
+ 	/* The Genius Smart is untested. I can't find an owner ! */
+ 	/* {USB_DEVICE(0x0c45, 0x8000)}, DC31VC, Don't know this camera */
+ 	{USB_DEVICE(0x0c45, 0x8001)}, /* Wild Planet digital spy cam */
 -- 
-1.7.10.4
+2.3.5
 
