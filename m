@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46718 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754077AbbDNOsD convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39616 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753854AbbDTI1v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2015 10:48:03 -0400
-From: David Howells <dhowells@redhat.com>
-To: mchehab@osg.samsung.com
-cc: dhowells@redhat.com, linux-media@vger.kernel.org
-Subject: [PATCH] libdvbv5: Retry FE_GET_PROPERTY ioctl if it returns EAGAIN
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <10102.1429022877.1@warthog.procyon.org.uk>
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 14 Apr 2015 15:47:57 +0100
-Message-ID: <10103.1429022877@warthog.procyon.org.uk>
+	Mon, 20 Apr 2015 04:27:51 -0400
+Message-ID: <1429518466.3178.4.camel@pengutronix.de>
+Subject: Re: [PATCH v4 2/4] [media] videobuf2: return -EPIPE from DQBUF
+ after the last buffer
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: 'Pawel Osciak' <pawel@osciak.com>,
+	'LMML' <linux-media@vger.kernel.org>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	'Sakari Ailus' <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de
+Date: Mon, 20 Apr 2015 10:27:46 +0200
+In-Reply-To: <064601d0781e$ace2ef90$06a8ceb0$%debski@samsung.com>
+References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
+	 <1427219214-5368-3-git-send-email-p.zabel@pengutronix.de>
+	 <CAMm-=zAwQJ-_jp5B7cRiQEi523a57BaijUwnqCwLUPScCL7_kQ@mail.gmail.com>
+	 <1428941715.3192.133.camel@pengutronix.de>
+	 <064601d0781e$ace2ef90$06a8ceb0$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Retry the FE_GET_PROPERTY ioctl used to determine if we have a DVBv5 device
-if it returns EAGAIN indicating the driver is currently locked by the kernel.
+Am Donnerstag, den 16.04.2015, 10:23 +0200 schrieb Kamil Debski:
+[...]
+> > > But, in general, in what kind of scenario would the driver want to
+> > > call this function, as opposed to vb2 clearing this flag by itself on
+> > > STREAMOFF?
+> > 
+> > There is VIDIOC_DECODER_CMD / V4L2_DEC_CMD_START.
+> > I'd expect this timeline for decoder draining and restart:
+> > 
+> > - userspace calls VIDIOC_DECODER_CMD, cmd=V4L2_DEC_CMD_STOP
+> >   after queueing the last output buffer to be decoded
+> > - the driver processes remaining output buffers into capture buffers
+> >   and sets the V4L2_BUF_FLAG_LAST set on the last capture Buffet
+>
+> I would like to confirm that it will work with MFC. Am I right that the
+> below will work? Did you take that into account?
 
-Also skip over subsequent information gathering calls to FE_GET_PROPERTY
-that return EAGAIN.
+I see no reason why it wouldn't. The only difference is that userspace
+has to be able to handle the empty frame.
 
-Original-author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
----
- dvb-fe.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+> So in MFC's case the V4L2_BUF_FLAG_LAST will be set on the one buffer after
+> the last one and the bytesused of that buffer would be set to 0. 
+> 
+> The problem of MFC is that it will signal that the last frame was decoded
+> after it was decoded. To particularize:
+> - a frame is decoded, an irq is sent by MFC - we have a new decoded picture
+> - next an irq is sent with an internal MFC flag that the buffer is empty
+>   (last picture was already decoded)
 
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 04ad907..3657334 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -171,9 +171,12 @@ struct dvb_v5_fe_parms *dvb_fe_open_flags(int adapter, int frontend,
- 	dtv_prop.props = parms->dvb_prop;
- 
- 	/* Detect a DVBv3 device */
--	if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
-+	while (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
-+		if (errno == EAGAIN)
-+			continue;
- 		parms->dvb_prop[0].u.data = 0x300;
- 		parms->dvb_prop[1].u.data = SYS_UNDEFINED;
-+		break;
- 	}
- 	parms->p.version = parms->dvb_prop[0].u.data;
- 	parms->p.current_sys = parms->dvb_prop[1].u.data;
-@@ -1336,8 +1339,11 @@ int dvb_fe_get_stats(struct dvb_v5_fe_parms *p)
- 		props.props = parms->stats.prop;
- 
- 		/* Do a DVBv5.10 stats call */
--		if (ioctl(parms->fd, FE_GET_PROPERTY, &props) == -1)
-+		if (ioctl(parms->fd, FE_GET_PROPERTY, &props) == -1) {
-+			if (errno == EAGAIN)
-+				return 0;
- 			goto dvbv3_fallback;
-+		}
- 
- 		/*
- 		 * All props with len=0 mean that this device doesn't have any
+Doesn't MFC userspace currently stop on the empty frame? That empty
+frame will still be dequeued as before, the only difference is the added
+V4L2_BUF_FLAG_LAST on it, and that subsequent calls to DQBUF would
+return -EPIPE.
+
+regards
+Philipp
+
+
