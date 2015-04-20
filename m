@@ -1,254 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55217 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714AbbDUOcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 10:32:21 -0400
-Message-ID: <55365F6F.3040904@redhat.com>
-Date: Tue, 21 Apr 2015 16:32:15 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52945 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754052AbbDTKji (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2015 06:39:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Querycap for subdevs, finding MC from device nodes
+Date: Mon, 20 Apr 2015 13:39:44 +0300
+Message-ID: <4972913.U64e6L5GNY@avalon>
+In-Reply-To: <5534BAE7.4040509@xs4all.nl>
+References: <550D2EB9.5090806@xs4all.nl> <1768917.5uFxr7arIJ@avalon> <5534BAE7.4040509@xs4all.nl>
 MIME-Version: 1.0
-To: Vasily Khoruzhick <anarsoul@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 2/2] gspca: sn9c2028: Add gain and autogain controls Genius
- Videocam Live v2
-References: <1429469565-2695-1-git-send-email-anarsoul@gmail.com> <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
-In-Reply-To: <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-On 19-04-15 20:52, Vasily Khoruzhick wrote:
-> Autogain algorithm is very simple, if average luminance is low - increase gain,
-> if it's high - decrease gain. Gain granularity is low enough for this algo to
-> stabilize quickly.
->
-> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
-> ---
->   drivers/media/usb/gspca/sn9c2028.c | 121 +++++++++++++++++++++++++++++++++++++
->   drivers/media/usb/gspca/sn9c2028.h |  20 +++++-
->   2 files changed, 138 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-> index 317b02c..0ff390f 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.c
-> +++ b/drivers/media/usb/gspca/sn9c2028.c
-> @@ -34,6 +34,16 @@ struct sd {
->   	struct gspca_dev gspca_dev;  /* !! must be the first item */
->   	u8 sof_read;
->   	u16 model;
-> +
-> +#define MIN_AVG_LUM 8500
-> +#define MAX_AVG_LUM 10000
-> +	int avg_lum;
-> +	u8 avg_lum_l;
-> +
-> +	struct { /* autogain and gain control cluster */
-> +		struct v4l2_ctrl *autogain;
-> +		struct v4l2_ctrl *gain;
-> +	};
->   };
->
->   struct init_command {
-> @@ -252,6 +262,77 @@ static int run_start_commands(struct gspca_dev *gspca_dev,
->   	return 0;
->   }
->
-> +static void set_gain(struct gspca_dev *gspca_dev, s32 g)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	struct init_command genius_vcam_live_gain_cmds[] = {
-> +		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
-> +	};
-> +	if (!gspca_dev->streaming)
-> +		return;
-> +
-> +	switch (sd->model) {
-> +	case 0x7003:
-> +		genius_vcam_live_gain_cmds[0].instruction[2] = g;
-> +		run_start_commands(gspca_dev, genius_vcam_live_gain_cmds,
-> +				   ARRAY_SIZE(genius_vcam_live_gain_cmds));
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
-> +static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct gspca_dev *gspca_dev =
-> +		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
-> +	struct sd *sd = (struct sd *)gspca_dev;
-> +
-> +	gspca_dev->usb_err = 0;
-> +
-> +	if (!gspca_dev->streaming)
-> +		return 0;
-> +
-> +	switch (ctrl->id) {
-> +	/* standalone gain control */
-> +	case V4L2_CID_GAIN:
-> +		set_gain(gspca_dev, ctrl->val);
-> +		break;
-> +	/* autogain */
-> +	case V4L2_CID_AUTOGAIN:
-> +		set_gain(gspca_dev, sd->gain->val);
-> +		break;
-> +	}
-> +	return gspca_dev->usb_err;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops sd_ctrl_ops = {
-> +	.s_ctrl = sd_s_ctrl,
-> +};
-> +
-> +
-> +static int sd_init_controls(struct gspca_dev *gspca_dev)
-> +{
-> +	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
-> +	struct sd *sd = (struct sd *)gspca_dev;
-> +
-> +	gspca_dev->vdev.ctrl_handler = hdl;
-> +	v4l2_ctrl_handler_init(hdl, 2);
-> +
-> +	switch (sd->model) {
-> +	case 0x7003:
-> +		sd->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-> +			V4L2_CID_GAIN, 0, 20, 1, 0);
-> +		sd->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-> +			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
->   static int start_spy_cam(struct gspca_dev *gspca_dev)
->   {
->   	struct init_command spy_start_commands[] = {
-> @@ -641,6 +722,9 @@ static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
->   	if (r < 0)
->   		return r;
->
-> +	if (sd->gain)
-> +		set_gain(gspca_dev, v4l2_ctrl_g_ctrl(sd->gain));
-> +
->   	return r;
->   }
->
-> @@ -757,6 +841,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
->   		return -ENXIO;
->   	}
->
-> +	sd->avg_lum = -1;
-> +
->   	return err_code;
->   }
->
-> @@ -776,6 +862,39 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
->   		PERR("Camera Stop command failed");
->   }
->
-> +static void do_autogain(struct gspca_dev *gspca_dev, int avg_lum)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +	s32 cur_gain = v4l2_ctrl_g_ctrl(sd->gain);
-> +
-> +	if (avg_lum == -1)
-> +		return;
-> +
-> +	if (avg_lum < MIN_AVG_LUM) {
-> +		if (cur_gain == sd->gain->maximum)
-> +			return;
-> +		cur_gain++;
-> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
-> +	}
-> +	if (avg_lum > MAX_AVG_LUM) {
-> +		if (cur_gain == sd->gain->minimum)
-> +			return;
-> +		cur_gain--;
-> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
-> +	}
-> +
-> +}
-> +
-> +static void sd_dqcallback(struct gspca_dev *gspca_dev)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	if (sd->autogain == NULL || !v4l2_ctrl_g_ctrl(sd->autogain))
-> +		return;
-> +
-> +	do_autogain(gspca_dev, sd->avg_lum);
-> +}
-> +
->   /* Include sn9c2028 sof detection functions */
->   #include "sn9c2028.h"
->
-> @@ -810,8 +929,10 @@ static const struct sd_desc sd_desc = {
->   	.name = MODULE_NAME,
->   	.config = sd_config,
->   	.init = sd_init,
-> +	.init_controls = sd_init_controls,
->   	.start = sd_start,
->   	.stopN = sd_stopN,
-> +	.dq_callback = sd_dqcallback,
->   	.pkt_scan = sd_pkt_scan,
->   };
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.h b/drivers/media/usb/gspca/sn9c2028.h
-> index 8fd1d3e..6f20c0f 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.h
-> +++ b/drivers/media/usb/gspca/sn9c2028.h
-> @@ -21,8 +21,17 @@
->    *
->    */
->
-> -static const unsigned char sn9c2028_sof_marker[5] =
-> -	{ 0xff, 0xff, 0x00, 0xc4, 0xc4 };
-> +static const unsigned char sn9c2028_sof_marker[] = {
-> +	0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96,
-> +	0x00,
-> +	0x00, /* seq */
-> +	0x00,
-> +	0x00,
-> +	0x00, /* avg luminance lower 8 bit */
-> +	0x00, /* avg luminance higher 8 bit */
-> +	0x00,
-> +	0x00,
-> +};
->
+On Monday 20 April 2015 10:37:59 Hans Verkuil wrote:
+> On 04/17/2015 05:07 PM, Laurent Pinchart wrote:
+> > On Saturday 21 March 2015 09:41:29 Hans Verkuil wrote:
+> >> I've been thinking about extending v4l2-compliance with v4l-subdev tests.
+> >> 
+> >> However, there are a few missing pieces that are needed before this can
+> >> be done.
+> >> 
+> >> First of all is that there is no subdev equivalent to VIDIOC_QUERYCAP,
+> >> i.e. an ioctl that is guaranteed to always be available.
+> >> 
+> >> So I propose the following ioctl:
+> >> 
+> >> VIDIOC_SUBDEV_QUERYCAP(struct v4l2_subdev_capability);
+> >> 
+> >> struct v4l2_subdev_capability {
+> >> 	char name[V4L2_SUBDEV_NAME_SIZE];
+> >> 	__u32 version;			// same as KERNEL_VERSION like QUERYCAP 
+does
+> >> 	__u32 device_caps;
+> >> 	__u32 pads;
+> >> 	__u32 entity_id;
+> >> 	__u32 reserved[40];
+> >> 
+> >> };
+> >> 
+> >> /* This v4l2_subdev is also a media entity and the entity_id field is
+> >> valid
+> >> */ #define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
+> >> 
+> >> This will allow v4l2-compliance to discover that this is a bona fide v4l2
+> >> subdevice. All the information in the struct above can be filled in by
+> >> v4l2-subdev.c, no need to change drivers.
+> > 
+> > This looks quite good to me. There's a prerequisite though, we need to
+> > formally define the naming scheme for subdevs, otherwise we'll expose yet
+> > another ill-defined name that will cause issues later.
+> 
+> If memory serves I proposed in San Jose when we discussed this to leave the
+> 'name' field out for this initial version.
 
-This seems wrong, the header is only 12 bytes the extra 2 0x00 bytes you add are
-actually part of the compressed data and are parsed by the userspace code,
-please drop them.
+You're right. Thanks for refreshing my memory :-)
 
->   static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
->   					unsigned char *m, int len)
-> @@ -32,8 +41,13 @@ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
->
->   	/* Search for the SOF marker (fixed part) in the header */
->   	for (i = 0; i < len; i++) {
-> -		if (m[i] == sn9c2028_sof_marker[sd->sof_read]) {
-> +		if ((m[i] == sn9c2028_sof_marker[sd->sof_read]) ||
-> +		    (sd->sof_read > 5)) {
->   			sd->sof_read++;
-> +			if (sd->sof_read == 11)
-> +				sd->avg_lum_l = m[i];
-> +			if (sd->sof_read == 12)
-> +				sd->avg_lum = (m[i] << 8) + sd->avg_lum_l;
->   			if (sd->sof_read == sizeof(sn9c2028_sof_marker)) {
->   				PDEBUG(D_FRAM,
->   					"SOF found, bytes to analyze: %u."
->
+> From the point of view of v4l2-compliance all it really needs is 'pads' and
+> a single guaranteed-to-exist ioctl.
+> 
+> >> The reason I included 'pads' as well is that subdev drivers can have a
+> >> devnode without being an entity, but still support ioctls like
+> >> VIDIOC_SUBDEV_ENUM_MBUS_CODE. In that case v4l2-compliance needs to know
+> >> the number of pads in order to properly test. If it is an entity, then
+> >> the entity information can be obtained from the MC, see below how to find
+> >> the MC.
+> > 
+> > Shouldn't we make it mandatory for subdevs to be entities if they want to
+> > expose a subdev node ? Otherwise applications won't be able to find out
+> > how the subdev relates to other subdevs and v4l2 devices, making the API
+> > quite shaky in my opinion.
+> 
+> I am inclined to agree with you. I just need time (hah!) to sit down and
+> look carefully through the API and if this would cause any problems. My gut
+> says it doesn't and that it would actually simplify things.
+> 
+> >> Note: I think it makes sense to extend VIDIOC_QUERYCAP as well with a
+> >> CAP_ENTITY and an entity_id.
+> >> 
+> >> The next step is to be able to associate a media device with a
+> >> v4l2-subdev.
+> >> 
+> >> Originally I though of adding the major and minor numbers of the media
+> >> device to the capability struct, but I'd like to do that for
+> >> VIDIOC_QUERYCAP as well, and there are only 3 reserved fields (2 after
+> >> taking one for the entity_id).
+> >> 
+> >> Instead I think we can just implement the MEDIA_IOC_DEVICE_INFO ioctl:
+> >> this returns all info about the media_device, and it can easily be
+> >> extended to include the major and minor number of that device.
+> > 
+> > Hmmm... I'm not too found of that approach. Can't userspace find the
+> > corresponding media device through sysfs ? I'd like to point that the
+> > common use case is to start from the media device and find the entities.
+> > Finding the media device from a subdev is useful mostly for test tools,
+> > but it's not the main use case.
+> 
+> I've never been happy with the idea of applications having to hunt through
+> sysfs trying to find a device node. And in general I think it is good to be
+> able to be able to go in both directions. However, this isn't the most
+> urgent task for now, so I'll drop it for the first version. Right now I
+> just want to start working on tests for v4l-subdev nodes.
 
-Otherwise this looks good.
+I'm not a big fan of open-coded sysfs support in applications either, but the 
+need might be limited to test tools here.
 
+> >> Again, supporting this is easily done in the core, both for regular video
+> >> nodes and for subdev nodes, so drivers do not need to be changed.
+> >> 
+> >> This way you can easily find whether a V4L2 device node is an entity and
+> >> what the associated media controller is. All the information is
+> >> available, we just need to expose it.
+> >> 
+> >> Comments?
+> > 
+> > Please see above :-)
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
+
