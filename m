@@ -1,72 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44347 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895AbbDLOsi (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21460 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752946AbbDTNKE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Apr 2015 10:48:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Tero Kristo <t-kristo@ti.com>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
-Date: Sun, 12 Apr 2015 17:48:56 +0300
-Message-ID: <7568783.Noo5L2SBz3@avalon>
-In-Reply-To: <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
-References: <3292592.cickJMVhRq@wuerfel> <1428841693-15109-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150412143109.GP20756@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 20 Apr 2015 09:10:04 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	'Hans Verkuil' <hansverk@cisco.com>
+References: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
+ <1426870363-18839-6-git-send-email-k.debski@samsung.com>
+ <550C6208.6080504@xs4all.nl>
+ <049901d075ec$7caabbc0$76003340$%debski@samsung.com>
+ <5530F9BB.5010208@xs4all.nl>
+In-reply-to: <5530F9BB.5010208@xs4all.nl>
+Subject: RE: [RFC v3 5/9] cec: add new driver for cec support.
+Date: Mon, 20 Apr 2015 15:10:00 +0200
+Message-id: <"074101d07b6b$4fc3e620$ef4bb260$@debski"@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Hans,
 
-Thank you for the review.
-
-On Sunday 12 April 2015 17:31:09 Sakari Ailus wrote:
-> On Sun, Apr 12, 2015 at 03:28:13PM +0300, Laurent Pinchart wrote:
-> > diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
-> > b/drivers/staging/media/omap4iss/iss_csiphy.c index 7c3d55d..748607f
-> > 100644
-> > --- a/drivers/staging/media/omap4iss/iss_csiphy.c
-> > +++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-> > @@ -13,6 +13,7 @@
-> > 
-> >  #include <linux/delay.h>
-> >  #include <linux/device.h>
-> > +#include <linux/regmap.h>
-> > 
-> >  #include "../../../../arch/arm/mach-omap2/control.h"
-> > 
-> > @@ -140,9 +141,11 @@ int omap4iss_csiphy_config(struct iss_device *iss,
-> >  	 * - bit [18] : CSIPHY1 CTRLCLK enable
-> >  	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
-> >  	 */
-> > -	cam_rx_ctrl = omap4_ctrl_pad_readl(
-> > -			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-> > -
-> > +	/*
-> > +	 * TODO: When implementing DT support specify the CONTROL_CAMERA_RX
-> > +	 * register offset in the syscon property instead of hardcoding it.
-> > +	 */
-> > +	regmap_read(iss->syscon, 0x68, &cam_rx_ctrl);
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+owner@vger.kernel.org] On Behalf Of Hans Verkuil
+Sent: Friday, April 17, 2015 2:17 PM
 > 
-> Do you use platform data now? I guess the address is the same on all SoCs
-> that use the OMAP 4 ISS?
+> On 04/13/2015 03:19 PM, Kamil Debski wrote:
+> > Hi Hans,
+> >
+> > Thank you so much for the review.
+> >
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Hans Verkuil
+> > Sent: Friday, March 20, 2015 7:08 PM
+> >>
+> 
+> <snip>
+> 
+> >>> +In order for a CEC adapter to be configured it needs a physical
+> >> address.
+> >>> +This is normally assigned by the driver. It is either 0.0.0.0 for
+> a
+> >> TV (aka
+> >>> +video receiver) or it is derived from the EDID that the source
+> >> received
+> >>> +from the sink. This is normally set by the driver before enabling
+> >> the CEC
+> >>> +adapter, or it is set from userspace in the case of CEC USB
+> dongles
+> >> (although
+> >>> +embedded systems might also want to set this manually).
+> >>
+> >> I would actually expect that USB dongles read out the EDID from the
+> >> source.
+> >> I might be wrong, though.
+> >
+> > EDID is communicated to the device by the TV on a different bus than
+> > CEC, it is DDC. It is possible that the dongle also reads DDC
+> messages.
+> > My initial understanding was that a CEC USB dongle handles only CEC
+> > messages and is passing through all other signals, such as DDC.
+> 
+> I checked against the libcec code (see link here: http://libcec.pulse-
+> eight.com/) for my usb-cec dongle and it turns out the library reads
+> out the edid from the monitor using xrandr (I think, see
+> src/libcec/platform/X11/randr-edid.cpp) in order to get the physical
+> address. So it is not using the dongle itself for that. Makes sense.
+> 
+> >
+> >>> +
+> >>> +After enabling the CEC adapter it has to be configured. The CEC
+> >> adapter has
+> >>> +to be informed for which CEC device types a logical address has to
+> >> be found.
+> >>
+> >> I would say: 'a free (unused) logical address'.
+> >>
+> >>> +The CEC framework will attempt to find such logical addresses. If
+> >> none are
+> >>
+> >> And here: 'find and claim'
+> >>
+> >>> +found, then it will fall back to logical address Unregistered (15).
+> >>
+> >> You probably need to add some documentation regarding
+> >> cec_claim_log_addrs()
+> >> and how drivers can use it. Also, while logical addresses are being
+> >> claimed, are drivers or userspace allowed to transmit/receive other
+> >> messages? Or just stall until this is finished?
+> >
+> > When sending a message the user space is free to set any source and
+> > destination address. Hence, I see no need to wait until the logical
+> > address is claimed.
+> >
+> > If the user space is not waiting until the address and is sending
+> > messages, then I guess it is done with full responsibility on the
+> user
+> > space.
+> >
+> > Regarding receiving, I guess it should be possible to receive
+> > broadcast messages.
+> >
+> > What do you think?
+> 
+> Fair enough, it just needs to be documented.
 
-Yes I use platform data for now. The address is the same on all SoCs on which 
-I've tested the driver, which is a single SoC :-) I'll research that when 
-implementing DT bindings.
+Ok, will do.
 
-> Acked-by: Sakari Alius <sakari.ailus@iki.fi>
+> 
+> <snip>
+> 
+> >>> +Promiscuous mode
+> >>> +----------------
+> >>> +
+> >>> +The promiscuous mode enables the userspace applications to read
+> all
+> >>> +messages on the CEC bus. This is similar to the promiscuous mode
+> in
+> >>> +network devices. In the normal mode messages not directed to the
+> >> device
+> >>> +(differentiated by the logical address of the CEC device) are not
+> >>> +forwarded to the userspace. Same rule applies to the messages
+> >> contailning
+> >>> +remote control key codes. When promiscuous mode is enabled all
+> >> messages
+> >>> +can be read by userspace. Processing of the messages is still done,
+> >> thus
+> >>> +key codes will be both interpreted by the framework and available
+> >>> +as
+> >> an
+> >>> +input device, but also raw messages containing these codes are
+> sent
+> >> to
+> >>> +the userspace.
+> >>
+> >> Will messages that are processed by the driver or cec framework also
+> >> be relayed to userspace in promiscuous mode? Will userspace be able
+> >> to tell that it has been processed already?
+> >
+> > All messages will be relayed to the user space and no there is no
+> > possibility to check whether the message was processed by the kernel
+> > already.
+> 
+> Should we add that? To be honest, I'm not sure about that myself.
 
-Thank you.
+The promiscuous mode is useful mainly for debug reasons. I would leave it,
+however it is not a deal breaker for me. It could be added at a later time.
 
+> Once thing I notice is that there are no reserved fields at the end of
+> struct cec_msg. We should add that. Same with the other structs. It
+> served us well with v4l2, and we should do the same with the cec API.
+
+This is indeed a good idea. Thanks :)
+
+> 
+> Another upcoming problem is the use of struct timespec: this will have
+> to change in the near future to one that is year 2038-safe.
+> Unfortunately, there is no public 'struct timespec64' type yet. This
+> mailinglist might provide answers w.r.t. the precise plans with
+> timespec:
+> http://lwn.net/Articles/640284/
+> 
+> Also, we don't have 32-bit compat code for CEC. I wonder if it is a
+> good idea to improve the layout of the structs to minimize 64/32-bit
+> layout differences. I never paid attention to that when I made these
+> structs as I always planned to do that at the end.
+
+It's good that you mentioned this, will do.
+
+> 
+> Regards,
+> 
+> 	Hans
+
+Best wishes,
 -- 
-Regards,
-
-Laurent Pinchart
+Kamil Debski
+Samsung R&D Institute Poland
 
