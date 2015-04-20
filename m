@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52659 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754191AbbDOIdd (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39628 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754623AbbDTI21 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 04:33:33 -0400
-Date: Wed, 15 Apr 2015 11:33:31 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 02/10] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150415083330.GF27451@valkosipuli.retiisi.org.uk>
-References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
- <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
+	Mon, 20 Apr 2015 04:28:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 2/5] [media] videodev2: Add V4L2_BUF_FLAG_LAST
+Date: Mon, 20 Apr 2015 10:28:21 +0200
+Message-Id: <1429518504-14880-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de>
+References: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+From: Peter Seiderer <ps.report@gmx.net>
 
-On Wed, Apr 15, 2015 at 08:48:32AM +0200, Jacek Anaszewski wrote:
-> This patch adds device tree binding documentation for
-> the flash cell of the Maxim max77693 multifunctional device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: devicetree@vger.kernel.org
+This v4l2_buffer flag can be used by drivers to mark a capture buffer
+as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
+command was issued.
 
-Thanks!
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v4:
+ - Split out DocBook changes into a separate patch.
+---
+ include/trace/events/v4l2.h    | 3 ++-
+ include/uapi/linux/videodev2.h | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index b9bb1f2..32c33aa 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -58,7 +58,8 @@
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
+-		{ V4L2_BUF_FLAG_TIMESTAMP_COPY,	     "TIMESTAMP_COPY" })
++		{ V4L2_BUF_FLAG_TIMESTAMP_COPY,	     "TIMESTAMP_COPY" },      \
++		{ V4L2_BUF_FLAG_LAST,                "LAST" })
+ 
+ #define show_timecode_flags(flags)					  \
+ 	__print_flags(flags, "|",					  \
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index fbdc360..c642c10 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -809,6 +809,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
++/* mem2mem encoder/decoder */
++#define V4L2_BUF_FLAG_LAST			0x00100000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
+
