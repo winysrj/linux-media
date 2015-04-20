@@ -1,119 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58245 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752103AbbDTCnh (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:12659 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754537AbbDTK7C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2015 22:43:37 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 838202A0003
-	for <linux-media@vger.kernel.org>; Mon, 20 Apr 2015 04:43:14 +0200 (CEST)
-Date: Mon, 20 Apr 2015 04:43:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150420024314.838202A0003@tschai.lan>
+	Mon, 20 Apr 2015 06:59:02 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NN300IUYQPY6YA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Apr 2015 12:03:34 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>
+Cc: 'Pawel Osciak' <pawel@osciak.com>,
+	'LMML' <linux-media@vger.kernel.org>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	'Sakari Ailus' <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de
+References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
+ <1427219214-5368-3-git-send-email-p.zabel@pengutronix.de>
+ <CAMm-=zAwQJ-_jp5B7cRiQEi523a57BaijUwnqCwLUPScCL7_kQ@mail.gmail.com>
+ <1428941715.3192.133.camel@pengutronix.de>
+ <064601d0781e$ace2ef90$06a8ceb0$%debski@samsung.com>
+ <1429518466.3178.4.camel@pengutronix.de>
+In-reply-to: <1429518466.3178.4.camel@pengutronix.de>
+Subject: RE: [PATCH v4 2/4] [media] videobuf2: return -EPIPE from DQBUF after
+ the last buffer
+Date: Mon, 20 Apr 2015 12:58:57 +0200
+Message-id: <"073401d07b59$019d3490$04d79db0$@debski"@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi, 
 
-Results of the daily build of media_tree:
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Monday, April 20, 2015 10:28 AM
+> To: Kamil Debski
+> Cc: 'Pawel Osciak'; 'LMML'; 'Hans Verkuil'; 'Laurent Pinchart';
+> 'Nicolas Dufresne'; 'Sakari Ailus'; kernel@pengutronix.de
+> Subject: Re: [PATCH v4 2/4] [media] videobuf2: return -EPIPE from DQBUF
+> after the last buffer
+> 
+> Am Donnerstag, den 16.04.2015, 10:23 +0200 schrieb Kamil Debski:
+> [...]
+> > > > But, in general, in what kind of scenario would the driver want
+> to
+> > > > call this function, as opposed to vb2 clearing this flag by
+> itself on
+> > > > STREAMOFF?
+> > >
+> > > There is VIDIOC_DECODER_CMD / V4L2_DEC_CMD_START.
+> > > I'd expect this timeline for decoder draining and restart:
+> > >
+> > > - userspace calls VIDIOC_DECODER_CMD, cmd=V4L2_DEC_CMD_STOP
+> > >   after queueing the last output buffer to be decoded
+> > > - the driver processes remaining output buffers into capture
+> buffers
+> > >   and sets the V4L2_BUF_FLAG_LAST set on the last capture Buffet
+> >
+> > I would like to confirm that it will work with MFC. Am I right that
+> the
+> > below will work? Did you take that into account?
+> 
+> I see no reason why it wouldn't. The only difference is that userspace
+> has to be able to handle the empty frame.
 
-date:		Mon Apr 20 04:00:15 CEST 2015
-git branch:	test
-git hash:	e183201b9e917daf2530b637b2f34f1d5afb934d
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+I just checked the notes from the codec meeting in Dusseldorf. When we
+talked about the draining flow, we agreed to mention in the documentation
+that a buffer with the V4L2_BUF_FLAG_LAST can be empty. Thus the userspace
+applications should check the size of last frame.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Could you please add that the last buffer can be empty (zero size) in the
+DocBook patch?
 
-Detailed results are available here:
+> 
+> > So in MFC's case the V4L2_BUF_FLAG_LAST will be set on the one buffer
+> after
+> > the last one and the bytesused of that buffer would be set to 0.
+> >
+> > The problem of MFC is that it will signal that the last frame was
+> decoded
+> > after it was decoded. To particularize:
+> > - a frame is decoded, an irq is sent by MFC - we have a new decoded
+> picture
+> > - next an irq is sent with an internal MFC flag that the buffer is
+> empty
+> >   (last picture was already decoded)
+> 
+> Doesn't MFC userspace currently stop on the empty frame? That empty
+> frame will still be dequeued as before, the only difference is the
+> added
+> V4L2_BUF_FLAG_LAST on it, and that subsequent calls to DQBUF would
+> return -EPIPE.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Ok, I see this.
+ 
+> regards
+> Philipp
 
-Full logs are available here:
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
