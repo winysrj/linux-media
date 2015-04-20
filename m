@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:36301 "EHLO hardeman.nu"
+Received: from mx02.posteo.de ([89.146.194.165]:41985 "EHLO mx02.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497AbbDBXMK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 19:12:10 -0400
-Date: Fri, 3 Apr 2015 01:11:34 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] ir: add tools for receiving and sending ir
-Message-ID: <20150402231134.GA19905@hardeman.nu>
-References: <1426801868-855-1-git-send-email-sean@mess.org>
+	id S1754410AbbDTG1W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2015 02:27:22 -0400
+Date: Mon, 20 Apr 2015 08:27:20 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Jemma Denson <jdenson@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for TechniSat Skystar S2
+Message-ID: <20150420082720.40dbbb7a@dibcom294.coe.adi.dibcom.com>
+In-Reply-To: <5530F2E6.3070301@gmail.com>
+References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
+	<552B62EF.8050705@gmail.com>
+	<20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
+	<5530F2E6.3070301@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1426801868-855-1-git-send-email-sean@mess.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 19, 2015 at 09:51:08PM +0000, Sean Young wrote:
->Provide simple tools for displaying raw IR and received scancodes, and
->sending them.
->
->Todo:
-> - ir-rec cannot enable protocol decoders
-> - ir-send should accept scancode on commandline
-> - long options
->
+Hi Jemma,
 
-Didn't look at it in detail, but I noticed one thing...copyright headers
-like this:
+On Fri, 17 Apr 2015 12:47:50 +0100 Jemma Denson <jdenson@gmail.com>
+wrote:
 
->+/*
->+ Copyright (C) 2015 Sean Young <sean@mess.org>
->+ */
+> > To prepare an integration into 4.2 (or at least 4.3) I suggest
+> > using my media_tree on linuxtv.org .
+> >
+> > http://git.linuxtv.org/cgit.cgi/pb/media_tree.git/ cx24120-v2
+> >
+> > I added a checkpatch-patch on top of it. If you can, please base any
+> > future work of yours on this tree until is has been integrated.
+> Will do! If I can work out the SNR scale I have got plans to have
+> this work in the new way of doing this. Did you ever manage to obtain
+> a datasheet for this demod? I have tried contacting NXP but haven't 
+> received anything back.
 
-Really should specify the license.
+What can I say: it works. I'm just using it as a DVB-S2 receiver for my
+vdr-installation and I can successfully zap and vdr is doing its
+background/epg scanning.
+
+I consider it OK for inclusion. Any fixes, if any, can be later on.
+
+regards,
+--
+Patrick.
+
 
