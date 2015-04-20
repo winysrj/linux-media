@@ -1,136 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41000 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbbDMR13 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 13:27:29 -0400
-Message-ID: <1428946044.3192.136.camel@pengutronix.de>
-Subject: Re: [PATCH v4 1/4] [media] videodev2: Add V4L2_BUF_FLAG_LAST
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Pawel Osciak <pawel@osciak.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Peter Seiderer <ps.report@gmx.net>
-Date: Mon, 13 Apr 2015 19:27:24 +0200
-In-Reply-To: <CAMm-=zDTumuxqyfZh+dVTMXCX8k7aeD5CW1N7KrSQOhmWY4-7Q@mail.gmail.com>
-References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
-	 <1427219214-5368-2-git-send-email-p.zabel@pengutronix.de>
-	 <CAMm-=zDTumuxqyfZh+dVTMXCX8k7aeD5CW1N7KrSQOhmWY4-7Q@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mx02.posteo.de ([89.146.194.165]:58270 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754319AbbDTIaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2015 04:30:01 -0400
+Date: Mon, 20 Apr 2015 10:29:56 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Jemma Denson <jdenson@gmail.com>, linux-media@vger.kernel.org,
+	Jannis <jannis-lists@kripserver.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] Add support for TechniSat Skystar S2
+Message-ID: <20150420102956.7f9faaa7@dibcom294.coe.adi.dibcom.com>
+In-Reply-To: <20150420082047.GA10269@linuxtv.org>
+References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
+	<552B62EF.8050705@gmail.com>
+	<20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
+	<20150419231943.6df7312b@lappi3.parrot.biz>
+	<20150420082047.GA10269@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 13.04.2015, 14:42 +0900 schrieb Pawel Osciak:
-> Hi,
-> Thanks for working on this!
+Hi Johannes,
+
+On Mon, 20 Apr 2015 10:20:47 +0200 Johannes Stezenbach <js@linuxtv.org>
+wrote:
+
+> (add Mauro)
 > 
-> On Wed, Mar 25, 2015 at 2:46 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > From: Peter Seiderer <ps.report@gmx.net>
-> >
-> > This v4l2_buffer flag can be used by drivers to mark a capture buffer
-> > as the last generated buffer, for example after a V4L2_DEC_CMD_STOP
-> > command was issued.
-> > The DocBook is updated to mention mem2mem codecs and the mem2mem draining flow
-> > signals in the VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and VIDIOC_ENCODER_CMD
-> > V4L2_ENC_CMD_STOP documentation.
-> >
-> > Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > Changes since v3:
-> >  - Added DocBook update mentioning V4L2_BUF_FLAG_LAST in the encoder/decoder
-> >    stop command documentation.
-> > ---
-> >  Documentation/DocBook/media/v4l/io.xml                 | 10 ++++++++++
-> >  Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml |  6 +++++-
-> >  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |  5 ++++-
-> >  include/trace/events/v4l2.h                            |  3 ++-
-> >  include/uapi/linux/videodev2.h                         |  2 ++
-> >  5 files changed, 23 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> > index 1c17f80..f3b8bc0 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -1129,6 +1129,16 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
-> >  in which case caches have not been used.</entry>
-> >           </row>
-> >           <row>
-> > +           <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
-> > +           <entry>0x00100000</entry>
-> > +           <entry>Last buffer produced by the hardware. mem2mem codec drivers
-> > +set this flag on the capture queue for the last buffer when the
-> > +<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
-> > +<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. After the
-> > +queue is drained, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will
+> On Sun, Apr 19, 2015 at 11:19:43PM +0200, Patrick Boettcher wrote:
+> > On Fri, 17 Apr 2015 11:06:30 +0200
+> > Patrick Boettcher <patrick.boettcher@posteo.de> wrote:
+> > > http://git.linuxtv.org/cgit.cgi/pb/media_tree.git/ cx24120-v2
+> > 
+> > Jannis pointed out, that my repository on linuxtv.org was not
+> > fetchable...
+> > 
+> > I put one onto github, this should work:
+> > 
+> > https://github.com/pboettch/linux.git cx24120-v2
+> > 
+> > It is the same commits as I was pushing to the linuxtv.org .
 > 
-> Perhaps just s/After the queue is drained, the/Any subsequent/ ? This
-> would make it more clear I feel.
-> DQBUF of LAST is the end of draining.
+> Patrick, can you point out why your repository is
+> not fetchable?  Any error messages?
 
-Concise, I like it.
+In the meantime I recreated it from scratch (using git-menu I did
+delete -> clone).
 
-> > +not block anymore, but return an &EPIPE;.</entry>
-> > +         </row>
-> > +         <row>
-> >             <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
-> >             <entry>0x0000e000</entry>
-> >             <entry>Mask for timestamp types below. To test the
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > index 9215627..cbb7135 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > @@ -197,7 +197,11 @@ be muted when playing back at a non-standard speed.
-> >  this command does nothing. This command has two flags:
-> >  if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
-> >  set the picture to black after it stopped decoding. Otherwise the last image will
-> > -repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-> > +repeat. mem2mem decoders will stop producing new frames altogether. They will send
-> > +a <constant>V4L2_EVENT_EOS</constant> event after the last frame was decoded and
-> 
-> s/was decoded/has been decoded and all frames are ready to be dequeued/
+Before it was giving error like this:
 
-Yes.
+remote: error: Could not read 28df73703e738d8ae7a958350f74b08b2e9fe9ed
+remote: fatal: Failed to traverse parents of commit
+6b9d03db027c532e509ad9064dd767f621b6e69a
 
-> > +will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag when there will
-> > +be no new buffers produced to dequeue.
-> 
-> To make the timing description more explicit, s/when there will be no
-> new buffers produced to dequeue./on the final buffer being dequeued/
-> perhaps?
-> EOS indicates "no more buffers will be produced and all are ready to
-> be dequeued", while LAST indicates "final buffer being dequeued".
+This seems to me a problem of a git push not uploading all the missing
+commits between my local repo's commit-base and the remote one.
 
-Yes.
+My repo was very old (2010). I assume none has ever cloned from it and
+the media_tree has itself been push forced several times.
 
-> > +If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-> >  stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
-> >  will keep decoding until timestamp >= pts or until the last of the pending data from
-> >  its internal buffers was decoded.
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > index 0619ca5..e9cf601 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > @@ -129,7 +129,10 @@ this command.</entry>
-> >  encoding will continue until the end of the current <wordasword>Group
-> >  Of Pictures</wordasword>, otherwise encoding will stop immediately.
-> >  When the encoder is already stopped, this command does
-> > -nothing.</entry>
-> > +nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
-> > +after the last frame was encoded and will set the
-> > +<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the capture queue when
-> > +there will be no new buffers produced to dequeue</entry>
-> 
-> I'd propose the same here.
-
-And yes. Thanks, I'll make those changes.
-
-regards
-Philipp
-
+--
+Patrick.
