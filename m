@@ -1,104 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:33715 "EHLO
-	mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545AbbDIKww (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 06:52:52 -0400
-MIME-Version: 1.0
-In-Reply-To: <2185959.thXfDS86Vr@avalon>
-References: <1428065887-16017-1-git-send-email-tomeu.vizoso@collabora.com>
- <1428065887-16017-5-git-send-email-tomeu.vizoso@collabora.com> <2185959.thXfDS86Vr@avalon>
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Date: Thu, 9 Apr 2015 12:52:31 +0200
-Message-ID: <CAAObsKCZQrfpv61PqN18Q4285za752LJYeJPm=xswVz52YBt6Q@mail.gmail.com>
-Subject: Re: [PATCH v2 4/7] [media] uvcvideo: Enable runtime PM of descendant devices
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39624 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754559AbbDTI21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2015 04:28:27 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 0/5] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
+Date: Mon, 20 Apr 2015 10:28:19 +0200
+Message-Id: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4 April 2015 at 14:33, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Tomeu,
->
-> Thank you for the patch.
->
-> Could you please CC me on the whole series for v3 ?
+At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+poll should immediately return and all following VIDIOC_DQBUF should return
+-EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+(or STREAMOFF/STREAMON).
 
-Sure.
+Changes since v4:
+ - Split documentation changes back out into the first patch.
+ - Changes according to Pawel's feedback, except for the POLLHUP suggestion.
 
-> On Friday 03 April 2015 14:57:53 Tomeu Vizoso wrote:
->> So UVC devices can remain runtime-suspended when the system goes into a
->> sleep state, they and all of their descendant devices need to have
->> runtime PM enable.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index cf27006..687e5fb 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1855,6 +1855,15 @@ static int uvc_register_chains(struct uvc_device
->> *dev) return 0;
->>  }
->>
->> +static int uvc_pm_runtime_enable(struct device *dev, void *data)
->> +{
->> +     pm_runtime_enable(dev);
->> +
->> +     device_for_each_child(dev, NULL, uvc_pm_runtime_enable);
->
-> How many recursion levels do we typically have with uvcvideo ?
+regards
+Philipp
 
-it has video%d -> input%d -> event%d, when USB_VIDEO_CLASS_INPUT_EVDEV
-is enabled.
+Peter Seiderer (1):
+  [media] videodev2: Add V4L2_BUF_FLAG_LAST
 
->> +
->> +     return 0;
->> +}
->
-> The function isn't UVC-specific, how about renaming it to
-> pm_runtime_enable_recursive() (or something similar) and moving it to the
-> runtime PM core ?
+Philipp Zabel (4):
+  [media] DocBook media: document mem2mem draining flow
+  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+  [media] coda: Set last buffer flag and fix EOS event
+  [media] s5p-mfc: Set last buffer flag
 
-Yeah, that would be handy when doing the same to other drivers.
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++++
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  9 +++++++-
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |  8 ++++++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+ drivers/media/platform/coda/coda-bit.c             |  4 ++--
+ drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
+ drivers/media/platform/coda/coda.h                 |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+ drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++++++++-
+ include/media/videobuf2-core.h                     | 13 +++++++++++
+ include/trace/events/v4l2.h                        |  3 ++-
+ include/uapi/linux/videodev2.h                     |  2 ++
+ 13 files changed, 94 insertions(+), 23 deletions(-)
 
->> +
->>  /* ------------------------------------------------------------------------
->> * USB probe, disconnect, suspend and resume
->>   */
->> @@ -1959,6 +1968,8 @@ static int uvc_probe(struct usb_interface *intf,
->>                       "supported.\n", ret);
->>       }
->>
->> +     device_for_each_child(&dev->intf->dev, NULL, uvc_pm_runtime_enable);
->
-> You could just call uvc_pm_runtime_enable(&dev->intf->dev, NULL) here.
+-- 
+2.1.4
 
-I will go with the above for now.
-
-Thanks,
-
-Tomeu
-
->> +
->>       uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
->>       usb_enable_autosuspend(udev);
->>       return 0;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
