@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37207 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840AbbDXOBl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 10:01:41 -0400
-Received: by widdi4 with SMTP id di4so21439255wid.0
-        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 07:01:40 -0700 (PDT)
-Message-ID: <553A4CC3.2000808@gmail.com>
-Date: Fri, 24 Apr 2015 16:01:39 +0200
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+Received: from mx02.posteo.de ([89.146.194.165]:49205 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750930AbbDTH1Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2015 03:27:24 -0400
+Date: Mon, 20 Apr 2015 09:27:20 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] For 4.2 (or even 4.1?) add support for cx24120/Technisat
+ SkyStar S2
+Message-ID: <20150420092720.3cb092ba@dibcom294.coe.adi.dibcom.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>,
-	Olli Salonen <olli.salonen@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
-References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>	<1429823471-21835-2-git-send-email-olli.salonen@iki.fi>	<5539E96C.1000407@gmail.com>	<CAAZRmGzPZaJoMtHXYuFo081xbG3Eb_1+WwePziKfp6R5kREGDw@mail.gmail.com>	<CAAZRmGwUd1gj2FmkX1ODeb+-q2oZXuZc6urgoR6i8W2VsLgGPA@mail.gmail.com> <CALzAhNWUM2ZPnO_fik6HNE5CCOmZR0qF2uY5GcYYjjNTS_n8Ow@mail.gmail.com>
-In-Reply-To: <CALzAhNWUM2ZPnO_fik6HNE5CCOmZR0qF2uY5GcYYjjNTS_n8Ow@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steven, Olli,
-Steven, thanks for your comment
+Hi Mauro,
 
-So maybe this should also go into cx23885?
-I'm in Europe and only have DVB-C
+Would you please pull the following two patches for finally
+mainlining the Technisat SkyStar S2 (and its frontend cx24120).
 
-I'll add it to my saa716x driver as well
+Ideally for 4.1, but I assume it is too late. So for 4.2.
 
-Op 24-04-15 om 15:16 schreef Steven Toth:
->> I've also seen that the Hauppauge HVR-2205 Windows driver enables this
->> option, but it seems to me that that board works ok also without this.
-> Olli, I found out why this is, I thought you'd appreciate the comment....
->
-> Apparently the issue only occurs with DVB streams faster than
-> approximately 50Mbps, which standard DVB-T/T2, ATSC and QAM-B never
-> are.
->
-> The issue apparently, is with some QAM-A (DVB-C) streams in
-> Europe..... This explains why I've never seen it. That's being said, I
-> do plan to add the gapped clock patch to the SAA7164 shortly - for
-> safety.
->
+Please also tell whether a pull-request is OK for you or whether you
+prefer patches.
 
+I'm based on the current media-tree's master. But can rebase myself
+on anything you wish for your convenience.
+
+Thanks,
+--
+Patrick.
+
+
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+
+are available in the git repository at:
+
+  https://github.com/pboettch/linux.git cx24120-v2
+
+for you to fetch changes up to 3a6500da369a632c9fd405b1191dcbf5e5e07504:
+
+  [media] cx24120: minor checkpatch fixes (2015-04-17 11:11:40 +0200)
+
+----------------------------------------------------------------
+Jemma Denson (1):
+      [media] Add support for TechniSat Skystar S2
+
+Patrick Boettcher (1):
+      [media] cx24120: minor checkpatch fixes
+
+ drivers/media/common/b2c2/Kconfig            |    1 +
+ drivers/media/common/b2c2/flexcop-fe-tuner.c |   51 +-
+ drivers/media/common/b2c2/flexcop-misc.c     |    1 +
+ drivers/media/common/b2c2/flexcop-reg.h      |    1 +
+ drivers/media/dvb-frontends/Kconfig          |    7 +
+ drivers/media/dvb-frontends/Makefile         |    1 +
+ drivers/media/dvb-frontends/cx24120.c        | 1574 ++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/cx24120.h        |   56 +
+ 8 files changed, 1685 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/cx24120.c
+ create mode 100644 drivers/media/dvb-frontends/cx24120.h
