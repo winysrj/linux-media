@@ -1,30 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:59675 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbbDHNVt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 09:21:49 -0400
-Received: from pla-VB.cisco.com ([10.142.61.66])
-	by bgl-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id t38D9V0T015562
-	for <linux-media@vger.kernel.org>; Wed, 8 Apr 2015 13:09:32 GMT
-From: Prashant Laddha <prladdha@cisco.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36054 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750714AbbDUNue (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 09:50:34 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C08692A0089
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 15:50:02 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: fix for rounding errors in cvt/gtf calculation 
-Date: Wed,  8 Apr 2015 18:39:27 +0530
-Message-Id: <1428498569-6751-1-git-send-email-prladdha@cisco.com>
+Subject: [PATCHv3 0/4] Fill in the description for VIDIOC_ENUM_FMT
+Date: Tue, 21 Apr 2015 15:49:57 +0200
+Message-Id: <1429624201-44743-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While I was testing cvt / gtf timings against the timings given by
-standards timing generator spreadsheets, there were differences in 
-results for some of the formats. Those differences could be traced 
-back to the rounding used to compute some of the intermediate values.
- 
-Following two patches fixes two such rounding errors.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-[PATCH 1/2] v4l2-dv-timings: fix rounding error in vsync_bp
-[PATCH 2/2] v4l2-dv-timings: fix rounding in hblank and hsync
+This patch series is identical to https://patchwork.linuxtv.org/patch/29080/
+but it removes the description from the skeleton driver and the virtual
+drivers. Since those are basically reference drivers it makes sense to update
+those first.
 
-Please review and share your comments.
+I'll make a pull request of this as well, since this is ready for 4.2.
 
 Regards,
-Prashant
+
+	Hans
+
+Hans Verkuil (4):
+  v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
+  v4l2-pci-skeleton: drop format description
+  vim2m: drop format description
+  vivid: drop format description
+
+ Documentation/video4linux/v4l2-pci-skeleton.c   |   2 -
+ drivers/media/platform/vim2m.c                  |   4 -
+ drivers/media/platform/vivid/vivid-core.h       |   1 -
+ drivers/media/platform/vivid/vivid-vid-cap.c    |   4 -
+ drivers/media/platform/vivid/vivid-vid-common.c |  50 ------
+ drivers/media/v4l2-core/v4l2-ioctl.c            | 199 +++++++++++++++++++++++-
+ 6 files changed, 192 insertions(+), 68 deletions(-)
+
+-- 
+2.1.4
+
