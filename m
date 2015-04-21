@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:50815 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535AbbD2KDH (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40697 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751106AbbDUNy4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 06:03:07 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
-Subject: [PATCH v5 02/11] dts: exynos4: add node for the HDMI CEC device
-Date: Wed, 29 Apr 2015 12:02:35 +0200
-Message-id: <1430301765-22202-3-git-send-email-k.debski@samsung.com>
-In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
-References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+	Tue, 21 Apr 2015 09:54:56 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4C4BE2A0089
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 15:54:29 +0200 (CEST)
+Message-ID: <55365695.8080006@xs4all.nl>
+Date: Tue, 21 Apr 2015 15:54:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Fill in the description for VIDIOC_ENUM_FMT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
+Ensure standard format descriptions by filling it in in the v4l2 core.
+Currently these descriptions are all over the place and every driver dreams
+up its own description. That's not good.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Regards,
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index e20cdc2..8776db9 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -704,6 +704,18 @@
- 		status = "disabled";
- 	};
- 
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "disabled";
-+	};
-+
- 	mixer: mixer@12C10000 {
- 		compatible = "samsung,exynos4210-mixer";
- 		interrupts = <0 91 0>;
--- 
-1.7.9.5
+	Hans
 
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2c
+
+for you to fetch changes up to b1a4374e55d847ae0b17b33c52a974de833ce228:
+
+  vivid: drop format description (2015-04-21 15:39:49 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
+      v4l2-pci-skeleton: drop format description
+      vim2m: drop format description
+      vivid: drop format description
+
+ Documentation/video4linux/v4l2-pci-skeleton.c   |   2 -
+ drivers/media/platform/vim2m.c                  |   4 --
+ drivers/media/platform/vivid/vivid-core.h       |   1 -
+ drivers/media/platform/vivid/vivid-vid-cap.c    |   4 --
+ drivers/media/platform/vivid/vivid-vid-common.c |  50 -------------------
+ drivers/media/v4l2-core/v4l2-ioctl.c            | 199 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 6 files changed, 192 insertions(+), 68 deletions(-)
