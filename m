@@ -1,130 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45432 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663AbbDMSja (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49850 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751621AbbDUNAG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 14:39:30 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-api@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Daniel Vetter <daniel.vetter@intel.com>
-Subject: [RFC/PATCH v2 5/5] drm/rcar-du: Restart the DU group when a plane source changes
-Date: Mon, 13 Apr 2015 21:39:47 +0300
-Message-Id: <1428950387-6913-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1428950387-6913-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 21 Apr 2015 09:00:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 04/15] vb2: add allow_requests flag
+Date: Tue, 21 Apr 2015 14:58:47 +0200
+Message-Id: <1429621138-17213-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Plane sources are configured by the VSPS bit in the PnDDCR4 register.
-Although the datasheet states that the bit is updated during vertical
-blanking, it seems that updates only occur when the DU group is held in
-reset through the DSYSR.DRES bit. Restart the group if the source
-changes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+The driver has to set allow_requests explicitly in order to allow
+queuing or preparing buffers for a specific request ID.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 10 ++++++++--
- drivers/gpu/drm/rcar-du/rcar_du_group.c |  2 ++
- drivers/gpu/drm/rcar-du/rcar_du_plane.c | 22 ++++++++++++++++++++--
- drivers/gpu/drm/rcar-du/rcar_du_plane.h |  1 +
- 4 files changed, 31 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+ include/media/videobuf2-core.h           | 2 ++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 7d0b8ef9bea2..969d49ab0d09 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -249,6 +249,8 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
- 		}
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a0e4e84..da513b1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1703,6 +1703,11 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
  	}
  
-+	mutex_lock(&rcrtc->group->lock);
++	if (!q->allow_requests && b->request) {
++		dprintk(1, "%s: unsupported request ID\n", opname);
++		return -EINVAL;
++	}
 +
- 	/* Select display timing and dot clock generator 2 for planes associated
- 	 * with superposition controller 2.
- 	 */
-@@ -260,15 +262,19 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
- 		 * split, or through a module parameter). Flicker would then
- 		 * occur only if we need to break the pre-association.
- 		 */
--		mutex_lock(&rcrtc->group->lock);
- 		if (rcar_du_group_read(rcrtc->group, DPTSR) != dptsr) {
- 			rcar_du_group_write(rcrtc->group, DPTSR, dptsr);
- 			if (rcrtc->group->used_crtcs)
- 				rcar_du_group_restart(rcrtc->group);
- 		}
--		mutex_unlock(&rcrtc->group->lock);
- 	}
- 
-+	/* Restart the group if plane sources have changed. */
-+	if (rcrtc->group->planes.need_restart)
-+		rcar_du_group_restart(rcrtc->group);
-+
-+	mutex_unlock(&rcrtc->group->lock);
-+
- 	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? DS2PR : DS1PR,
- 			    dspr);
- }
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_group.c b/drivers/gpu/drm/rcar-du/rcar_du_group.c
-index 71f50bf45581..101997e6e531 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_group.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_group.c
-@@ -154,6 +154,8 @@ void rcar_du_group_start_stop(struct rcar_du_group *rgrp, bool start)
- 
- void rcar_du_group_restart(struct rcar_du_group *rgrp)
- {
-+	rgrp->planes.need_restart = false;
-+
- 	__rcar_du_group_start_stop(rgrp, false);
- 	__rcar_du_group_start_stop(rgrp, true);
- }
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.c b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-index 07802639ac99..0bf2aaaf91e6 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.c
-@@ -357,9 +357,27 @@ static void rcar_du_plane_atomic_update(struct drm_plane *plane,
- 					struct drm_plane_state *old_state)
- {
- 	struct rcar_du_plane *rplane = to_rcar_plane(plane);
-+	struct rcar_du_plane_state *old_rstate;
-+	struct rcar_du_plane_state *new_rstate;
- 
--	if (plane->state->crtc)
--		rcar_du_plane_setup(rplane);
-+	if (!plane->state->crtc)
-+		return;
-+
-+	rcar_du_plane_setup(rplane);
-+
-+	/* Check whether the source has changed from memory to live source or
-+	 * from live source to memory. The source has been configured by the
-+	 * VSPS bit in the PnDDCR4 register. Although the datasheet states that
-+	 * the bit is updated during vertical blanking, it seems that updates
-+	 * only occur when the DU group is held in reset through the DSYSR.DRES
-+	 * bit. We thus need to restart the group if the source changes.
-+	 */
-+	old_rstate = to_rcar_du_plane_state(old_state);
-+	new_rstate = to_rcar_du_plane_state(plane->state);
-+
-+	if ((old_rstate->source == RCAR_DU_PLANE_MEMORY) !=
-+	    (new_rstate->source == RCAR_DU_PLANE_MEMORY))
-+		rplane->group->planes.need_restart = true;
+ 	return __verify_planes_array(q->bufs[b->index], b);
  }
  
- static const struct drm_plane_helper_funcs rcar_du_plane_helper_funcs = {
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_plane.h b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-index 9a6132899d59..694b44c151b6 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_plane.h
-@@ -47,6 +47,7 @@ static inline struct rcar_du_plane *to_rcar_plane(struct drm_plane *plane)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a5790fd..a3e3596 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -338,6 +338,7 @@ struct v4l2_fh;
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
++ * @allow_requests:		allow request != 0 to be passed to the driver
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -390,6 +391,7 @@ struct vb2_queue {
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
++	unsigned			allow_requests:1;
  
- struct rcar_du_planes {
- 	struct rcar_du_plane planes[RCAR_DU_NUM_KMS_PLANES];
-+	bool need_restart;
- 
- 	struct drm_property *alpha;
- 	struct drm_property *colorkey;
+ 	struct mutex			*lock;
+ 	struct v4l2_fh			*owner;
 -- 
-2.0.5
+2.1.4
 
