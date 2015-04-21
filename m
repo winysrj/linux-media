@@ -1,69 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:57979 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932212AbbDJJuw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 05:50:52 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0NML00LMK4VABA40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Apr 2015 10:54:46 +0100 (BST)
-Message-id: <55279CF7.4040800@samsung.com>
-Date: Fri, 10 Apr 2015 11:50:47 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4 3/4] v4l: of: Parse variable length properties ---
- link-frequencies
-References: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi>
- <1428614706-8367-4-git-send-email-sakari.ailus@iki.fi>
-In-reply-to: <1428614706-8367-4-git-send-email-sakari.ailus@iki.fi>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from smtp.logicpd.com ([174.46.170.145]:36116 "HELO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755635AbbDUSJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 14:09:50 -0400
+Message-ID: <5536914E.7090407@logicpd.com>
+Date: Tue, 21 Apr 2015 13:05:02 -0500
+From: Tim Nordell <tim.nordell@logicpd.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-media@vger.kernel.org>, <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 2/3] omap3isp: Disable CCDC's VD0 and VD1 interrupts when
+ stream is not enabled
+References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com> <1579699.dpjCaSBOhB@avalon> <550998EE.8080801@logicpd.com> <7150396.TWY5qHavDR@avalon>
+In-Reply-To: <7150396.TWY5qHavDR@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/15 23:25, Sakari Ailus wrote:
-> The link-frequencies property is a variable length array of link frequencies
-> in an endpoint. The array is needed by an increasing number of drivers, so
-> it makes sense to add it to struct v4l2_of_endpoint.
-> 
-> However, the length of the array is variable and the size of struct
-> v4l2_of_endpoint is fixed since it is allocated by the caller. The options
-> here are
-> 
-> 1. to define a fixed maximum limit of link frequencies that has to be the
-> global maximum of all boards. This is seen as problematic since the maximum
-> could be largish, and everyone hitting the problem would need to submit a
-> patch to fix it, or
-> 
-> 2. parse the property in every driver. This doesn't sound appealing as two
-> of the three implementations submitted to linux-media were wrong, and one of
-> them was even merged before this was noticed, or
-> 
-> 3. change the interface so that allocating and releasing memory according to
-> the size of the array is possible. This is what the patch does.
-> 
-> v4l2_of_alloc_parse_endpoint() is just like v4l2_of_parse_endpoint(), but it
-> will allocate the memory resources needed to store struct v4l2_of_endpoint
-> and the additional arrays pointed to by this struct. A corresponding release
-> function v4l2_of_free_endpoint() is provided to release the memory allocated
-> by v4l2_of_alloc_parse_endpoint().
-> 
-> In addition to this, the link-frequencies property is parsed as well, and
-> the result is stored to struct v4l2_of_endpoint field link_frequencies.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Laurent -
 
-It's a bit sad we need to introduce the ERR_PTR() patter, nevertheless
-I can't see a better alternative now. I think in long term we need to
-get rid of v4l2_of_parse_endpoint() function.
+On 04/21/15 12:58, Laurent Pinchart wrote:
+> Hi Tim,
+>
+> On Wednesday 18 March 2015 10:25:34 Tim Nordell wrote:
+>> I'll give that a shot and try add code into the adv7180 driver to turn on
+>> and off its output signals.  However, it seems like if the driver can avoid
+>> a problem presented by external hardware (or other drivers), that it should.
+>> Something like either turning off the VD0 and VD1 interrupts when not in
+>> use, or by simply moving the trigger points for those interrupts (as I did
+>> here) to avoid problems by presented by signals to the system is probably a
+>> good thing for robustness.
+> I don't disagree with that. I'll have to review the patch in details, as the
+> CCDC code is quite sensitive. In order to do so, I'd like to know whether the
+> problem in your case was caused by the adv7180 always being enabled. Any luck
+> with adding a s_stream implementation in the adv7180 driver ? :-)
+>
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+I did add the stream on/off code, but it still seemed to have some 
+difficulties.  The codebase has effectively been handed off to our 
+client, however, at this point.  I still happen to have hardware (we're 
+wrapping things up with the client), but likely I won't have the 
+hardware in a week or so.
 
--- 
-Regards,
-Sylwester
+I still think that the driver should avoid having the interrupts enabled 
+if it knows it shouldn't be receiving any at a given point. I personally 
+like the approach of modifying the VD0/VD1 trigger points as it 
+effectively silences those interrupts without touching the central 
+interrupt register (less potential locking issues between the various 
+components in the OMAP3 ISP), but it could be reworked of course to 
+touch the central interrupt register too.
+
+- Tim
+
