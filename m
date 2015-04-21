@@ -1,131 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56403 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934167AbbDVRHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2015 13:07:35 -0400
-Date: Wed, 22 Apr 2015 19:07:31 +0200
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Mike Marciniszyn <infinipath@intel.com>,
-	linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Toshi Kani <toshi.kani@hp.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Roland Dreier <roland@purestorage.com>,
-	Juergen Gross <jgross@suse.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ville Syrj?l? <syrjala@sci.fi>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-Message-ID: <20150422170731.GH5622@wotan.suse.de>
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
- <20150421224601.GY5622@wotan.suse.de>
- <20150421225732.GA17356@obsidianresearch.com>
- <20150421233907.GA5622@wotan.suse.de>
- <20150422053939.GA29609@obsidianresearch.com>
- <20150422152328.GB5622@wotan.suse.de>
- <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36200 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754530AbbDUNKJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 09:10:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 10/15] vb2: add helper function to queue request-specific buffer.
+Date: Tue, 21 Apr 2015 14:58:53 +0200
+Message-Id: <1429621138-17213-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
+References: <1429621138-17213-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 09:53:03AM -0700, Andy Lutomirski wrote:
-> On Wed, Apr 22, 2015 at 8:23 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
-> >> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
-> >> > > Mike, do you think the time is right to just remove the iPath driver?
-> >> >
-> >> > With PAT now being default the driver effectively won't work
-> >> > with write-combining on modern kernels. Even if systems are old
-> >> > they likely had PAT support, when upgrading kernels PAT will work
-> >> > but write-combing won't on ipath.
-> >>
-> >> Sorry, do you mean the driver already doesn't get WC? Or do you mean
-> >> after some more pending patches are applied?
-> >
-> > No, you have to consider the system used and the effects of calls used
-> > on the driver in light of this table:
-> >
-> > ----------------------------------------------------------------------
-> > MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
-> > ----------------------------------------------------------------------
-> >                                                   Non-PAT |  PAT
-> >      PAT
-> >      |PCD
-> >      ||PWT
-> >      |||
-> > WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
-> > WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
-> > WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
-> > WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
-> > ----------------------------------------------------------------------
-> >
-> > (*) denotes implementation defined and is discouraged
-> >
-> > ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
-> > in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
-> > the default. When that flip occurs it will mean ipath cannot get
-> > write-combining on both non-PAT and PAT systems. Now that is for
-> > the future, lets review the current situation for ipath.
-> >
-> > For PAT capable systems if mtrr_add() is used today on a Linux system on a
-> > region mapped with ioremap_nocache() that will mean you effectively nullify the
-> > mtrr_add() effect as the combinatorial effect above yields an effective memory
-> > type of UC.
-> 
-> Are you sure?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Well lets double check.
+The vb2_qbuf_request() function will queue any buffers for the given request
+that are in state PREPARED.
 
->  I thought that ioremap_nocache currently is UC-,
+Useful when drivers have to implement the req_queue callback.
 
-It is.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 18 ++++++++++++++++++
+ include/media/videobuf2-core.h           |  1 +
+ 2 files changed, 19 insertions(+)
 
-> so mtrr_add + ioremap_nocache gets WC even on PAT systems.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index da513b1..4ab65b6 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1923,6 +1923,24 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
++int vb2_qbuf_request(struct vb2_queue *q, u16 request, struct vb2_buffer **p_buf)
++{
++	int buffer;
++
++	for (buffer = 0; buffer < q->num_buffers; buffer++) {
++		struct vb2_buffer *vb = q->bufs[buffer];
++
++		if (vb->v4l2_buf.request == request &&
++		    vb->state == VB2_BUF_STATE_PREPARED) {
++			if (p_buf)
++				*p_buf = vb;
++			return vb2_qbuf(q, &vb->v4l2_buf);
++		}
++	}
++	return -ENOENT;
++}
++EXPORT_SYMBOL_GPL(vb2_qbuf_request);
++
+ /**
+  * __vb2_wait_for_done_vb() - wait for a buffer to become available
+  * for dequeuing
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a3e3596..82fa2a6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -461,6 +461,7 @@ void vb2_queue_release(struct vb2_queue *q);
+ void vb2_queue_error(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_qbuf_request(struct vb2_queue *q, u16 request, struct vb2_buffer **p_buf);
+ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 
+-- 
+2.1.4
 
-https://www-ssl.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf
-
-    As per Intel SDM "11.5.2.2 Selecting Memory Types for Pentium
-    III and More Recent Processor Families" the ffect of a WC MTRR
-    for a region with a PAT entry value of UC will be UC. The effect
-    of a WC MTRR on a region with a PAT entry UC- will be WC. The
-    effect of a WC MTRR on a regoin with PAT entry WC is WC.
-
-And indeed as per table 11-7 mtrr WC on PAT UC- yields WC. So ineed the above
-table needs adjustment for this. So for PAT systems write-combing would be
-effective with mtrr_add(), but once strong UC (_PAGE_CACHE_MODE_UC) is used by
-default for ioremap_nocache() what I mentioned will be true. Furhtermore if we
-switch the drivers to use arch_phys_wc_add() then for sure write-combining will
-also not be effective.
-
-Jason, Andy, is the change still a reasonable compromise? We'd just be asking
-users to boot with noat for users for ipath, ivtv until the drivers gets proper
-PAT support with a split.
-
-There are two motivations for this:
-
-  * help move to strong UC as default
-  * bury MTRR
-
-> Going forward, when mtrr_add is gone, this will change, of course.
-
-Indeed.
-
-  Luis
