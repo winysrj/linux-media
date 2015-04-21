@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vn0-f42.google.com ([209.85.216.42]:40333 "EHLO
-	mail-vn0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031262AbbD1XHq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 19:07:46 -0400
-Received: by vnbg62 with SMTP id g62so1436674vnb.7
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2015 16:07:45 -0700 (PDT)
-In-Reply-To: <b5e6ddaf21e8e2c8517b21bfc36ebc09d8f33a20.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com><ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com> <b5e6ddaf21e8e2c8517b21bfc36ebc09d8f33a20.1430235781.git.mchehab@osg.samsung.com>
+Received: from cantor2.suse.de ([195.135.220.15]:52562 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964999AbbDUWCZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 18:02:25 -0400
+Date: Wed, 22 Apr 2015 00:02:19 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Hyong-Youb Kim <hykim@myri.com>, netdev@vger.kernel.org,
+	Andy Lutomirski <luto@amacapital.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>, dave.hansen@linux.intel.com,
+	plagnioj@jcrosoft.com, tglx@linutronix.de,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	x86@kernel.org
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150421220219.GX5622@wotan.suse.de>
+References: <1428695379.6646.69.camel@misato.fc.hp.com>
+ <20150410210538.GB5622@wotan.suse.de>
+ <1428699490.21794.5.camel@misato.fc.hp.com>
+ <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+ <20150411012938.GC5622@wotan.suse.de>
+ <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+ <20150413174938.GE5622@wotan.suse.de>
+ <1429137531.1899.28.camel@palomino.walls.org>
+ <20150415235816.GG5622@wotan.suse.de>
+ <1429146457.1899.99.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: [PATCH 02/14] cx18: avoid going past input/audio array
-From: Andy Walls <awalls.cx18@gmail.com>
-Date: Tue, 28 Apr 2015 19:07:40 -0400
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <C7F874A8-D9AB-47AC-A103-4A99DCA0043C@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429146457.1899.99.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On April 28, 2015 11:43:41 AM EDT, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
->As reported by smatch:
->	drivers/media/pci/cx18/cx18-driver.c:807 cx18_init_struct2() error:
->buffer overflow 'cx->card->video_inputs' 6 <= 6
->
->That happens because nof_inputs and nof_audio_inputs can be initialized
->as CX18_CARD_MAX_VIDEO_INPUTS, instead of CX18_CARD_MAX_VIDEO_INPUTS -
->1.
->
->Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
->diff --git a/drivers/media/pci/cx18/cx18-driver.c
->b/drivers/media/pci/cx18/cx18-driver.c
->index 83f5074706f9..260e462d91b4 100644
->--- a/drivers/media/pci/cx18/cx18-driver.c
->+++ b/drivers/media/pci/cx18/cx18-driver.c
->@@ -786,11 +786,11 @@ static void cx18_init_struct2(struct cx18 *cx)
-> {
-> 	int i;
+On Wed, Apr 15, 2015 at 09:07:37PM -0400, Andy Walls wrote:
+> On Thu, 2015-04-16 at 01:58 +0200, Luis R. Rodriguez wrote:
+> > Hey Andy, thanks for your review,  adding Hyong-Youb Kim for  review of the
+> > full range ioremap_wc() idea below.
+> > 
+> > On Wed, Apr 15, 2015 at 06:38:51PM -0400, Andy Walls wrote:
+> > > Hi All,
+> > > 
+> > > On Mon, 2015-04-13 at 19:49 +0200, Luis R. Rodriguez wrote:
+> > > > From the beginning it seems only framebuffer devices used MTRR/WC,
+> > > [snip]
+> > > >  The ivtv device is a good example of the worst type of
+> > > > situations and these days. So perhap __arch_phys_wc_add() and a
+> > > > ioremap_ucminus() might be something more than transient unless hardware folks
+> > > > get a good memo or already know how to just Do The Right Thing (TM).
+> > > 
+> > > Just to reiterate a subtle point, use of the ivtvfb is *optional*.  A
+> > > user may or may not load it.  When the user does load the ivtvfb driver,
+> > > the ivtv driver has already been initialized and may have functions of
+> > > the card already in use by userspace.
+> > 
+> > I suspected this and its why I note that a rewrite to address a clean
+> > split with separate ioremap seems rather difficult in this case.
+> > 
+> > > Hopefully no one is trying to use the OSD as framebuffer and the video
+> > > decoder/output engine for video display at the same time. 
+> > 
+> > Worst case concern I have also is the implications of having overlapping
+> > ioremap() calls (as proposed in my last reply) for different memory types
+> > and having the different virtual memory addresse used by different parts
+> > of the driver. Its not clear to me what the hardware implications of this
+> > are.
+> > 
+> > >  But the video
+> > > decoder/output device nodes may already be open for performing ioctl()
+> > > functions so unmapping the decoder IO space out from under them, when
+> > > loading the ivtvfb driver module, might not be a good thing. 
+> > 
+> > Using overlapping ioremap() calls with different memory types would address
+> > this concern provided hardware won't barf both on the device and CPU. Hardware
+> > folks could provide feedback or an ivtvfb user could test the patch supplied
+> > on both non-PAT and PAT systems. Even so, who knows,  this might work on some
+> > systems while not on others, only hardware folks would know.
 > 
->-	for (i = 0; i < CX18_CARD_MAX_VIDEO_INPUTS; i++)
->+	for (i = 0; i < CX18_CARD_MAX_VIDEO_INPUTS - 1; i++)
-> 		if (cx->card->video_inputs[i].video_type == 0)
-> 			break;
-> 	cx->nof_inputs = i;
->-	for (i = 0; i < CX18_CARD_MAX_AUDIO_INPUTS; i++)
->+	for (i = 0; i < CX18_CARD_MAX_AUDIO_INPUTS - 1; i++)
-> 		if (cx->card->audio_inputs[i].audio_type == 0)
-> 			break;
-> 	cx->nof_audio_inputs = i;
+> The CX2341[56] firmware+hardware has a track record for being really
+> picky about sytem hardware.  It's primary symptoms are for the DMA
+> engine or Mailbox protocol to get hung up.  So yeah, it could barf
+> easily on some users.
+> 
+> > An alternative... is to just ioremap_wc() the entire region, including
+> > MMIO registers for these old devices.
+> 
+> That's my thought; as long as implementing PCI write then read can force
+> writes to be posted and that setting that many pages as WC doesn't cause
+> some sort of PAT resource exhaustion. (I know very little about PAT).
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
+So upon review that strategy won't work well unless we implemnt some
+sort of of hack on the driver. That's also quite a bit of work.
+
+Andy, can we live without MTRR support on this driver for future kernels? This
+would only leave ipath as the only offending driver.
+
+  Luis
