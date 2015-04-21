@@ -1,119 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49440 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754040AbbDWOTV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 10:19:21 -0400
-Message-ID: <5538FF4B.1010304@xs4all.nl>
-Date: Thu, 23 Apr 2015 16:18:51 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:53749 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755879AbbDUWqG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 18:46:06 -0400
+Date: Wed, 22 Apr 2015 00:46:01 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Andy Lutomirski <luto@amacapital.net>,
+	jgunthorpe@obsidianresearch.com, mike.marciniszyn@intel.com,
+	infinipath@intel.com, linux-rdma@vger.kernel.org,
+	awalls@md.metrocast.net
+Cc: linux-rdma@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150421224601.GY5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
-References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1429794192-20541-7-git-send-email-k.debski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/23/2015 03:03 PM, Kamil Debski wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
+On Wed, Apr 15, 2015 at 01:42:47PM -0700, Andy Lutomirski wrote:
+> On Mon, Apr 13, 2015 at 10:49 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
 > 
-> The added HDMI CEC framework provides a generic kernel interface for
-> HDMI CEC devices.
+> > c) ivtv: the driver does not have the PCI space mapped out separately, and
+> > in fact it actually does not do the math for the framebuffer, instead it lets
+> > the device's own CPU do that and assume where its at, see
+> > ivtvfb_get_framebuffer() and CX2341X_OSD_GET_FRAMEBUFFER, it has a get
+> > but not a setter. Its not clear if the firmware would make a split easy.
+> > We'd need ioremap_ucminus() here too and __arch_phys_wc_add().
+> >
 > 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> [k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
-> [k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
-> [k.debski@samsung.com: change kthread handling when setting logical
-> address]
-> [k.debski@samsung.com: code cleanup and fixes]
-> [k.debski@samsung.com: add missing CEC commands to match spec]
-> [k.debski@samsung.com: add RC framework support]
-> [k.debski@samsung.com: move and edit documentation]
-> [k.debski@samsung.com: add vendor id reporting]
-> [k.debski@samsung.com: add possibility to clear assigned logical
-> addresses]
-> [k.debski@samsung.com: documentation fixes, clenaup and expansion]
-> [k.debski@samsung.com: reorder of API structs and add reserved fields]
-> [k.debski@samsung.com: fix handling of events and fix 32/64bit timespec
-> problem]
-> [k.debski@samsung.com: add cec.h to include/uapi/linux/Kbuild]
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> ---
->  Documentation/cec.txt     |  396 ++++++++++++++++
->  drivers/media/Kconfig     |    6 +
->  drivers/media/Makefile    |    2 +
->  drivers/media/cec.c       | 1161 +++++++++++++++++++++++++++++++++++++++++++++
->  include/media/cec.h       |  140 ++++++
->  include/uapi/linux/Kbuild |    1 +
->  include/uapi/linux/cec.h  |  303 ++++++++++++
->  7 files changed, 2009 insertions(+)
->  create mode 100644 Documentation/cec.txt
->  create mode 100644 drivers/media/cec.c
->  create mode 100644 include/media/cec.h
->  create mode 100644 include/uapi/linux/cec.h
+> IMO this should be conceptually easy to split.  Once we get the
+> framebuffer address, just unmap it (or don't prematurely map it) and
+> then ioremap the thing.
+
+Side note to ipath driver folks: as reviewed with Andy Walls, the
+ivtv driver cannot easily be ported to use PAT so we are evaluating
+simply removing write-combing from that driver on future kernels.
+
 > 
-> diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-> new file mode 100644
-> index 0000000..bb6d66c
-> --- /dev/null
-> +++ b/include/uapi/linux/cec.h
-> @@ -0,0 +1,303 @@
-> +
-> +/* Userspace has to configure the adapter state (enable/disable) */
-> +#define CEC_CAP_STATE		(1 << 0)
-> +/* Userspace has to configure the physical address */
-> +#define CEC_CAP_PHYS_ADDR	(1 << 1)
-> +/* Userspace has to configure the logical addresses */
-> +#define CEC_CAP_LOG_ADDRS	(1 << 2)
-> +/* Userspace can transmit messages */
-> +#define CEC_CAP_TRANSMIT	(1 << 3)
-> +/* Userspace can receive messages */
-> +#define CEC_CAP_RECEIVE		(1 << 4)
-> +/* Userspace has to configure the vendor id */
-> +#define CEC_CAP_VENDOR_ID	(1 << 5)
-> +/* The hardware has the possibility to work in the promiscuous mode */
-> +#define CEC_CAP_PROMISCUOUS	(1 << 6)
+> > From the beginning it seems only framebuffer devices used MTRR/WC, lately it
+> > seems infiniband drivers also find good use for for it for PIO TX buffers to
+> > blast some sort of data, in the future I would not be surprised if other
+> > devices found use for it.
+> 
+> IMO the Infiniband maintainers should fix their code.  Especially in
+> the server space, there aren't that many MTRRs to go around.  I wrote
+> arch_phys_wc_add in the first place because my server *ran out of
+> MTRRs*.
+> 
+> Hey, IB people: can you fix your drivers to use arch_phys_wc_add
+> (which is permitted to be a no-op) along with ioremap_wc?  Your users
 
-Since promiscuous support has been dropped, this capability needs to be
-dropped as well.
+ipath driver maintainers:
 
-> +
-> +struct cec_caps {
-> +	__u32 available_log_addrs;
-> +	__u32 capabilities;
-> +	__u32 vendor_id;
-> +	__u8  version;
-> +	__u8  reserved[11];
+The ipath driver is one of two drivers left to convert over to
+arch_phys_wc_add(). MTRR use is being deprecated, and its use is actually
+highly discouraged now that we have proper PAT implemenation on Linux. Since we
+are talking about annotating the qib driver as "known to be broken without PAT"
+and since the ipath driver needs considerable work to be ported to use PAT (the
+userspace register is just one area) I wanted to review if we can just remove
+MTRR use on the ipath driver and annotate write-combining with PAT as a TODO
+item.
 
-I'd increase this to 31.
+This would help a lot in our journey to bury MTRR use.
 
-> +};
-> +
-> +struct cec_log_addrs {
-> +	__u8 cec_version;
-> +	__u8 num_log_addrs;
-> +	__u8 primary_device_type[CEC_MAX_LOG_ADDRS];
-> +	__u8 log_addr_type[CEC_MAX_LOG_ADDRS];
-> +	__u8 log_addr[CEC_MAX_LOG_ADDRS];
-> +
-> +	/* CEC 2.0 */
-> +	__u8 all_device_types;
-> +	__u8 features[CEC_MAX_LOG_ADDRS][12];
-> +
-> +	__u8 reserved[9];
-
-I'd increase this to 65 or so.
-
-Regards,
-
-	Hans
-
+  Luis
