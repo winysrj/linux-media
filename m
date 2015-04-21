@@ -1,133 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41819 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974AbbDHC2f (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58076 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752262AbbDUNcU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Apr 2015 22:28:35 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4D5F62A0092
-	for <linux-media@vger.kernel.org>; Wed,  8 Apr 2015 04:28:30 +0200 (CEST)
-Date: Wed, 08 Apr 2015 04:28:30 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150408022830.4D5F62A0092@tschai.lan>
+	Tue, 21 Apr 2015 09:32:20 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 71AB32A0089
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 15:31:56 +0200 (CEST)
+Message-ID: <5536514C.40501@xs4all.nl>
+Date: Tue, 21 Apr 2015 15:31:56 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Replace most duplicate video ops by pad ops
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+These patches replace most duplicate video ops by their pad ops counterparts.
+The only remaining duplicate ops deal with cropping and selection, and I want
+to be able to test that first. I have difficulty doing that, but I am
+expecting hardware in the near future that should enable me to do this work.
 
-Results of the daily build of media_tree:
+These six patches replace the *_mbus_fmt video ops by their pad ops versions.
 
-date:		Wed Apr  8 04:00:17 CEST 2015
-git branch:	test
-git hash:	c8c7c44b7cf5ef7163e4bd6aedbdeb6f6031ee3e
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+While not particularly complex, this does cause a lot of unavoidable churn,
+so I would like to get this merged early in the 4.2 cycle to get the maximum
+testing time.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+This work just has to be done, since duplication of ops defeats the whole purpose
+of reusability.
 
-Detailed results are available here:
+The patches in this pull request are identical to patches 1-6 of this post,
+except that patch 1 has a trivial bug fix that Guennadi found:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.spinics.net/lists/linux-media/msg88549.html
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+	Hans
 
-The Media Infrastructure API from this daily build is here:
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2b
+
+for you to fetch changes up to a3912adac27072237c62f479c581d00f41ef2a46:
+
+  v4l2: replace s_mbus_fmt by set_fmt in bridge drivers (2015-04-21 15:23:33 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      v4l2: replace enum_mbus_fmt by enum_mbus_code
+      v4l2: replace video op g_mbus_fmt by pad op get_fmt
+      v4l2: replace try_mbus_fmt by set_fmt
+      v4l2: replace s_mbus_fmt by set_fmt
+      v4l2: replace try_mbus_fmt by set_fmt in bridge drivers
+      v4l2: replace s_mbus_fmt by set_fmt in bridge drivers
+
+ drivers/media/i2c/adv7170.c                              |  42 +++++++++++++++++--------
+ drivers/media/i2c/adv7175.c                              |  42 +++++++++++++++++--------
+ drivers/media/i2c/adv7183.c                              |  61 +++++++++++++++++++++---------------
+ drivers/media/i2c/adv7842.c                              |  25 +++++++++------
+ drivers/media/i2c/ak881x.c                               |  39 +++++++++++------------
+ drivers/media/i2c/cx25840/cx25840-core.c                 |  15 +++++++--
+ drivers/media/i2c/ml86v7667.c                            |  29 +++++++++++------
+ drivers/media/i2c/mt9v011.c                              |  53 ++++++++++++++++---------------
+ drivers/media/i2c/ov7670.c                               |  38 ++++++++++++----------
+ drivers/media/i2c/saa6752hs.c                            |  42 ++++++++++++++++---------
+ drivers/media/i2c/saa7115.c                              |  16 ++++++++--
+ drivers/media/i2c/saa717x.c                              |  16 ++++++++--
+ drivers/media/i2c/soc_camera/imx074.c                    |  66 ++++++++++++++++++++------------------
+ drivers/media/i2c/soc_camera/mt9m001.c                   |  43 +++++++++++++++++--------
+ drivers/media/i2c/soc_camera/mt9m111.c                   |  57 ++++++++++++++++++---------------
+ drivers/media/i2c/soc_camera/mt9t031.c                   |  74 +++++++++++++++++++++++++------------------
+ drivers/media/i2c/soc_camera/mt9t112.c                   |  41 +++++++++++++++++-------
+ drivers/media/i2c/soc_camera/mt9v022.c                   |  43 +++++++++++++++++--------
+ drivers/media/i2c/soc_camera/ov2640.c                    |  62 +++++++++++++++++-------------------
+ drivers/media/i2c/soc_camera/ov5642.c                    |  60 ++++++++++++++++++-----------------
+ drivers/media/i2c/soc_camera/ov6650.c                    |  43 +++++++++++++++++--------
+ drivers/media/i2c/soc_camera/ov772x.c                    |  41 +++++++++++++++++-------
+ drivers/media/i2c/soc_camera/ov9640.c                    |  32 +++++++++++++------
+ drivers/media/i2c/soc_camera/ov9740.c                    |  35 ++++++++++++++-------
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c                |  66 +++++++++++++++++++-------------------
+ drivers/media/i2c/soc_camera/tw9910.c                    |  41 +++++++++++++++++-------
+ drivers/media/i2c/sr030pc30.c                            |  62 ++++++++++++++++++++----------------
+ drivers/media/i2c/tvp514x.c                              |  55 ++------------------------------
+ drivers/media/i2c/tvp5150.c                              |  30 +++++++++++-------
+ drivers/media/i2c/tvp7002.c                              |  48 ----------------------------
+ drivers/media/i2c/vs6624.c                               |  55 ++++++++++++++++++--------------
+ drivers/media/pci/cx18/cx18-av-core.c                    |  16 ++++++++--
+ drivers/media/pci/cx18/cx18-controls.c                   |  13 +++++---
+ drivers/media/pci/cx18/cx18-ioctl.c                      |  12 ++++---
+ drivers/media/pci/cx23885/cx23885-video.c                |  12 ++++---
+ drivers/media/pci/ivtv/ivtv-controls.c                   |  12 ++++---
+ drivers/media/pci/ivtv/ivtv-ioctl.c                      |  12 ++++---
+ drivers/media/pci/saa7134/saa7134-empress.c              |  32 ++++++++++++-------
+ drivers/media/platform/am437x/am437x-vpfe.c              |  25 ++++-----------
+ drivers/media/platform/blackfin/bfin_capture.c           |  40 ++++++++++++++---------
+ drivers/media/platform/davinci/vpfe_capture.c            |  19 ++++++-----
+ drivers/media/platform/marvell-ccic/mcam-core.c          |  19 ++++++-----
+ drivers/media/platform/s5p-tv/hdmi_drv.c                 |  12 +++++--
+ drivers/media/platform/s5p-tv/mixer_drv.c                |  15 ++++++---
+ drivers/media/platform/s5p-tv/sdo_drv.c                  |  14 +++++++--
+ drivers/media/platform/sh_vou.c                          |  61 +++++++++++++++++++-----------------
+ drivers/media/platform/soc_camera/atmel-isi.c            |  74 ++++++++++++++++++++++++-------------------
+ drivers/media/platform/soc_camera/mx2_camera.c           | 113 ++++++++++++++++++++++++++++++++++++-----------------------------
+ drivers/media/platform/soc_camera/mx3_camera.c           | 105 ++++++++++++++++++++++++++++++++++---------------------------
+ drivers/media/platform/soc_camera/omap1_camera.c         | 106 ++++++++++++++++++++++++++++++++++---------------------------
+ drivers/media/platform/soc_camera/pxa_camera.c           |  99 ++++++++++++++++++++++++++++++++-------------------------
+ drivers/media/platform/soc_camera/rcar_vin.c             | 109 +++++++++++++++++++++++++++++++++++----------------------------
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 115 +++++++++++++++++++++++++++++++++++++------------------------------
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c       |  35 ++++++++++-----------
+ drivers/media/platform/soc_camera/soc_camera.c           |  30 +++++++++++-------
+ drivers/media/platform/soc_camera/soc_camera_platform.c  |  24 ++++++++------
+ drivers/media/platform/soc_camera/soc_scale_crop.c       |  37 ++++++++++++----------
+ drivers/media/platform/via-camera.c                      |  19 ++++++-----
+ drivers/media/usb/cx231xx/cx231xx-417.c                  |  12 ++++---
+ drivers/media/usb/cx231xx/cx231xx-video.c                |  23 ++++++++------
+ drivers/media/usb/em28xx/em28xx-camera.c                 |  12 ++++---
+ drivers/media/usb/go7007/go7007-v4l2.c                   |  12 ++++---
+ drivers/media/usb/go7007/s2250-board.c                   |  18 +++++++++--
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c                  |  17 +++++-----
+ include/media/v4l2-subdev.h                              |  16 ----------
+ 65 files changed, 1511 insertions(+), 1151 deletions(-)
