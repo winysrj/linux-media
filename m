@@ -1,96 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45668 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751490AbbDSI2c (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:36646 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965019AbbDUWJY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2015 04:28:32 -0400
-Message-ID: <55336719.5000301@xs4all.nl>
-Date: Sun, 19 Apr 2015 10:28:09 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 21 Apr 2015 18:09:24 -0400
+Received: by lagv1 with SMTP id v1so161620906lag.3
+        for <linux-media@vger.kernel.org>; Tue, 21 Apr 2015 15:09:23 -0700 (PDT)
 MIME-Version: 1.0
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Linux Media <linux-media@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC: "hans.verkuil" <hans.verkuil@cisco.com>, khalasa <khalasa@piap.pl>
-Subject: Re: On register r/w macros/procedures of drivers/media/pci
-References: <CAM_ZknVRzewY23-ZGJrZxEmLa2k6DXyxb1pH-1dJ9tLV7VZ03w@mail.gmail.com>
-In-Reply-To: <CAM_ZknVRzewY23-ZGJrZxEmLa2k6DXyxb1pH-1dJ9tLV7VZ03w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAB=NE6UFOi_CYbrgYGCfU3Uki30iGdPPL2+V5RLYww=NS7G0GA@mail.gmail.com>
+References: <1428695379.6646.69.camel@misato.fc.hp.com> <20150410210538.GB5622@wotan.suse.de>
+ <1428699490.21794.5.camel@misato.fc.hp.com> <CALCETrUP688aNjckygqO=AXXrNYvLQX6F0=b5fjmsCqqZU78+Q@mail.gmail.com>
+ <20150411012938.GC5622@wotan.suse.de> <CALCETrXd19C6pARde3pv-4pt-i52APtw5xs20itwROPq9VmCfg@mail.gmail.com>
+ <20150413174938.GE5622@wotan.suse.de> <1429137531.1899.28.camel@palomino.walls.org>
+ <20150415235816.GG5622@wotan.suse.de> <1429146457.1899.99.camel@palomino.walls.org>
+ <20150421220219.GX5622@wotan.suse.de> <CAB=NE6UFOi_CYbrgYGCfU3Uki30iGdPPL2+V5RLYww=NS7G0GA@mail.gmail.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Tue, 21 Apr 2015 15:09:02 -0700
+Message-ID: <CALCETrXMJNvd0zTjgyM6GF=xm7aL-K2ERX-A0p=46msh54AA7g@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Hyong-Youb Kim <hykim@myri.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/2015 09:36 AM, Andrey Utkin wrote:
-> I am starting a work on driver for techwell tw5864 media grabber&encoder.
-> I am basing on tw68 driver (mentorship, advising and testing by board
-> owners are appreciated). And here (and in some other
-> drivers/media/pci/ drivers) I see what confuses me:
-> 
-> tw68-core.c:
->         dev->lmmio = ioremap(pci_resource_start(pci_dev, 0),
->                              pci_resource_len(pci_dev, 0));
->         dev->bmmio = (__u8 __iomem *)dev->lmmio;
-> 
-> tw68.h:
-> #define tw_readl(reg)           readl(dev->lmmio + ((reg) >> 2))
-> #define tw_readb(reg)           readb(dev->bmmio + (reg))
-> #define tw_writel(reg, value)   writel((value), dev->lmmio + ((reg) >> 2))
-> #define tw_writeb(reg, value)   writeb((value), dev->bmmio + (reg))
-> 
-> I am mostly userland developer and I wouldn't expect bmmio pointer to
-> contain value numerically different from lmmio after such simple
-> casting.
+On Tue, Apr 21, 2015 at 3:08 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> On Tue, Apr 21, 2015 at 3:02 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+>> Andy, can we live without MTRR support on this driver for future kernels? This
+>> would only leave ipath as the only offending driver.
+>
+> Sorry to be clear, can we live with removal of write-combining on this driver?
+>
 
-Check the types of llmio and bbmio:
+I personally think so, but a driver maintainer's ack would be nice.
 
-        u32                     __iomem *lmmio;
-        u8                      __iomem *bmmio;
-
-So the values of the pointers are the same, but the types are not.
-
-So 'lmmio + 1' == 'bmmio + sizeof(u32)' == 'bbmio + 4'.
-
-Since all the registers are defined as byte offsets relative to the start
-of the memory map you cannot just do 'lmmio + reg' since that would be a
-factor 4 off. Instead you have to divide by 4 to get it back in line.
-
-Frankly, I don't think lmmio is necessary at all since readl/writel don't
-need a u32 pointer at all since they use void pointers. I never noticed
-that when I cleaned up the tw68 driver. Using 'void __iomem *mmio' instead
-of lmmio/bmmio and dropping the shifts in the tw_ macros would work just
-as well.
-
-> But still, if this is correct, then how should I implement
-> tw_{read,write}w to operate on 2 bytes (a word)? Similarly, it would
-> look like this:
-> #define tw_readl(reg)           readl(dev->lmmio + ((reg) >> 1))
-
-As suggested above, just use a single void __iomem *mmio pointer.
-
-> That looks odd.
-> 
-> In contrary, in drivers/media/pci/dm1105, we see no explicit shifting
-> of register address. It uses {in,out}{b,w,l} macros, which seem to
-> turn out the same {read,write}{b,w,l} (with some reservations):
-> http://lxr.free-electrons.com/source/include/asm-generic/io.h#L354
-> 
-> dm1105.c:#define dm_io_mem(reg) ((unsigned long)(&dev->io_mem[reg]))
-> dm1105.c:#define dm_readb(reg)          inb(dm_io_mem(reg))
-> dm1105.c:#define dm_writeb(reg, value)  outb((value), (dm_io_mem(reg)))
-> dm1105.c:#define dm_readw(reg)          inw(dm_io_mem(reg))
-> dm1105.c:#define dm_writew(reg, value)  outw((value), (dm_io_mem(reg)))
-> dm1105.c:#define dm_readl(reg)          inl(dm_io_mem(reg))
-> dm1105.c:#define dm_writel(reg, value)  outl((value), (dm_io_mem(reg)))
-> 
-> This looks like contradiction to me (shifting register address vs. no
-> shifting), so that one practice may be even just wrong and broken
-> (which is hard to believe due to active maintenance of all drivers).
-> I highly appreciate your help me in determining the best practice to
-> follow in this new driver.
-> Thanks.
-> 
-
-Hope this helps,
-
-	Hans
+--Andy
