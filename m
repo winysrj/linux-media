@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48681 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751702AbbDCLVi (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54985 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756228AbbDUQQs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 07:21:38 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3C5542A009F
-	for <linux-media@vger.kernel.org>; Fri,  3 Apr 2015 13:21:06 +0200 (CEST)
-Message-ID: <551E77A2.90405@xs4all.nl>
-Date: Fri, 03 Apr 2015 13:21:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 21 Apr 2015 12:16:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: whittenburg@gmail.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
+Date: Tue, 21 Apr 2015 19:16:56 +0300
+Message-ID: <5316821.FKvqnaiTbd@avalon>
+In-Reply-To: <CABcw_O=HtCQkVnHk-ERCRKFbp0X7tSGQcU7L5133RQmD50yqsA@mail.gmail.com>
+References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com> <2148230.ZhqY8UHqWD@avalon> <CABcw_O=HtCQkVnHk-ERCRKFbp0X7tSGQcU7L5133RQmD50yqsA@mail.gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.1] Various fixes and improvements
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Add V4L2_DV_FL_IS_CE_VIDEO flag
-- Various cx18 v4l2-compliance fixes
-- More 'embed video_device' patches (tested with actual hardware)
-- Add CVT/GTF timings support to vivid
-- Add V4L2_CTRL_FLAG_EXECUTE_ON_WRITE support
-- Improve gpiod use
+Hi Chris,
 
+On Tuesday 21 April 2015 11:04:14 Chris Whittenburg wrote:
+> On Fri, Apr 17, 2015 at 4:39 AM, Laurent Pinchart wrote:
+> > On Thursday 16 April 2015 13:05:30 Chris Whittenburg wrote:
+> >> On Tue, Apr 7, 2015 at 10:51 AM, Laurent Pinchart wrote:
+> >>> Black level compensation is applied by the CCDC before writing raw
+> >>> frames to memory. If your raw frames are correct BLC is probably not to
+> >>> blame.
+> >>> 
+> >>> The default contrast is x1.0 and the default brightness is +0.0, so I
+> >>> don't think those should be blame either.
+> >>> 
+> >>> I suspect the RGB2RGB conversion matrix to be wrong. The default
+> >>> setting is supposed to handle fluorescent lighting. You could try
+> >>> setting the RGB2RGB matrix to the identity matrix and see if this
+> >>> helps. See
+> >>> http://git.ideasonboard.org/omap3-isp-live.git/blob/HEAD:/isp/controls.
+> >>> c#l184 for sample code.
+> >>> 
+> >>> Another matrix that could be worth being reprogrammed is the RGB2YUV
+> >>> matrix, which also defaults to fluorescent lighting. Sample code to
+> >>> reprogram it is available in the same location.
+> >> 
+> >> I tried changing the rgb2rgb matrx to the identity matrix:
+> >> 
+> >> {0x0100, 0x0000, 0x0000},
+> >> {0x0000, 0x0100, 0x0000},
+> >> {0x0000, 0x0000, 0x0100}
+> >> 
+> >> And the csc (rgb2yuv) to this:
+> >> {256, 0, 0},
+> >> {0, 0, 0},
+> >> {0, 0, 0}
+> >> 
+> >> But I couldn't see much, if any, difference.
+> >> 
+> >> However, when I forced the gamma correction to be bypassed, it seemed to
+> >> fix it.
+> >> 
+> >> Does that make sense?  I guess I don't understand it enough to understand
+> >> if gamma correction would have compressed all my luma values.
+> > 
+> > Yes, it makes sense. Gamma correction applies a non-linear transformation
+> > to the pixel values and can explain the problems you were seeing.
+> > 
+> > I've checked the default rgb2rgb matrix, and it should work fine for your
+> > case as all lines add up to 1.0. The default rgb2yuv matrix, however,
+> > limits Y values to 220, so you should modify it.
+> 
+> I believe the formula used is:
+> Y = CSCRY*Rin + CSCGY*Gin + CSCBY*Bin +Yoffset
+> 
+> If CSCRY=1.0, and Rin is in the range 0 to 255, then the resulting Y
+> would be in the range [0, 255] as well, so why would the matrix limit
+> Y values to 220?  Is it because Rin, Gin, and Bin have already been
+> limited to the YCbCr range of [16, 240]?
+
+I meant that the default matrix programmed by the omap3isp driver will limit 
+the range to 220.
+
+    {Y}   {  66, 129,  25} {R}
+    {U} = { -38, -75, 112} {G}
+    {V}   { 112, -94, -18} {B}
+
+Y = 66*R + 129*G + 25*B
+
+As R = G = B = y in your case, that's
+
+Y = 66*y + 129*y + 25*y = 220*y
+
+Coefficients are expressed in S10Q8 format (signed, 10 bits in total, 8 
+decimal bits), so we end up with Y = 220/256 * y, limiting the Y range to 220 
+(assuming the input value is limited to 8 bits).
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-The following changes since commit a5562f65b1371a0988b707c10c44fcc2bba56990:
-
-  [media] v4l: xilinx: Add Test Pattern Generator driver (2015-04-03 01:04:18 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.1q
-
-for you to fetch changes up to e97e1fd392564dafd1f03a6280a8713864e3bc72:
-
-  uvc: embed video_device (2015-04-03 13:16:17 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (12):
-      videodev2.h/v4l2-dv-timings.h: add V4L2_DV_FL_IS_CE_VIDEO flag
-      v4l2-dv-timings: log new V4L2_DV_FL_IS_CE_VIDEO flag
-      DocBook media: document the new V4L2_DV_FL_IS_CE_VIDEO flag
-      adv: use V4L2_DV_FL_IS_CE_VIDEO instead of V4L2_DV_BT_STD_CEA861.
-      vivid: use V4L2_DV_FL_IS_CE_VIDEO instead of V4L2_DV_BT_STD_CEA861.
-      cx18: add support for control events
-      cx18: fix VIDIOC_ENUMINPUT: wrong std value
-      cx18: replace cropping ioctls by selection ioctls.
-      cx88: embed video_device
-      bttv: embed video_device
-      em28xx: embed video_device
-      uvc: embed video_device
-
-Prashant Laddha (2):
-      vivid: add CVT,GTF standards to vivid dv timings caps
-      vivid: add support to set CVT, GTF timings
-
-Ricardo Ribalda (5):
-      media/v4l2-ctrls: volatiles should not generate CH_VALUE
-      media: New flag V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
-      media/v4l2-ctrls: Add execute flags to write_only controls
-      media/v4l2-ctrls: Always execute EXECUTE_ON_WRITE ctrls
-      media/Documentation: New flag EXECUTE_ON_WRITE
-
-Uwe Kleine-König (1):
-      media: radio-si4713: improve usage of gpiod API
-
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml      |   6 ++--
- Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml |   9 ++++++
- Documentation/DocBook/media/v4l/vidioc-queryctrl.xml    |  12 ++++++-
- Documentation/video4linux/v4l2-controls.txt             |   4 ++-
- drivers/media/i2c/ad9389b.c                             |  10 +++---
- drivers/media/i2c/adv7511.c                             |  10 +++---
- drivers/media/i2c/adv7604.c                             |   5 +--
- drivers/media/i2c/adv7842.c                             |   5 +--
- drivers/media/pci/bt8xx/bttv-driver.c                   |  73 +++++++++++++-----------------------------
- drivers/media/pci/bt8xx/bttvp.h                         |   6 ++--
- drivers/media/pci/cx18/cx18-fileops.c                   |  25 ++++++++++-----
- drivers/media/pci/cx18/cx18-ioctl.c                     |  47 +++++++++++++++------------
- drivers/media/pci/cx18/cx18-streams.c                   |   6 +++-
- drivers/media/pci/cx88/cx88-blackbird.c                 |  22 +++++--------
- drivers/media/pci/cx88/cx88-core.c                      |  18 ++++-------
- drivers/media/pci/cx88/cx88-video.c                     |  61 +++++++++++++----------------------
- drivers/media/pci/cx88/cx88.h                           |  17 +++++-----
- drivers/media/platform/vivid/vivid-ctrls.c              |   2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c            |  68 +++++++++++++++++++++++++++++++++++++--
- drivers/media/platform/vivid/vivid-vid-common.c         |   5 +--
- drivers/media/platform/vivid/vivid-vid-out.c            |   4 +--
- drivers/media/radio/si4713/si4713.c                     |  18 ++++-------
- drivers/media/usb/em28xx/em28xx-video.c                 | 119 +++++++++++++++++++++++++++++---------------------------------------
- drivers/media/usb/em28xx/em28xx.h                       |   6 ++--
- drivers/media/usb/uvc/uvc_driver.c                      |  22 +++----------
- drivers/media/usb/uvc/uvc_v4l2.c                        |   2 +-
- drivers/media/usb/uvc/uvcvideo.h                        |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c                    |  22 +++++++++++--
- drivers/media/v4l2-core/v4l2-dv-timings.c               |   6 ++--
- include/uapi/linux/v4l2-dv-timings.h                    |  64 ++++++++++++++++++++++---------------
- include/uapi/linux/videodev2.h                          |   7 ++++
- 31 files changed, 367 insertions(+), 316 deletions(-)
