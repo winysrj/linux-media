@@ -1,138 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39231 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbbDGKKB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 06:10:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
-Date: Tue, 07 Apr 2015 13:10:20 +0300
-Message-ID: <3264259.HtLEAUTuYM@avalon>
-In-Reply-To: <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:55217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750714AbbDUOcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 10:32:21 -0400
+Message-ID: <55365F6F.3040904@redhat.com>
+Date: Tue, 21 Apr 2015 16:32:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Vasily Khoruzhick <anarsoul@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 2/2] gspca: sn9c2028: Add gain and autogain controls Genius
+ Videocam Live v2
+References: <1429469565-2695-1-git-send-email-anarsoul@gmail.com> <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
+In-Reply-To: <1429469565-2695-2-git-send-email-anarsoul@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-Thank you for the patch.
-
-On Tuesday 07 April 2015 01:57:32 Sakari Ailus wrote:
-> Instead of parsing the link-frequencies property in the driver, let
-> v4l2_of_alloc_parse_endpoint() do it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+On 19-04-15 20:52, Vasily Khoruzhick wrote:
+> Autogain algorithm is very simple, if average luminance is low - increase gain,
+> if it's high - decrease gain. Gain granularity is low enough for this algo to
+> stabilize quickly.
+>
+> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
 > ---
->  drivers/media/i2c/smiapp/smiapp-core.c |   40 +++++++++++++++--------------
->  1 file changed, 20 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 557f25d..4a2e8d3 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2975,9 +2975,9 @@ static int smiapp_resume(struct device *dev)
->  static struct smiapp_platform_data *smiapp_get_pdata(struct device *dev)
->  {
->  	struct smiapp_platform_data *pdata;
-> -	struct v4l2_of_endpoint bus_cfg;
-> +	struct v4l2_of_endpoint *bus_cfg;
->  	struct device_node *ep;
-> -	uint32_t asize;
-> +	int i;
->  	int rval;
-> 
->  	if (!dev->of_node)
-> @@ -2987,13 +2987,17 @@ static struct smiapp_platform_data
-> *smiapp_get_pdata(struct device *dev) if (!ep)
->  		return NULL;
-> 
-> +	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
-> +	if (IS_ERR(bus_cfg)) {
-> +		rval = PTR_ERR(bus_cfg);
-> +		goto out_err;
+>   drivers/media/usb/gspca/sn9c2028.c | 121 +++++++++++++++++++++++++++++++++++++
+>   drivers/media/usb/gspca/sn9c2028.h |  20 +++++-
+>   2 files changed, 138 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
+> index 317b02c..0ff390f 100644
+> --- a/drivers/media/usb/gspca/sn9c2028.c
+> +++ b/drivers/media/usb/gspca/sn9c2028.c
+> @@ -34,6 +34,16 @@ struct sd {
+>   	struct gspca_dev gspca_dev;  /* !! must be the first item */
+>   	u8 sof_read;
+>   	u16 model;
+> +
+> +#define MIN_AVG_LUM 8500
+> +#define MAX_AVG_LUM 10000
+> +	int avg_lum;
+> +	u8 avg_lum_l;
+> +
+> +	struct { /* autogain and gain control cluster */
+> +		struct v4l2_ctrl *autogain;
+> +		struct v4l2_ctrl *gain;
+> +	};
+>   };
+>
+>   struct init_command {
+> @@ -252,6 +262,77 @@ static int run_start_commands(struct gspca_dev *gspca_dev,
+>   	return 0;
+>   }
+>
+> +static void set_gain(struct gspca_dev *gspca_dev, s32 g)
+> +{
+> +	struct sd *sd = (struct sd *) gspca_dev;
+> +
+> +	struct init_command genius_vcam_live_gain_cmds[] = {
+> +		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
+> +	};
+> +	if (!gspca_dev->streaming)
+> +		return;
+> +
+> +	switch (sd->model) {
+> +	case 0x7003:
+> +		genius_vcam_live_gain_cmds[0].instruction[2] = g;
+> +		run_start_commands(gspca_dev, genius_vcam_live_gain_cmds,
+> +				   ARRAY_SIZE(genius_vcam_live_gain_cmds));
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +}
+> +
+> +static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct gspca_dev *gspca_dev =
+> +		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
+> +	struct sd *sd = (struct sd *)gspca_dev;
+> +
+> +	gspca_dev->usb_err = 0;
+> +
+> +	if (!gspca_dev->streaming)
+> +		return 0;
+> +
+> +	switch (ctrl->id) {
+> +	/* standalone gain control */
+> +	case V4L2_CID_GAIN:
+> +		set_gain(gspca_dev, ctrl->val);
+> +		break;
+> +	/* autogain */
+> +	case V4L2_CID_AUTOGAIN:
+> +		set_gain(gspca_dev, sd->gain->val);
+> +		break;
+> +	}
+> +	return gspca_dev->usb_err;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+> +	.s_ctrl = sd_s_ctrl,
+> +};
+> +
+> +
+> +static int sd_init_controls(struct gspca_dev *gspca_dev)
+> +{
+> +	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
+> +	struct sd *sd = (struct sd *)gspca_dev;
+> +
+> +	gspca_dev->vdev.ctrl_handler = hdl;
+> +	v4l2_ctrl_handler_init(hdl, 2);
+> +
+> +	switch (sd->model) {
+> +	case 0x7003:
+> +		sd->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+> +			V4L2_CID_GAIN, 0, 20, 1, 0);
+> +		sd->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+> +			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+> +		break;
+> +	default:
+> +		break;
 > +	}
 > +
->  	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
->  	if (!pdata)
->  		goto out_err;
-> 
-> -	v4l2_of_parse_endpoint(ep, &bus_cfg);
-> -
-> -	switch (bus_cfg.bus_type) {
-> +	switch (bus_cfg->bus_type) {
->  	case V4L2_MBUS_CSI2:
->  		pdata->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
->  		break;
-> @@ -3002,7 +3006,7 @@ static struct smiapp_platform_data
-> *smiapp_get_pdata(struct device *dev) goto out_err;
->  	}
-> 
-> -	pdata->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
-> +	pdata->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
->  	dev_dbg(dev, "lanes %u\n", pdata->lanes);
-> 
->  	/* xshutdown GPIO is optional */
-> @@ -3022,34 +3026,30 @@ static struct smiapp_platform_data
-> *smiapp_get_pdata(struct device *dev) dev_dbg(dev, "reset %d, nvm %d, clk
-> %d, csi %d\n", pdata->xshutdown, pdata->nvm_size, pdata->ext_clk,
-> pdata->csi_signalling_mode);
-> 
-> -	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
-> -	if (rval) {
-> -		dev_warn(dev, "can't get link-frequencies array size\n");
-> +	if (!bus_cfg->nr_of_link_frequencies) {
+> +	return 0;
+> +}
+>   static int start_spy_cam(struct gspca_dev *gspca_dev)
+>   {
+>   	struct init_command spy_start_commands[] = {
+> @@ -641,6 +722,9 @@ static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
+>   	if (r < 0)
+>   		return r;
+>
+> +	if (sd->gain)
+> +		set_gain(gspca_dev, v4l2_ctrl_g_ctrl(sd->gain));
+> +
+>   	return r;
+>   }
+>
+> @@ -757,6 +841,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>   		return -ENXIO;
+>   	}
+>
+> +	sd->avg_lum = -1;
+> +
+>   	return err_code;
+>   }
+>
+> @@ -776,6 +862,39 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+>   		PERR("Camera Stop command failed");
+>   }
+>
+> +static void do_autogain(struct gspca_dev *gspca_dev, int avg_lum)
+> +{
+> +	struct sd *sd = (struct sd *) gspca_dev;
+> +	s32 cur_gain = v4l2_ctrl_g_ctrl(sd->gain);
+> +
+> +	if (avg_lum == -1)
+> +		return;
+> +
+> +	if (avg_lum < MIN_AVG_LUM) {
+> +		if (cur_gain == sd->gain->maximum)
+> +			return;
+> +		cur_gain++;
+> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
+> +	}
+> +	if (avg_lum > MAX_AVG_LUM) {
+> +		if (cur_gain == sd->gain->minimum)
+> +			return;
+> +		cur_gain--;
+> +		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
+> +	}
+> +
+> +}
+> +
+> +static void sd_dqcallback(struct gspca_dev *gspca_dev)
+> +{
+> +	struct sd *sd = (struct sd *) gspca_dev;
+> +
+> +	if (sd->autogain == NULL || !v4l2_ctrl_g_ctrl(sd->autogain))
+> +		return;
+> +
+> +	do_autogain(gspca_dev, sd->avg_lum);
+> +}
+> +
+>   /* Include sn9c2028 sof detection functions */
+>   #include "sn9c2028.h"
+>
+> @@ -810,8 +929,10 @@ static const struct sd_desc sd_desc = {
+>   	.name = MODULE_NAME,
+>   	.config = sd_config,
+>   	.init = sd_init,
+> +	.init_controls = sd_init_controls,
+>   	.start = sd_start,
+>   	.stopN = sd_stopN,
+> +	.dq_callback = sd_dqcallback,
+>   	.pkt_scan = sd_pkt_scan,
+>   };
+>
+> diff --git a/drivers/media/usb/gspca/sn9c2028.h b/drivers/media/usb/gspca/sn9c2028.h
+> index 8fd1d3e..6f20c0f 100644
+> --- a/drivers/media/usb/gspca/sn9c2028.h
+> +++ b/drivers/media/usb/gspca/sn9c2028.h
+> @@ -21,8 +21,17 @@
+>    *
+>    */
+>
+> -static const unsigned char sn9c2028_sof_marker[5] =
+> -	{ 0xff, 0xff, 0x00, 0xc4, 0xc4 };
+> +static const unsigned char sn9c2028_sof_marker[] = {
+> +	0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96,
+> +	0x00,
+> +	0x00, /* seq */
+> +	0x00,
+> +	0x00,
+> +	0x00, /* avg luminance lower 8 bit */
+> +	0x00, /* avg luminance higher 8 bit */
+> +	0x00,
+> +	0x00,
+> +};
+>
 
-Now that I see it being used, nr_of_link_frequencies feels a bit long. 
-num_link_freqs could be an alternative. I'll let you decide. But for this 
-patch,
+This seems wrong, the header is only 12 bytes the extra 2 0x00 bytes you add are
+actually part of the compressed data and are parsed by the userspace code,
+please drop them.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
+>   					unsigned char *m, int len)
+> @@ -32,8 +41,13 @@ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
+>
+>   	/* Search for the SOF marker (fixed part) in the header */
+>   	for (i = 0; i < len; i++) {
+> -		if (m[i] == sn9c2028_sof_marker[sd->sof_read]) {
+> +		if ((m[i] == sn9c2028_sof_marker[sd->sof_read]) ||
+> +		    (sd->sof_read > 5)) {
+>   			sd->sof_read++;
+> +			if (sd->sof_read == 11)
+> +				sd->avg_lum_l = m[i];
+> +			if (sd->sof_read == 12)
+> +				sd->avg_lum = (m[i] << 8) + sd->avg_lum_l;
+>   			if (sd->sof_read == sizeof(sn9c2028_sof_marker)) {
+>   				PDEBUG(D_FRAM,
+>   					"SOF found, bytes to analyze: %u."
+>
 
-> +		dev_warn(dev, "no link frequencies defined\n");
->  		goto out_err;
->  	}
-> 
-> -	pdata->op_sys_clock = devm_kzalloc(dev, asize, GFP_KERNEL);
-> +	pdata->op_sys_clock = devm_kcalloc(
-> +		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
-> +		sizeof(*pdata->op_sys_clock), GFP_KERNEL);
->  	if (!pdata->op_sys_clock) {
->  		rval = -ENOMEM;
->  		goto out_err;
->  	}
-> 
-> -	asize /= sizeof(*pdata->op_sys_clock);
-> -	rval = of_property_read_u64_array(
-> -		ep, "link-frequencies", pdata->op_sys_clock, asize);
-> -	if (rval) {
-> -		dev_warn(dev, "can't get link-frequencies\n");
-> -		goto out_err;
-> +	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
-> +		pdata->op_sys_clock[i] = bus_cfg->link_frequencies[i];
-> +		dev_dbg(dev, "freq %d: %lld\n", i, pdata->op_sys_clock[i]);
->  	}
-> 
-> -	for (; asize > 0; asize--)
-> -		dev_dbg(dev, "freq %d: %lld\n", asize - 1,
-> -			pdata->op_sys_clock[asize - 1]);
-> -
-> +	v4l2_of_free_endpoint(bus_cfg);
->  	of_node_put(ep);
->  	return pdata;
-> 
->  out_err:
-> +	v4l2_of_free_endpoint(bus_cfg);
->  	of_node_put(ep);
->  	return NULL;
->  }
+Otherwise this looks good.
 
--- 
 Regards,
 
-Laurent Pinchart
-
+Hans
