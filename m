@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52556 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360AbbDBR4I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 13:56:08 -0400
-Message-ID: <551D8299.2060400@xs4all.nl>
-Date: Thu, 02 Apr 2015 19:55:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from quartz.orcorp.ca ([184.70.90.242]:37680 "EHLO quartz.orcorp.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964865AbbDUW6Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2015 18:58:24 -0400
+Date: Tue, 21 Apr 2015 16:57:32 -0600
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com,
+	infinipath@intel.com, linux-rdma@vger.kernel.org,
+	awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150421225732.GA17356@obsidianresearch.com>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv2] v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
-References: <551D38A5.9020104@xs4all.nl> <CAPybu_0gfixU2fn7LAa3WkCxWoBxS7gmwThVX1M2U0i4XHberQ@mail.gmail.com>
-In-Reply-To: <CAPybu_0gfixU2fn7LAa3WkCxWoBxS7gmwThVX1M2U0i4XHberQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150421224601.GY5622@wotan.suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/02/2015 07:02 PM, Ricardo Ribalda Delgado wrote:
-> Hello Hans
-> 
-> On Thu, Apr 2, 2015 at 2:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> +       case V4L2_PIX_FMT_Y16:          descr = "16-bit Greyscale"; break;
-> 
-> What about  "16-bit Greyscale LE" ?
+On Wed, Apr 22, 2015 at 12:46:01AM +0200, Luis R. Rodriguez wrote:
 
-LE is the default, so that's not mentioned. Only if it is BE will I mention
-it in the description. It's the way drivers do this today as well, and I
-think it makes sense.
+> are talking about annotating the qib driver as "known to be broken without PAT"
+> and since the ipath driver needs considerable work to be ported to
+> use PAT (the
 
-Regards,
+This only seems to be true for one of the chips that driver supports,
+not all possibilities.
 
-	Hans
+> userspace register is just one area) I wanted to review if we can just remove
+> MTRR use on the ipath driver and annotate write-combining with PAT as a TODO
+> item.
 
+AFAIK, dropping MTRR support will completely break the performance to
+the point the driver is unusable. If we drop MTRR we may as well
+remove the driver.
+
+Mike, do you think the time is right to just remove the iPath driver?
+
+Jason
