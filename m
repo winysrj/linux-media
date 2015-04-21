@@ -1,94 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49357 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752377AbbDCJyP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55110 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058AbbDUR6Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 05:54:15 -0400
-Message-ID: <551E6326.5030409@xs4all.nl>
-Date: Fri, 03 Apr 2015 11:53:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 21 Apr 2015 13:58:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tim Nordell <tim.nordell@logicpd.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: [PATCH 2/3] omap3isp: Disable CCDC's VD0 and VD1 interrupts when stream is not enabled
+Date: Tue, 21 Apr 2015 20:58:25 +0300
+Message-ID: <7150396.TWY5qHavDR@avalon>
+In-Reply-To: <550998EE.8080801@logicpd.com>
+References: <1426015494-16799-1-git-send-email-tim.nordell@logicpd.com> <1579699.dpjCaSBOhB@avalon> <550998EE.8080801@logicpd.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] uvc: fix cropcap v4l2-compliance failure
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2-compliance tool expects that if VIDIOC_CROPCAP is defined, then
-VIDIOC_G_SELECTION for TGT_CROP_BOUNDS/DEFAULT is also defined (or COMPOSE
-in the case of an output device).
+Hi Tim,
 
-In fact, all that a driver has to do to implement cropcap is to support
-those two targets since the v4l2 core will implement cropcap and fill in
-the pixelaspect to 1/1 by default.
+On Wednesday 18 March 2015 10:25:34 Tim Nordell wrote:
+> On 03/18/15 10:19, Laurent Pinchart wrote:
+> > On Tuesday 10 March 2015 14:24:53 Tim Nordell wrote:
+> >> During testing there appeared to be a race condition where the IRQs
+> >> for VD0 and VD1 could be triggered while enabling the CCDC module
+> >> before the pipeline status was updated.  Simply modify the trigger
+> >> conditions for VD0 and VD1 so they won't occur when the CCDC module
+> >> is not enabled.
+> >> 
+> >> (When this occurred during testing, the VD0 interrupt was occurring
+> >> over and over again starving the rest of the system.)
+> > 
+> > I'm curious, might this be caused by the input (adv7180 in your case)
+> > being enabled before the ISP ? The CCDC is very sensitive to any glitch in
+> > its input signals, you need to make sure that the source is disabled
+> > before its subdev s_stream operation is called. Given that the adv7180
+> > driver doesn't implement s_stream, I expect it to be free-running, which
+> > is definitely a problem.
+>
+> I'll give that a shot and try add code into the adv7180 driver to turn on
+> and off its output signals.  However, it seems like if the driver can avoid
+> a problem presented by external hardware (or other drivers), that it should. 
+> Something like either turning off the VD0 and VD1 interrupts when not in
+> use, or by simply moving the trigger points for those interrupts (as I did
+> here) to avoid problems by presented by signals to the system is probably a
+> good thing for robustness.
 
-Implementing cropcap is only needed if the pixelaspect isn't square.
+I don't disagree with that. I'll have to review the patch in details, as the 
+CCDC code is quite sensitive. In order to do so, I'd like to know whether the 
+problem in your case was caused by the adv7180 always being enabled. Any luck 
+with adding a s_stream implementation in the adv7180 driver ? :-)
 
-So implement g_selection instead of cropcap in uvc to fix the v4l2-compliance
-failure.
+-- 
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 43e953f..7078d3e 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1018,26 +1018,35 @@ static int uvc_ioctl_querymenu(struct file *file, void *fh,
- 	return uvc_query_v4l2_menu(chain, qm);
- }
- 
--static int uvc_ioctl_cropcap(struct file *file, void *fh,
--			     struct v4l2_cropcap *ccap)
-+static int uvc_ioctl_g_selection(struct file *file, void *fh,
-+				 struct v4l2_selection *sel)
- {
- 	struct uvc_fh *handle = fh;
- 	struct uvc_streaming *stream = handle->stream;
- 
--	if (ccap->type != stream->type)
-+	if (sel->type != stream->type)
- 		return -EINVAL;
- 
--	ccap->bounds.left = 0;
--	ccap->bounds.top = 0;
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		if (stream->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+			return -EINVAL;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		if (stream->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	sel->r.left = 0;
-+	sel->r.top = 0;
- 	mutex_lock(&stream->mutex);
--	ccap->bounds.width = stream->cur_frame->wWidth;
--	ccap->bounds.height = stream->cur_frame->wHeight;
-+	sel->r.width = stream->cur_frame->wWidth;
-+	sel->r.height = stream->cur_frame->wHeight;
- 	mutex_unlock(&stream->mutex);
--
--	ccap->defrect = ccap->bounds;
--
--	ccap->pixelaspect.numerator = 1;
--	ccap->pixelaspect.denominator = 1;
- 	return 0;
- }
- 
-@@ -1449,7 +1458,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
- 	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
- 	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
- 	.vidioc_querymenu = uvc_ioctl_querymenu,
--	.vidioc_cropcap = uvc_ioctl_cropcap,
-+	.vidioc_g_selection = uvc_ioctl_g_selection,
- 	.vidioc_g_parm = uvc_ioctl_g_parm,
- 	.vidioc_s_parm = uvc_ioctl_s_parm,
- 	.vidioc_enum_framesizes = uvc_ioctl_enum_framesizes,
+Laurent Pinchart
+
