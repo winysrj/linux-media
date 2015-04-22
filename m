@@ -1,48 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59545 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030364AbbD1PoS (ORCPT
+Received: from bgl-iport-3.cisco.com ([72.163.197.27]:44855 "EHLO
+	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757125AbbDWJ5B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 11:44:18 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 11/14] s5p_mfc: remove a dead code
-Date: Tue, 28 Apr 2015 12:43:50 -0300
-Message-Id: <a36e185fcb27d4e1278c295322c799b0d9d30433.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+	Thu, 23 Apr 2015 05:57:01 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH v2 2/4] v4l2-dv-timings: fix rounding in hblank and hsync calculation
+Date: Wed, 22 Apr 2015 23:02:35 +0530
+Message-Id: <1429723957-8308-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1429723957-8308-1-git-send-email-prladdha@cisco.com>
+References: <fix for rounding errors in cvt/gtf calculation>
+ <1429723957-8308-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/platform/s5p-mfc/s5p_mfc.c:1340 s5p_mfc_runtime_resume() warn: this array is probably non-NULL. 'm_dev->alloc_ctx'
+Changed the rounding calculation for hblank and hsync to match it
+to equations in cvt and gtf standards.
 
-alloc_ctx can never be NULL, as it is embeeded inside the struct
-s5p_mfc_dev.
+In cvt calculation, hsync needs to be rounded down.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In gtf calculations, hblank needs to be rounded to nearest multiple
+of twice the cell granularity and hsync needs to be rounded to the
+nearest multiple of cell granularity.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8333fbc2fe96..1263d99d638e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1337,8 +1337,6 @@ static int s5p_mfc_runtime_resume(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 32aa25f..16c8ac5 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -436,8 +436,8 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 		h_bp = h_blank / 2;
+ 		frame_width = image_width + h_blank;
  
--	if (!m_dev->alloc_ctx)
--		return 0;
- 	atomic_set(&m_dev->pm.power, 1);
- 	return 0;
- }
+-		hsync = (frame_width * 8 + 50) / 100;
+-		hsync = hsync - hsync % CVT_CELL_GRAN;
++		hsync = frame_width * 8 / 100;
++		hsync = (hsync / CVT_CELL_GRAN) * CVT_CELL_GRAN;
+ 		h_fp = h_blank - hsync - h_bp;
+ 	}
+ 
+@@ -552,14 +552,15 @@ bool v4l2_detect_gtf(unsigned frame_height,
+ 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
+ 			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
+ 
+-	h_blank = h_blank - h_blank % (2 * GTF_CELL_GRAN);
++	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
++		  (2 * GTF_CELL_GRAN);
+ 	frame_width = image_width + h_blank;
+ 
+ 	pix_clk = (image_width + h_blank) * hfreq;
+ 	pix_clk = pix_clk / GTF_PXL_CLK_GRAN * GTF_PXL_CLK_GRAN;
+ 
+ 	hsync = (frame_width * 8 + 50) / 100;
+-	hsync = hsync - hsync % GTF_CELL_GRAN;
++	hsync = ((hsync + GTF_CELL_GRAN / 2) / GTF_CELL_GRAN) * GTF_CELL_GRAN;
+ 
+ 	h_fp = h_blank / 2 - hsync;
+ 
 -- 
-2.1.0
+1.9.1
 
