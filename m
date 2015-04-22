@@ -1,242 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39224 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816AbbDGKC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 06:02:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 3/4] v4l: of: Parse variable length properties --- link-frequencies
-Date: Tue, 07 Apr 2015 13:02:31 +0300
-Message-ID: <1770891.VD9MOjdNhM@avalon>
-In-Reply-To: <1428361053-20411-4-git-send-email-sakari.ailus@iki.fi>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-4-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:34238 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756931AbbDVP72 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 11:59:28 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20150422155446.GF5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de> <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de> <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de> <20150422155446.GF5622@wotan.suse.de>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Wed, 22 Apr 2015 08:59:07 -0700
+Message-ID: <CAB=NE6UAhw4777mFsQtT5NLdKc-BQDwwZBZpphYOymWuajTZxA@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Cc: Andy Lutomirski <luto@amacapital.net>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Mike Marciniszyn <infinipath@intel.com>,
+	linux-rdma@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Ville Syrj?l?" <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+On Wed, Apr 22, 2015 at 8:54 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
+>> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+>> > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+>> > > > Mike, do you think the time is right to just remove the iPath driver?
+>> > >
+>> > > With PAT now being default the driver effectively won't work
+>> > > with write-combining on modern kernels. Even if systems are old
+>> > > they likely had PAT support, when upgrading kernels PAT will work
+>> > > but write-combing won't on ipath.
+>> >
+>> > Sorry, do you mean the driver already doesn't get WC? Or do you mean
+>> > after some more pending patches are applied?
+>>
+>> No, you have to consider the system used and the effects of calls used
+>> on the driver in light of this table:
+>>
+>> ----------------------------------------------------------------------
+>> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+>> ----------------------------------------------------------------------
+>>                                                   Non-PAT |  PAT
+>>      PAT
+>>      |PCD
+>>      ||PWT
+>>      |||
+>> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+>> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+>> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+>> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+>> ----------------------------------------------------------------------
+>>
+>> (*) denotes implementation defined and is discouraged
+>>
+>> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+>> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+>> the default. When that flip occurs it will mean ipath cannot get
+>> write-combining on both non-PAT and PAT systems. Now that is for
+>> the future, lets review the current situation for ipath.
+>>
+>> For PAT capable systems if mtrr_add() is used today on a Linux system on a
+>> region mapped with ioremap_nocache() that will mean you effectively nullify the
+>> mtrr_add() effect as the combinatorial effect above yields an effective memory
+>> type of UC.  For PAT systems you want to use ioremap_wc() on the region in
+>> which you need write-combining followed by arch_phys_wc_add() which will *only*
+>> call mtrr_add() *iff* PAT was not enabled. This also means we need to split
+>> the ioremap'd areas so that the area that is using ioremap_nocache() can never
+>> get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
+>> split just as was done for the qib driver.
+>>
+>> Now we could just say that leaving things as-is is a non-issue if you are OK
+>> with non-write-combining effects being the default behaviour left on the ipath
+>> driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
+>> driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
+>> have any effect. We just typically don't want to see use of ioremap_nocache()
+>> paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
+>> ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
+>> on non-PAT systems. If the ipath driver is not going to get he work required
+>> to split the regions though perhaps we can live with a corner case driver that
+>> annotates PAT must be disabled on the systems that use it and convert it to
+>> arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
+>> With this strategy if and when ipath driver gets a split done it would gain WC
+>> on both PAT and non-PAT.
+>
+> Folks, after some thought I do believe the above temporary strategy would
+> avoid issues and would not have to stir people up to go and make code
+> changes. We can use the same strategy for both ivtv and ipath:
+>
+>   * Annotate via Kconfig for the driver that it depends on !X86_PAT
+>     that will ensure that PAT systems won't use it, and convert it
+>     to use arch_phys_wc_add() to help phase out direct access to mtrr_add()
+>
+> This would be correct given that the current situation on the driver
+> makes write-combining non-effective on PAT systems, we in fact gain
+> avoiding these type of use-cases, and annotate this as a big TODO item
+> for folks who do want it for PAT systems.
+>
+> Thoughts?
 
-Thank you for the patch.
+Another option in order to enable this type of checks at run time and
+still be able to build the driver on standard distributions and just
+prevent if from loading on PAT systems is to have some code in place
+which would prevent the driver from loading if PAT was enabled, this
+would enable folks to disable PAT via a kernel command line option,
+and if that was used then the driver probe would complete.
 
-On Tuesday 07 April 2015 01:57:31 Sakari Ailus wrote:
-> The link-frequencies property is a variable length array of link frequencies
-> in an endpoint. The array is needed by an increasing number of drivers, so
-> it makes sense to add it to struct v4l2_of_endpoint.
-> 
-> However, the length of the array is variable and the size of struct
-> v4l2_of_endpoint is fixed since it is allocated by the caller. The options
-> here are
-> 
-> 1. to define a fixed maximum limit of link frequencies that has to be the
-> global maximum of all boards. This is seen as problematic since the maximum
-> could be largish, and everyone hitting the problem would need to submit a
-> patch to fix it, or
-> 
-> 2. parse the property in every driver. This doesn't sound appealing as two
-> of the three implementations submitted to linux-media were wrong, and one of
-> them was even merged before this was noticed, or
-> 
-> 3. change the interface so that allocating and releasing memory according to
-> the size of the array is possible. This is what the patch does.
-> 
-> v4l2_of_alloc_parse_endpoint() is just like v4l2_of_parse_endpoint(), but it
-> will allocate the memory resources needed to store struct v4l2_of_endpoint
-> and the additional arrays pointed to by this struct. A corresponding
-> release function v4l2_of_free_endpoint() is provided to release the memory
-> allocated by v4l2_of_alloc_parse_endpoint().
-> 
-> In addition to this, the link-frequencies property is parsed as well, and
-> the result is stored to struct v4l2_of_endpoint field link_frequencies.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-of.c |   88 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           |   17 +++++++
->  2 files changed, 105 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> b/drivers/media/v4l2-core/v4l2-of.c index 3ac6348..9810cc6 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -14,6 +14,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> +#include <linux/slab.h>
->  #include <linux/string.h>
->  #include <linux/types.h>
-> 
-> @@ -141,6 +142,10 @@ static void v4l2_of_parse_parallel_bus(const struct
-> device_node *node, * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
->   * The caller should hold a reference to @node.
->   *
-> + * NOTE: This function does not parse properties the size of which is
-> + * variable without a low fixed limit. Please use
-> + * v4l2_of_alloc_parse_endpoint() in new drivers instead.
-> + *
->   * Return: 0.
->   */
->  int v4l2_of_parse_endpoint(const struct device_node *node,
-> @@ -167,6 +172,89 @@ int v4l2_of_parse_endpoint(const struct device_node
-> *node, }
->  EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> 
-> +/*
-> + * v4l2_of_free_endpoint() - release resources acquired by
-> + * v4l2_of_alloc_parse_endpoint()
-
-I would say "free the endpoint allocated by v4l2_of_alloc_parse_endpoint()".
-
-> + * @endpoint - the endpoint the resources of which are to be released
-> + *
-> + * It is safe to call this function with NULL argument or on and
-
-s/and/an/
-
-> + * endpoint the parsing of which failed.
-> + */
-> +void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-> +{
-> +	if (IS_ERR_OR_NULL(endpoint))
-> +		return;
-> +
-> +	kfree(endpoint->link_frequencies);
-> +	kfree(endpoint);
-> +}
-> +EXPORT_SYMBOL(v4l2_of_free_endpoint);
-> +
-> +/**
-> + * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> + * This means the port has a static configuration and no properties have
-> + * to be specified explicitly.
-> + * If any properties that identify the bus as parallel are found and
-> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we
-> recognise
-> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-> + * The caller should hold a reference to @node.
-> + *
-> + * v4l2_of_alloc_parse_endpoint() has two important differences to
-> + * v4l2_of_parse_endpoint():
-> + *
-> + * 1. It also parses variable size data and
-> + *
-> + * 2. The memory resources it has acquired to store the variable size
-> + *    data must be released using v4l2_of_free_endpoint() when no longer
-> + *    needed.
-
-I would s/resources it has acquired/it has allocated/ and s/released/freed/.
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> + *
-> + * Return: Pointer to v4l2_of_endpoint if successful, on error a
-> + * negative error code.
-> + */
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +	const struct device_node *node)
-> +{
-> +	struct v4l2_of_endpoint *endpoint;
-> +	int len;
-> +	int rval;
-> +
-> +	endpoint = kzalloc(sizeof(*endpoint), GFP_KERNEL);
-> +	if (!endpoint)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	rval = v4l2_of_parse_endpoint(node, endpoint);
-> +	if (rval < 0)
-> +		goto out_err;
-> +
-> +	if (of_get_property(node, "link-frequencies", &len)) {
-> +		endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
-> +		if (!endpoint->link_frequencies) {
-> +			rval = -ENOMEM;
-> +			goto out_err;
-> +		}
-> +
-> +		endpoint->nr_of_link_frequencies =
-> +			len / sizeof(*endpoint->link_frequencies);
-> +
-> +		rval = of_property_read_u64_array(
-> +			node, "link-frequencies", endpoint->link_frequencies,
-> +			endpoint->nr_of_link_frequencies);
-> +		if (rval < 0)
-> +			goto out_err;
-> +	}
-> +
-> +	return endpoint;
-> +
-> +out_err:
-> +	v4l2_of_free_endpoint(endpoint);
-> +	return ERR_PTR(rval);
-> +}
-> +EXPORT_SYMBOL(v4l2_of_alloc_parse_endpoint);
-> +
->  /**
->   * v4l2_of_parse_link() - parse a link between two endpoints
->   * @node: pointer to the endpoint at the local end of the link
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index 5bbdfbf..88eb572 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -57,6 +57,8 @@ struct v4l2_of_bus_parallel {
->   * @base: struct of_endpoint containing port, id, and local of_node
->   * @bus_type: bus type
->   * @bus: bus configuration data structure
-> + * @link_frequencies: array of supported link frequencies
-> + * @nr_of_link_frequencies: number of elements in link_frequenccies array
->   */
->  struct v4l2_of_endpoint {
->  	struct of_endpoint base;
-> @@ -66,6 +68,8 @@ struct v4l2_of_endpoint {
->  		struct v4l2_of_bus_parallel parallel;
->  		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
->  	} bus;
-> +	u64 *link_frequencies;
-> +	unsigned int nr_of_link_frequencies;
->  };
-> 
->  /**
-> @@ -85,6 +89,9 @@ struct v4l2_of_link {
->  #ifdef CONFIG_OF
->  int v4l2_of_parse_endpoint(const struct device_node *node,
->  			   struct v4l2_of_endpoint *endpoint);
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +	const struct device_node *node);
-> +void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
->  int v4l2_of_parse_link(const struct device_node *node,
->  		       struct v4l2_of_link *link);
->  void v4l2_of_put_link(struct v4l2_of_link *link);
-> @@ -96,6 +103,16 @@ static inline int v4l2_of_parse_endpoint(const struct
-> device_node *node, return -ENOSYS;
->  }
-> 
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +	const struct device_node *node)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-> +{
-> +}
-> +
->  static inline int v4l2_of_parse_link(const struct device_node *node,
->  				     struct v4l2_of_link *link)
->  {
-
--- 
-Regards,
-
-Laurent Pinchart
-
+ Luis
