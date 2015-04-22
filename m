@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:49818 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258AbbDJUYZ (ORCPT
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:23398 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757032AbbDWJ47 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 16:24:25 -0400
-From: Arnd Bergmann <arnd@arndb.de>
+	Thu, 23 Apr 2015 05:56:59 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Jurgen Kramer <gtmkramer@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] vb2: remove unused variable
-Date: Fri, 10 Apr 2015 22:24:17 +0200
-Message-ID: <8477099.Iv3RkyDk0C@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH v2 1/4] v4l2-dv-timings: fix rounding error in vsync_bp calculation
+Date: Wed, 22 Apr 2015 23:02:34 +0530
+Message-Id: <1429723957-8308-2-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1429723957-8308-1-git-send-email-prladdha@cisco.com>
+References: <fix for rounding errors in cvt/gtf calculation>
+ <1429723957-8308-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent bug fix removed all uses of the 'fileio' variable in
-vb2_thread_stop(), which now causes warnings in a lot of
-ARM defconfig builds:
+Changed the rounding offsets used in vsync_bp calculation in cvt and
+gtf timings. The results for vsync_bp should now match with results
+from timing generator spreadsheets for cvt and gtf standards.
 
-drivers/media/v4l2-core/videobuf2-core.c:3228:26: warning: unused variable 'fileio' [-Wunused-variable]
+In the vsync_bp calculation for cvt, always round down the value of
+(CVT_MIN_VSYNC_BP / h_period_est) and then add 1. It thus, reflects
+the equation used in timing generator spreadsheet. Using 1999999 as
+rounding offset, could pontentially lead to bumping up the vsync_bp
+value by extra 1.
 
-This removes the variable as well. The commit that introduced
-the warning was marked for 3.18+ backports, so this should
-probably be backported too.
+In the vsync_bp calculations for gtf, instead of round up or round
+down, round the (CVT_MIN_VSYNC_BP / h_period_est) to the nearest
+integer.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 0e661006370b7 ("[media] vb2: fix 'UNBALANCED' warnings when calling vb2_thread_stop()")
-Cc: <stable@vger.kernel.org>      # for v3.18 and up
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c11aee7db884..d3f7bf0db61e 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3225,7 +3225,6 @@ EXPORT_SYMBOL_GPL(vb2_thread_start);
- int vb2_thread_stop(struct vb2_queue *q)
- {
- 	struct vb2_threadio_data *threadio = q->threadio;
--	struct vb2_fileio_data *fileio = q->fileio;
- 	int err;
+Thanks to Martin Bugge <marbugge@cisco.com> for validating with
+standards and suggestions on equations.
+
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index c0e9638..32aa25f 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -368,14 +368,14 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 	/* Vertical */
+ 	if (reduced_blanking) {
+ 		v_fp = CVT_RB_V_FPORCH;
+-		v_bp = (CVT_RB_MIN_V_BLANK * hfreq + 1999999) / 1000000;
++		v_bp = (CVT_RB_MIN_V_BLANK * hfreq) / 1000000 + 1;
+ 		v_bp -= vsync + v_fp;
  
- 	if (threadio == NULL)
+ 		if (v_bp < CVT_RB_MIN_V_BPORCH)
+ 			v_bp = CVT_RB_MIN_V_BPORCH;
+ 	} else {
+ 		v_fp = CVT_MIN_V_PORCH_RND;
+-		v_bp = (CVT_MIN_VSYNC_BP * hfreq + 1999999) / 1000000 - vsync;
++		v_bp = (CVT_MIN_VSYNC_BP * hfreq) / 1000000 + 1 - vsync;
+ 
+ 		if (v_bp < CVT_MIN_V_BPORCH)
+ 			v_bp = CVT_MIN_V_BPORCH;
+@@ -529,7 +529,8 @@ bool v4l2_detect_gtf(unsigned frame_height,
+ 
+ 	/* Vertical */
+ 	v_fp = GTF_V_FP;
+-	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 999999) / 1000000 - vsync;
++
++	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 500000) / 1000000 - vsync;
+ 	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+ 
+ 	if (aspect.numerator == 0 || aspect.denominator == 0) {
+-- 
+1.9.1
 
