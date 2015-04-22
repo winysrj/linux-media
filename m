@@ -1,20 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47817 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932308AbbDWHnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 03:43:51 -0400
-Message-ID: <5538A26B.10302@redhat.com>
-Date: Thu, 23 Apr 2015 09:42:35 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
-	Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
+Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:18135 "EHLO
+	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758408AbbDVXDp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 19:03:45 -0400
+From: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+To: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Kukjin Kim <kgene@kernel.org>,
 	Kishon Vijay Abraham I <kishon@ti.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
 	Alan Stern <stern@rowland.harvard.edu>,
 	Tony Prisk <linux@prisktech.co.nz>,
 	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
@@ -23,76 +20,157 @@ To: Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
 	Mathias Nyman <mathias.nyman@linux.intel.com>,
 	Paul Bolle <pebolle@tiscali.nl>,
 	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	"Srinivas Kandagatla" <srinivas.kandagatla@linaro.org>,
 	Masanari Iida <standby24x7@gmail.com>,
 	David Mosberger <davidm@egauge.net>,
 	Peter Griffin <peter.griffin@linaro.org>,
 	Gregory CLEMENT <gregory.clement@free-electrons.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>, Jean Delvare <jdelvare@suse.de>
-CC: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-ide@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, Dmitry Torokhov <dtor@google.com>,
+	Kevin Hao <haokexin@gmail.com>,
+	"Jean Delvare" <jdelvare@suse.de>
+CC: <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-ide@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
 	Anatol Pomazau <anatol@google.com>,
 	Jonathan Richardson <jonathar@broadcom.com>,
 	Scott Branden <sbranden@broadcom.com>,
 	Ray Jui <rjui@broadcom.com>,
-	bcm-kernel-feedback-list@broadcom.com
-Subject: Re: [PATCHv3 0/4] add devm_of_phy_get_by_index and update platform
- drivers
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
+	<bcm-kernel-feedback-list@broadcom.com>,
+	Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+Subject: [PATCHv3 3/4] usb: ehci-platform: Use devm_of_phy_get_by_index
+Date: Wed, 22 Apr 2015 16:04:12 -0700
+Message-ID: <1429743853-10254-4-git-send-email-arun.ramamurthy@broadcom.com>
 In-Reply-To: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Getting phys by index instead of phy names so that we do
+not have to create a naming scheme when multiple phys
+are present
 
-On 23-04-15 01:04, Arun Ramamurthy wrote:
-> This patch set adds a new API to get phy by index when multiple
-> phys are present. This patch is based on discussion with Arnd Bergmann
-> about dt bindings for multiple phys.
->
-> History:
-> v1:
->      - Removed null pointers on Dmitry's suggestion
->      - Improved documentation in commit messages
->      - Exported new phy api
-> v2:
->      - EHCI and OHCI platform Kconfigs select Generic Phy
->        to fix build errors in certain configs.
-> v3:
->      - Made GENERIC_PHY an invisible option so
->      that other configs can select it
->      - Added stubs for devm_of_phy_get_by_index
->      - Reformated code
->
-> Arun Ramamurthy (4):
->    phy: phy-core: Make GENERIC_PHY an invisible option
->    phy: core: Add devm_of_phy_get_by_index to phy-core
->    usb: ehci-platform: Use devm_of_phy_get_by_index
->    usb: ohci-platform: Use devm_of_phy_get_by_index
->
->   Documentation/phy.txt                     |  7 +++-
->   drivers/ata/Kconfig                       |  1 -
->   drivers/media/platform/exynos4-is/Kconfig |  2 +-
->   drivers/phy/Kconfig                       |  4 +-
->   drivers/phy/phy-core.c                    | 32 ++++++++++++++
->   drivers/usb/host/Kconfig                  |  4 +-
->   drivers/usb/host/ehci-platform.c          | 69 +++++++++++--------------------
->   drivers/usb/host/ohci-platform.c          | 69 +++++++++++--------------------
->   drivers/video/fbdev/exynos/Kconfig        |  2 +-
->   include/linux/phy/phy.h                   |  8 ++++
->   10 files changed, 100 insertions(+), 98 deletions(-)
->
+Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+Reviewed-by: Ray Jui <rjui@broadcom.com>
+Reviewed-by: Scott Branden <sbranden@broadcom.com>
+---
+ drivers/usb/host/ehci-platform.c | 69 ++++++++++++++--------------------------
+ 1 file changed, 24 insertions(+), 45 deletions(-)
 
-Patch set looks good to me:
+diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
+index d8a75a5..145bf19 100644
+--- a/drivers/usb/host/ehci-platform.c
++++ b/drivers/usb/host/ehci-platform.c
+@@ -88,15 +88,13 @@ static int ehci_platform_power_on(struct platform_device *dev)
+ 	}
+ 
+ 	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-		if (priv->phys[phy_num]) {
+-			ret = phy_init(priv->phys[phy_num]);
+-			if (ret)
+-				goto err_exit_phy;
+-			ret = phy_power_on(priv->phys[phy_num]);
+-			if (ret) {
+-				phy_exit(priv->phys[phy_num]);
+-				goto err_exit_phy;
+-			}
++		ret = phy_init(priv->phys[phy_num]);
++		if (ret)
++			goto err_exit_phy;
++		ret = phy_power_on(priv->phys[phy_num]);
++		if (ret) {
++			phy_exit(priv->phys[phy_num]);
++			goto err_exit_phy;
+ 		}
+ 	}
+ 
+@@ -104,10 +102,8 @@ static int ehci_platform_power_on(struct platform_device *dev)
+ 
+ err_exit_phy:
+ 	while (--phy_num >= 0) {
+-		if (priv->phys[phy_num]) {
+-			phy_power_off(priv->phys[phy_num]);
+-			phy_exit(priv->phys[phy_num]);
+-		}
++		phy_power_off(priv->phys[phy_num]);
++		phy_exit(priv->phys[phy_num]);
+ 	}
+ err_disable_clks:
+ 	while (--clk >= 0)
+@@ -123,10 +119,8 @@ static void ehci_platform_power_off(struct platform_device *dev)
+ 	int clk, phy_num;
+ 
+ 	for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-		if (priv->phys[phy_num]) {
+-			phy_power_off(priv->phys[phy_num]);
+-			phy_exit(priv->phys[phy_num]);
+-		}
++		phy_power_off(priv->phys[phy_num]);
++		phy_exit(priv->phys[phy_num]);
+ 	}
+ 
+ 	for (clk = EHCI_MAX_CLKS - 1; clk >= 0; clk--)
+@@ -154,7 +148,6 @@ static int ehci_platform_probe(struct platform_device *dev)
+ 	struct usb_ehci_pdata *pdata = dev_get_platdata(&dev->dev);
+ 	struct ehci_platform_priv *priv;
+ 	struct ehci_hcd *ehci;
+-	const char *phy_name;
+ 	int err, irq, phy_num, clk = 0;
+ 
+ 	if (usb_disabled())
+@@ -204,36 +197,22 @@ static int ehci_platform_probe(struct platform_device *dev)
+ 
+ 		priv->num_phys = of_count_phandle_with_args(dev->dev.of_node,
+ 				"phys", "#phy-cells");
+-		priv->num_phys = priv->num_phys > 0 ? priv->num_phys : 1;
+ 
+-		priv->phys = devm_kcalloc(&dev->dev, priv->num_phys,
+-				sizeof(struct phy *), GFP_KERNEL);
+-		if (!priv->phys)
+-			return -ENOMEM;
++		if (priv->num_phys > 0) {
++			priv->phys = devm_kcalloc(&dev->dev, priv->num_phys,
++					    sizeof(struct phy *), GFP_KERNEL);
++			if (!priv->phys)
++				return -ENOMEM;
++		} else
++			priv->num_phys = 0;
+ 
+ 		for (phy_num = 0; phy_num < priv->num_phys; phy_num++) {
+-				err = of_property_read_string_index(
+-						dev->dev.of_node,
+-						"phy-names", phy_num,
+-						&phy_name);
+-
+-				if (err < 0) {
+-					if (priv->num_phys > 1) {
+-						dev_err(&dev->dev, "phy-names not provided");
+-						goto err_put_hcd;
+-					} else
+-						phy_name = "usb";
+-				}
+-
+-				priv->phys[phy_num] = devm_phy_get(&dev->dev,
+-						phy_name);
+-				if (IS_ERR(priv->phys[phy_num])) {
+-					err = PTR_ERR(priv->phys[phy_num]);
+-					if ((priv->num_phys > 1) ||
+-					    (err == -EPROBE_DEFER))
+-						goto err_put_hcd;
+-					priv->phys[phy_num] = NULL;
+-				}
++			priv->phys[phy_num] = devm_of_phy_get_by_index(
++					&dev->dev, dev->dev.of_node, phy_num);
++			if (IS_ERR(priv->phys[phy_num])) {
++				err = PTR_ERR(priv->phys[phy_num]);
++					goto err_put_hcd;
++			}
+ 		}
+ 
+ 		for (clk = 0; clk < EHCI_MAX_CLKS; clk++) {
+-- 
+2.3.4
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
