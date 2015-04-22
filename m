@@ -1,212 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50356 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754334AbbDUOWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 10:22:05 -0400
-Message-ID: <55365D06.6030602@redhat.com>
-Date: Tue, 21 Apr 2015 16:21:58 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-gw3-out.broadcom.com ([216.31.210.64]:5254 "EHLO
+	mail-gw3-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757829AbbDVXDb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 19:03:31 -0400
+From: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+To: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
+	Mathias Nyman <mathias.nyman@linux.intel.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Thomas Pugliese <thomas.pugliese@gmail.com>,
+	"Srinivas Kandagatla" <srinivas.kandagatla@linaro.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	David Mosberger <davidm@egauge.net>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Gregory CLEMENT <gregory.clement@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kevin Hao <haokexin@gmail.com>,
+	"Jean Delvare" <jdelvare@suse.de>
+CC: <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-ide@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
+	Anatol Pomazau <anatol@google.com>,
+	Jonathan Richardson <jonathar@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>,
+	<bcm-kernel-feedback-list@broadcom.com>,
+	Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+Subject: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
+Date: Wed, 22 Apr 2015 16:04:10 -0700
+Message-ID: <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com>
+In-Reply-To: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
 MIME-Version: 1.0
-To: Vasily Khoruzhick <anarsoul@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 1/2] gspca: sn9c2028: Add support for Genius Videocam
- Live v2
-References: <1429469565-2695-1-git-send-email-anarsoul@gmail.com>
-In-Reply-To: <1429469565-2695-1-git-send-email-anarsoul@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vasily,
+Most of the phy providers use "select" to enable GENERIC_PHY. Since select
+is only recommended when the config is not visible, GENERIC_PHY is changed
+an invisible option. To maintain consistency, all phy providers are changed
+to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
+phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
+dependency, so it is left as "select".
 
-Thanks for the patches.
+Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+---
+ drivers/ata/Kconfig                       | 1 -
+ drivers/media/platform/exynos4-is/Kconfig | 2 +-
+ drivers/phy/Kconfig                       | 4 ++--
+ drivers/usb/host/Kconfig                  | 4 ++--
+ drivers/video/fbdev/exynos/Kconfig        | 2 +-
+ 5 files changed, 6 insertions(+), 7 deletions(-)
 
-On 19-04-15 20:52, Vasily Khoruzhick wrote:
-> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
-> ---
->   drivers/media/usb/gspca/sn9c2028.c | 120 ++++++++++++++++++++++++++++++++++++-
->   1 file changed, 119 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-> index 39b6b2e..317b02c 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.c
-> +++ b/drivers/media/usb/gspca/sn9c2028.c
-> @@ -2,6 +2,7 @@
->    * SN9C2028 library
->    *
->    * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
-> + * Copyright (C) 2015 Vasily Khoruzhick <anarsoul@gmail.com>
->    *
->    * This program is free software; you can redistribute it and/or modify
->    * it under the terms of the GNU General Public License as published by
-> @@ -128,7 +129,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
->   	status = -1;
->   	for (i = 0; i < 256 && status < 2; i++)
->   		status = sn9c2028_read1(gspca_dev);
-> -	if (status != 2) {
-> +	if (status < 0) {
->   		pr_err("long command status read error %d\n", status);
->   		return (status < 0) ? status : -EIO;
->   	}
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index 5f60155..6d2e881 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -301,7 +301,6 @@ config SATA_MV
+ 	tristate "Marvell SATA support"
+ 	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
+ 		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
+-	select GENERIC_PHY
+ 	help
+ 	  This option enables support for the Marvell Serial ATA family.
+ 	  Currently supports 88SX[56]0[48][01] PCI(-X) chips,
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index b7b2e47..b6f3eaa 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -31,7 +31,7 @@ config VIDEO_S5P_FIMC
+ config VIDEO_S5P_MIPI_CSIS
+ 	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
+ 	depends on REGULATOR
+-	select GENERIC_PHY
++	depends on GENERIC_PHY
+ 	help
+ 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
+ 	  receiver (MIPI-CSIS) devices.
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 2962de2..edecdb1 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -5,7 +5,7 @@
+ menu "PHY Subsystem"
+ 
+ config GENERIC_PHY
+-	bool "PHY Core"
++	bool
+ 	help
+ 	  Generic PHY support.
+ 
+@@ -72,7 +72,7 @@ config PHY_MIPHY365X
+ config PHY_RCAR_GEN2
+ 	tristate "Renesas R-Car generation 2 USB PHY driver"
+ 	depends on ARCH_SHMOBILE
+-	depends on GENERIC_PHY
++	select GENERIC_PHY
+ 	help
+ 	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
+ 
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 5ad60e4..e2197e2 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -182,7 +182,7 @@ config USB_EHCI_HCD_SPEAR
+ config USB_EHCI_HCD_STI
+ 	tristate "Support for ST STiHxxx on-chip EHCI USB controller"
+ 	depends on ARCH_STI && OF
+-	select GENERIC_PHY
++	depends on GENERIC_PHY
+ 	select USB_EHCI_HCD_PLATFORM
+ 	help
+ 	  Enable support for the on-chip EHCI controller found on
+@@ -409,7 +409,7 @@ config USB_OHCI_HCD_SPEAR
+ config USB_OHCI_HCD_STI
+ 	tristate "Support for ST STiHxxx on-chip OHCI USB controller"
+ 	depends on ARCH_STI && OF
+-	select GENERIC_PHY
++	depends on GENERIC_PHY
+ 	select USB_OHCI_HCD_PLATFORM
+ 	help
+ 	  Enable support for the on-chip OHCI controller found on
+diff --git a/drivers/video/fbdev/exynos/Kconfig b/drivers/video/fbdev/exynos/Kconfig
+index 1f16b46..6c53894 100644
+--- a/drivers/video/fbdev/exynos/Kconfig
++++ b/drivers/video/fbdev/exynos/Kconfig
+@@ -16,7 +16,7 @@ if EXYNOS_VIDEO
+ 
+ config EXYNOS_MIPI_DSI
+ 	bool "EXYNOS MIPI DSI driver support."
+-	select GENERIC_PHY
++	depends on GENERIC_PHY
+ 	help
+ 	  This enables support for MIPI-DSI device.
+ 
+-- 
+2.3.4
 
-Do you really need this change ? sn9c2028_read1 returns either a negative
-error code, or the byte read from the sn9c2028 chip. This functions wait for
-the sn9c2028 to return a read value of 2. I admit that the check in the for
-vs the check in the error reporting is not chosen well, both should probably
-be != 2. But checking for status < 0 is not good as this does not catch
-a successful read from the chip not returning 2.
-
-> @@ -178,6 +179,9 @@ static int sd_config(struct gspca_dev *gspca_dev,
->   	case 0x7005:
->   		PDEBUG(D_PROBE, "Genius Smart 300 camera");
->   		break;
-> +	case 0x7003:
-> +		PDEBUG(D_PROBE, "Genius Videocam Live v2");
-> +		break;
->   	case 0x8000:
->   		PDEBUG(D_PROBE, "DC31VC");
->   		break;
-> @@ -530,6 +534,116 @@ static int start_genius_cam(struct gspca_dev *gspca_dev)
->   				  ARRAY_SIZE(genius_start_commands));
->   }
->
-> +static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
-> +{
-> +	int r;
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +	struct init_command genius_vcam_live_start_commands[] = {
-> +		{{0x0c, 0x01, 0x00, 0x00, 0x00, 0x00}, 0},
-> +		{{0x16, 0x01, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x10, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
-> +
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
-> +		{{0x1c, 0x20, 0x00, 0x2d, 0x00, 0x00}, 4},
-> +		{{0x13, 0x20, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x21, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x22, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x23, 0x01, 0x01, 0x00, 0x00}, 4},
-> +		{{0x13, 0x24, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2a, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2b, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
-> +		{{0x12, 0x34, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x34, 0x01, 0xa1, 0x00, 0x00}, 4},
-> +		{{0x13, 0x35, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x01, 0x04, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x02, 0x92, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x25, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x26, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x27, 0x88, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x30, 0x38, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x31, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x32, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x33, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x34, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x5b, 0x0a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x28, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x1e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x62, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x03, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x0f, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x0c, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x28, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x04, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0xe0, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x80, 0x00, 0x00, 0x00}, 4},
-> +		{{0x1c, 0x20, 0x00, 0x2a, 0x00, 0x00}, 1},
-> +		{{0x20, 0x34, 0xa1, 0x00, 0x00, 0x00}, 0},
-> +		/* Camera should start to capture now. */
-> +		{{0x12, 0x27, 0x01, 0x00, 0x00, 0x00}, 0},
-> +		{{0x1b, 0x32, 0x26, 0x00, 0x00, 0x00}, 0},
-> +		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
-> +	};
-> +
-> +	r = run_start_commands(gspca_dev, genius_vcam_live_start_commands,
-> +				  ARRAY_SIZE(genius_vcam_live_start_commands));
-> +	if (r < 0)
-> +		return r;
-> +
-> +	return r;
-> +}
-> +
->   static int start_vivitar_cam(struct gspca_dev *gspca_dev)
->   {
->   	struct init_command vivitar_start_commands[] = {
-> @@ -623,6 +737,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
->   	case 0x7005:
->   		err_code = start_genius_cam(gspca_dev);
->   		break;
-> +	case 0x7003:
-> +		err_code = start_genius_videocam_live(gspca_dev);
-> +		break;
->   	case 0x8001:
->   		err_code = start_spy_cam(gspca_dev);
->   		break;
-> @@ -701,6 +818,7 @@ static const struct sd_desc sd_desc = {
->   /* -- module initialisation -- */
->   static const struct usb_device_id device_table[] = {
->   	{USB_DEVICE(0x0458, 0x7005)}, /* Genius Smart 300, version 2 */
-> +	{USB_DEVICE(0x0458, 0x7003)}, /* Genius Videocam Live v2  */
->   	/* The Genius Smart is untested. I can't find an owner ! */
->   	/* {USB_DEVICE(0x0c45, 0x8000)}, DC31VC, Don't know this camera */
->   	{USB_DEVICE(0x0c45, 0x8001)}, /* Wild Planet digital spy cam */
->
-
-Otherwise this patch looks good.
-
-Regards,
-
-Hans
