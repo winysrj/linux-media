@@ -1,138 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44267 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbbDLNIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Apr 2015 09:08:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 3/3] media: atmel-isi: remove mck back compatiable code as it's not need
-Date: Sun, 12 Apr 2015 16:08:53 +0300
-Message-ID: <46093936.62O7egBcN0@avalon>
-In-Reply-To: <1428570108-4961-4-git-send-email-josh.wu@atmel.com>
-References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com> <1428570108-4961-4-git-send-email-josh.wu@atmel.com>
+Received: from cantor2.suse.de ([195.135.220.15]:56403 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934167AbbDVRHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 13:07:35 -0400
+Date: Wed, 22 Apr 2015 19:07:31 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Mike Marciniszyn <infinipath@intel.com>,
+	linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150422170731.GH5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
+ <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
-
-Thank you for the patch.
-
-On Thursday 09 April 2015 17:01:48 Josh Wu wrote:
-> The master clock should handled by sensor itself.
+On Wed, Apr 22, 2015 at 09:53:03AM -0700, Andy Lutomirski wrote:
+> On Wed, Apr 22, 2015 at 8:23 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> >> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> >> > > Mike, do you think the time is right to just remove the iPath driver?
+> >> >
+> >> > With PAT now being default the driver effectively won't work
+> >> > with write-combining on modern kernels. Even if systems are old
+> >> > they likely had PAT support, when upgrading kernels PAT will work
+> >> > but write-combing won't on ipath.
+> >>
+> >> Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> >> after some more pending patches are applied?
+> >
+> > No, you have to consider the system used and the effects of calls used
+> > on the driver in light of this table:
+> >
+> > ----------------------------------------------------------------------
+> > MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+> > ----------------------------------------------------------------------
+> >                                                   Non-PAT |  PAT
+> >      PAT
+> >      |PCD
+> >      ||PWT
+> >      |||
+> > WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+> > WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+> > WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+> > WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+> > ----------------------------------------------------------------------
+> >
+> > (*) denotes implementation defined and is discouraged
+> >
+> > ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+> > in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+> > the default. When that flip occurs it will mean ipath cannot get
+> > write-combining on both non-PAT and PAT systems. Now that is for
+> > the future, lets review the current situation for ipath.
+> >
+> > For PAT capable systems if mtrr_add() is used today on a Linux system on a
+> > region mapped with ioremap_nocache() that will mean you effectively nullify the
+> > mtrr_add() effect as the combinatorial effect above yields an effective memory
+> > type of UC.
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
-> Changes in v2:
-> - totally remove clock_start()/clock_stop() as they are optional.
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 45 ------------------------
->  1 file changed, 45 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index 2b05f89..7bba7d9
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -83,8 +83,6 @@ struct atmel_isi {
->  	struct completion		complete;
->  	/* ISI peripherial clock */
->  	struct clk			*pclk;
-> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-> -	struct clk			*mck;
->  	unsigned int			irq;
-> 
->  	struct isi_platform_data	pdata;
-> @@ -727,31 +725,6 @@ static void isi_camera_remove_device(struct
-> soc_camera_device *icd) icd->devnum);
->  }
-> 
-> -/* Called with .host_lock held */
-> -static int isi_camera_clock_start(struct soc_camera_host *ici)
-> -{
-> -	struct atmel_isi *isi = ici->priv;
-> -	int ret;
-> -
-> -	if (!IS_ERR(isi->mck)) {
-> -		ret = clk_prepare_enable(isi->mck);
-> -		if (ret) {
-> -			return ret;
-> -		}
-> -	}
-> -
-> -	return 0;
-> -}
-> -
-> -/* Called with .host_lock held */
-> -static void isi_camera_clock_stop(struct soc_camera_host *ici)
-> -{
-> -	struct atmel_isi *isi = ici->priv;
-> -
-> -	if (!IS_ERR(isi->mck))
-> -		clk_disable_unprepare(isi->mck);
-> -}
-> -
->  static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
->  {
->  	struct soc_camera_device *icd = file->private_data;
-> @@ -865,8 +838,6 @@ static struct soc_camera_host_ops
-> isi_soc_camera_host_ops = { .owner		= THIS_MODULE,
->  	.add		= isi_camera_add_device,
->  	.remove		= isi_camera_remove_device,
-> -	.clock_start	= isi_camera_clock_start,
-> -	.clock_stop	= isi_camera_clock_stop,
->  	.set_fmt	= isi_camera_set_fmt,
->  	.try_fmt	= isi_camera_try_fmt,
->  	.get_formats	= isi_camera_get_formats,
-> @@ -904,7 +875,6 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
-> 
->  	/* Default settings for ISI */
->  	isi->pdata.full_mode = 1;
-> -	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+> Are you sure?
 
-You can also remove the #define ISI_DEFAULT_MCLK_FREQ at the beginning of this 
-file.
+Well lets double check.
 
-With this fixed,
+>  I thought that ioremap_nocache currently is UC-,
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+It is.
 
->  	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
-> 
->  	np = of_graph_get_next_endpoint(np, NULL);
-> @@ -980,21 +950,6 @@ static int atmel_isi_probe(struct platform_device
-> *pdev) INIT_LIST_HEAD(&isi->video_buffer_list);
->  	INIT_LIST_HEAD(&isi->dma_desc_head);
-> 
-> -	/* ISI_MCK is the sensor master clock. It should be handled by the
-> -	 * sensor driver directly, as the ISI has no use for that clock. Make
-> -	 * the clock optional here while platforms transition to the correct
-> -	 * model.
-> -	 */
-> -	isi->mck = devm_clk_get(dev, "isi_mck");
-> -	if (!IS_ERR(isi->mck)) {
-> -		/* Set ISI_MCK's frequency, it should be faster than pixel
-> -		 * clock.
-> -		 */
-> -		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
-> -		if (ret < 0)
-> -			return ret;
-> -	}
-> -
->  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->  				sizeof(struct fbd) * MAX_BUFFER_NUM,
->  				&isi->fb_descriptors_phys,
+> so mtrr_add + ioremap_nocache gets WC even on PAT systems.
 
--- 
-Regards,
+https://www-ssl.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf
 
-Laurent Pinchart
+    As per Intel SDM "11.5.2.2 Selecting Memory Types for Pentium
+    III and More Recent Processor Families" the ffect of a WC MTRR
+    for a region with a PAT entry value of UC will be UC. The effect
+    of a WC MTRR on a region with a PAT entry UC- will be WC. The
+    effect of a WC MTRR on a regoin with PAT entry WC is WC.
 
+And indeed as per table 11-7 mtrr WC on PAT UC- yields WC. So ineed the above
+table needs adjustment for this. So for PAT systems write-combing would be
+effective with mtrr_add(), but once strong UC (_PAGE_CACHE_MODE_UC) is used by
+default for ioremap_nocache() what I mentioned will be true. Furhtermore if we
+switch the drivers to use arch_phys_wc_add() then for sure write-combining will
+also not be effective.
+
+Jason, Andy, is the change still a reasonable compromise? We'd just be asking
+users to boot with noat for users for ipath, ivtv until the drivers gets proper
+PAT support with a split.
+
+There are two motivations for this:
+
+  * help move to strong UC as default
+  * bury MTRR
+
+> Going forward, when mtrr_add is gone, this will change, of course.
+
+Indeed.
+
+  Luis
