@@ -1,118 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:33568 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750747AbbDBLfO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 07:35:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from cantor2.suse.de ([195.135.220.15]:51866 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757133AbbDVPyv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 11:54:51 -0400
+Date: Wed, 22 Apr 2015 17:54:46 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
 	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 1/3] cx18: add support for control events
-Date: Thu,  2 Apr 2015 13:34:29 +0200
-Message-Id: <1427974471-24804-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1427974471-24804-1-git-send-email-hverkuil@xs4all.nl>
-References: <1427974471-24804-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com,
+	infinipath@intel.com, linux-rdma@vger.kernel.org,
+	awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150422155446.GF5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150422152328.GB5622@wotan.suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
+> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> > > > Mike, do you think the time is right to just remove the iPath driver?
+> > > 
+> > > With PAT now being default the driver effectively won't work
+> > > with write-combining on modern kernels. Even if systems are old
+> > > they likely had PAT support, when upgrading kernels PAT will work
+> > > but write-combing won't on ipath.
+> > 
+> > Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> > after some more pending patches are applied?
+> 
+> No, you have to consider the system used and the effects of calls used
+> on the driver in light of this table:
+> 
+> ----------------------------------------------------------------------
+> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+> ----------------------------------------------------------------------
+>                                                   Non-PAT |  PAT
+>      PAT
+>      |PCD
+>      ||PWT
+>      |||
+> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+> ----------------------------------------------------------------------
+> 
+> (*) denotes implementation defined and is discouraged
+> 
+> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+> the default. When that flip occurs it will mean ipath cannot get
+> write-combining on both non-PAT and PAT systems. Now that is for
+> the future, lets review the current situation for ipath.
+> 
+> For PAT capable systems if mtrr_add() is used today on a Linux system on a
+> region mapped with ioremap_nocache() that will mean you effectively nullify the
+> mtrr_add() effect as the combinatorial effect above yields an effective memory
+> type of UC.  For PAT systems you want to use ioremap_wc() on the region in
+> which you need write-combining followed by arch_phys_wc_add() which will *only*
+> call mtrr_add() *iff* PAT was not enabled. This also means we need to split
+> the ioremap'd areas so that the area that is using ioremap_nocache() can never
+> get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
+> split just as was done for the qib driver.
+> 
+> Now we could just say that leaving things as-is is a non-issue if you are OK
+> with non-write-combining effects being the default behaviour left on the ipath
+> driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
+> driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
+> have any effect. We just typically don't want to see use of ioremap_nocache()
+> paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
+> ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
+> on non-PAT systems. If the ipath driver is not going to get he work required
+> to split the regions though perhaps we can live with a corner case driver that
+> annotates PAT must be disabled on the systems that use it and convert it to
+> arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
+> With this strategy if and when ipath driver gets a split done it would gain WC
+> on both PAT and non-PAT.
 
-v4l2-compliance failed due to missing control event support in cx18.
-Add this to the driver.
+Folks, after some thought I do believe the above temporary strategy would
+avoid issues and would not have to stir people up to go and make code
+changes. We can use the same strategy for both ivtv and ipath:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/pci/cx18/cx18-fileops.c | 25 +++++++++++++++++--------
- drivers/media/pci/cx18/cx18-ioctl.c   |  3 +++
- 2 files changed, 20 insertions(+), 8 deletions(-)
+  * Annotate via Kconfig for the driver that it depends on !X86_PAT
+    that will ensure that PAT systems won't use it, and convert it
+    to use arch_phys_wc_add() to help phase out direct access to mtrr_add()
 
-diff --git a/drivers/media/pci/cx18/cx18-fileops.c b/drivers/media/pci/cx18/cx18-fileops.c
-index d245445..df83740 100644
---- a/drivers/media/pci/cx18/cx18-fileops.c
-+++ b/drivers/media/pci/cx18/cx18-fileops.c
-@@ -34,6 +34,7 @@
- #include "cx18-controls.h"
- #include "cx18-ioctl.h"
- #include "cx18-cards.h"
-+#include <media/v4l2-event.h>
- 
- /* This function tries to claim the stream for a specific file descriptor.
-    If no one else is using this stream then the stream is claimed and
-@@ -609,13 +610,16 @@ ssize_t cx18_v4l2_read(struct file *filp, char __user *buf, size_t count,
- 
- unsigned int cx18_v4l2_enc_poll(struct file *filp, poll_table *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct cx18_open_id *id = file2id(filp);
- 	struct cx18 *cx = id->cx;
- 	struct cx18_stream *s = &cx->streams[id->type];
- 	int eof = test_bit(CX18_F_S_STREAMOFF, &s->s_flags);
-+	unsigned res = 0;
- 
- 	/* Start a capture if there is none */
--	if (!eof && !test_bit(CX18_F_S_STREAMING, &s->s_flags)) {
-+	if (!eof && !test_bit(CX18_F_S_STREAMING, &s->s_flags) &&
-+			(req_events & (POLLIN | POLLRDNORM))) {
- 		int rc;
- 
- 		mutex_lock(&cx->serialize_lock);
-@@ -632,21 +636,26 @@ unsigned int cx18_v4l2_enc_poll(struct file *filp, poll_table *wait)
- 	if ((s->vb_type == V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
- 		(id->type == CX18_ENC_STREAM_TYPE_YUV)) {
- 		int videobuf_poll = videobuf_poll_stream(filp, &s->vbuf_q, wait);
-+
-+		if (v4l2_event_pending(&id->fh))
-+			res |= POLLPRI;
-                 if (eof && videobuf_poll == POLLERR)
--                        return POLLHUP;
--                else
--                        return videobuf_poll;
-+			return res | POLLHUP;
-+		return res | videobuf_poll;
- 	}
- 
- 	/* add stream's waitq to the poll list */
- 	CX18_DEBUG_HI_FILE("Encoder poll\n");
--	poll_wait(filp, &s->waitq, wait);
-+	if (v4l2_event_pending(&id->fh))
-+		res |= POLLPRI;
-+	else
-+		poll_wait(filp, &s->waitq, wait);
- 
- 	if (atomic_read(&s->q_full.depth))
--		return POLLIN | POLLRDNORM;
-+		return res | POLLIN | POLLRDNORM;
- 	if (eof)
--		return POLLHUP;
--	return 0;
-+		return res | POLLHUP;
-+	return res;
- }
- 
- int cx18_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 0230b0f..6f8324d 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -39,6 +39,7 @@
- #include "cx18-cards.h"
- #include "cx18-av-core.h"
- #include <media/tveeprom.h>
-+#include <media/v4l2-event.h>
- 
- u16 cx18_service2vbi(int type)
- {
-@@ -1117,6 +1118,8 @@ static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
- 	.vidioc_querybuf                = cx18_querybuf,
- 	.vidioc_qbuf                    = cx18_qbuf,
- 	.vidioc_dqbuf                   = cx18_dqbuf,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
- void cx18_set_funcs(struct video_device *vdev)
--- 
-2.1.4
+This would be correct given that the current situation on the driver
+makes write-combining non-effective on PAT systems, we in fact gain
+avoiding these type of use-cases, and annotate this as a big TODO item
+for folks who do want it for PAT systems.
 
+Thoughts?
+
+  Luis
