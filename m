@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:34615 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756547AbbDOU5E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 16:57:04 -0400
-Message-ID: <552ED06E.8030303@zytor.com>
-Date: Wed, 15 Apr 2015 13:56:14 -0700
-From: "H. Peter Anvin" <hpa@zytor.com>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:35430 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966350AbbDVTOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 15:14:25 -0400
 MIME-Version: 1.0
-To: Andy Lutomirski <luto@amacapital.net>,
-	"Luis R. Rodriguez" <mcgrof@suse.com>, linux-rdma@vger.kernel.org
-CC: Toshi Kani <toshi.kani@hp.com>, Ingo Molnar <mingo@kernel.org>,
+In-Reply-To: <1429729841.121496.15.camel@redhat.com>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de> <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de> <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de> <20150422161755.GA19500@obsidianresearch.com>
+ <1429728791.121496.10.camel@redhat.com> <20150422190520.GL5622@wotan.suse.de> <1429729841.121496.15.camel@redhat.com>
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Date: Wed, 22 Apr 2015 12:14:04 -0700
+Message-ID: <CAB=NE6U91sMEXDdpu0BeL066j2EPho=owM-H=_8-4yCkWBVKbA@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Mike Marciniszyn <infinipath@intel.com>,
+	linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	Hal Rosenstock <hal.rosenstock@gmail.com>,
 	Sean Hefty <sean.hefty@intel.com>,
 	Suresh Siddha <sbsiddha@gmail.com>,
 	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
 	Roland Dreier <roland@purestorage.com>,
 	Juergen Gross <jgross@suse.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Andy Walls <awalls@md.metrocast.net>,
 	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
 	Vlastimil Babka <vbabka@suse.cz>,
 	Davidlohr Bueso <dbueso@suse.de>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
 	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
-	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	"Ville Syrj?l?" <syrjala@sci.fi>,
 	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
 	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>
-Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
-References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
-In-Reply-To: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/15/2015 01:42 PM, Andy Lutomirski wrote:
-> 
-> I disagree.  We should try to NACK any new code that can't function
-> without MTRRs.
-> 
-> (Plus, ARM is growing in popularity in the server space, and ARM quite
-> sensibly doesn't have MTRRs.)
-> 
+On Wed, Apr 22, 2015 at 12:10 PM, Doug Ledford <dledford@redhat.com> wrote:
+> On Wed, 2015-04-22 at 21:05 +0200, Luis R. Rodriguez wrote:
+>
+>> > > I'd also love to remove the driver if it turns out there are actually
+>> > > no users. qib substantially replaces it except for a few very old
+>> > > cards.
+>> >
+>> > To be precise, the split is that ipath powers the old HTX bus cards that
+>> > only work in AMD systems,
+>>
+>> Do those systems have PAT support? CAn anyone check if PAT is enabled
+>> if booted on a recent kernel?
+>
+> I don't have one of these systems any more.  The *only* one I ever had
+> was a monster IBM box...I can't even find a reference to it any more.
 
-<NOT SPEAKING FOR INTEL HERE>
+Um, yeah if its so rare then I think the compromise proposed might
+make sense, specially since folks were even *considering* seriously
+removing this device driver. I'll send some patches to propose the
+strategy explained to require booting with pat disabled.
 
-Yes.  People need to understand that MTRRs are fundamentally a
-transitional solution, a replacement for the KEN# logic in the P4 and P5
-generation processors.  The KEN# logic in the chipset would notify the
-CPU that a specific address should not be cached, without affecting the
-software (which may have been written for x86s built before caching
-existed, even.)
-
-MTRRs move this to the head end, so the CPU knows ahead of time what to
-do, as is required with newer architectures.  It also enabled write
-combining in a transparent fashion.  However, it is still transitional;
-it is there to describe the underlying constraints of the memory system
-so that code which doesn't use paging can run at all, but the only thing
-that can actually scale is PAT.
-
-	-hpa
-
+ Luis
