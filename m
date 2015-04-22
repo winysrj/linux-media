@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:60129 "EHLO mx02.posteo.de"
+Received: from quartz.orcorp.ca ([184.70.90.242]:44738 "EHLO quartz.orcorp.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752481AbbDQJGd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2015 05:06:33 -0400
-Date: Fri, 17 Apr 2015 11:06:30 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Jemma Denson <jdenson@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for TechniSat Skystar S2
-Message-ID: <20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
-In-Reply-To: <552B62EF.8050705@gmail.com>
-References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
-	<552B62EF.8050705@gmail.com>
+	id S1751742AbbDVUrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 16:47:24 -0400
+Date: Wed, 22 Apr 2015 14:46:37 -0600
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Doug Ledford <dledford@redhat.com>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	mike.marciniszyn@intel.com, infinipath@intel.com,
+	linux-rdma@vger.kernel.org, awalls@md.metrocast.net,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150422204637.GA29491@obsidianresearch.com>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
+ <20150422161755.GA19500@obsidianresearch.com>
+ <1429728791.121496.10.camel@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429728791.121496.10.camel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jemma,
+On Wed, Apr 22, 2015 at 02:53:11PM -0400, Doug Ledford wrote:
 
-Thanks for taking this one. I had this on my list for years.
+> To be precise, the split is that ipath powers the old HTX bus cards that
+> only work in AMD systems, qib is all PCI-e cards.  I still have a few
+> HTX cards, but I no longer have any systems with HTX slots, so we
+> haven't even used this driver in testing for 3 or 4 years now.  And
+> these are all old SDR cards, where the performance numbers were 800MB/s
+> with WC enabled, 50MB/s without it.
 
-On Mon, 13 Apr 2015 07:32:15 +0100 Jemma Denson <jdenson@gmail.com>
-wrote:
+Wow, I doubt any HTX systems are still in any kind of use.
 
-> Oh, I was doing this the wrong way then. I did have some preamble to
-> this but it seems to have been stripped.
-> 
-> Anyway, this patch adds support for the Technisat Skystar S2 - this
-> has been tried before but the cx24120 driver was a bit out of shape
-> and it didn't got any further:
-> https://patchwork.linuxtv.org/patch/10575/
-> 
-> It is an old card, but currently being sold off for next to nothing,
-> so it's proving quite popular of late.
-> Noticing it's quite similar to the cx24116 and cx24117 I've rewritten
-> the driver in a similar way. There were a few registers and commands
-> from those drivers missing from this one I've tested out and found
-> they do something so they've been added in to speed up tuning and to
-> make get_frontend return something useful.
+It would be a nice clean up to drop the PPC support out of this driver
+too. PPC never had HTX.
 
-If time allows it I will try to install and test your driver this
-weekend or, at the latest, next weekend.
-
-> I've only got access to 28.2E, but everything I've tried seems to work
-> OK, on both the v3 and v5 APIs. Assuming I've read the APIs and some
-> of the modern drivers OK it should be doing things in the reasonably
-> modern way, but if anything else needs doing let me know.
-
-I have my Skystar S2 pointed to 19.2E.
-
-To prepare an integration into 4.2 (or at least 4.3) I suggest using my
-media_tree on linuxtv.org .
-
-http://git.linuxtv.org/cgit.cgi/pb/media_tree.git/ cx24120-v2
-
-I added a checkpatch-patch on top of it. If you can, please base any
-future work of yours on this tree until is has been integrated.
-
-Please also tell me, whether you are OK with the comment I added around
-your commit or not.
-
-Thanks,
---
-Patrick.
+Jason
