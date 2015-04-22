@@ -1,77 +1,155 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:36585 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753777AbbD2QhM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 12:37:12 -0400
-Received: by lagv1 with SMTP id v1so24438331lag.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 09:37:11 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCHv2 1/5] si2168: add support for gapped clock
-Date: Wed, 29 Apr 2015 19:36:50 +0300
-Message-Id: <1430325414-9977-1-git-send-email-olli.salonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+MIME-Version: 1.0
+In-Reply-To: <55313D2E.1020701@fischlustig.de>
+References: <CAPAqnGp0poptvEiMOk3oxs7=H8C5DOx-g0qpKZVQGQ_fa20-3Q@mail.gmail.com>
+	<55313D2E.1020701@fischlustig.de>
+Date: Wed, 22 Apr 2015 21:29:23 +0530
+Message-ID: <CAPAqnGqg0E+sTmsgqW4ccq6k2nDOZYRovaCpPXgyXbdu9GerUQ@mail.gmail.com>
+From: Mahesh Dl <dl.mahesh@gmail.com>
+To: Marek Pikarski <mass@fischlustig.de>
+Cc: mass@linuxtv.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DSMCC-MHP-TOOLS incremental carousel updates
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1546076385=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Add a parameter in si2168_config to support gapped clock. This might be necessary on
-some devices with higher bitrates.
+--===============1546076385==
+Content-Type: multipart/alternative; boundary=001a1147f24831b7fb0514523f06
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c      | 3 +++
- drivers/media/dvb-frontends/si2168.h      | 3 +++
- drivers/media/dvb-frontends/si2168_priv.h | 1 +
- 3 files changed, 7 insertions(+)
+--001a1147f24831b7fb0514523f06
+Content-Type: text/plain; charset=UTF-8
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 5db588e..29a5936 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -508,6 +508,8 @@ static int si2168_init(struct dvb_frontend *fe)
- 	/* set ts mode */
- 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
- 	cmd.args[4] |= dev->ts_mode;
-+	if (dev->ts_clock_gapped)
-+		cmd.args[4] |= 0x40;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -688,6 +690,7 @@ static int si2168_probe(struct i2c_client *client,
- 	*config->fe = &dev->fe;
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
-+	dev->ts_clock_gapped = config->ts_clock_gapped;
- 	dev->fw_loaded = false;
- 
- 	i2c_set_clientdata(client, dev);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index 70d702a..3225d0c 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -42,6 +42,9 @@ struct si2168_config {
- 
- 	/* TS clock inverted */
- 	bool ts_clock_inv;
-+
-+	/* TS clock gapped */
-+	bool ts_clock_gapped;
- };
- 
- #endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index d7efce8..d2589e3 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -38,6 +38,7 @@ struct si2168_dev {
- 	bool fw_loaded;
- 	u8 ts_mode;
- 	bool ts_clock_inv;
-+	bool ts_clock_gapped;
- };
- 
- /* firmware command struct */
--- 
-1.9.1
+Hello Marek Pikarski,
 
+Thanks for your prompt reply, it works and i can see the carousel updates
+on a receiver built in my PC. I am stuck with another issue though and
+request your suggestion on this. I was earlier using oc-update utility from
+Avalpa which produces a module_version and my receiver starts the
+application only after verifying the module_version, is there a way that i
+can induce a module_version with dsmcc tools.
+
+Regards,
+Mahesh
+
+On Fri, Apr 17, 2015 at 10:34 PM, Marek Pikarski <mass@fischlustig.de>
+wrote:
+
+> Hi Mahesh,
+> The idea of incremental updates is as follows:
+> 1. the first time you create a carousel with dsmcc-oc, pass -d option to
+> create a dump
+> 2. modify whatever you want inside your carousel dir
+> 3. call dsmmc-up -in pathtoyour.dump
+>
+> You can repeat steps 2+3 each time you want to produce an incrementally
+> updated carousel.
+> Regards, Marek
+>
+>
+>
+> On 17.04.2015 15:59, Mahesh Dl wrote:
+>
+>> Hello Marek Pikarski,
+>>
+>> First of all thank you for the dsmcc-mhp-tools, it made my test setup
+>> easy for carousel's. It works flawless so far, i use tscbrmuxer from
+>> opencaster for muxing with AV.
+>>
+>> As of now, i  am confused on "updating of version number for the module,
+>> once i update some files or folders in the carousel directory", i guess its
+>> already included in the package as it is mentioned in the README that
+>> incremental updates are supported. Please provide an example of command
+>> usage to achieve this.
+>>
+>> I use the inotify-tools to monitor the directory for carousel and can
+>> generate the new m2t file when ever there is a change in the directory. The
+>> command used to generate the m2t is  - dsmcc-oc --in=/home/root/dsmcc
+>> --out=test4.m2t --pid=0x07d3 -cid 0x00000001 --tag=0xb -ns -v .
+>>
+>> Please help.
+>>
+>> Thanks & Regards,
+>> Mahesh
+>>
+>
+>
+
+--001a1147f24831b7fb0514523f06
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Hello Marek Pikarski,<div><br></div><div>Thanks for your p=
+rompt reply, it works and i can see the carousel updates on a receiver buil=
+t in my PC. I am stuck with another issue though and request your suggestio=
+n on this. I was earlier using oc-update utility from Avalpa which produces=
+ a=C2=A0module_version and my receiver starts the application only after ve=
+rifying the=C2=A0module_version, is there a way that i can induce a=C2=A0mo=
+dule_version with dsmcc tools.</div><div><br></div><div>Regards,</div><div>=
+Mahesh</div></div><div class=3D"gmail_extra"><br><div class=3D"gmail_quote"=
+>On Fri, Apr 17, 2015 at 10:34 PM, Marek Pikarski <span dir=3D"ltr">&lt;<a =
+href=3D"mailto:mass@fischlustig.de" target=3D"_blank">mass@fischlustig.de</=
+a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"margin:0=
+ 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">Hi Mahesh,<br>
+The idea of incremental updates is as follows:<br>
+1. the first time you create a carousel with dsmcc-oc, pass -d option to cr=
+eate a dump<br>
+2. modify whatever you want inside your carousel dir<br>
+3. call dsmmc-up -in pathtoyour.dump<br>
+<br>
+You can repeat steps 2+3 each time you want to produce an incrementally upd=
+ated carousel.<br>
+Regards, Marek<div class=3D"HOEnZb"><div class=3D"h5"><br>
+<br>
+<br>
+On 17.04.2015 15:59, Mahesh Dl wrote:<br>
+<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
+x #ccc solid;padding-left:1ex">
+Hello Marek Pikarski,<br>
+<br>
+First of all thank you for the dsmcc-mhp-tools, it made my test setup easy =
+for carousel&#39;s. It works flawless so far, i use tscbrmuxer from opencas=
+ter for muxing with AV.<br>
+<br>
+As of now, i=C2=A0 am confused on &quot;updating of version number for the =
+module, once i update some files or folders in the carousel directory&quot;=
+, i guess its already included in the package as it is mentioned in the REA=
+DME that incremental updates are supported. Please provide an example of co=
+mmand usage to achieve this.<br>
+<br>
+I use the inotify-tools to monitor the directory for carousel and can gener=
+ate the new m2t file when ever there is a change in the directory. The comm=
+and used to generate the m2t is=C2=A0 - dsmcc-oc --in=3D/home/root/dsmcc --=
+out=3Dtest4.m2t --pid=3D0x07d3 -cid 0x00000001 --tag=3D0xb -ns -v .<br>
+<br>
+Please help.<br>
+<br>
+Thanks &amp; Regards,<br>
+Mahesh<br>
+</blockquote>
+<br>
+</div></div></blockquote></div><br></div>
+
+--001a1147f24831b7fb0514523f06--
+
+
+--===============1546076385==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1546076385==--
