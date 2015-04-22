@@ -1,145 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:47727 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbbDMKJm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 06:09:42 -0400
-Message-ID: <552B95E0.5010901@atmel.com>
-Date: Mon, 13 Apr 2015 18:09:36 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v2 3/3] media: atmel-isi: remove mck back compatiable
- code as it's not need
-References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com> <1428570108-4961-4-git-send-email-josh.wu@atmel.com> <46093936.62O7egBcN0@avalon>
-In-Reply-To: <46093936.62O7egBcN0@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:40577 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966164AbbDVTKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 15:10:49 -0400
+Message-ID: <1429729841.121496.15.camel@redhat.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+From: Doug Ledford <dledford@redhat.com>
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	mike.marciniszyn@intel.com, infinipath@intel.com,
+	linux-rdma@vger.kernel.org, awalls@md.metrocast.net,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Date: Wed, 22 Apr 2015 15:10:41 -0400
+In-Reply-To: <20150422190520.GL5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+	 <20150421224601.GY5622@wotan.suse.de>
+	 <20150421225732.GA17356@obsidianresearch.com>
+	 <20150421233907.GA5622@wotan.suse.de>
+	 <20150422053939.GA29609@obsidianresearch.com>
+	 <20150422152328.GB5622@wotan.suse.de>
+	 <20150422161755.GA19500@obsidianresearch.com>
+	 <1429728791.121496.10.camel@redhat.com>
+	 <20150422190520.GL5622@wotan.suse.de>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-dCjLMPsKMR7z2C2qa+3g"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
 
-On 4/12/2015 9:08 PM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> Thank you for the patch.
->
-> On Thursday 09 April 2015 17:01:48 Josh Wu wrote:
->> The master clock should handled by sensor itself.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->> Changes in v2:
->> - totally remove clock_start()/clock_stop() as they are optional.
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c | 45 ------------------------
->>   1 file changed, 45 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->> b/drivers/media/platform/soc_camera/atmel-isi.c index 2b05f89..7bba7d9
->> 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -83,8 +83,6 @@ struct atmel_isi {
->>   	struct completion		complete;
->>   	/* ISI peripherial clock */
->>   	struct clk			*pclk;
->> -	/* ISI_MCK, feed to camera sensor to generate pixel clock */
->> -	struct clk			*mck;
->>   	unsigned int			irq;
->>
->>   	struct isi_platform_data	pdata;
->> @@ -727,31 +725,6 @@ static void isi_camera_remove_device(struct
->> soc_camera_device *icd) icd->devnum);
->>   }
->>
->> -/* Called with .host_lock held */
->> -static int isi_camera_clock_start(struct soc_camera_host *ici)
->> -{
->> -	struct atmel_isi *isi = ici->priv;
->> -	int ret;
->> -
->> -	if (!IS_ERR(isi->mck)) {
->> -		ret = clk_prepare_enable(isi->mck);
->> -		if (ret) {
->> -			return ret;
->> -		}
->> -	}
->> -
->> -	return 0;
->> -}
->> -
->> -/* Called with .host_lock held */
->> -static void isi_camera_clock_stop(struct soc_camera_host *ici)
->> -{
->> -	struct atmel_isi *isi = ici->priv;
->> -
->> -	if (!IS_ERR(isi->mck))
->> -		clk_disable_unprepare(isi->mck);
->> -}
->> -
->>   static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
->>   {
->>   	struct soc_camera_device *icd = file->private_data;
->> @@ -865,8 +838,6 @@ static struct soc_camera_host_ops
->> isi_soc_camera_host_ops = { .owner		= THIS_MODULE,
->>   	.add		= isi_camera_add_device,
->>   	.remove		= isi_camera_remove_device,
->> -	.clock_start	= isi_camera_clock_start,
->> -	.clock_stop	= isi_camera_clock_stop,
->>   	.set_fmt	= isi_camera_set_fmt,
->>   	.try_fmt	= isi_camera_try_fmt,
->>   	.get_formats	= isi_camera_get_formats,
->> @@ -904,7 +875,6 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
->>
->>   	/* Default settings for ISI */
->>   	isi->pdata.full_mode = 1;
->> -	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
-> You can also remove the #define ISI_DEFAULT_MCLK_FREQ at the beginning of this
-> file.
+--=-dCjLMPsKMR7z2C2qa+3g
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I'll remove the useless definition.
+On Wed, 2015-04-22 at 21:05 +0200, Luis R. Rodriguez wrote:
 
->
-> With this fixed,
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > I'd also love to remove the driver if it turns out there are actually
+> > > no users. qib substantially replaces it except for a few very old
+> > > cards.
+> >=20
+> > To be precise, the split is that ipath powers the old HTX bus cards tha=
+t
+> > only work in AMD systems,
+>=20
+> Do those systems have PAT support? CAn anyone check if PAT is enabled
+> if booted on a recent kernel?
 
-Thanks.
+I don't have one of these systems any more.  The *only* one I ever had
+was a monster IBM box...I can't even find a reference to it any more.
 
-Best Regards,
-Josh Wu
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
->
->>   	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
->>
->>   	np = of_graph_get_next_endpoint(np, NULL);
->> @@ -980,21 +950,6 @@ static int atmel_isi_probe(struct platform_device
->> *pdev) INIT_LIST_HEAD(&isi->video_buffer_list);
->>   	INIT_LIST_HEAD(&isi->dma_desc_head);
->>
->> -	/* ISI_MCK is the sensor master clock. It should be handled by the
->> -	 * sensor driver directly, as the ISI has no use for that clock. Make
->> -	 * the clock optional here while platforms transition to the correct
->> -	 * model.
->> -	 */
->> -	isi->mck = devm_clk_get(dev, "isi_mck");
->> -	if (!IS_ERR(isi->mck)) {
->> -		/* Set ISI_MCK's frequency, it should be faster than pixel
->> -		 * clock.
->> -		 */
->> -		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
->> -		if (ret < 0)
->> -			return ret;
->> -	}
->> -
->>   	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->>   				sizeof(struct fbd) * MAX_BUFFER_NUM,
->>   				&isi->fb_descriptors_phys,
+
+
+--=-dCjLMPsKMR7z2C2qa+3g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABAgAGBQJVN/IxAAoJELgmozMOVy/du3IP/0Jpym1XlEaHbs8VPW5eIUeo
+nBmjI+u83HHMdlRCxRUmVK0gPTaenrb1DrJamOd7pLPJpUnjHkwtJXDWCwUabtws
+Thf2UfXuTto2vVsrAeTjh7F2d/rZALxpbkUFVtbD+gnXY+ahLNaR483X1YxUQJdW
+E6mm/C8HYt1ULIPO8b3I6yCzTZ9T6JLliSL0P5A5KTTbCM4jp6U58MHH/Bchsydr
+EtsEe22MViZGecr1vk/gXS0cFSGrQZDIExiNHlBPf+N1OlxXRCoub3yz9DcwTSAR
+Fe3poICUtYsy3TYUjYyj48AvrJr3bvgenAlwMYVmA2aqd3DEzDj9sQ6s+fMWjp/R
+vg5PAuxxqMvcv7hXi4mGfuB1Z9HnK9aP3Hp2sds6eK9rj2Gd2WQmqWlgMgVbHk/i
+3G/NIZJjg3dobC2kZJuphNUgh7Exp1v9pVHjSnf4yekcGXsLDqiX6XOJ38z7vmkO
+KtyMT//On8RxbCHB05pOf22zts5skuD8Z37kEAiV3taJt3r2Jh6tXXdv3LaR/E4o
+dXk8DDKoyht5lKTfPk8CcGqtwQZGNwaBk0qQQ2i4D8oPbMd7Pf/REDxZx1uMF0MS
+dEZolMpUfGkamtS/bmiY3vCwOKHWSeT8+MwVqbiue2MX8zO02o4c8sIElHDWJoSj
+q/f0BgRKCKwzM3R8zPr2
+=MKRB
+-----END PGP SIGNATURE-----
+
+--=-dCjLMPsKMR7z2C2qa+3g--
 
