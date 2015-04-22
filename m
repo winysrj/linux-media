@@ -1,47 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50070 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708AbbDMOV3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 10:21:29 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DC4002A0099
-	for <linux-media@vger.kernel.org>; Mon, 13 Apr 2015 16:21:14 +0200 (CEST)
-Message-ID: <552BD0DA.1080503@xs4all.nl>
-Date: Mon, 13 Apr 2015 16:21:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:49547 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932888AbbDVPXe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 11:23:34 -0400
+Date: Wed, 22 Apr 2015 17:23:28 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Andy Lutomirski <luto@amacapital.net>, mike.marciniszyn@intel.com,
+	infinipath@intel.com, linux-rdma@vger.kernel.org,
+	awalls@md.metrocast.net, Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150422152328.GB5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR v4.1] marvell-ccic fix
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150422053939.GA29609@obsidianresearch.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This one was part of a 4.1 pull request that never made it in time for 4.1,
-but this fix should really go to 4.1 since the marvell-ccic driver is
-currently broken (swapped color components).
+On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> > > Mike, do you think the time is right to just remove the iPath driver?
+> > 
+> > With PAT now being default the driver effectively won't work
+> > with write-combining on modern kernels. Even if systems are old
+> > they likely had PAT support, when upgrading kernels PAT will work
+> > but write-combing won't on ipath.
+> 
+> Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> after some more pending patches are applied?
 
-Regards,
+No, you have to consider the system used and the effects of calls used
+on the driver in light of this table:
 
-	Hans
+----------------------------------------------------------------------
+MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+----------------------------------------------------------------------
+                                                  Non-PAT |  PAT
+     PAT
+     |PCD
+     ||PWT
+     |||
+WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+----------------------------------------------------------------------
 
-The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+(*) denotes implementation defined and is discouraged
 
-  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+the default. When that flip occurs it will mean ipath cannot get
+write-combining on both non-PAT and PAT systems. Now that is for
+the future, lets review the current situation for ipath.
 
-are available in the git repository at:
+For PAT capable systems if mtrr_add() is used today on a Linux system on a
+region mapped with ioremap_nocache() that will mean you effectively nullify the
+mtrr_add() effect as the combinatorial effect above yields an effective memory
+type of UC.  For PAT systems you want to use ioremap_wc() on the region in
+which you need write-combining followed by arch_phys_wc_add() which will *only*
+call mtrr_add() *iff* PAT was not enabled. This also means we need to split
+the ioremap'd areas so that the area that is using ioremap_nocache() can never
+get write-combining (_PAGE_CACHE_MODE_UC). The ipath driver needs the regions
+split just as was done for the qib driver.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.1i
+Now we could just say that leaving things as-is is a non-issue if you are OK
+with non-write-combining effects being the default behaviour left on the ipath
+driver for PAT systems. In that case we can just use arch_phys_wc_add() on the
+driver and while it won't trigger the mtrr_add() on PAT systems it sill won't
+have any effect. We just typically don't want to see use of ioremap_nocache()
+paired with arch_phys_wc_add(), grammatically the correct thing to do is pair
+ioremap_wc() areas with a arch_phys_wc_add() to make the write-combining effects
+on non-PAT systems. If the ipath driver is not going to get he work required
+to split the regions though perhaps we can live with a corner case driver that
+annotates PAT must be disabled on the systems that use it and convert it to
+arch_phys_wc_add() to just help with phasing out of direct use of mtrr_add().
+With this strategy if and when ipath driver gets a split done it would gain WC
+on both PAT and non-PAT.
 
-for you to fetch changes up to 0b2838093effc6ee07705b04c0ad3293c2bf7f6a:
-
-  marvell-ccic: fix Y'CbCr ordering (2015-04-13 16:18:51 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      marvell-ccic: fix Y'CbCr ordering
-
- drivers/media/platform/marvell-ccic/mcam-core.c | 14 +++++++-------
- drivers/media/platform/marvell-ccic/mcam-core.h |  8 ++++----
- 2 files changed, 11 insertions(+), 11 deletions(-)
+  Luis
