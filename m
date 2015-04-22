@@ -1,65 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57536 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750937AbbDUNum (ORCPT
+Received: from mail-la0-f44.google.com ([209.85.215.44]:33497 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965980AbbDVQx0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2015 09:50:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 3/4] vim2m: drop format description
-Date: Tue, 21 Apr 2015 15:50:00 +0200
-Message-Id: <1429624201-44743-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1429624201-44743-1-git-send-email-hverkuil@xs4all.nl>
-References: <1429624201-44743-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 22 Apr 2015 12:53:26 -0400
+Received: by layy10 with SMTP id y10so179622899lay.0
+        for <linux-media@vger.kernel.org>; Wed, 22 Apr 2015 09:53:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20150422152328.GB5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de> <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de> <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Wed, 22 Apr 2015 09:53:03 -0700
+Message-ID: <CALCETrWYRazYgovguNEodVZUwO3sCmzvg9-q73nTfJ2ahNrBxw@mail.gmail.com>
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+To: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Mike Marciniszyn <mike.marciniszyn@intel.com>,
+	Mike Marciniszyn <infinipath@intel.com>,
+	linux-rdma@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Ville Syrj?l?" <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 22, 2015 at 8:23 AM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
+> On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+>> On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+>> > > Mike, do you think the time is right to just remove the iPath driver?
+>> >
+>> > With PAT now being default the driver effectively won't work
+>> > with write-combining on modern kernels. Even if systems are old
+>> > they likely had PAT support, when upgrading kernels PAT will work
+>> > but write-combing won't on ipath.
+>>
+>> Sorry, do you mean the driver already doesn't get WC? Or do you mean
+>> after some more pending patches are applied?
+>
+> No, you have to consider the system used and the effects of calls used
+> on the driver in light of this table:
+>
+> ----------------------------------------------------------------------
+> MTRR Non-PAT   PAT    Linux ioremap value        Effective memory type
+> ----------------------------------------------------------------------
+>                                                   Non-PAT |  PAT
+>      PAT
+>      |PCD
+>      ||PWT
+>      |||
+> WC   000      WB      _PAGE_CACHE_MODE_WB            WC   |   WC
+> WC   001      WC      _PAGE_CACHE_MODE_WC            WC*  |   WC
+> WC   010      UC-     _PAGE_CACHE_MODE_UC_MINUS      WC*  |   UC
+> WC   011      UC      _PAGE_CACHE_MODE_UC            UC   |   UC
+> ----------------------------------------------------------------------
+>
+> (*) denotes implementation defined and is discouraged
+>
+> ioremap_nocache() will use _PAGE_CACHE_MODE_UC_MINUS by default today,
+> in the future we want to flip the switch and make _PAGE_CACHE_MODE_UC
+> the default. When that flip occurs it will mean ipath cannot get
+> write-combining on both non-PAT and PAT systems. Now that is for
+> the future, lets review the current situation for ipath.
+>
+> For PAT capable systems if mtrr_add() is used today on a Linux system on a
+> region mapped with ioremap_nocache() that will mean you effectively nullify the
+> mtrr_add() effect as the combinatorial effect above yields an effective memory
+> type of UC.
 
-The format description is now filled in by the core, so we can
-drop this in this virtual m2m driver.
+Are you sure?  I thought that ioremap_nocache currently is UC-, so
+mtrr_add + ioremap_nocache gets WC even on PAT systems.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vim2m.c | 4 ----
- 1 file changed, 4 deletions(-)
+Going forward, when mtrr_add is gone, this will change, of course.
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 4d6b4cc..cecfd75 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -80,7 +80,6 @@ static struct platform_device vim2m_pdev = {
- };
- 
- struct vim2m_fmt {
--	char	*name;
- 	u32	fourcc;
- 	int	depth;
- 	/* Types the format can be used for */
-@@ -89,14 +88,12 @@ struct vim2m_fmt {
- 
- static struct vim2m_fmt formats[] = {
- 	{
--		.name	= "RGB565 (BE)",
- 		.fourcc	= V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
- 		.depth	= 16,
- 		/* Both capture and output format */
- 		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
- 	},
- 	{
--		.name	= "4:2:2, packed, YUYV",
- 		.fourcc	= V4L2_PIX_FMT_YUYV,
- 		.depth	= 16,
- 		/* Output-only format */
-@@ -458,7 +455,6 @@ static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
- 	if (i < NUM_FORMATS) {
- 		/* Format found */
- 		fmt = &formats[i];
--		strncpy(f->description, fmt->name, sizeof(f->description) - 1);
- 		f->pixelformat = fmt->fourcc;
- 		return 0;
- 	}
--- 
-2.1.4
-
+--Andy
