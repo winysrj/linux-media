@@ -1,66 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:58270 "EHLO mx02.posteo.de"
+Received: from cantor2.suse.de ([195.135.220.15]:34353 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754319AbbDTIaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 04:30:01 -0400
-Date: Mon, 20 Apr 2015 10:29:56 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: Jemma Denson <jdenson@gmail.com>, linux-media@vger.kernel.org,
-	Jannis <jannis-lists@kripserver.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] Add support for TechniSat Skystar S2
-Message-ID: <20150420102956.7f9faaa7@dibcom294.coe.adi.dibcom.com>
-In-Reply-To: <20150420082047.GA10269@linuxtv.org>
-References: <201504122132.t3CLW6fQ018555@jemma-pc.denson.org.uk>
-	<552B62EF.8050705@gmail.com>
-	<20150417110630.554290f5@dibcom294.coe.adi.dibcom.com>
-	<20150419231943.6df7312b@lappi3.parrot.biz>
-	<20150420082047.GA10269@linuxtv.org>
+	id S1757425AbbDVTFY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 15:05:24 -0400
+Date: Wed, 22 Apr 2015 21:05:20 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	mike.marciniszyn@intel.com, infinipath@intel.com,
+	linux-rdma@vger.kernel.org, awalls@md.metrocast.net,
+	Toshi Kani <toshi.kani@hp.com>,
+	"H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
+	Roland Dreier <roland@purestorage.com>,
+	Juergen Gross <jgross@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Borislav Petkov <bp@suse.de>, Mel Gorman <mgorman@suse.de>,
+	Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ville Syrj?l? <syrjala@sci.fi>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	linux-media@vger.kernel.org, X86 ML <x86@kernel.org>,
+	mcgrof@do-not-panic.com
+Subject: Re: ioremap_uc() followed by set_memory_wc() - burrying MTRR
+Message-ID: <20150422190520.GL5622@wotan.suse.de>
+References: <CALCETrV0B7rp08-VYjp5=1CWJp7=xTUTBYo3uGxX317RxAQT+w@mail.gmail.com>
+ <20150421224601.GY5622@wotan.suse.de>
+ <20150421225732.GA17356@obsidianresearch.com>
+ <20150421233907.GA5622@wotan.suse.de>
+ <20150422053939.GA29609@obsidianresearch.com>
+ <20150422152328.GB5622@wotan.suse.de>
+ <20150422161755.GA19500@obsidianresearch.com>
+ <1429728791.121496.10.camel@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1429728791.121496.10.camel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Johannes,
-
-On Mon, 20 Apr 2015 10:20:47 +0200 Johannes Stezenbach <js@linuxtv.org>
-wrote:
-
-> (add Mauro)
+On Wed, Apr 22, 2015 at 02:53:11PM -0400, Doug Ledford wrote:
+> On Wed, 2015-04-22 at 10:17 -0600, Jason Gunthorpe wrote:
+> > On Wed, Apr 22, 2015 at 05:23:28PM +0200, Luis R. Rodriguez wrote:
+> > > On Tue, Apr 21, 2015 at 11:39:39PM -0600, Jason Gunthorpe wrote:
+> > > > On Wed, Apr 22, 2015 at 01:39:07AM +0200, Luis R. Rodriguez wrote:
+> > > > > > Mike, do you think the time is right to just remove the iPath driver?
+> > > > > 
+> > > > > With PAT now being default the driver effectively won't work
+> > > > > with write-combining on modern kernels. Even if systems are old
+> > > > > they likely had PAT support, when upgrading kernels PAT will work
+> > > > > but write-combing won't on ipath.
+> > > > 
+> > > > Sorry, do you mean the driver already doesn't get WC? Or do you mean
+> > > > after some more pending patches are applied?
+> > > 
+> > > No, you have to consider the system used and the effects of calls used
+> > > on the driver in light of this table:
+> > 
+> > So, just to be clear:
+> > 
+> > At some point Linux started setting the PAT bits during
+> > ioremap_nocache, which overrides MTRR, and at that point the driver
+> > became broken on all PAT capable systems?
+> > 
+> > Not only that, but we've only just noticed it now, and no user ever
+> > complained?
+> > 
+> > So that means either no users exist, or all users are on non-PAT
+> > systems?
+> > 
+> > This driver only works on x86-64 systems. Are there any x86-64 systems
+> > that are not PAT capable? IIRC even the first Opteron had PAT, but my
+> > memory is fuzzy from back then :|
+> > 
+> > > Another option in order to enable this type of checks at run time
+> > > and still be able to build the driver on standard distributions and
+> > > just prevent if from loading on PAT systems is to have some code in
+> > > place which would prevent the driver from loading if PAT was
+> > > enabled, this would enable folks to disable PAT via a kernel command
+> > > line option, and if that was used then the driver probe would
+> > > complete.
+> > 
+> > This seems like a reasonble option to me. At the very least we might
+> > learn if anyone is still using these cards.
+> > 
+> > I'd also love to remove the driver if it turns out there are actually
+> > no users. qib substantially replaces it except for a few very old
+> > cards.
 > 
-> On Sun, Apr 19, 2015 at 11:19:43PM +0200, Patrick Boettcher wrote:
-> > On Fri, 17 Apr 2015 11:06:30 +0200
-> > Patrick Boettcher <patrick.boettcher@posteo.de> wrote:
-> > > http://git.linuxtv.org/cgit.cgi/pb/media_tree.git/ cx24120-v2
-> > 
-> > Jannis pointed out, that my repository on linuxtv.org was not
-> > fetchable...
-> > 
-> > I put one onto github, this should work:
-> > 
-> > https://github.com/pboettch/linux.git cx24120-v2
-> > 
-> > It is the same commits as I was pushing to the linuxtv.org .
-> 
-> Patrick, can you point out why your repository is
-> not fetchable?  Any error messages?
+> To be precise, the split is that ipath powers the old HTX bus cards that
+> only work in AMD systems,
 
-In the meantime I recreated it from scratch (using git-menu I did
-delete -> clone).
+Do those systems have PAT support? CAn anyone check if PAT is enabled
+if booted on a recent kernel?
 
-Before it was giving error like this:
 
-remote: error: Could not read 28df73703e738d8ae7a958350f74b08b2e9fe9ed
-remote: fatal: Failed to traverse parents of commit
-6b9d03db027c532e509ad9064dd767f621b6e69a
-
-This seems to me a problem of a git push not uploading all the missing
-commits between my local repo's commit-base and the remote one.
-
-My repo was very old (2010). I assume none has ever cloned from it and
-the media_tree has itself been push forced several times.
-
---
-Patrick.
+ Luis
