@@ -1,239 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:32950 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674AbbDJWPs (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:55552 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933848AbbDWKlG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 18:15:48 -0400
-Received: by lbbzk7 with SMTP id zk7so23411513lbb.0
-        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2015 15:15:46 -0700 (PDT)
+	Thu, 23 Apr 2015 06:41:06 -0400
+Date: Thu, 23 Apr 2015 07:40:46 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Patrick Boettcher <patrick.boettcher@posteo.de>
+Cc: LMML <linux-media@vger.kernel.org>,
+	media workshop ML <media-workshop@linuxtv.org>
+Subject: Re: [DRAFT 1] Linux Media Summit report - March, 26 2015 - San Jose
+ - CA - USA
+Message-ID: <20150423074046.1e479e76@recife.lan>
+In-Reply-To: <20150423090635.67a1656d@dibcom294.coe.adi.dibcom.com>
+References: <20150422153146.5dd9fce7@recife.lan>
+	<20150423090635.67a1656d@dibcom294.coe.adi.dibcom.com>
 MIME-Version: 1.0
-In-Reply-To: <1428614706-8367-4-git-send-email-sakari.ailus@iki.fi>
-References: <1428614706-8367-1-git-send-email-sakari.ailus@iki.fi> <1428614706-8367-4-git-send-email-sakari.ailus@iki.fi>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Fri, 10 Apr 2015 23:15:16 +0100
-Message-ID: <CA+V-a8thRa8L68XFggyLydqrVbf7nnS08HLWeBVdo4GjBBd-Fg@mail.gmail.com>
-Subject: Re: [PATCH v4 3/4] v4l: of: Parse variable length properties --- link-frequencies
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	laurent pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Patrick,
 
-Thanks for the patch.
+Em Thu, 23 Apr 2015 09:06:35 +0200
+Patrick Boettcher <patrick.boettcher@posteo.de> escreveu:
 
-On Thu, Apr 9, 2015 at 10:25 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> The link-frequencies property is a variable length array of link frequencies
-> in an endpoint. The array is needed by an increasing number of drivers, so
-> it makes sense to add it to struct v4l2_of_endpoint.
->
-> However, the length of the array is variable and the size of struct
-> v4l2_of_endpoint is fixed since it is allocated by the caller. The options
-> here are
->
-> 1. to define a fixed maximum limit of link frequencies that has to be the
-> global maximum of all boards. This is seen as problematic since the maximum
-> could be largish, and everyone hitting the problem would need to submit a
-> patch to fix it, or
->
-> 2. parse the property in every driver. This doesn't sound appealing as two
-> of the three implementations submitted to linux-media were wrong, and one of
-> them was even merged before this was noticed, or
->
-> 3. change the interface so that allocating and releasing memory according to
-> the size of the array is possible. This is what the patch does.
->
-> v4l2_of_alloc_parse_endpoint() is just like v4l2_of_parse_endpoint(), but it
-> will allocate the memory resources needed to store struct v4l2_of_endpoint
-> and the additional arrays pointed to by this struct. A corresponding release
-> function v4l2_of_free_endpoint() is provided to release the memory allocated
-> by v4l2_of_alloc_parse_endpoint().
->
-> In addition to this, the link-frequencies property is parsed as well, and
-> the result is stored to struct v4l2_of_endpoint field link_frequencies.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Hi Mauro,
+> 
+> I could not participate at your Summit, but may have an input to the
+> media-controller in DVB - see below.
+> 
+> 
+> On Wed, 22 Apr 2015 15:31:46 -0300 Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> 
+> > This is the first draft for the Linux Media Summit Report.
+> > 
+> > Please note that the items 3 to 5 are not in good shape. In special,
+> > nobody took Etherpad notes on item 4.
+> > 
+> > Please review. I'll publish a second (final?) draft after having some
+> > feedback.
+> > 
+> > Regards,
+> > Mauro
+> > 
+> > -
+> > 
+> > Linux Media Summit - March, 26 2015 - San Jose - CA - USA
+> >  
+> >  
+> > Attendees:
+> > 
+> > 
+> >     Angelos Manousaridis <amanous@gmail.com>
+> >     Bob Moragues <bob.moragues@lge.com>
+> >     Chris Kohn
+> >     Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >     Hans Verkuil <hverkuil@xs4all.nl>
+> >     Hyun Kwon
+> >     Karthik Poduval <karthik.poduval@gmail.com>
+> >     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >     Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >     Michal Lebik
+> >     Mohammed CHERIFI mcherifi@cisco.com
+> >     Rafael Chehab <chehabrafael@gmail.com>
+> >     Ron Birkett
+> >     Schuyler Patton
+> >     Shuah Khan <shuahkh@osg.samsung.com>
+> > 
+> > 1) Media Controller support for DVB
+> > Mauro presented a set of slides (add link) showing how the DVB
+> > pipelines look like and underlined that several topics needs to be
+> > addressed by the Media controller:
+> > 
+> > a) dynamic creation/removal of pipelines
+> > b) change media_entity_pipeline_start to also define the final entity
+> > c) how to setup pipelines that also envolve audio and DRM?
+> > d) how to lock the media controller pipeline between enabling a
+> > pipeline and starting it, in 
+> > 
+> > How to do complex pipelines in DVB?
+> >  
+> > - The DVB demux can filter MPEG-TS traffic (either in hardware or in
+> > software) and can send multiplexed TS to the dvr node, elementary
+> > streams to the demux node and can create network interfaces for
+> > elementary streams (ES) via the net node.
+> > - a given set of elementary streams can go to one of those three
+> > options only, or it can be sent directly to a GPU and/or an ALSA
+> > pipeline.
+> > - there is support for hardware PID filtering at the Kernel, but no
+> > support (yet) for a real hw demuxer that splits the MPEG TS into
+> > separate DMA MPEG-TS and/or ES streams.
+> > - frontend device node is to be attached to the demod entity and it
+> > will control the demod, the tuner and a possible LNA via the active
+> > Media Controller links.
+> > - dvr/net/demux device nodes are attached to the demux entity.
+> > - the net interfaces are not (yet) represented via MC: we need the
+> > ability to remove entities dynamically for that, and we are not
+> > really sure if we want this at all. So, it as agreed to wait for
+> > support for removing entities to arrive, then this need can be
+> > discussed again.
+> > - For now we can safely assume that there is only one Satellite
+> > Equipment Control (SEC) in each active data path that goes through a
+> > tuner/demod. So each frontend will control just one SEC. Should we
+> > encounter really complex scenarios, then we should consider having
+> > device nodes for SEC entities.
+> 
+> What about demod-diversity: demods of some manufacturers can be used to
+> combine their demodulated symbols and, due to their different antennas
+> and RF-paths, improve the overall reception quality.
+> 
+> If we ever have someone contributing in this area with hardware-drivers,
+> it would be nice to have the user-space possible to select
+> demod-combinations. It should be possible to add and remove a demod
+> to a diversity-chain when and when not being tuned to a channel.
 
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+It makes sense to map demod diversity via the media controller.
 
-Cheers,
---Prabhakar Lad
+Not sure what would be the best way to map it though, as I don't have
+a clear understanding about how the hardware pipelines are set for
+demod diversity.
 
-> ---
->  drivers/media/v4l2-core/v4l2-of.c |   87 +++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           |   17 ++++++++
->  2 files changed, 104 insertions(+)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index 3ac6348..c52fb96 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -14,6 +14,7 @@
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/of.h>
-> +#include <linux/slab.h>
->  #include <linux/string.h>
->  #include <linux/types.h>
->
-> @@ -141,6 +142,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->   * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
->   * The caller should hold a reference to @node.
->   *
-> + * NOTE: This function does not parse properties the size of which is
-> + * variable without a low fixed limit. Please use
-> + * v4l2_of_alloc_parse_endpoint() in new drivers instead.
-> + *
->   * Return: 0.
->   */
->  int v4l2_of_parse_endpoint(const struct device_node *node,
-> @@ -167,6 +172,88 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
->  }
->  EXPORT_SYMBOL(v4l2_of_parse_endpoint);
->
-> +/*
-> + * v4l2_of_free_endpoint() - free the endpoint acquired by
-> + * v4l2_of_alloc_parse_endpoint()
-> + * @endpoint - the endpoint the resources of which are to be released
-> + *
-> + * It is safe to call this function with NULL argument or on an
-> + * endpoint the parsing of which failed.
-> + */
-> +void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-> +{
-> +       if (IS_ERR_OR_NULL(endpoint))
-> +               return;
-> +
-> +       kfree(endpoint->link_frequencies);
-> +       kfree(endpoint);
-> +}
-> +EXPORT_SYMBOL(v4l2_of_free_endpoint);
-> +
-> +/**
-> + * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> + * This means the port has a static configuration and no properties have
-> + * to be specified explicitly.
-> + * If any properties that identify the bus as parallel are found and
-> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-> + * The caller should hold a reference to @node.
-> + *
-> + * v4l2_of_alloc_parse_endpoint() has two important differences to
-> + * v4l2_of_parse_endpoint():
-> + *
-> + * 1. It also parses variable size data and
-> + *
-> + * 2. The memory it has allocated to store the variable size data must
-> + *    be freed using v4l2_of_free_endpoint() when no longer needed.
-> + *
-> + * Return: Pointer to v4l2_of_endpoint if successful, on error a
-> + * negative error code.
-> + */
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +       const struct device_node *node)
-> +{
-> +       struct v4l2_of_endpoint *endpoint;
-> +       int len;
-> +       int rval;
-> +
-> +       endpoint = kzalloc(sizeof(*endpoint), GFP_KERNEL);
-> +       if (!endpoint)
-> +               return ERR_PTR(-ENOMEM);
-> +
-> +       rval = v4l2_of_parse_endpoint(node, endpoint);
-> +       if (rval < 0)
-> +               goto out_err;
-> +
-> +       if (of_get_property(node, "link-frequencies", &len)) {
-> +               endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
-> +               if (!endpoint->link_frequencies) {
-> +                       rval = -ENOMEM;
-> +                       goto out_err;
-> +               }
-> +
-> +               endpoint->nr_of_link_frequencies =
-> +                       len / sizeof(*endpoint->link_frequencies);
-> +
-> +               rval = of_property_read_u64_array(
-> +                       node, "link-frequencies", endpoint->link_frequencies,
-> +                       endpoint->nr_of_link_frequencies);
-> +               if (rval < 0)
-> +                       goto out_err;
-> +       }
-> +
-> +       return endpoint;
-> +
-> +out_err:
-> +       v4l2_of_free_endpoint(endpoint);
-> +       return ERR_PTR(rval);
-> +}
-> +EXPORT_SYMBOL(v4l2_of_alloc_parse_endpoint);
-> +
->  /**
->   * v4l2_of_parse_link() - parse a link between two endpoints
->   * @node: pointer to the endpoint at the local end of the link
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index 6c85c07..241e98a 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -57,6 +57,8 @@ struct v4l2_of_bus_parallel {
->   * @base: struct of_endpoint containing port, id, and local of_node
->   * @bus_type: bus type
->   * @bus: bus configuration data structure
-> + * @link_frequencies: array of supported link frequencies
-> + * @nr_of_link_frequencies: number of elements in link_frequenccies array
->   */
->  struct v4l2_of_endpoint {
->         struct of_endpoint base;
-> @@ -66,6 +68,8 @@ struct v4l2_of_endpoint {
->                 struct v4l2_of_bus_parallel parallel;
->                 struct v4l2_of_bus_mipi_csi2 mipi_csi2;
->         } bus;
-> +       u64 *link_frequencies;
-> +       unsigned int nr_of_link_frequencies;
->  };
->
->  /**
-> @@ -85,6 +89,9 @@ struct v4l2_of_link {
->  #ifdef CONFIG_OF
->  int v4l2_of_parse_endpoint(const struct device_node *node,
->                            struct v4l2_of_endpoint *endpoint);
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +       const struct device_node *node);
-> +void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
->  int v4l2_of_parse_link(const struct device_node *node,
->                        struct v4l2_of_link *link);
->  void v4l2_of_put_link(struct v4l2_of_link *link);
-> @@ -96,6 +103,16 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
->         return -ENOSYS;
->  }
->
-> +struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
-> +       const struct device_node *node)
-> +{
-> +       return NULL;
-> +}
-> +
-> +static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-> +{
-> +}
-> +
->  static inline int v4l2_of_parse_link(const struct device_node *node,
->                                      struct v4l2_of_link *link)
->  {
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The way the media controller currently is is that it maps only the
+data flow. There are discussions about how the control flow should
+happen.
+
+The data flow for a normal demod is:
+
+	IF (or baseband) ---> [demod] ---> MPEG-TS
+
+
+>From dib0700 demod drivers, I remember that several of the demods have
+a concept of a "slave demod". Are those full demods that can get an
+IF/baseband input and produce a MPEG-TS output, or are those just
+IP blocks that have the IF/baseband input but doesn't produce an
+MPEG-TS output, but, instead, sends some sort of data into the "master
+demod"?
+
+In other words, would the dataflow be something like
+
+                 IF                   TS
+	[tuner] ---> [master demod] ----->[          ]
+	  | IF                       TS   [ combiner ] ---> [demux]
+	  |--------> [slave demod]  ----->[          ]
+
+or:
+                 IF                          TS
+	[tuner] -----------> [master demod] ---> [demux]
+  	  | IF                     ^
+          |                        | (what sort of data?)
+	  |----> [slave demod] ----|
+
+Or is it something else?
+
+Regards,
+Mauro
