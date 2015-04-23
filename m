@@ -1,41 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:34795 "EHLO
-	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754084AbbDXOKa (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:34591 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031261AbbDWVLe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 10:10:30 -0400
-Received: by qkgx75 with SMTP id x75so30419222qkg.1
-        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 07:10:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <553A4CC3.2000808@gmail.com>
+	Thu, 23 Apr 2015 17:11:34 -0400
+Received: by lbcga7 with SMTP id ga7so22831194lbc.1
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:33 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 04/12] cx23885: specify if_port for si2157 devices
+Date: Fri, 24 Apr 2015 00:11:03 +0300
+Message-Id: <1429823471-21835-4-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
 References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
-	<1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
-	<5539E96C.1000407@gmail.com>
-	<CAAZRmGzPZaJoMtHXYuFo081xbG3Eb_1+WwePziKfp6R5kREGDw@mail.gmail.com>
-	<CAAZRmGwUd1gj2FmkX1ODeb+-q2oZXuZc6urgoR6i8W2VsLgGPA@mail.gmail.com>
-	<CALzAhNWUM2ZPnO_fik6HNE5CCOmZR0qF2uY5GcYYjjNTS_n8Ow@mail.gmail.com>
-	<553A4CC3.2000808@gmail.com>
-Date: Fri, 24 Apr 2015 10:10:29 -0400
-Message-ID: <CALzAhNW3Ze3q+-ugWY8ry9GRq2T9dHbjQmu4t__Z3=oirFFXeA@mail.gmail.com>
-Subject: Re: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
-From: Steven Toth <stoth@kernellabs.com>
-To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
-Cc: Olli Salonen <olli.salonen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Steven, thanks for your comment
+Set the if_port parameter for all Si2157-based devices.
 
-You are very welcome.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
->
-> So maybe this should also go into cx23885?
-> I'm in Europe and only have DVB-C
-
-My understanding is that it applies to all USB/PCIe bridges.
-
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 745caab..37fd013 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1912,6 +1912,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = fe0->dvb.frontend;
++			si2157_config.if_port = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
+@@ -1957,6 +1958,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = fe0->dvb.frontend;
++		si2157_config.if_port = 1;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+@@ -2093,6 +2095,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = fe0->dvb.frontend;
++		si2157_config.if_port = 1;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+@@ -2172,6 +2175,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = fe0->dvb.frontend;
++			si2157_config.if_port = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.9.1
+
