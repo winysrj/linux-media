@@ -1,96 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33934 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751863AbbDAXxU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2015 19:53:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38963 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932076AbbDWCnz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2015 22:43:55 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8FF622A0097
+	for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 04:43:28 +0200 (CEST)
+Date: Thu, 23 Apr 2015 04:43:28 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [GIT PULL FOR v4.1] [v3] OMAP3 ISP DT support & other fixes
-Date: Thu, 02 Apr 2015 02:53:38 +0300
-Message-ID: <1974578.Pp6GtfjauX@avalon>
-In-Reply-To: <2471603.f3UFYjkmSW@avalon>
-References: <3472666.1mv3SyG49o@avalon> <2471603.f3UFYjkmSW@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150423024328.8FF622A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This pull request supersedes "[GIT PULL FOR v4.1] [v2] OMAP3 ISP DT support & 
-other fixes". Compared to the previous version it merges the "[PATCH 1/1] 
-omap3isp: Don't pass uninitialised arguments to of_graph_get_next_endpoint()" 
-bug fix into patch "omap3isp: Add support for the Device Tree".
+Results of the daily build of media_tree:
 
-Board code and platform changes have been acked by the appropriate maintainers 
-to the best of my knowledge.
+date:		Thu Apr 23 04:00:19 CEST 2015
+git branch:	test
+git hash:	e183201b9e917daf2530b637b2f34f1d5afb934d
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	3.19.0-1.slh.1-amd64
 
-The following changes since commit bf104c238dc1c7172460853882a545141eaa8222:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-  [media] mn88472: One function call less in mn88472_init() after error 
-detection (2015-04-01 06:22:27 -0300)
+Detailed results are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
+Full logs are available here:
 
-for you to fetch changes up to fb6ff895435abdc92fd7ddd92e7c8f4630b4e127:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-  omap3isp: Deprecate platform data support (2015-04-02 02:46:29 +0300)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Lad, Prabhakar (1):
-      media: omap3isp: video: drop setting of vb2 buffer state to 
-VB2_BUF_STATE_ACTIVE
-
-Laurent Pinchart (4):
-      media: omap3isp: video: Don't call vb2 mmap with queue lock held
-      media: omap3isp: video: Use v4l2_get_timestamp()
-      media: omap3isp: hist: Move histogram DMA to DMA engine
-      omap3isp: DT support for clocks
-
-Sakari Ailus (14):
-      omap3isp: Fix error handling in probe
-      omap3isp: Avoid a BUG_ON() in media_entity_create_link()
-      omap3isp: Separate external link creation from platform data parsing
-      omap3isp: Platform data could be NULL
-      omap3isp: Refactor device configuration structs for Device Tree
-      omap3isp: Rename regulators to better suit the Device Tree
-      omap3isp: Calculate vpclk_div for CSI-2
-      omap3isp: Replace mmio_base_phys array with the histogram block base
-      omap3isp: Move the syscon register out of the ISP register maps
-      omap3isp: Replace many MMIO regions by two
-      dt: bindings: Add lane-polarity property to endpoint nodes
-      v4l: of: Read lane-polarities endpoint property
-      omap3isp: Add support for the Device Tree
-      omap3isp: Deprecate platform data support
-
- .../devicetree/bindings/media/video-interfaces.txt      |   6 +
- arch/arm/mach-omap2/board-cm-t35.c                      |  57 +--
- arch/arm/mach-omap2/devices.c                           |  76 +---
- arch/arm/mach-omap2/omap34xx.h                          |  36 +-
- drivers/media/platform/Kconfig                          |   1 +
- drivers/media/platform/omap3isp/isp.c                   | 555 ++++++++++-----
- drivers/media/platform/omap3isp/isp.h                   |  42 +-
- drivers/media/platform/omap3isp/ispccdc.c               |  26 +-
- drivers/media/platform/omap3isp/ispccp2.c               |  22 +-
- drivers/media/platform/omap3isp/ispcsi2.c               |  14 +-
- drivers/media/platform/omap3isp/ispcsiphy.c             |  48 +-
- drivers/media/platform/omap3isp/isph3a_aewb.c           |   1 -
- drivers/media/platform/omap3isp/isph3a_af.c             |   1 -
- drivers/media/platform/omap3isp/isphist.c               | 127 +++---
- drivers/media/platform/omap3isp/ispstat.c               |   2 +-
- drivers/media/platform/omap3isp/ispstat.h               |   5 +-
- drivers/media/platform/omap3isp/ispvideo.c              |  20 +-
- drivers/media/v4l2-core/v4l2-of.c                       |  41 +-
- include/media/omap3isp.h                                |  36 +-
- include/media/v4l2-of.h                                 |   3 +
- 20 files changed, 665 insertions(+), 454 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
