@@ -1,50 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37528 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbbD2XGV (ORCPT
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33625 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758509AbbDWVLj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 19:06:21 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 06/27] zl10353: fix indenting
-Date: Wed, 29 Apr 2015 20:05:51 -0300
-Message-Id: <94e7a63c4bf0524821c2e016cf88307d05ef182a.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+	Thu, 23 Apr 2015 17:11:39 -0400
+Received: by lbbzk7 with SMTP id zk7so22826661lbb.0
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:38 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 07/12] af9035: specify if_port for si2157 devices
+Date: Fri, 24 Apr 2015 00:11:06 +0300
+Message-Id: <1429823471-21835-7-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/zl10353.c:536 zl10353_read_ucblocks() warn: inconsistent indenting
+Set the if_port parameter for all Si2157-based devices.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/zl10353.c b/drivers/media/dvb-frontends/zl10353.c
-index 82946cd517f5..4e62a6611847 100644
---- a/drivers/media/dvb-frontends/zl10353.c
-+++ b/drivers/media/dvb-frontends/zl10353.c
-@@ -533,13 +533,13 @@ static int zl10353_read_snr(struct dvb_frontend *fe, u16 *snr)
- static int zl10353_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
- 	struct zl10353_state *state = fe->demodulator_priv;
--       u32 ubl = 0;
-+	u32 ubl = 0;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 80a29f5..7b7f75d 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1569,6 +1569,7 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
  
--       ubl = zl10353_read_register(state, RS_UBC_1) << 8 |
--	     zl10353_read_register(state, RS_UBC_0);
-+	ubl = zl10353_read_register(state, RS_UBC_1) << 8 |
-+	      zl10353_read_register(state, RS_UBC_0);
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe[0];
++	si2157_config.if_port = 1;
+ 	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
+ 			&si2157_config, state->i2c_adapter_demod);
  
--       state->ucblocks += ubl;
--       *ucblocks = state->ucblocks;
-+	state->ucblocks += ubl;
-+	*ucblocks = state->ucblocks;
- 
- 	return 0;
- }
 -- 
-2.1.0
+1.9.1
 
