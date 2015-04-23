@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33767 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753600AbbDCRMu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:12:50 -0400
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: [PATCH 04/14] clkdev: const-ify connection id to clk_add_alias()
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Ye599-0001B5-4B@rmk-PC.arm.linux.org.uk>
-Date: Fri, 03 Apr 2015 18:12:43 +0100
+Received: from laurent.telenet-ops.be ([195.130.137.89]:34112 "EHLO
+	laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030699AbbDWSJU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2015 14:09:20 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH 3/3] Input: TOUCHSCREEN_SUR40 should depend on HAS_DMA
+Date: Thu, 23 Apr 2015 20:09:07 +0200
+Message-Id: <1429812547-9640-3-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1429812547-9640-1-git-send-email-geert@linux-m68k.org>
+References: <1429812547-9640-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The connection id is only passed to clk_get() which is already const.
-Const-ify this argument too.
+If NO_DMA=y:
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+    warning: (TOUCHSCREEN_SUR40 && VIDEO_TW68 && VIDEO_CX23885 && VIDEO_CX25821 && VIDEO_CX88 && VIDEO_SAA7134) selects VIDEOBUF2_DMA_SG which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
+
+    ERROR: "dma_unmap_sg" [drivers/media/v4l2-core/videobuf2-dma-sg.ko] undefined!
+    ERROR: "dma_map_sg" [drivers/media/v4l2-core/videobuf2-dma-sg.ko] undefined!
+    ERROR: "dma_sync_sg_for_cpu" [drivers/media/v4l2-core/videobuf2-dma-sg.ko] undefined!
+
+TOUCHSCREEN_SUR40 selects VIDEOBUF2_DMA_SG, which bypasses its
+dependency on HAS_DMA.  Make TOUCHSCREEN_SUR40 depend on HAS_DMA to fix
+this.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- drivers/clk/clkdev.c   | 6 +++---
- include/linux/clkdev.h | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/Kconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index 156f2e2f972c..5d7746d19445 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -308,10 +308,10 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
- }
- EXPORT_SYMBOL(clkdev_alloc);
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index b0a94cdd96add5c9..4591389108f0057b 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -979,8 +979,7 @@ config TOUCHSCREEN_SUN4I
  
--int clk_add_alias(const char *alias, const char *alias_dev_name, char *id,
--	struct device *dev)
-+int clk_add_alias(const char *alias, const char *alias_dev_name,
-+	const char *con_id, struct device *dev)
- {
--	struct clk *r = clk_get(dev, id);
-+	struct clk *r = clk_get(dev, con_id);
- 	struct clk_lookup *l;
- 
- 	if (IS_ERR(r))
-diff --git a/include/linux/clkdev.h b/include/linux/clkdev.h
-index 94bad77eeb4a..eb9b38a79b43 100644
---- a/include/linux/clkdev.h
-+++ b/include/linux/clkdev.h
-@@ -38,7 +38,7 @@ void clkdev_add(struct clk_lookup *cl);
- void clkdev_drop(struct clk_lookup *cl);
- 
- void clkdev_add_table(struct clk_lookup *, size_t);
--int clk_add_alias(const char *, const char *, char *, struct device *);
-+int clk_add_alias(const char *, const char *, const char *, struct device *);
- 
- int clk_register_clkdev(struct clk *, const char *, const char *, ...);
- int clk_register_clkdevs(struct clk *, struct clk_lookup *, size_t);
+ config TOUCHSCREEN_SUR40
+ 	tristate "Samsung SUR40 (Surface 2.0/PixelSense) touchscreen"
+-	depends on USB
+-	depends on MEDIA_USB_SUPPORT
++	depends on USB && MEDIA_USB_SUPPORT && HAS_DMA
+ 	select INPUT_POLLDEV
+ 	select VIDEOBUF2_DMA_SG
+ 	help
 -- 
-1.8.3.1
+1.9.1
 
