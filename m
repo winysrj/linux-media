@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:60814 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180AbbDBQJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 12:09:52 -0400
-Date: Thu, 2 Apr 2015 18:09:48 +0200
-From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] rc-core: use an IDA rather than a bitmap
-Message-ID: <20150402180948.220b705d@mir>
-In-Reply-To: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
-References: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/WDIFgW7BmFJpDv1dB80Uvxd"; protocol="application/pgp-signature"
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:33592 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031262AbbDWVLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2015 17:11:36 -0400
+Received: by lbbzk7 with SMTP id zk7so22825831lbb.0
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:34 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 05/12] smipcie: specify if_port for si2157 devices
+Date: Fri, 24 Apr 2015 00:11:04 +0300
+Message-Id: <1429823471-21835-5-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/WDIFgW7BmFJpDv1dB80Uvxd
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Set the if_port parameter for all Si2157-based devices.
 
-Hi
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/pci/smipcie/smipcie.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On 2015-04-02, David H=C3=A4rdeman wrote:
-> This patch changes rc-core to use the kernel facilities that are already
-> available for handling unique numbers instead of rolling its own bitmap
-> stuff.
->=20
-> Stefan, this should apply cleanly to the media git tree...could you test =
-it?
+diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+index 4115925..143fd78 100644
+--- a/drivers/media/pci/smipcie/smipcie.c
++++ b/drivers/media/pci/smipcie/smipcie.c
+@@ -657,6 +657,7 @@ static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = port->fe;
++	si2157_config.if_port = 1;
+ 
+ 	memset(&client_info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+-- 
+1.9.1
 
-Thanks, I've applied this patch to my kernel and have started testing=20
-it. As the race conditions between both (well, three, the TeVii s480 v2.1
-exposes two rc_core devices) doesn't trigger all the time, it might take
-a while before I can report back.
-
-Thanks a lot
-	Stefan Lippers-Hollmann
-
---Sig_/WDIFgW7BmFJpDv1dB80Uvxd
-Content-Type: application/pgp-signature
-Content-Description: Digitale Signatur von OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVHWnMAAoJEL/gLWWx0ULtPM0QALcWzmyNvZ2iMhfhW03SSZWp
-bVotGl+6UvA+Q7xTFdgLPfMN/ktsmBQmowmRKuqEmKCD0V7RHs2dnB/tEqiWbJAN
-aTZrvjMxp66GbOighi69xxyzPEYcRypI+q3Ok1CnU0QPTT//kZrfK61F3N8L+6lO
-Gn1FGDweK0MPs1mg7qoKe/7aOVMH1Gy4Xt5wj4Z+kvFBdz8bQRLDVUTSgXWjls0l
-p20K36w3a2qIPiyeDH/lpTshHfyQXvQS9rmkJl+rvDu5E7s4LLAGig3fabXZO5xg
-/gDZ/OZAvWqcS6tY3zg/luEEXsJVK4jRxA144DbvmfAMLh733VGDjl4mOykNlALm
-yG5ofklmWy3XD1GtfrNqRvzAZYhGmCi6Ws66jJVWi++GEkjuPAvfick0d2dcP1bB
-o37ABCAUsOE03CrK8tCTDz6RmogqkGAO2IR9z6ooD8RioraklO/AeGVb112Gkc7f
-S69IzPkoJyadEmKeEGXlFJ1VP+pLPmKoxW988tfCAw1zuLwhtEkGa90L5RG90b8c
-X8wdrUKT29Cw3CqUoX8ckzewpz7UbvyGtSw7KWQzrRLjUduowJu2FP81KakJO6Ar
-sxDqFHA8Fz4Yqs9lQsVENb8AWnTXDFxIMC5U4TeQ6kVxe/WkQLa+BSZ9hEWBuh2Y
-x1jtDQI62XVZxSNLw3DH
-=cQ8Q
------END PGP SIGNATURE-----
-
---Sig_/WDIFgW7BmFJpDv1dB80Uvxd--
