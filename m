@@ -1,73 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39213 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbbDGJrf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 05:47:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 2/4] v4l: of: Instead of zeroing bus_type and bus field separately, unify this
-Date: Tue, 07 Apr 2015 12:47:56 +0300
-Message-ID: <14728842.HyHhcxnctu@avalon>
-In-Reply-To: <1428361053-20411-3-git-send-email-sakari.ailus@iki.fi>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi> <1428361053-20411-3-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:35327 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031023AbbDWVLm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2015 17:11:42 -0400
+Received: by lbbuc2 with SMTP id uc2so22761258lbb.2
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:41 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 09/12] cxusb: specify if_port for si2157 devices
+Date: Fri, 24 Apr 2015 00:11:08 +0300
+Message-Id: <1429823471-21835-9-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Set the if_port parameter for all Si2157-based devices.
 
-Thank you for the patch.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/cxusb.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Tuesday 07 April 2015 01:57:30 Sakari Ailus wrote:
-> Clean the entire struct starting from bus_type. As more fields are added, no
-> changes will be needed in the function to reset their value explicitly.
-
-I would s/Clean/Clear/ or s/Clean/Zero/. Same for the comment in the code. 
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-of.c |    5 +++--
->  include/media/v4l2-of.h           |    1 +
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> b/drivers/media/v4l2-core/v4l2-of.c index 83143d3..3ac6348 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -149,8 +149,9 @@ int v4l2_of_parse_endpoint(const struct device_node
-> *node, int rval;
-> 
->  	of_graph_parse_endpoint(node, &endpoint->base);
-> -	endpoint->bus_type = 0;
-> -	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
-> +	/* Zero fields from bus_type to until the end */
-> +	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
-> +	       offsetof(typeof(*endpoint), bus_type));
-> 
->  	rval = v4l2_of_parse_csi_bus(node, endpoint);
->  	if (rval)
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index f66b92c..5bbdfbf 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -60,6 +60,7 @@ struct v4l2_of_bus_parallel {
->   */
->  struct v4l2_of_endpoint {
->  	struct of_endpoint base;
-> +	/* Fields below this line will be cleaned by v4l2_of_parse_endpoint() */
->  	enum v4l2_mbus_type bus_type;
->  	union {
->  		struct v4l2_of_bus_parallel parallel;
-
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index ffc3704..ab71511 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1350,6 +1350,7 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe_adap[0].fe;
++	si2157_config.if_port = 1;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 	info.addr = 0x60;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
