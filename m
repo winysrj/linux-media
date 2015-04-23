@@ -1,96 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57773 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754010AbbDHWLm (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:9898 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933531AbbDWNEC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 18:11:42 -0400
-Date: Thu, 9 Apr 2015 01:11:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 3/4] v4l: of: Parse variable length properties ---
- link-frequencies
-Message-ID: <20150408221109.GY20756@valkosipuli.retiisi.org.uk>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
- <1428361053-20411-4-git-send-email-sakari.ailus@iki.fi>
- <1770891.VD9MOjdNhM@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1770891.VD9MOjdNhM@avalon>
+	Thu, 23 Apr 2015 09:04:02 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: [PATCH v4 04/10] HID: add HDMI CEC specific keycodes
+Date: Thu, 23 Apr 2015 15:03:07 +0200
+Message-id: <1429794192-20541-5-git-send-email-k.debski@samsung.com>
+In-reply-to: <1429794192-20541-1-git-send-email-k.debski@samsung.com>
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-On Tue, Apr 07, 2015 at 01:02:31PM +0300, Laurent Pinchart wrote:
-> Hello Sakari,
-> 
-> Thank you for the patch.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ include/uapi/linux/input.h |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Thanks for the review!
-
-> On Tuesday 07 April 2015 01:57:31 Sakari Ailus wrote:
-> > +/*
-> > + * v4l2_of_free_endpoint() - release resources acquired by
-> > + * v4l2_of_alloc_parse_endpoint()
-> 
-> I would say "free the endpoint allocated by v4l2_of_alloc_parse_endpoint()".
-> 
-> > + * @endpoint - the endpoint the resources of which are to be released
-> > + *
-> > + * It is safe to call this function with NULL argument or on and
-> 
-> s/and/an/
-
-Fixed both.
-
-> > + * endpoint the parsing of which failed.
-> > + */
-> > +void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
-> > +{
-> > +	if (IS_ERR_OR_NULL(endpoint))
-> > +		return;
-> > +
-> > +	kfree(endpoint->link_frequencies);
-> > +	kfree(endpoint);
-> > +}
-> > +EXPORT_SYMBOL(v4l2_of_free_endpoint);
-> > +
-> > +/**
-> > + * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
-> > + * @node: pointer to endpoint device_node
-> > + *
-> > + * All properties are optional. If none are found, we don't set any flags.
-> > + * This means the port has a static configuration and no properties have
-> > + * to be specified explicitly.
-> > + * If any properties that identify the bus as parallel are found and
-> > + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we
-> > recognise
-> > + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-> > + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-> > + * The caller should hold a reference to @node.
-> > + *
-> > + * v4l2_of_alloc_parse_endpoint() has two important differences to
-> > + * v4l2_of_parse_endpoint():
-> > + *
-> > + * 1. It also parses variable size data and
-> > + *
-> > + * 2. The memory resources it has acquired to store the variable size
-> > + *    data must be released using v4l2_of_free_endpoint() when no longer
-> > + *    needed.
-> 
-> I would s/resources it has acquired/it has allocated/ and s/released/freed/.
-
-Fixed.
-
-> Apart from that,
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Thanks!
-
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index 731417c..7430a3f 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -752,6 +752,18 @@ struct input_keymap_entry {
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
+ 
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273
++#define KEY_UNMUTE			0x274
++#define KEY_DVB				0x275
++
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.9.5
+
