@@ -1,41 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41795 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031140AbbD1XGm (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:36715 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031261AbbDWVLp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 19:06:42 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 11/13] zc3xx: don't go past quality array
-Date: Tue, 28 Apr 2015 20:06:18 -0300
-Message-Id: <6e5347386be7eeb807715d6698219854eba7823e.1430262315.git.mchehab@osg.samsung.com>
-In-Reply-To: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
-References: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
-In-Reply-To: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
-References: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
+	Thu, 23 Apr 2015 17:11:45 -0400
+Received: by lbbqq2 with SMTP id qq2so22761666lbb.3
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:44 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 11/12] rtl28xxu: add I2C read without write
+Date: Fri, 24 Apr 2015 00:11:10 +0300
+Message-Id: <1429823471-21835-11-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/gspca/zc3xx.c:6363 zcxx_s_ctrl() error: buffer overflow 'jpeg_qual' 3 <= 3
+Add support for I2C read operation without a preceeding write.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+While here, change the error code to EOPNOTSUPP in case an
+unsupported I2C operation is attempted.
 
-diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-index d3e1b6d8bf49..3762a045f744 100644
---- a/drivers/media/usb/gspca/zc3xx.c
-+++ b/drivers/media/usb/gspca/zc3xx.c
-@@ -6360,7 +6360,7 @@ static int zcxx_s_ctrl(struct v4l2_ctrl *ctrl)
- 			if (ctrl->val <= jpeg_qual[i])
- 				break;
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index f1a7613..5e0c015 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -232,8 +232,14 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			req.data = msg[0].buf;
+ 			ret = rtl28xxu_ctrl_msg(d, &req);
  		}
--		if (i > 0 && i == qual && ctrl->val < jpeg_qual[i])
-+		if (i == ARRAY_SIZE(jpeg_qual) || (i > 0 && i == qual && ctrl->val < jpeg_qual[i]))
- 			i--;
++	} else if (num == 1 && (msg[0].flags & I2C_M_RD)) {
++		req.value = (msg[0].addr << 1);
++		req.index = CMD_I2C_DA_RD;
++		req.size = msg[0].len;
++		req.data = msg[0].buf;
++		ret = rtl28xxu_ctrl_msg(d, &req);
+ 	} else {
+-		ret = -EINVAL;
++		ret = -EOPNOTSUPP;
+ 	}
  
- 		/* With high quality settings we need max bandwidth */
+ err_mutex_unlock:
 -- 
-2.1.0
+1.9.1
 
