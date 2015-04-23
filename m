@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:59391 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbbDJUaZ (ORCPT
+Received: from bgl-iport-4.cisco.com ([72.163.197.28]:62397 "EHLO
+	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753599AbbD2RHL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 16:30:25 -0400
-From: Arnd Bergmann <arnd@arndb.de>
+	Wed, 29 Apr 2015 13:07:11 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] exynos4_is: exynos4-fimc requires i2c
-Date: Fri, 10 Apr 2015 22:30:14 +0200
-Message-ID: <19181630.veBMiO50KX@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [RFC PATCH 2/4] vivid: Use interlaced info for cvt/gtf timing detection
+Date: Thu, 23 Apr 2015 14:29:49 +0530
+Message-Id: <1429779591-26134-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1429779591-26134-1-git-send-email-prladdha@cisco.com>
+References: <1429779591-26134-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without i2c, we can get a build error:
+The detect_cvt/gtf() now supports timing calculations for interlaced
+format.
 
-drivers/media/platform/exynos4-is/fimc-is-i2c.c: In function 'fimc_is_i2c_probe':
-drivers/media/platform/exynos4-is/fimc-is-i2c.c:58:8: error: implicit declaration of function 'i2c_add_adapter' [-Werror=implicit-function-declaration]
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-vid-cap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The dependency already exists for exynos-fimc-lite and s5p-fimc,
-but is missing for exynos4-fimc.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index b7b2e472240a..40423c6c5324 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -57,6 +57,7 @@ endif
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index a3b19dc..9b76463 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -1623,7 +1623,7 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
  
- config VIDEO_EXYNOS4_FIMC_IS
- 	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
-+	depends on I2C
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	depends on OF
+ 	if (bt->standards == 0 || (bt->standards & V4L2_DV_BT_STD_CVT)) {
+ 		if (v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
+-				    bt->polarities, false, timings))
++				    bt->polarities, bt->interlaced, timings))
+ 			return true;
+ 	}
+ 
+@@ -1634,7 +1634,7 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
+ 				  &aspect_ratio.numerator,
+ 				  &aspect_ratio.denominator);
+ 		if (v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
+-				    bt->polarities, false,
++				    bt->polarities, bt->interlaced,
+ 				    aspect_ratio, timings))
+ 			return true;
+ 	}
+-- 
+1.9.1
 
