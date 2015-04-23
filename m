@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:38873 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652AbbDYGxa (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:15065 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965806AbbDWNDn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2015 02:53:30 -0400
-Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.85)
-	(envelope-from <linux@roeck-us.net>)
-	id 1YljDU-003j53-A1
-	for linux-media@vger.kernel.org; Fri, 24 Apr 2015 19:24:48 +0000
-From: Guenter Roeck <linux@roeck-us.net>
-To: Hyun Kwon <hyun.kwon@xilinx.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>,
-	Kedareswara rao Appana <appana.durga.rao@xilinx.com>
-Subject: [PATCH] [media] xilinx: Reflect dma header file move
-Date: Fri, 24 Apr 2015 12:24:36 -0700
-Message-Id: <1429903476-24161-1-git-send-email-linux@roeck-us.net>
+	Thu, 23 Apr 2015 09:03:43 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: [PATCH v4 02/10] dts: exynos4: add node for the HDMI CEC device
+Date: Thu, 23 Apr 2015 15:03:05 +0200
+Message-id: <1429794192-20541-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1429794192-20541-1-git-send-email-k.debski@samsung.com>
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 937abe88aea3 ("dmaengine: xilinx-dma: move header file to common
-location") moved xilinx_dma.h to a common location but neglected to reflect
-this move in all its users.
+This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
 
-This causes compile errors for several builds.
-
-drivers/media/platform/xilinx/xilinx-dma.c:15:35:
-	fatal error: linux/amba/xilinx_dma.h: No such file or directory
-
-Cc: Kedareswara rao Appana <appana.durga.rao@xilinx.com>
-Fixes: 937abe88aea3 ("dmaengine: xilinx-dma: move header file to common
-	location")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/exynos4.dtsi |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 10209c294168..efde88adf624 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -12,7 +12,7 @@
-  * published by the Free Software Foundation.
-  */
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index e20cdc2..8776db9 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -704,6 +704,18 @@
+ 		status = "disabled";
+ 	};
  
--#include <linux/amba/xilinx_dma.h>
-+#include <linux/dma/xilinx_dma.h>
- #include <linux/lcm.h>
- #include <linux/list.h>
- #include <linux/module.h>
++	hdmicec: cec@100B0000 {
++		compatible = "samsung,s5p-cec";
++		reg = <0x100B0000 0x200>;
++		interrupts = <0 114 0>;
++		clocks = <&clock CLK_HDMI_CEC>;
++		clock-names = "hdmicec";
++		samsung,syscon-phandle = <&pmu_system_controller>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmi_cec>;
++		status = "disabled";
++	};
++
+ 	mixer: mixer@12C10000 {
+ 		compatible = "samsung,exynos4210-mixer";
+ 		interrupts = <0 91 0>;
 -- 
-2.1.0
+1.7.9.5
 
