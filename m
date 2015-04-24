@@ -1,74 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:37015 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756063AbbDITeb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 15:34:31 -0400
-Received: by wiaa2 with SMTP id a2so896806wia.0
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2015 12:34:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20150406184100.GA23493@hardeman.nu>
-References: <CAK-SLvBcZG5VN4BkUV+jS0z_xqXpVwJFMXfMaQF7kfFxJ7En9A@mail.gmail.com>
-	<20150406184100.GA23493@hardeman.nu>
-Date: Thu, 9 Apr 2015 21:34:30 +0200
-Message-ID: <CAK-SLvCOeL+9Sa20KcDjhsa3t0jho73gdjuLYjXKVYr4P1KzcQ@mail.gmail.com>
-Subject: Re: using TSOP receiver without lircd
-From: Sergio Serrano <sergio.badalona@gmail.com>
-To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45333 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751207AbbDXOQ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Apr 2015 10:16:56 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 750E22A002F
+	for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 16:16:27 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/5] vivid-tpg: fixes/improvements
+Date: Fri, 24 Apr 2015 16:16:21 +0200
+Message-Id: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you David
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm following your clues
+- Add logging
+- Add full range variants of several Y'CbCr encodings to be
+  consistent with the existing encodings
+- Ignore quantization range for the XV601/709 encodings as that
+  does not apply for those encodings
 
-I've contacted Jarod Wilson (redhat), too. If it can be useful to the
-list, bellow you can find his thoughts.
+	Hans
 
-Thank you both!
+Hans Verkuil (5):
+  vivid-tpg: add tpg_log_status()
+  vivid-tpg: add full range SMPTE 240M support
+  vivid-tpg: add full range BT.2020 support
+  vivid-tpg: add full range BT.2020C support
+  vivid-tpg: fix XV601/709 Y'CbCr encoding
 
-Sergio
+ drivers/media/platform/vivid/vivid-core.c |  13 +++-
+ drivers/media/platform/vivid/vivid-tpg.c  | 109 ++++++++++++++++++++++++------
+ drivers/media/platform/vivid/vivid-tpg.h  |   1 +
+ 3 files changed, 103 insertions(+), 20 deletions(-)
 
-On Mon, Apr 06, 2015 at 06:08:51PM +0200, Sergio Serrano wrote:
-> Thank you Jarod for promptly reply.
-> Great to hear that!
->
-> I'm using omap2 (interrupt+gpio) and
-> https://github.com/hani93/lirc_bbb module (I've got already  /dev/lirc
-> device).
+-- 
+2.1.4
 
-That driver isn't going to work, its written for lirc. You need a driver
-written for the in-kernel IR subsystem. See drivers/media/rc/fintek-cir.c
-and friends (iguanair.c, imon.c, winbond-cir.c, nuvoton-cir.c, etc).
-
-> Using the method you mention is it still possible? Or it is only
-> possible for usb receivers ?
-
-Physical interface doesn't matter. The driver interfaces do. You'd have to
-rewrite lirc_bbb to rc-core interfaces instead of lirc interfaces.
-
-2015-04-06 20:41 GMT+02:00 David Härdeman <david@hardeman.nu>:
-> On Mon, Apr 06, 2015 at 06:01:52PM +0200, Sergio Serrano wrote:
->>Hi members!
->>
->>In the hope that someone can help me, I has come to this mailing list after
->>contacting David Hardeman (thank you!).
->>He has already given me some clues. This is my scenario.
->>
->>I'm using a OMAP2 processor and capturing TSOP34836 (remote RC5 compatible)
->>signals through GPIO+interrupt. I have created the /dev/lirc0 device , here
->>comes my question: If possible I don't want to deal with LIRC and irrecord
->>stuff. Is it possible? What will be the first steps?
->
-> Your next step would be a kernel driver that receives the GPIO
-> interrupts and feeds them into rc-core as "edge" events.
->
-> drivers/media/rc/gpio-ir-recv.c is probably what you want as a starting
-> point (though you'll need to find a way to feed it the right
-> parameters...)
->
-> Regards,
-> David
->
