@@ -1,57 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:46995 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966AbbDXN02 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45333 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753599AbbDXORG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2015 09:26:28 -0400
-From: matrandg@cisco.com
+	Fri, 24 Apr 2015 10:17:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hansverk@cisco.com, p.zabel@pengutronix.de, kernel@pengutronix.de,
-	Mats Randgaard <matrandg@cisco.com>
-Subject: [RCF02] Driver for Toshiba TC358743 CSI-2 to HDMI bridge
-Date: Fri, 24 Apr 2015 15:26:22 +0200
-Message-Id: <1429881983-4711-1-git-send-email-matrandg@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/5] vivid-tpg: fix XV601/709 Y'CbCr encoding
+Date: Fri, 24 Apr 2015 16:16:26 +0200
+Message-Id: <1429884986-38671-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
+References: <1429884986-38671-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi,
-I have finally finished the second RFC for this driver.
+For these encodings the quantization range should be ignored, since
+there is only one possible Y'CbCr encoding.
 
-Changes since RFC01:
-- Improved code based on feedback from Hans and Philipp. For the CSI
-  parameters have I only written a set of values that can serve as a
-  starting point, since calculation of the parameters in the driver will
-  require more work.
-- Fixed problem with some sources that are transmitting an unstable signal
-  while they are in standby.
-- Fixed problem where audio was not received from some sources after
-  coming out of standby, reconnecting cable or stopping/starting the
-  stream.
-- When the stream is enabled a proper lane transition is triggered on the
-  CSI interface to ensure that the CSI receiver is ready.
-- All CE and IT formats are detected as RGB full quantization range in DVI
-  mode.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-Philipp, I have not had time to look at your patches, so maybe you can
-rebase them on this version of the driver?
-
-Mats Randgaard (1):
-  Driver for Toshiba TC358743 CSI-2 to HDMI bridge
-
- MAINTAINERS                        |    6 +
- drivers/media/i2c/Kconfig          |    9 +
- drivers/media/i2c/Makefile         |    1 +
- drivers/media/i2c/tc358743.c       | 1838 ++++++++++++++++++++++++++++++++++++
- drivers/media/i2c/tc358743_regs.h  |  680 +++++++++++++
- include/media/tc358743.h           |   92 ++
- include/uapi/linux/v4l2-controls.h |    4 +
- 7 files changed, 2630 insertions(+)
- create mode 100644 drivers/media/i2c/tc358743.c
- create mode 100644 drivers/media/i2c/tc358743_regs.h
- create mode 100644 include/media/tc358743.h
-
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index 097d299..4df755a 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -509,10 +509,19 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
+ 
+ 	switch (tpg->real_ycbcr_enc) {
+ 	case V4L2_YCBCR_ENC_601:
+-	case V4L2_YCBCR_ENC_XV601:
+ 	case V4L2_YCBCR_ENC_SYCC:
+ 		rgb2ycbcr(full ? bt601_full : bt601, r, g, b, y_offset, y, cb, cr);
+ 		break;
++	case V4L2_YCBCR_ENC_XV601:
++		/* Ignore quantization range, there is only one possible
++		 * Y'CbCr encoding. */
++		rgb2ycbcr(bt601, r, g, b, 16, y, cb, cr);
++		break;
++	case V4L2_YCBCR_ENC_XV709:
++		/* Ignore quantization range, there is only one possible
++		 * Y'CbCr encoding. */
++		rgb2ycbcr(rec709, r, g, b, 16, y, cb, cr);
++		break;
+ 	case V4L2_YCBCR_ENC_BT2020:
+ 		rgb2ycbcr(full ? bt2020_full : bt2020, r, g, b, y_offset, y, cb, cr);
+ 		break;
+@@ -535,7 +544,6 @@ static void color_to_ycbcr(struct tpg_data *tpg, int r, int g, int b,
+ 		rgb2ycbcr(full ? smpte240m_full : smpte240m, r, g, b, y_offset, y, cb, cr);
+ 		break;
+ 	case V4L2_YCBCR_ENC_709:
+-	case V4L2_YCBCR_ENC_XV709:
+ 	default:
+ 		rgb2ycbcr(full ? rec709_full : rec709, r, g, b, y_offset, y, cb, cr);
+ 		break;
+@@ -617,10 +625,19 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
+ 
+ 	switch (tpg->real_ycbcr_enc) {
+ 	case V4L2_YCBCR_ENC_601:
+-	case V4L2_YCBCR_ENC_XV601:
+ 	case V4L2_YCBCR_ENC_SYCC:
+ 		ycbcr2rgb(full ? bt601_full : bt601, y, cb, cr, y_offset, r, g, b);
+ 		break;
++	case V4L2_YCBCR_ENC_XV601:
++		/* Ignore quantization range, there is only one possible
++		 * Y'CbCr encoding. */
++		ycbcr2rgb(bt601, y, cb, cr, 16, r, g, b);
++		break;
++	case V4L2_YCBCR_ENC_XV709:
++		/* Ignore quantization range, there is only one possible
++		 * Y'CbCr encoding. */
++		ycbcr2rgb(rec709, y, cb, cr, 16, r, g, b);
++		break;
+ 	case V4L2_YCBCR_ENC_BT2020:
+ 		ycbcr2rgb(full ? bt2020_full : bt2020, y, cb, cr, y_offset, r, g, b);
+ 		break;
+@@ -652,7 +669,6 @@ static void ycbcr_to_color(struct tpg_data *tpg, int y, int cb, int cr,
+ 		ycbcr2rgb(full ? smpte240m_full : smpte240m, y, cb, cr, y_offset, r, g, b);
+ 		break;
+ 	case V4L2_YCBCR_ENC_709:
+-	case V4L2_YCBCR_ENC_XV709:
+ 	default:
+ 		ycbcr2rgb(full ? rec709_full : rec709, y, cb, cr, y_offset, r, g, b);
+ 		break;
 -- 
-2.3.4
+2.1.4
 
