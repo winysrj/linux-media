@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50509 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752291AbbDRMA4 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:57735 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754729AbbDXHjJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2015 08:00:56 -0400
-Date: Sat, 18 Apr 2015 15:00:17 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz, sre@kernel.org
-Subject: [GIT PULL FOR v4.2] adp1653 DT support
-Message-ID: <20150418120016.GL27451@valkosipuli.retiisi.org.uk>
+	Fri, 24 Apr 2015 03:39:09 -0400
+Message-ID: <5539F301.4080304@xs4all.nl>
+Date: Fri, 24 Apr 2015 09:38:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: TCMaps@gmx.net, linux-media@vger.kernel.org
+Subject: Re: [PATCH] fix: make menuconfig breaks due to whitespaces in Kconfig
+References: <trinity-ae8b4068-9fe5-4516-ab2f-1e8f7c02436a-1428636115681@msvc021>
+In-Reply-To: <trinity-ae8b4068-9fe5-4516-ab2f-1e8f7c02436a-1428636115681@msvc021>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-These two patches document and add support for the adp1653 LED flash driver.
+Can you show the Kconfig script that contains the syntax error? I don't
+quite see how this goes wrong. Perhaps if I see the broken Kconfig I
+understand this better.
 
-Please pull.
+Thanks,
 
+	Hans
 
-The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+On 04/10/2015 05:21 AM, TCMaps@gmx.net wrote:
+> From: TC <tcmaps@gmx.net>
+> Date: Fri, 10 Apr 2015 04:29:20 +0200
+> Subject: on some systems like Ubuntu 14.04, whitespaces are added from make_kconfig.pl to Kconfig script during make menuconfig
+> causing it to fail with "./Kconfig:778: syntax error"!
+> this patch just removes the originating spaces in two lines
+> 
+> 
+> ---
+>  v4l/scripts/make_kconfig.pl | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/v4l/scripts/make_kconfig.pl b/v4l/scripts/make_kconfig.pl
+> index 28b56d0..9228a7b 100755
+> --- a/v4l/scripts/make_kconfig.pl
+> +++ b/v4l/scripts/make_kconfig.pl
+> @@ -252,8 +252,8 @@ sub checkdeps()
+>  # Text to be added to disabled options
+>  my $disabled_msg = <<'EOF';
+>  	---help---
+> -	  WARNING! This driver needs at least kernel %s!  It may not
+> -	  compile or work correctly on your kernel, which is too old.
+> +	WARNING! This driver needs at least kernel %s!  It may not
+> +	compile or work correctly on your kernel, which is too old.
+>  
+>  EOF
+>  
+> 
 
-  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git adp1653
-
-for you to fetch changes up to 917f9a6c303482f2e2f006b5154dba71fee89e55:
-
-  media: i2c/adp1653: Devicetree support for adp1653 (2015-04-14 01:51:12 +0300)
-
-----------------------------------------------------------------
-Pavel Machek (2):
-      media: i2c/adp1653: Documentation for devicetree support for adp1653
-      media: i2c/adp1653: Devicetree support for adp1653
-
- .../devicetree/bindings/media/i2c/adp1653.txt      |   37 ++++++++
- drivers/media/i2c/adp1653.c                        |  100 ++++++++++++++++++--
- include/media/adp1653.h                            |    8 +-
- 3 files changed, 132 insertions(+), 13 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adp1653.txt
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
