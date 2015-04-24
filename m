@@ -1,188 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21460 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752946AbbDTNKE (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:35921 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933042AbbDXG5v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 09:10:04 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	'Hans Verkuil' <hansverk@cisco.com>
-References: <1426870363-18839-1-git-send-email-k.debski@samsung.com>
- <1426870363-18839-6-git-send-email-k.debski@samsung.com>
- <550C6208.6080504@xs4all.nl>
- <049901d075ec$7caabbc0$76003340$%debski@samsung.com>
- <5530F9BB.5010208@xs4all.nl>
-In-reply-to: <5530F9BB.5010208@xs4all.nl>
-Subject: RE: [RFC v3 5/9] cec: add new driver for cec support.
-Date: Mon, 20 Apr 2015 15:10:00 +0200
-Message-id: <"074101d07b6b$4fc3e620$ef4bb260$@debski"@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 24 Apr 2015 02:57:51 -0400
+Received: by wgen6 with SMTP id n6so40572167wge.3
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 23:57:50 -0700 (PDT)
+Message-ID: <5539E96C.1000407@gmail.com>
+Date: Fri, 24 Apr 2015 08:57:48 +0200
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi> <1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+One more question:
 
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-owner@vger.kernel.org] On Behalf Of Hans Verkuil
-Sent: Friday, April 17, 2015 2:17 PM
-> 
-> On 04/13/2015 03:19 PM, Kamil Debski wrote:
-> > Hi Hans,
-> >
-> > Thank you so much for the review.
-> >
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Hans Verkuil
-> > Sent: Friday, March 20, 2015 7:08 PM
-> >>
-> 
-> <snip>
-> 
-> >>> +In order for a CEC adapter to be configured it needs a physical
-> >> address.
-> >>> +This is normally assigned by the driver. It is either 0.0.0.0 for
-> a
-> >> TV (aka
-> >>> +video receiver) or it is derived from the EDID that the source
-> >> received
-> >>> +from the sink. This is normally set by the driver before enabling
-> >> the CEC
-> >>> +adapter, or it is set from userspace in the case of CEC USB
-> dongles
-> >> (although
-> >>> +embedded systems might also want to set this manually).
-> >>
-> >> I would actually expect that USB dongles read out the EDID from the
-> >> source.
-> >> I might be wrong, though.
-> >
-> > EDID is communicated to the device by the TV on a different bus than
-> > CEC, it is DDC. It is possible that the dongle also reads DDC
-> messages.
-> > My initial understanding was that a CEC USB dongle handles only CEC
-> > messages and is passing through all other signals, such as DDC.
-> 
-> I checked against the libcec code (see link here: http://libcec.pulse-
-> eight.com/) for my usb-cec dongle and it turns out the library reads
-> out the edid from the monitor using xrandr (I think, see
-> src/libcec/platform/X11/randr-edid.cpp) in order to get the physical
-> address. So it is not using the dongle itself for that. Makes sense.
-> 
-> >
-> >>> +
-> >>> +After enabling the CEC adapter it has to be configured. The CEC
-> >> adapter has
-> >>> +to be informed for which CEC device types a logical address has to
-> >> be found.
-> >>
-> >> I would say: 'a free (unused) logical address'.
-> >>
-> >>> +The CEC framework will attempt to find such logical addresses. If
-> >> none are
-> >>
-> >> And here: 'find and claim'
-> >>
-> >>> +found, then it will fall back to logical address Unregistered (15).
-> >>
-> >> You probably need to add some documentation regarding
-> >> cec_claim_log_addrs()
-> >> and how drivers can use it. Also, while logical addresses are being
-> >> claimed, are drivers or userspace allowed to transmit/receive other
-> >> messages? Or just stall until this is finished?
-> >
-> > When sending a message the user space is free to set any source and
-> > destination address. Hence, I see no need to wait until the logical
-> > address is claimed.
-> >
-> > If the user space is not waiting until the address and is sending
-> > messages, then I guess it is done with full responsibility on the
-> user
-> > space.
-> >
-> > Regarding receiving, I guess it should be possible to receive
-> > broadcast messages.
-> >
-> > What do you think?
-> 
-> Fair enough, it just needs to be documented.
+cx23885-dvb.c (and maybe others) contains a couple of instances of
 
-Ok, will do.
+si2168_config.ts_mode = SI2168_TS_PARALLEL;
+and
+si2168_config.ts_mode = SI2168_TS_SERIAL;
 
-> 
-> <snip>
-> 
-> >>> +Promiscuous mode
-> >>> +----------------
-> >>> +
-> >>> +The promiscuous mode enables the userspace applications to read
-> all
-> >>> +messages on the CEC bus. This is similar to the promiscuous mode
-> in
-> >>> +network devices. In the normal mode messages not directed to the
-> >> device
-> >>> +(differentiated by the logical address of the CEC device) are not
-> >>> +forwarded to the userspace. Same rule applies to the messages
-> >> contailning
-> >>> +remote control key codes. When promiscuous mode is enabled all
-> >> messages
-> >>> +can be read by userspace. Processing of the messages is still done,
-> >> thus
-> >>> +key codes will be both interpreted by the framework and available
-> >>> +as
-> >> an
-> >>> +input device, but also raw messages containing these codes are
-> sent
-> >> to
-> >>> +the userspace.
-> >>
-> >> Will messages that are processed by the driver or cec framework also
-> >> be relayed to userspace in promiscuous mode? Will userspace be able
-> >> to tell that it has been processed already?
-> >
-> > All messages will be relayed to the user space and no there is no
-> > possibility to check whether the message was processed by the kernel
-> > already.
-> 
-> Should we add that? To be honest, I'm not sure about that myself.
+But you don't patch them with
 
-The promiscuous mode is useful mainly for debug reasons. I would leave it,
-however it is not a deal breaker for me. It could be added at a later time.
+si2168_config.ts_clock_gapped = true;
 
-> Once thing I notice is that there are no reserved fields at the end of
-> struct cec_msg. We should add that. Same with the other structs. It
-> served us well with v4l2, and we should do the same with the cec API.
+Is this intentional?
 
-This is indeed a good idea. Thanks :)
+Kind regards,
+Tycho
 
-> 
-> Another upcoming problem is the use of struct timespec: this will have
-> to change in the near future to one that is year 2038-safe.
-> Unfortunately, there is no public 'struct timespec64' type yet. This
-> mailinglist might provide answers w.r.t. the precise plans with
-> timespec:
-> http://lwn.net/Articles/640284/
-> 
-> Also, we don't have 32-bit compat code for CEC. I wonder if it is a
-> good idea to improve the layout of the structs to minimize 64/32-bit
-> layout differences. I never paid attention to that when I made these
-> structs as I always planned to do that at the end.
-
-It's good that you mentioned this, will do.
-
-> 
-> Regards,
-> 
-> 	Hans
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+Op 23-04-15 om 23:11 schreef Olli Salonen:
+> Change the dvbsky driver to support gapped clock instead of the current
+> hack.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> index cdf59bc..0f73b1d 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> @@ -615,7 +615,8 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
+>   	memset(&si2168_config, 0, sizeof(si2168_config));
+>   	si2168_config.i2c_adapter = &i2c_adapter;
+>   	si2168_config.fe = &adap->fe[0];
+> -	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +	si2168_config.ts_clock_gapped = true;
+>   	memset(&info, 0, sizeof(struct i2c_board_info));
+>   	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+>   	info.addr = 0x64;
 
