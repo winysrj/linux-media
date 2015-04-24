@@ -1,137 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33775 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535AbbDCRM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2015 13:12:58 -0400
-In-Reply-To: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: [PATCH 06/14] clkdev: add clkdev_create() helper
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1Ye59J-0001BF-CZ@rmk-PC.arm.linux.org.uk>
-Date: Fri, 03 Apr 2015 18:12:53 +0100
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38356 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754915AbbDXISj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Apr 2015 04:18:39 -0400
+Message-ID: <1429863515.3174.14.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] vivid: add 1080p capture at 2 fps and 5 fps to
+ webcam emulation
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Date: Fri, 24 Apr 2015 10:18:35 +0200
+In-Reply-To: <5539E615.4090902@xs4all.nl>
+References: <1429797174-32474-1-git-send-email-p.zabel@pengutronix.de>
+	 <5539E615.4090902@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper to allocate and add a clk_lookup structure.  This can not
-only be used in several places in clkdev.c to simplify the code, but
-more importantly, can be used by callers of the clkdev code to simplify
-their clkdev creation and registration.
+Hi Hans,
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/clk/clkdev.c   | 53 ++++++++++++++++++++++++++++++++++++++------------
- include/linux/clkdev.h |  3 +++
- 2 files changed, 44 insertions(+), 12 deletions(-)
+Am Freitag, den 24.04.2015, 08:43 +0200 schrieb Hans Verkuil:
+> Hi Philipp,
+> 
+> Thank you for the patch, but I have one question:
+> 
+> On 04/23/2015 03:52 PM, Philipp Zabel wrote:
+> > Use the VIVID_WEBCAM_SIZES constant where appropriate and add a 1920x1080 pixel
+> > frame size setting with frame rates of 2 fps and 5 fps.
+> 
+> Why add both 2 and 5 fps? Is there a reason why you want both of those fps values?
+> 
+> Just wondering.
 
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index 8e676eafc823..6d992d8b7c47 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -302,6 +302,19 @@ vclkdev_alloc(struct clk_hw *hw, const char *con_id, const char *dev_fmt,
- 	return &cla->cl;
- }
- 
-+static struct clk_lookup *
-+vclkdev_create(struct clk_hw *hw, const char *con_id, const char *dev_fmt,
-+	va_list ap)
-+{
-+	struct clk_lookup *cl;
-+
-+	cl = vclkdev_alloc(hw, con_id, dev_fmt, ap);
-+	if (cl)
-+		__clkdev_add(cl);
-+
-+	return cl;
-+}
-+
- struct clk_lookup * __init_refok
- clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
- {
-@@ -316,6 +329,29 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
- }
- EXPORT_SYMBOL(clkdev_alloc);
- 
-+/**
-+ * clkdev_create - allocate and add a clkdev lookup structure
-+ * @clk: struct clk to associate with all clk_lookups
-+ * @con_id: connection ID string on device
-+ * @dev_fmt: format string describing device name
-+ *
-+ * Returns a clk_lookup structure, which can be later unregistered and
-+ * freed.
-+ */
-+struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
-+	const char *dev_fmt, ...)
-+{
-+	struct clk_lookup *cl;
-+	va_list ap;
-+
-+	va_start(ap, dev_fmt);
-+	cl = vclkdev_create(__clk_get_hw(clk), con_id, dev_fmt, ap);
-+	va_end(ap);
-+
-+	return cl;
-+}
-+EXPORT_SYMBOL_GPL(clkdev_create);
-+
- int clk_add_alias(const char *alias, const char *alias_dev_name,
- 	const char *con_id, struct device *dev)
- {
-@@ -325,12 +361,10 @@ int clk_add_alias(const char *alias, const char *alias_dev_name,
- 	if (IS_ERR(r))
- 		return PTR_ERR(r);
- 
--	l = clkdev_alloc(r, alias, alias_dev_name);
-+	l = clkdev_create(r, alias, "%s", alias_dev_name);
- 	clk_put(r);
--	if (!l)
--		return -ENODEV;
--	clkdev_add(l);
--	return 0;
-+
-+	return l ? 0 : -ENODEV;
- }
- EXPORT_SYMBOL(clk_add_alias);
- 
-@@ -370,15 +404,10 @@ int clk_register_clkdev(struct clk *clk, const char *con_id,
- 		return PTR_ERR(clk);
- 
- 	va_start(ap, dev_fmt);
--	cl = vclkdev_alloc(__clk_get_hw(clk), con_id, dev_fmt, ap);
-+	cl = vclkdev_create(__clk_get_hw(clk), con_id, dev_fmt, ap);
- 	va_end(ap);
- 
--	if (!cl)
--		return -ENOMEM;
--
--	clkdev_add(cl);
--
--	return 0;
-+	return cl ? 0 : -ENOMEM;
- }
- EXPORT_SYMBOL(clk_register_clkdev);
- 
-diff --git a/include/linux/clkdev.h b/include/linux/clkdev.h
-index cd93b215e3af..a240b18e86fa 100644
---- a/include/linux/clkdev.h
-+++ b/include/linux/clkdev.h
-@@ -38,6 +38,9 @@ struct clk_lookup *clkdev_alloc(struct clk *clk, const char *con_id,
- void clkdev_add(struct clk_lookup *cl);
- void clkdev_drop(struct clk_lookup *cl);
- 
-+struct clk_lookup *clkdev_create(struct clk *clk, const char *con_id,
-+	const char *dev_fmt, ...);
-+
- void clkdev_add_table(struct clk_lookup *, size_t);
- int clk_add_alias(const char *, const char *, const char *, struct device *);
- 
--- 
-1.8.3.1
+I just wanted to quickly test 1080p at 5 fps, so I didn't change that
+afterwards for the patch. 5 fps also seems like the next logical step.
+webcam_intervals needs to be twice the size of webcam_sizes, the comment
+above webcam_intervals told me to add two intervals for every new
+element in webcam_sizes. For the second interval, I didn't think much
+about the actual value. Choosing 2 fps next was probably influenced by
+our monetary system.
+To keep data rates similar to 720p at 10 fps and 15 fps, 1080p at 4 fps
+and 6 fps, respectively, would be the better choice.
+
+regards
+Philipp
 
