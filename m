@@ -1,137 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:36523 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423067AbbD2MeS (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34058 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492AbbDXGb5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 08:34:18 -0400
-Received: by wgen6 with SMTP id n6so26477578wge.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 05:34:16 -0700 (PDT)
-Date: Wed, 29 Apr 2015 13:34:12 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 02/10] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150429123412.GL9169@x1>
-References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
- <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
+	Fri, 24 Apr 2015 02:31:57 -0400
+Received: by wicmx19 with SMTP id mx19so27644925wic.1
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 23:31:56 -0700 (PDT)
+Message-ID: <5539E35B.2080603@gmail.com>
+Date: Fri, 24 Apr 2015 08:31:55 +0200
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi> <1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1429823471-21835-2-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LED Ack please Bryan.
+Hi Olli,
+in saa716x_budget.c I've also got (for TBS6285)
 
-> This patch adds device tree binding documentation for
-> the flash cell of the Maxim max77693 multifunctional device.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Lee Jones <lee.jones@linaro.org>
-> Cc: Chanwoo Choi <cw00.choi@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: devicetree@vger.kernel.org
+     si2168_config.i2c_adapter = &i2cadapter;
+     si2168_config.fe = &adapter->fe;
+     si2168_config.ts_mode = SI2168_TS_SERIAL;
+     memset(&info, 0, sizeof(struct i2c_board_info));
+
+Should I just add it like this?
+
+     si2168_config.ts_mode = SI2168_TS_SERIAL;
+     si2168_config.ts_clock_gapped = true;
+     memset(&info, 0, sizeof(struct i2c_board_info));
+
+Kind regards,
+Tycho.
+
+Op 23-04-15 om 23:11 schreef Olli Salonen:
+> Change the dvbsky driver to support gapped clock instead of the current
+> hack.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 > ---
->  Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++++++++++++++++++++
->  1 file changed, 67 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-> index 38e6440..d342584 100644
-> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
-> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-> @@ -76,7 +76,60 @@ Optional properties:
->      Valid values: 4300000, 4700000, 4800000, 4900000
->      Default: 4300000
->  
-> +- led : the LED submodule device node
-> +
-> +There are two LED outputs available - FLED1 and FLED2. Each of them can
-> +control a separate LED or they can be connected together to double
-> +the maximum current for a single connected LED. One LED is represented
-> +by one child node.
-> +
-> +Required properties:
-> +- compatible : Must be "maxim,max77693-led".
-> +
-> +Optional properties:
-> +- maxim,boost-mode :
-> +	In boost mode the device can produce up to 1.2A of total current
-> +	on both outputs. The maximum current on each output is reduced
-> +	to 625mA then. If not enabled explicitly, boost setting defaults to
-> +	LEDS_BOOST_FIXED in case both current sources are used.
-> +	Possible values:
-> +		LEDS_BOOST_OFF (0) - no boost,
-> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
-> +		LEDS_BOOST_FIXED (2) - fixed mode.
-> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
-> +	Valid values: 3300 - 5500, step by 25 (rounded down)
-> +	Default: 3300
-> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
-> +	if chip estimates that system voltage could drop below this level due
-> +	to flash power consumption.
-> +	Valid values: 2400 - 3400, step by 33 (rounded down)
-> +	Default: 2400
-> +
-> +Required properties for the LED child node:
-> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
-> +		device current output identifiers: 0 - FLED1, 1 - FLED2
-> +- led-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +	Valid values for a LED connected to one FLED output:
-> +		15625 - 250000, step by 15625 (rounded down)
-> +	Valid values for a LED connected to both FLED outputs:
-> +		15625 - 500000, step by 15625 (rounded down)
-> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
-> +	Valid values for a single LED connected to one FLED output:
-> +	(boost mode must be turned off):
-> +		15625 - 1000000, step by 15625 (rounded down)
-> +	Valid values for a single LED connected to both FLED outputs:
-> +		15625 - 1250000, step by 15625 (rounded down)
-> +	Valid values for two LEDs case:
-> +		15625 - 625000, step by 15625 (rounded down)
-> +- flash-max-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
-> +	Valid values: 62500 - 1000000, step by 62500 (rounded down)
-> +
-> +Optional properties for the LED child node:
-> +- label : see Documentation/devicetree/bindings/leds/common.txt
-> +
->  Example:
-> +#include <dt-bindings/leds/common.h>
-> +
->  	max77693@66 {
->  		compatible = "maxim,max77693";
->  		reg = <0x66>;
-> @@ -117,5 +170,19 @@ Example:
->  			maxim,thermal-regulation-celsius = <75>;
->  			maxim,battery-overcurrent-microamp = <3000000>;
->  			maxim,charge-input-threshold-microvolt = <4300000>;
-> +
-> +		led {
-> +			compatible = "maxim,max77693-led";
-> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
-> +			maxim,boost-mvout = <5000>;
-> +			maxim,mvsys-min = <2400>;
-> +
-> +			camera_flash: flash-led {
-> +				label = "max77693-flash";
-> +				led-sources = <0>, <1>;
-> +				led-max-microamp = <500000>;
-> +				flash-max-microamp = <1250000>;
-> +				flash-max-timeout-us = <1000000>;
-> +			};
->  		};
->  	};
+>   drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> index cdf59bc..0f73b1d 100644
+> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+> @@ -615,7 +615,8 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
+>   	memset(&si2168_config, 0, sizeof(si2168_config));
+>   	si2168_config.i2c_adapter = &i2c_adapter;
+>   	si2168_config.fe = &adap->fe[0];
+> -	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +	si2168_config.ts_clock_gapped = true;
+>   	memset(&info, 0, sizeof(struct i2c_board_info));
+>   	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+>   	info.addr = 0x64;
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
