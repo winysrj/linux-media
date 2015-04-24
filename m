@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58163 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbbDPF6V (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37207 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840AbbDXOBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 01:58:21 -0400
-Date: Thu, 16 Apr 2015 07:58:18 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v8 1/1] media: i2c/adp1653: Devicetree support for adp1653
-Message-ID: <20150416055817.GA2749@amd>
-References: <1429141034-29237-1-git-send-email-sakari.ailus@iki.fi>
- <20150416052442.GA31095@earth>
+	Fri, 24 Apr 2015 10:01:41 -0400
+Received: by widdi4 with SMTP id di4so21439255wid.0
+        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 07:01:40 -0700 (PDT)
+Message-ID: <553A4CC3.2000808@gmail.com>
+Date: Fri, 24 Apr 2015 16:01:39 +0200
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150416052442.GA31095@earth>
+To: Steven Toth <stoth@kernellabs.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 02/12] dvbsky: use si2168 config option ts_clock_gapped
+References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>	<1429823471-21835-2-git-send-email-olli.salonen@iki.fi>	<5539E96C.1000407@gmail.com>	<CAAZRmGzPZaJoMtHXYuFo081xbG3Eb_1+WwePziKfp6R5kREGDw@mail.gmail.com>	<CAAZRmGwUd1gj2FmkX1ODeb+-q2oZXuZc6urgoR6i8W2VsLgGPA@mail.gmail.com> <CALzAhNWUM2ZPnO_fik6HNE5CCOmZR0qF2uY5GcYYjjNTS_n8Ow@mail.gmail.com>
+In-Reply-To: <CALzAhNWUM2ZPnO_fik6HNE5CCOmZR0qF2uY5GcYYjjNTS_n8Ow@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 2015-04-16 07:24:42, Sebastian Reichel wrote:
-> Hi Sakari,
-> 
-> Since this driver won't make it into 4.1 anyways, I have one more
-> comment:
+Hi Steven, Olli,
+Steven, thanks for your comment
 
-Like this driver did not receive enough bikesheding.
+So maybe this should also go into cx23885?
+I'm in Europe and only have DVB-C
 
-> > +	} else {
-> > +		gpiod_set_value(flash->platform_data->enable_gpio, on);
-> > +		if (on)
-> > +			/* Some delay is apparently required. */
-> > +			udelay(20);
-> > +	}
-> 
-> I suggest to remove the power callback from platform data. Instead
-> you can require to setup a gpiod lookup table in the boardcode, if
-> platform data based initialization is used (see for example si4713
-> initialization in board-rx51-periphals.c).
-> 
-> This will reduce complexity in the driver and should be fairly easy
-> to implement, since there is no adp1653 platform code user in the
-> mainline kernel anyways.
+I'll add it to my saa716x driver as well
 
-I'd hate to break out of tree users for very little gain.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Op 24-04-15 om 15:16 schreef Steven Toth:
+>> I've also seen that the Hauppauge HVR-2205 Windows driver enables this
+>> option, but it seems to me that that board works ok also without this.
+> Olli, I found out why this is, I thought you'd appreciate the comment....
+>
+> Apparently the issue only occurs with DVB streams faster than
+> approximately 50Mbps, which standard DVB-T/T2, ATSC and QAM-B never
+> are.
+>
+> The issue apparently, is with some QAM-A (DVB-C) streams in
+> Europe..... This explains why I've never seen it. That's being said, I
+> do plan to add the gapped clock patch to the SAA7164 shortly - for
+> safety.
+>
+
