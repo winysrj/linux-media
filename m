@@ -1,56 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56856 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932417AbbD0JaZ (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:36832 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964785AbbDXHEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 05:30:25 -0400
-Message-ID: <553E01AB.5080509@xs4all.nl>
-Date: Mon, 27 Apr 2015 11:30:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
-References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com> <553DFFCF.5070608@xs4all.nl>
-In-Reply-To: <553DFFCF.5070608@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Apr 2015 03:04:21 -0400
+Received: by lagv1 with SMTP id v1so28719629lag.3
+        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 00:04:19 -0700 (PDT)
+From: Vasily Khoruzhick <anarsoul@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Vasily Khoruzhick <anarsoul@gmail.com>
+Subject: [PATCH v2 2/2] gspca: sn9c2028: Add gain and autogain controls Genius Videocam Live v2
+Date: Fri, 24 Apr 2015 10:04:04 +0300
+Message-Id: <1429859044-18071-2-git-send-email-anarsoul@gmail.com>
+In-Reply-To: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
+References: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/27/2015 11:22 AM, Hans Verkuil wrote:
-> Hi Kamil,
-> 
-> Sorry for all the replies, but I'm writing the DocBook documentation, so
-> whenever I find something missing I'll just reply to this patch.
->> +/* The CEC version */
-> 
-> Add support for version 1.3a here:
-> 
-> #define CEC_VERSION_1_3A		4
+Autogain algorithm is very simple, if average luminance is low - increase gain,
+if it's high - decrease gain. Gain granularity is low enough for this algo to
+stabilize quickly.
 
-To clarify: the core CEC framework will not support 1.3A, but of course
-other devices can report it, so we do need the define.
+Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+---
+v2: According to Hans, header lenght is 12 bytes, so drop 2 redundant bytes
 
-Regards,
+ drivers/media/usb/gspca/sn9c2028.c | 122 +++++++++++++++++++++++++++++++++++++
+ drivers/media/usb/gspca/sn9c2028.h |  18 +++++-
+ 2 files changed, 137 insertions(+), 3 deletions(-)
 
-	Hans
-
-> 
->> +#define CEC_VERSION_1_4B		5
->> +#define CEC_VERSION_2_0			6
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
+index 317b02c..107200e 100644
+--- a/drivers/media/usb/gspca/sn9c2028.c
++++ b/drivers/media/usb/gspca/sn9c2028.c
+@@ -34,6 +34,16 @@ struct sd {
+ 	struct gspca_dev gspca_dev;  /* !! must be the first item */
+ 	u8 sof_read;
+ 	u16 model;
++
++#define MIN_AVG_LUM 8500
++#define MAX_AVG_LUM 10000
++	int avg_lum;
++	u8 avg_lum_l;
++
++	struct { /* autogain and gain control cluster */
++		struct v4l2_ctrl *autogain;
++		struct v4l2_ctrl *gain;
++	};
+ };
+ 
+ struct init_command {
+@@ -252,6 +262,78 @@ static int run_start_commands(struct gspca_dev *gspca_dev,
+ 	return 0;
+ }
+ 
++static void set_gain(struct gspca_dev *gspca_dev, s32 g)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	struct init_command genius_vcam_live_gain_cmds[] = {
++		{{0x1d, 0x25, 0x10 /* This byte is gain */,
++		  0x20, 0xab, 0x00}, 0},
++	};
++	if (!gspca_dev->streaming)
++		return;
++
++	switch (sd->model) {
++	case 0x7003:
++		genius_vcam_live_gain_cmds[0].instruction[2] = g;
++		run_start_commands(gspca_dev, genius_vcam_live_gain_cmds,
++				   ARRAY_SIZE(genius_vcam_live_gain_cmds));
++		break;
++	default:
++		break;
++	}
++}
++
++static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct gspca_dev *gspca_dev =
++		container_of(ctrl->handler, struct gspca_dev, ctrl_handler);
++	struct sd *sd = (struct sd *)gspca_dev;
++
++	gspca_dev->usb_err = 0;
++
++	if (!gspca_dev->streaming)
++		return 0;
++
++	switch (ctrl->id) {
++	/* standalone gain control */
++	case V4L2_CID_GAIN:
++		set_gain(gspca_dev, ctrl->val);
++		break;
++	/* autogain */
++	case V4L2_CID_AUTOGAIN:
++		set_gain(gspca_dev, sd->gain->val);
++		break;
++	}
++	return gspca_dev->usb_err;
++}
++
++static const struct v4l2_ctrl_ops sd_ctrl_ops = {
++	.s_ctrl = sd_s_ctrl,
++};
++
++
++static int sd_init_controls(struct gspca_dev *gspca_dev)
++{
++	struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
++	struct sd *sd = (struct sd *)gspca_dev;
++
++	gspca_dev->vdev.ctrl_handler = hdl;
++	v4l2_ctrl_handler_init(hdl, 2);
++
++	switch (sd->model) {
++	case 0x7003:
++		sd->gain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
++			V4L2_CID_GAIN, 0, 20, 1, 0);
++		sd->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
++			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
+ static int start_spy_cam(struct gspca_dev *gspca_dev)
+ {
+ 	struct init_command spy_start_commands[] = {
+@@ -641,6 +723,9 @@ static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
+ 	if (r < 0)
+ 		return r;
+ 
++	if (sd->gain)
++		set_gain(gspca_dev, v4l2_ctrl_g_ctrl(sd->gain));
++
+ 	return r;
+ }
+ 
+@@ -757,6 +842,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		return -ENXIO;
+ 	}
+ 
++	sd->avg_lum = -1;
++
+ 	return err_code;
+ }
+ 
+@@ -776,6 +863,39 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+ 		PERR("Camera Stop command failed");
+ }
+ 
++static void do_autogain(struct gspca_dev *gspca_dev, int avg_lum)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	s32 cur_gain = v4l2_ctrl_g_ctrl(sd->gain);
++
++	if (avg_lum == -1)
++		return;
++
++	if (avg_lum < MIN_AVG_LUM) {
++		if (cur_gain == sd->gain->maximum)
++			return;
++		cur_gain++;
++		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
++	}
++	if (avg_lum > MAX_AVG_LUM) {
++		if (cur_gain == sd->gain->minimum)
++			return;
++		cur_gain--;
++		v4l2_ctrl_s_ctrl(sd->gain, cur_gain);
++	}
++
++}
++
++static void sd_dqcallback(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	if (sd->autogain == NULL || !v4l2_ctrl_g_ctrl(sd->autogain))
++		return;
++
++	do_autogain(gspca_dev, sd->avg_lum);
++}
++
+ /* Include sn9c2028 sof detection functions */
+ #include "sn9c2028.h"
+ 
+@@ -810,8 +930,10 @@ static const struct sd_desc sd_desc = {
+ 	.name = MODULE_NAME,
+ 	.config = sd_config,
+ 	.init = sd_init,
++	.init_controls = sd_init_controls,
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
++	.dq_callback = sd_dqcallback,
+ 	.pkt_scan = sd_pkt_scan,
+ };
+ 
+diff --git a/drivers/media/usb/gspca/sn9c2028.h b/drivers/media/usb/gspca/sn9c2028.h
+index 8fd1d3e..f85bc10 100644
+--- a/drivers/media/usb/gspca/sn9c2028.h
++++ b/drivers/media/usb/gspca/sn9c2028.h
+@@ -21,8 +21,15 @@
+  *
+  */
+ 
+-static const unsigned char sn9c2028_sof_marker[5] =
+-	{ 0xff, 0xff, 0x00, 0xc4, 0xc4 };
++static const unsigned char sn9c2028_sof_marker[] = {
++	0xff, 0xff, 0x00, 0xc4, 0xc4, 0x96,
++	0x00,
++	0x00, /* seq */
++	0x00,
++	0x00,
++	0x00, /* avg luminance lower 8 bit */
++	0x00, /* avg luminance higher 8 bit */
++};
+ 
+ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
+ 					unsigned char *m, int len)
+@@ -32,8 +39,13 @@ static unsigned char *sn9c2028_find_sof(struct gspca_dev *gspca_dev,
+ 
+ 	/* Search for the SOF marker (fixed part) in the header */
+ 	for (i = 0; i < len; i++) {
+-		if (m[i] == sn9c2028_sof_marker[sd->sof_read]) {
++		if ((m[i] == sn9c2028_sof_marker[sd->sof_read]) ||
++		    (sd->sof_read > 5)) {
+ 			sd->sof_read++;
++			if (sd->sof_read == 11)
++				sd->avg_lum_l = m[i];
++			if (sd->sof_read == 12)
++				sd->avg_lum = (m[i] << 8) + sd->avg_lum_l;
+ 			if (sd->sof_read == sizeof(sn9c2028_sof_marker)) {
+ 				PDEBUG(D_FRAM,
+ 					"SOF found, bytes to analyze: %u."
+-- 
+2.3.5
 
