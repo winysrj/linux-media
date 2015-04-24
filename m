@@ -1,189 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:33432 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbDMGiL (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46630 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965355AbbDXIMM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 02:38:11 -0400
-Received: by wgin8 with SMTP id n8so69775804wgi.0
-        for <linux-media@vger.kernel.org>; Sun, 12 Apr 2015 23:38:09 -0700 (PDT)
+	Fri, 24 Apr 2015 04:12:12 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 743B82A002F
+	for <linux-media@vger.kernel.org>; Fri, 24 Apr 2015 10:11:43 +0200 (CEST)
+Message-ID: <5539FABF.3080608@xs4all.nl>
+Date: Fri, 24 Apr 2015 10:11:43 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1427219214-5368-3-git-send-email-p.zabel@pengutronix.de>
-References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de> <1427219214-5368-3-git-send-email-p.zabel@pengutronix.de>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 13 Apr 2015 15:30:23 +0900
-Message-ID: <CAMm-=zAwQJ-_jp5B7cRiQEi523a57BaijUwnqCwLUPScCL7_kQ@mail.gmail.com>
-Subject: Re: [PATCH v4 2/4] [media] videobuf2: return -EPIPE from DQBUF after
- the last buffer
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Various fixes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
 
-On Wed, Mar 25, 2015 at 2:46 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> If the last buffer was dequeued from a capture queue, let poll return
-> immediately and let DQBUF return -EPIPE to signal there will no more
-> buffers to dequeue until STREAMOFF.
-> The driver signals the last buffer by setting the V4L2_BUF_FLAG_LAST.
-> To reenable dequeuing on the capture queue, the driver must explicitly
-> call vb2_clear_last_buffer_queued. The last buffer queued flag is
-> cleared automatically during STREAMOFF.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v3:
->  - Added DocBook update mentioning DQBUF returning -EPIPE in the encoder/decoder
->    stop command documentation.
-> ---
->  Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml |  4 +++-
->  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |  4 +++-
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml        |  8 ++++++++
->  drivers/media/v4l2-core/v4l2-mem2mem.c                 | 10 +++++++++-
->  drivers/media/v4l2-core/videobuf2-core.c               | 18 +++++++++++++++++-
->  include/media/videobuf2-core.h                         | 10 ++++++++++
->  6 files changed, 50 insertions(+), 4 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
 
-Would it make sense to perhaps split this patch into docbook and vb2
-changes please?
+are available in the git repository at:
 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 80c588f..1b5b432 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->
->         if (list_empty(&src_q->done_list))
->                 poll_wait(file, &src_q->done_wq, wait);
-> -       if (list_empty(&dst_q->done_list))
-> +       if (list_empty(&dst_q->done_list)) {
-> +               /*
-> +                * If the last buffer was dequeued from the capture queue,
-> +                * return immediately. DQBUF will return -EPIPE.
-> +                */
-> +               if (dst_q->last_buffer_dequeued)
-> +                       return rc | POLLIN | POLLRDNORM;
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2d
 
-These indicate there is data to be read. Is there something else we
-could return? Maybe POLLHUP?
+for you to fetch changes up to 01dcae42e1d19014a6c83258bc4944b56b111372:
 
-> +
->                 poll_wait(file, &dst_q->done_wq, wait);
-> +       }
->
->         if (m2m_ctx->m2m_dev->m2m_ops->lock)
->                 m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index bc08a82..a0b9946 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2046,6 +2046,10 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
->         struct vb2_buffer *vb = NULL;
->         int ret;
->
-> +       if (q->last_buffer_dequeued) {
-> +               dprintk(3, "last buffer dequeued already\n");
-> +               return -EPIPE;
-> +       }
+  usbtv: fix v4l2-compliance issues (2015-04-24 10:09:46 +0200)
 
-This should go after the check for queue type at least. However, best
-probably to __vb2_wait_for_done_vb(), where we already have the checks
-for q->streaming and q->error.
+----------------------------------------------------------------
+Cheolhyun Park (1):
+      drx-j: Misspelled comment corrected
 
->         if (b->type != q->type) {
->                 dprintk(1, "invalid buffer type\n");
->                 return -EINVAL;
-> @@ -2073,6 +2077,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
->         /* Remove from videobuf queue */
->         list_del(&vb->queued_entry);
->         q->queued_count--;
-> +       if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
-> +           vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
-> +               q->last_buffer_dequeued = true;
->         /* go back to dequeued state */
->         __vb2_dqbuf(vb);
->
-> @@ -2286,6 +2293,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->          */
->         __vb2_queue_cancel(q);
->         q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
-> +       q->last_buffer_dequeued = false;
->
->         dprintk(3, "successful\n");
->         return 0;
-> @@ -2628,8 +2636,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
->         if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
->                 return res | POLLOUT | POLLWRNORM;
->
-> -       if (list_empty(&q->done_list))
-> +       if (list_empty(&q->done_list)) {
-> +               /*
-> +                * If the last buffer was dequeued from a capture queue,
-> +                * return immediately. DQBUF will return -EPIPE.
-> +                */
-> +               if (!V4L2_TYPE_IS_OUTPUT(q->type) && q->last_buffer_dequeued)
+Dan Carpenter (1):
+      i2c: ov2659: signedness bug inov2659_set_fmt()
 
-Do we need to check !V4L2_TYPE_IS_OUTPUT(q->type) here? We wouldn't
-have set last_buffer_dequeued to true if it wasn't, so we could drop
-this check?
+Geert Uytterhoeven (3):
+      v4l: xilinx: VIDEO_XILINX should depend on HAS_DMA
+      v4l: VIDEOBUF2_DMA_SG should depend on HAS_DMA
+      Input: TOUCHSCREEN_SUR40 should depend on HAS_DMA
 
-> +                       return res | POLLIN | POLLRDNORM;
+Hans Verkuil (7):
+      cx88: v4l2-compliance fixes
+      bttv: fix missing irq after reloading driver
+      DocBook/media: fix typo
+      DocBook/media: Improve G_EDID specification
+      saa7164: fix querycap warning
+      cx18: add missing caps for the PCM video device
+      usbtv: fix v4l2-compliance issues
 
-Same comment as above.
+Jan Kara (1):
+      vb2: Push mmap_sem down to memops
 
-> +
->                 poll_wait(file, &q->done_wq, wait);
-> +       }
->
->         /*
->          * Take first buffer available for dequeuing.
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bd2cec2..863a8bb 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -429,6 +429,7 @@ struct vb2_queue {
->         unsigned int                    start_streaming_called:1;
->         unsigned int                    error:1;
->         unsigned int                    waiting_for_buffers:1;
-> +       unsigned int                    last_buffer_dequeued:1;
+Julia Lawall (3):
+      si4713: fix error return code
+      as102: fix error return code
+      radio: fix error return code
 
-Please add documentation above.
+Lad, Prabhakar (1):
+      media: i2c: ov2659: add VIDEO_V4L2_SUBDEV_API dependency
 
->
->         struct vb2_fileio_data          *fileio;
->         struct vb2_threadio_data        *threadio;
-> @@ -609,6 +610,15 @@ static inline bool vb2_start_streaming_called(struct vb2_queue *q)
->         return q->start_streaming_called;
->  }
->
-> +/**
-> + * vb2_clear_last_buffer_dequeued() - clear last buffer dequeued flag of queue
-> + * @q:         videobuf queue
-> + */
-> +static inline void vb2_clear_last_buffer_dequeued(struct vb2_queue *q)
-> +{
-> +       q->last_buffer_dequeued = false;
-> +}
-> +
+Prashant Laddha (4):
+      v4l2-dv-timings: fix rounding error in vsync_bp calculation
+      v4l2-dv-timings: fix rounding in hblank and hsync calculation
+      v4l2-dv-timings: add sanity checks in cvt,gtf calculations
+      v4l2-dv-timings: replace hsync magic number with a macro
 
-There are some timing issues here to consider. How does the driver
-know when it's ok to call this function, i.e. that the userspace has
-already dequeued all the buffers, so that it doesn't call this too
-early?
+Steven Toth (6):
+      saa7164: I2C improvements for upcoming HVR2255/2205 boards
+      saa7164: Adding additional I2C debug.
+      saa7164: Improvements for I2C handling
+      saa7164: Add Digital TV support for the HVR2255 and HVR2205
+      saa7164: Copyright update
+      saa7164: fix HVR2255 ATSC inversion issue
 
-But, in general, in what kind of scenario would the driver want to
-call this function, as opposed to vb2 clearing this flag by itself on
-STREAMOFF?
+jean-michel.hautbois@vodalys.com (1):
+      media: adv7604: Fix masks used for querying timings in ADV7611
 
--- 
-Thanks,
-Pawel
+ Documentation/DocBook/media/v4l/controls.xml      |   4 +-
+ Documentation/DocBook/media/v4l/vidioc-g-edid.xml |   7 +++
+ drivers/input/touchscreen/Kconfig                 |   3 +-
+ drivers/media/dvb-frontends/drx39xyj/drxj.c       |  38 ++++++------
+ drivers/media/i2c/Kconfig                         |   2 +-
+ drivers/media/i2c/adv7604.c                       |  69 +++++++++++++++++-----
+ drivers/media/i2c/ov2659.c                        |   2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c             |   2 +
+ drivers/media/pci/cx18/cx18-streams.c             |   1 +
+ drivers/media/pci/cx88/cx88-core.c                |   2 +
+ drivers/media/pci/cx88/cx88-mpeg.c                |   6 +-
+ drivers/media/pci/cx88/cx88-vbi.c                 |   6 +-
+ drivers/media/pci/cx88/cx88-video.c               |   7 +--
+ drivers/media/pci/cx88/cx88.h                     |   1 -
+ drivers/media/pci/saa7164/saa7164-api.c           |  21 +++++--
+ drivers/media/pci/saa7164/saa7164-buffer.c        |   2 +-
+ drivers/media/pci/saa7164/saa7164-bus.c           |   2 +-
+ drivers/media/pci/saa7164/saa7164-cards.c         | 188 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/media/pci/saa7164/saa7164-cmd.c           |   2 +-
+ drivers/media/pci/saa7164/saa7164-core.c          |   2 +-
+ drivers/media/pci/saa7164/saa7164-dvb.c           | 232 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/media/pci/saa7164/saa7164-encoder.c       |  13 +++--
+ drivers/media/pci/saa7164/saa7164-fw.c            |   2 +-
+ drivers/media/pci/saa7164/saa7164-i2c.c           |   9 +--
+ drivers/media/pci/saa7164/saa7164-reg.h           |   2 +-
+ drivers/media/pci/saa7164/saa7164-types.h         |   2 +-
+ drivers/media/pci/saa7164/saa7164-vbi.c           |  13 +++--
+ drivers/media/pci/saa7164/saa7164.h               |   7 ++-
+ drivers/media/platform/xilinx/Kconfig             |   2 +-
+ drivers/media/radio/radio-timb.c                  |   4 +-
+ drivers/media/radio/si4713/si4713.c               |   4 +-
+ drivers/media/usb/as102/as102_drv.c               |   1 +
+ drivers/media/usb/usbtv/usbtv-video.c             |  12 ++--
+ drivers/media/v4l2-core/Kconfig                   |   2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c         |  29 +++++++---
+ drivers/media/v4l2-core/videobuf2-core.c          |   2 -
+ drivers/media/v4l2-core/videobuf2-dma-contig.c    |   7 +++
+ drivers/media/v4l2-core/videobuf2-dma-sg.c        |   6 ++
+ drivers/media/v4l2-core/videobuf2-vmalloc.c       |   6 +-
+ 39 files changed, 605 insertions(+), 117 deletions(-)
