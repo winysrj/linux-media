@@ -1,188 +1,588 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46951 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752640AbbDTJRV (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46806 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753785AbbDYPn2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 05:17:21 -0400
-Message-ID: <5534C405.9010307@xs4all.nl>
-Date: Mon, 20 Apr 2015 11:16:53 +0200
+	Sat, 25 Apr 2015 11:43:28 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC 0/2] Repurpose the v4l2_plane data_offset field
-References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com> <5530E01D.3050105@xs4all.nl> <20150418130415.GM27451@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20150418130415.GM27451@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/12] dt3155v4l: code cleanup
+Date: Sat, 25 Apr 2015 17:42:40 +0200
+Message-Id: <1429976571-34872-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1429976571-34872-1-git-send-email-hverkuil@xs4all.nl>
+References: <1429976571-34872-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 04/18/2015 03:04 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Fri, Apr 17, 2015 at 12:27:41PM +0200, Hans Verkuil wrote:
->> Hi Laurent,
->>
->> On 04/14/2015 09:44 PM, Laurent Pinchart wrote:
->>> Hello,
->>>
->>> The v4l2_plane data_offset field has been introduced at the same time as the
->>> the multiplane API to convey header size information between kernelspace and
->>> userspace.
->>>
->>> The API then became slightly controversial, both because different developers
->>> understood the purpose of the field differently (resulting for instance in an
->>> out-of-tree driver abusing the field for a different purpose), and because of
->>> competing proposals (see for instance "[RFC] Multi format stream support" at
->>> http://www.spinics.net/lists/linux-media/msg69130.html).
->>>
->>> Furthermore, the data_offset field isn't used by any mainline driver except
->>> vivid (for testing purpose).
->>>
->>> I need a different data offset in planes to allow data capture to or data
->>> output from a userspace-selected offset within a buffer (mainly for the
->>> DMABUF and MMAP memory types). As the data_offset field already has the
->>> right name, is unused, and ill-defined, I propose repurposing it. This is what
->>> this RFC is about.
->>>
->>> If the proposal is accepted I'll add another patch to update data_offset usage
->>> in the vivid driver.
->>
->> I am skeptical about all this for a variety of reasons:
->>
->> 1) The data_offset field is well-defined in the spec. There really is no doubt
->> about the meaning of the field.
-> 
-> I think that's debatable. :-) The specification doesn't say much what the
-> data_offset is really about. For instance, it does not specify what may be
-> in the buffer before data_offset.
+- Fix various spelling mistakes
+- Whitespace cleanups
+- Remove _ioc_ from ioctl names to shorten those names
+- Remove bogus ifdef __KERNEL__
+- Remove commented out code
 
-That's correct. Now, it is my view that, while it would be nice if a fourcc like
-value would be available to tell the format of that header, in practice that format
-is so tied to a specific type of hardware that you either know it (i.e. it is a custom
-app for that hardware), or you ignore it altogether. There may be some exceptions for
-somewhat standardized types of metadata (SMIA), but those never materialized as actual
-code.
+No actual code is changed in this patch.
 
-> The kerneldoc documentation next to struct v4l2_plane suggests there might
-> be a header, but that's primarily for driver developers rather than users.
-> 
-> I, for instance, understood data_offset to mean essentially how this set
-> "re-purposes" it. I wonder if there are others who have originally
-> understood it as such.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/dt3155v4l/dt3155v4l.c | 202 +++++++++-------------------
+ drivers/staging/media/dt3155v4l/dt3155v4l.h |   8 --
+ 2 files changed, 66 insertions(+), 144 deletions(-)
 
-I know it was mis-understood, the spec was fairly vague in the past, and while more
-specific you are right in that it does not actually tell the reason for the field
-(i.e. skip headers).
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index 52a8ffe..07cf8c3 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -12,10 +12,6 @@
+  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+  *   GNU General Public License for more details.                          *
+  *                                                                         *
+- *   You should have received a copy of the GNU General Public License     *
+- *   along with this program; if not, write to the                         *
+- *   Free Software Foundation, Inc.,                                       *
+- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+  ***************************************************************************/
+ 
+ #include <linux/module.h>
+@@ -96,12 +92,11 @@ static u8 config_init = ACQ_MODE_EVEN;
+  * and busy waits for the process to finish. The result is placed
+  * in a byte pointed by data.
+  */
+-static int
+-read_i2c_reg(void __iomem *addr, u8 index, u8 *data)
++static int read_i2c_reg(void __iomem *addr, u8 index, u8 *data)
+ {
+ 	u32 tmp = index;
+ 
+-	iowrite32((tmp<<17) | IIC_READ, addr + IIC_CSR2);
++	iowrite32((tmp << 17) | IIC_READ, addr + IIC_CSR2);
+ 	mmiowb();
+ 	udelay(45); /* wait at least 43 usec for NEW_CYCLE to clear */
+ 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
+@@ -112,7 +107,7 @@ read_i2c_reg(void __iomem *addr, u8 index, u8 *data)
+ 		iowrite32(DIRECT_ABORT, addr + IIC_CSR1);
+ 		return -EIO; /* error: DIRECT_ABORT set */
+ 	}
+-	*data = tmp>>24;
++	*data = tmp >> 24;
+ 	return 0;
+ }
+ 
+@@ -125,15 +120,14 @@ read_i2c_reg(void __iomem *addr, u8 index, u8 *data)
+  *
+  * returns:	zero on success or error code
+  *
+- * This function starts writting the specified (by index) register
++ * This function starts writing the specified (by index) register
+  * and busy waits for the process to finish.
+  */
+-static int
+-write_i2c_reg(void __iomem *addr, u8 index, u8 data)
++static int write_i2c_reg(void __iomem *addr, u8 index, u8 data)
+ {
+ 	u32 tmp = index;
+ 
+-	iowrite32((tmp<<17) | IIC_WRITE | data, addr + IIC_CSR2);
++	iowrite32((tmp << 17) | IIC_WRITE | data, addr + IIC_CSR2);
+ 	mmiowb();
+ 	udelay(65); /* wait at least 63 usec for NEW_CYCLE to clear */
+ 	if (ioread32(addr + IIC_CSR2) & NEW_CYCLE)
+@@ -153,14 +147,14 @@ write_i2c_reg(void __iomem *addr, u8 index, u8 data)
+  * @index:	index (internal address) of register to read
+  * @data:	data to be written
+  *
+- * This function starts writting the specified (by index) register
++ * This function starts writing the specified (by index) register
+  * and then returns.
+  */
+ static void write_i2c_reg_nowait(void __iomem *addr, u8 index, u8 data)
+ {
+ 	u32 tmp = index;
+ 
+-	iowrite32((tmp<<17) | IIC_WRITE | data, addr + IIC_CSR2);
++	iowrite32((tmp << 17) | IIC_WRITE | data, addr + IIC_CSR2);
+ 	mmiowb();
+ }
+ 
+@@ -171,7 +165,7 @@ static void write_i2c_reg_nowait(void __iomem *addr, u8 index, u8 data)
+  *
+  * returns:	zero on success or error code
+  *
+- * This function waits reading/writting to finish.
++ * This function waits reading/writing to finish.
+  */
+ static int wait_i2c_reg(void __iomem *addr)
+ {
+@@ -187,8 +181,7 @@ static int wait_i2c_reg(void __iomem *addr)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_start_acq(struct dt3155_priv *pd)
++static int dt3155_start_acq(struct dt3155_priv *pd)
+ {
+ 	struct vb2_buffer *vb = pd->curr_buf;
+ 	dma_addr_t dma_addr;
+@@ -214,9 +207,6 @@ dt3155_start_acq(struct dt3155_priv *pd)
+ 	return 0; /* success  */
+ }
+ 
+-/*
+- *	driver-specific callbacks (vb2_ops)
+- */
+ static int
+ dt3155_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 		unsigned int *num_buffers, unsigned int *num_planes,
+@@ -239,31 +229,27 @@ dt3155_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+ 	return 0;
+ }
+ 
+-static void
+-dt3155_wait_prepare(struct vb2_queue *q)
++static void dt3155_wait_prepare(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 
+ 	mutex_unlock(pd->vdev.lock);
+ }
+ 
+-static void
+-dt3155_wait_finish(struct vb2_queue *q)
++static void dt3155_wait_finish(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 
+ 	mutex_lock(pd->vdev.lock);
+ }
+ 
+-static int
+-dt3155_buf_prepare(struct vb2_buffer *vb)
++static int dt3155_buf_prepare(struct vb2_buffer *vb)
+ {
+ 	vb2_set_plane_payload(vb, 0, img_width * img_height);
+ 	return 0;
+ }
+ 
+-static void
+-dt3155_stop_streaming(struct vb2_queue *q)
++static void dt3155_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 	struct vb2_buffer *vb;
+@@ -278,8 +264,7 @@ dt3155_stop_streaming(struct vb2_queue *q)
+ 	msleep(45); /* irq hendler will stop the hardware */
+ }
+ 
+-static void
+-dt3155_buf_queue(struct vb2_buffer *vb)
++static void dt3155_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(vb->vb2_queue);
+ 
+@@ -293,9 +278,6 @@ dt3155_buf_queue(struct vb2_buffer *vb)
+ 	}
+ 	spin_unlock_irq(&pd->lock);
+ }
+-/*
+- *	end driver-specific callbacks
+- */
+ 
+ static const struct vb2_ops q_ops = {
+ 	.queue_setup = dt3155_queue_setup,
+@@ -306,8 +288,7 @@ static const struct vb2_ops q_ops = {
+ 	.buf_queue = dt3155_buf_queue,
+ };
+ 
+-static irqreturn_t
+-dt3155_irq_handler_even(int irq, void *dev_id)
++static irqreturn_t dt3155_irq_handler_even(int irq, void *dev_id)
+ {
+ 	struct dt3155_priv *ipd = dev_id;
+ 	struct vb2_buffer *ivb;
+@@ -325,9 +306,6 @@ dt3155_irq_handler_even(int irq, void *dev_id)
+ 	}
+ 	if ((tmp & FLD_START) && (tmp & FLD_END_ODD))
+ 		ipd->stats.start_before_end++;
+-	/*	check for corrupted fields     */
+-/*	write_i2c_reg(ipd->regs, EVEN_CSR, CSR_ERROR | CSR_DONE);	*/
+-/*	write_i2c_reg(ipd->regs, ODD_CSR, CSR_ERROR | CSR_DONE);	*/
+ 	tmp = ioread32(ipd->regs + CSR1) & (FLD_CRPT_EVEN | FLD_CRPT_ODD);
+ 	if (tmp) {
+ 		ipd->stats.corrupted_fields++;
+@@ -374,8 +352,7 @@ stop_dma:
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int
+-dt3155_open(struct file *filp)
++static int dt3155_open(struct file *filp)
+ {
+ 	int ret = 0;
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+@@ -420,8 +397,7 @@ err_alloc_queue:
+ 	return ret;
+ }
+ 
+-static int
+-dt3155_release(struct file *filp)
++static int dt3155_release(struct file *filp)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+@@ -440,8 +416,7 @@ dt3155_release(struct file *filp)
+ 	return 0;
+ }
+ 
+-static ssize_t
+-dt3155_read(struct file *filp, char __user *user, size_t size, loff_t *loff)
++static ssize_t dt3155_read(struct file *filp, char __user *user, size_t size, loff_t *loff)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 	ssize_t res;
+@@ -453,8 +428,7 @@ dt3155_read(struct file *filp, char __user *user, size_t size, loff_t *loff)
+ 	return res;
+ }
+ 
+-static unsigned int
+-dt3155_poll(struct file *filp, struct poll_table_struct *polltbl)
++static unsigned int dt3155_poll(struct file *filp, struct poll_table_struct *polltbl)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 	unsigned int res;
+@@ -465,8 +439,7 @@ dt3155_poll(struct file *filp, struct poll_table_struct *polltbl)
+ 	return res;
+ }
+ 
+-static int
+-dt3155_mmap(struct file *filp, struct vm_area_struct *vma)
++static int dt3155_mmap(struct file *filp, struct vm_area_struct *vma)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 	int res;
+@@ -488,24 +461,21 @@ static const struct v4l2_file_operations dt3155_fops = {
+ 	.mmap = dt3155_mmap,
+ };
+ 
+-static int
+-dt3155_ioc_streamon(struct file *filp, void *p, enum v4l2_buf_type type)
++static int dt3155_streamon(struct file *filp, void *p, enum v4l2_buf_type type)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_streamon(pd->q, type);
+ }
+ 
+-static int
+-dt3155_ioc_streamoff(struct file *filp, void *p, enum v4l2_buf_type type)
++static int dt3155_streamoff(struct file *filp, void *p, enum v4l2_buf_type type)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_streamoff(pd->q, type);
+ }
+ 
+-static int
+-dt3155_ioc_querycap(struct file *filp, void *p, struct v4l2_capability *cap)
++static int dt3155_querycap(struct file *filp, void *p, struct v4l2_capability *cap)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+@@ -518,8 +488,7 @@ dt3155_ioc_querycap(struct file *filp, void *p, struct v4l2_capability *cap)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_enum_fmt_vid_cap(struct file *filp, void *p, struct v4l2_fmtdesc *f)
++static int dt3155_enum_fmt_vid_cap(struct file *filp, void *p, struct v4l2_fmtdesc *f)
+ {
+ 	if (f->index >= NUM_OF_FORMATS)
+ 		return -EINVAL;
+@@ -527,8 +496,7 @@ dt3155_ioc_enum_fmt_vid_cap(struct file *filp, void *p, struct v4l2_fmtdesc *f)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_g_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
++static int dt3155_g_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
+ {
+ 	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -543,8 +511,7 @@ dt3155_ioc_g_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_try_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
++static int dt3155_try_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
+ {
+ 	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -559,68 +526,59 @@ dt3155_ioc_try_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
+ 		return -EINVAL;
+ }
+ 
+-static int
+-dt3155_ioc_s_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
++static int dt3155_s_fmt_vid_cap(struct file *filp, void *p, struct v4l2_format *f)
+ {
+-	return dt3155_ioc_g_fmt_vid_cap(filp, p, f);
++	return dt3155_g_fmt_vid_cap(filp, p, f);
+ }
+ 
+-static int
+-dt3155_ioc_reqbufs(struct file *filp, void *p, struct v4l2_requestbuffers *b)
++static int dt3155_reqbufs(struct file *filp, void *p, struct v4l2_requestbuffers *b)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_reqbufs(pd->q, b);
+ }
+ 
+-static int
+-dt3155_ioc_querybuf(struct file *filp, void *p, struct v4l2_buffer *b)
++static int dt3155_querybuf(struct file *filp, void *p, struct v4l2_buffer *b)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_querybuf(pd->q, b);
+ }
+ 
+-static int
+-dt3155_ioc_qbuf(struct file *filp, void *p, struct v4l2_buffer *b)
++static int dt3155_qbuf(struct file *filp, void *p, struct v4l2_buffer *b)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_qbuf(pd->q, b);
+ }
+ 
+-static int
+-dt3155_ioc_dqbuf(struct file *filp, void *p, struct v4l2_buffer *b)
++static int dt3155_dqbuf(struct file *filp, void *p, struct v4l2_buffer *b)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
+ 	return vb2_dqbuf(pd->q, b, filp->f_flags & O_NONBLOCK);
+ }
+ 
+-static int
+-dt3155_ioc_querystd(struct file *filp, void *p, v4l2_std_id *norm)
++static int dt3155_querystd(struct file *filp, void *p, v4l2_std_id *norm)
+ {
+ 	*norm = DT3155_CURRENT_NORM;
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_g_std(struct file *filp, void *p, v4l2_std_id *norm)
++static int dt3155_g_std(struct file *filp, void *p, v4l2_std_id *norm)
+ {
+ 	*norm = DT3155_CURRENT_NORM;
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_s_std(struct file *filp, void *p, v4l2_std_id norm)
++static int dt3155_s_std(struct file *filp, void *p, v4l2_std_id norm)
+ {
+ 	if (norm & DT3155_CURRENT_NORM)
+ 		return 0;
+ 	return -EINVAL;
+ }
+ 
+-static int
+-dt3155_ioc_enum_input(struct file *filp, void *p, struct v4l2_input *input)
++static int dt3155_enum_input(struct file *filp, void *p, struct v4l2_input *input)
+ {
+ 	if (input->index)
+ 		return -EINVAL;
+@@ -636,23 +594,20 @@ dt3155_ioc_enum_input(struct file *filp, void *p, struct v4l2_input *input)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_g_input(struct file *filp, void *p, unsigned int *i)
++static int dt3155_g_input(struct file *filp, void *p, unsigned int *i)
+ {
+ 	*i = 0;
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_s_input(struct file *filp, void *p, unsigned int i)
++static int dt3155_s_input(struct file *filp, void *p, unsigned int i)
+ {
+ 	if (i)
+ 		return -EINVAL;
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_g_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
++static int dt3155_g_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
+ {
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -665,8 +620,7 @@ dt3155_ioc_g_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
+ 	return 0;
+ }
+ 
+-static int
+-dt3155_ioc_s_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
++static int dt3155_s_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
+ {
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -680,48 +634,28 @@ dt3155_ioc_s_parm(struct file *filp, void *p, struct v4l2_streamparm *parms)
+ }
+ 
+ static const struct v4l2_ioctl_ops dt3155_ioctl_ops = {
+-	.vidioc_streamon = dt3155_ioc_streamon,
+-	.vidioc_streamoff = dt3155_ioc_streamoff,
+-	.vidioc_querycap = dt3155_ioc_querycap,
+-/*
+-	.vidioc_g_priority = dt3155_ioc_g_priority,
+-	.vidioc_s_priority = dt3155_ioc_s_priority,
+-*/
+-	.vidioc_enum_fmt_vid_cap = dt3155_ioc_enum_fmt_vid_cap,
+-	.vidioc_try_fmt_vid_cap = dt3155_ioc_try_fmt_vid_cap,
+-	.vidioc_g_fmt_vid_cap = dt3155_ioc_g_fmt_vid_cap,
+-	.vidioc_s_fmt_vid_cap = dt3155_ioc_s_fmt_vid_cap,
+-	.vidioc_reqbufs = dt3155_ioc_reqbufs,
+-	.vidioc_querybuf = dt3155_ioc_querybuf,
+-	.vidioc_qbuf = dt3155_ioc_qbuf,
+-	.vidioc_dqbuf = dt3155_ioc_dqbuf,
+-	.vidioc_querystd = dt3155_ioc_querystd,
+-	.vidioc_g_std = dt3155_ioc_g_std,
+-	.vidioc_s_std = dt3155_ioc_s_std,
+-	.vidioc_enum_input = dt3155_ioc_enum_input,
+-	.vidioc_g_input = dt3155_ioc_g_input,
+-	.vidioc_s_input = dt3155_ioc_s_input,
+-/*
+-	.vidioc_queryctrl = dt3155_ioc_queryctrl,
+-	.vidioc_g_ctrl = dt3155_ioc_g_ctrl,
+-	.vidioc_s_ctrl = dt3155_ioc_s_ctrl,
+-	.vidioc_querymenu = dt3155_ioc_querymenu,
+-	.vidioc_g_ext_ctrls = dt3155_ioc_g_ext_ctrls,
+-	.vidioc_s_ext_ctrls = dt3155_ioc_s_ext_ctrls,
+-*/
+-	.vidioc_g_parm = dt3155_ioc_g_parm,
+-	.vidioc_s_parm = dt3155_ioc_s_parm,
+-/*
+-	.vidioc_cropcap = dt3155_ioc_cropcap,
+-	.vidioc_g_crop = dt3155_ioc_g_crop,
+-	.vidioc_s_crop = dt3155_ioc_s_crop,
+-	.vidioc_enum_framesizes = dt3155_ioc_enum_framesizes,
+-	.vidioc_enum_frameintervals = dt3155_ioc_enum_frameintervals,
+-*/
++	.vidioc_streamon = dt3155_streamon,
++	.vidioc_streamoff = dt3155_streamoff,
++	.vidioc_querycap = dt3155_querycap,
++	.vidioc_enum_fmt_vid_cap = dt3155_enum_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap = dt3155_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap = dt3155_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap = dt3155_s_fmt_vid_cap,
++	.vidioc_reqbufs = dt3155_reqbufs,
++	.vidioc_querybuf = dt3155_querybuf,
++	.vidioc_qbuf = dt3155_qbuf,
++	.vidioc_dqbuf = dt3155_dqbuf,
++	.vidioc_querystd = dt3155_querystd,
++	.vidioc_g_std = dt3155_g_std,
++	.vidioc_s_std = dt3155_s_std,
++	.vidioc_enum_input = dt3155_enum_input,
++	.vidioc_g_input = dt3155_g_input,
++	.vidioc_s_input = dt3155_s_input,
++	.vidioc_g_parm = dt3155_g_parm,
++	.vidioc_s_parm = dt3155_s_parm,
+ };
+ 
+-static int
+-dt3155_init_board(struct pci_dev *pdev)
++static int dt3155_init_board(struct pci_dev *pdev)
+ {
+ 	struct dt3155_priv *pd = pci_get_drvdata(pdev);
+ 	void *buf_cpu;
+@@ -737,7 +671,7 @@ dt3155_init_board(struct pci_dev *pdev)
+ 	mmiowb();
+ 	msleep(20);
+ 
+-	/*  initializing adaper registers  */
++	/*  initializing adapter registers  */
+ 	iowrite32(FIFO_EN | SRST, pd->regs + CSR1);
+ 	mmiowb();
+ 	iowrite32(0xEEEEEE01, pd->regs + EVEN_PIXEL_FMT);
+@@ -837,8 +771,7 @@ struct dma_coherent_mem {
+ 	unsigned long	*bitmap;
+ };
+ 
+-static int
+-dt3155_alloc_coherent(struct device *dev, size_t size, int flags)
++static int dt3155_alloc_coherent(struct device *dev, size_t size, int flags)
+ {
+ 	struct dma_coherent_mem *mem;
+ 	dma_addr_t dev_base;
+@@ -878,8 +811,7 @@ out:
+ 	return 0;
+ }
+ 
+-static void
+-dt3155_free_coherent(struct device *dev)
++static void dt3155_free_coherent(struct device *dev)
+ {
+ 	struct dma_coherent_mem *mem = dev->dma_mem;
+ 
+@@ -892,8 +824,7 @@ dt3155_free_coherent(struct device *dev)
+ 	kfree(mem);
+ }
+ 
+-static int
+-dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
++static int dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ {
+ 	int err;
+ 	struct dt3155_priv *pd;
+@@ -948,8 +879,7 @@ err_req_region:
+ 	return err;
+ }
+ 
+-static void
+-dt3155_remove(struct pci_dev *pdev)
++static void dt3155_remove(struct pci_dev *pdev)
+ {
+ 	struct dt3155_priv *pd = pci_get_drvdata(pdev);
+ 
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.h b/drivers/staging/media/dt3155v4l/dt3155v4l.h
+index 96f01a0..5aeee75 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.h
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.h
+@@ -12,18 +12,12 @@
+  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+  *   GNU General Public License for more details.                          *
+  *                                                                         *
+- *   You should have received a copy of the GNU General Public License     *
+- *   along with this program; if not, write to the                         *
+- *   Free Software Foundation, Inc.,                                       *
+- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+  ***************************************************************************/
+ 
+ /*    DT3155 header file    */
+ #ifndef _DT3155_H_
+ #define _DT3155_H_
+ 
+-#ifdef __KERNEL__
+-
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
+ 
+@@ -207,6 +201,4 @@ struct dt3155_priv {
+ 	u8 csr2, config;
+ };
+ 
+-#endif /*  __KERNEL__  */
+-
+ #endif /*  _DT3155_H_  */
+-- 
+2.1.4
 
-In no way can you re-purpose the field, though.
-
-1) It is in use.
-2) If you thought it was confusing today, then that's nothing compared to the confusion
-   once you change the meaning from one kernel to another.
-
-Either keep the current meaning and improve the specification, or deprecate it: warn
-when it is non-zero and just mark it as 'don't use' in the spec.
-
-> 
->>
->> 2) We really don't know who else might be using it, or which applications might
->> be using it (a lot of work was done in gstreamer recently, I wonder if data_offset
->> support was implemented there).
->>
->> 3) You offer no alternative to this feature. Basically this is my main objection.
->> It is not at all unusual to have headers in front of the frame data. We (Cisco)
->> use it in one of our product series for example. And I suspect it is something that
->> happens especially in systems with an FPGA that does custom processing, and those
->> systems are exactly the ones that are generally not upstreamed and so are not
->> visible to us.
-> 
-> If you have a header before the image, the header probably has a format as
-> well. Some headers are device specific whereas some are more generic. The
-> SMIA standard, for example, does specify a metadata (header or footer!)
-> format.
-> 
-> It'd be useful to be able to tell the user what kind of header there is. For
-> that, the header could be located on a different plane, with a specific
-> format.
-> 
-> There's room for format information in struct v4l2_plane_pix_format but
-> hardly much else. It still would cover a number of potential use cases.
-> 
-> I might still consider making the planes independent of each other;
-> conveniently there's 8 bytes of free space in struct v4l2_pix_format_mplane
-> for alternative plane related information. It'd be nice to be able to do
-> this without an additional buffer type since that's visible in a large
-> number of other places: there's plenty of room in struct v4l2_plane for
-> any video buffer related information.
-
-Please don't confuse things: each struct v4l2_plane_pix_format relates to a
-single buffer that contains the data for that plane. If one buffer contains
-both metadata and actual image data, then that's all part of the same plane
-since it was all transferred to the buffer with the same DMA transfer.
-
-You cannot put the header/footer into separate planes since the only way to
-achieve that would be a memcpy and the header/footer would still be part of
-the actual plane data.
-
-If the metadata arrives through its own DMA channel, then I would have no
-objection to seeing that as a separate plane. But I think in general that
-might be a bad idea because such metadata may come at an earlier/later time
-compared to the image data, and usually apps want to receive things asap.
-
-I still see it as a simple problem: I have a buffer, it contains a picture
-of a given pixel format, but there may be a header and (currently not implemented)
-a footer. Header and/or footer may have a format (also not implemented yet).
-
-Applications can use the offsets to ignore all those headers/footers and just
-go straight to the image data. Or they use it to interpret the data in the
-headers/footers.
-
-Perhaps it is a total lack of imagination, but I really cannot see what else
-it is you would need. Of course, you can think of really crazy schemes, but
-then you likely need to just use a new pixelformat since it is so crazy that
-it doesn't fit into anything existing.
-
-The whole point of data_offset was that it is nuts to have to come up with a
-new pixelformat for otherwise standard pixelformats that just happen to have
-a header in front of them. You can't duplicate all pixel formats just for that.
-
-> Frame descriptors are not needed for this --- you're quite right in that.
-> But the frame descriptors, when implemented, will very probably need plane
-> specific formats in the end as not many receivers are able to separate
-> different parts of the image to different buffers.
-> 
->>
->> IMHO the functionality it provides is very much relevant, and I would like to see
->> an alternative in place before it is repurposed.
->>
->> But frankly, I really don't see why you would want to repurpose it. Adding a new
->> field (buf_offset) would do exactly what you want it to do without causing an ABI
->> change.
-> 
-> I said I ok with adding buf_offset field, but it might not be the best
-> choice we can make: it's a temporary solution for a very specific problem,
-> leaves the API with similar field names with different meanings (data_offset
-> vs. buf_offset, where the other is about the header and the other about the
-> data) and is not extensible. In addition, the size of the header is not
-> specified; it might be smaller than what's between buf_offset and
-> data_offset. Some devices produce footers as well; currently we have no way
-> to specify how they are dealt with.
-> 
-> I'd like to at least investigate if we could have something more
-> future-proof for this purpose.
-> 
-
-Proposals welcome!
-
-Regards,
-
-	Hans
