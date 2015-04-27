@@ -1,85 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38769 "EHLO
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42912 "EHLO
 	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752117AbbDBLfV (ORCPT
+	by vger.kernel.org with ESMTP id S1751252AbbD0KZR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 07:35:21 -0400
+	Mon, 27 Apr 2015 06:25:17 -0400
+Message-ID: <553E0E86.4080002@xs4all.nl>
+Date: Mon, 27 Apr 2015 12:25:10 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 2/3] cx18: fix VIDIOC_ENUMINPUT: wrong std value
-Date: Thu,  2 Apr 2015 13:34:30 +0200
-Message-Id: <1427974471-24804-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1427974471-24804-1-git-send-email-hverkuil@xs4all.nl>
-References: <1427974471-24804-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1429794192-20541-7-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/23/2015 03:03 PM, Kamil Debski wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> The added HDMI CEC framework provides a generic kernel interface for
+> HDMI CEC devices.
+> 
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> [k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
+> [k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
+> [k.debski@samsung.com: change kthread handling when setting logical
+> address]
+> [k.debski@samsung.com: code cleanup and fixes]
+> [k.debski@samsung.com: add missing CEC commands to match spec]
+> [k.debski@samsung.com: add RC framework support]
+> [k.debski@samsung.com: move and edit documentation]
+> [k.debski@samsung.com: add vendor id reporting]
+> [k.debski@samsung.com: add possibility to clear assigned logical
+> addresses]
+> [k.debski@samsung.com: documentation fixes, clenaup and expansion]
+> [k.debski@samsung.com: reorder of API structs and add reserved fields]
+> [k.debski@samsung.com: fix handling of events and fix 32/64bit timespec
+> problem]
+> [k.debski@samsung.com: add cec.h to include/uapi/linux/Kbuild]
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  Documentation/cec.txt     |  396 ++++++++++++++++
+>  drivers/media/Kconfig     |    6 +
+>  drivers/media/Makefile    |    2 +
+>  drivers/media/cec.c       | 1161 +++++++++++++++++++++++++++++++++++++++++++++
+>  include/media/cec.h       |  140 ++++++
+>  include/uapi/linux/Kbuild |    1 +
+>  include/uapi/linux/cec.h  |  303 ++++++++++++
+>  7 files changed, 2009 insertions(+)
+>  create mode 100644 Documentation/cec.txt
+>  create mode 100644 drivers/media/cec.c
+>  create mode 100644 include/media/cec.h
+>  create mode 100644 include/uapi/linux/cec.h
+> 
 
-The std field of v4l2_input is always V4L2_STD_ALL. For tuner inputs
-this should be cx->tuner_std.
+> +	case CEC_S_ADAP_LOG_ADDRS: {
+> +		struct cec_log_addrs log_addrs;
+> +
+> +		if (!(adap->capabilities & CEC_CAP_LOG_ADDRS))
+> +			return -ENOTTY;
+> +		if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
+> +			return -EFAULT;
+> +		err = cec_claim_log_addrs(adap, &log_addrs, true);
 
-This fixes a v4l2-compliance failure.
+Currently CEC_S_ADAP_LOG_ADDRS is always blocking, but since we have CEC_EVENT_READY
+I think it makes sense to just return in non-blocking mode and have cec_claim_log_addrs
+generate CEC_EVENT_READY when done. Userspace can then call G_ADAP_LOG_ADDRS to discover
+the result.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/pci/cx18/cx18-ioctl.c   | 8 ++++++++
- drivers/media/pci/cx18/cx18-streams.c | 6 +++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+What do you think?
 
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 6f8324d..35d75311 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -514,6 +514,9 @@ int cx18_s_input(struct file *file, void *fh, unsigned int inp)
- {
- 	struct cx18_open_id *id = fh2id(fh);
- 	struct cx18 *cx = id->cx;
-+	v4l2_std_id std = V4L2_STD_ALL;
-+	const struct cx18_card_video_input *card_input =
-+				cx->card->video_inputs + inp;
- 
- 	if (inp >= cx->nof_inputs)
- 		return -EINVAL;
-@@ -529,6 +532,11 @@ int cx18_s_input(struct file *file, void *fh, unsigned int inp)
- 	cx->active_input = inp;
- 	/* Set the audio input to whatever is appropriate for the input type. */
- 	cx->audio_input = cx->card->video_inputs[inp].audio_index;
-+	if (card_input->video_type == V4L2_INPUT_TYPE_TUNER)
-+		std = cx->tuner_std;
-+	cx->streams[CX18_ENC_STREAM_TYPE_MPG].video_dev.tvnorms = std;
-+	cx->streams[CX18_ENC_STREAM_TYPE_YUV].video_dev.tvnorms = std;
-+	cx->streams[CX18_ENC_STREAM_TYPE_VBI].video_dev.tvnorms = std;
- 
- 	/* prevent others from messing with the streams until
- 	   we're finished changing inputs. */
-diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
-index cf7ddaf..c82d25d 100644
---- a/drivers/media/pci/cx18/cx18-streams.c
-+++ b/drivers/media/pci/cx18/cx18-streams.c
-@@ -304,6 +304,7 @@ static void cx18_stream_init(struct cx18 *cx, int type)
- 		/* Assume the previous pixel default */
- 		s->pixelformat = V4L2_PIX_FMT_HM12;
- 		s->vb_bytes_per_frame = cx->cxhdl.height * 720 * 3 / 2;
-+		s->vb_bytes_per_line = 720;
- 	}
- }
- 
-@@ -372,7 +373,10 @@ static int cx18_prep_dev(struct cx18 *cx, int type)
- 	s->video_dev.v4l2_dev = &cx->v4l2_dev;
- 	s->video_dev.fops = &cx18_v4l2_enc_fops;
- 	s->video_dev.release = video_device_release_empty;
--	s->video_dev.tvnorms = V4L2_STD_ALL;
-+	if (cx->card->video_inputs->video_type == CX18_CARD_INPUT_VID_TUNER)
-+		s->video_dev.tvnorms = cx->tuner_std;
-+	else
-+		s->video_dev.tvnorms = V4L2_STD_ALL;
- 	s->video_dev.lock = &cx->serialize_lock;
- 	cx18_set_funcs(&s->video_dev);
- 	return 0;
--- 
-2.1.4
+Regards,
+
+	Hans
+
+> +		if (err)
+> +			return err;
+> +
+> +		if (copy_to_user(parg, &log_addrs, sizeof(log_addrs)))
+> +			return -EFAULT;
+> +		break;
+> +	}
 
