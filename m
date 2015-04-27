@@ -1,95 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45872 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025AbbDNHVb (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49670 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751909AbbD0Ctc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2015 03:21:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sun, 26 Apr 2015 22:49:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CC9EE2A00C8
+	for <linux-media@vger.kernel.org>; Mon, 27 Apr 2015 04:49:25 +0200 (CEST)
+Date: Mon, 27 Apr 2015 04:49:25 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Bin Chen <bin.chen@linaro.org>
-Subject: [PATCH] uvcvideo: Implement DMABUF exporter role
-Date: Tue, 14 Apr 2015 10:21:52 +0300
-Message-Id: <1428996112-9895-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150427024925.CC9EE2A00C8@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that videobuf2-vmalloc supports exporting buffers, add support for
-the DMABUF exporter role by plugging in the videobuf2 ioctl helper.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++++++
- drivers/media/usb/uvc/uvc_v4l2.c  | 13 +++++++++++++
- drivers/media/usb/uvc/uvcvideo.h  |  2 ++
- 3 files changed, 27 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index efb9828..61a47bbe 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -272,6 +272,18 @@ int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
- 	return ret;
- }
- 
-+int uvc_export_buffer(struct uvc_video_queue *queue,
-+		      struct v4l2_exportbuffer *exp)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_expbuf(&queue->queue, exp);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
- int uvc_dequeue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf,
- 		       int nonblocking)
- {
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index c4b1ac6..69d0180 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -723,6 +723,18 @@ static int uvc_ioctl_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	return uvc_queue_buffer(&stream->queue, buf);
- }
- 
-+static int uvc_ioctl_expbuf(struct file *file, void *fh,
-+			    struct v4l2_exportbuffer *exp)
-+{
-+	struct uvc_fh *handle = fh;
-+	struct uvc_streaming *stream = handle->stream;
-+
-+	if (!uvc_has_privileges(handle))
-+		return -EBUSY;
-+
-+	return uvc_export_buffer(&stream->queue, exp);
-+}
-+
- static int uvc_ioctl_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- {
- 	struct uvc_fh *handle = fh;
-@@ -1478,6 +1490,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
- 	.vidioc_reqbufs = uvc_ioctl_reqbufs,
- 	.vidioc_querybuf = uvc_ioctl_querybuf,
- 	.vidioc_qbuf = uvc_ioctl_qbuf,
-+	.vidioc_expbuf = uvc_ioctl_expbuf,
- 	.vidioc_dqbuf = uvc_ioctl_dqbuf,
- 	.vidioc_create_bufs = uvc_ioctl_create_bufs,
- 	.vidioc_streamon = uvc_ioctl_streamon,
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 2bd895c..180efb2 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -641,6 +641,8 @@ extern int uvc_create_buffers(struct uvc_video_queue *queue,
- 		struct v4l2_create_buffers *v4l2_cb);
- extern int uvc_queue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
-+extern int uvc_export_buffer(struct uvc_video_queue *queue,
-+		struct v4l2_exportbuffer *exp);
- extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf, int nonblocking);
- extern int uvc_queue_streamon(struct uvc_video_queue *queue,
--- 
-2.0.5
+date:		Mon Apr 27 04:00:24 CEST 2015
+git branch:	test
+git hash:	e183201b9e917daf2530b637b2f34f1d5afb934d
+gcc version:	i686-linux-gcc (GCC) 4.9.1
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-0.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
