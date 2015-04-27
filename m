@@ -1,125 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint4.medctr.ucla.edu ([149.142.76.15]:51745 "EHLO
-	proofpoint8.medctr.ucla.edu" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750801AbbDHE2w convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 00:28:52 -0400
-From: "Furst, Daniel, M.D." <DEFurst@mednet.ucla.edu>
-Subject: Update Your Account
-Date: Wed, 8 Apr 2015 03:42:50 +0000
-Message-ID: <76DC72791D629D48A9E62C1AC11AE6F43AC022EE@SOPEXMB2.ad.medctr.ucla.edu>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37246 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752657AbbD0HaP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2015 03:30:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/5] radio-bcm2048: fix compiler warning
+Date: Mon, 27 Apr 2015 09:29:55 +0200
+Message-Id: <1430119795-16527-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Account Owner, Your mailbox have exceed 3.5 MB set by the administrator, you will not be able to send or receive mail ,
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+radio-bcm2048.c: In function 'bcm2048_i2c_driver_probe':
+radio-bcm2048.c:2597:11: warning: variable 'skip_release' set but not used [-Wunused-but-set-variable]
+  int err, skip_release = 0;
+             ^
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index bd50fb2..dbed3a2 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2594,7 +2594,7 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+ {
+ 	struct bcm2048_device *bdev;
+-	int err, skip_release = 0;
++	int err;
+ 
+ 	bdev = kzalloc(sizeof(*bdev), GFP_KERNEL);
+ 	if (!bdev) {
+@@ -2647,7 +2647,6 @@ free_sysfs:
+ 	bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
+ free_registration:
+ 	video_unregister_device(&bdev->videodev);
+-	skip_release = 1;
+ free_irq:
+ 	if (client->irq)
+ 		free_irq(client->irq, bdev);
+-- 
+2.1.4
 
-except you re-validates your account
-
-by clicking on the link < http://owamesca.pixub.com/upgrad.html > and complete the required details and click on submit button.
-
-Note: Failure to comply may result to lose of your Webmail account within 24 hours.
-
-
-Thanks Webmail
-System Administrator.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-________________________________
-
-IMPORTANT WARNING: This email (and any attachments) is only intended for the use of the person or entity to which it is addressed, and may contain information that is privileged and confidential. You, the recipient, are obligated to maintain it in a safe, secure and confidential manner. Unauthorized redisclosure or failure to maintain confidentiality may subject you to federal and state penalties. If you are not the intended recipient, please immediately notify us by return email, and delete this message from your computer.
