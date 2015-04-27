@@ -1,38 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:33824 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778AbbD3KWT (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53533 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752619AbbD0Lp1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 06:22:19 -0400
-Received: by laat2 with SMTP id t2so40560470laa.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Apr 2015 03:22:18 -0700 (PDT)
+	Mon, 27 Apr 2015 07:45:27 -0400
+Message-ID: <553E2150.8060304@xs4all.nl>
+Date: Mon, 27 Apr 2015 13:45:20 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2a685cc104d1621c0519b35555d562f9d2d29cbd.1430222388.git.mchehab@osg.samsung.com>
-References: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
- <2a685cc104d1621c0519b35555d562f9d2d29cbd.1430222388.git.mchehab@osg.samsung.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 30 Apr 2015 11:21:47 +0100
-Message-ID: <CA+V-a8uHygDaVjoTfsDw1fUTwU4nDkf5iQ-bhFneKRG-hs+ecA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] am437x: remove unused variable
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Benoit Parrot <bparrot@ti.com>
-Content-Type: text/plain; charset=UTF-8
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com> <553DFFCF.5070608@xs4all.nl>
+In-Reply-To: <553DFFCF.5070608@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 28, 2015 at 12:59 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> drivers/media/platform/am437x/am437x-vpfe.c: In function 'vpfe_get_subdev_input_index':
-> drivers/media/platform/am437x/am437x-vpfe.c:1679:27: warning: variable 'sdinfo' set but not used [-Wunused-but-set-variable]
->   struct vpfe_subdev_info *sdinfo;
->                            ^
->
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On 04/27/2015 11:22 AM, Hans Verkuil wrote:
+> Hi Kamil,
+> 
+> Sorry for all the replies, but I'm writing the DocBook documentation, so
+> whenever I find something missing I'll just reply to this patch.
+>> +/* The CEC version */
+> 
+> Add support for version 1.3a here:
+> 
+> #define CEC_VERSION_1_3A		4
+> 
+>> +#define CEC_VERSION_1_4B		5
 
-Cheers,
---Prabhakar Lad
+Hmm, reading up on this I see that '5' is used for HDMI 1.4, 1.4a or 1.4b.
+
+I think it should be renamed to VERSION_1_4 (i.e. drop the 'B').
+
+Regards,
+
+	Hans
+
+>> +#define CEC_VERSION_2_0			6
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
