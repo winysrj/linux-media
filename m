@@ -1,139 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60039 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766AbbD3OIy (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:43928 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932395AbbD0MSb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH 10/22] saa7134-alsa: use pr_debug() instead of printk
-Date: Thu, 30 Apr 2015 11:08:30 -0300
-Message-Id: <e9d606a1bff5206c81f62aa42d3e2a43ba3782b8.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+	Mon, 27 Apr 2015 08:18:31 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	'Hans Verkuil' <hansverk@cisco.com>
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com>
+ <1429794192-20541-7-git-send-email-k.debski@samsung.com>
+ <553E0E86.4080002@xs4all.nl> <553E1D1A.9020503@xs4all.nl>
+In-reply-to: <553E1D1A.9020503@xs4all.nl>
+Subject: RE: [PATCH v4 06/10] cec: add HDMI CEC framework
+Date: Mon, 27 Apr 2015 14:18:27 +0200
+Message-id: <"08ee01d080e4$44c4c770$ce4e5650$@debski"@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On saa7134-alsa, there is just one printk macro that use a
-different debug level.
+Hi Hans,
 
-It should be easy to enable/disable this one using dynamic_printk,
-if one need to individually control it.
+Thank you so much for all today's comments. I will consider them when
+preparing the next version.
 
-So, this module can easily use pr_debug() instead of using its
-own macros.
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+owner@vger.kernel.org] On Behalf Of Hans Verkuil
+Sent: Monday, April 27, 2015 1:27 PM
+> 
+> On 04/27/2015 12:25 PM, Hans Verkuil wrote:
+> > On 04/23/2015 03:03 PM, Kamil Debski wrote:
+> >> From: Hans Verkuil <hansverk@cisco.com>
+> >>
+> >> The added HDMI CEC framework provides a generic kernel interface for
+> >> HDMI CEC devices.
+> >>
+> >> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> >> [k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
+> >> [k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
+> >> [k.debski@samsung.com: change kthread handling when setting logical
+> >> address]
+> >> [k.debski@samsung.com: code cleanup and fixes]
+> >> [k.debski@samsung.com: add missing CEC commands to match spec]
+> >> [k.debski@samsung.com: add RC framework support]
+> >> [k.debski@samsung.com: move and edit documentation]
+> >> [k.debski@samsung.com: add vendor id reporting]
+> >> [k.debski@samsung.com: add possibility to clear assigned logical
+> >> addresses]
+> >> [k.debski@samsung.com: documentation fixes, clenaup and expansion]
+> >> [k.debski@samsung.com: reorder of API structs and add reserved
+> >> fields]
+> >> [k.debski@samsung.com: fix handling of events and fix 32/64bit
+> >> timespec problem]
+> >> [k.debski@samsung.com: add cec.h to include/uapi/linux/Kbuild]
+> >> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> >> ---
+> >>  Documentation/cec.txt     |  396 ++++++++++++++++
+> >>  drivers/media/Kconfig     |    6 +
+> >>  drivers/media/Makefile    |    2 +
+> >>  drivers/media/cec.c       | 1161
+> +++++++++++++++++++++++++++++++++++++++++++++
+> >>  include/media/cec.h       |  140 ++++++
+> >>  include/uapi/linux/Kbuild |    1 +
+> >>  include/uapi/linux/cec.h  |  303 ++++++++++++
+> >>  7 files changed, 2009 insertions(+)
+> >>  create mode 100644 Documentation/cec.txt  create mode 100644
+> >> drivers/media/cec.c  create mode 100644 include/media/cec.h  create
+> >> mode 100644 include/uapi/linux/cec.h
+> >>
+> >
+> >> +	case CEC_S_ADAP_LOG_ADDRS: {
+> >> +		struct cec_log_addrs log_addrs;
+> >> +
+> >> +		if (!(adap->capabilities & CEC_CAP_LOG_ADDRS))
+> >> +			return -ENOTTY;
+> >> +		if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
+> >> +			return -EFAULT;
+> >> +		err = cec_claim_log_addrs(adap, &log_addrs, true);
+> >
+> > Currently CEC_S_ADAP_LOG_ADDRS is always blocking, but since we have
+> > CEC_EVENT_READY I think it makes sense to just return in non-blocking
+> > mode and have cec_claim_log_addrs generate CEC_EVENT_READY when done.
+> > Userspace can then call G_ADAP_LOG_ADDRS to discover the result.
+> >
+> > What do you think?
+> >
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I am looking into this now. If I see this correctly this involves:
+- adding cec_post_event(cla_int->adap, CEC_EVENT_READY); to
+cec_config_thread_func
+- adding O_NONBLOCK check in CEC_S_ADAP_LOG_ADDRS 
+Right?
+ 
+> On a related topic: non-blocking behavior for CEC_RECEIVE is well
+> defined, but for CEC_TRA NSMIT it isn't. If reply == 0, then we need a
+> way to inform userspace that the transmit finished (with a possible
+> non-zero status code). An event would be suitable for that, but we
+> would need a way to associate a transmit message with the event.
+> 
+> One possibility might be to have the CEC framework assign a sequence
+> number to a transmit message which is returned by CEC_TRANSMIT and used
+> in the event.
+> 
+> If reply != 0, then I think the received message should be queued up in
+> the receive queue, but with a non-zero reply field and with the
+> sequence number of the transmit message it is a reply of.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-alsa.c b/drivers/media/pci/saa7134/saa7134-alsa.c
-index f8764a4c2f15..4199fbf9bc44 100644
---- a/drivers/media/pci/saa7134/saa7134-alsa.c
-+++ b/drivers/media/pci/saa7134/saa7134-alsa.c
-@@ -32,10 +32,6 @@
- #include <linux/interrupt.h>
- #include <linux/vmalloc.h>
- 
--static unsigned int debug;
--module_param(debug, int, 0644);
--MODULE_PARM_DESC(debug,"enable debug messages [alsa]");
--
- /*
-  * Configuration macros
-  */
-@@ -57,11 +53,6 @@ module_param_array(enable, int, NULL, 0444);
- MODULE_PARM_DESC(index, "Index value for SAA7134 capture interface(s).");
- MODULE_PARM_DESC(enable, "Enable (or not) the SAA7134 capture interface(s).");
- 
--#define dprintk(fmt, arg...)    if (debug) \
--	printk(KERN_DEBUG "%s/alsa: " fmt, dev->name , ##arg)
--
--
--
- /*
-  * Main chip structure
-  */
-@@ -149,11 +140,11 @@ static void saa7134_irq_alsa_done(struct saa7134_dev *dev,
- 
- 	spin_lock(&dev->slock);
- 	if (UNSET == dev->dmasound.dma_blk) {
--		dprintk("irq: recording stopped\n");
-+		pr_debug("irq: recording stopped\n");
- 		goto done;
- 	}
- 	if (0 != (status & 0x0f000000))
--		dprintk("irq: lost %ld\n", (status >> 24) & 0x0f);
-+		pr_debug("irq: lost %ld\n", (status >> 24) & 0x0f);
- 	if (0 == (status & 0x10000000)) {
- 		/* odd */
- 		if (0 == (dev->dmasound.dma_blk & 0x01))
-@@ -164,13 +155,13 @@ static void saa7134_irq_alsa_done(struct saa7134_dev *dev,
- 			reg = SAA7134_RS_BA2(6);
- 	}
- 	if (0 == reg) {
--		dprintk("irq: field oops [%s]\n",
-+		pr_debug("irq: field oops [%s]\n",
- 			(status & 0x10000000) ? "even" : "odd");
- 		goto done;
- 	}
- 
- 	if (dev->dmasound.read_count >= dev->dmasound.blksize * (dev->dmasound.blocks-2)) {
--		dprintk("irq: overrun [full=%d/%d] - Blocks in %d\n",dev->dmasound.read_count,
-+		pr_debug("irq: overrun [full=%d/%d] - Blocks in %d\n",dev->dmasound.read_count,
- 			dev->dmasound.bufsize, dev->dmasound.blocks);
- 		spin_unlock(&dev->slock);
- 		snd_pcm_stop_xrun(dev->dmasound.substream);
-@@ -180,10 +171,9 @@ static void saa7134_irq_alsa_done(struct saa7134_dev *dev,
- 	/* next block addr */
- 	next_blk = (dev->dmasound.dma_blk + 2) % dev->dmasound.blocks;
- 	saa_writel(reg,next_blk * dev->dmasound.blksize);
--	if (debug > 2)
--		dprintk("irq: ok, %s, next_blk=%d, addr=%x, blocks=%u, size=%u, read=%u\n",
--			(status & 0x10000000) ? "even" : "odd ", next_blk,
--			next_blk * dev->dmasound.blksize, dev->dmasound.blocks, dev->dmasound.blksize, dev->dmasound.read_count);
-+	pr_debug("irq: ok, %s, next_blk=%d, addr=%x, blocks=%u, size=%u, read=%u\n",
-+		(status & 0x10000000) ? "even" : "odd ", next_blk,
-+		next_blk * dev->dmasound.blksize, dev->dmasound.blocks, dev->dmasound.blksize, dev->dmasound.read_count);
- 
- 	/* update status & wake waiting readers */
- 	dev->dmasound.dma_blk = (dev->dmasound.dma_blk + 1) % dev->dmasound.blocks;
-@@ -233,7 +223,7 @@ static irqreturn_t saa7134_alsa_irq(int irq, void *dev_id)
- 	}
- 
- 	if (loop == 10) {
--		dprintk("error! looping IRQ!");
-+		pr_debug("error! looping IRQ!");
- 	}
- 
- out:
-@@ -281,11 +271,11 @@ static int saa7134_alsa_dma_init(struct saa7134_dev *dev, int nr_pages)
- 
- 	dma->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
- 	if (NULL == dma->vaddr) {
--		dprintk("vmalloc_32(%d pages) failed\n", nr_pages);
-+		pr_debug("vmalloc_32(%d pages) failed\n", nr_pages);
- 		return -ENOMEM;
- 	}
- 
--	dprintk("vmalloc is at addr 0x%08lx, size=%d\n",
-+	pr_debug("vmalloc is at addr 0x%08lx, size=%d\n",
- 				(unsigned long)dma->vaddr,
- 				nr_pages << PAGE_SHIFT);
- 
-@@ -572,7 +562,7 @@ static int snd_card_saa7134_capture_prepare(struct snd_pcm_substream * substream
- 		break;
- 	}
- 
--	dprintk("rec_start: afmt=%d ch=%d  =>  fmt=0x%x swap=%c\n",
-+	pr_debug("rec_start: afmt=%d ch=%d  =>  fmt=0x%x swap=%c\n",
- 		runtime->format, runtime->channels, fmt,
- 		bswap ? 'b' : '-');
- 	/* dma: setup channel 6 (= AUDIO) */
+A sequence number is a good solution, I believe. To recap:
+- a sequence number should be set by the framework and returned in the
+CEC_TRANSMIT ioctl
+- a new event should be added CEC_EVENT_TX_DONE and it should be posted on
+each transmission
+  finish 
+- event struct has to include a sequence field as well
+Is this ok?
+
+> 
+> Regards,
+> 
+> 	Hans
+
+Best wishes,
 -- 
-2.1.0
+Kamil Debski
+Samsung R&D Institute Poland
 
