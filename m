@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps0.lunn.ch ([178.209.37.122]:37088 "EHLO vps0.lunn.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335AbbDDAVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 20:21:34 -0400
-Date: Sat, 4 Apr 2015 02:17:29 +0200
-From: Andrew Lunn <andrew@lunn.ch>
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Gregory Clement <gregory.clement@free-electrons.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Subject: Re: [PATCH 10/14] ARM: orion: use clkdev_create()
-Message-ID: <20150404001729.GA14824@lunn.ch>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
- <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41151 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753103AbbD0P4v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2015 11:56:51 -0400
+From: Fabien Dessenne <fabien.dessenne@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 0/3] Add media bdisp driver for stihxxx platforms
+Date: Mon, 27 Apr 2015 17:56:41 +0200
+Message-ID: <1430150204-22944-1-git-send-email-fabien.dessenne@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <E1Ye59d-0001BZ-Sv@rmk-PC.arm.linux.org.uk>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 03, 2015 at 06:13:13PM +0100, Russell King wrote:
-> clkdev_create() is a shorter way to write clkdev_alloc() followed by
-> clkdev_add().  Use this instead.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+This series of patches adds the support of v4l2 2D blitter driver for
+STMicroelectronics SOC.
 
-Acked-by: Andrew Lunn <andrew@lunn.ch>
+The following features are supported and tested:
+- Color format conversion (RGB32, RGB24, RGB16, NV12, YUV420P)
+- Copy
+- Scale
+- Flip
+- Deinterlace
+- Wide (4K) picture support
+- Crop
 
-	  Andrew
+This driver uses the v4l2 mem2mem framework and its implementation was largely
+inspired by the Exynos G-Scaler (exynos-gsc) driver.
 
-> ---
->  arch/arm/plat-orion/common.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
-> index f5b00f41c4f6..2235081a04ee 100644
-> --- a/arch/arm/plat-orion/common.c
-> +++ b/arch/arm/plat-orion/common.c
-> @@ -28,11 +28,7 @@
->  void __init orion_clkdev_add(const char *con_id, const char *dev_id,
->  			     struct clk *clk)
->  {
-> -	struct clk_lookup *cl;
-> -
-> -	cl = clkdev_alloc(clk, con_id, dev_id);
-> -	if (cl)
-> -		clkdev_add(cl);
-> +	clkdev_create(clk, con_id, "%s", dev_id);
->  }
->  
->  /* Create clkdev entries for all orion platforms except kirkwood.
-> -- 
-> 1.8.3.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+The driver is mainly implemented across two files:
+- bdisp-v4l2.c
+- bdisp-hw.c
+bdisp-v4l2.c uses v4l2_m2m to manage the V4L2 interface with the userland. It
+calls the HW services that are implemented in bdisp-hw.c.
+
+The additional bdisp-debug.c file manages some debugfs entries.
+
+Fabien Dessenne (3):
+  [media] bdisp: add DT bindings documentation
+  [media] bdisp: 2D blitter driver using v4l2 mem2mem framework
+  [media] bdisp: add debug file system
+
+ .../devicetree/bindings/media/st,stih4xx.txt       |   32 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/bdisp/Kconfig               |    9 +
+ drivers/media/platform/bdisp/Makefile              |    3 +
+ drivers/media/platform/bdisp/bdisp-debug.c         |  668 +++++++++
+ drivers/media/platform/bdisp/bdisp-filter.h        |  346 +++++
+ drivers/media/platform/bdisp/bdisp-hw.c            |  823 +++++++++++
+ drivers/media/platform/bdisp/bdisp-reg.h           |  235 +++
+ drivers/media/platform/bdisp/bdisp-v4l2.c          | 1492 ++++++++++++++++++++
+ drivers/media/platform/bdisp/bdisp.h               |  220 +++
+ 11 files changed, 3840 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
+ create mode 100644 drivers/media/platform/bdisp/Kconfig
+ create mode 100644 drivers/media/platform/bdisp/Makefile
+ create mode 100644 drivers/media/platform/bdisp/bdisp-debug.c
+ create mode 100644 drivers/media/platform/bdisp/bdisp-filter.h
+ create mode 100644 drivers/media/platform/bdisp/bdisp-hw.c
+ create mode 100644 drivers/media/platform/bdisp/bdisp-reg.h
+ create mode 100644 drivers/media/platform/bdisp/bdisp-v4l2.c
+ create mode 100644 drivers/media/platform/bdisp/bdisp.h
+
+-- 
+1.9.1
+
