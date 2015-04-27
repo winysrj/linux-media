@@ -1,50 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43411 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965457AbbD1MAD (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44326 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752622AbbD0HaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 08:00:03 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Benoit Parrot <bparrot@ti.com>
-Subject: [PATCH 3/3] am437x: remove unused variable
-Date: Tue, 28 Apr 2015 08:59:56 -0300
-Message-Id: <2a685cc104d1621c0519b35555d562f9d2d29cbd.1430222388.git.mchehab@osg.samsung.com>
-In-Reply-To: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
-References: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
-In-Reply-To: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
-References: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
+	Mon, 27 Apr 2015 03:30:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/5] cx24123/mb86a20s/s921: fix compiler warnings
+Date: Mon, 27 Apr 2015 09:29:53 +0200
+Message-Id: <1430119795-16527-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430119795-16527-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/am437x/am437x-vpfe.c: In function 'vpfe_get_subdev_input_index':
-drivers/media/platform/am437x/am437x-vpfe.c:1679:27: warning: variable 'sdinfo' set but not used [-Wunused-but-set-variable]
-  struct vpfe_subdev_info *sdinfo;
-                           ^
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Benoit Parrot <bparrot@ti.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In file included from drivers/media/common/b2c2/flexcop-fe-tuner.c:13:0:
+drivers/media/dvb-frontends/cx24123.h:54:2: warning: 'cx24123_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
+  cx24123_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+  ^
+In file included from drivers/media/usb/em28xx/em28xx-dvb.c:46:0:
+drivers/media/dvb-frontends/s921.h:40:2: warning: 's921_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
+  s921_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+  ^
+In file included from drivers/media/usb/em28xx/em28xx-dvb.c:55:0:
+drivers/media/dvb-frontends/mb86a20s.h:49:2: warning: 'mb86a20s_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
+  mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+  ^
+In file included from drivers/media/usb/cx231xx/cx231xx-dvb.c:35:0:
+drivers/media/dvb-frontends/mb86a20s.h:49:2: warning: 'mb86a20s_get_tuner_i2c_adapter' defined but not used [-Wunused-function]
+  mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+  ^
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 57c8a653da4a..73359652e486 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1675,12 +1675,9 @@ vpfe_get_subdev_input_index(struct vpfe_device *vpfe,
- 			    int *subdev_input_index,
- 			    int app_input_index)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-frontends/cx24123.h  | 2 +-
+ drivers/media/dvb-frontends/mb86a20s.h | 2 +-
+ drivers/media/dvb-frontends/s921.h     | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/cx24123.h b/drivers/media/dvb-frontends/cx24123.h
+index 758aee5..975f3c9 100644
+--- a/drivers/media/dvb-frontends/cx24123.h
++++ b/drivers/media/dvb-frontends/cx24123.h
+@@ -50,7 +50,7 @@ static inline struct dvb_frontend *cx24123_attach(
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+-static struct i2c_adapter *
++static inline struct i2c_adapter *
+ 	cx24123_get_tuner_i2c_adapter(struct dvb_frontend *fe)
  {
--	struct vpfe_config *cfg = vpfe->cfg;
--	struct vpfe_subdev_info *sdinfo;
- 	int i, j = 0;
- 
- 	for (i = 0; i < ARRAY_SIZE(vpfe->cfg->asd); i++) {
--		sdinfo = &cfg->sub_devs[i];
- 		if (app_input_index < (j + 1)) {
- 			*subdev_index = i;
- 			*subdev_input_index = app_input_index - j;
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+diff --git a/drivers/media/dvb-frontends/mb86a20s.h b/drivers/media/dvb-frontends/mb86a20s.h
+index f749c8a..a113282 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.h
++++ b/drivers/media/dvb-frontends/mb86a20s.h
+@@ -45,7 +45,7 @@ static inline struct dvb_frontend *mb86a20s_attach(
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+-static struct i2c_adapter *
++static inline struct i2c_adapter *
+ 	mb86a20s_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+diff --git a/drivers/media/dvb-frontends/s921.h b/drivers/media/dvb-frontends/s921.h
+index 7d3999a..f5b722d 100644
+--- a/drivers/media/dvb-frontends/s921.h
++++ b/drivers/media/dvb-frontends/s921.h
+@@ -36,7 +36,7 @@ static inline struct dvb_frontend *s921_attach(
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+-static struct i2c_adapter *
++static inline struct i2c_adapter *
+ 	s921_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 -- 
-2.1.0
+2.1.4
 
