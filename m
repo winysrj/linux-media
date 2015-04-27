@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50273 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752619AbbD0L1d (ORCPT
+Received: from mail-wi0-f193.google.com ([209.85.212.193]:33549 "EHLO
+	mail-wi0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683AbbD0AY2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 07:27:33 -0400
-Message-ID: <553E1D1A.9020503@xs4all.nl>
-Date: Mon, 27 Apr 2015 13:27:22 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 26 Apr 2015 20:24:28 -0400
+Received: by wivz2 with SMTP id z2so10388600wiv.0
+        for <linux-media@vger.kernel.org>; Sun, 26 Apr 2015 17:24:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v4 06/10] cec: add HDMI CEC framework
-References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <1429794192-20541-7-git-send-email-k.debski@samsung.com> <553E0E86.4080002@xs4all.nl>
-In-Reply-To: <553E0E86.4080002@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Reply-To: info.meridianfinancialservices@gmail.com
+Date: Mon, 27 Apr 2015 01:24:26 +0100
+Message-ID: <CAJ=sVMZx-J8Syfu2yKt9JumXABuv_pi=u-UKOXGXG-666sN6cg@mail.gmail.com>
+Subject: =?UTF-8?B?SmVsZW50a2V6emVuIG1vc3Qga8Opc3pww6lueiBrw7ZsY3PDtm4=?=
+From: Meridian services <meridianservices02@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/27/2015 12:25 PM, Hans Verkuil wrote:
-> On 04/23/2015 03:03 PM, Kamil Debski wrote:
->> From: Hans Verkuil <hansverk@cisco.com>
->>
->> The added HDMI CEC framework provides a generic kernel interface for
->> HDMI CEC devices.
->>
->> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->> [k.debski@samsung.com: Merged CEC Updates commit by Hans Verkuil]
->> [k.debski@samsung.com: Merged Update author commit by Hans Verkuil]
->> [k.debski@samsung.com: change kthread handling when setting logical
->> address]
->> [k.debski@samsung.com: code cleanup and fixes]
->> [k.debski@samsung.com: add missing CEC commands to match spec]
->> [k.debski@samsung.com: add RC framework support]
->> [k.debski@samsung.com: move and edit documentation]
->> [k.debski@samsung.com: add vendor id reporting]
->> [k.debski@samsung.com: add possibility to clear assigned logical
->> addresses]
->> [k.debski@samsung.com: documentation fixes, clenaup and expansion]
->> [k.debski@samsung.com: reorder of API structs and add reserved fields]
->> [k.debski@samsung.com: fix handling of events and fix 32/64bit timespec
->> problem]
->> [k.debski@samsung.com: add cec.h to include/uapi/linux/Kbuild]
->> Signed-off-by: Kamil Debski <k.debski@samsung.com>
->> ---
->>  Documentation/cec.txt     |  396 ++++++++++++++++
->>  drivers/media/Kconfig     |    6 +
->>  drivers/media/Makefile    |    2 +
->>  drivers/media/cec.c       | 1161 +++++++++++++++++++++++++++++++++++++++++++++
->>  include/media/cec.h       |  140 ++++++
->>  include/uapi/linux/Kbuild |    1 +
->>  include/uapi/linux/cec.h  |  303 ++++++++++++
->>  7 files changed, 2009 insertions(+)
->>  create mode 100644 Documentation/cec.txt
->>  create mode 100644 drivers/media/cec.c
->>  create mode 100644 include/media/cec.h
->>  create mode 100644 include/uapi/linux/cec.h
->>
-> 
->> +	case CEC_S_ADAP_LOG_ADDRS: {
->> +		struct cec_log_addrs log_addrs;
->> +
->> +		if (!(adap->capabilities & CEC_CAP_LOG_ADDRS))
->> +			return -ENOTTY;
->> +		if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
->> +			return -EFAULT;
->> +		err = cec_claim_log_addrs(adap, &log_addrs, true);
-> 
-> Currently CEC_S_ADAP_LOG_ADDRS is always blocking, but since we have CEC_EVENT_READY
-> I think it makes sense to just return in non-blocking mode and have cec_claim_log_addrs
-> generate CEC_EVENT_READY when done. Userspace can then call G_ADAP_LOG_ADDRS to discover
-> the result.
-> 
-> What do you think?
-> 
+-- 
+FIGYELEM !!!,
 
-On a related topic: non-blocking behavior for CEC_RECEIVE is well defined, but for
-CEC_TRANSMIT it isn't. If reply == 0, then we need a way to inform userspace that
-the transmit finished (with a possible non-zero status code). An event would be
-suitable for that, but we would need a way to associate a transmit message with
-the event.
+Ha keres egy kölcsön, üzleti hitelek,
+személyi kölcsön, lakáshitel, autó hitel, diákhitel,
+adósság konszolidációs hitelt, fedezetlen hitel, kockázati
+tőke, stb ... és akkor már elutasították a bankok
+és más pénzügyi intézmények és vállalatok,
 
-One possibility might be to have the CEC framework assign a sequence number to
-a transmit message which is returned by CEC_TRANSMIT and used in the event.
+akkor ne keressen tovább, mert itt van a megoldás.
+Mi egy privát pénzügyi szolgáltató cég, és mi kölcsönöket nyújtanak
+vállalkozások és a magánszemélyek nagyon alacsony kamatláb 3%.
 
-If reply != 0, then I think the received message should be queued up in the
-receive queue, but with a non-zero reply field and with the sequence number of the
-transmit message it is a reply of.
+Írjon nekünk ma e-mailben: info.meridianfinancialservices@gmail.com
 
-Regards,
+töltse ki is a hitel alábbi jelentkezési lapot.
 
-	Hans
+Hitelkérelmi.
+
+A teljes neved: .........
+Nem: ............
+Születési dátum ..........
+Foglalkozás: ....................
+ország: ............
+állapotban: ..............
+város: ....................
+cím: ....................
+otthoni telefon: ...............
+Irodai telefon: ................
+Fax: ..............
+
+hitelösszeg szükséges: ................
+Hossza Hitel: ...............
+Havi bevétel: ...............
+A pontos dátumot a hitel van szükség: ........
+
+Megjegyzés: Ezek az adatok feldolgozásához szükséges a kívánt hitelösszeg.
+
+Köszönöm.
