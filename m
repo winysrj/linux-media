@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:37636 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891AbbD3Q54 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 12:57:56 -0400
-Date: Thu, 30 Apr 2015 10:59:10 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 08/27] ov7670: check read error also for REG_AECHH on
- ov7670_s_exp()
-Message-ID: <20150430105910.1c12af50@lwn.net>
-In-Reply-To: <ff849563e43277ddf2cf83309963c74ca4428f7d.1430348725.git.mchehab@osg.samsung.com>
-References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
-	<ff849563e43277ddf2cf83309963c74ca4428f7d.1430348725.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:41786 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031075AbbD1XGj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 19:06:39 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	stable@vger.kernel.org
+Subject: [PATCH 08/13] cx24116: fix a buffer overflow when checking userspace params
+Date: Tue, 28 Apr 2015 20:06:15 -0300
+Message-Id: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
+In-Reply-To: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
+References: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 29 Apr 2015 20:05:53 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+The maximum size for a DiSEqC command is 6, according to the
+userspace API. However, the code allows to write up much more values:
+	drivers/media/dvb-frontends/cx24116.c:983 cx24116_send_diseqc_msg() error: buffer overflow 'd->msg' 6 <= 23
 
-> ov7670_s_exp() checks read error for 2 registers: REG_COM1
-> and REG_COM8. But, although it uses the value latter, it
-> doesn't check errors on REG_AECHH read. Yet, as it is doing
-> a bitmask operation there, the read operation should succeed.
-> 
-> So, fix the code to also check if this succeeded.
-> 
-> This fixes this smatch report:
-> 	drivers/media/i2c/ov7670.c:1366 ov7670_s_exp() warn: inconsistent indenting
+Cc: stable@vger.kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-That's why I like programming in Python...:)
+diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
+index 2916d7c74a1d..7bc68b355c0b 100644
+--- a/drivers/media/dvb-frontends/cx24116.c
++++ b/drivers/media/dvb-frontends/cx24116.c
+@@ -963,6 +963,10 @@ static int cx24116_send_diseqc_msg(struct dvb_frontend *fe,
+ 	struct cx24116_state *state = fe->demodulator_priv;
+ 	int i, ret;
+ 
++	/* Validate length */
++	if (d->msg_len > sizeof(d->msg))
++                return -EINVAL;
++
+ 	/* Dump DiSEqC message */
+ 	if (debug) {
+ 		printk(KERN_INFO "cx24116: %s(", __func__);
+@@ -974,10 +978,6 @@ static int cx24116_send_diseqc_msg(struct dvb_frontend *fe,
+ 		printk(") toneburst=%d\n", toneburst);
+ 	}
+ 
+-	/* Validate length */
+-	if (d->msg_len > (CX24116_ARGLEN - CX24116_DISEQC_MSGOFS))
+-		return -EINVAL;
+-
+ 	/* DiSEqC message */
+ 	for (i = 0; i < d->msg_len; i++)
+ 		state->dsec_cmd.args[CX24116_DISEQC_MSGOFS + i] = d->msg[i];
+-- 
+2.1.0
 
-Silly mistake, good fix.
-
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
