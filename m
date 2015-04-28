@@ -1,472 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:62181 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971AbbDJU30 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:50868 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766AbbD1HUt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 16:29:26 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] [media] dvb-usb/dvb-usb-v2: use IS_REACHABLE
-Date: Fri, 10 Apr 2015 22:28:40 +0200
-Message-ID: <2280698.HtVfESyfme@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 28 Apr 2015 03:20:49 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v6 00/10] LED / flash API integration
+Date: Tue, 28 Apr 2015 09:18:40 +0200
+Message-id: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tha ARM randconfig builds came up with another rare build
-failure for the dib3000mc driver, when dibusb is built-in
-and dib3000mc is a loadable module:
+This is a sixth non-RFC version of LED / flash API integration
+series [1]. It is based on linux_next-20150427.
 
-ERROR: "dibusb_dib3000mc_frontend_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
-ERROR: "dibusb_dib3000mc_tuner_attach" [drivers/media/usb/dvb-usb/dvb-usb-nova-t-usb2.ko] undefined!
+================
+Changes since v5
+================
+- renamed v4l2-flash module to v4l2-flash-led-class and applied
+  other related modifications spotted by Sakari
+- fixed not released of_node reference in max77693-led driver
 
-Apparently this used to be a valid configuration (build-time,
-not run-time), but broke as part of a cleanup.
-I tried reverting the cleanup, but saw that the code was still
-wrong then. This tries to fix the code properly, by moving the
-problematic functions into a new file that now is built as a
-loadable module or built-in, whichever is correct for a particular
-configuration. It fixes the regression as well as the run-time
-problem that already existed before.
+================
+Changes since v4
+================
+- adapted leds-max77693 and leds-aat1290 drivers to the recent
+  modifications in leds/common.txt bindings documentation and
+  changed the behaviour when properties are missing
+- modified DT bindings documenation for the aforementioned
+  drivers
+- removed unjustified use of goto in the leds-aat1290 driver
+- fixed lack of of_node_put in leds-aat1290 driver, after parsing
+  DT child node 
+- removed patch adding 'skyworks' vendor prefix, as the entry
+  has been recently added
 
-I have also checked the two other files that were changed in
-the original cleanup, and found them to be correct in either
-version, so I do not touch that part.
+================
+Changes since v2
+================
+- improved leds/common DT bindings documentation
+- improved max77693-led DT documentation
+- fixed validation of DT confguration for leds-max77693 by
+  minimal values in joint iouts case
+- removed trigger-type property from leds-max77693 bindings
+  and adjusted the driver accordingly
+- improved LED Flash class documentation related to v4l2-flash sub-device
+  initialization
+- excluded from leds-aat1290 DT bindings documentation the part
+  related to handling external strobe sources
 
-As this is a rather obscure bug, there is no need for backports.
+================
+Changes since v1
+================
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 028c70ff42783 ("[media] dvb-usb/dvb-usb-v2: use IS_ENABLED")
----
- drivers/media/usb/dvb-usb/Kconfig            |  20 +++-
- drivers/media/usb/dvb-usb/Makefile           |   3 +
- drivers/media/usb/dvb-usb/dibusb-common.c    | 158 -------------------------
- drivers/media/usb/dvb-usb/dibusb-mc-common.c | 168 +++++++++++++++++++++++++++
- 4 files changed, 186 insertions(+), 163 deletions(-)
+- excluded exynos4-is media device related patches, as there is
+  consenus required related to flash devices handling in media device
+  DT bindings
+- modifications around LED Flash class settings and v4l2 flash config
+  initialization in LED Flash class drivers and v4l2-flash wrapper
+- switched to using DT node name as a device name for leds-max77693
+  and leds-aat1290 drivers, in case DT 'label' property is absent
+- dropped OF dependecy for v4l2-flash wrapper
+- moved LED_FAULTS definitions from led-class-flash.h to uapi/linux/leds.h
+- allowed for multiple clients of v4l2-flash sub-device
 
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 128eee61570d..8b662b3f8ac1 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -20,10 +20,20 @@ config DVB_USB_DEBUG
- 	  Say Y if you want to enable debugging. See modinfo dvb-usb (and the
- 	  appropriate drivers) for debug levels.
- 
-+config DVB_USB_DIB3000MC
-+	tristate
-+	depends on DVB_USB
-+	select DVB_DIB3000MC
-+	help
-+	  This is a module with helper functions for accessing the
-+	  DIB3000MC from USB DVB devices. It must be a separate module
-+	  in case DVB_USB is built-in and DVB_DIB3000MC is a module,
-+	  and gets selected automatically when needed.
-+
- config DVB_USB_A800
- 	tristate "AVerMedia AverTV DVB-T USB 2.0 (A800)"
- 	depends on DVB_USB
--	select DVB_DIB3000MC
-+	select DVB_USB_DIB3000MC
- 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-@@ -54,7 +64,7 @@ config DVB_USB_DIBUSB_MB_FAULTY
- config DVB_USB_DIBUSB_MC
- 	tristate "DiBcom USB DVB-T devices (based on the DiB3000M-C/P) (see help for device list)"
- 	depends on DVB_USB
--	select DVB_DIB3000MC
-+	select DVB_USB_DIB3000MC
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Support for USB2.0 DVB-T receivers based on reference designs made by
-@@ -72,7 +82,7 @@ config DVB_USB_DIB0700
- 	select DVB_DIB7000P if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_DIB7000M if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_DIB8000 if MEDIA_SUBDRV_AUTOSELECT
--	select DVB_DIB3000MC if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_USB_DIB3000MC if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_S5H1411 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_LGDT3305 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TUNER_DIB0070 if MEDIA_SUBDRV_AUTOSELECT
-@@ -99,7 +109,7 @@ config DVB_USB_UMT_010
- 	tristate "HanfTek UMT-010 DVB-T USB2.0 support"
- 	depends on DVB_USB
- 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
--	select DVB_DIB3000MC
-+	select DVB_USB_DIB3000MC
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_MT352 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-@@ -192,7 +202,7 @@ config DVB_USB_GP8PSK
- config DVB_USB_NOVA_T_USB2
- 	tristate "Hauppauge WinTV-NOVA-T usb2 DVB-T USB2.0 support"
- 	depends on DVB_USB
--	select DVB_DIB3000MC
-+	select DVB_USB_DIB3000MC
- 	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
-index acdd1efd4e74..8da26352f73b 100644
---- a/drivers/media/usb/dvb-usb/Makefile
-+++ b/drivers/media/usb/dvb-usb/Makefile
-@@ -16,6 +16,9 @@ obj-$(CONFIG_DVB_USB_DTT200U) += dvb-usb-dtt200u.o
- 
- dvb-usb-dibusb-common-objs := dibusb-common.o
- 
-+dvb-usb-dibusb-mc-common-objs := dibusb-mc-common.o
-+obj-$(CONFIG_DVB_USB_DIB3000MC)	+= dvb-usb-dibusb-mc-common.o
-+
- dvb-usb-a800-objs := a800.o
- obj-$(CONFIG_DVB_USB_A800) += dvb-usb-dibusb-common.o dvb-usb-a800.o
- 
-diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-index ef3a8f75f82e..7617ba8ac698 100644
---- a/drivers/media/usb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -184,164 +184,6 @@ int dibusb_read_eeprom_byte(struct dvb_usb_device *d, u8 offs, u8 *val)
- }
- EXPORT_SYMBOL(dibusb_read_eeprom_byte);
- 
--/* 3000MC/P stuff */
--// Config Adjacent channels  Perf -cal22
--static struct dibx000_agc_config dib3000p_mt2060_agc_config = {
--	.band_caps = BAND_VHF | BAND_UHF,
--	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
--
--	.agc1_max = 48497,
--	.agc1_min = 23593,
--	.agc2_max = 46531,
--	.agc2_min = 24904,
--
--	.agc1_pt1 = 0x65,
--	.agc1_pt2 = 0x69,
--
--	.agc1_slope1 = 0x51,
--	.agc1_slope2 = 0x27,
--
--	.agc2_pt1 = 0,
--	.agc2_pt2 = 0x33,
--
--	.agc2_slope1 = 0x35,
--	.agc2_slope2 = 0x37,
--};
--
--static struct dib3000mc_config stk3000p_dib3000p_config = {
--	&dib3000p_mt2060_agc_config,
--
--	.max_time     = 0x196,
--	.ln_adc_level = 0x1cc7,
--
--	.output_mpeg2_in_188_bytes = 1,
--
--	.agc_command1 = 1,
--	.agc_command2 = 1,
--};
--
--static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
--	.band_caps = BAND_VHF | BAND_UHF,
--	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
--
--	.agc1_max = 56361,
--	.agc1_min = 22282,
--	.agc2_max = 47841,
--	.agc2_min = 36045,
--
--	.agc1_pt1 = 0x3b,
--	.agc1_pt2 = 0x6b,
--
--	.agc1_slope1 = 0x55,
--	.agc1_slope2 = 0x1d,
--
--	.agc2_pt1 = 0,
--	.agc2_pt2 = 0x0a,
--
--	.agc2_slope1 = 0x95,
--	.agc2_slope2 = 0x1e,
--};
--
--#if IS_ENABLED(CONFIG_DVB_DIB3000MC)
--
--static struct dib3000mc_config mod3000p_dib3000p_config = {
--	&dib3000p_panasonic_agc_config,
--
--	.max_time     = 0x51,
--	.ln_adc_level = 0x1cc7,
--
--	.output_mpeg2_in_188_bytes = 1,
--
--	.agc_command1 = 1,
--	.agc_command2 = 1,
--};
--
--int dibusb_dib3000mc_frontend_attach(struct dvb_usb_adapter *adap)
--{
--	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
--	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) ==
--			USB_PID_LITEON_DVB_T_WARM) {
--		msleep(1000);
--	}
--
--	adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
--					 &adap->dev->i2c_adap,
--					 DEFAULT_DIB3000P_I2C_ADDRESS,
--					 &mod3000p_dib3000p_config);
--	if ((adap->fe_adap[0].fe) == NULL)
--		adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
--						 &adap->dev->i2c_adap,
--						 DEFAULT_DIB3000MC_I2C_ADDRESS,
--						 &mod3000p_dib3000p_config);
--	if ((adap->fe_adap[0].fe) != NULL) {
--		if (adap->priv != NULL) {
--			struct dibusb_state *st = adap->priv;
--			st->ops.pid_parse = dib3000mc_pid_parse;
--			st->ops.pid_ctrl  = dib3000mc_pid_control;
--		}
--		return 0;
--	}
--	return -ENODEV;
--}
--EXPORT_SYMBOL(dibusb_dib3000mc_frontend_attach);
--
--static struct mt2060_config stk3000p_mt2060_config = {
--	0x60
--};
--
--int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
--{
--	struct dibusb_state *st = adap->priv;
--	u8 a,b;
--	u16 if1 = 1220;
--	struct i2c_adapter *tun_i2c;
--
--	// First IF calibration for Liteon Sticks
--	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
--	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_LITEON_DVB_T_WARM) {
--
--		dibusb_read_eeprom_byte(adap->dev,0x7E,&a);
--		dibusb_read_eeprom_byte(adap->dev,0x7F,&b);
--
--		if (a == 0x00)
--			if1 += b;
--		else if (a == 0x80)
--			if1 -= b;
--		else
--			warn("LITE-ON DVB-T: Strange IF1 calibration :%2X %2X\n", a, b);
--
--	} else if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_DIBCOM &&
--		   le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_DIBCOM_MOD3001_WARM) {
--		u8 desc;
--		dibusb_read_eeprom_byte(adap->dev, 7, &desc);
--		if (desc == 2) {
--			a = 127;
--			do {
--				dibusb_read_eeprom_byte(adap->dev, a, &desc);
--				a--;
--			} while (a > 7 && (desc == 0xff || desc == 0x00));
--			if (desc & 0x80)
--				if1 -= (0xff - desc);
--			else
--				if1 += desc;
--		}
--	}
--
--	tun_i2c = dib3000mc_get_tuner_i2c_master(adap->fe_adap[0].fe, 1);
--	if (dvb_attach(mt2060_attach, adap->fe_adap[0].fe, tun_i2c, &stk3000p_mt2060_config, if1) == NULL) {
--		/* not found - use panasonic pll parameters */
--		if (dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60, tun_i2c, DVB_PLL_ENV57H1XD5) == NULL)
--			return -ENOMEM;
--	} else {
--		st->mt2060_present = 1;
--		/* set the correct parameters for the dib3000p */
--		dib3000mc_set_config(adap->fe_adap[0].fe, &stk3000p_dib3000p_config);
--	}
--	return 0;
--}
--EXPORT_SYMBOL(dibusb_dib3000mc_tuner_attach);
--#endif
--
- /*
-  * common remote control stuff
-  */
-diff --git a/drivers/media/usb/dvb-usb/dibusb-mc-common.c b/drivers/media/usb/dvb-usb/dibusb-mc-common.c
-new file mode 100644
-index 000000000000..d66f56cc46a5
---- /dev/null
-+++ b/drivers/media/usb/dvb-usb/dibusb-mc-common.c
-@@ -0,0 +1,168 @@
-+/* Common methods for dibusb-based-receivers.
-+ *
-+ * Copyright (C) 2004-5 Patrick Boettcher (patrick.boettcher@desy.de)
-+ *
-+ *	This program is free software; you can redistribute it and/or modify it
-+ *	under the terms of the GNU General Public License as published by the Free
-+ *	Software Foundation, version 2.
-+ *
-+ * see Documentation/dvb/README.dvb-usb for more information
-+ */
-+
-+#include <linux/kconfig.h>
-+#include "dibusb.h"
-+
-+/* 3000MC/P stuff */
-+// Config Adjacent channels  Perf -cal22
-+static struct dibx000_agc_config dib3000p_mt2060_agc_config = {
-+	.band_caps = BAND_VHF | BAND_UHF,
-+	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
-+
-+	.agc1_max = 48497,
-+	.agc1_min = 23593,
-+	.agc2_max = 46531,
-+	.agc2_min = 24904,
-+
-+	.agc1_pt1 = 0x65,
-+	.agc1_pt2 = 0x69,
-+
-+	.agc1_slope1 = 0x51,
-+	.agc1_slope2 = 0x27,
-+
-+	.agc2_pt1 = 0,
-+	.agc2_pt2 = 0x33,
-+
-+	.agc2_slope1 = 0x35,
-+	.agc2_slope2 = 0x37,
-+};
-+
-+static struct dib3000mc_config stk3000p_dib3000p_config = {
-+	&dib3000p_mt2060_agc_config,
-+
-+	.max_time     = 0x196,
-+	.ln_adc_level = 0x1cc7,
-+
-+	.output_mpeg2_in_188_bytes = 1,
-+
-+	.agc_command1 = 1,
-+	.agc_command2 = 1,
-+};
-+
-+static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
-+	.band_caps = BAND_VHF | BAND_UHF,
-+	.setup     = (1 << 8) | (5 << 5) | (1 << 4) | (1 << 3) | (0 << 2) | (2 << 0),
-+
-+	.agc1_max = 56361,
-+	.agc1_min = 22282,
-+	.agc2_max = 47841,
-+	.agc2_min = 36045,
-+
-+	.agc1_pt1 = 0x3b,
-+	.agc1_pt2 = 0x6b,
-+
-+	.agc1_slope1 = 0x55,
-+	.agc1_slope2 = 0x1d,
-+
-+	.agc2_pt1 = 0,
-+	.agc2_pt2 = 0x0a,
-+
-+	.agc2_slope1 = 0x95,
-+	.agc2_slope2 = 0x1e,
-+};
-+
-+static struct dib3000mc_config mod3000p_dib3000p_config = {
-+	&dib3000p_panasonic_agc_config,
-+
-+	.max_time     = 0x51,
-+	.ln_adc_level = 0x1cc7,
-+
-+	.output_mpeg2_in_188_bytes = 1,
-+
-+	.agc_command1 = 1,
-+	.agc_command2 = 1,
-+};
-+
-+int dibusb_dib3000mc_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
-+	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) ==
-+			USB_PID_LITEON_DVB_T_WARM) {
-+		msleep(1000);
-+	}
-+
-+	adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
-+					 &adap->dev->i2c_adap,
-+					 DEFAULT_DIB3000P_I2C_ADDRESS,
-+					 &mod3000p_dib3000p_config);
-+	if ((adap->fe_adap[0].fe) == NULL)
-+		adap->fe_adap[0].fe = dvb_attach(dib3000mc_attach,
-+						 &adap->dev->i2c_adap,
-+						 DEFAULT_DIB3000MC_I2C_ADDRESS,
-+						 &mod3000p_dib3000p_config);
-+	if ((adap->fe_adap[0].fe) != NULL) {
-+		if (adap->priv != NULL) {
-+			struct dibusb_state *st = adap->priv;
-+			st->ops.pid_parse = dib3000mc_pid_parse;
-+			st->ops.pid_ctrl  = dib3000mc_pid_control;
-+		}
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(dibusb_dib3000mc_frontend_attach);
-+
-+static struct mt2060_config stk3000p_mt2060_config = {
-+	0x60
-+};
-+
-+int dibusb_dib3000mc_tuner_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dibusb_state *st = adap->priv;
-+	u8 a,b;
-+	u16 if1 = 1220;
-+	struct i2c_adapter *tun_i2c;
-+
-+	// First IF calibration for Liteon Sticks
-+	if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_LITEON &&
-+	    le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_LITEON_DVB_T_WARM) {
-+
-+		dibusb_read_eeprom_byte(adap->dev,0x7E,&a);
-+		dibusb_read_eeprom_byte(adap->dev,0x7F,&b);
-+
-+		if (a == 0x00)
-+			if1 += b;
-+		else if (a == 0x80)
-+			if1 -= b;
-+		else
-+			warn("LITE-ON DVB-T: Strange IF1 calibration :%2X %2X\n", a, b);
-+
-+	} else if (le16_to_cpu(adap->dev->udev->descriptor.idVendor) == USB_VID_DIBCOM &&
-+		   le16_to_cpu(adap->dev->udev->descriptor.idProduct) == USB_PID_DIBCOM_MOD3001_WARM) {
-+		u8 desc;
-+		dibusb_read_eeprom_byte(adap->dev, 7, &desc);
-+		if (desc == 2) {
-+			a = 127;
-+			do {
-+				dibusb_read_eeprom_byte(adap->dev, a, &desc);
-+				a--;
-+			} while (a > 7 && (desc == 0xff || desc == 0x00));
-+			if (desc & 0x80)
-+				if1 -= (0xff - desc);
-+			else
-+				if1 += desc;
-+		}
-+	}
-+
-+	tun_i2c = dib3000mc_get_tuner_i2c_master(adap->fe_adap[0].fe, 1);
-+	if (dvb_attach(mt2060_attach, adap->fe_adap[0].fe, tun_i2c, &stk3000p_mt2060_config, if1) == NULL) {
-+		/* not found - use panasonic pll parameters */
-+		if (dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60, tun_i2c, DVB_PLL_ENV57H1XD5) == NULL)
-+			return -ENOMEM;
-+	} else {
-+		st->mt2060_present = 1;
-+		/* set the correct parameters for the dib3000p */
-+		dib3000mc_set_config(adap->fe_adap[0].fe, &stk3000p_dib3000p_config);
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(dibusb_dib3000mc_tuner_attach);
+======================
+Changes since RFC v13:
+======================
+
+- reduced number of patches - some of them have been merged
+- slightly modified max77693-led device naming
+- fixed issues in v4l2-flash helpers detected with yavta
+- cleaned up AAT1290 device tree documentation
+- added GPIOLIB dependecy to AAT1290 related entry in Kconfig
+
+Thanks,
+Jacek Anaszewski
+
+[1] http://www.spinics.net/lists/kernel/msg1944538.html
+
+Jacek Anaszewski (10):
+  leds: unify the location of led-trigger API
+  DT: Add documentation for the mfd Maxim max77693
+  leds: Add support for max77693 mfd flash cell
+  DT: Add documentation for the Skyworks AAT1290
+  leds: Add driver for AAT1290 flash LED controller
+  media: Add registration helpers for V4L2 flash sub-devices
+  Documentation: leds: Add description of v4l2-flash sub-device
+  leds: max77693: add support for V4L2 Flash sub-device
+  DT: aat1290: Document handling external strobe sources
+  leds: aat1290: add support for V4L2 Flash sub-device
+
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   73 ++
+ Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++
+ Documentation/leds/leds-class-flash.txt            |   47 +
+ drivers/leds/Kconfig                               |   19 +
+ drivers/leds/Makefile                              |    2 +
+ drivers/leds/leds-aat1290.c                        |  577 ++++++++++
+ drivers/leds/leds-max77693.c                       | 1104 ++++++++++++++++++++
+ drivers/leds/leds.h                                |   24 -
+ drivers/media/v4l2-core/Kconfig                    |   11 +
+ drivers/media/v4l2-core/Makefile                   |    2 +
+ drivers/media/v4l2-core/v4l2-flash-led-class.c     |  626 +++++++++++
+ include/linux/leds.h                               |   25 +
+ include/media/v4l2-flash-led-class.h               |  145 +++
+ 13 files changed, 2698 insertions(+), 24 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
+ create mode 100644 drivers/leds/leds-aat1290.c
+ create mode 100644 drivers/leds/leds-max77693.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
+ create mode 100644 include/media/v4l2-flash-led-class.h
+
+-- 
+1.7.9.5
 
