@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37315 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751208AbbD3GWN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35514 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556AbbD1IQb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 02:22:13 -0400
-Message-ID: <5541CA09.2090508@xs4all.nl>
-Date: Thu, 30 Apr 2015 08:22:01 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 28 Apr 2015 04:16:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Arnd Bergman <arnd@arndb.de>,
+	Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Subject: [GIT PULL FOR v4.1] OMAP4 ISS fix
+Date: Tue, 28 Apr 2015 11:16:48 +0300
+Message-ID: <2435047.PJ6oufUfoi@avalon>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	mjpeg-users@lists.sourceforge.net
-Subject: Re: [PATCH 09/14] zoran: fix indent
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com> <c803709a49957c2be8f0a43782cd3140b4aedf4a.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <c803709a49957c2be8f0a43782cd3140b4aedf4a.1430235781.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/28/2015 05:43 PM, Mauro Carvalho Chehab wrote:
-> As reported by smatch:
-> 	drivers/media/pci/zoran/zoran_device.c:1594 zoran_init_hardware() warn: inconsistent indenting
-> 
-> Fix indent. While here, fix CodingStyle and remove dead code, as it
-> can always be recovered from git logs.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi Mauro,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Could you please pull the following OMAP4 ISS regression fox for v4.1 ? If 
+fixes a compilation breakage due to a change in the OMAP4 API.
 
-> 
-> diff --git a/drivers/media/pci/zoran/zoran_device.c b/drivers/media/pci/zoran/zoran_device.c
-> index b6801e035ea4..40119b3c52c1 100644
-> --- a/drivers/media/pci/zoran/zoran_device.c
-> +++ b/drivers/media/pci/zoran/zoran_device.c
-> @@ -1584,14 +1584,11 @@ zoran_init_hardware (struct zoran *zr)
->  	jpeg_codec_sleep(zr, 1);
->  	jpeg_codec_sleep(zr, 0);
->  
-> -	/* set individual interrupt enables (without GIRQ1)
-> -	 * but don't global enable until zoran_open() */
-> -
-> -	//btwrite(IRQ_MASK & ~ZR36057_ISR_GIRQ1, ZR36057_ICR);  // SW
-> -	// It looks like using only JPEGRepIRQEn is not always reliable,
-> -	// may be when JPEG codec crashes it won't generate IRQ? So,
-> -	 /*CP*/			//        btwrite(IRQ_MASK, ZR36057_ICR); // Enable Vsync interrupts too. SM    WHY ? LP
-> -	    zr36057_init_vfe(zr);
-> +	/*
-> +	 * set individual interrupt enables (without GIRQ1)
-> +	 * but don't global enable until zoran_open()
-> +	 */
-> +	zr36057_init_vfe(zr);
->  
->  	zr36057_enable_jpg(zr, BUZ_MODE_IDLE);
->  
-> 
+The following changes since commit cb0c9e1f6777287e81d9b48c264d980bf5014b48:
+
+  [media] smiapp: Use v4l2_of_alloc_parse_endpoint() (2015-04-27 16:05:55 
+-0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap4iss/fixes
+
+for you to fetch changes up to 2039b0a6114b4ebc26ac261467225cc4622753ca:
+
+  v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon 
+(2015-04-28 11:06:14 +0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
+
+ drivers/staging/media/omap4iss/Kconfig      |  1 +
+ drivers/staging/media/omap4iss/iss.c        | 11 +++++++++++
+ drivers/staging/media/omap4iss/iss.h        |  4 ++++
+ drivers/staging/media/omap4iss/iss_csiphy.c | 12 +++++++-----
+ 4 files changed, 23 insertions(+), 5 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
 
