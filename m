@@ -1,82 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60048 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:59289 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbbD3OIy (ORCPT
+	with ESMTP id S1030295AbbD1PoH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:54 -0400
+	Tue, 28 Apr 2015 11:44:07 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 03/22] xirlink_cit: comment unreachable code
-Date: Thu, 30 Apr 2015 11:08:23 -0300
-Message-Id: <ac2194e10fd032a580b251c02af3967951ca0c6e.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH 12/14] ir-sony-decoder: shutup smatch warnings
+Date: Tue, 28 Apr 2015 12:43:51 -0300
+Message-Id: <c76838d663ededfbba6261dbfe8f5ec93139bfcf.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/gspca/xirlink_cit.c:1776 cit_start_model2() info: ignoring unreachable code.
-drivers/media/usb/gspca/xirlink_cit.c:1858 cit_start_model2() info: ignoring unreachable code.
-drivers/media/usb/gspca/xirlink_cit.c:1910 cit_start_model2() info: ignoring unreachable code.
+There are some false-positive warnings produced by smatch:
+	drivers/media/rc/ir-sony-decoder.c:129 ir_sony_decode() warn: missing break? reassigning 'data->state'
+	drivers/media/rc/ir-sony-decoder.c:137 ir_sony_decode() warn: missing break? reassigning 'data->state'
+	drivers/media/rc/ir-sony-decoder.c:165 ir_sony_decode() warn: missing break? reassigning 'data->state'
+
+This is due to the logic used there to detect the need of a break.
+
+While those are false positives, it is easy to get rid of them without
+any drawbacks. The side effect is a cleaner function, with is good.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/usb/gspca/xirlink_cit.c b/drivers/media/usb/gspca/xirlink_cit.c
-index a41aa7817c54..d5ed9d36ce25 100644
---- a/drivers/media/usb/gspca/xirlink_cit.c
-+++ b/drivers/media/usb/gspca/xirlink_cit.c
-@@ -1772,7 +1772,8 @@ static int cit_start_model2(struct gspca_dev *gspca_dev)
- 		cit_write_reg(gspca_dev, 0x0070, 0x0119);	/* All except 176x144 */
- 		sd->sof_len = 2;
- 		break;
--	/* case VIDEOSIZE_352x240: */
-+#if 0
-+	case VIDEOSIZE_352x240:
- 		cit_write_reg(gspca_dev, 0x002c, 0x0103);	/* All except 320x240 */
- 		cit_write_reg(gspca_dev, 0x0000, 0x0104);	/* Same */
- 		cit_write_reg(gspca_dev, 0x001e, 0x0105);	/* 320x240, 352x240 */
-@@ -1780,6 +1781,7 @@ static int cit_start_model2(struct gspca_dev *gspca_dev)
- 		cit_write_reg(gspca_dev, 0x0070, 0x0119);	/* All except 176x144 */
- 		sd->sof_len = 2;
- 		break;
-+#endif
- 	case 352: /* 352x288 */
- 		cit_write_reg(gspca_dev, 0x002c, 0x0103);	/* All except 320x240 */
- 		cit_write_reg(gspca_dev, 0x0000, 0x0104);	/* Same */
-@@ -1853,13 +1855,15 @@ static int cit_start_model2(struct gspca_dev *gspca_dev)
- 		cit_model2_Packet1(gspca_dev, 0x0018, 0x0044); /* Another hardware setting */
- 		clock_div = 8;
- 		break;
--	/* case VIDEOSIZE_352x240: */
-+#if 0
-+	case VIDEOSIZE_352x240:
- 		/* This mode doesn't work as Windows programs it; changed to work */
- 		cit_model2_Packet1(gspca_dev, 0x0014, 0x0009); /* Windows sets this to 8 */
- 		cit_model2_Packet1(gspca_dev, 0x0016, 0x0003); /* Horizontal shift */
- 		cit_model2_Packet1(gspca_dev, 0x0018, 0x0044); /* Windows sets this to 0x0045 */
- 		clock_div = 10;
- 		break;
-+#endif
- 	case 352: /* 352x288 */
- 		cit_model2_Packet1(gspca_dev, 0x0014, 0x0003);
- 		cit_model2_Packet1(gspca_dev, 0x0016, 0x0002); /* Horizontal shift */
-@@ -1906,9 +1910,11 @@ static int cit_start_model2(struct gspca_dev *gspca_dev)
- 	case 320: /* 320x240 */
- 		cit_model2_Packet1(gspca_dev, 0x0026, 0x0044);
- 		break;
--	/* case VIDEOSIZE_352x240: */
-+#if 0
-+	case VIDEOSIZE_352x240:
- 		cit_model2_Packet1(gspca_dev, 0x0026, 0x0046);
- 		break;
-+#endif
- 	case 352: /* 352x288 */
- 		cit_model2_Packet1(gspca_dev, 0x0026, 0x0048);
- 		break;
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index d12dc3da5931..58ef06f35175 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -125,30 +125,27 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 
+ 		switch (data->count) {
+ 		case 12:
+-			if (!(dev->enabled_protocols & RC_BIT_SONY12)) {
+-				data->state = STATE_INACTIVE;
+-				return 0;
+-			}
++			if (!(dev->enabled_protocols & RC_BIT_SONY12))
++				goto finish_state_machine;
++
+ 			device    = bitrev8((data->bits <<  3) & 0xF8);
+ 			subdevice = 0;
+ 			function  = bitrev8((data->bits >>  4) & 0xFE);
+ 			protocol = RC_TYPE_SONY12;
+ 			break;
+ 		case 15:
+-			if (!(dev->enabled_protocols & RC_BIT_SONY15)) {
+-				data->state = STATE_INACTIVE;
+-				return 0;
+-			}
++			if (!(dev->enabled_protocols & RC_BIT_SONY15))
++				goto finish_state_machine;
++
+ 			device    = bitrev8((data->bits >>  0) & 0xFF);
+ 			subdevice = 0;
+ 			function  = bitrev8((data->bits >>  7) & 0xFE);
+ 			protocol = RC_TYPE_SONY15;
+ 			break;
+ 		case 20:
+-			if (!(dev->enabled_protocols & RC_BIT_SONY20)) {
+-				data->state = STATE_INACTIVE;
+-				return 0;
+-			}
++			if (!(dev->enabled_protocols & RC_BIT_SONY20))
++				goto finish_state_machine;
++
+ 			device    = bitrev8((data->bits >>  5) & 0xF8);
+ 			subdevice = bitrev8((data->bits >>  0) & 0xFF);
+ 			function  = bitrev8((data->bits >> 12) & 0xFE);
+@@ -162,8 +159,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		scancode = device << 16 | subdevice << 8 | function;
+ 		IR_dprintk(1, "Sony(%u) scancode 0x%05x\n", data->count, scancode);
+ 		rc_keydown(dev, protocol, scancode, 0);
+-		data->state = STATE_INACTIVE;
+-		return 0;
++		goto finish_state_machine;
+ 	}
+ 
+ out:
+@@ -171,6 +167,10 @@ out:
+ 		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+ 	data->state = STATE_INACTIVE;
+ 	return -EINVAL;
++
++finish_state_machine:
++	data->state = STATE_INACTIVE;
++	return 0;
+ }
+ 
+ static struct ir_raw_handler sony_handler = {
 -- 
 2.1.0
 
