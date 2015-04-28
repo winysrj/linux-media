@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52920 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754778AbbDWObp (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53946 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751611AbbD1GlI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 10:31:45 -0400
-Date: Thu, 23 Apr 2015 10:31:42 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-cc: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	Jean Delvare <jdelvare@suse.de>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-ide@vger.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
-	Anatol Pomazau <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	<bcm-kernel-feedback-list@broadcom.com>
-Subject: Re: [PATCHv3 0/4] add devm_of_phy_get_by_index and update platform
- drivers
-In-Reply-To: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
-Message-ID: <Pine.LNX.4.44L0.1504231031170.1529-100000@iolanthe.rowland.org>
+	Tue, 28 Apr 2015 02:41:08 -0400
+Message-ID: <553F2B7C.20506@xs4all.nl>
+Date: Tue, 28 Apr 2015 08:41:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] v4l2-of: fix compiler errors if CONFIG_OF is undefined
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 22 Apr 2015, Arun Ramamurthy wrote:
+You must use static inline otherwise you get these errors if CONFIG_OF is not defined:
 
-> This patch set adds a new API to get phy by index when multiple 
-> phys are present. This patch is based on discussion with Arnd Bergmann
-> about dt bindings for multiple phys.
-> 
-> History:
-> v1:
->     - Removed null pointers on Dmitry's suggestion
->     - Improved documentation in commit messages
->     - Exported new phy api
-> v2:
->     - EHCI and OHCI platform Kconfigs select Generic Phy
->       to fix build errors in certain configs.
-> v3:
->     - Made GENERIC_PHY an invisible option so 
->     that other configs can select it
->     - Added stubs for devm_of_phy_get_by_index
->     - Reformated code
-> 
-> Arun Ramamurthy (4):
->   phy: phy-core: Make GENERIC_PHY an invisible option
->   phy: core: Add devm_of_phy_get_by_index to phy-core
->   usb: ehci-platform: Use devm_of_phy_get_by_index
->   usb: ohci-platform: Use devm_of_phy_get_by_index
+In file included from drivers/media/platform/soc_camera/soc_camera.c:39:0:
+include/media/v4l2-of.h:112:13: warning: 'v4l2_of_free_endpoint' defined but not used [-Wunused-function]
+ static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+             ^
+In file included from drivers/media/platform/soc_camera/atmel-isi.c:28:0:
+include/media/v4l2-of.h:112:13: warning: 'v4l2_of_free_endpoint' defined but not used [-Wunused-function]
+ static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+             ^
+In file included from drivers/media/platform/soc_camera/rcar_vin.c:36:0:
+include/media/v4l2-of.h:112:13: warning: 'v4l2_of_free_endpoint' defined but not used [-Wunused-function]
+ static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+             ^
 
-For patches 3 and 4:
-
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index 241e98a..4dc34b2 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -103,13 +103,13 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+ 	return -ENOSYS;
+ }
+ 
+-struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
++static inline struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
+ 	const struct device_node *node)
+ {
+ 	return NULL;
+ }
+ 
+-static void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
++static inline void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+ {
+ }
+ 
