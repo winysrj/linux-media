@@ -1,68 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38334 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753245AbbDQIQH (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:35222 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964991AbbD1MIB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2015 04:16:07 -0400
-Message-ID: <5530C133.3070500@xs4all.nl>
-Date: Fri, 17 Apr 2015 10:15:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 28 Apr 2015 08:08:01 -0400
+Received: by widdi4 with SMTP id di4so137335984wid.0
+        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2015 05:08:00 -0700 (PDT)
+Date: Tue, 28 Apr 2015 14:07:56 +0200
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	Luke Hart <luke.hart@birchleys.eu>,
+	Anil Belur <askb23@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Vaishali Thakkar <vthakkar1994@gmail.com>,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] radio-bcm2048: remove unused var
+Message-ID: <20150428120756.GE604@pali>
+References: <5784d4a9f48f7661ab1814ef4e8d210fa065bafb.1430222617.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH 1/7] v4l2: replace enum_mbus_fmt by enum_mbus_code
-References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl> <1428574888-46407-2-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1504152204330.32631@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1504152204330.32631@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5784d4a9f48f7661ab1814ef4e8d210fa065bafb.1430222617.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/15/2015 10:08 PM, Guennadi Liakhovetski wrote:
-> On Thu, 9 Apr 2015, Hans Verkuil wrote:
+On Tuesday 28 April 2015 09:03:41 Mauro Carvalho Chehab wrote:
+> drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_i2c_driver_probe':
+> drivers/staging/media/bcm2048/radio-bcm2048.c:2596:11: warning: variable 'skip_release' set but not used [-Wunused-but-set-variable]
+>   int err, skip_release = 0;
+>            ^
 > 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Replace all calls to the enum_mbus_fmt video op by the pad
->> enum_mbus_code op and remove the duplicate video op.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
->> Cc: Jonathan Corbet <corbet@lwn.net>
->> Cc: Kamil Debski <k.debski@samsung.com>
->> ---
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> [snip]
-> 
->> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
->> index 441e0fd..ef8682c 100644
->> --- a/drivers/media/i2c/soc_camera/mt9m111.c
->> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
->> @@ -839,13 +839,14 @@ static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
->>  #endif
->>  };
->>  
->> -static int mt9m111_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
->> -			    u32 *code)
->> +static int mt9m111_enum_mbus_code(struct v4l2_subdev *sd,
->> +		struct v4l2_subdev_pad_config *cfg,
->> +		struct v4l2_subdev_mbus_code_enum *code)
->>  {
->> -	if (index >= ARRAY_SIZE(mt9m111_colour_fmts))
->> +	if (code->code || code->index >= ARRAY_SIZE(mt9m111_colour_fmts))
-> 
-> Didn't you mean 
-> 
-> +	if (code->pad || code->index >= ARRAY_SIZE(mt9m111_colour_fmts))
-> 
-> ?
+> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> index e9d0691b21d3..5e11a78ceef3 100644
+> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> @@ -2593,7 +2593,7 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
+>  					const struct i2c_device_id *id)
+>  {
+>  	struct bcm2048_device *bdev;
+> -	int err, skip_release = 0;
+> +	int err;
+>  
+>  	bdev = kzalloc(sizeof(*bdev), GFP_KERNEL);
+>  	if (!bdev) {
+> @@ -2646,7 +2646,6 @@ free_sysfs:
+>  	bcm2048_sysfs_unregister_properties(bdev, ARRAY_SIZE(attrs));
+>  free_registration:
+>  	video_unregister_device(&bdev->videodev);
+> -	skip_release = 1;
+>  free_irq:
+>  	if (client->irq)
+>  		free_irq(client->irq, bdev);
 
-Nice catch! Thanks, I've fixed this.
+Looks good to me, so
 
-Regards,
+Acked-by: Pali Rohár <pali.rohar@gmail.com>
 
-	Hans
+-- 
+Pali Rohár
+pali.rohar@gmail.com
