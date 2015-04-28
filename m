@@ -1,60 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59761 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030438AbbD1Po2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 11:44:28 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	mjpeg-users@lists.sourceforge.net
-Subject: [PATCH 09/14] zoran: fix indent
-Date: Tue, 28 Apr 2015 12:43:48 -0300
-Message-Id: <c803709a49957c2be8f0a43782cd3140b4aedf4a.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
-References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59007 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030436AbbD1PLu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 11:11:50 -0400
+Message-ID: <553FA320.4040006@kapsi.fi>
+Date: Tue, 28 Apr 2015 18:11:28 +0300
+From: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+MIME-Version: 1.0
+To: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>
+CC: Jonathan Corbet <corbet@lwn.net>, Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Paul Walmsley <paul@pwsan.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	=?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH 1/2] clk: change clk_ops' ->round_rate() prototype
+References: <1429255769-13639-1-git-send-email-boris.brezillon@free-electrons.com> <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1429255769-13639-2-git-send-email-boris.brezillon@free-electrons.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/pci/zoran/zoran_device.c:1594 zoran_init_hardware() warn: inconsistent indenting
+The series
 
-Fix indent. While here, fix CodingStyle and remove dead code, as it
-can always be recovered from git logs.
+Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+on Jetson-TK1.
 
-diff --git a/drivers/media/pci/zoran/zoran_device.c b/drivers/media/pci/zoran/zoran_device.c
-index b6801e035ea4..40119b3c52c1 100644
---- a/drivers/media/pci/zoran/zoran_device.c
-+++ b/drivers/media/pci/zoran/zoran_device.c
-@@ -1584,14 +1584,11 @@ zoran_init_hardware (struct zoran *zr)
- 	jpeg_codec_sleep(zr, 1);
- 	jpeg_codec_sleep(zr, 0);
- 
--	/* set individual interrupt enables (without GIRQ1)
--	 * but don't global enable until zoran_open() */
--
--	//btwrite(IRQ_MASK & ~ZR36057_ISR_GIRQ1, ZR36057_ICR);  // SW
--	// It looks like using only JPEGRepIRQEn is not always reliable,
--	// may be when JPEG codec crashes it won't generate IRQ? So,
--	 /*CP*/			//        btwrite(IRQ_MASK, ZR36057_ICR); // Enable Vsync interrupts too. SM    WHY ? LP
--	    zr36057_init_vfe(zr);
-+	/*
-+	 * set individual interrupt enables (without GIRQ1)
-+	 * but don't global enable until zoran_open()
-+	 */
-+	zr36057_init_vfe(zr);
- 
- 	zr36057_enable_jpg(zr, BUZ_MODE_IDLE);
- 
--- 
-2.1.0
+I rebased my cpufreq series on top of this and everything's working well 
+now. :)
 
+Thanks,
+Mikko.
+
+On 04/17/2015 10:29 AM, Boris Brezillon wrote:
+> ...
