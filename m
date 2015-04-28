@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:41018 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033AbbDGMnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 08:43:49 -0400
-Date: Tue, 7 Apr 2015 13:43:43 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH 06/14] clkdev: add clkdev_create() helper
-Message-ID: <20150407124342.GJ4027@n2100.arm.linux.org.uk>
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
- <E1Ye59J-0001BF-CZ@rmk-PC.arm.linux.org.uk>
- <5522EA55.5080804@codeaurora.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5522EA55.5080804@codeaurora.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:43407 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965462AbbD1MAD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 08:00:03 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Benoit Parrot <bparrot@ti.com>
+Subject: [PATCH 2/3] am437x: Fix a wrong identation
+Date: Tue, 28 Apr 2015 08:59:55 -0300
+Message-Id: <c1cdcbbcbde261b1c8c96e8880ac84b03cf797d9.1430222388.git.mchehab@osg.samsung.com>
+In-Reply-To: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
+References: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
+In-Reply-To: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
+References: <f35b661f37d4bcacaa5465465939b7f32869e48d.1430222388.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 06, 2015 at 01:19:33PM -0700, Stephen Boyd wrote:
-> On 04/03/15 10:12, Russell King wrote:
-> > @@ -316,6 +329,29 @@ clkdev_alloc(struct clk *clk, const char *con_id, const char *dev_fmt, ...)
-> >  }
-> >  EXPORT_SYMBOL(clkdev_alloc);
-> >  
-> > +/**
-> > + * clkdev_create - allocate and add a clkdev lookup structure
-> > + * @clk: struct clk to associate with all clk_lookups
-> > + * @con_id: connection ID string on device
-> > + * @dev_fmt: format string describing device name
-> > + *
-> > + * Returns a clk_lookup structure, which can be later unregistered and
-> > + * freed.
-> 
-> Please add that this returns NULL on failure.
+drivers/media/platform/am437x/am437x-vpfe.c:513 vpfe_ccdc_set_params() warn: inconsistent indenting
 
-Will do, but please remember that _I'm_ taking the clkdev patches through
-my tree, as I'm the maintainer for clkdev.  Thanks.
+Cc: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index 9c037ac10e10..57c8a653da4a 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -510,7 +510,7 @@ static int vpfe_ccdc_set_params(struct vpfe_ccdc *ccdc, void __user *params)
+ 
+ 	if (!vpfe_ccdc_validate_param(ccdc, &raw_params)) {
+ 		vpfe_ccdc_update_raw_params(ccdc, &raw_params);
+-			return 0;
++		return 0;
+ 	}
+ 
+ 	return -EINVAL;
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.1.0
+
