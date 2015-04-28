@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:36331 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751856AbbDCH3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 03:29:07 -0400
-Date: Fri, 3 Apr 2015 09:28:33 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, sean@mess.org
-Subject: Re: [PATCH 0/2] NEC scancodes and protocols in keymaps
-Message-ID: <20150403072833.GA26445@hardeman.nu>
-References: <20150402120047.20068.31662.stgit@zeus.muc.hardeman.nu>
- <20150402135637.28ec4dbf@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150402135637.28ec4dbf@recife.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:41795 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031140AbbD1XGm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 19:06:42 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 11/13] zc3xx: don't go past quality array
+Date: Tue, 28 Apr 2015 20:06:18 -0300
+Message-Id: <6e5347386be7eeb807715d6698219854eba7823e.1430262315.git.mchehab@osg.samsung.com>
+In-Reply-To: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
+References: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com>
+In-Reply-To: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
+References: <7a73d61faf3046af216692dbf1473bafc645ed9f.1430262315.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 02, 2015 at 01:56:37PM -0300, Mauro Carvalho Chehab wrote:
->Em Thu, 02 Apr 2015 14:02:57 +0200
->David Härdeman <david@hardeman.nu> escreveu:
->
->> The following two patches should show more clearly what I mean by
->> adding protocols to the keytables (and letting userspace add
->> keytable entries with explicit protocol information). Consider
->> it a basis for discussion.
->> 
->> Each patch has a separate description, please refer to those for
->> more information.
->
->Interesting approach. It would be good to also have a patch for
->v4l-utils rc-keycode userspace, for it to use the new way when
->available. An option to fallback to the old way would also be
->useful, in order to allow testing the backward compatibility.
+drivers/media/usb/gspca/zc3xx.c:6363 zcxx_s_ctrl() error: buffer overflow 'jpeg_qual' 3 <= 3
 
-Ok, yes, that'd be good to have, I'll look into it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index d3e1b6d8bf49..3762a045f744 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -6360,7 +6360,7 @@ static int zcxx_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			if (ctrl->val <= jpeg_qual[i])
+ 				break;
+ 		}
+-		if (i > 0 && i == qual && ctrl->val < jpeg_qual[i])
++		if (i == ARRAY_SIZE(jpeg_qual) || (i > 0 && i == qual && ctrl->val < jpeg_qual[i]))
+ 			i--;
+ 
+ 		/* With high quality settings we need max bandwidth */
 -- 
-David Härdeman
+2.1.0
+
