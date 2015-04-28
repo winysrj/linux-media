@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54515 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750821AbbD3GVZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59217 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030297AbbD1PoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 02:21:25 -0400
-Message-ID: <5541C9DA.5070202@xs4all.nl>
-Date: Thu, 30 Apr 2015 08:21:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 13/13] vivid-radio-rx: Don't go past buffer
-References: <c40f617a2dc604b998f276803948c922ea1572ba.1430262315.git.mchehab@osg.samsung.com> <c3004eee94a40cdfaf51b50dad464c25bc974e54.1430262315.git.mchehab@osg.samsung.com>
-In-Reply-To: <c3004eee94a40cdfaf51b50dad464c25bc974e54.1430262315.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 28 Apr 2015 11:44:04 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 03/14] saa7134: fix indent issues
+Date: Tue, 28 Apr 2015 12:43:42 -0300
+Message-Id: <1e8158b3d1f9472fc0ec2776876a907575c5548c.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/29/2015 01:06 AM, Mauro Carvalho Chehab wrote:
-> drivers/media/platform/vivid/vivid-radio-rx.c:198 vivid_radio_rx_s_hw_freq_seek() error: buffer overflow 'vivid_radio_bands' 3 <= 3
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+As reported by smatch:
+	drivers/media/pci/saa7134/saa7134-cards.c:7197 saa7134_xc2028_callback() warn: inconsistent indenting
+	drivers/media/pci/saa7134/saa7134-cards.c:7846 saa7134_board_init2() warn: inconsistent indenting
+	drivers/media/pci/saa7134/saa7134-cards.c:7913 saa7134_board_init2() warn: inconsistent indenting
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+While here, fix a few CodingStyle issues on the affected code
 
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-radio-rx.c b/drivers/media/platform/vivid/vivid-radio-rx.c
-> index c7651a506668..f99092ca8f5c 100644
-> --- a/drivers/media/platform/vivid/vivid-radio-rx.c
-> +++ b/drivers/media/platform/vivid/vivid-radio-rx.c
-> @@ -195,6 +195,8 @@ int vivid_radio_rx_s_hw_freq_seek(struct file *file, void *fh, const struct v4l2
->  			if (dev->radio_rx_freq >= vivid_radio_bands[band].rangelow &&
->  			    dev->radio_rx_freq <= vivid_radio_bands[band].rangehigh)
->  				break;
-> +		if (band == TOT_BANDS)
-> +			return -EINVAL;
->  		low = vivid_radio_bands[band].rangelow;
->  		high = vivid_radio_bands[band].rangehigh;
->  	}
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index 3ca078057755..d48fd5338db5 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -7194,7 +7194,7 @@ static int saa7134_xc2028_callback(struct saa7134_dev *dev,
+ 			saa7134_set_gpio(dev, 20, 1);
+ 		break;
+ 		}
+-	return 0;
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -7842,7 +7842,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 				break;
+ 			case 0x001d:
+ 				dev->tuner_type = TUNER_PHILIPS_FMD1216ME_MK3;
+-					printk(KERN_INFO "%s Board has DVB-T\n", dev->name);
++				printk(KERN_INFO "%s Board has DVB-T\n",
++				       dev->name);
+ 				break;
+ 			default:
+ 				printk(KERN_ERR "%s Can't determine tuner type %x from EEPROM\n", dev->name, tuner_t);
+@@ -7903,13 +7904,15 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_ASUSTeK_TVFM7135:
+ 	/* The card below is detected as card=53, but is different */
+ 	       if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
+-		       dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+-		       printk(KERN_INFO "%s: P7131 analog only, using "
+-						       "entry of %s\n",
+-		       dev->name, saa7134_boards[dev->board].name);
++			dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
++			printk(KERN_INFO
++			       "%s: P7131 analog only, using entry of %s\n",
++			dev->name, saa7134_boards[dev->board].name);
+ 
+-			/* IR init has already happened for other cards, so
+-			 * we have to catch up. */
++			/*
++			 * IR init has already happened for other cards, so
++			 * we have to catch up.
++			 */
+ 			dev->has_remote = SAA7134_REMOTE_GPIO;
+ 			saa7134_input_init1(dev);
+ 	       }
+-- 
+2.1.0
 
