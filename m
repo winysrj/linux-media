@@ -1,352 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:35817 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754191AbbDOKPf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 06:15:35 -0400
-From: serjk@netup.ru
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
-	Kozlov Sergey <serjk@netup.ru>
-Subject: [PATCH V2 3/5] [media] lnbh25: LNBH25 SEC controller driver
-Date: Wed, 15 Apr 2015 13:07:48 +0300
-Message-Id: <1429092470-29697-4-git-send-email-serjk@netup.ru>
-In-Reply-To: <1429092470-29697-1-git-send-email-serjk@netup.ru>
-References: <1429092470-29697-1-git-send-email-serjk@netup.ru>
+Received: from mailout1.samsung.com ([203.254.224.24]:52377 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766AbbD1HU7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 03:20:59 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v6 02/10] DT: Add documentation for the mfd Maxim max77693
+Date: Tue, 28 Apr 2015 09:18:42 +0200
+Message-id: <1430205530-20873-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
+References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kozlov Sergey <serjk@netup.ru>
+This patch adds device tree binding documentation for
+the flash cell of the Maxim max77693 multifunctional device.
 
-Add DVB SEC frontend driver for STM LNBH25PQR chip.
-
-Changes in version 2:
-    - rename MAINTAINERS entry
-    - fix coding style
-    - use dynamic debug instead of module-specifig debug parameter
-    - fix I2C bus error handling
-
-Signed-off-by: Kozlov Sergey <serjk@netup.ru>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: devicetree@vger.kernel.org
 ---
- MAINTAINERS                          |    9 ++
- drivers/media/dvb-frontends/Kconfig  |    8 ++
- drivers/media/dvb-frontends/Makefile |    1 +
- drivers/media/dvb-frontends/lnbh25.c |  192 ++++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/lnbh25.h |   56 ++++++++++
- 5 files changed, 266 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/lnbh25.c
- create mode 100644 drivers/media/dvb-frontends/lnbh25.h
+ Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9950fbe..4695cdc 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6287,6 +6287,15 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Supported
- F:	drivers/media/dvb-frontends/horus3a*
+diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+index 38e6440..d342584 100644
+--- a/Documentation/devicetree/bindings/mfd/max77693.txt
++++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+@@ -76,7 +76,60 @@ Optional properties:
+     Valid values: 4300000, 4700000, 4800000, 4900000
+     Default: 4300000
  
-+MEDIA DRIVERS FOR LNBH25
-+M:	Sergey Kozlov <serjk@netup.ru>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://netup.tv/
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	drivers/media/dvb-frontends/lnbh25*
++- led : the LED submodule device node
 +
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
- P:	LinuxTV.org Project
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index d178aca..eec0405 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -695,6 +695,14 @@ comment "SEC control devices for DVB-S"
- 
- source "drivers/media/dvb-frontends/drx39xyj/Kconfig"
- 
-+config DVB_LNBH25
-+	tristate "LNBH25 SEC controller"
-+	depends on DVB_CORE && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  An SEC control chip.
-+	  Say Y when you want to support this chip.
++There are two LED outputs available - FLED1 and FLED2. Each of them can
++control a separate LED or they can be connected together to double
++the maximum current for a single connected LED. One LED is represented
++by one child node.
 +
- config DVB_LNBP21
- 	tristate "LNBP21/LNBH24 SEC controllers"
- 	depends on DVB_CORE && I2C
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index 0b19c10..06a0d21 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_DVB_LGDT330X) += lgdt330x.o
- obj-$(CONFIG_DVB_LGDT3305) += lgdt3305.o
- obj-$(CONFIG_DVB_LG2160) += lg2160.o
- obj-$(CONFIG_DVB_CX24123) += cx24123.o
-+obj-$(CONFIG_DVB_LNBH25) += lnbh25.o
- obj-$(CONFIG_DVB_LNBP21) += lnbp21.o
- obj-$(CONFIG_DVB_LNBP22) += lnbp22.o
- obj-$(CONFIG_DVB_ISL6405) += isl6405.o
-diff --git a/drivers/media/dvb-frontends/lnbh25.c b/drivers/media/dvb-frontends/lnbh25.c
-new file mode 100644
-index 0000000..e44a088
---- /dev/null
-+++ b/drivers/media/dvb-frontends/lnbh25.c
-@@ -0,0 +1,192 @@
-+/*
-+ * lnbh25.c
-+ *
-+ * Driver for LNB supply and control IC LNBH25
-+ *
-+ * Copyright (C) 2014 NetUP Inc.
-+ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
-+ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
++Required properties:
++- compatible : Must be "maxim,max77693-led".
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
++Optional properties:
++- maxim,boost-mode :
++	In boost mode the device can produce up to 1.2A of total current
++	on both outputs. The maximum current on each output is reduced
++	to 625mA then. If not enabled explicitly, boost setting defaults to
++	LEDS_BOOST_FIXED in case both current sources are used.
++	Possible values:
++		LEDS_BOOST_OFF (0) - no boost,
++		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
++		LEDS_BOOST_FIXED (2) - fixed mode.
++- maxim,boost-mvout : Output voltage of the boost module in millivolts.
++	Valid values: 3300 - 5500, step by 25 (rounded down)
++	Default: 3300
++- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
++	if chip estimates that system voltage could drop below this level due
++	to flash power consumption.
++	Valid values: 2400 - 3400, step by 33 (rounded down)
++	Default: 2400
 +
-+#include "dvb_frontend.h"
-+#include "lnbh25.h"
++Required properties for the LED child node:
++- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
++		device current output identifiers: 0 - FLED1, 1 - FLED2
++- led-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++	Valid values for a LED connected to one FLED output:
++		15625 - 250000, step by 15625 (rounded down)
++	Valid values for a LED connected to both FLED outputs:
++		15625 - 500000, step by 15625 (rounded down)
++- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
++	Valid values for a single LED connected to one FLED output
++	(boost mode must be turned off):
++		15625 - 1000000, step by 15625 (rounded down)
++	Valid values for a single LED connected to both FLED outputs:
++		15625 - 1250000, step by 15625 (rounded down)
++	Valid values for two LEDs case:
++		15625 - 625000, step by 15625 (rounded down)
++- flash-max-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
++	Valid values: 62500 - 1000000, step by 62500 (rounded down)
 +
-+/**
-+ * struct lnbh25_priv - LNBH25 driver private data
-+ * @i2c:		pointer to the I2C adapter structure
-+ * @i2c_address:	I2C address of LNBH25 SEC chip
-+ * @config:		Registers configuration:
-+ *			offset 0: 1st register address, always 0x02 (DATA1)
-+ *			offset 1: DATA1 register value
-+ *			offset 2: DATA2 register value
-+ */
-+struct lnbh25_priv {
-+	struct i2c_adapter	*i2c;
-+	u8			i2c_address;
-+	u8			config[3];
-+};
++Optional properties for the LED child node:
++- label : see Documentation/devicetree/bindings/leds/common.txt
 +
-+#define LNBH25_STATUS_OFL	0x1
-+#define LNBH25_STATUS_VMON	0x4
-+#define LNBH25_VSEL_13		0x03
-+#define LNBH25_VSEL_18		0x0a
+ Example:
++#include <dt-bindings/leds/common.h>
 +
-+static int lnbh25_read_vmon(struct lnbh25_priv *priv)
-+{
-+	int i, ret;
-+	u8 addr = 0x00;
-+	u8 status[6];
-+	struct i2c_msg msg[2] = {
-+		{
-+			.addr = priv->i2c_address,
-+			.flags = 0,
-+			.len = 1,
-+			.buf = &addr
-+		}, {
-+			.addr = priv->i2c_address,
-+			.flags = I2C_M_RD,
-+			.len = sizeof(status),
-+			.buf = status
-+		}
-+	};
+ 	max77693@66 {
+ 		compatible = "maxim,max77693";
+ 		reg = <0x66>;
+@@ -117,5 +170,19 @@ Example:
+ 			maxim,thermal-regulation-celsius = <75>;
+ 			maxim,battery-overcurrent-microamp = <3000000>;
+ 			maxim,charge-input-threshold-microvolt = <4300000>;
 +
-+	for (i = 0; i < 2; i++) {
-+		ret = i2c_transfer(priv->i2c, &msg[i], 1);
-+		if (ret >= 0 && ret != 1)
-+			ret = -EIO;
-+		if (ret < 0) {
-+			dev_dbg(&priv->i2c->dev,
-+				"%s(): I2C transfer %d failed (%d)\n",
-+				__func__, i, ret);
-+			return ret;
-+		}
-+	}
-+#if defined(CONFIG_DYNAMIC_DEBUG)
-+	dynamic_hex_dump("lnbh25_read_vmon: ", DUMP_PREFIX_OFFSET,
-+		16, 1, status, sizeof(status), false);
-+#endif
++		led {
++			compatible = "maxim,max77693-led";
++			maxim,boost-mode = <LEDS_BOOST_FIXED>;
++			maxim,boost-mvout = <5000>;
++			maxim,mvsys-min = <2400>;
 +
-+	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0) {
-+		dev_err(&priv->i2c->dev,
-+			"%s(): voltage in failure state, status reg 0x%x\n",
-+			__func__, status[0]);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int lnbh25_set_voltage(struct dvb_frontend *fe,
-+			      fe_sec_voltage_t voltage)
-+{
-+	int ret;
-+	u8 data1_reg;
-+	const char *vsel;
-+	struct lnbh25_priv *priv = fe->sec_priv;
-+	struct i2c_msg msg = {
-+		.addr = priv->i2c_address,
-+		.flags = 0,
-+		.len = sizeof(priv->config),
-+		.buf = priv->config
-+	};
-+
-+	switch (voltage) {
-+	case SEC_VOLTAGE_OFF:
-+		data1_reg = 0x00;
-+		vsel = "Off";
-+		break;
-+	case SEC_VOLTAGE_13:
-+		data1_reg = LNBH25_VSEL_13;
-+		vsel = "13V";
-+		break;
-+	case SEC_VOLTAGE_18:
-+		data1_reg = LNBH25_VSEL_18;
-+		vsel = "18V";
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	priv->config[1] = data1_reg;
-+	dev_dbg(&priv->i2c->dev,
-+		"%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
-+		__func__, vsel, priv->i2c_address,
-+		priv->config[0], priv->config[1], priv->config[2]);
-+	ret = i2c_transfer(priv->i2c, &msg, 1);
-+	if (ret >= 0 && ret != 1)
-+		ret = -EIO;
-+	if (ret < 0) {
-+		dev_err(&priv->i2c->dev, "%s(): I2C transfer error (%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+	if (voltage != SEC_VOLTAGE_OFF) {
-+		msleep(120);
-+		ret = lnbh25_read_vmon(priv);
-+	} else {
-+		msleep(20);
-+		ret = 0;
-+	}
-+	return ret;
-+}
-+
-+static void lnbh25_release(struct dvb_frontend *fe)
-+{
-+	struct lnbh25_priv *priv = fe->sec_priv;
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF);
-+	kfree(fe->sec_priv);
-+	fe->sec_priv = NULL;
-+}
-+
-+struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
-+				   struct lnbh25_config *cfg,
-+				   struct i2c_adapter *i2c)
-+{
-+	struct lnbh25_priv *priv;
-+
-+	dev_dbg(&i2c->dev, "%s()\n", __func__);
-+	priv = kzalloc(sizeof(struct lnbh25_priv), GFP_KERNEL);
-+	if (!priv)
-+		return NULL;
-+	priv->i2c_address = (cfg->i2c_address >> 1);
-+	priv->i2c = i2c;
-+	priv->config[0] = 0x02;
-+	priv->config[1] = 0x00;
-+	priv->config[2] = cfg->data2_config;
-+	fe->sec_priv = priv;
-+	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF)) {
-+		dev_err(&i2c->dev,
-+			"%s(): no LNBH25 found at I2C addr 0x%02x\n",
-+			__func__, priv->i2c_address);
-+		kfree(priv);
-+		fe->sec_priv = NULL;
-+		return NULL;
-+	}
-+
-+	fe->ops.release_sec = lnbh25_release;
-+	fe->ops.set_voltage = lnbh25_set_voltage;
-+
-+	dev_err(&i2c->dev, "%s(): attached at I2C addr 0x%02x\n",
-+		__func__, priv->i2c_address);
-+	return fe;
-+}
-+EXPORT_SYMBOL(lnbh25_attach);
-+
-+MODULE_DESCRIPTION("ST LNBH25 driver");
-+MODULE_AUTHOR("info@netup.ru");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/lnbh25.h b/drivers/media/dvb-frontends/lnbh25.h
-new file mode 100644
-index 0000000..7fc5123
---- /dev/null
-+++ b/drivers/media/dvb-frontends/lnbh25.h
-@@ -0,0 +1,56 @@
-+/*
-+ * lnbh25.c
-+ *
-+ * Driver for LNB supply and control IC LNBH25
-+ *
-+ * Copyright (C) 2014 NetUP Inc.
-+ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
-+ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef LNBH25_H
-+#define LNBH25_H
-+
-+#include <linux/i2c.h>
-+#include <linux/kconfig.h>
-+#include <linux/dvb/frontend.h>
-+
-+/* 22 kHz tone enabled. Tone output controlled by DSQIN pin */
-+#define	LNBH25_TEN	0x01
-+/* Low power mode activated (used only with 22 kHz tone output disabled) */
-+#define LNBH25_LPM	0x02
-+/* DSQIN input pin is set to receive external 22 kHz TTL signal source */
-+#define LNBH25_EXTM	0x04
-+
-+struct lnbh25_config {
-+	u8	i2c_address;
-+	u8	data2_config;
-+};
-+
-+#if IS_ENABLED(CONFIG_DVB_LNBH25)
-+struct dvb_frontend *lnbh25_attach(
-+	struct dvb_frontend *fe,
-+	struct lnbh25_config *cfg,
-+	struct i2c_adapter *i2c);
-+#else
-+static inline dvb_frontend *lnbh25_attach(
-+	struct dvb_frontend *fe,
-+	struct lnbh25_config *cfg,
-+	struct i2c_adapter *i2c)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif
++			camera_flash: flash-led {
++				label = "max77693-flash";
++				led-sources = <0>, <1>;
++				led-max-microamp = <500000>;
++				flash-max-microamp = <1250000>;
++				flash-max-timeout-us = <1000000>;
++			};
+ 		};
+ 	};
 -- 
-1.7.10.4
+1.7.9.5
 
