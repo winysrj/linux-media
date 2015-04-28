@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39452 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbbDBOlg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2015 10:41:36 -0400
-Date: Thu, 2 Apr 2015 16:41:34 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
- related properties
-Message-ID: <20150402144134.GA18125@amd>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
- <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59545 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030364AbbD1PoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 11:44:18 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 11/14] s5p_mfc: remove a dead code
+Date: Tue, 28 Apr 2015 12:43:50 -0300
+Message-Id: <a36e185fcb27d4e1278c295322c799b0d9d30433.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2015-03-31 15:52:37, Jacek Anaszewski wrote:
-> Description of flash LEDs related properties was not precise regarding
-> the state of corresponding settings in case a property is missing.
-> Add relevant statements.
-> Removed is also the requirement making the flash-max-microamp
-> property obligatory for flash LEDs. It was inconsistent as the property
-> is defined as optional. Devices which require the property will have
-> to assert this in their DT bindings.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
+As reported by smatch:
+	drivers/media/platform/s5p-mfc/s5p_mfc.c:1340 s5p_mfc_runtime_resume() warn: this array is probably non-NULL. 'm_dev->alloc_ctx'
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+alloc_ctx can never be NULL, as it is embeeded inside the struct
+s5p_mfc_dev.
 
-> diff --git a/Documentation/devicetree/bindings/leds/common.txt b/Documentation/devicetree/bindings/leds/common.txt
-> index 747c538..21a25e4 100644
-> --- a/Documentation/devicetree/bindings/leds/common.txt
-> +++ b/Documentation/devicetree/bindings/leds/common.txt
-> @@ -29,13 +29,15 @@ Optional properties for child nodes:
->       "ide-disk" - LED indicates disk activity
->       "timer" - LED flashes at a fixed, configurable rate
->  
-> -- max-microamp : maximum intensity in microamperes of the LED
-> -		 (torch LED for flash devices)
-> -- flash-max-microamp : maximum intensity in microamperes of the
-> -                       flash LED; it is mandatory if the LED should
-> -		       support the flash mode
-> -- flash-timeout-us : timeout in microseconds after which the flash
-> -                     LED is turned off
-> +- max-microamp : Maximum intensity in microamperes of the LED
-> +		 (torch LED for flash devices). If omitted this will default
-> +		 to the maximum current allowed by the device.
-> +- flash-max-microamp : Maximum intensity in microamperes of the flash LED.
-> +		       If omitted this will default to the maximum
-> +		       current allowed by the device.
-> +- flash-timeout-us : Timeout in microseconds after which the flash
-> +                     LED is turned off. If omitted this will default to the
-> +		     maximum timeout allowed by the device.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8333fbc2fe96..1263d99d638e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1337,8 +1337,6 @@ static int s5p_mfc_runtime_resume(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
+ 
+-	if (!m_dev->alloc_ctx)
+-		return 0;
+ 	atomic_set(&m_dev->pm.power, 1);
+ 	return 0;
+ }
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.1.0
+
