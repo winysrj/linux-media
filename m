@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:34153 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294AbbDHBU2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 21:20:28 -0400
-MIME-Version: 1.0
-In-Reply-To: <20150403203730.GA13009@amd>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
- <1427809965-25540-2-git-send-email-j.anaszewski@samsung.com>
- <20150403120910.GL20756@valkosipuli.retiisi.org.uk> <551E8DEA.5070205@samsung.com>
- <20150403203730.GA13009@amd>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 7 Apr 2015 18:20:08 -0700
-Message-ID: <CAK5ve-KR81cNrJnPj_XUkNvctsEYLDGb58qTVaOOAYJnoZTGXg@mail.gmail.com>
-Subject: Re: [PATCH v4 01/12] DT: leds: Improve description of flash LEDs
- related properties
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout4.samsung.com ([203.254.224.34]:16483 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333AbbD1HVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2015 03:21:15 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v6 07/10] Documentation: leds: Add description of v4l2-flash
+ sub-device
+Date: Tue, 28 Apr 2015 09:18:47 +0200
+Message-id: <1430205530-20873-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
+References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 3, 2015 at 1:37 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->> >>+- flash-timeout-us : Timeout in microseconds after which the flash
->> >>+                     LED is turned off. If omitted this will default to the
->> >>+                maximum timeout allowed by the device.
->> >>
->> >>
->> >>  Examples:
->> >
->> >Pavel pointed out that the brightness between maximum current and the
->> >maximum *allowed* another current might not be noticeable,leading a
->> >potential spelling error to cause the LED being run at too high current.
->>
->> Where did he point this out? Do you think about the current version
->> of the leds/common.txt documentation or there was some other message,
->> that I don't see?
->
-> Date: Thu, 2 Apr 2015 22:30:44 +0200
-> From: Pavel Machek <pavel@ucw.cz>
-> To: Sakari Ailus <sakari.ailus@iki.fi>
-> Subject: Re: [PATCHv3] media: i2c/adp1653: devicetree support for adp1653
->
->> Besides, I can't understand your point. Could you express it in other
->> words, please?
->
-> Typo in device tree would cause hardware damage. But idea. Make the
-> properties mandatory.
->                                                                 Pavel
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
-I don't quite follow there. I think Pavel acked this patch right? So
-what's left to hold here?
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-Thanks,
--Bryan
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 19bb673..9d39133 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -20,3 +20,50 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- max_flash_timeout
+ 	- flash_strobe
+ 	- flash_fault
++
++
++V4L2 flash wrapper for flash LEDs
++=================================
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config.
++
++The driver must call the v4l2_flash_init function to get registered in the
++V4L2 subsystem. The function takes three arguments:
++- fled_cdev : the LED Flash class device to wrap
++- ops : V4L2 specific ops
++	* external_strobe_set - defines the source of the flash LED strobe -
++		V4L2_CID_FLASH_STROBE control or external source, typically
++		a sensor, which makes it possible to synchronise the flash
++		strobe start with exposure start,
++	* intensity_to_led_brightness and led_brightness_to_intensity - perform
++		enum led_brightness <-> V4L2 intensity conversion in a device
++		specific manner - they can be used for devices with non-linear
++		LED current scale.
++- config : configuration for V4L2 Flash sub-device
++	* dev_name - the name of the media entity, unique in the system,
++	* flash_faults - bitmask of flash faults that the LED Flash class
++		device can report; corresponding LED_FAULT* bit definitions are
++		available in <linux/led-class-flash.h>,
++	* intensity - constraints for the LED in the TORCH or INDICATOR mode,
++		in microamperes,
++	* has_external_strobe - determines whether the flash strobe source
++		can be switched to external,
++	* indicator_led - signifies that a led is of indicator type, which
++		implies that it can have only two V4L2 controls:
++		V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
++
++On remove the v4l2_flash_release function has to be called, which takes one
++argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
++
++Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
++v4l2 flash API.
++
++Once the V4L2 sub-device is registered by the driver which created the Media
++controller device, the sub-device node acts just as a node of a native V4L2
++flash API device would. The calls are simply routed to the LED flash API.
++
++Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 flash sub-device
++is closed.
+-- 
+1.7.9.5
+
