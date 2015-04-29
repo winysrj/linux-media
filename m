@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:33625 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758509AbbDWVLj (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37519 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483AbbD2XGV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 17:11:39 -0400
-Received: by lbbzk7 with SMTP id zk7so22826661lbb.0
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:38 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 07/12] af9035: specify if_port for si2157 devices
-Date: Fri, 24 Apr 2015 00:11:06 +0300
-Message-Id: <1429823471-21835-7-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
-References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+	Wed, 29 Apr 2015 19:06:21 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 13/27] vp702x: comment dead code
+Date: Wed, 29 Apr 2015 20:05:58 -0300
+Message-Id: <afdfe60ae4bc6e3be641230f2e36d3cc600ee67e.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the if_port parameter for all Si2157-based devices.
+Since the first version of this driver, the remote controller
+code is disabled, adding an early return inside vp702x_rc_query().
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 1 +
- 1 file changed, 1 insertion(+)
+Let's disable the code with #if 0, to remove this warning:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 80a29f5..7b7f75d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1569,6 +1569,7 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
+drivers/media/usb/dvb-usb/vp702x.c:268 vp702x_rc_query() info: ignoring unreachable code.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/usb/dvb-usb/vp702x.c b/drivers/media/usb/dvb-usb/vp702x.c
+index 22cf9f96cb9e..ee1e19e36445 100644
+--- a/drivers/media/usb/dvb-usb/vp702x.c
++++ b/drivers/media/usb/dvb-usb/vp702x.c
+@@ -259,11 +259,10 @@ static struct rc_map_table rc_map_vp702x_table[] = {
+ /* remote control stuff (does not work with my box) */
+ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+-	u8 *key;
+-	int i;
+-
+ /* remove the following return to enabled remote querying */
+-	return 0;
++#if 0
++	u8 *key;
++	int i;
  
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe[0];
-+	si2157_config.if_port = 1;
- 	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
- 			&si2157_config, state->i2c_adapter_demod);
+ 	key = kmalloc(10, GFP_KERNEL);
+ 	if (!key)
+@@ -286,6 +285,8 @@ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 			break;
+ 		}
+ 	kfree(key);
++#endif
++
+ 	return 0;
+ }
  
 -- 
-1.9.1
+2.1.0
 
