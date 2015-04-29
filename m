@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f46.google.com ([209.85.218.46]:34790 "EHLO
-	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630AbbDPJsM (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37635 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580AbbD2XG0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 05:48:12 -0400
-Received: by oiko83 with SMTP id o83so41446076oik.1
-        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2015 02:48:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1428574888-46407-7-git-send-email-hverkuil@xs4all.nl>
-References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl>
-	<1428574888-46407-7-git-send-email-hverkuil@xs4all.nl>
-Date: Thu, 16 Apr 2015 17:48:11 +0800
-Message-ID: <CAHG8p1BeZtc=xnQa5h5BcH0iR6fzzRWiH=11D21shnVWg+QXUA@mail.gmail.com>
-Subject: Re: [PATCH 6/7] v4l2: replace s_mbus_fmt by set_fmt in bridge drivers
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 29 Apr 2015 19:06:26 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Subject: [PATCH 19/27] stv0900: fix bad indenting
+Date: Wed, 29 Apr 2015 20:06:04 -0300
+Message-Id: <c3d0b98344cf94833ac99c27c9157b5c535772f7.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-04-09 18:21 GMT+08:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Replace all calls to s_mbus_fmt in bridge drivers by calls to the
-> set_fmt pad op.
->
-> Remove the old try/s_mbus_fmt video ops since they are now no longer used.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> ---
+drivers/media/dvb-frontends/stv0900_sw.c:1559 stv0900_search_srate_fine() warn: inconsistent indenting
+drivers/media/dvb-frontends/stv0900_sw.c:2012 stv0900_algo() warn: inconsistent indenting
 
->  drivers/media/platform/blackfin/bfin_capture.c     |  8 +--
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
+index a0a7b1664c53..fa63a9e929ce 100644
+--- a/drivers/media/dvb-frontends/stv0900_sw.c
++++ b/drivers/media/dvb-frontends/stv0900_sw.c
+@@ -1556,8 +1556,8 @@ static u32 stv0900_search_srate_fine(struct dvb_frontend *fe)
+ 	}
+ 
+ 	symbcomp = 13 * (coarse_srate / 10);
+-		coarse_freq = (stv0900_read_reg(intp, CFR2) << 8)
+-					| stv0900_read_reg(intp, CFR1);
++	coarse_freq = (stv0900_read_reg(intp, CFR2) << 8)
++		      | stv0900_read_reg(intp, CFR1);
+ 
+ 	if (symbcomp < intp->symbol_rate[demod])
+ 		coarse_srate = 0;
+@@ -2009,7 +2009,7 @@ enum fe_stv0900_signal_type stv0900_algo(struct dvb_frontend *fe)
+ 			signal_type = STV0900_NODATA;
+ 			no_signal = stv0900_check_signal_presence(intp, demod);
+ 
+-				intp->result[demod].locked = FALSE;
++			intp->result[demod].locked = FALSE;
+ 		}
+ 	}
+ 
+-- 
+2.1.0
+
