@@ -1,42 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:34178 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636AbbD2QjH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 12:39:07 -0400
-Received: by lbcga7 with SMTP id ga7so24737936lbc.1
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 09:39:06 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCHv2 2/5] dvbsky: use si2168 config option ts_clock_gapped
-Date: Wed, 29 Apr 2015 19:38:51 +0300
-Message-Id: <1430325534-20937-2-git-send-email-olli.salonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>, Pawel Osciak <pawel@osciak.com>,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ Kyungmin Park <kyungmin.park@samsung.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>, linux-media@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+Subject: [RESEND PATCH v2 2/3] media/videobuf2-dma-contig: Save output from
+ dma_map_sg
+Date: Wed, 29 Apr 2015 14:00:46 +0200
+Message-id: <1430308847-32140-3-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1430308847-32140-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1430308847-32140-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Change the dvbsky driver to support gapped clock instead of the current
-hack.
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+dma_map_sg returns the number of areas mapped by the hardware,
+which could be different than the areas given as an input.
+The output must be saved to nent.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index cdf59bc..0f73b1d 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -615,7 +615,8 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
- 	memset(&si2168_config, 0, sizeof(si2168_config));
- 	si2168_config.i2c_adapter = &i2c_adapter;
- 	si2168_config.fe = &adap->fe[0];
--	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_gapped = true;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
- 	info.addr = 0x64;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 644dec73d220..94c1e6455d36 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -299,7 +299,6 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+ 	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+-	int ret;
+ 
+ 	mutex_lock(lock);
+ 
+@@ -318,8 +317,9 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	}
+ 
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+-	if (ret <= 0) {
++	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++				dma_dir);
++	if (!sgt->nents) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
 -- 
-1.9.1
-
+2.1.4
