@@ -1,226 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40153 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252AbbDMQPU (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:11483 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422714AbbD2KD3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2015 12:15:20 -0400
-Message-ID: <1428941715.3192.133.camel@pengutronix.de>
-Subject: Re: [PATCH v4 2/4] [media] videobuf2: return -EPIPE from DQBUF
- after the last buffer
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Pawel Osciak <pawel@osciak.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de
-Date: Mon, 13 Apr 2015 18:15:15 +0200
-In-Reply-To: <CAMm-=zAwQJ-_jp5B7cRiQEi523a57BaijUwnqCwLUPScCL7_kQ@mail.gmail.com>
-References: <1427219214-5368-1-git-send-email-p.zabel@pengutronix.de>
-	 <1427219214-5368-3-git-send-email-p.zabel@pengutronix.de>
-	 <CAMm-=zAwQJ-_jp5B7cRiQEi523a57BaijUwnqCwLUPScCL7_kQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Apr 2015 06:03:29 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: =?UTF-8?q?=5BPATCH=20v5=2005/11=5D=20rc=3A=20Add=20HDMI=20CEC=20protoctol=20handling?=
+Date: Wed, 29 Apr 2015 12:02:38 +0200
+Message-id: <1430301765-22202-6-git-send-email-k.debski@samsung.com>
+In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel,
+Add handling of remote control events coming from the HDMI CEC bus.
+This patch includes a new keymap that maps values found in the CEC
+messages to the keys pressed and released. Also, a new protocol has
+been added to the core.
 
-thanks for the review!
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/rc/keymaps/Makefile |    1 +
+ drivers/media/rc/keymaps/rc-cec.c |  144 +++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-main.c        |    1 +
+ include/media/rc-core.h           |    1 +
+ include/media/rc-map.h            |    5 +-
+ 5 files changed, 151 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
 
-Am Montag, den 13.04.2015, 15:30 +0900 schrieb Pawel Osciak:
-> Hi,
-> 
-> On Wed, Mar 25, 2015 at 2:46 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > If the last buffer was dequeued from a capture queue, let poll return
-> > immediately and let DQBUF return -EPIPE to signal there will no more
-> > buffers to dequeue until STREAMOFF.
-> > The driver signals the last buffer by setting the V4L2_BUF_FLAG_LAST.
-> > To reenable dequeuing on the capture queue, the driver must explicitly
-> > call vb2_clear_last_buffer_queued. The last buffer queued flag is
-> > cleared automatically during STREAMOFF.
-> >
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > Changes since v3:
-> >  - Added DocBook update mentioning DQBUF returning -EPIPE in the encoder/decoder
-> >    stop command documentation.
-> > ---
-> >  Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml |  4 +++-
-> >  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |  4 +++-
-> >  Documentation/DocBook/media/v4l/vidioc-qbuf.xml        |  8 ++++++++
-> >  drivers/media/v4l2-core/v4l2-mem2mem.c                 | 10 +++++++++-
-> >  drivers/media/v4l2-core/videobuf2-core.c               | 18 +++++++++++++++++-
-> >  include/media/videobuf2-core.h                         | 10 ++++++++++
-> >  6 files changed, 50 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> 
-> Would it make sense to perhaps split this patch into docbook and vb2
-> changes please?
-
-Alright, I'll split DocBook from vb2 changes, with the documentation
-patches first.
-
-> > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > index 80c588f..1b5b432 100644
-> > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> > @@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-> >
-> >         if (list_empty(&src_q->done_list))
-> >                 poll_wait(file, &src_q->done_wq, wait);
-> > -       if (list_empty(&dst_q->done_list))
-> > +       if (list_empty(&dst_q->done_list)) {
-> > +               /*
-> > +                * If the last buffer was dequeued from the capture queue,
-> > +                * return immediately. DQBUF will return -EPIPE.
-> > +                */
-> > +               if (dst_q->last_buffer_dequeued)
-> > +                       return rc | POLLIN | POLLRDNORM;
-> 
-> These indicate there is data to be read. Is there something else we
-> could return? Maybe POLLHUP?
-
-This is a good point, but I'm not sure. POLLHUP seems to mean a similar
-thing, yet not quite the same. The documentation explicitly mentions
-disconnected devices or FIFOs without writers, neither of which applies.
-Also a FIFO signals POLLHUP when the last writer leaves, so we would
-probably have to signal POLLHUP|POLLIN after the last buffer was decoded
-for consistency, and keep that until the last buffer is dequeued. Then
-we could signal POLLHUP alone here.
-
-I didn't want to risk redefining/misinterpreting any poll(2) behavior,
-so my interpretation was that POLLIN signals userspace to try a DQBUF,
-as usual.
-
-> > +
-> >                 poll_wait(file, &dst_q->done_wq, wait);
-> > +       }
-> >
-> >         if (m2m_ctx->m2m_dev->m2m_ops->lock)
-> >                 m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index bc08a82..a0b9946 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -2046,6 +2046,10 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
-> >         struct vb2_buffer *vb = NULL;
-> >         int ret;
-> >
-> > +       if (q->last_buffer_dequeued) {
-> > +               dprintk(3, "last buffer dequeued already\n");
-> > +               return -EPIPE;
-> > +       }
-> 
-> This should go after the check for queue type at least. However, best
-> probably to __vb2_wait_for_done_vb(), where we already have the checks
-> for q->streaming and q->error.
-
-Yes, that'll be better.
-
-> >         if (b->type != q->type) {
-> >                 dprintk(1, "invalid buffer type\n");
-> >                 return -EINVAL;
-[...]
-> > @@ -2628,8 +2636,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
-> >         if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
-> >                 return res | POLLOUT | POLLWRNORM;
-> >
-> > -       if (list_empty(&q->done_list))
-> > +       if (list_empty(&q->done_list)) {
-> > +               /*
-> > +                * If the last buffer was dequeued from a capture queue,
-> > +                * return immediately. DQBUF will return -EPIPE.
-> > +                */
-> > +               if (!V4L2_TYPE_IS_OUTPUT(q->type) && q->last_buffer_dequeued)
-> 
-> Do we need to check !V4L2_TYPE_IS_OUTPUT(q->type) here? We wouldn't
-> have set last_buffer_dequeued to true if it wasn't, so we could drop
-> this check?
-
-Indeed we don't. I'll drop the check.
-
-> > +                       return res | POLLIN | POLLRDNORM;
-> 
-> Same comment as above.
-
-Same concern as above.
-
-> > +
-> >                 poll_wait(file, &q->done_wq, wait);
-> > +       }
-> >
-> >         /*
-> >          * Take first buffer available for dequeuing.
-> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> > index bd2cec2..863a8bb 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -429,6 +429,7 @@ struct vb2_queue {
-> >         unsigned int                    start_streaming_called:1;
-> >         unsigned int                    error:1;
-> >         unsigned int                    waiting_for_buffers:1;
-> > +       unsigned int                    last_buffer_dequeued:1;
-> 
-> Please add documentation above.
-
-Will do.
-
-> >
-> >         struct vb2_fileio_data          *fileio;
-> >         struct vb2_threadio_data        *threadio;
-> > @@ -609,6 +610,15 @@ static inline bool vb2_start_streaming_called(struct vb2_queue *q)
-> >         return q->start_streaming_called;
-> >  }
-> >
-> > +/**
-> > + * vb2_clear_last_buffer_dequeued() - clear last buffer dequeued flag of queue
-> > + * @q:         videobuf queue
-> > + */
-> > +static inline void vb2_clear_last_buffer_dequeued(struct vb2_queue *q)
-> > +{
-> > +       q->last_buffer_dequeued = false;
-> > +}
-> > +
-> 
-> There are some timing issues here to consider. How does the driver
-> know when it's ok to call this function, i.e. that the userspace has
-> already dequeued all the buffers, so that it doesn't call this too
-> early?
-
-This flag is only set when userspace dequeues the last buffer. I'd
-expect the driver to clear the flag after restarting the machinery that
-can actually produce decoded frames.
-
-> But, in general, in what kind of scenario would the driver want to
-> call this function, as opposed to vb2 clearing this flag by itself on
-> STREAMOFF?
-
-There is VIDIOC_DECODER_CMD / V4L2_DEC_CMD_START.
-I'd expect this timeline for decoder draining and restart:
-
-- userspace calls VIDIOC_DECODER_CMD, cmd=V4L2_DEC_CMD_STOP
-  after queueing the last output buffer to be decoded
-- the driver processes remaining output buffers into capture buffers
-  and sets the V4L2_BUF_FLAG_LAST set on the last capture buffer
-- when the last capture buffer is put on the queue, the driver
-  sends V4L2_EVENT_EOS
-- userspace dequeues remaining buffers (either in reaction to the
-  V4L2_EVENT_EOS signal or because it knows it just sent CMD_STOP)
-  until the returned buffer has V4L2_BUF_FLAG_LAST set, or until the
-  driver sets the last_buffer_dequeued flag and VIDIOC_DQBUF returns
-  -EPIPE
-
-- userspace calls VIDIOC_DECODER_CMD, cmd=V4L2_DEC_CMD_START
-  after queueing new output buffers to be decoded
-- the driver restarts the decoding process and clears the
-  last_buffer_dequeued flag before returning from VIDIOC_DECODER_CMD
-- userspace can poll on the capture queue again
-
-regards
-Philipp
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index abf6079..56f10d6 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-behold.o \
+ 			rc-behold-columbus.o \
+ 			rc-budget-ci-old.o \
++			rc-cec.o \
+ 			rc-cinergy-1400.o \
+ 			rc-cinergy.o \
+ 			rc-delock-61959.o \
+diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
+new file mode 100644
+index 0000000..cc5b318
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-cec.c
+@@ -0,0 +1,144 @@
++/* Keytable for the CEC remote control
++ *
++ * Copyright (c) 2015 by Kamil Debski
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
++ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
++ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
++
++static struct rc_map_table cec[] = {
++	{ 0x00, KEY_OK },
++	{ 0x01, KEY_UP },
++	{ 0x02, KEY_DOWN },
++	{ 0x03, KEY_LEFT },
++	{ 0x04, KEY_RIGHT },
++	{ 0x05, KEY_RIGHT_UP },
++	{ 0x06, KEY_RIGHT_DOWN },
++	{ 0x07, KEY_LEFT_UP },
++	{ 0x08, KEY_LEFT_DOWN },
++	{ 0x09, KEY_CONTEXT_MENU }, /* CEC Spec: Root Menu - see Note 2 */
++	/* Note 2: This is the initial display that a device shows. It is
++	 * device-dependent and can be, for example, a contents menu, setup
++	 * menu, favorite menu or other menu. The actual menu displayed
++	 * may also depend on the device’s current state. */
++	{ 0x0a, KEY_SETUP },
++	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
++	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
++	{ 0x0d, KEY_EXIT },
++	/* 0x0e-0x1f: Reserved */
++	/* 0x20-0x29: Keys 0 to 9 */
++	{ 0x20, KEY_NUMERIC_0 },
++	{ 0x21, KEY_NUMERIC_1 },
++	{ 0x22, KEY_NUMERIC_2 },
++	{ 0x23, KEY_NUMERIC_3 },
++	{ 0x24, KEY_NUMERIC_4 },
++	{ 0x25, KEY_NUMERIC_5 },
++	{ 0x26, KEY_NUMERIC_6 },
++	{ 0x27, KEY_NUMERIC_7 },
++	{ 0x28, KEY_NUMERIC_8 },
++	{ 0x29, KEY_NUMERIC_9 },
++	{ 0x2a, KEY_DOT },
++	{ 0x2b, KEY_ENTER },
++	{ 0x2c, KEY_CLEAR },
++	/* 0x2d-0x2e: Reserved */
++	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
++	{ 0x30, KEY_CHANNELUP },
++	{ 0x31, KEY_CHANNELDOWN },
++	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
++	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
++	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
++	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
++	{ 0x36, KEY_HELP },
++	{ 0x37, KEY_PAGEUP },
++	{ 0x38, KEY_PAGEDOWN },
++	/* 0x39-0x3f: Reserved */
++	{ 0x40, KEY_POWER },
++	{ 0x41, KEY_VOLUMEUP },
++	{ 0x42, KEY_VOLUMEDOWN },
++	{ 0x43, KEY_MUTE },
++	{ 0x44, KEY_PLAY },
++	{ 0x45, KEY_STOP },
++	{ 0x46, KEY_PAUSE },
++	{ 0x47, KEY_RECORD },
++	{ 0x48, KEY_REWIND },
++	{ 0x49, KEY_FASTFORWARD },
++	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
++	{ 0x4b, KEY_FORWARD },
++	{ 0x4c, KEY_BACK },
++	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
++	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
++	/* 0x4f: Reserved */
++	{ 0x50, KEY_ANGLE },
++	{ 0x51, KEY_TV2 },
++	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
++	{ 0x53, KEY_EPG },
++	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
++	{ 0x55, KEY_CONFIG },
++	/* 0x56-0x5f: Reserved */
++	{ 0x60, KEY_PLAY }, /* CEC Spec: Play Function */
++	{ 0x6024, KEY_PLAY },
++	{ 0x6020, KEY_PAUSE },
++	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
++	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
++	{ 0x63, KEY_PAUSE }, /* CEC Spec: Pause-Record Function */
++	{ 0x64, KEY_STOP }, /* CEC Spec: Stop Function */
++	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
++	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
++	/* The following codes are hard to implement at this moment, as they
++	 * carry an additional additional argument. Most likely changes to RC
++	 * framework are necessary.
++	 * For now they are interpreted by the CEC framework as non keycodes
++	 * and are passed as messages enabling user application to parse them.
++	 * */
++	/* 0x67: CEC Spec: Tune Function */
++	/* 0x68: CEC Spec: Seleect Media Function */
++	/* 0x69: CEC Spec: Select A/V Input Function */
++	/* 0x6a: CEC Spec: Select Audio Input Function */
++	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
++	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
++	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
++	/* 0x6e-0x70: Reserved */
++	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
++	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
++	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
++	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
++	{ 0x75, KEY_F5 },
++	{ 0x76, KEY_DVB }, /* CEC Spec: Data - see Note 3 */
++	/* Note 3: This is used, for example, to enter or leave a digital TV
++	 * data broadcast application. */
++	/* 0x77-0xff: Reserved */
++};
++
++static struct rc_map_list cec_map = {
++	.map = {
++		.scan		= cec,
++		.size		= ARRAY_SIZE(cec),
++		.rc_type	= RC_TYPE_CEC,
++		.name		= RC_MAP_CEC,
++	}
++};
++
++static int __init init_rc_map_cec(void)
++{
++	return rc_map_register(&cec_map);
++}
++
++static void __exit exit_rc_map_cec(void)
++{
++	rc_map_unregister(&cec_map);
++}
++
++module_init(init_rc_map_cec);
++module_exit(exit_rc_map_cec);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Kamil Debski");
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index f8c5e47..37d1ce0 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -801,6 +801,7 @@ static struct {
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
+ 	{ RC_BIT_LIRC,		"lirc"		},
+ 	{ RC_BIT_XMP,		"xmp"		},
++	{ RC_BIT_CEC,		"cec"		},
+ };
+ 
+ /**
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 2c7fbca..7c9d15d 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -32,6 +32,7 @@ do {								\
+ enum rc_driver_type {
+ 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
+ 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
++	RC_DRIVER_CEC,
+ };
+ 
+ /**
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index e7a1514..2058a89 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -32,6 +32,7 @@ enum rc_type {
+ 	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype) protocol */
+ 	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
+ 	RC_TYPE_XMP		= 19,	/* XMP protocol */
++	RC_TYPE_CEC		= 20,	/* CEC protocol */
+ };
+ 
+ #define RC_BIT_NONE		0
+@@ -55,6 +56,7 @@ enum rc_type {
+ #define RC_BIT_RC6_MCE		(1 << RC_TYPE_RC6_MCE)
+ #define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1 << RC_TYPE_XMP)
++#define RC_BIT_CEC		(1 << RC_TYPE_CEC)
+ 
+ #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+@@ -63,7 +65,7 @@ enum rc_type {
+ 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+ 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+-			 RC_BIT_XMP)
++			 RC_BIT_XMP | RC_BIT_CEC)
+ 
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+@@ -125,6 +127,7 @@ void rc_map_init(void);
+ #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
+ #define RC_MAP_BEHOLD                    "rc-behold"
+ #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
++#define RC_MAP_CEC                       "rc-cec"
+ #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
+ #define RC_MAP_CINERGY                   "rc-cinergy"
+ #define RC_MAP_DELOCK_61959              "rc-delock-61959"
+-- 
+1.7.9.5
 
