@@ -1,40 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:35140 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755942AbbDIRng (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2015 13:43:36 -0400
-Received: by wgyo15 with SMTP id o15so117193126wgy.2
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2015 10:43:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1513746.9Yk7IklJT9@avalon>
-References: <1426193947-12850-1-git-send-email-drake@endlessm.com>
-	<1513746.9Yk7IklJT9@avalon>
-Date: Thu, 9 Apr 2015 11:43:35 -0600
-Message-ID: <CAD8Lp44GUdBiqGA_3=AdGcvCx1WTUzg2CLp0mSLA0udL8tfGPQ@mail.gmail.com>
-Subject: Re: [PATCH] uvcvideo: Add quirk for Quanta NL3 laptop camera
-From: Daniel Drake <drake@endlessm.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:37611 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525AbbD2XGZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2015 19:06:25 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/27] go7007: Comment some dead code
+Date: Wed, 29 Apr 2015 20:05:57 -0300
+Message-Id: <ff7c0b61ee73f4995b838c5437ead3658e22366b.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+drivers/media/usb/go7007/go7007-usb.c:1099 go7007_usb_probe() info: ignoring unreachable code.
 
-On Sat, Apr 4, 2015 at 3:44 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I'm not sure that adding a device-specific quirk is the bast way to handle
-> this problem, as it wouldn't really scale if other devices expose buggy
-> descriptors. A more generic way to patch or override descriptors might be
-> better, with a single quirk and a pointer to a patch function. This would
-> require refactoring the quirks system to store a structure pointer instead of
-> a bitfield in the driver_info field.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I agree, but I don't currently have time to work on a more advanced approach.
+diff --git a/drivers/media/usb/go7007/go7007-usb.c b/drivers/media/usb/go7007/go7007-usb.c
+index 3f986e1178ce..4857c467e76c 100644
+--- a/drivers/media/usb/go7007/go7007-usb.c
++++ b/drivers/media/usb/go7007/go7007-usb.c
+@@ -338,6 +338,7 @@ static const struct go7007_usb_board board_matrix_revolution = {
+ 	},
+ };
+ 
++#if 0
+ static const struct go7007_usb_board board_lifeview_lr192 = {
+ 	.flags		= GO7007_USB_EZUSB,
+ 	.main_info	= {
+@@ -364,6 +365,7 @@ static const struct go7007_usb_board board_lifeview_lr192 = {
+ 		},
+ 	},
+ };
++#endif
+ 
+ static const struct go7007_usb_board board_endura = {
+ 	.flags		= 0,
+@@ -1096,8 +1098,10 @@ static int go7007_usb_probe(struct usb_interface *intf,
+ 	case GO7007_BOARDID_LIFEVIEW_LR192:
+ 		dev_err(&intf->dev, "The Lifeview TV Walker Ultra is not supported. Sorry!\n");
+ 		return -ENODEV;
++#if 0
+ 		name = "Lifeview TV Walker Ultra";
+ 		board = &board_lifeview_lr192;
++#endif
+ 		break;
+ 	case GO7007_BOARDID_SENSORAY_2250:
+ 		dev_info(&intf->dev, "Sensoray 2250 found\n");
+-- 
+2.1.0
 
-I think that's OK for everyone, as I can work with this patch for the
-time being, and if nobody else has broken descriptors, there's no
-particular rush.
-
-Thanks,
-Daniel
