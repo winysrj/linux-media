@@ -1,59 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2on0106.outbound.protection.outlook.com ([207.46.100.106]:32517
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933086AbbDNSWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2015 14:22:04 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <mchehab@osg.samsung.com>
-CC: <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] ir-hix5hd2: Fix build warning
-Date: Tue, 14 Apr 2015 15:21:39 -0300
-Message-ID: <1429035699-7718-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-la0-f50.google.com ([209.85.215.50]:36585 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777AbbD2QhM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2015 12:37:12 -0400
+Received: by lagv1 with SMTP id v1so24438331lag.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 09:37:11 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv2 1/5] si2168: add support for gapped clock
+Date: Wed, 29 Apr 2015 19:36:50 +0300
+Message-Id: <1430325414-9977-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Building for avr32 leads the following build warning:
+Add a parameter in si2168_config to support gapped clock. This might be necessary on
+some devices with higher bitrates.
 
-drivers/media/rc/ir-hix5hd2.c:221: warning: passing argument 1 of 'IS_ERR' discards qualifiers from pointer target type
-drivers/media/rc/ir-hix5hd2.c:222: warning: passing argument 1 of 'PTR_ERR' discards qualifiers from pointer target type
-
-devm_ioremap_resource() returns void __iomem *, so change 'base' definition 
-accordingly.
-
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/rc/ir-hix5hd2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/si2168.c      | 3 +++
+ drivers/media/dvb-frontends/si2168.h      | 3 +++
+ drivers/media/dvb-frontends/si2168_priv.h | 1 +
+ 3 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index 58ec598..3385148 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -63,7 +63,7 @@
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 5db588e..29a5936 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -508,6 +508,8 @@ static int si2168_init(struct dvb_frontend *fe)
+ 	/* set ts mode */
+ 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
+ 	cmd.args[4] |= dev->ts_mode;
++	if (dev->ts_clock_gapped)
++		cmd.args[4] |= 0x40;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+ 	ret = si2168_cmd_execute(client, &cmd);
+@@ -688,6 +690,7 @@ static int si2168_probe(struct i2c_client *client,
+ 	*config->fe = &dev->fe;
+ 	dev->ts_mode = config->ts_mode;
+ 	dev->ts_clock_inv = config->ts_clock_inv;
++	dev->ts_clock_gapped = config->ts_clock_gapped;
+ 	dev->fw_loaded = false;
  
- struct hix5hd2_ir_priv {
- 	int			irq;
--	void volatile __iomem	*base;
-+	void __iomem		*base;
- 	struct device		*dev;
- 	struct rc_dev		*rdev;
- 	struct regmap		*regmap;
-@@ -213,8 +213,8 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 	i2c_set_clientdata(client, dev);
+diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
+index 70d702a..3225d0c 100644
+--- a/drivers/media/dvb-frontends/si2168.h
++++ b/drivers/media/dvb-frontends/si2168.h
+@@ -42,6 +42,9 @@ struct si2168_config {
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	priv->base = devm_ioremap_resource(dev, res);
--	if (IS_ERR((__force void *)priv->base))
--		return PTR_ERR((__force void *)priv->base);
-+	if (IS_ERR(priv->base))
-+		return PTR_ERR(priv->base);
+ 	/* TS clock inverted */
+ 	bool ts_clock_inv;
++
++	/* TS clock gapped */
++	bool ts_clock_gapped;
+ };
  
- 	priv->irq = platform_get_irq(pdev, 0);
- 	if (priv->irq < 0) {
+ #endif
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index d7efce8..d2589e3 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -38,6 +38,7 @@ struct si2168_dev {
+ 	bool fw_loaded;
+ 	u8 ts_mode;
+ 	bool ts_clock_inv;
++	bool ts_clock_gapped;
+ };
+ 
+ /* firmware command struct */
 -- 
 1.9.1
 
