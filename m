@@ -1,285 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46120 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751102AbbDBMkh (ORCPT
+Received: from mail-la0-f49.google.com ([209.85.215.49]:36220 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753693AbbD2QjL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 08:40:37 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 88F2E2A00AB
-	for <linux-media@vger.kernel.org>; Thu,  2 Apr 2015 14:40:05 +0200 (CEST)
-Message-ID: <551D38A5.9020104@xs4all.nl>
-Date: Thu, 02 Apr 2015 14:40:05 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2] v4l2-ioctl: fill in the description for VIDIOC_ENUM_FMT
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Apr 2015 12:39:11 -0400
+Received: by lagv1 with SMTP id v1so24480668lag.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 09:39:09 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCHv2 3/5] si2157: support selection of IF interface
+Date: Wed, 29 Apr 2015 19:38:52 +0300
+Message-Id: <1430325534-20937-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1430325534-20937-2-git-send-email-olli.salonen@iki.fi>
+References: <1430325534-20937-2-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The descriptions used in drivers for the formats returned with ENUM_FMT
-are all over the place.
+The chips supported by the si2157 driver have two IF outputs (either
+pins 12+13 or pins 9+11). Instead of hardcoding the output to be used
+add an option to choose which output shall be used.
 
-So instead allow the core to fill them in if the driver didn't. This
-allows drivers to drop the description and flags.
+As this patch changes the default behaviour, the IF interface is
+specified in each driver currently using si2157 driver. This is to
+keep bisectability.
 
-Based on an earlier patch from Philipp Zabel:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/81411
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
-Changes since v1:
-- Fix NV61 and NV42 descriptions.
-- Merge the switch for the compressed flag into the main switch.
-- In the default case add a -BE suffix instead of a BE- prefix.
-- Verified that gcc compiles this using O(log N) comparisons.
-- Add comments why the coding style isn't followed here.
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 199 +++++++++++++++++++++++++++++++++--
- 1 file changed, 192 insertions(+), 7 deletions(-)
+ drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++++
+ drivers/media/pci/smipcie/smipcie.c     | 1 +
+ drivers/media/tuners/si2157.c           | 4 +++-
+ drivers/media/tuners/si2157.h           | 6 ++++++
+ drivers/media/tuners/si2157_priv.h      | 1 +
+ drivers/media/usb/cx231xx/cx231xx-dvb.c | 2 ++
+ drivers/media/usb/dvb-usb-v2/af9035.c   | 1 +
+ drivers/media/usb/dvb-usb-v2/dvbsky.c   | 2 ++
+ drivers/media/usb/dvb-usb/cxusb.c       | 1 +
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 2 ++
+ 10 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 09ad8dd..2b3fdf6 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1101,6 +1101,182 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
- 	return ops->vidioc_enum_output(file, fh, p);
- }
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 745caab..37fd013 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1912,6 +1912,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = fe0->dvb.frontend;
++			si2157_config.if_port = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
+@@ -1957,6 +1958,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = fe0->dvb.frontend;
++		si2157_config.if_port = 1;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+@@ -2093,6 +2095,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = fe0->dvb.frontend;
++		si2157_config.if_port = 1;
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+@@ -2172,6 +2175,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = fe0->dvb.frontend;
++			si2157_config.if_port = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
+diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
+index 4115925..143fd78 100644
+--- a/drivers/media/pci/smipcie/smipcie.c
++++ b/drivers/media/pci/smipcie/smipcie.c
+@@ -657,6 +657,7 @@ static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = port->fe;
++	si2157_config.if_port = 1;
  
-+static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-+{
-+	const unsigned sz = sizeof(fmt->description);
-+	const char *descr = NULL;
-+	u32 flags = 0;
+ 	memset(&client_info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index d74ae26..cdaf687 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -298,7 +298,8 @@ static int si2157_set_params(struct dvb_frontend *fe)
+ 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146)
+ 		memcpy(cmd.args, "\x14\x00\x02\x07\x00\x01", 6);
+ 	else
+-		memcpy(cmd.args, "\x14\x00\x02\x07\x01\x00", 6);
++		memcpy(cmd.args, "\x14\x00\x02\x07\x00\x00", 6);
++	cmd.args[4] = dev->if_port;
+ 	cmd.wlen = 6;
+ 	cmd.rlen = 4;
+ 	ret = si2157_cmd_execute(client, &cmd);
+@@ -378,6 +379,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	i2c_set_clientdata(client, dev);
+ 	dev->fe = cfg->fe;
+ 	dev->inversion = cfg->inversion;
++	dev->if_port = cfg->if_port;
+ 	dev->fw_loaded = false;
+ 	dev->chiptype = (u8)id->driver_data;
+ 	dev->if_frequency = 5000000; /* default value of property 0x0706 */
+diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
+index a564c4a..4db97ab 100644
+--- a/drivers/media/tuners/si2157.h
++++ b/drivers/media/tuners/si2157.h
+@@ -34,6 +34,12 @@ struct si2157_config {
+ 	 * Spectral Inversion
+ 	 */
+ 	bool inversion;
 +
 +	/*
-+	 * We depart from the normal coding style here since the descriptions
-+	 * should be aligned so it is easy to see which descriptions will be
-+	 * longer than 31 characters (the max length for a description).
-+	 * And frankly, this is easier to read anyway.
-+	 *
-+	 * Note that gcc will use O(log N) comparisons to find the right case.
++	 * Port selection
++	 * Select the RF interface to use (pins 9+11 or 12+13)
 +	 */
-+	switch (fmt->pixelformat) {
-+	/* Max description length mask:	descr = "0123456789012345678901234567890" */
-+	case V4L2_PIX_FMT_RGB332:	descr = "8-bit RGB 3-3-2"; break;
-+	case V4L2_PIX_FMT_RGB444:	descr = "16-bit A/XRGB 4-4-4-4"; break;
-+	case V4L2_PIX_FMT_ARGB444:	descr = "16-bit ARGB 4-4-4-4"; break;
-+	case V4L2_PIX_FMT_XRGB444:	descr = "16-bit XRGB 4-4-4-4"; break;
-+	case V4L2_PIX_FMT_RGB555:	descr = "16-bit A/XRGB 1-5-5-5"; break;
-+	case V4L2_PIX_FMT_ARGB555:	descr = "16-bit ARGB 1-5-5-5"; break;
-+	case V4L2_PIX_FMT_XRGB555:	descr = "16-bit XRGB 1-5-5-5"; break;
-+	case V4L2_PIX_FMT_RGB565:	descr = "16-bit RGB 5-6-5"; break;
-+	case V4L2_PIX_FMT_RGB555X:	descr = "16-bit A/XRGB 1-5-5-5 BE"; break;
-+	case V4L2_PIX_FMT_ARGB555X:	descr = "16-bit ARGB 1-5-5-5 BE"; break;
-+	case V4L2_PIX_FMT_XRGB555X:	descr = "16-bit XRGB 1-5-5-5 BE"; break;
-+	case V4L2_PIX_FMT_RGB565X:	descr = "16-bit RGB 5-6-5 BE"; break;
-+	case V4L2_PIX_FMT_BGR666:	descr = "18-bit BGRX 6-6-6-14"; break;
-+	case V4L2_PIX_FMT_BGR24:	descr = "24-bit BGR 8-8-8"; break;
-+	case V4L2_PIX_FMT_RGB24:	descr = "24-bit RGB 8-8-8"; break;
-+	case V4L2_PIX_FMT_BGR32:	descr = "32-bit BGRA/X 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_ABGR32:	descr = "32-bit BGRA 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_XBGR32:	descr = "32-bit BGRX 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_RGB32:	descr = "32-bit A/XRGB 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_ARGB32:	descr = "32-bit ARGB 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_XRGB32:	descr = "32-bit XRGB 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_GREY:		descr = "8-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y4:		descr = "4-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y6:		descr = "6-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y10:		descr = "10-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y12:		descr = "12-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
-+	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
-+	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
-+	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
-+	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
-+	case V4L2_PIX_FMT_YVU420:	descr = "Planar YVU 4:2:0"; break;
-+	case V4L2_PIX_FMT_YUYV:		descr = "YUYV 4:2:2"; break;
-+	case V4L2_PIX_FMT_YYUV:		descr = "YYUV 4:2:2"; break;
-+	case V4L2_PIX_FMT_YVYU:		descr = "YVYU 4:2:2"; break;
-+	case V4L2_PIX_FMT_UYVY:		descr = "UYVY 4:2:2"; break;
-+	case V4L2_PIX_FMT_VYUY:		descr = "VYUY 4:2:2"; break;
-+	case V4L2_PIX_FMT_YUV422P:	descr = "Planar YVU 4:2:2"; break;
-+	case V4L2_PIX_FMT_YUV411P:	descr = "Planar YUV 4:1:1"; break;
-+	case V4L2_PIX_FMT_Y41P:		descr = "YUV 4:1:1 (Packed)"; break;
-+	case V4L2_PIX_FMT_YUV444:	descr = "16-bit A/XYUV 4-4-4-4"; break;
-+	case V4L2_PIX_FMT_YUV555:	descr = "16-bit A/XYUV 1-5-5-5"; break;
-+	case V4L2_PIX_FMT_YUV565:	descr = "16-bit YUV 5-6-5"; break;
-+	case V4L2_PIX_FMT_YUV32:	descr = "32-bit A/XYUV 8-8-8-8"; break;
-+	case V4L2_PIX_FMT_YUV410:	descr = "Planar YUV 4:1:0"; break;
-+	case V4L2_PIX_FMT_YUV420:	descr = "Planar YUV 4:2:0"; break;
-+	case V4L2_PIX_FMT_HI240:	descr = "8-bit Dithered RGB (BTTV)"; break;
-+	case V4L2_PIX_FMT_HM12:		descr = "YUV 4:2:0 (16x16 Macroblocks)"; break;
-+	case V4L2_PIX_FMT_M420:		descr = "YUV 4:2:0 (M420)"; break;
-+	case V4L2_PIX_FMT_NV12:		descr = "Y/CbCr 4:2:0"; break;
-+	case V4L2_PIX_FMT_NV21:		descr = "Y/CrCb 4:2:0"; break;
-+	case V4L2_PIX_FMT_NV16:		descr = "Y/CbCr 4:2:2"; break;
-+	case V4L2_PIX_FMT_NV61:		descr = "Y/CrCb 4:2:2"; break;
-+	case V4L2_PIX_FMT_NV24:		descr = "Y/CbCr 4:4:4"; break;
-+	case V4L2_PIX_FMT_NV42:		descr = "Y/CrCb 4:4:4"; break;
-+	case V4L2_PIX_FMT_NV12M:	descr = "Y/CbCr 4:2:0 (N-C)"; break;
-+	case V4L2_PIX_FMT_NV21M:	descr = "Y/CrCb 4:2:0 (N-C)"; break;
-+	case V4L2_PIX_FMT_NV16M:	descr = "Y/CbCr 4:2:2 (N-C)"; break;
-+	case V4L2_PIX_FMT_NV61M:	descr = "Y/CrCb 4:2:2 (N-C)"; break;
-+	case V4L2_PIX_FMT_NV12MT:	descr = "Y/CbCr 4:2:0 (64x32 MB, N-C)"; break;
-+	case V4L2_PIX_FMT_NV12MT_16X16:	descr = "Y/CbCr 4:2:0 (16x16 MB, N-C)"; break;
-+	case V4L2_PIX_FMT_YUV420M:	descr = "Planar YUV 4:2:0 (N-C)"; break;
-+	case V4L2_PIX_FMT_YVU420M:	descr = "Planar YVU 4:2:0 (N-C)"; break;
-+	case V4L2_PIX_FMT_SBGGR8:	descr = "8-bit Bayer BGBG/GRGR"; break;
-+	case V4L2_PIX_FMT_SGBRG8:	descr = "8-bit Bayer GBGB/RGRG"; break;
-+	case V4L2_PIX_FMT_SGRBG8:	descr = "8-bit Bayer GRGR/BGBG"; break;
-+	case V4L2_PIX_FMT_SRGGB8:	descr = "8-bit Bayer RGRG/GBGB"; break;
-+	case V4L2_PIX_FMT_SBGGR10:	descr = "10-bit Bayer BGBG/GRGR"; break;
-+	case V4L2_PIX_FMT_SGBRG10:	descr = "10-bit Bayer GBGB/RGRG"; break;
-+	case V4L2_PIX_FMT_SGRBG10:	descr = "10-bit Bayer GRGR/BGBG"; break;
-+	case V4L2_PIX_FMT_SRGGB10:	descr = "10-bit Bayer RGRG/GBGB"; break;
-+	case V4L2_PIX_FMT_SBGGR12:	descr = "12-bit Bayer BGBG/GRGR"; break;
-+	case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
-+	case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
-+	case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
-+	case V4L2_PIX_FMT_SBGGR10P:	descr = "10-bit Bayer BGBG/GRGR Packed"; break;
-+	case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
-+	case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
-+	case V4L2_PIX_FMT_SRGGB10P:	descr = "10-bit Bayer RGRG/GBGB Packed"; break;
-+	case V4L2_PIX_FMT_SBGGR10ALAW8:	descr = "8-bit Bayer BGBG/GRGR (A-law)"; break;
-+	case V4L2_PIX_FMT_SGBRG10ALAW8:	descr = "8-bit Bayer GBGB/RGRG (A-law)"; break;
-+	case V4L2_PIX_FMT_SGRBG10ALAW8:	descr = "8-bit Bayer GRGR/BGBG (A-law)"; break;
-+	case V4L2_PIX_FMT_SRGGB10ALAW8:	descr = "8-bit Bayer RGRG/GBGB (A-law)"; break;
-+	case V4L2_PIX_FMT_SBGGR10DPCM8:	descr = "8-bit Bayer BGBG/GRGR (DPCM)"; break;
-+	case V4L2_PIX_FMT_SGBRG10DPCM8:	descr = "8-bit Bayer GBGB/RGRG (DPCM)"; break;
-+	case V4L2_PIX_FMT_SGRBG10DPCM8:	descr = "8-bit Bayer GRGR/BGBG (DPCM)"; break;
-+	case V4L2_PIX_FMT_SRGGB10DPCM8:	descr = "8-bit Bayer RGRG/GBGB (DPCM)"; break;
-+	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR (Exp.)"; break;
-+	case V4L2_PIX_FMT_SN9C20X_I420:	descr = "GSPCA SN9C20X I420";
-+	case V4L2_PIX_FMT_SPCA501:	descr = "GSPCA SPCA501"; break;
-+	case V4L2_PIX_FMT_SPCA505:	descr = "GSPCA SPCA505"; break;
-+	case V4L2_PIX_FMT_SPCA508:	descr = "GSPCA SPCA508"; break;
-+	case V4L2_PIX_FMT_STV0680:	descr = "GSPCA STV0680"; break;
-+	case V4L2_PIX_FMT_TM6000:	descr = "A/V + VBI Mux Packet"; break;
-+	case V4L2_PIX_FMT_CIT_YYVYUY:	descr = "GSPCA CIT YYVYUY"; break;
-+	case V4L2_PIX_FMT_KONICA420:	descr = "GSPCA KONICA420"; break;
-+	case V4L2_SDR_FMT_CU8:		descr = "Complex U8 (Emulated)"; break;
-+	case V4L2_SDR_FMT_CU16LE:	descr = "Complex U16LE (Emulated)"; break;
-+	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
-+	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
-+	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-+
-+	default:
-+		/* Compressed formats */
-+		flags = V4L2_FMT_FLAG_COMPRESSED;
-+		switch (fmt->pixelformat) {
-+		/* Max description length mask:	descr = "0123456789012345678901234567890" */
-+		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
-+		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
-+		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
-+		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
-+		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
-+		case V4L2_PIX_FMT_H264_NO_SC:	descr = "H.264 (No Start Codes)"; break;
-+		case V4L2_PIX_FMT_H264_MVC:	descr = "H.264 MVC"; break;
-+		case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
-+		case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
-+		case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
-+		case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
-+		case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
-+		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
-+		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
-+		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
-+		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
-+		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
-+		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
-+		case V4L2_PIX_FMT_PWC1:		descr = "Raw Philips Webcam Type (Old)"; break;
-+		case V4L2_PIX_FMT_PWC2:		descr = "Raw Philips Webcam Type (New)"; break;
-+		case V4L2_PIX_FMT_ET61X251:	descr = "GSPCA ET61X251"; break;
-+		case V4L2_PIX_FMT_SPCA561:	descr = "GSPCA SPCA561"; break;
-+		case V4L2_PIX_FMT_PAC207:	descr = "GSPCA PAC207"; break;
-+		case V4L2_PIX_FMT_MR97310A:	descr = "GSPCA MR97310A"; break;
-+		case V4L2_PIX_FMT_JL2005BCD:	descr = "GSPCA JL2005BCD"; break;
-+		case V4L2_PIX_FMT_SN9C2028:	descr = "GSPCA SN9C2028"; break;
-+		case V4L2_PIX_FMT_SQ905C:	descr = "GSPCA SQ905C"; break;
-+		case V4L2_PIX_FMT_PJPG:		descr = "GSPCA PJPG"; break;
-+		case V4L2_PIX_FMT_OV511:	descr = "GSPCA OV511"; break;
-+		case V4L2_PIX_FMT_OV518:	descr = "GSPCA OV518"; break;
-+		case V4L2_PIX_FMT_JPGL:		descr = "JPEG Lite"; break;
-+		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
-+		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
-+		default:
-+			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
-+			if (fmt->description[0])
-+				return;
-+			flags = 0;
-+			snprintf(fmt->description, sz, "%c%c%c%c%s",
-+					(char)(fmt->pixelformat & 0x7f),
-+					(char)((fmt->pixelformat >> 8) & 0x7f),
-+					(char)((fmt->pixelformat >> 16) & 0x7f),
-+					(char)((fmt->pixelformat >> 24) & 0x7f),
-+					(fmt->pixelformat & (1 << 31)) ? "-BE" : "");
-+			break;
-+		}
-+	}
-+
-+	if (descr)
-+		WARN_ON(strlcpy(fmt->description, descr, sz) >= sz);
-+	fmt->flags = flags;
-+}
-+
- static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -1110,34 +1286,43 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
-+	int ret = -EINVAL;
++	u8 if_port;
+ };
  
- 	switch (p->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_cap))
- 			break;
--		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
-+		break;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_cap_mplane))
- 			break;
--		return ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_vid_cap_mplane(file, fh, arg);
-+		break;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_enum_fmt_vid_overlay))
- 			break;
--		return ops->vidioc_enum_fmt_vid_overlay(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_vid_overlay(file, fh, arg);
-+		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_vid_out))
- 			break;
--		return ops->vidioc_enum_fmt_vid_out(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_vid_out(file, fh, arg);
-+		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_enum_fmt_vid_out_mplane))
- 			break;
--		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
-+		break;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
- 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_enum_fmt_sdr_cap))
- 			break;
--		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
-+		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
-+		break;
- 	}
--	return -EINVAL;
-+	if (ret == 0)
-+		v4l_fill_fmtdesc(p);
-+	return ret;
- }
+ #endif
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index cd8fa5b..71a5f8c 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -28,6 +28,7 @@ struct si2157_dev {
+ 	bool fw_loaded;
+ 	bool inversion;
+ 	u8 chiptype;
++	u8 if_port;
+ 	u32 if_frequency;
+ };
  
- static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 610d567..66ee161 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -797,6 +797,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = dev->dvb->frontend;
++		si2157_config.if_port = 1;
+ 		si2157_config.inversion = true;
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+@@ -852,6 +853,7 @@ static int dvb_init(struct cx231xx *dev)
+ 		/* attach tuner */
+ 		memset(&si2157_config, 0, sizeof(si2157_config));
+ 		si2157_config.fe = dev->dvb->frontend;
++		si2157_config.if_port = 1;
+ 		si2157_config.inversion = true;
+ 		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 		info.addr = 0x60;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 80a29f5..7b7f75d 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1569,6 +1569,7 @@ static int it930x_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe[0];
++	si2157_config.if_port = 1;
+ 	ret = af9035_add_i2c_dev(d, "si2157", 0x63,
+ 			&si2157_config, state->i2c_adapter_demod);
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 0f73b1d..57c8c2d 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -549,6 +549,7 @@ static int dvbsky_t680c_attach(struct dvb_usb_adapter *adap)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe[0];
++	si2157_config.if_port = 1;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 	info.addr = 0x60;
+@@ -633,6 +634,7 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe[0];
++	si2157_config.if_port = 1;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 	info.addr = 0x60;
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index ffc3704..ab71511 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1350,6 +1350,7 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe_adap[0].fe;
++	si2157_config.if_port = 1;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 	info.addr = 0x60;
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index a5b22c5..5b7c7c88 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1579,6 +1579,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = dvb->fe[0];
++			si2157_config.if_port = 1;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
+@@ -1639,6 +1640,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			/* attach tuner */
+ 			memset(&si2157_config, 0, sizeof(si2157_config));
+ 			si2157_config.fe = dvb->fe[0];
++			si2157_config.if_port = 0;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2146", I2C_NAME_SIZE);
+ 			info.addr = 0x60;
 -- 
-2.1.4
+1.9.1
 
