@@ -1,113 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:16940 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506AbbDOGtI (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:34484 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752938AbbD2IE5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 02:49:08 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v5 00/10] LED / flash API integration
-Date: Wed, 15 Apr 2015 08:48:30 +0200
-Message-id: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+	Wed, 29 Apr 2015 04:04:57 -0400
+Message-ID: <55408DE7.3020906@cisco.com>
+Date: Wed, 29 Apr 2015 09:53:11 +0200
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: S_CTRL must be called twice  to set volatile controls
+References: <5540895A.5060102@samsung.com>
+In-Reply-To: <5540895A.5060102@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a fifth non-RFC version of LED / flash API integration
-series [1]. It is based on linux-next_linux_next-20150414.
+Hi Jacek,
 
-================
-Changes since v4
-================
-- adapted leds-max77693 and leds-aat1290 drivers to the recent
-  modifications in leds/common.txt bindings documentation and
-  changed the behaviour when properties are missing
-- modified DT bindings documenation for the aforementioned
-  drivers
-- removed unjustified use of goto in the leds-aat1290 driver
-- fixed lack of of_node_put in leds-aat1290 driver, after parsing
-  DT child node 
-- removed patch adding 'skyworks' vendor prefix, as the entry
-  has been recently added
+On 04/29/15 09:33, Jacek Anaszewski wrote:
+> Hi,
+> 
+> After testing my v4l2-flash helpers patch [1] with the recent patches
+> for v4l2-ctrl.c ([2] and [3]) s_ctrl op isn't called despite setting
+> the value that should be aligned to the other step than default one.
+> 
+> This happens for V4L2_CID_FLASH_TORCH_INTENSITY control with
+> V4L2_CTRL_FLAG_VOLATILE flag.
+> 
+> The situation improves after setting V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
+> flag for the control. Is this flag required now for volatile controls
+> to be writable?
 
-================
-Changes since v2
-================
-- improved leds/common DT bindings documentation
-- improved max77693-led DT documentation
-- fixed validation of DT confguration for leds-max77693 by
-  minimal values in joint iouts case
-- removed trigger-type property from leds-max77693 bindings
-  and adjusted the driver accordingly
-- improved LED Flash class documentation related to v4l2-flash sub-device
-  initialization
-- excluded from leds-aat1290 DT bindings documentation the part
-  related to handling external strobe sources
+Yes, you need that if you want to be able to write to a volatile control.
 
-================
-Changes since v1
-================
+It was added for exactly that purpose.
 
-- excluded exynos4-is media device related patches, as there is
-  consenus required related to flash devices handling in media device
-  DT bindings
-- modifications around LED Flash class settings and v4l2 flash config
-  initialization in LED Flash class drivers and v4l2-flash wrapper
-- switched to using DT node name as a device name for leds-max77693
-  and leds-aat1290 drivers, in case DT 'label' property is absent
-- dropped OF dependecy for v4l2-flash wrapper
-- moved LED_FAULTS definitions from led-class-flash.h to uapi/linux/leds.h
-- allowed for multiple clients of v4l2-flash sub-device
+Why is V4L2_CID_FLASH_TORCH_INTENSITY volatile? Volatile typically only
+makes sense if the hardware itself is modifying the value without the
+software knowing about it.
 
-======================
-Changes since RFC v13:
-======================
+Regards,
 
-- reduced number of patches - some of them have been merged
-- slightly modified max77693-led device naming
-- fixed issues in v4l2-flash helpers detected with yavta
-- cleaned up AAT1290 device tree documentation
-- added GPIOLIB dependecy to AAT1290 related entry in Kconfig
+	Hans
 
-Thanks,
-Jacek Anaszewski
-
-[1] http://www.spinics.net/lists/kernel/msg1944538.html
-
-Jacek Anaszewski (10):
-  leds: unify the location of led-trigger API
-  DT: Add documentation for the mfd Maxim max77693
-  leds: Add support for max77693 mfd flash cell
-  DT: Add documentation for the Skyworks AAT1290
-  leds: Add driver for AAT1290 flash LED controller
-  media: Add registration helpers for V4L2 flash sub-devices
-  Documentation: leds: Add description of v4l2-flash sub-device
-  leds: max77693: add support for V4L2 Flash sub-device
-  DT: aat1290: Document handling external strobe sources
-  leds: aat1290: add support for V4L2 Flash sub-device
-
- .../devicetree/bindings/leds/leds-aat1290.txt      |   73 ++
- Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++
- Documentation/leds/leds-class-flash.txt            |   47 +
- drivers/leds/Kconfig                               |   19 +
- drivers/leds/Makefile                              |    2 +
- drivers/leds/leds-aat1290.c                        |  577 ++++++++++
- drivers/leds/leds-max77693.c                       | 1100 ++++++++++++++++++++
- drivers/leds/leds.h                                |   24 -
- drivers/media/v4l2-core/Kconfig                    |   11 +
- drivers/media/v4l2-core/Makefile                   |    2 +
- drivers/media/v4l2-core/v4l2-flash.c               |  619 +++++++++++
- include/linux/leds.h                               |   25 +
- include/media/v4l2-flash.h                         |  145 +++
- 13 files changed, 2687 insertions(+), 24 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/leds/leds-aat1290.txt
- create mode 100644 drivers/leds/leds-aat1290.c
- create mode 100644 drivers/leds/leds-max77693.c
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
-
--- 
-1.7.9.5
-
+> 
+> [1] http://www.spinics.net/lists/linux-media/msg89004.html
+> [2] 45f014c5 [media] media/v4l2-ctrls: Always execute EXECUTE_ON_WRITE ctrls
+> [3] b08d8d26 [media] media/v4l2-ctrls: volatiles should not generate CH_VALUE
