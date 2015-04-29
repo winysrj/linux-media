@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:35327 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031023AbbDWVLm (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37638 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601AbbD2XG0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 17:11:42 -0400
-Received: by lbbuc2 with SMTP id uc2so22761258lbb.2
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:41 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 09/12] cxusb: specify if_port for si2157 devices
-Date: Fri, 24 Apr 2015 00:11:08 +0300
-Message-Id: <1429823471-21835-9-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
-References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+	Wed, 29 Apr 2015 19:06:26 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 21/27] tda10086: change typecast to u64 to avoid smatch warnings
+Date: Wed, 29 Apr 2015 20:06:06 -0300
+Message-Id: <1acf7361dc975eea2f0fb7f620a7964ee1a8219d.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the if_port parameter for all Si2157-based devices.
+drivers/media/dvb-frontends/tda10086.c:476 tda10086_get_frontend() warn: should 'tda10086_read_byte(state, 81) << 8' be a 64 bit type?
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/cxusb.c | 1 +
- 1 file changed, 1 insertion(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index ffc3704..ab71511 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1350,6 +1350,7 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = adap->fe_adap[0].fe;
-+	si2157_config.if_port = 1;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
- 	info.addr = 0x60;
+diff --git a/drivers/media/dvb-frontends/tda10086.c b/drivers/media/dvb-frontends/tda10086.c
+index fcfe2e080cb0..f1a752187d08 100644
+--- a/drivers/media/dvb-frontends/tda10086.c
++++ b/drivers/media/dvb-frontends/tda10086.c
+@@ -472,8 +472,8 @@ static int tda10086_get_frontend(struct dvb_frontend *fe)
+ 		return -EINVAL;
+ 
+ 	/* calculate the updated frequency (note: we convert from Hz->kHz) */
+-	tmp64 = tda10086_read_byte(state, 0x52);
+-	tmp64 |= (tda10086_read_byte(state, 0x51) << 8);
++	tmp64 = ((u64)tda10086_read_byte(state, 0x52)
++		| (tda10086_read_byte(state, 0x51) << 8));
+ 	if (tmp64 & 0x8000)
+ 		tmp64 |= 0xffffffffffff0000ULL;
+ 	tmp64 = (tmp64 * (SACLK/1000ULL));
 -- 
-1.9.1
+2.1.0
 
