@@ -1,62 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39849 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752619AbbDBP0V (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:36316 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393AbbD2V7Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2015 11:26:21 -0400
-Message-ID: <551D5F7C.4080400@xs4all.nl>
-Date: Thu, 02 Apr 2015 17:25:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Apr 2015 17:59:16 -0400
+Received: by lbbqq2 with SMTP id qq2so30744393lbb.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 14:59:14 -0700 (PDT)
+Message-ID: <5541542F.7010505@cogentembedded.com>
+Date: Thu, 30 Apr 2015 00:59:11 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-To: Jan Kara <jack@suse.cz>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
-	David Airlie <airlied@linux.ie>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH 0/9 v2] Helper to abstract vma handling in media layer
-References: <1426593399-6549-1-git-send-email-jack@suse.cz> <20150402150258.GA31277@quack.suse.cz>
-In-Reply-To: <20150402150258.GA31277@quack.suse.cz>
-Content-Type: text/plain; charset=windows-1252
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	hverkuil@xs4all.nl, horms@verge.net.au, magnus.damm@gmail.com
+CC: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3 1/1] V4L2: platform: Renesas R-Car JPEG codec driver
+References: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/02/2015 05:02 PM, Jan Kara wrote:
->   Hello,
-> 
-> On Tue 17-03-15 12:56:30, Jan Kara wrote:
->>   After a long pause I'm sending second version of my patch series to abstract
->> vma handling from the various media drivers. After this patch set drivers have
->> to know much less details about vmas, their types, and locking. My motivation
->> for the series is that I want to change get_user_pages() locking and I want to
->> handle subtle locking details in as few places as possible.
->>
->> The core of the series is the new helper get_vaddr_pfns() which is given a
->> virtual address and it fills in PFNs into provided array. If PFNs correspond to
->> normal pages it also grabs references to these pages. The difference from
->> get_user_pages() is that this function can also deal with pfnmap, mixed, and io
->> mappings which is what the media drivers need.
->>
->> I have tested the patches with vivid driver so at least vb2 code got some
->> exposure. Conversion of other drivers was just compile-tested so I'd like to
->> ask respective maintainers if they could have a look.  Also I'd like to ask mm
->> folks to check patch 2/9 implementing the helper. Thanks!
->   Ping? Any reactions?
+On 04/30/2015 12:53 AM, Mikhail Ulyanov wrote:
 
-For patch 1/9:
+> Here's the the driver for the Renesas R-Car JPEG processing unit driver.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+    One "the" is enough. And one "driver" too, you probbaly forgot to remove 
+the word at the end.
 
-For the other patches I do not feel qualified to give Acks. I've Cc-ed Pawel and
-Marek who have a better understanding of the mm internals than I do. Hopefully
-they can review the code.
+> The driver is implemented within the V4L2 framework as a mem-to-mem device.  It
 
-It definitely looks like a good idea, and if nobody else will comment on the vb2
-patches in the next 2 weeks, then I'll try to review it myself (for whatever that's
-worth).
+    Perhaps "memory-to-memory"?
 
-Regards,
+> presents two video nodes to userspace, one for the encoding part, and one for
+> the decoding part.
 
-	Hans
+> It was found that the only working mode for encoding is no markers output, so we
+> generate it with software. In current version of driver we also use software
+> JPEG header parsing because with hardware parsing performance is lower then
+> desired.
+
+>  From a userspace point of view the encoding process is typical (S_FMT, REQBUF,
+> optionally QUERYBUF, QBUF, STREAMON, DQBUF) for both the source and destination
+> queues. The decoding process requires that the source queue performs S_FMT,
+> REQBUF, (QUERYBUF), QBUF and STREAMON. After STREAMON on the source queue, it is
+> possible to perform G_FMT on the destination queue to find out the processed
+> image width and height in order to be able to allocate an appropriate buffer -
+> it is assumed that the user does not pass the compressed image width and height
+> but instead this information is parsed from the JPEG input. This is done in
+> kernel. Then REQBUF, QBUF and STREAMON on the destination queue complete the
+> decoding and it is possible to DQBUF from both queues and finish the operation.
+
+> During encoding the available formats are: V4L2_PIX_FMT_NV12M and
+> V4L2_PIX_FMT_NV16M for source and V4L2_PIX_FMT_JPEG for destination.
+
+> During decoding the available formats are: V4L2_PIX_FMT_JPEG for source and
+> V4L2_PIX_FMT_NV12M and V4L2_PIX_FMT_NV16M for destination.
+
+> Performance of current version:
+> 1280x800 NV12 image encoding/decoding
+> 	decoding ~121 FPS
+> 	encoding ~190 FPS
+
+> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> ---
+> Changes since v2:
+>      - Kconfig entry reordered
+>      - unnecessary clk_disable_unprepare(jpu->clk) removed
+>      - ref_count fixed in jpu_resume
+>      - enable DMABUF in src_vq->io_modes
+>      - remove jpu_s_priority jpu_g_priority
+>      - jpu_g_selection fixed
+>      - timeout in jpu_reset added and hardware reset reworked
+>      - remove unused macros
+>      - JPEG header parsing now is software because of performance issues
+>        based on s5p-jpu code
+>      - JPEG header generation redesigned:
+>        JPEG header(s) pre-generated and memcpy'ed on encoding
+>        we only fill the necessary fields
+>        more "transparent" header format description
+>      - S_FMT, G_FMT and TRY_FMT hooks redesigned
+
+    Still need a comma before "and" -- the English punctuation rules are 
+different from the Russian ones.
+
+>        partially inspired by VSP1 driver code
+>      - some code was reformatted
+>      - image formats handling redesigned
+>      - multi-planar V4L2 API now in use
+>      - now passes v4l2-compliance tool check
+
+> Cnanges since v1:
+>      - s/g_fmt function simplified
+>      - default format for queues added
+>      - dumb vidioc functions added to be in compliance with standard api:
+>          jpu_s_priority, jpu_g_priority
+>      - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
+>        now in use by the same reason
+
+[...]
+
+WBR, Sergei
+
