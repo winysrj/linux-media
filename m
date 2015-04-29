@@ -1,80 +1,112 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59783 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030319AbbDWR5F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 13:57:05 -0400
-Message-ID: <5539326F.6020909@redhat.com>
-Date: Thu, 23 Apr 2015 10:57:03 -0700
-From: Laura Abbott <labbott@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	quantum.analyst@gmail.com
-Subject: Missing additional V4L2 caps in cx18
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>, Pawel Osciak <pawel@osciak.com>,
+ Marek Szyprowski <m.szyprowski@samsung.com>,
+ Kyungmin Park <kyungmin.park@samsung.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>, linux-media@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+Subject: [RESEND PATCH v2 1/3] media/videobuf2-dma-sg: Fix handling of sg_table
+ structure
+Date: Wed, 29 Apr 2015 14:00:45 +0200
+Message-id: <1430308847-32140-2-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1430308847-32140-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1430308847-32140-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
 
-We received a report of a backtrace from v4l2 with
-the cx18 module:
+When sg_alloc_table_from_pages() does not fail it returns a sg_table
+structure with nents and nents_orig initialized to the same value.
 
+dma_map_sg returns the number of areas mapped by the hardware,
+which could be different than the areas given as an input.
+The output must be saved to nent.
 
-[    6.229393] ------------[ cut here ]------------
-[    6.229414] WARNING: CPU: 1 PID: 593 at 
-drivers/media/v4l2-core/v4l2-ioctl.c:1025 v4l_querycap+0x41/0x70 
-[videodev]()
-[    6.229415] Modules linked in: cx18_alsa mxl5005s s5h1409 
-tuner_simple tuner_types cs5345 tuner intel_rapl iosf_mbi 
-x86_pkg_temp_thermal coretemp raid1 snd_hda_codec_realtek kvm_intel 
-snd_hda_codec_generic snd_hda_codec_hdmi kvm snd_oxygen(+) snd_hda_intel 
-snd_oxygen_lib snd_hda_controller snd_hda_codec snd_mpu401_uart iTCO_wdt 
-snd_rawmidi iTCO_vendor_support snd_hwdep crct10dif_pclmul crc32_pclmul 
-crc32c_intel snd_seq cx18 snd_seq_device ghash_clmulni_intel 
-videobuf_vmalloc tveeprom cx2341x snd_pcm serio_raw videobuf_core vfat 
-dvb_core fat v4l2_common snd_timer videodev snd lpc_ich i2c_i801 joydev 
-mfd_core mei_me media soundcore tpm_infineon soc_button_array tpm_tis 
-mei shpchp tpm nfsd auth_rpcgss nfs_acl lockd grace sunrpc binfmt_misc 
-i915 nouveau mxm_wmi wmi e1000e ttm i2c_algo_bit drm_kms_helper
-[    6.229444]  drm ptp pps_core video
-[    6.229446] CPU: 1 PID: 593 Comm: v4l_id Not tainted 
-3.19.3-200.fc21.x86_64 #1
-[    6.229447] Hardware name: Gigabyte Technology Co., Ltd. 
-Z87-D3HP/Z87-D3HP-CF, BIOS F6 01/20/2014
-[    6.229448]  0000000000000000 00000000d12b1131 ffff88042dacfc28 
-ffffffff8176e215
-[    6.229449]  0000000000000000 0000000000000000 ffff88042dacfc68 
-ffffffff8109bc1a
-[    6.229451]  ffffffffa0594000 ffff88042dacfd90 0000000000000000 
-ffffffffa04e2140
-[    6.229452] Call Trace:
-[    6.229466]  [<ffffffff8176e215>] dump_stack+0x45/0x57
-[    6.229469]  [<ffffffff8109bc1a>] warn_slowpath_common+0x8a/0xc0
-[    6.229472]  [<ffffffff8109bd4a>] warn_slowpath_null+0x1a/0x20
-[    6.229474]  [<ffffffffa04ca401>] v4l_querycap+0x41/0x70 [videodev]
-[    6.229477]  [<ffffffffa04ca6cc>] __video_do_ioctl+0x29c/0x320 [videodev]
-[    6.229479]  [<ffffffff81227131>] ? do_last+0x2f1/0x1210
-[    6.229491]  [<ffffffffa04cc776>] video_usercopy+0x366/0x5d0 [videodev]
-[    6.229494]  [<ffffffffa04ca430>] ? v4l_querycap+0x70/0x70 [videodev]
-[    6.229497]  [<ffffffffa04cc9f5>] video_ioctl2+0x15/0x20 [videodev]
-[    6.229499]  [<ffffffffa04c6794>] v4l2_ioctl+0x164/0x180 [videodev]
-[    6.229501]  [<ffffffff8122e298>] do_vfs_ioctl+0x2f8/0x500
-[    6.229502]  [<ffffffff8122e521>] SyS_ioctl+0x81/0xa0
-[    6.229505]  [<ffffffff81774a09>] system_call_fastpath+0x12/0x17
-[    6.229506] ---[ end trace dacd80d4b19277ea ]---
+The output of dma_map, should be used to transverse the scatter list.
 
-This is the warning about querycap not filling device_caps properly.
-The tree has dfdf780b4651cf4932b96d3fe296230afacc360a
-('[media] cx18: add device_caps support') present already but
-I noticed several of the streams types are missing capabilities
-in cx18-streams.c (CX18_ENC_STREAM_TYPE_TS, CX18_ENC_STREAM_TYPE_PCM,
-CX18_ENC_STREAM_TYPE_IDX)
+dma_unmap_sg needs the value passed to dma_map_sg (nents_orig).
 
-Do these need to have proper capabilities added as well to silence
-this warning?
+sg_free_tables uses also orig_nent.
 
-Thanks,
-Laura
+This patch fix the file to follow this paradigm.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 45c708e463b9..7289b81bd7b7 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -147,8 +147,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++				      buf->dma_dir, &attrs);
++	if (!sgt->nents)
+ 		goto fail_map;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+@@ -187,7 +188,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+ 			buf->num_pages);
+-		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
++		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+ 				   buf->dma_dir, &attrs);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+@@ -314,9 +315,11 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+ 	 */
+-	if (dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->nents,
+-			     buf->dma_dir, &attrs) == 0)
++	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
++				      buf->dma_dir, &attrs);
++	if (!sgt->nents)
+ 		goto userptr_fail_map;
++
+ 	return buf;
+ 
+ userptr_fail_map:
+@@ -351,7 +354,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 
+ 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+ 	       __func__, buf->num_pages);
+-	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir, &attrs);
++	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
++			   &attrs);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 	sg_free_table(buf->dma_sgt);
+@@ -502,7 +506,6 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	/* stealing dmabuf mutex to serialize map/unmap operations */
+ 	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+-	int ret;
+ 
+ 	mutex_lock(lock);
+ 
+@@ -521,8 +524,9 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	}
+ 
+ 	/* mapping to the client with new direction */
+-	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dma_dir);
+-	if (ret <= 0) {
++	sgt->nents = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++				dma_dir);
++	if (!sgt->nents) {
+ 		pr_err("failed to map scatterlist\n");
+ 		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+-- 
+2.1.4
