@@ -1,171 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57000 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932712AbbD0Nvm (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33429 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422850AbbD2M7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2015 09:51:42 -0400
-Message-ID: <553E3EE7.5030403@xs4all.nl>
-Date: Mon, 27 Apr 2015 15:51:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-CC: Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH v5 3/5] [media] videobuf2: return -EPIPE from DQBUF after
- the last buffer
-References: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de> <1429518504-14880-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1429518504-14880-4-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Apr 2015 08:59:52 -0400
+Message-id: <5540D5C4.7060305@samsung.com>
+Date: Wed, 29 Apr 2015 14:59:48 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 02/10] DT: Add documentation for the mfd Maxim max77693
+References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+ <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
+ <20150429123412.GL9169@x1>
+In-reply-to: <20150429123412.GL9169@x1>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/20/2015 10:28 AM, Philipp Zabel wrote:
-> If the last buffer was dequeued from a capture queue, let poll return
-> immediately and let DQBUF return -EPIPE to signal there will no more
-> buffers to dequeue until STREAMOFF.
-> The driver signals the last buffer by setting the V4L2_BUF_FLAG_LAST.
-> To reenable dequeuing on the capture queue, the driver must explicitly
-> call vb2_clear_last_buffer_queued. The last buffer queued flag is
-> cleared automatically during STREAMOFF.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On 04/29/2015 02:34 PM, Lee Jones wrote:
+> LED Ack please Bryan.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+You've already applied v6 with Bryan's ack today :)
 
-Thanks!
+>> This patch adds device tree binding documentation for
+>> the flash cell of the Maxim max77693 multifunctional device.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Lee Jones <lee.jones@linaro.org>
+>> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+>> Cc: Bryan Wu <cooloney@gmail.com>
+>> Cc: Richard Purdie <rpurdie@rpsys.net>
+>> Cc: devicetree@vger.kernel.org
+>> ---
+>>   Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++++++++++++++++++++
+>>   1 file changed, 67 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> index 38e6440..d342584 100644
+>> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+>> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+>> @@ -76,7 +76,60 @@ Optional properties:
+>>       Valid values: 4300000, 4700000, 4800000, 4900000
+>>       Default: 4300000
+>>
+>> +- led : the LED submodule device node
+>> +
+>> +There are two LED outputs available - FLED1 and FLED2. Each of them can
+>> +control a separate LED or they can be connected together to double
+>> +the maximum current for a single connected LED. One LED is represented
+>> +by one child node.
+>> +
+>> +Required properties:
+>> +- compatible : Must be "maxim,max77693-led".
+>> +
+>> +Optional properties:
+>> +- maxim,boost-mode :
+>> +	In boost mode the device can produce up to 1.2A of total current
+>> +	on both outputs. The maximum current on each output is reduced
+>> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+>> +	LEDS_BOOST_FIXED in case both current sources are used.
+>> +	Possible values:
+>> +		LEDS_BOOST_OFF (0) - no boost,
+>> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+>> +		LEDS_BOOST_FIXED (2) - fixed mode.
+>> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
+>> +	Valid values: 3300 - 5500, step by 25 (rounded down)
+>> +	Default: 3300
+>> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+>> +	if chip estimates that system voltage could drop below this level due
+>> +	to flash power consumption.
+>> +	Valid values: 2400 - 3400, step by 33 (rounded down)
+>> +	Default: 2400
+>> +
+>> +Required properties for the LED child node:
+>> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+>> +		device current output identifiers: 0 - FLED1, 1 - FLED2
+>> +- led-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +	Valid values for a LED connected to one FLED output:
+>> +		15625 - 250000, step by 15625 (rounded down)
+>> +	Valid values for a LED connected to both FLED outputs:
+>> +		15625 - 500000, step by 15625 (rounded down)
+>> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+>> +	Valid values for a single LED connected to one FLED output:
+>> +	(boost mode must be turned off):
+>> +		15625 - 1000000, step by 15625 (rounded down)
+>> +	Valid values for a single LED connected to both FLED outputs:
+>> +		15625 - 1250000, step by 15625 (rounded down)
+>> +	Valid values for two LEDs case:
+>> +		15625 - 625000, step by 15625 (rounded down)
+>> +- flash-max-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+>> +	Valid values: 62500 - 1000000, step by 62500 (rounded down)
+>> +
+>> +Optional properties for the LED child node:
+>> +- label : see Documentation/devicetree/bindings/leds/common.txt
+>> +
+>>   Example:
+>> +#include <dt-bindings/leds/common.h>
+>> +
+>>   	max77693@66 {
+>>   		compatible = "maxim,max77693";
+>>   		reg = <0x66>;
+>> @@ -117,5 +170,19 @@ Example:
+>>   			maxim,thermal-regulation-celsius = <75>;
+>>   			maxim,battery-overcurrent-microamp = <3000000>;
+>>   			maxim,charge-input-threshold-microvolt = <4300000>;
+>> +
+>> +		led {
+>> +			compatible = "maxim,max77693-led";
+>> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+>> +			maxim,boost-mvout = <5000>;
+>> +			maxim,mvsys-min = <2400>;
+>> +
+>> +			camera_flash: flash-led {
+>> +				label = "max77693-flash";
+>> +				led-sources = <0>, <1>;
+>> +				led-max-microamp = <500000>;
+>> +				flash-max-microamp = <1250000>;
+>> +				flash-max-timeout-us = <1000000>;
+>> +			};
+>>   		};
+>>   	};
+>
 
-	Hans
 
-
-> ---
-> Changes since v4:
->  - Split out DocBook changes into a separate patch.
->  - Documented last_buffer_dequeued flag in vb2_queue comment.
->  - Moved last_buffer_dequeued check from vb2_internal_dqbuf
->    into __vb2_wait_for_done_vb.
->  - Dropped superfluous check in vb2_poll.
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c   | 10 +++++++++-
->  drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++++++++++-
->  include/media/videobuf2-core.h           | 13 +++++++++++++
->  3 files changed, 40 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 80c588f..1b5b432 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->  
->  	if (list_empty(&src_q->done_list))
->  		poll_wait(file, &src_q->done_wq, wait);
-> -	if (list_empty(&dst_q->done_list))
-> +	if (list_empty(&dst_q->done_list)) {
-> +		/*
-> +		 * If the last buffer was dequeued from the capture queue,
-> +		 * return immediately. DQBUF will return -EPIPE.
-> +		 */
-> +		if (dst_q->last_buffer_dequeued)
-> +			return rc | POLLIN | POLLRDNORM;
-> +
->  		poll_wait(file, &dst_q->done_wq, wait);
-> +	}
->  
->  	if (m2m_ctx->m2m_dev->m2m_ops->lock)
->  		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index cc16e76..3b2188e 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1918,6 +1918,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
->  			return -EIO;
->  		}
->  
-> +		if (q->last_buffer_dequeued) {
-> +			dprintk(3, "last buffer dequeued already, will not wait for buffers\n");
-> +			return -EPIPE;
-> +		}
-> +
->  		if (!list_empty(&q->done_list)) {
->  			/*
->  			 * Found a buffer that we were waiting for.
-> @@ -2073,6 +2078,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
->  	/* Remove from videobuf queue */
->  	list_del(&vb->queued_entry);
->  	q->queued_count--;
-> +	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
-> +	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
-> +		q->last_buffer_dequeued = true;
->  	/* go back to dequeued state */
->  	__vb2_dqbuf(vb);
->  
-> @@ -2286,6 +2294,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
->  	 */
->  	__vb2_queue_cancel(q);
->  	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
-> +	q->last_buffer_dequeued = false;
->  
->  	dprintk(3, "successful\n");
->  	return 0;
-> @@ -2628,8 +2637,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
->  	if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
->  		return res | POLLOUT | POLLWRNORM;
->  
-> -	if (list_empty(&q->done_list))
-> +	if (list_empty(&q->done_list)) {
-> +		/*
-> +		 * If the last buffer was dequeued from a capture queue,
-> +		 * return immediately. DQBUF will return -EPIPE.
-> +		 */
-> +		if (q->last_buffer_dequeued)
-> +			return res | POLLIN | POLLRDNORM;
-> +
->  		poll_wait(file, &q->done_wq, wait);
-> +	}
->  
->  	/*
->  	 * Take first buffer available for dequeuing.
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bd2cec2..a689d25 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -390,6 +390,9 @@ struct v4l2_fh;
->   * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
->   *		buffers. Only set for capture queues if qbuf has not yet been
->   *		called since poll() needs to return POLLERR in that situation.
-> + * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
-> + *		last decoded buffer was already dequeued. Set for capture queues
-> + *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
->   * @fileio:	file io emulator internal data, used only if emulator is active
->   * @threadio:	thread io internal data, used only if thread is active
->   */
-> @@ -429,6 +432,7 @@ struct vb2_queue {
->  	unsigned int			start_streaming_called:1;
->  	unsigned int			error:1;
->  	unsigned int			waiting_for_buffers:1;
-> +	unsigned int			last_buffer_dequeued:1;
->  
->  	struct vb2_fileio_data		*fileio;
->  	struct vb2_threadio_data	*threadio;
-> @@ -609,6 +613,15 @@ static inline bool vb2_start_streaming_called(struct vb2_queue *q)
->  	return q->start_streaming_called;
->  }
->  
-> +/**
-> + * vb2_clear_last_buffer_dequeued() - clear last buffer dequeued flag of queue
-> + * @q:		videobuf queue
-> + */
-> +static inline void vb2_clear_last_buffer_dequeued(struct vb2_queue *q)
-> +{
-> +	q->last_buffer_dequeued = false;
-> +}
-> +
->  /*
->   * The following functions are not part of the vb2 core API, but are simple
->   * helper functions that you can use in your struct v4l2_file_operations,
-> 
-
+-- 
+Best Regards,
+Jacek Anaszewski
