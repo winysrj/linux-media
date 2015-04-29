@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45874 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554AbbDJRXl (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:11483 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422657AbbD2KDd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 13:23:41 -0400
-Message-ID: <5528071C.2040102@infradead.org>
-Date: Fri, 10 Apr 2015 10:23:40 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-CC: linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: linux-next: Tree for Apr 10 (media/i2c/adp1653)
-References: <20150410211806.574ae8f9@canb.auug.org.au>
-In-Reply-To: <20150410211806.574ae8f9@canb.auug.org.au>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Apr 2015 06:03:33 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH v5 07/11] v4l2-subdev: add HDMI CEC ops
+Date: Wed, 29 Apr 2015 12:02:40 +0200
+Message-id: <1430301765-22202-8-git-send-email-k.debski@samsung.com>
+In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/15 04:18, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Changes since 20150409:
-> 
+From: Hans Verkuil <hansverk@cisco.com>
 
-on i386:
+Add callbacks to the v4l2_subdev_video_ops.
 
-  CC [M]  drivers/media/i2c/adp1653.o
-../drivers/media/i2c/adp1653.c: In function '__adp1653_set_power':
-../drivers/media/i2c/adp1653.c:317:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
-   gpio_set_value(flash->platform_data->power_gpio, on);
-                                      ^
-../drivers/media/i2c/adp1653.c:336:38: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
-   gpio_set_value(flash->platform_data->power_gpio, 0);
-                                      ^
-../drivers/media/i2c/adp1653.c: In function 'adp1653_of_init':
-../drivers/media/i2c/adp1653.c:471:4: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
-  pd->power_gpio = of_get_gpio_flags(node, 0, &flags);
-    ^
-../drivers/media/i2c/adp1653.c:472:8: error: 'struct adp1653_platform_data' has no member named 'power_gpio'
-  if (pd->power_gpio < 0) {
-        ^
-../drivers/media/i2c/adp1653.c:433:6: warning: unused variable 'gpio' [-Wunused-variable]
-  int gpio;
-      ^
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ include/media/v4l2-subdev.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 2f0a345..9323e10 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -40,6 +40,9 @@
+ #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
+ #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ 
++#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
++#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+@@ -48,6 +51,7 @@ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
+ struct v4l2_mbus_frame_desc;
++struct cec_msg;
+ 
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -352,6 +356,10 @@ struct v4l2_subdev_video_ops {
+ 			     const struct v4l2_mbus_config *cfg);
+ 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+ 			   unsigned int *size);
++	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
++	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
++	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
++	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
+ };
+ 
+ /*
 -- 
-~Randy
+1.7.9.5
+
