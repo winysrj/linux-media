@@ -1,173 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42825 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754729AbbDTJfK (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:36523 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423067AbbD2MeS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2015 05:35:10 -0400
-Message-ID: <5534C834.6000001@xs4all.nl>
-Date: Mon, 20 Apr 2015 11:34:44 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Apr 2015 08:34:18 -0400
+Received: by wgen6 with SMTP id n6so26477578wge.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 05:34:16 -0700 (PDT)
+Date: Wed, 29 Apr 2015 13:34:12 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 02/10] DT: Add documentation for the mfd Maxim max77693
+Message-ID: <20150429123412.GL9169@x1>
+References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+ <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [PATCH/RFC 0/2] Repurpose the v4l2_plane data_offset field
-References: <1429040689-23808-1-git-send-email-laurent.pinchart@ideasonboard.com> <5530E01D.3050105@xs4all.nl> <7986966.gGAFkYegjs@avalon>
-In-Reply-To: <7986966.gGAFkYegjs@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2015 02:53 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Friday 17 April 2015 12:27:41 Hans Verkuil wrote:
->> On 04/14/2015 09:44 PM, Laurent Pinchart wrote:
->>> Hello,
->>>
->>> The v4l2_plane data_offset field has been introduced at the same time as
->>> the the multiplane API to convey header size information between
->>> kernelspace and userspace.
->>>
->>> The API then became slightly controversial, both because different
->>> developers understood the purpose of the field differently (resulting for
->>> instance in an out-of-tree driver abusing the field for a different
->>> purpose), and because of competing proposals (see for instance "[RFC]
->>> Multi format stream support" at
->>> http://www.spinics.net/lists/linux-media/msg69130.html).
->>>
->>> Furthermore, the data_offset field isn't used by any mainline driver
->>> except vivid (for testing purpose).
->>>
->>> I need a different data offset in planes to allow data capture to or data
->>> output from a userspace-selected offset within a buffer (mainly for the
->>> DMABUF and MMAP memory types). As the data_offset field already has the
->>> right name, is unused, and ill-defined, I propose repurposing it. This is
->>> what this RFC is about.
->>>
->>> If the proposal is accepted I'll add another patch to update data_offset
->>> usage in the vivid driver.
->>
->> I am skeptical about all this for a variety of reasons:
-> 
-> That's all good, it's an RFC :-)
-> 
->> 1) The data_offset field is well-defined in the spec. There really is no
->> doubt about the meaning of the field.
-> 
-> I only partly agree. I believe the purpose of the data_offset field to be 
-> clear among the core V4L2 developers, but the documentation isn't precise 
-> enough. I've seen out-of-tree drivers using the data_offset field for other 
-> purposes than specifying the header size. The situation is a bit better now 
-> that videobuf2 handles the field properly (and avoids copying it from user to 
-> kernel for capture devices for instance), but there are still many users of 
-> older kernels.
-> 
-> This being said, the problem wouldn't be difficult to fix, it just requires a 
-> documentation patch.
-> 
->> 2) We really don't know who else might be using it, or which applications
->> might be using it (a lot of work was done in gstreamer recently, I wonder
->> if data_offset support was implemented there).
-> 
-> It's funny you mention that. I cloned the gstreamer repositories and tried to 
-> investigate. The gstreamer v4l2 elements started using data_offset a year ago 
-> in
-> 
-> commit 92bdd596f2b07dbf4ccc9b8bf3d17620d44f131a
-> Author: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> Date:   Fri Apr 11 17:10:11 2014 -0400
-> 
->     v4l2: Add DMABUF and USERPTR importation
-> 
-> (I've CC'ed Nicolas to this e-mail)
-> 
-> I'm not too familiar with the latest gstreamer code, but after a first 
-> investigation it seems that gstreamer uses the data_offset field for the 
-> purpose introduced by this patch, not to convey the header size. One more 
-> argument in favour of repurposing the field ;-)
-> 
->> 3) You offer no alternative to this feature. Basically this is my main
->> objection. It is not at all unusual to have headers in front of the frame
->> data. We (Cisco) use it in one of our product series for example. And I
->> suspect it is something that happens especially in systems with an FPGA
->> that does custom processing, and those systems are exactly the ones that
->> are generally not upstreamed and so are not visible to us.
->>
->> IMHO the functionality it provides is very much relevant, and I would like
->> to see an alternative in place before it is repurposed.
->>
->> But frankly, I really don't see why you would want to repurpose it. Adding a
->> new field (buf_offset) would do exactly what you want it to do without
->> causing an ABI change.
->>
->> Should we ever implement a better alternative for data_offset, then that
->> field can be renamed to 'reserved2' or whatever at some point.
->>
->> Frankly, I don't think data_offset is all that bad. What is missing is info
->> about the format (so add a 'data_format' field) and possible similar info
->> about a footer (footer_size, footer_format). Yes, the name could have been
->> better (header_size), but nobody is perfect...
-> 
-> I totally agree that the functionality is relevant, and we certainly need an 
-> API for that.
-> 
-> My point, however, was twofold : I believe we need a better (as in more 
-> powerful) API than data_offset to specify plane content, and the current usage 
-> of data_offset in out-of-tree drivers, and it seems in gstreamer too, is 
-> different than what we had intended the field to be used for.
-> 
-> For those two reasons, I believe it would make sense to repurpose the field 
-> and introduce a new API to specify information about the plane content. Let's 
-> kickstart the discussion :-)
-> 
-> The following information comes to my mind as being useful to specify:
-> 
-> - format
-> - header size
-> - footer size
-> 
-> There is, however, another point I'd like to raise. I'm working on an H.264 
-> encoder that produces slices without headers. Userspace is thus responsible 
-> for filling the headers, based on information produced by the encoder.
-> 
-> When a capture buffer at the output of the encoder contains a single slice, 
-> that's pretty easy to handle. Userspace can use data_offset (in its new 
-> purpose, or buf_offset if we decide to introduce a new field instead) to 
-> reserve space for a header if the header size is known in advance by the 
-> application, or the driver (or possibly the device) can reserve space for the 
-> header and report the header size.
-> 
-> However, a capture buffer can contain multiple slices, with gaps between the 
-> slices for the headers. The position and size of the gaps need to be known by 
-> the application. I'm not sure yet if userspace can compute them, or if they're 
-> dynamic and need to be passed from the driver to the application on a per-
-> frame basis. In the latter case I would need more than a header size and 
-> footer size per plane.
+LED Ack please Bryan.
 
-I wonder if the current V4L2_PIX_FMT_H264* fourcc formats support multiple slices
-in one buffer. Kamil might know. But I suspect you'll have to make a new fourcc
-for that. Just for reference you might want to look at VIDIOC_G_ENC_INDEX (used
-by ivtv) for a somewhat similar purpose. It's an old API, and I would probably not
-recommend reusing this, but it may be interesting.
+> This patch adds device tree binding documentation for
+> the flash cell of the Maxim max77693 multifunctional device.
+> 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Chanwoo Choi <cw00.choi@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  Documentation/devicetree/bindings/mfd/max77693.txt |   67 ++++++++++++++++++++
+>  1 file changed, 67 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
+> index 38e6440..d342584 100644
+> --- a/Documentation/devicetree/bindings/mfd/max77693.txt
+> +++ b/Documentation/devicetree/bindings/mfd/max77693.txt
+> @@ -76,7 +76,60 @@ Optional properties:
+>      Valid values: 4300000, 4700000, 4800000, 4900000
+>      Default: 4300000
+>  
+> +- led : the LED submodule device node
+> +
+> +There are two LED outputs available - FLED1 and FLED2. Each of them can
+> +control a separate LED or they can be connected together to double
+> +the maximum current for a single connected LED. One LED is represented
+> +by one child node.
+> +
+> +Required properties:
+> +- compatible : Must be "maxim,max77693-led".
+> +
+> +Optional properties:
+> +- maxim,boost-mode :
+> +	In boost mode the device can produce up to 1.2A of total current
+> +	on both outputs. The maximum current on each output is reduced
+> +	to 625mA then. If not enabled explicitly, boost setting defaults to
+> +	LEDS_BOOST_FIXED in case both current sources are used.
+> +	Possible values:
+> +		LEDS_BOOST_OFF (0) - no boost,
+> +		LEDS_BOOST_ADAPTIVE (1) - adaptive mode,
+> +		LEDS_BOOST_FIXED (2) - fixed mode.
+> +- maxim,boost-mvout : Output voltage of the boost module in millivolts.
+> +	Valid values: 3300 - 5500, step by 25 (rounded down)
+> +	Default: 3300
+> +- maxim,mvsys-min : Low input voltage level in millivolts. Flash is not fired
+> +	if chip estimates that system voltage could drop below this level due
+> +	to flash power consumption.
+> +	Valid values: 2400 - 3400, step by 33 (rounded down)
+> +	Default: 2400
+> +
+> +Required properties for the LED child node:
+> +- led-sources : see Documentation/devicetree/bindings/leds/common.txt;
+> +		device current output identifiers: 0 - FLED1, 1 - FLED2
+> +- led-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +	Valid values for a LED connected to one FLED output:
+> +		15625 - 250000, step by 15625 (rounded down)
+> +	Valid values for a LED connected to both FLED outputs:
+> +		15625 - 500000, step by 15625 (rounded down)
+> +- flash-max-microamp : see Documentation/devicetree/bindings/leds/common.txt
+> +	Valid values for a single LED connected to one FLED output:
+> +	(boost mode must be turned off):
+> +		15625 - 1000000, step by 15625 (rounded down)
+> +	Valid values for a single LED connected to both FLED outputs:
+> +		15625 - 1250000, step by 15625 (rounded down)
+> +	Valid values for two LEDs case:
+> +		15625 - 625000, step by 15625 (rounded down)
+> +- flash-max-timeout-us : see Documentation/devicetree/bindings/leds/common.txt
+> +	Valid values: 62500 - 1000000, step by 62500 (rounded down)
+> +
+> +Optional properties for the LED child node:
+> +- label : see Documentation/devicetree/bindings/leds/common.txt
+> +
+>  Example:
+> +#include <dt-bindings/leds/common.h>
+> +
+>  	max77693@66 {
+>  		compatible = "maxim,max77693";
+>  		reg = <0x66>;
+> @@ -117,5 +170,19 @@ Example:
+>  			maxim,thermal-regulation-celsius = <75>;
+>  			maxim,battery-overcurrent-microamp = <3000000>;
+>  			maxim,charge-input-threshold-microvolt = <4300000>;
+> +
+> +		led {
+> +			compatible = "maxim,max77693-led";
+> +			maxim,boost-mode = <LEDS_BOOST_FIXED>;
+> +			maxim,boost-mvout = <5000>;
+> +			maxim,mvsys-min = <2400>;
+> +
+> +			camera_flash: flash-led {
+> +				label = "max77693-flash";
+> +				led-sources = <0>, <1>;
+> +				led-max-microamp = <500000>;
+> +				flash-max-microamp = <1250000>;
+> +				flash-max-timeout-us = <1000000>;
+> +			};
+>  		};
+>  	};
 
-Is the size of the gaps programmable in the H.264 encoder hardware?
-
-In any case, I believe your particular use-case has absolutely nothing to do with
-headers/footers in a plane (the original topic). Your headers are intrinsic to the
-format, i.e. without them applications cannot handle the stream. Filling those in
-is the responsibility of the whole stack (driver + any libv4l plugin) leading to a
-valid data buffer.
-
-The headers/footers in the original use-case are just due to metadata that hardware
-decides to throw in for whoever is interested (or in some cases it's just garbage)
-and that are not part of the actual image data.
-
-Regards,
-
-	Hans
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
