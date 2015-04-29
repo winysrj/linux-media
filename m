@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:33684 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbbD2XhU convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:26491 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419AbbD2KDC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 19:37:20 -0400
-Received: by pacwv17 with SMTP id wv17so41731666pac.0
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 16:37:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAD4j4=BjObj2Q24Zd-kNC1gtXGGa6sVZ9GYs0O64jXhRrhFY6Q@mail.gmail.com>
-References: <CAD4j4=BjObj2Q24Zd-kNC1gtXGGa6sVZ9GYs0O64jXhRrhFY6Q@mail.gmail.com>
-Date: Thu, 30 Apr 2015 01:37:20 +0200
-Message-ID: <CAD4j4=CjH5wUkA=EmgWK+PXTxPxj=bmL6kkgdmszY3coD0-5pQ@mail.gmail.com>
-Subject: Re: DVB-T scan tables for es-Vitoria-Gasteiz, es-All and
- channels.conf for Vitoria-Gasteiz
-From: =?UTF-8?Q?David_Santamar=C3=ADa_Rogado?= <howl.nsp@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 29 Apr 2015 06:03:02 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: [PATCH v5 01/11] dts: exynos4*: add HDMI CEC pin definition to pinctrl
+Date: Wed, 29 Apr 2015 12:02:34 +0200
+Message-id: <1430301765-22202-2-git-send-email-k.debski@samsung.com>
+In-reply-to: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The channels file has get into the mail body.
+Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
+Exynos4x12 SoCs. These are required by the HDMI CEC device.
 
-[La 1]
-    SERVICE_ID = 560
-...
-...
-...
-    TRANSMISSION_MODE = 8K
-    HIERARCHY = NONE
-    DELIVERY_SYSTEM = DVBT
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4210-pinctrl.dtsi |    7 +++++++
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi |    7 +++++++
+ 2 files changed, 14 insertions(+)
 
-[Radio Vitoria]
-    SERVICE_ID = 1264
-    AUDIO_PID = 7004
-    FREQUENCY = 770000000
-    MODULATION = QAM/64
-    BANDWIDTH_HZ = 8000000
-    INVERSION = AUTO
-    CODE_RATE_HP = 2/3
-    CODE_RATE_LP = 1/2
-    GUARD_INTERVAL = 1/4
-    TRANSMISSION_MODE = 8K
-    HIERARCHY = NONE
-    DELIVERY_SYSTEM = DVBT
+diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+index a7c2128..9331c62 100644
+--- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+@@ -820,6 +820,13 @@
+ 			samsung,pin-pud = <1>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
+ 
+ 	pinctrl@03860000 {
+diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+index c141931..875464e 100644
+--- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+@@ -885,6 +885,13 @@
+ 			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
+ 
+ 	pinctrl@03860000 {
+-- 
+1.7.9.5
 
-2015-04-30 1:34 GMT+02:00 David Santamaría Rogado <howl.nsp@gmail.com>:
-> Attached the following files:
->
-> es-All DVB-T scan table contains all the frequencies used in Spain for
-> DVB-T, perhaps it could server as All for every Europe country if
-> someone adds also the DVB-T2 configuration inside this one as I think
-> the spectrum for digital television in all Europe in now the same.
-> Spain only have DVB-T nowadays.
->
-> es-Vitoria-Gasteiz DVB-T scan table is the third update of my scan
-> file (I didn't submit the second version) with the updated
-> reorganization to leave room for the LTE spectrum and containing some
-> annotations explaining that there are some autonomical channels from
-> es-Burgos and also some illegal emissions tarot, contact and similar
-> scam channels.
->
-> dvb_channel.conf is the channels-conf dvb-t for Vitoria-Gasteiz in
-> DVBv5 format, in git I see all files in DVBv3 format, if it's needed I
-> could convert it to the old one.
