@@ -1,192 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:36372 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752036AbbDCSmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2015 14:42:06 -0400
-Date: Fri, 3 Apr 2015 20:41:32 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/6] Send and receive decoded IR using lirc interface
-Message-ID: <20150403184132.GB26445@hardeman.nu>
-References: <cover.1426801061.git.sean@mess.org>
- <20150330211819.GA18426@hardeman.nu>
- <20150331204716.6795177d@concha.lan>
- <20150401221941.GC4721@hardeman.nu>
- <20150403101129.GA568@gofer.mess.org>
+Received: from mail-vn0-f47.google.com ([209.85.216.47]:43465 "EHLO
+	mail-vn0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423246AbbD2PAU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2015 11:00:20 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150403101129.GA568@gofer.mess.org>
+In-Reply-To: <1430301765-22202-13-git-send-email-k.debski@samsung.com>
+References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+	<1430301765-22202-13-git-send-email-k.debski@samsung.com>
+Date: Wed, 29 Apr 2015 16:00:19 +0100
+Message-ID: <CACvgo52hDYpgv2FY8X-O7SC=+2YMn7osHt_V=NJxP+4REaw1=Q@mail.gmail.com>
+Subject: Re: [PATCH] libgencec: Add userspace library for the generic CEC
+ kernel interface
+From: Emil Velikov <emil.l.velikov@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: ML dri-devel <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org,
+	"moderated list:ARM/S5P EXYNOS AR..."
+	<linux-samsung-soc@vger.kernel.org>, sean@mess.org,
+	mchehab@osg.samsung.com, dmitry.torokhov@gmail.com,
+	lars@opdenkamp.eu, Kyungmin Park <kyungmin.park@samsung.com>,
+	thomas@tommie-lie.de, linux-input@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 03, 2015 at 11:11:30AM +0100, Sean Young wrote:
->On Thu, Apr 02, 2015 at 12:19:41AM +0200, David Härdeman wrote:
->> On Tue, Mar 31, 2015 at 08:47:16PM -0300, Mauro Carvalho Chehab wrote:
->> >Em Mon, 30 Mar 2015 23:18:19 +0200
->> >David Härdeman <david@hardeman.nu> escreveu:
->> >> And on a much more general level...I still think we should start from
->> >> scratch with a rc specific chardev with it's own API that is generic
->> >> enough to cover both scancode / raw ir / future / other protocols (not
->> >> that such an undertaking would preclude adding stuff to the lirc API of
->> >> course).
->> >
->> >Starting from scratch sounds a bad idea. We don't do that on Linux,
->> >except when we really screwed everything very badly.
->> 
->> LIRC...IR specific....rc-core....not IR specific...and the lirc IOCTL
->> API is pretty badly screwed. Have you had a closer look at it?
+Hi Kamil,
+
+Allow me to put a few suggestions:
+
+On 29 April 2015 at 11:02, Kamil Debski <k.debski@samsung.com> wrote:
+> This is the first version of the libGenCEC library. It was designed to
+> act as an interface between the generic CEC kernel API and userspace
+> applications. It provides a simple interface for applications and an
+> example application that can be used to test the CEC functionality.
 >
->LIRC is IR specific, yes. If something else comes along we can think
->about something new, but not before that.
-
-Yeah, I'm not saying we should throw out lirc now or not improve on
-it...not at all.
-
->> I'm not saying we should throw away the lirc module/device, it'll have
->> to stay around for a long time. But we should design a v2.
+> signed-off-by: Kamil Debski <k.debski@samsung.com>
+> ---
+>  AUTHORS              |    1 +
+>  INSTALL              |    9 +
+>  LICENSE              |  202 ++++++++++++++++
+>  Makefile.am          |    4 +
+>  README               |   22 ++
+>  configure.ac         |   24 ++
+>  doc/index.html       |  345 +++++++++++++++++++++++++++
+>  examples/Makefile.am |    4 +
+>  examples/cectest.c   |  631 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/gencec.h     |  255 ++++++++++++++++++++
+>  src/Makefile.am      |    4 +
+>  src/gencec.c         |  445 +++++++++++++++++++++++++++++++++++
+>  12 files changed, 1946 insertions(+)
+>  create mode 100644 AUTHORS
+>  create mode 100644 INSTALL
+>  create mode 100644 LICENSE
+>  create mode 100644 Makefile.am
+>  create mode 100644 README
+>  create mode 100644 configure.ac
+>  create mode 100644 doc/index.html
+>  create mode 100644 examples/Makefile.am
+>  create mode 100644 examples/cectest.c
+>  create mode 100644 include/gencec.h
+>  create mode 100644 m4/.gitkeep
+>  create mode 100644 src/Makefile.am
+>  create mode 100644 src/gencec.c
 >
->What is wrong with lirc that requires a redesign?
+> diff --git a/AUTHORS b/AUTHORS
+> new file mode 100644
+> index 0000000..e4b7117
+> --- /dev/null
+> +++ b/AUTHORS
+> @@ -0,0 +1 @@
+> +Kamil Debski <k.debski@samsung.com>
+> diff --git a/INSTALL b/INSTALL
+> new file mode 100644
+> index 0000000..aac6101
+> --- /dev/null
+> +++ b/INSTALL
+> @@ -0,0 +1,9 @@
+> +To install libgencec run following commands:
+> +
+> +autoreconf -i
+You might want add --force in here, otherwise the files will stay
+as-is if you update libtool and friends "mid-flight".
+Many projects include autogen.sh like the following. Feel free to add
+it to libgencec.
 
-I'll defer that discussion to a separate thread. It's really not related
-to your patches (sorry).
+$cat autogen.sh
+#! /bin/sh
 
->> If you've looked at my patches the idea is basically:
->> 
->> RC device is plugged in, /dev/rc/rc0 is created by udev
->> 
->> Applications wishing to muck about with RC devices do:
->> 
->> 	int fd;
->> 	int ver;
->> 	int type;
->> 
->> 	fd = open("/dev/rc/rc0")
->> 
->> 	ver = ioctl(fd, RCIOCGVERSION);
->> 	if (ver != 1)
->> 		warn("New RC API version");
->> 
->> 	type = ioctl(fd, RCIOCGVERSION);
->
->lirc uses feature bits. As we know from filesystems features are much
->better than versioning. I'm sure there are other examples.
+srcdir=`dirname "$0"`
+test -z "$srcdir" && srcdir=.
 
-My implementation supports feature bits (flags).
+ORIGDIR=`pwd`
+cd "$srcdir"
 
->> 	switch (type) {
->> 	case RC_DRIVER_SCANCODE:
->> 		debug("Scancode hardware");
->> 		break;
->> 	case RC_DRIVER_IR_RAW:
->> 		debug("Raw IR hardware");
->> 		break;
->> 	default:
->> 		debug("Unknown hardware type");
->> 		break;
->> 	}
->
->lirc_zilog can send both raw IR and scancodes (although I don't know how
->to do raw IR yet). So with lirc you would do:
->
->	unsigned features;
->
->	ioctl(fd, LIRC_GET_FEATURES, &features);
->
->	if (features & LIRC_CAN_SEND_MODE2) 
->		// can send raw IR
->
->	if (features & LIRC_CAN_SEND_SCANCODE) // needs my patches
->		// can send scancodes
+autoreconf --force --verbose --install || exit 1
+cd "$ORIGDIR" || exit $?
 
-That's something to keep in mind, thanks.
+if test -z "$NOCONFIGURE"; then
+    "$srcdir"/configure "$@"
+fi
 
->> And then they can do further operations depending on the type of the
->> device. For example, for raw IR devices you can read() raw IR
->> pulse/space timings or (if the hardware supports TX) write() raw IR
->> timings.
->> 
->> Other examples of ioctls are (all four work using structs with all the
->> relevant parameters):
->> 
->> * RCIOCSIRRX
->> 	set all RX parameters in one go (and return the result since
->> 	the exact values requested might not be supported)
->
->Putting everything in one big struct isn't really future-proof, and it
->doesn't tell you which parts are supported by the hardware.
 
-It's reasonably "future proof" for three reasons:
 
-1) Microsoft has a CIR API...with RX/TX structs for setting the
-parameters, that will in itself tend to make sure that hardware sticks
-to what's supported by that API
+> --- /dev/null
+> +++ b/configure.ac
+> @@ -0,0 +1,24 @@
 
-2) If you look at the evolution of the LIRC API, it's pretty clear that
-completely new hardware capabilities aren't really being developed at a
-brisk pace. The capabilities and parameters that need to be set have
-remained fairly static for a long time.
+You can save yourself some headaches if you restrict old and/or buggy
+autoconf versions which don't work with the project.
+If I have to guess 2.60 should be ok.
+AC_PREREQ([XXX])
 
-3) My proposed structs include explicit support for flags as well as
-reserved struct members (which help future extensibility) and new
-ioctls could be added as a fallback.
+> +AC_INIT([libgencec], [0.1], [k.debski@samsung.com])
+> +AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+> +
+> +AC_PROG_CC
+> +AM_PROG_AR
+> +AC_CONFIG_MACRO_DIR([m4])
+> +AC_DEFINE([_GNU_SOURCE], [], [Use GNU extensions])
+> +
 
->> * RCIOCSIRTX
->> 	same as RCIOCSIRRX but for TX
->
->That would have to be a different struct for RX and TX.
->
->RX is different from TX. You want to set a carrier range for RX, and 
->a specific carrier for TX. You want a duty cycle for TX but not for RX,
->carrier reports for RX but that makes no sense for TX.
+Same for libtool - 2.2 perhaps ?
+LT_PREREQ([XXX])
 
-It is two different structs in the implementation that I've posted
+> +LT_INIT
+> +
+> +# Checks for typedefs, structures, and compiler characteristics.
+> +AC_C_INLINE
+> +AC_TYPE_SIZE_T
+> +AC_TYPE_UINT16_T
+> +AC_TYPE_UINT32_T
+> +AC_TYPE_UINT8_T
+> +
+> +#AC_CHECK_LIB([c], [malloc])
+> +# Checks for library functions.
+> +#AC_FUNC_MALLOC
+> +
+> +AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile])
+Would be nice if the library provides libgencec.pc file. This way any
+users can avoid the explicit header/library check, amongst other
+useful bits.
 
->
->> * RCIOCGIRRX
->> 	get all RX parameters
->> * RCIOCGIRTX
->> 	get all TX parameters
->> 
->> These ioctls only work with RC_DRIVER_IR_RAW hardware. Others can be
->> defined for other kinds of hardware.
->
->The cec patches going round at the moment create their own character 
->devices. rc-core is only a side note in that system; IR and CEC are
->so widely different it doesn't really make sense to share character
->devices.
+> --- /dev/null
+> +++ b/examples/Makefile.am
+> @@ -0,0 +1,4 @@
+> +bin_PROGRAMS = cectest
+> +cectest_SOURCES = cectest.c
+> +AM_CPPFLAGS=-I$(top_srcdir)/include/
+> +AM_LDFLAGS=-L../src/ -lgencec
+The following seems more common (in the projects I've seen at least)
+cectest_LDADD = $(top_builddir)/src/libgencec.la
 
-Maybe so. I haven't looked at the proposed CEC API in detail. But IIRC
-CEC has IR passthrough capabilities so it's not obvious that they'll be
-completely independent...?
+> diff --git a/m4/.gitkeep b/m4/.gitkeep
+> new file mode 100644
+> index 0000000..e69de29
+Haven't seen any projects doing this. Curious what the benefits of
+keeping and empty folder might be ?
 
->> Then there's one more thing, and that's multiple keytables per rc
->> device. Each keytable has one associated input device (so there's a
->> 1-to-N mapping between rc devices and input devices). Userspace can
->> create/destroy additional keytables and add/remove scancode<->keycode
->> mappings per keytable. The idea is that you'd be able to e.g. define one
->> keytable per physical remote control (the thing you hold in your hand,
->> not the receiver/transmitter), and each would get its own input device.
->> Those input devices can then be used by different applications (so you
->> could have that old VCR remote control the PVR software while the TV
->> remote controls your Kodi frontend). An idea I borrowed from Jon Smirl
->> (who posted a similar proof-of-concept based on debugfs back in the
->> days).
->
->That would be very nice thing to have, but that is a separate from this.
+> diff --git a/src/Makefile.am b/src/Makefile.am
+> new file mode 100644
+> index 0000000..cb024f0
+> --- /dev/null
+> +++ b/src/Makefile.am
+> @@ -0,0 +1,4 @@
+> +lib_LTLIBRARIES = libgencec.la
+> +libgencec_la_SOURCES = gencec.c
+> +libgencec_la_LDFLAGS = -version-info 0:1:0
+You might want to add -no-undefined in order to prevent having a
+library with unresolved symbols.
 
-Agreed. And I kind of hijacked your thread. Sorry about that. I'm not
-opposed to hacking on/improving the lirc interface, and I'm not opposed
-to your patches. The takeaway from what I've said basically boils down to:
+Hope you find the above useful :-)
 
-1) Dynamic scancode length
-2) Need to sort out/agree on/standardize scancode representation before
-exposing it further to userspace
-3) Keeping lirc as separate from rc-core as possible (e.g. not littering
-rc-core with lirc specifics) still makes sense
-
--- 
-David Härdeman
+Cheers
+Emil
