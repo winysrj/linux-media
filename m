@@ -1,99 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60202 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:37623 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbbD3OI6 (ORCPT
+	with ESMTP id S1751545AbbD2XG0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 10:08:58 -0400
+	Wed, 29 Apr 2015 19:06:26 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: [PATCH 22/22] saa7134: replace remaining occurences or printk()
-Date: Thu, 30 Apr 2015 11:08:42 -0300
-Message-Id: <e0eda5b491b1f6e20b7d530d00375fb51e22c768.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
-References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH 09/27] cx231xx: fix bad indenting
+Date: Wed, 29 Apr 2015 20:05:54 -0300
+Message-Id: <2090991bed3391cf2a494be25ad7221da43c0edd.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using printk(), use pr_foo() macros.
+drivers/media/usb/cx231xx/cx231xx-avcore.c:1598 cx231xx_set_DIF_bandpass() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-core.c:656 cx231xx_demod_reset() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-core.c:659 cx231xx_demod_reset() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-core.c:664 cx231xx_demod_reset() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-core.c:669 cx231xx_demod_reset() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-core.c:673 cx231xx_demod_reset() warn: inconsistent indenting
+drivers/media/usb/cx231xx/cx231xx-417.c:1164 cx231xx_initialize_codec() warn: inconsistent indenting
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
-index ef3c33e3757d..d04fbdb49158 100644
---- a/drivers/media/pci/saa7134/saa7134-i2c.c
-+++ b/drivers/media/pci/saa7134/saa7134-i2c.c
-@@ -386,7 +386,7 @@ static char *i2c_devs[128] = {
- 	[ 0x5a >> 1 ] = "remote control",
- };
- 
--static void do_i2c_scan(char *name, struct i2c_client *c)
-+static void do_i2c_scan(struct i2c_client *c)
- {
- 	unsigned char buf;
- 	int i,rc;
-@@ -396,8 +396,8 @@ static void do_i2c_scan(char *name, struct i2c_client *c)
- 		rc = i2c_master_recv(c,&buf,0);
- 		if (rc < 0)
- 			continue;
--		printk("%s: i2c scan: found device @ 0x%x  [%s]\n",
--		       name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-+		pr_info("i2c scan: found device @ 0x%x  [%s]\n",
-+			 i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
- 	}
- }
- 
-@@ -415,7 +415,7 @@ int saa7134_i2c_register(struct saa7134_dev *dev)
- 
- 	saa7134_i2c_eeprom(dev,dev->eedata,sizeof(dev->eedata));
- 	if (i2c_scan)
--		do_i2c_scan(dev->name,&dev->i2c_client);
-+		do_i2c_scan(&dev->i2c_client);
- 
- 	/* Instantiate the IR receiver device, if present */
- 	saa7134_probe_i2c_ir(dev);
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 89f5fcf12722..c6036557b468 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -831,8 +831,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 		break;
- 	}
- 	if (NULL == ir_codes) {
--		printk("%s: Oops: IR config error [card=%d]\n",
--		       dev->name, dev->board);
-+		pr_err("Oops: IR config error [card=%d]\n", dev->board);
- 		return -ENODEV;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 983ea8339154..3096e291735c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1160,9 +1160,9 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
  	}
  
-diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-index 360f447bd74d..6320b64d3528 100644
---- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
-+++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-@@ -674,12 +674,11 @@ static inline int saa_dsp_wait_bit(struct saa7134_dev *dev, int bit)
+ 	cx231xx_enable656(dev);
+-			/* stop mpeg capture */
+-			cx231xx_api_cmd(dev, CX2341X_ENC_STOP_CAPTURE,
+-				 3, 0, 1, 3, 4);
++
++	/* stop mpeg capture */
++	cx231xx_api_cmd(dev, CX2341X_ENC_STOP_CAPTURE, 3, 0, 1, 3, 4);
+ 
+ 	cx231xx_codec_settings(dev);
+ 	msleep(60);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 39e887925e3d..491913778bcc 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -1595,31 +1595,31 @@ void cx231xx_set_DIF_bandpass(struct cx231xx *dev, u32 if_freq,
+ 		/*pll_freq_word = 0x3463497;*/
+ 		vid_blk_write_word(dev, DIF_PLL_FREQ_WORD,  pll_freq_word);
+ 
+-	if (spectral_invert) {
+-		if_freq -= 400000;
+-		/* Enable Spectral Invert*/
+-		vid_blk_read_word(dev, DIF_MISC_CTRL,
+-					&dif_misc_ctrl_value);
+-		dif_misc_ctrl_value = dif_misc_ctrl_value | 0x00200000;
+-		vid_blk_write_word(dev, DIF_MISC_CTRL,
+-					dif_misc_ctrl_value);
+-	} else {
+-		if_freq += 400000;
+-		/* Disable Spectral Invert*/
+-		vid_blk_read_word(dev, DIF_MISC_CTRL,
+-					&dif_misc_ctrl_value);
+-		dif_misc_ctrl_value = dif_misc_ctrl_value & 0xFFDFFFFF;
+-		vid_blk_write_word(dev, DIF_MISC_CTRL,
+-					dif_misc_ctrl_value);
+-	}
++		if (spectral_invert) {
++			if_freq -= 400000;
++			/* Enable Spectral Invert*/
++			vid_blk_read_word(dev, DIF_MISC_CTRL,
++					  &dif_misc_ctrl_value);
++			dif_misc_ctrl_value = dif_misc_ctrl_value | 0x00200000;
++			vid_blk_write_word(dev, DIF_MISC_CTRL,
++					  dif_misc_ctrl_value);
++		} else {
++			if_freq += 400000;
++			/* Disable Spectral Invert*/
++			vid_blk_read_word(dev, DIF_MISC_CTRL,
++					  &dif_misc_ctrl_value);
++			dif_misc_ctrl_value = dif_misc_ctrl_value & 0xFFDFFFFF;
++			vid_blk_write_word(dev, DIF_MISC_CTRL,
++					  dif_misc_ctrl_value);
++		}
+ 
+-	if_freq = (if_freq/100000)*100000;
++		if_freq = (if_freq / 100000) * 100000;
+ 
+-	if (if_freq < 3000000)
+-		if_freq = 3000000;
++		if (if_freq < 3000000)
++			if_freq = 3000000;
+ 
+-	if (if_freq > 16000000)
+-		if_freq = 16000000;
++		if (if_freq > 16000000)
++			if_freq = 16000000;
  	}
- 	while (0 == (state & bit)) {
- 		if (unlikely(0 == count)) {
--			printk("%s: dsp access wait timeout [bit=%s]\n",
--			       dev->name,
--			       (bit & SAA7135_DSP_RWSTATE_WRR) ? "WRR" :
--			       (bit & SAA7135_DSP_RWSTATE_RDB) ? "RDB" :
--			       (bit & SAA7135_DSP_RWSTATE_IDA) ? "IDA" :
--			       "???");
-+			pr_err("dsp access wait timeout [bit=%s]\n",
-+				 (bit & SAA7135_DSP_RWSTATE_WRR) ? "WRR" :
-+				 (bit & SAA7135_DSP_RWSTATE_RDB) ? "RDB" :
-+				 (bit & SAA7135_DSP_RWSTATE_IDA) ? "IDA" :
-+				 "???");
- 			return -EIO;
- 		}
- 		saa_wait(DSP_DELAY);
+ 
+ 	dev_dbg(dev->dev, "Enter IF=%zu\n", ARRAY_SIZE(Dif_set_array));
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index e42bde081cd7..a2fd49b6be83 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -653,22 +653,20 @@ int cx231xx_demod_reset(struct cx231xx *dev)
+ 
+ 	cx231xx_coredbg("Enter cx231xx_demod_reset()\n");
+ 
+-		value[1] = (u8) 0x3;
+-		status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-						PWR_CTL_EN, value, 4);
+-			msleep(10);
+-
+-		value[1] = (u8) 0x0;
+-		status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-						PWR_CTL_EN, value, 4);
+-			msleep(10);
+-
+-		value[1] = (u8) 0x3;
+-		status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
+-						PWR_CTL_EN, value, 4);
+-			msleep(10);
+-
+-
++	value[1] = (u8) 0x3;
++	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					PWR_CTL_EN, value, 4);
++	msleep(10);
++
++	value[1] = (u8) 0x0;
++	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					PWR_CTL_EN, value, 4);
++	msleep(10);
++
++	value[1] = (u8) 0x3;
++	status = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++					PWR_CTL_EN, value, 4);
++	msleep(10);
+ 
+ 	status = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER, PWR_CTL_EN,
+ 				 value, 4);
 -- 
 2.1.0
 
