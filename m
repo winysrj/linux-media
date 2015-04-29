@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:33592 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031262AbbDWVLg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37627 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574AbbD2XG0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2015 17:11:36 -0400
-Received: by lbbzk7 with SMTP id zk7so22825831lbb.0
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2015 14:11:34 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 05/12] smipcie: specify if_port for si2157 devices
-Date: Fri, 24 Apr 2015 00:11:04 +0300
-Message-Id: <1429823471-21835-5-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
-References: <1429823471-21835-1-git-send-email-olli.salonen@iki.fi>
+	Wed, 29 Apr 2015 19:06:26 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 08/27] ov7670: check read error also for REG_AECHH on ov7670_s_exp()
+Date: Wed, 29 Apr 2015 20:05:53 -0300
+Message-Id: <ff849563e43277ddf2cf83309963c74ca4428f7d.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the if_port parameter for all Si2157-based devices.
+ov7670_s_exp() checks read error for 2 registers: REG_COM1
+and REG_COM8. But, although it uses the value latter, it
+doesn't check errors on REG_AECHH read. Yet, as it is doing
+a bitmask operation there, the read operation should succeed.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/smipcie/smipcie.c | 1 +
- 1 file changed, 1 insertion(+)
+So, fix the code to also check if this succeeded.
 
-diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie.c
-index 4115925..143fd78 100644
---- a/drivers/media/pci/smipcie/smipcie.c
-+++ b/drivers/media/pci/smipcie/smipcie.c
-@@ -657,6 +657,7 @@ static int smi_dvbsky_sit2_fe_attach(struct smi_port *port)
- 	/* attach tuner */
- 	memset(&si2157_config, 0, sizeof(si2157_config));
- 	si2157_config.fe = port->fe;
-+	si2157_config.if_port = 1;
+This fixes this smatch report:
+	drivers/media/i2c/ov7670.c:1366 ov7670_s_exp() warn: inconsistent indenting
+
+Compile-tested only.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index b9847527eb5a..f2fe20aad274 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1362,7 +1362,7 @@ static int ov7670_s_exp(struct v4l2_subdev *sd, int value)
+ 	unsigned char com1, com8, aech, aechh;
  
- 	memset(&client_info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(client_info.type, "si2157", I2C_NAME_SIZE);
+ 	ret = ov7670_read(sd, REG_COM1, &com1) +
+-		ov7670_read(sd, REG_COM8, &com8);
++		ov7670_read(sd, REG_COM8, &com8) +
+ 		ov7670_read(sd, REG_AECHH, &aechh);
+ 	if (ret)
+ 		return ret;
 -- 
-1.9.1
+2.1.0
 
