@@ -1,68 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:57533 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbbDJUUg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37658 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751611AbbD2XG1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 16:20:36 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: [PATCH] [media] omap4iss: avoid broken OMAP4 dependency
-Date: Fri, 10 Apr 2015 22:20:20 +0200
-Message-ID: <3292592.cickJMVhRq@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 29 Apr 2015 19:06:27 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 24/27] s5p-mfc: fix bad indentation
+Date: Wed, 29 Apr 2015 20:06:09 -0300
+Message-Id: <b8e07cb142bc9dba58b8858f4930db281bfc6fc5.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap4iss driver uses an interface that used to be provided
-by OMAP4 but has now been removed and replaced with a WARN_ON(1)
-statement, which likely broke the iss_csiphy code at runtime.
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:187 s5p_mfc_alloc_codec_buffers_v5() warn: inconsistent indenting
 
-It also broke compiling the driver when CONFIG_ARCH_OMAP2PLUS
-is set, which is implied by OMAP4:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-drivers/staging/media/omap4iss/iss_csiphy.c: In function 'omap4iss_csiphy_config':
-drivers/staging/media/omap4iss/iss_csiphy.c:167:2: error: implicit declaration of function 'omap4_ctrl_pad_writel' [-Werror=implicit-function-declaration]
-  omap4_ctrl_pad_writel(cam_rx_ctrl,
-
-In turn, this broke ARM allyesconfig builds. Replacing the
-omap4_ctrl_pad_writel call with WARN_ON(1) won't make the
-situation any worse than it already is, but fixes the build
-problem.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: efde234674d9 ("ARM: OMAP4+: control: remove support for legacy pad read/write")
----
-diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c b/drivers/staging/media/omap4iss/iss_csiphy.c
-index 7c3d55d811ef..24f56ed90ac3 100644
---- a/drivers/staging/media/omap4iss/iss_csiphy.c
-+++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-
-@@ -140,9 +140,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
- 	 * - bit [18] : CSIPHY1 CTRLCLK enable
- 	 * - bit [17:16] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
- 	 */
--	cam_rx_ctrl = omap4_ctrl_pad_readl(
--			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
--
-+	cam_rx_ctrl = WARN_ON(1);
- 
- 	if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1) {
- 		cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-@@ -166,8 +164,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
- 		cam_rx_ctrl |= OMAP4_CAMERARX_CSI22_CTRLCLKEN_MASK;
- 	}
- 
--	omap4_ctrl_pad_writel(cam_rx_ctrl,
--		 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-+	WARN_ON(1);
- 
- 	/* Reset used lane count */
- 	csi2->phy->used_data_lanes = 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index b09bcd140491..c7adc3d26792 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -184,7 +184,7 @@ static int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_r, &ctx->bank2);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank2 temporary buffer\n");
+-		s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->bank1);
++			s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->bank1);
+ 			return ret;
+ 		}
+ 		BUG_ON(ctx->bank2.dma & ((1 << MFC_BANK2_ALIGN_ORDER) - 1));
+-- 
+2.1.0
 
