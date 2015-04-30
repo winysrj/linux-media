@@ -1,45 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:36691 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422891AbbD2NQS (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:5822 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795AbbD3Ntt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2015 09:16:18 -0400
-Received: by wgen6 with SMTP id n6so27814828wge.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2015 06:16:16 -0700 (PDT)
-Date: Wed, 29 Apr 2015 14:16:12 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 02/10] DT: Add documentation for the mfd Maxim max77693
-Message-ID: <20150429131612.GP9169@x1>
-References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
- <1429080520-10687-3-git-send-email-j.anaszewski@samsung.com>
- <20150429123412.GL9169@x1>
- <5540D5C4.7060305@samsung.com>
+	Thu, 30 Apr 2015 09:49:49 -0400
+Received: from [10.54.92.107] (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	(authenticated bits=0)
+	by aer-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id t3UDnixq031590
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2015 13:49:45 GMT
+Message-ID: <554232F8.6090206@cisco.com>
+Date: Thu, 30 Apr 2015 15:49:44 +0200
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Clean up and move dt3155 out of staging
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5540D5C4.7060305@samsung.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 29 Apr 2015, Jacek Anaszewski wrote:
+This pull request cleans up the dt3155 driver and moves it out of staging.
 
-> On 04/29/2015 02:34 PM, Lee Jones wrote:
-> >LED Ack please Bryan.
-> 
-> You've already applied v6 with Bryan's ack today :)
+Tested with my dt3155 board.
 
-Ah, this is the same patch?  Jolly good!
+Regards,
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+	Hans
+
+The following changes since commit e183201b9e917daf2530b637b2f34f1d5afb934d:
+
+  [media] uvcvideo: add support for VIDIOC_QUERY_EXT_CTRL (2015-04-10 10:29:27 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git dt3155
+
+for you to fetch changes up to 682454513c7c17c981645e5d9796ae5bed8edf61:
+
+  dt3155: add GFP_DMA32 flag to vb2 queue (2015-04-26 11:27:00 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (13):
+      dt3155v4l: code cleanup
+      dt3155v4l: remove unused statistics
+      dt3155v4l: add v4l2_device support
+      dt3155v4l: remove pointless dt3155_alloc/free_coherent
+      dt3155v4l: remove bogus single-frame capture in init_board
+      dt3155v4l: move vb2_queue to top-level
+      dt3155v4l: drop CONFIG_DT3155_STREAMING
+      dt3155v4l: correctly start and stop streaming
+      dt3155v4l: drop CONFIG_DT3155_CCIR, use s_std instead
+      dt3155v4l: fix format handling
+      dt3155v4l: support inputs VID0-3
+      dt3155: move out of staging into drivers/media/pci
+      dt3155: add GFP_DMA32 flag to vb2 queue
+
+ MAINTAINERS                                                                |   8 +
+ drivers/media/pci/Kconfig                                                  |   1 +
+ drivers/media/pci/Makefile                                                 |   1 +
+ drivers/media/pci/dt3155/Kconfig                                           |  13 +
+ drivers/media/pci/dt3155/Makefile                                          |   1 +
+ drivers/media/pci/dt3155/dt3155.c                                          | 627 +++++++++++++++++++++++++
+ drivers/{staging/media/dt3155v4l/dt3155v4l.h => media/pci/dt3155/dt3155.h} |  64 +--
+ drivers/staging/media/Kconfig                                              |   2 -
+ drivers/staging/media/Makefile                                             |   1 -
+ drivers/staging/media/dt3155v4l/Kconfig                                    |  29 --
+ drivers/staging/media/dt3155v4l/Makefile                                   |   1 -
+ drivers/staging/media/dt3155v4l/dt3155v4l.c                                | 981 ----------------------------------------
+ 12 files changed, 675 insertions(+), 1054 deletions(-)
+ create mode 100644 drivers/media/pci/dt3155/Kconfig
+ create mode 100644 drivers/media/pci/dt3155/Makefile
+ create mode 100644 drivers/media/pci/dt3155/dt3155.c
+ rename drivers/{staging/media/dt3155v4l/dt3155v4l.h => media/pci/dt3155/dt3155.h} (82%)
+ delete mode 100644 drivers/staging/media/dt3155v4l/Kconfig
+ delete mode 100644 drivers/staging/media/dt3155v4l/Makefile
+ delete mode 100644 drivers/staging/media/dt3155v4l/dt3155v4l.c
