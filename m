@@ -1,119 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50671 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751296AbbDZCrH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59990 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823AbbD3OIw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2015 22:47:07 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2A0F22A0081
-	for <linux-media@vger.kernel.org>; Sun, 26 Apr 2015 04:46:36 +0200 (CEST)
-Date: Sun, 26 Apr 2015 04:46:36 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150426024636.2A0F22A0081@tschai.lan>
+	Thu, 30 Apr 2015 10:08:52 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: [PATCH 09/22] saa7134: fix a few other occurrences of KERN_INFO/KERN_WARNING
+Date: Thu, 30 Apr 2015 11:08:29 -0300
+Message-Id: <7d98fb44c7da38ae812b290d43a702caa6f3b157.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On a few places, the search expression used on the script that
+replaced pr_info/pr_warn didn't match, because the string were
+on the next line.
 
-Results of the daily build of media_tree:
+It is best to manually edit those lines, and re-indent the
+paragraphs.
 
-date:		Sun Apr 26 04:00:19 CEST 2015
-git branch:	test
-git hash:	e183201b9e917daf2530b637b2f34f1d5afb934d
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index 3159e15a57d4..5b81157a5003 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -7906,9 +7906,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 	/* The card below is detected as card=53, but is different */
+ 	       if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
+ 			dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+-			printk(KERN_INFO
+-			       "%s: P7131 analog only, using entry of %s\n",
+-			dev->name, saa7134_boards[dev->board].name);
++			pr_info("%s: P7131 analog only, using entry of %s\n",
++				dev->name, saa7134_boards[dev->board].name);
+ 
+ 			/*
+ 			 * IR init has already happened for other cards, so
+@@ -8047,9 +8046,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 			msg.buf = &buffer[i][0];
+ 			msg.len = ARRAY_SIZE(buffer[0]);
+ 			if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1)
+-				printk(KERN_WARNING
+-				       "%s: Unable to enable tuner(%i).\n",
+-				       dev->name, i);
++				pr_warn("%s: Unable to enable tuner(%i).\n",
++				        dev->name, i);
+ 		}
+ 		break;
+ 	}
+@@ -8065,9 +8063,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 		/* watch TV without software reboot. For solve this problem */
+ 		/* switch the tuner to analog TV mode manually.             */
+ 		if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1)
+-				printk(KERN_WARNING
+-				      "%s: Unable to enable IF of the tuner.\n",
+-				       dev->name);
++			pr_warn("%s: Unable to enable IF of the tuner.\n",
++				dev->name);
+ 		break;
+ 	}
+ 	case SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG:
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 9ffdcdcfd2b0..c206148f816b 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -772,22 +772,20 @@ static void must_configure_manually(int has_eeprom)
+ 	unsigned int i,p;
+ 
+ 	if (!has_eeprom)
+-		printk(KERN_WARNING
+-		       "saa7134: <rant>\n"
+-		       "saa7134:  Congratulations!  Your TV card vendor saved a few\n"
+-		       "saa7134:  cents for a eeprom, thus your pci board has no\n"
+-		       "saa7134:  subsystem ID and I can't identify it automatically\n"
+-		       "saa7134: </rant>\n"
+-		       "saa7134: I feel better now.  Ok, here are the good news:\n"
+-		       "saa7134: You can use the card=<nr> insmod option to specify\n"
+-		       "saa7134: which board do you have.  The list:\n");
++		pr_warn("saa7134: <rant>\n"
++			"saa7134:  Congratulations!  Your TV card vendor saved a few\n"
++			"saa7134:  cents for a eeprom, thus your pci board has no\n"
++			"saa7134:  subsystem ID and I can't identify it automatically\n"
++			"saa7134: </rant>\n"
++			"saa7134: I feel better now.  Ok, here are the good news:\n"
++			"saa7134: You can use the card=<nr> insmod option to specify\n"
++			"saa7134: which board do you have.  The list:\n");
+ 	else
+-		printk(KERN_WARNING
+-		       "saa7134: Board is currently unknown. You might try to use the card=<nr>\n"
+-		       "saa7134: insmod option to specify which board do you have, but this is\n"
+-		       "saa7134: somewhat risky, as might damage your card. It is better to ask\n"
+-		       "saa7134: for support at linux-media@vger.kernel.org.\n"
+-		       "saa7134: The supported cards are:\n");
++		pr_warn("saa7134: Board is currently unknown. You might try to use the card=<nr>\n"
++			"saa7134: insmod option to specify which board do you have, but this is\n"
++			"saa7134: somewhat risky, as might damage your card. It is better to ask\n"
++			"saa7134: for support at linux-media@vger.kernel.org.\n"
++			"saa7134: The supported cards are:\n");
+ 
+ 	for (i = 0; i < saa7134_bcount; i++) {
+ 		pr_warn("saa7134:   card=%d -> %-40.40s",
+-- 
+2.1.0
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
