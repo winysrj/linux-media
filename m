@@ -1,60 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:21352 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbbDGKF3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2015 06:05:29 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>,
-	alsa-devel@alsa-project.org, linux-sh@vger.kernel.org,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Daniel Mack <daniel@zonque.org>, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 03/14] clkdev: get rid of redundant clk_add_alias() prototype in linux/clk.h
-References: <20150403171149.GC13898@n2100.arm.linux.org.uk>
-	<E1Ye593-0001B1-W4@rmk-PC.arm.linux.org.uk> <87lhi8rrmd.fsf@free.fr>
-	<5522D8B5.7050205@codeaurora.org>
-Date: Tue, 07 Apr 2015 12:05:19 +0200
-Message-ID: <871tjws17k.fsf@free.fr>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:33278 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321AbbD3UgW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2015 16:36:22 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: bp@suse.de, mingo@elte.hu, tglx@linutronix.de, hpa@zytor.com,
+	plagnioj@jcrosoft.com, tomi.valkeinen@ti.com,
+	daniel.vetter@intel.com, airlied@linux.ie
+Cc: dledford@redhat.com, awalls@md.metrocast.net, syrjala@sci.fi,
+	luto@amacapital.net, mst@redhat.com, cocci@systeme.lip6.fr,
+	linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Juergen Gross <jgross@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Dave Airlie <airlied@redhat.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Antonino Daplas <adaplas@gmail.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Stefan Bader <stefan.bader@canonical.com>,
+	Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>, konrad.wilk@oracle.com,
+	ville.syrjala@linux.intel.com, david.vrabel@citrix.com,
+	jbeulich@suse.com, toshi.kani@hp.com,
+	=?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>,
+	linux-fbdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, xen-devel@lists.xensource.com
+Subject: [PATCH v5 4/6] ivtv: use arch_phys_wc_add() and require PAT disabled
+Date: Thu, 30 Apr 2015 13:25:18 -0700
+Message-Id: <1430425520-22275-5-git-send-email-mcgrof@do-not-panic.com>
+In-Reply-To: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
+References: <1430425520-22275-1-git-send-email-mcgrof@do-not-panic.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stephen Boyd <sboyd@codeaurora.org> writes:
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-> On 04/04/15 05:43, Robert Jarzmik wrote:
->> Russell King <rmk+kernel@arm.linux.org.uk> writes:
->>
->>> clk_add_alias() is provided by clkdev, and is not part of the clk API.
->>> Howver, it is prototyped in two locations: linux/clkdev.h and
->>> linux/clk.h.  This is a mess.  Get rid of the redundant and unnecessary
->>> version in linux/clk.h.
->>>
->>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->> Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
->>
->> Actually, this serie fixes a regression I've seen in linux-next, and which was
->> triggering the Oops in [1] on lubbock. With your serie, the kernel boots fine.
->>
->>
->
-> Is this with the lubbock_defconfig? Is it a regression in 4.0-rc series
-> or is it due to some pending -next patches interacting with the per-user
-> clock patches? It looks like the latter because __clk_get_hw() should be
-> inlined on lubbock_defconfig where CONFIG_COMMON_CLK=n.
+We are burrying direct access to MTRR code support on
+x86 in order to take advantage of PAT. In the future we
+also want to make the default behaviour of ioremap_nocache()
+to use strong UC, use of mtrr_add() on those systems
+would make write-combining void.
 
-It's upon linux-next and the "not yet pulled" pxa tree merged :
- - http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/331119.html
-I think it will appear once arm-soc has been prepared for linux-next and pulled.
+In order to help both enable us to later make strong
+UC default and in order to phase out direct MTRR access
+code port the driver over to arch_phys_wc_add() and
+annotate that the device driver requires systems to
+boot with PAT disabled, with the nopat kernel parameter.
 
-This specific merge window will shift pxa architecture to common clock
-framework, that's why I saw the regression.
+This is a worthy comprmise given that the hardware is
+really rare these days, and perhaps only some lost souls
+in some third world country are expected to be using this
+feature of the device driver.
 
-Cheers.
+Acked-by: Andy Walls <awalls@md.metrocast.net>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Suresh Siddha <sbsiddha@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Stefan Bader <stefan.bader@canonical.com>
+Cc: Ville Syrjälä <syrjala@sci.fi>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: konrad.wilk@oracle.com
+Cc: ville.syrjala@linux.intel.com
+Cc: david.vrabel@citrix.com
+Cc: jbeulich@suse.com
+Cc: toshi.kani@hp.com
+Cc: Roger Pau Monné <roger.pau@citrix.com>
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: ivtv-devel@ivtvdriver.org
+Cc: linux-media@vger.kernel.org
+Cc: xen-devel@lists.xensource.com
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+---
+ drivers/media/pci/ivtv/Kconfig  |  3 +++
+ drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++-------------------------
+ 2 files changed, 26 insertions(+), 35 deletions(-)
 
+diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
+index dd6ee57e..b2a7f88 100644
+--- a/drivers/media/pci/ivtv/Kconfig
++++ b/drivers/media/pci/ivtv/Kconfig
+@@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
+ 	  This is used in the Hauppauge PVR-350 card. There is a driver
+ 	  homepage at <http://www.ivtvdriver.org>.
+ 
++	  If you have this hardware you will need to boot with PAT disabled
++	  on your x86 systems, use the nopat kernel parameter.
++
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ivtvfb.
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 9ff1230..7685ae3 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -44,8 +44,8 @@
+ #include <linux/ivtvfb.h>
+ #include <linux/slab.h>
+ 
+-#ifdef CONFIG_MTRR
+-#include <asm/mtrr.h>
++#ifdef CONFIG_X86_64
++#include <asm/pat.h>
+ #endif
+ 
+ #include "ivtv-driver.h"
+@@ -155,12 +155,11 @@ struct osd_info {
+ 	/* Buffer size */
+ 	u32 video_buffer_size;
+ 
+-#ifdef CONFIG_MTRR
+ 	/* video_base rounded down as required by hardware MTRRs */
+ 	unsigned long fb_start_aligned_physaddr;
+ 	/* video_base rounded up as required by hardware MTRRs */
+ 	unsigned long fb_end_aligned_physaddr;
+-#endif
++	int wc_cookie;
+ 
+ 	/* Store the buffer offset */
+ 	int set_osd_coords_x;
+@@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
+ static int ivtvfb_init_io(struct ivtv *itv)
+ {
+ 	struct osd_info *oi = itv->osd_info;
++	/* Find the largest power of two that maps the whole buffer */
++	int size_shift = 31;
+ 
+ 	mutex_lock(&itv->serialize_lock);
+ 	if (ivtv_init_on_first_open(itv)) {
+@@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
+ 			oi->video_pbase, oi->video_vbase,
+ 			oi->video_buffer_size / 1024);
+ 
+-#ifdef CONFIG_MTRR
+-	{
+-		/* Find the largest power of two that maps the whole buffer */
+-		int size_shift = 31;
+-
+-		while (!(oi->video_buffer_size & (1 << size_shift))) {
+-			size_shift--;
+-		}
+-		size_shift++;
+-		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
+-		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
+-		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
+-		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
+-		if (mtrr_add(oi->fb_start_aligned_physaddr,
+-			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
+-			     MTRR_TYPE_WRCOMB, 1) < 0) {
+-			IVTVFB_INFO("disabled mttr\n");
+-			oi->fb_start_aligned_physaddr = 0;
+-			oi->fb_end_aligned_physaddr = 0;
+-		}
+-	}
+-#endif
+-
++	while (!(oi->video_buffer_size & (1 << size_shift)))
++		size_shift--;
++	size_shift++;
++	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
++	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
++	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
++	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
++	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
++					 oi->fb_end_aligned_physaddr -
++					 oi->fb_start_aligned_physaddr);
+ 	/* Blank the entire osd. */
+ 	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
+ 
+@@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
+ 
+ 	/* Release pseudo palette */
+ 	kfree(oi->ivtvfb_info.pseudo_palette);
+-
+-#ifdef CONFIG_MTRR
+-	if (oi->fb_end_aligned_physaddr) {
+-		mtrr_del(-1, oi->fb_start_aligned_physaddr,
+-			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
+-	}
+-#endif
+-
++	arch_phys_wc_del(oi->wc_cookie);
+ 	kfree(oi);
+ 	itv->osd_info = NULL;
+ }
+@@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
+ 	int registered = 0;
+ 	int err;
+ 
++#ifdef CONFIG_X86_64
++	if (WARN(pat_enabled(),
++		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
++		return EINVAL;
++	}
++#endif
++
+ 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+ 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+ 		     IVTV_MAX_CARDS - 1);
 -- 
-Robert
+2.3.2.209.gd67f9d5.dirty
+
