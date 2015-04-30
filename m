@@ -1,108 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:52539 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556AbbD1HVY (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60174 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751183AbbD3OI5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2015 03:21:24 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v6 09/10] DT: aat1290: Document handling external strobe sources
-Date: Tue, 28 Apr 2015 09:18:49 +0200
-Message-id: <1430205530-20873-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
-References: <1430205530-20873-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 30 Apr 2015 10:08:57 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 18/22] saa7134: change the debug macros for saa7134-tvaudio
+Date: Thu, 30 Apr 2015 11:08:38 -0300
+Message-Id: <3195225b8395f896d4b896b294fab9d421d0908a.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for a pinctrl-names property.
-The property, when present, is used for switching the source
-of the strobe signal for the device.
+use just one macro instead of 2, naming it as audio_dbg() and
+using pr_fmt().
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: devicetree@vger.kernel.org
----
- .../devicetree/bindings/leds/leds-aat1290.txt      |   36 ++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-index ef88b9c..c05ed91 100644
---- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -2,7 +2,9 @@
+diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+index e8aeea4cf422..360f447bd74d 100644
+--- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
++++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+@@ -49,13 +49,8 @@ static int audio_clock_tweak;
+ module_param(audio_clock_tweak, int, 0644);
+ MODULE_PARM_DESC(audio_clock_tweak, "Audio clock tick fine tuning for cards with audio crystal that's slightly off (range [-1024 .. 1024])");
  
- The device is controlled through two pins: FL_EN and EN_SET. The pins when,
- asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
--respectively.
-+respectively. In order to add a capability of selecting the strobe signal source
-+(e.g. CPU or camera sensor) there is an additional switch required, independent
-+of the flash chip. The switch is controlled with pin control.
+-#define dprintk(fmt, arg...)	if (audio_debug) \
+-	printk(KERN_DEBUG "%s/audio: " fmt, dev->name , ## arg)
+-#define d2printk(fmt, arg...)	if (audio_debug > 1) \
+-	printk(KERN_DEBUG "%s/audio: " fmt, dev->name, ## arg)
+-
+-#define print_regb(reg) printk("%s:   reg 0x%03x [%-16s]: 0x%02x\n", \
+-		dev->name,(SAA7134_##reg),(#reg),saa_readb((SAA7134_##reg)))
++#define audio_dbg(level, fmt, arg...)    if (audio_debug >= level) \
++       printk(KERN_DEBUG pr_fmt("audio: " fmt), ## arg)
  
- Required properties:
+ /* msecs */
+ #define SCAN_INITIAL_DELAY     1000
+@@ -206,13 +201,14 @@ static void mute_input_7134(struct saa7134_dev *dev)
  
-@@ -10,6 +12,13 @@ Required properties:
- - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
- - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+ 	if (dev->hw_mute  == mute &&
+ 		dev->hw_input == in && !dev->insuspend) {
+-		dprintk("mute/input: nothing to do [mute=%d,input=%s]\n",
+-			mute,in->name);
++		audio_dbg(1, "mute/input: nothing to do [mute=%d,input=%s]\n",
++			  mute, in->name);
+ 		return;
+ 	}
  
-+Optional properties:
-+- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
-+		"default" and "host" must refer to the same pin configuration
-+		node, which sets the host as a strobe signal provider. Entry
-+		"isp" must refer to the pin configuration node, which sets the
-+		ISP as a strobe signal provider.
-+
- A discrete LED element connected to the device must be represented by a child
- node - see Documentation/devicetree/bindings/leds/common.txt.
+-	dprintk("ctl_mute=%d automute=%d input=%s  =>  mute=%d input=%s\n",
+-		dev->ctl_mute,dev->automute,dev->input->name,mute,in->name);
++	audio_dbg(1, "ctl_mute=%d automute=%d input=%s  =>  mute=%d input=%s\n",
++		  dev->ctl_mute, dev->automute,
++		  dev->input->name, mute, in->name);
+ 	dev->hw_mute  = mute;
+ 	dev->hw_input = in;
  
-@@ -25,13 +34,22 @@ Required properties of the LED child node:
- Optional properties of the LED child node:
- - label : see Documentation/devicetree/bindings/leds/common.txt
+@@ -265,8 +261,8 @@ static void tvaudio_setmode(struct saa7134_dev *dev,
+ 		tweak = audio_clock_tweak;
  
--Example (by Ct = 220nF, Rset = 160kohm):
-+Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
-+a switch that allows for routing strobe signal either from the host or from
-+the camera sensor):
-+
-+#include "exynos4412.dtsi"
+ 	if (note)
+-		dprintk("tvaudio_setmode: %s %s [%d.%03d/%d.%03d MHz] acpf=%d%+d\n",
+-			note,audio->name,
++		audio_dbg(1, "tvaudio_setmode: %s %s [%d.%03d/%d.%03d MHz] acpf=%d%+d\n",
++			note, audio->name,
+ 			audio->carr1 / 1000, audio->carr1 % 1000,
+ 			audio->carr2 / 1000, audio->carr2 % 1000,
+ 			acpf, tweak);
+@@ -334,14 +330,14 @@ static int tvaudio_checkcarrier(struct saa7134_dev *dev, struct mainscan *scan)
  
- aat1290 {
- 	compatible = "skyworks,aat1290";
- 	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
- 	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
+ 	if (!(dev->tvnorm->id & scan->std)) {
+ 		value = 0;
+-		dprintk("skipping %d.%03d MHz [%4s]\n",
+-			scan->carr / 1000, scan->carr % 1000, scan->name);
++		audio_dbg(1, "skipping %d.%03d MHz [%4s]\n",
++			  scan->carr / 1000, scan->carr % 1000, scan->name);
+ 		return 0;
+ 	}
  
-+	pinctrl-names = "default", "host", "isp";
-+	pinctrl-0 = <&camera_flash_host>;
-+	pinctrl-1 = <&camera_flash_host>;
-+	pinctrl-2 = <&camera_flash_isp>;
-+
- 	camera_flash: flash-led {
- 		label = "aat1290-flash";
- 		led-max-microamp = <520833>;
-@@ -39,3 +57,17 @@ aat1290 {
- 		flash-timeout-us = <1940000>;
- 	};
- };
-+
-+&pinctrl_0 {
-+	camera_flash_host: camera-flash-host {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <0>;
-+	};
-+
-+	camera_flash_isp: camera-flash-isp {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <1>;
-+	};
-+};
+ 	if (audio_debug > 1) {
+ 		int i;
+-		dprintk("debug %d:",scan->carr);
++		audio_dbg(1, "debug %d:", scan->carr);
+ 		for (i = -150; i <= 150; i += 30) {
+ 			tvaudio_setcarrier(dev,scan->carr+i,scan->carr+i);
+ 			saa_readl(SAA7134_LEVEL_READOUT1 >> 2);
+@@ -349,11 +345,11 @@ static int tvaudio_checkcarrier(struct saa7134_dev *dev, struct mainscan *scan)
+ 				return -1;
+ 			value = saa_readl(SAA7134_LEVEL_READOUT1 >> 2);
+ 			if (0 == i)
+-				printk("  #  %6d  # ",value >> 16);
++				pr_cont("  #  %6d  # ",value >> 16);
+ 			else
+-				printk(" %6d",value >> 16);
++				pr_cont(" %6d",value >> 16);
+ 		}
+-		printk("\n");
++		pr_cont("\n");
+ 	}
+ 
+ 	tvaudio_setcarrier(dev,scan->carr-90,scan->carr-90);
+@@ -371,9 +367,9 @@ static int tvaudio_checkcarrier(struct saa7134_dev *dev, struct mainscan *scan)
+ 	left >>= 16;
+ 	right >>= 16;
+ 	value = left > right ? left - right : right - left;
+-	dprintk("scanning %d.%03d MHz [%4s] =>  dc is %5d [%d/%d]\n",
+-		scan->carr / 1000, scan->carr % 1000,
+-		scan->name, value, left, right);
++	audio_dbg(1, "scanning %d.%03d MHz [%4s] =>  dc is %5d [%d/%d]\n",
++		  scan->carr / 1000, scan->carr % 1000,
++		  scan->name, value, left, right);
+ 	return value;
+ }
+ 
+@@ -389,7 +385,7 @@ static int tvaudio_getstereo(struct saa7134_dev *dev, struct saa7134_tvaudio *au
+ 	case TVAUDIO_FM_K_STEREO:
+ 	case TVAUDIO_FM_BG_STEREO:
+ 		idp = (saa_readb(SAA7134_IDENT_SIF) & 0xe0) >> 5;
+-		dprintk("getstereo: fm/stereo: idp=0x%x\n",idp);
++		audio_dbg(1, "getstereo: fm/stereo: idp=0x%x\n", idp);
+ 		if (0x03 == (idp & 0x03))
+ 			retval = V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
+ 		else if (0x05 == (idp & 0x05))
+@@ -403,10 +399,10 @@ static int tvaudio_getstereo(struct saa7134_dev *dev, struct saa7134_tvaudio *au
+ 	case TVAUDIO_NICAM_FM:
+ 	case TVAUDIO_NICAM_AM:
+ 		nicam = saa_readb(SAA7134_AUDIO_STATUS);
+-		dprintk("getstereo: nicam=0x%x\n",nicam);
++		audio_dbg(1, "getstereo: nicam=0x%x\n", nicam);
+ 		if (nicam & 0x1) {
+ 			nicam_status = saa_readb(SAA7134_NICAM_STATUS);
+-			dprintk("getstereo: nicam_status=0x%x\n", nicam_status);
++			audio_dbg(1, "getstereo: nicam_status=0x%x\n", nicam_status);
+ 
+ 			switch (nicam_status & 0x03) {
+ 			    case 0x01:
+@@ -424,7 +420,7 @@ static int tvaudio_getstereo(struct saa7134_dev *dev, struct saa7134_tvaudio *au
+ 		break;
+ 	}
+ 	if (retval != -1)
+-		dprintk("found audio subchannels:%s%s%s%s\n",
++		audio_dbg(1, "found audio subchannels:%s%s%s%s\n",
+ 			(retval & V4L2_TUNER_SUB_MONO)   ? " mono"   : "",
+ 			(retval & V4L2_TUNER_SUB_STEREO) ? " stereo" : "",
+ 			(retval & V4L2_TUNER_SUB_LANG1)  ? " lang1"  : "",
+@@ -459,8 +455,8 @@ static int tvaudio_setstereo(struct saa7134_dev *dev, struct saa7134_tvaudio *au
+ 	case TVAUDIO_FM_BG_STEREO:
+ 	case TVAUDIO_NICAM_AM:
+ 	case TVAUDIO_NICAM_FM:
+-		dprintk("setstereo [fm] => %s\n",
+-			name[ mode % ARRAY_SIZE(name) ]);
++		audio_dbg(1, "setstereo [fm] => %s\n",
++			  name[mode % ARRAY_SIZE(name)]);
+ 		reg = fm[ mode % ARRAY_SIZE(fm) ];
+ 		saa_writeb(SAA7134_FM_DEMATRIX, reg);
+ 		break;
+@@ -489,7 +485,8 @@ static int tvaudio_thread(void *data)
+ 		try_to_freeze();
+ 
+ 		dev->thread.scan1 = dev->thread.scan2;
+-		dprintk("tvaudio thread scan start [%d]\n",dev->thread.scan1);
++		audio_dbg(1, "tvaudio thread scan start [%d]\n",
++			  dev->thread.scan1);
+ 		dev->tvaudio  = NULL;
+ 
+ 		saa_writeb(SAA7134_MONITOR_SELECT,   0xa0);
+@@ -519,7 +516,7 @@ static int tvaudio_thread(void *data)
+ 
+ 		if (1 == nscan) {
+ 			/* only one candidate -- skip scan ;) */
+-			dprintk("only one main carrier candidate - skipping scan\n");
++			audio_dbg(1, "only one main carrier candidate - skipping scan\n");
+ 			max1 = 12345;
+ 			carrier = default_carrier;
+ 		} else {
+@@ -544,26 +541,24 @@ static int tvaudio_thread(void *data)
+ 
+ 		if (0 != carrier && max1 > 2000 && max1 > max2*3) {
+ 			/* found good carrier */
+-			dprintk("found %s main sound carrier @ %d.%03d MHz [%d/%d]\n",
+-				dev->tvnorm->name, carrier/1000, carrier%1000,
+-				max1, max2);
++			audio_dbg(1, "found %s main sound carrier @ %d.%03d MHz [%d/%d]\n",
++				  dev->tvnorm->name, carrier/1000, carrier%1000,
++				  max1, max2);
+ 			dev->last_carrier = carrier;
+ 			dev->automute = 0;
+ 
+ 		} else if (0 != dev->last_carrier) {
+ 			/* no carrier -- try last detected one as fallback */
+ 			carrier = dev->last_carrier;
+-			dprintk("audio carrier scan failed, "
+-				"using %d.%03d MHz [last detected]\n",
+-				carrier/1000, carrier%1000);
++			audio_dbg(1, "audio carrier scan failed, using %d.%03d MHz [last detected]\n",
++				  carrier/1000, carrier%1000);
+ 			dev->automute = 1;
+ 
+ 		} else {
+ 			/* no carrier + no fallback -- use default */
+ 			carrier = default_carrier;
+-			dprintk("audio carrier scan failed, "
+-				"using %d.%03d MHz [default]\n",
+-				carrier/1000, carrier%1000);
++			audio_dbg(1, "audio carrier scan failed, using %d.%03d MHz [default]\n",
++				  carrier/1000, carrier%1000);
+ 			dev->automute = 1;
+ 		}
+ 		tvaudio_setcarrier(dev,carrier,carrier);
+@@ -661,7 +656,7 @@ static inline int saa_dsp_reset_error_bit(struct saa7134_dev *dev)
+ {
+ 	int state = saa_readb(SAA7135_DSP_RWSTATE);
+ 	if (unlikely(state & SAA7135_DSP_RWSTATE_ERR)) {
+-		d2printk("%s: resetting error bit\n", dev->name);
++		audio_dbg(2, "%s: resetting error bit\n", dev->name);
+ 		saa_writeb(SAA7135_DSP_RWCLEAR, SAA7135_DSP_RWCLEAR_RERR);
+ 	}
+ 	return 0;
+@@ -699,7 +694,7 @@ int saa_dsp_writel(struct saa7134_dev *dev, int reg, u32 value)
+ {
+ 	int err;
+ 
+-	d2printk("dsp write reg 0x%x = 0x%06x\n",reg<<2,value);
++	audio_dbg(2, "dsp write reg 0x%x = 0x%06x\n", reg << 2, value);
+ 	err = saa_dsp_wait_bit(dev,SAA7135_DSP_RWSTATE_WRR);
+ 	if (err < 0)
+ 		return err;
+@@ -786,14 +781,16 @@ static int tvaudio_thread_ddep(void *data)
+ 		try_to_freeze();
+ 
+ 		dev->thread.scan1 = dev->thread.scan2;
+-		dprintk("tvaudio thread scan start [%d]\n",dev->thread.scan1);
++		audio_dbg(1, "tvaudio thread scan start [%d]\n",
++			  dev->thread.scan1);
+ 
+ 		if (audio_ddep >= 0x04 && audio_ddep <= 0x0e) {
+ 			/* insmod option override */
+ 			norms = (audio_ddep << 2) | 0x01;
+-			dprintk("ddep override: %s\n",stdres[audio_ddep]);
++			audio_dbg(1, "ddep override: %s\n",
++				  stdres[audio_ddep]);
+ 		} else if (&card(dev).radio == dev->input) {
+-			dprintk("FM Radio\n");
++			audio_dbg(1, "FM Radio\n");
+ 			if (dev->tuner_type == TUNER_PHILIPS_TDA8290) {
+ 				norms = (0x11 << 2) | 0x01;
+ 				/* set IF frequency to 5.5 MHz */
+@@ -816,12 +813,12 @@ static int tvaudio_thread_ddep(void *data)
+ 				norms |= 0x10;
+ 			if (0 == norms)
+ 				norms = 0x7c; /* all */
+-			dprintk("scanning:%s%s%s%s%s\n",
+-				(norms & 0x04) ? " B/G"  : "",
+-				(norms & 0x08) ? " D/K"  : "",
+-				(norms & 0x10) ? " L/L'" : "",
+-				(norms & 0x20) ? " I"    : "",
+-				(norms & 0x40) ? " M"    : "");
++			audio_dbg(1, "scanning:%s%s%s%s%s\n",
++				  (norms & 0x04) ? " B/G"  : "",
++				  (norms & 0x08) ? " D/K"  : "",
++				  (norms & 0x10) ? " L/L'" : "",
++				  (norms & 0x20) ? " I"    : "",
++				  (norms & 0x40) ? " M"    : "");
+ 		}
+ 
+ 		/* kick automatic standard detection */
+@@ -836,29 +833,28 @@ static int tvaudio_thread_ddep(void *data)
+ 			goto restart;
+ 		value = saa_readl(0x528 >> 2) & 0xffffff;
+ 
+-		dprintk("tvaudio thread status: 0x%x [%s%s%s]\n",
+-			value, stdres[value & 0x1f],
+-			(value & 0x000020) ? ",stereo" : "",
+-			(value & 0x000040) ? ",dual"   : "");
+-		dprintk("detailed status: "
+-			"%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s\n",
+-			(value & 0x000080) ? " A2/EIAJ pilot tone "     : "",
+-			(value & 0x000100) ? " A2/EIAJ dual "           : "",
+-			(value & 0x000200) ? " A2/EIAJ stereo "         : "",
+-			(value & 0x000400) ? " A2/EIAJ noise mute "     : "",
++		audio_dbg(1, "tvaudio thread status: 0x%x [%s%s%s]\n",
++			  value, stdres[value & 0x1f],
++			  (value & 0x000020) ? ",stereo" : "",
++			  (value & 0x000040) ? ",dual"   : "");
++		audio_dbg(1, "detailed status: %s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s\n",
++			  (value & 0x000080) ? " A2/EIAJ pilot tone "     : "",
++			  (value & 0x000100) ? " A2/EIAJ dual "           : "",
++			  (value & 0x000200) ? " A2/EIAJ stereo "         : "",
++			  (value & 0x000400) ? " A2/EIAJ noise mute "     : "",
+ 
+-			(value & 0x000800) ? " BTSC/FM radio pilot "    : "",
+-			(value & 0x001000) ? " SAP carrier "            : "",
+-			(value & 0x002000) ? " BTSC stereo noise mute " : "",
+-			(value & 0x004000) ? " SAP noise mute "         : "",
+-			(value & 0x008000) ? " VDSP "                   : "",
++			  (value & 0x000800) ? " BTSC/FM radio pilot "    : "",
++			  (value & 0x001000) ? " SAP carrier "            : "",
++			  (value & 0x002000) ? " BTSC stereo noise mute " : "",
++			  (value & 0x004000) ? " SAP noise mute "         : "",
++			  (value & 0x008000) ? " VDSP "                   : "",
+ 
+-			(value & 0x010000) ? " NICST "                  : "",
+-			(value & 0x020000) ? " NICDU "                  : "",
+-			(value & 0x040000) ? " NICAM muted "            : "",
+-			(value & 0x080000) ? " NICAM reserve sound "    : "",
++			  (value & 0x010000) ? " NICST "                  : "",
++			  (value & 0x020000) ? " NICDU "                  : "",
++			  (value & 0x040000) ? " NICAM muted "            : "",
++			  (value & 0x080000) ? " NICAM reserve sound "    : "",
+ 
+-			(value & 0x100000) ? " init done "              : "");
++			  (value & 0x100000) ? " init done "              : "");
+ 	}
+ 
+  done:
+@@ -1061,7 +1057,7 @@ int saa7134_tvaudio_fini(struct saa7134_dev *dev)
+ int saa7134_tvaudio_do_scan(struct saa7134_dev *dev)
+ {
+ 	if (dev->input->amux != TV) {
+-		dprintk("sound IF not in use, skipping scan\n");
++		audio_dbg(1, "sound IF not in use, skipping scan\n");
+ 		dev->automute = 0;
+ 		saa7134_tvaudio_setmute(dev);
+ 	} else if (dev->thread.thread) {
 -- 
-1.7.9.5
+2.1.0
 
