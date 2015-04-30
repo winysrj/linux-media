@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:33846 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242AbbDPKDi (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58849 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751152AbbD3GTP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 06:03:38 -0400
+	Thu, 30 Apr 2015 02:19:15 -0400
+Message-ID: <5541C954.707@xs4all.nl>
+Date: Thu, 30 Apr 2015 08:19:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150415191218.GC32654@mwanda>
-References: <20150415191218.GC32654@mwanda>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Thu, 16 Apr 2015 11:03:06 +0100
-Message-ID: <CA+V-a8uo_F8pFEQoFx9rzdygwtPSb-BDDVx4Dfi_-wwDVjBHLQ@mail.gmail.com>
-Subject: Re: [media] i2c: ov2659: signedness bug inov2659_set_fmt()
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Benoit Parrot <bparrot@ti.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 25/27] usbvision: fix bad indentation
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com> <059321071ca9d62dab15cff63d1a6ffc68701fc1.1430348725.git.mchehab@osg.samsung.com>
+In-Reply-To: <059321071ca9d62dab15cff63d1a6ffc68701fc1.1430348725.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 15, 2015 at 8:12 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> This needs to be signed or there is a risk of hitting a forever loop.
->
-> Fixes: c4c0283ab3cd ('[media] media: i2c: add support for omnivision's ov2659 sensor')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On 04/30/2015 01:06 AM, Mauro Carvalho Chehab wrote:
+> drivers/media/usb/usbvision/usbvision-core.c:2395 usbvision_init_isoc() warn: inconsistent indenting
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Cheers,
---Prabhakar Lad
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> index edebd11..d700a1d 100644
-> --- a/drivers/media/i2c/ov2659.c
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -1102,7 +1102,7 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
->                           struct v4l2_subdev_format *fmt)
->  {
->         struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -       unsigned int index = ARRAY_SIZE(ov2659_formats);
-> +       int index = ARRAY_SIZE(ov2659_formats);
->         struct v4l2_mbus_framefmt *mf = &fmt->format;
->         const struct ov2659_framesize *size = NULL;
->         struct ov2659 *ov2659 = to_ov2659(sd);
+> 
+> diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+> index 44b0c28d69b6..7c04ef697fb6 100644
+> --- a/drivers/media/usb/usbvision/usbvision-core.c
+> +++ b/drivers/media/usb/usbvision/usbvision-core.c
+> @@ -2390,8 +2390,8 @@ int usbvision_init_isoc(struct usb_usbvision *usbvision)
+>  
+>  	/* Submit all URBs */
+>  	for (buf_idx = 0; buf_idx < USBVISION_NUMSBUF; buf_idx++) {
+> -			err_code = usb_submit_urb(usbvision->sbuf[buf_idx].urb,
+> -						 GFP_KERNEL);
+> +		err_code = usb_submit_urb(usbvision->sbuf[buf_idx].urb,
+> +					 GFP_KERNEL);
+>  		if (err_code) {
+>  			dev_err(&usbvision->dev->dev,
+>  				"%s: usb_submit_urb(%d) failed: error %d\n",
+> 
+
