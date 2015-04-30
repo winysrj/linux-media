@@ -1,57 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53161 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751300AbbDHL7d (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45652 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751774AbbD3Oja (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 07:59:33 -0400
-Date: Wed, 8 Apr 2015 14:59:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 06/12] of: Add Skyworks Solutions, Inc. vendor prefix
-Message-ID: <20150408115926.GV20756@valkosipuli.retiisi.org.uk>
-References: <1427809965-25540-1-git-send-email-j.anaszewski@samsung.com>
- <1427809965-25540-7-git-send-email-j.anaszewski@samsung.com>
+	Thu, 30 Apr 2015 10:39:30 -0400
+Message-ID: <55423E97.7000609@xs4all.nl>
+Date: Thu, 30 Apr 2015 16:39:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1427809965-25540-7-git-send-email-j.anaszewski@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/14] saa7134: fix indent issues
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com>	<1e8158b3d1f9472fc0ec2776876a907575c5548c.1430235781.git.mchehab@osg.samsung.com>	<5541C9C1.1000800@xs4all.nl> <20150430110829.34b9f9f9@recife.lan>
+In-Reply-To: <20150430110829.34b9f9f9@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2015 at 03:52:42PM +0200, Jacek Anaszewski wrote:
-> Use "skyworks" as the vendor prefix for the Skyworks Solutions, Inc.
+On 04/30/2015 04:08 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 30 Apr 2015 08:20:49 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: devicetree@vger.kernel.org
-> ---
->  .../devicetree/bindings/vendor-prefixes.txt        |    1 +
->  1 file changed, 1 insertion(+)
+>> On 04/28/2015 05:43 PM, Mauro Carvalho Chehab wrote:
+>>> As reported by smatch:
+>>> 	drivers/media/pci/saa7134/saa7134-cards.c:7197 saa7134_xc2028_callback() warn: inconsistent indenting
+>>> 	drivers/media/pci/saa7134/saa7134-cards.c:7846 saa7134_board_init2() warn: inconsistent indenting
+>>> 	drivers/media/pci/saa7134/saa7134-cards.c:7913 saa7134_board_init2() warn: inconsistent indenting
+>>>
+>>> While here, fix a few CodingStyle issues on the affected code
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>
+>>> diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+>>> index 3ca078057755..d48fd5338db5 100644
+>>> --- a/drivers/media/pci/saa7134/saa7134-cards.c
+>>> +++ b/drivers/media/pci/saa7134/saa7134-cards.c
+>>> @@ -7194,7 +7194,7 @@ static int saa7134_xc2028_callback(struct saa7134_dev *dev,
+>>>  			saa7134_set_gpio(dev, 20, 1);
+>>>  		break;
+>>>  		}
+>>> -	return 0;
+>>> +		return 0;
+>>>  	}
+>>>  	return -EINVAL;
+>>>  }
+>>> @@ -7842,7 +7842,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+>>>  				break;
+>>>  			case 0x001d:
+>>>  				dev->tuner_type = TUNER_PHILIPS_FMD1216ME_MK3;
+>>> -					printk(KERN_INFO "%s Board has DVB-T\n", dev->name);
+>>> +				printk(KERN_INFO "%s Board has DVB-T\n",
+>>> +				       dev->name);
+>>
+>> If you're changing this anyway, why not use pr_info instead?
 > 
-> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> index 42b3dab..4cd18bb 100644
-> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> @@ -163,6 +163,7 @@ ricoh	Ricoh Co. Ltd.
->  rockchip	Fuzhou Rockchip Electronics Co., Ltd
->  samsung	Samsung Semiconductor
->  sandisk	Sandisk Corporation
-> +skyworks	Skyworks Solutions, Inc.
+> Converting it to pr_foo is actually complex. Anyway, I found some time
+> today to do such conversion. I'll be adding on a patch series I'm about
+> to send.
 
-Please maintain the alphabetic order. With that fixed,
+I was just referring to this single patch, not the whole driver! :-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Anyway, for the saa7134 patches:
 
->  sbs	Smart Battery System
->  schindler	Schindler
->  seagate	Seagate Technology PLC
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
-Regards,
+> 
+>>
+>>>  				break;
+>>>  			default:
+>>>  				printk(KERN_ERR "%s Can't determine tuner type %x from EEPROM\n", dev->name, tuner_t);
+>>> @@ -7903,13 +7904,15 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+>>>  	case SAA7134_BOARD_ASUSTeK_TVFM7135:
+>>>  	/* The card below is detected as card=53, but is different */
+>>>  	       if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
+>>> -		       dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+>>> -		       printk(KERN_INFO "%s: P7131 analog only, using "
+>>> -						       "entry of %s\n",
+>>> -		       dev->name, saa7134_boards[dev->board].name);
+>>> +			dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+>>> +			printk(KERN_INFO
+>>> +			       "%s: P7131 analog only, using entry of %s\n",
+>>
+>> Ditto.
+>>
+>>> +			dev->name, saa7134_boards[dev->board].name);
+>>>  
+>>> -			/* IR init has already happened for other cards, so
+>>> -			 * we have to catch up. */
+>>> +			/*
+>>> +			 * IR init has already happened for other cards, so
+>>> +			 * we have to catch up.
+>>> +			 */
+>>>  			dev->has_remote = SAA7134_REMOTE_GPIO;
+>>>  			saa7134_input_init1(dev);
+>>>  	       }
+>>>
+>>
+>> Regards,
+>>
+>> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
