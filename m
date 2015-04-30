@@ -1,139 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:57486 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932786AbbDIKVh (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60167 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbbD3OI5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Apr 2015 06:21:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kamil Debski <k.debski@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 0/7] v4l2: convert video ops to pad ops
-Date: Thu,  9 Apr 2015 12:21:21 +0200
-Message-Id: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 30 Apr 2015 10:08:57 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 16/22] saa7134-i2c: make debug macros to use pr_fmt()
+Date: Thu, 30 Apr 2015 11:08:36 -0300
+Message-Id: <150633176e3df02a8c84ee396af6989d0230ff0c.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Converting debug prints to use pr_foo() is not trivial, as the
+result will be a way worse than what's provided here, due to the
+pieces of the code that prints the I2C transfers. Those use a
+lot pr_cont(), and, depending on using either level 1 or 2,
+a different set of macros are selected.
 
-This patch series converts duplicate video ops to pad ops.
+So, let's replace d1printk() and d2printk() macros by i2c_dbg()
+and i2c_count() adding a debug level there.
 
-Patches 1-6 convert enum/g/try/s_mbus_fmt and patch 7 converts
-g/s_crop and cropcap.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Patch 7 has been posted before:
-
-http://www.spinics.net/lists/linux-media/msg84776.html
-
-Patch 7 remains an RFC since I still have not been able to test this
-on actual hardware.
-
-Note that the calls to set_fmt(V4L2_SUBDEV_FORMAT_TRY) in bridge drivers
-all assume that pad is 0. Which is actually true for these specific
-drivers, but may not be true in the future. In that case the
-struct v4l2_subdev_pad_config pad_cfg local variable should become an
-array of at least (pad + 1) elements.
-
-But we'll handle that when we need it.
-
-My intention is to get patches 1-6 in for 4.2, preferably asap to get
-as much testing time as possible. These patches touch on many drivers
-so the sooner they are merged, the easier it is for developers to work
-on top of them.
-
-The moral of the story: never accept patches that add duplicate ops
-without removing the old ones as well. It seems that every time I end
-up being the sucker that does the work, and it is a really boring and
-unpleasant job. Next time I'll Nack such patches.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (7):
-  v4l2: replace enum_mbus_fmt by enum_mbus_code
-  v4l2: replace video op g_mbus_fmt by pad op get_fmt
-  v4l2: replace try_mbus_fmt by set_fmt
-  v4l2: replace s_mbus_fmt by set_fmt
-  v4l2: replace try_mbus_fmt by set_fmt in bridge drivers
-  v4l2: replace s_mbus_fmt by set_fmt in bridge drivers
-  v4l2: remove g/s_crop and cropcap from video ops
-
- drivers/media/i2c/adv7170.c                        |  42 ++++--
- drivers/media/i2c/adv7175.c                        |  42 ++++--
- drivers/media/i2c/adv7183.c                        |  61 ++++----
- drivers/media/i2c/adv7842.c                        |  25 ++--
- drivers/media/i2c/ak881x.c                         |  67 +++++----
- drivers/media/i2c/cx25840/cx25840-core.c           |  15 +-
- drivers/media/i2c/ml86v7667.c                      |  29 ++--
- drivers/media/i2c/mt9v011.c                        |  53 +++----
- drivers/media/i2c/ov7670.c                         |  38 ++---
- drivers/media/i2c/saa6752hs.c                      |  42 ++++--
- drivers/media/i2c/saa7115.c                        |  16 ++-
- drivers/media/i2c/saa717x.c                        |  16 ++-
- drivers/media/i2c/soc_camera/imx074.c              | 108 +++++++-------
- drivers/media/i2c/soc_camera/mt9m001.c             | 113 +++++++++------
- drivers/media/i2c/soc_camera/mt9m111.c             | 114 ++++++++-------
- drivers/media/i2c/soc_camera/mt9t031.c             | 126 +++++++++-------
- drivers/media/i2c/soc_camera/mt9t112.c             | 101 ++++++++-----
- drivers/media/i2c/soc_camera/mt9v022.c             | 111 ++++++++------
- drivers/media/i2c/soc_camera/ov2640.c              | 103 ++++++-------
- drivers/media/i2c/soc_camera/ov5642.c              | 113 ++++++++-------
- drivers/media/i2c/soc_camera/ov6650.c              | 117 ++++++++-------
- drivers/media/i2c/soc_camera/ov772x.c              |  85 ++++++-----
- drivers/media/i2c/soc_camera/ov9640.c              |  73 +++++-----
- drivers/media/i2c/soc_camera/ov9740.c              |  76 +++++-----
- drivers/media/i2c/soc_camera/rj54n1cb0c.c          | 118 +++++++--------
- drivers/media/i2c/soc_camera/tw9910.c              |  88 ++++++------
- drivers/media/i2c/sr030pc30.c                      |  62 ++++----
- drivers/media/i2c/tvp514x.c                        |  55 +------
- drivers/media/i2c/tvp5150.c                        | 111 +++++++-------
- drivers/media/i2c/tvp7002.c                        |  48 -------
- drivers/media/i2c/vs6624.c                         |  55 +++----
- drivers/media/pci/cx18/cx18-av-core.c              |  16 ++-
- drivers/media/pci/cx18/cx18-controls.c             |  13 +-
- drivers/media/pci/cx18/cx18-ioctl.c                |  12 +-
- drivers/media/pci/cx23885/cx23885-video.c          |  12 +-
- drivers/media/pci/ivtv/ivtv-controls.c             |  12 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c                |  12 +-
- drivers/media/pci/saa7134/saa7134-empress.c        |  32 +++--
- drivers/media/platform/am437x/am437x-vpfe.c        |  25 +---
- drivers/media/platform/blackfin/bfin_capture.c     |  40 ++++--
- drivers/media/platform/davinci/vpfe_capture.c      |  19 +--
- drivers/media/platform/marvell-ccic/mcam-core.c    |  19 ++-
- drivers/media/platform/omap3isp/ispvideo.c         |  88 ++++++++----
- drivers/media/platform/s5p-tv/hdmi_drv.c           |  12 +-
- drivers/media/platform/s5p-tv/mixer_drv.c          |  15 +-
- drivers/media/platform/s5p-tv/sdo_drv.c            |  14 +-
- drivers/media/platform/sh_vou.c                    |  74 +++++-----
- drivers/media/platform/soc_camera/atmel-isi.c      |  74 +++++-----
- drivers/media/platform/soc_camera/mx2_camera.c     | 131 +++++++++--------
- drivers/media/platform/soc_camera/mx3_camera.c     | 123 +++++++++-------
- drivers/media/platform/soc_camera/omap1_camera.c   | 119 ++++++++-------
- drivers/media/platform/soc_camera/pxa_camera.c     | 116 ++++++++-------
- drivers/media/platform/soc_camera/rcar_vin.c       | 135 +++++++++--------
- .../platform/soc_camera/sh_mobile_ceu_camera.c     | 147 ++++++++++---------
- drivers/media/platform/soc_camera/sh_mobile_csi2.c |  35 +++--
- drivers/media/platform/soc_camera/soc_camera.c     | 160 ++++++++-------------
- .../platform/soc_camera/soc_camera_platform.c      |  69 +++++----
- drivers/media/platform/soc_camera/soc_scale_crop.c | 122 +++++++++-------
- drivers/media/platform/soc_camera/soc_scale_crop.h |   6 +-
- drivers/media/platform/via-camera.c                |  19 ++-
- drivers/media/usb/cx231xx/cx231xx-417.c            |  12 +-
- drivers/media/usb/cx231xx/cx231xx-video.c          |  23 +--
- drivers/media/usb/em28xx/em28xx-camera.c           |  12 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |  12 +-
- drivers/media/usb/go7007/s2250-board.c             |  18 ++-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c            |  17 ++-
- drivers/staging/media/omap4iss/iss_video.c         |  88 ++++++++----
- include/media/soc_camera.h                         |   7 +-
- include/media/v4l2-subdev.h                        |  19 ---
- 69 files changed, 2241 insertions(+), 1861 deletions(-)
-
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index 2dcc497fb166..b140143dba7d 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -41,8 +41,11 @@ static unsigned int i2c_scan;
+ module_param(i2c_scan, int, 0444);
+ MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
+ 
+-#define d1printk if (1 == i2c_debug) printk
+-#define d2printk if (2 == i2c_debug) printk
++#define i2c_dbg(level, fmt, arg...)    if (i2c_debug == level) \
++	printk(KERN_DEBUG pr_fmt("i2c: " fmt), ## arg)
++
++#define i2c_cont(level, fmt, arg...)    if (i2c_debug == level) \
++	pr_cont(fmt, ## arg)
+ 
+ #define I2C_WAIT_DELAY  32
+ #define I2C_WAIT_RETRY  16
+@@ -90,23 +93,20 @@ static inline enum i2c_status i2c_get_status(struct saa7134_dev *dev)
+ 	enum i2c_status status;
+ 
+ 	status = saa_readb(SAA7134_I2C_ATTR_STATUS) & 0x0f;
+-	d2printk(KERN_DEBUG "%s: i2c stat <= %s\n",dev->name,
+-		 str_i2c_status[status]);
++	i2c_dbg(2, "i2c stat <= %s\n", str_i2c_status[status]);
+ 	return status;
+ }
+ 
+ static inline void i2c_set_status(struct saa7134_dev *dev,
+ 				  enum i2c_status status)
+ {
+-	d2printk(KERN_DEBUG "%s: i2c stat => %s\n",dev->name,
+-		 str_i2c_status[status]);
++	i2c_dbg(2, "i2c stat => %s\n", str_i2c_status[status]);
+ 	saa_andorb(SAA7134_I2C_ATTR_STATUS,0x0f,status);
+ }
+ 
+ static inline void i2c_set_attr(struct saa7134_dev *dev, enum i2c_attr attr)
+ {
+-	d2printk(KERN_DEBUG "%s: i2c attr => %s\n",dev->name,
+-		 str_i2c_attr[attr]);
++	i2c_dbg(2, "i2c attr => %s\n", str_i2c_attr[attr]);
+ 	saa_andorb(SAA7134_I2C_ATTR_STATUS,0xc0,attr << 6);
+ }
+ 
+@@ -169,7 +169,7 @@ static int i2c_reset(struct saa7134_dev *dev)
+ 	enum i2c_status status;
+ 	int count;
+ 
+-	d2printk(KERN_DEBUG "%s: i2c reset\n",dev->name);
++	i2c_dbg(2, "i2c reset\n");
+ 	status = i2c_get_status(dev);
+ 	if (!i2c_is_error(status))
+ 		return true;
+@@ -207,7 +207,7 @@ static inline int i2c_send_byte(struct saa7134_dev *dev,
+ //	dword |= 0x40 << 16;  /* 400 kHz */
+ 	dword |= 0xf0 << 24;
+ 	saa_writel(SAA7134_I2C_ATTR_STATUS >> 2, dword);
+-	d2printk(KERN_DEBUG "%s: i2c data => 0x%x\n",dev->name,data);
++	i2c_dbg(2, "i2c data => 0x%x\n", data);
+ 
+ 	if (!i2c_is_busy_wait(dev))
+ 		return -EIO;
+@@ -229,7 +229,7 @@ static inline int i2c_recv_byte(struct saa7134_dev *dev)
+ 	if (i2c_is_error(status))
+ 		return -EIO;
+ 	data = saa_readb(SAA7134_I2C_DATA);
+-	d2printk(KERN_DEBUG "%s: i2c data <= 0x%x\n",dev->name,data);
++	i2c_dbg(2, "i2c data <= 0x%x\n", data);
+ 	return data;
+ }
+ 
+@@ -246,12 +246,12 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 		if (!i2c_reset(dev))
+ 			return -EIO;
+ 
+-	d2printk("start xfer\n");
+-	d1printk(KERN_DEBUG "%s: i2c xfer:",dev->name);
++	i2c_dbg(2, "start xfer\n");
++	i2c_dbg(1, "i2c xfer:");
+ 	for (i = 0; i < num; i++) {
+ 		if (!(msgs[i].flags & I2C_M_NOSTART) || 0 == i) {
+ 			/* send address */
+-			d2printk("send address\n");
++			i2c_dbg(2, "send address\n");
+ 			addr  = msgs[i].addr << 1;
+ 			if (msgs[i].flags & I2C_M_RD)
+ 				addr |= 1;
+@@ -263,50 +263,50 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 				 * needed to talk to the mt352 demux
+ 				 * thanks to pinnacle for the hint */
+ 				int quirk = 0xfe;
+-				d1printk(" [%02x quirk]",quirk);
++				i2c_cont(1, " [%02x quirk]",quirk);
+ 				i2c_send_byte(dev,START,quirk);
+ 				i2c_recv_byte(dev);
+ 			}
+-			d1printk(" < %02x", addr);
++			i2c_cont(1, " < %02x", addr);
+ 			rc = i2c_send_byte(dev,START,addr);
+ 			if (rc < 0)
+ 				 goto err;
+ 		}
+ 		if (msgs[i].flags & I2C_M_RD) {
+ 			/* read bytes */
+-			d2printk("read bytes\n");
++			i2c_dbg(2, "read bytes\n");
+ 			for (byte = 0; byte < msgs[i].len; byte++) {
+-				d1printk(" =");
++				i2c_cont(1, " =");
+ 				rc = i2c_recv_byte(dev);
+ 				if (rc < 0)
+ 					goto err;
+-				d1printk("%02x", rc);
++				i2c_cont(1, "%02x", rc);
+ 				msgs[i].buf[byte] = rc;
+ 			}
+ 			/* discard mysterious extra byte when reading
+ 			   from Samsung S5H1411.  i2c bus gets error
+ 			   if we do not. */
+ 			if (0x19 == msgs[i].addr) {
+-				d1printk(" ?");
++				i2c_cont(1, " ?");
+ 				rc = i2c_recv_byte(dev);
+ 				if (rc < 0)
+ 					goto err;
+-				d1printk("%02x", rc);
++				i2c_cont(1, "%02x", rc);
+ 			}
+ 		} else {
+ 			/* write bytes */
+-			d2printk("write bytes\n");
++			i2c_dbg(2, "write bytes\n");
+ 			for (byte = 0; byte < msgs[i].len; byte++) {
+ 				data = msgs[i].buf[byte];
+-				d1printk(" %02x", data);
++				i2c_cont(1, " %02x", data);
+ 				rc = i2c_send_byte(dev,CONTINUE,data);
+ 				if (rc < 0)
+ 					goto err;
+ 			}
+ 		}
+ 	}
+-	d2printk("xfer done\n");
+-	d1printk(" >");
++	i2c_dbg(2, "xfer done\n");
++	i2c_cont(1, " >");
+ 	i2c_set_attr(dev,STOP);
+ 	rc = -EIO;
+ 	if (!i2c_is_busy_wait(dev))
+@@ -317,12 +317,12 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 	/* ensure that the bus is idle for at least one bit slot */
+ 	msleep(1);
+ 
+-	d1printk("\n");
++	i2c_cont(1, "\n");
+ 	return num;
+  err:
+ 	if (1 == i2c_debug) {
+ 		status = i2c_get_status(dev);
+-		printk(" ERROR: %s\n",str_i2c_status[status]);
++		i2c_cont(1, " ERROR: %s\n", str_i2c_status[status]);
+ 	}
+ 	return rc;
+ }
 -- 
-2.1.4
+2.1.0
 
