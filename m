@@ -1,53 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57792 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754152AbbDHWNk (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:63309 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbbD3Kef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 18:13:40 -0400
-Date: Thu, 9 Apr 2015 01:13:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 4/4] smiapp: Use v4l2_of_alloc_parse_endpoint()
-Message-ID: <20150408221334.GZ20756@valkosipuli.retiisi.org.uk>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
- <1428361053-20411-5-git-send-email-sakari.ailus@iki.fi>
- <3264259.HtLEAUTuYM@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3264259.HtLEAUTuYM@avalon>
+	Thu, 30 Apr 2015 06:34:35 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v7] Documentation: leds: Add description of v4l2-flash
+ sub-device
+Date: Thu, 30 Apr 2015 12:34:21 +0200
+Message-id: <1430390061-7090-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch extends LED Flash class documention by
+the description of interactions with v4l2-flash sub-device.
 
-On Tue, Apr 07, 2015 at 01:10:20PM +0300, Laurent Pinchart wrote:
-> > @@ -3022,34 +3026,30 @@ static struct smiapp_platform_data
-> > *smiapp_get_pdata(struct device *dev) dev_dbg(dev, "reset %d, nvm %d, clk
-> > %d, csi %d\n", pdata->xshutdown, pdata->nvm_size, pdata->ext_clk,
-> > pdata->csi_signalling_mode);
-> > 
-> > -	rval = of_get_property(ep, "link-frequencies", &asize) ? 0 : -ENOENT;
-> > -	if (rval) {
-> > -		dev_warn(dev, "can't get link-frequencies array size\n");
-> > +	if (!bus_cfg->nr_of_link_frequencies) {
-> 
-> Now that I see it being used, nr_of_link_frequencies feels a bit long. 
-> num_link_freqs could be an alternative. I'll let you decide. But for this 
-> patch,
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
+ Documentation/leds/leds-class-flash.txt |   47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-It's long, I agree, but still used in only a small number of places in
-drivers. I'd prefer to keep it as-is also as the name matches the name of
-the property.
-
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Thanks.
-
+diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+index 19bb673..4cedc58 100644
+--- a/Documentation/leds/leds-class-flash.txt
++++ b/Documentation/leds/leds-class-flash.txt
+@@ -20,3 +20,50 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+ 	- max_flash_timeout
+ 	- flash_strobe
+ 	- flash_fault
++
++
++V4L2 flash wrapper for flash LEDs
++=================================
++
++A LED subsystem driver can be controlled also from the level of VideoForLinux2
++subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
++be defined in the kernel config.
++
++The driver must call the v4l2_flash_init function to get registered in the
++V4L2 subsystem. The function takes three arguments:
++- fled_cdev : the LED Flash class device to wrap
++- ops : V4L2 specific ops
++	* external_strobe_set - defines the source of the flash LED strobe -
++		V4L2_CID_FLASH_STROBE control or external source, typically
++		a sensor, which makes it possible to synchronise the flash
++		strobe start with exposure start,
++	* intensity_to_led_brightness and led_brightness_to_intensity - perform
++		enum led_brightness <-> V4L2 intensity conversion in a device
++		specific manner - they can be used for devices with non-linear
++		LED current scale.
++- config : configuration for V4L2 Flash sub-device
++	* dev_name - the name of the media entity, unique in the system,
++	* flash_faults - bitmask of flash faults that the LED Flash class
++		device can report; corresponding LED_FAULT* bit definitions are
++		available in <linux/led-class-flash.h>,
++	* intensity - constraints for the LED in the TORCH or INDICATOR mode,
++		in microamperes,
++	* has_external_strobe - determines whether the flash strobe source
++		can be switched to external,
++	* indicator_led - signifies that a led is of indicator type, which
++		implies that it can have only two V4L2 controls:
++		V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
++
++On remove the v4l2_flash_release function has to be called, which takes one
++argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
++
++Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
++v4l2 flash wrapper.
++
++Once the V4L2 sub-device is registered by the driver which created the Media
++controller device, the sub-device node acts just as a node of a native V4L2
++flash API device would. The calls are simply routed to the LED flash API.
++
++Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
++unavailable. The interface is re-enabled after the V4L2 flash sub-device
++is closed.
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
