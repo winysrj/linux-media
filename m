@@ -1,25 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:34872 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308AbbDFIDV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2015 04:03:21 -0400
-Received: by lbbuc2 with SMTP id uc2so11742605lbb.2
-        for <linux-media@vger.kernel.org>; Mon, 06 Apr 2015 01:03:19 -0700 (PDT)
+Received: from tex.lwn.net ([70.33.254.29]:37636 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891AbbD3Q54 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2015 12:57:56 -0400
+Date: Thu, 30 Apr 2015 10:59:10 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 08/27] ov7670: check read error also for REG_AECHH on
+ ov7670_s_exp()
+Message-ID: <20150430105910.1c12af50@lwn.net>
+In-Reply-To: <ff849563e43277ddf2cf83309963c74ca4428f7d.1430348725.git.mchehab@osg.samsung.com>
+References: <89e5bc8de1ae960f10bd5ea465e7e4f7c6b8812a.1430348725.git.mchehab@osg.samsung.com>
+	<ff849563e43277ddf2cf83309963c74ca4428f7d.1430348725.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Date: Mon, 6 Apr 2015 16:03:18 +0800
-Message-ID: <CAB3QyN5zqRnxhC9OQcDD709keu8SMgPguh+hRqCA0Lf=GAbE0w@mail.gmail.com>
-Subject: Please let me know if you need to print color box, display box and labels
-From: Jinghao Printing - CHINA <hesterttemple915@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, this is David Wu from Shanghai, China.
-Please let me know if you need color box, display box, corrugated box,
-label, hang tag etc.
+On Wed, 29 Apr 2015 20:05:53 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-I will send you the website.
+> ov7670_s_exp() checks read error for 2 registers: REG_COM1
+> and REG_COM8. But, although it uses the value latter, it
+> doesn't check errors on REG_AECHH read. Yet, as it is doing
+> a bitmask operation there, the read operation should succeed.
+> 
+> So, fix the code to also check if this succeeded.
+> 
+> This fixes this smatch report:
+> 	drivers/media/i2c/ov7670.c:1366 ov7670_s_exp() warn: inconsistent indenting
 
-Best regards,
-David Wu
+That's why I like programming in Python...:)
+
+Silly mistake, good fix.
+
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+
+jon
