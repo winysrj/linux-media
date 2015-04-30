@@ -1,19 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44329 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964841AbbDOGt1 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17266 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308AbbD3KfJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 02:49:27 -0400
+	Thu, 30 Apr 2015 06:35:09 -0400
 From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
 Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
 	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
 	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v5 05/10] leds: Add driver for AAT1290 flash LED controller
-Date: Wed, 15 Apr 2015 08:48:35 +0200
-Message-id: <1429080520-10687-6-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
-References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
+Subject: [PATCH v7] leds: Add driver for AAT1290 flash LED controller
+Date: Thu, 30 Apr 2015 12:34:57 +0200
+Message-id: <1430390097-7157-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -27,14 +25,19 @@ Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Bryan Wu <cooloney@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 ---
+Fixed issue reported by 0-DAY kernel test infrastructure:
+drivers/leds/leds-aat1290.c:443:3-8: No need to set .owner here. The core will do it
+Fixed issue reported by Coccinelle:
+drivers/leds/leds-aat1290.c:204:5-10: WARNING: Comparison of bool to 0/1
+
  drivers/leds/Kconfig        |    8 +
  drivers/leds/Makefile       |    1 +
- drivers/leds/leds-aat1290.c |  452 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 461 insertions(+)
+ drivers/leds/leds-aat1290.c |  451 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 460 insertions(+)
  create mode 100644 drivers/leds/leds-aat1290.c
 
 diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-index 97e9699..fe2ef1e 100644
+index 62be033..dd7834c 100644
 --- a/drivers/leds/Kconfig
 +++ b/drivers/leds/Kconfig
 @@ -42,6 +42,14 @@ config LEDS_88PM860X
@@ -53,7 +56,7 @@ index 97e9699..fe2ef1e 100644
  	tristate "LCD Backlight driver for LM3530"
  	depends on LEDS_CLASS
 diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
-index 9413fdb..0b3fd0e 100644
+index 8bddae6..71f7c9a 100644
 --- a/drivers/leds/Makefile
 +++ b/drivers/leds/Makefile
 @@ -7,6 +7,7 @@ obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
@@ -66,10 +69,10 @@ index 9413fdb..0b3fd0e 100644
  obj-$(CONFIG_LEDS_LM3530)		+= leds-lm3530.o
 diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
 new file mode 100644
-index 0000000..03e5b96
+index 0000000..6ea1d54
 --- /dev/null
 +++ b/drivers/leds/leds-aat1290.c
-@@ -0,0 +1,452 @@
+@@ -0,0 +1,451 @@
 +/*
 + *	LED Flash class driver for the AAT1290
 + *	1.5A Step-Up Current Regulator for Flash LEDs
@@ -267,12 +270,12 @@ index 0000000..03e5b96
 +
 +	mutex_lock(&led->lock);
 +
-+	if (state == 0) {
-+		gpiod_direction_output(led->gpio_fl_en, 0);
-+		gpiod_direction_output(led->gpio_en_set, 0);
-+	} else {
++	if (state) {
 +		aat1290_set_flash_safety_timer(led, timeout->val);
 +		gpiod_direction_output(led->gpio_fl_en, 1);
++	} else {
++		gpiod_direction_output(led->gpio_fl_en, 0);
++		gpiod_direction_output(led->gpio_en_set, 0);
 +	}
 +
 +	/*
@@ -512,7 +515,6 @@ index 0000000..03e5b96
 +	.remove		= aat1290_led_remove,
 +	.driver		= {
 +		.name	= "aat1290",
-+		.owner	= THIS_MODULE,
 +		.of_match_table = aat1290_led_dt_match,
 +	},
 +};
