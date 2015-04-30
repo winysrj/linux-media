@@ -1,45 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57760 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754803AbbDHWIy (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60238 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272AbbD3OI7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2015 18:08:54 -0400
-Date: Thu, 9 Apr 2015 01:08:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 2/4] v4l: of: Instead of zeroing bus_type and bus
- field separately, unify this
-Message-ID: <20150408220821.GX20756@valkosipuli.retiisi.org.uk>
-References: <1428361053-20411-1-git-send-email-sakari.ailus@iki.fi>
- <1428361053-20411-3-git-send-email-sakari.ailus@iki.fi>
- <14728842.HyHhcxnctu@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <14728842.HyHhcxnctu@avalon>
+	Thu, 30 Apr 2015 10:08:59 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Mikhail Domrachev <mihail.domrychev@comexp.ru>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH 13/22] saa7134-empress: use pr_debug() for the saa7134 empress module
+Date: Thu, 30 Apr 2015 11:08:33 -0300
+Message-Id: <a339db607230decbb46beab03247624321fd5de1.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 07, 2015 at 12:47:56PM +0300, Laurent Pinchart wrote:
-> Hello Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 07 April 2015 01:57:30 Sakari Ailus wrote:
-> > Clean the entire struct starting from bus_type. As more fields are added, no
-> > changes will be needed in the function to reset their value explicitly.
-> 
-> I would s/Clean/Clear/ or s/Clean/Zero/. Same for the comment in the code. 
-> Apart from that,
+As this module doesn't use any debug level, it is easy to
+just replace all debug printks by pr_debug().
 
-I'll use zero. It's clearer. :-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Thanks!!
-
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 5d687bcb74ce..e7db4a7166ad 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -39,13 +39,6 @@ static unsigned int empress_nr[] = {[0 ... (SAA7134_MAXBOARDS - 1)] = UNSET };
+ module_param_array(empress_nr, int, NULL, 0444);
+ MODULE_PARM_DESC(empress_nr,"ts device number");
+ 
+-static unsigned int debug;
+-module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug,"enable debug messages");
+-
+-#define dprintk(fmt, arg...)	if (debug)			\
+-	printk(KERN_DEBUG "%s/empress: " fmt, dev->name , ## arg)
+-
+ /* ------------------------------------------------------------------ */
+ 
+ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -221,9 +214,9 @@ static void empress_signal_update(struct work_struct *work)
+ 		container_of(work, struct saa7134_dev, empress_workqueue);
+ 
+ 	if (dev->nosignal) {
+-		dprintk("no video signal\n");
++		pr_debug("no video signal\n");
+ 	} else {
+-		dprintk("video signal acquired\n");
++		pr_debug("video signal acquired\n");
+ 	}
+ }
+ 
+@@ -255,7 +248,7 @@ static int empress_init(struct saa7134_dev *dev)
+ 	struct vb2_queue *q;
+ 	int err;
+ 
+-	dprintk("%s: %s\n",dev->name,__func__);
++	pr_debug("%s: %s\n",dev->name,__func__);
+ 	dev->empress_dev = video_device_alloc();
+ 	if (NULL == dev->empress_dev)
+ 		return -ENOMEM;
+@@ -317,7 +310,7 @@ static int empress_init(struct saa7134_dev *dev)
+ 
+ static int empress_fini(struct saa7134_dev *dev)
+ {
+-	dprintk("%s: %s\n",dev->name,__func__);
++	pr_debug("%s: %s\n",dev->name,__func__);
+ 
+ 	if (NULL == dev->empress_dev)
+ 		return 0;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.0
+
