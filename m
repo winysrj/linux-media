@@ -1,133 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56145 "EHLO
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39673 "EHLO
 	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752626AbbDFC2e (ORCPT
+	by vger.kernel.org with ESMTP id S1750881AbbD3GVA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2015 22:28:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0C3EA2A0003
-	for <linux-media@vger.kernel.org>; Mon,  6 Apr 2015 04:28:28 +0200 (CEST)
-Date: Mon, 06 Apr 2015 04:28:27 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150406022828.0C3EA2A0003@tschai.lan>
+	Thu, 30 Apr 2015 02:21:00 -0400
+Message-ID: <5541C9C1.1000800@xs4all.nl>
+Date: Thu, 30 Apr 2015 08:20:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 03/14] saa7134: fix indent issues
+References: <ea067cc285e015d6ba90554d650b0a9df2670252.1430235781.git.mchehab@osg.samsung.com> <1e8158b3d1f9472fc0ec2776876a907575c5548c.1430235781.git.mchehab@osg.samsung.com>
+In-Reply-To: <1e8158b3d1f9472fc0ec2776876a907575c5548c.1430235781.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 04/28/2015 05:43 PM, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+> 	drivers/media/pci/saa7134/saa7134-cards.c:7197 saa7134_xc2028_callback() warn: inconsistent indenting
+> 	drivers/media/pci/saa7134/saa7134-cards.c:7846 saa7134_board_init2() warn: inconsistent indenting
+> 	drivers/media/pci/saa7134/saa7134-cards.c:7913 saa7134_board_init2() warn: inconsistent indenting
+> 
+> While here, fix a few CodingStyle issues on the affected code
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+> index 3ca078057755..d48fd5338db5 100644
+> --- a/drivers/media/pci/saa7134/saa7134-cards.c
+> +++ b/drivers/media/pci/saa7134/saa7134-cards.c
+> @@ -7194,7 +7194,7 @@ static int saa7134_xc2028_callback(struct saa7134_dev *dev,
+>  			saa7134_set_gpio(dev, 20, 1);
+>  		break;
+>  		}
+> -	return 0;
+> +		return 0;
+>  	}
+>  	return -EINVAL;
+>  }
+> @@ -7842,7 +7842,8 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+>  				break;
+>  			case 0x001d:
+>  				dev->tuner_type = TUNER_PHILIPS_FMD1216ME_MK3;
+> -					printk(KERN_INFO "%s Board has DVB-T\n", dev->name);
+> +				printk(KERN_INFO "%s Board has DVB-T\n",
+> +				       dev->name);
 
-Results of the daily build of media_tree:
+If you're changing this anyway, why not use pr_info instead?
 
-date:		Mon Apr  6 04:00:15 CEST 2015
-git branch:	test
-git hash:	a5562f65b1371a0988b707c10c44fcc2bba56990
-gcc version:	i686-linux-gcc (GCC) 4.9.1
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	3.19.0-1.slh.1-amd64
+>  				break;
+>  			default:
+>  				printk(KERN_ERR "%s Can't determine tuner type %x from EEPROM\n", dev->name, tuner_t);
+> @@ -7903,13 +7904,15 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+>  	case SAA7134_BOARD_ASUSTeK_TVFM7135:
+>  	/* The card below is detected as card=53, but is different */
+>  	       if (dev->autodetected && (dev->eedata[0x27] == 0x03)) {
+> -		       dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+> -		       printk(KERN_INFO "%s: P7131 analog only, using "
+> -						       "entry of %s\n",
+> -		       dev->name, saa7134_boards[dev->board].name);
+> +			dev->board = SAA7134_BOARD_ASUSTeK_P7131_ANALOG;
+> +			printk(KERN_INFO
+> +			       "%s: P7131 analog only, using entry of %s\n",
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: OK
-linux-4.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+Ditto.
 
-Detailed results are available here:
+> +			dev->name, saa7134_boards[dev->board].name);
+>  
+> -			/* IR init has already happened for other cards, so
+> -			 * we have to catch up. */
+> +			/*
+> +			 * IR init has already happened for other cards, so
+> +			 * we have to catch up.
+> +			 */
+>  			dev->has_remote = SAA7134_REMOTE_GPIO;
+>  			saa7134_input_init1(dev);
+>  	       }
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
