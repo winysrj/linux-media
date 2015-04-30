@@ -1,142 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53147 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756045AbbDOJat (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60202 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102AbbD3OI6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2015 05:30:49 -0400
-Date: Wed, 15 Apr 2015 12:30:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v5 03/10] leds: Add support for max77693 mfd flash cell
-Message-ID: <20150415093007.GG27451@valkosipuli.retiisi.org.uk>
-References: <1429080520-10687-1-git-send-email-j.anaszewski@samsung.com>
- <1429080520-10687-4-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1429080520-10687-4-git-send-email-j.anaszewski@samsung.com>
+	Thu, 30 Apr 2015 10:08:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: [PATCH 22/22] saa7134: replace remaining occurences or printk()
+Date: Thu, 30 Apr 2015 11:08:42 -0300
+Message-Id: <e0eda5b491b1f6e20b7d530d00375fb51e22c768.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Instead of using printk(), use pr_foo() macros.
 
-On Wed, Apr 15, 2015 at 08:48:33AM +0200, Jacek Anaszewski wrote:
-...
-> +static int max77693_led_parse_dt(struct max77693_led_device *led,
-> +				struct max77693_led_config_data *cfg)
-> +{
-> +	struct device *dev = &led->pdev->dev;
-> +	struct max77693_sub_led *sub_leds = led->sub_leds;
-> +	struct device_node *node = dev->of_node, *child_node;
-> +	struct property *prop;
-> +	u32 led_sources[2];
-> +	int i, ret, fled_id;
-> +
-> +	of_property_read_u32(node, "maxim,boost-mode", &cfg->boost_mode);
-> +	of_property_read_u32(node, "maxim,boost-mvout", &cfg->boost_vout);
-> +	of_property_read_u32(node, "maxim,mvsys-min", &cfg->low_vsys);
-> +
-> +	for_each_available_child_of_node(node, child_node) {
-> +		prop = of_find_property(child_node, "led-sources", NULL);
-> +		if (prop) {
-> +			const __be32 *srcs = NULL;
-> +
-> +			for (i = 0; i < ARRAY_SIZE(led_sources); ++i) {
-> +				srcs = of_prop_next_u32(prop, srcs,
-> +							&led_sources[i]);
-> +				if (!srcs)
-> +					break;
-> +			}
-> +		} else {
-> +			dev_err(dev,
-> +				"led-sources DT property missing\n");
-> +			return -EINVAL;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-If you exit the loop in the middle, I think you'll need to do
-of_node_put(child_node) first.
-
-> +		}
-> +
-> +		if (i == 2) {
-> +			fled_id = FLED1;
-> +			led->fled_mask = FLED1_IOUT | FLED2_IOUT;
-> +		} else if (led_sources[0] == FLED1) {
-> +			fled_id = FLED1;
-> +			led->fled_mask |= FLED1_IOUT;
-> +		} else if (led_sources[0] == FLED2) {
-> +			fled_id = FLED2;
-> +			led->fled_mask |= FLED2_IOUT;
-> +		} else {
-> +			dev_err(dev,
-> +				"Wrong led-sources DT property value.\n");
-> +			return -EINVAL;
-
-Same here.
-
-> +		}
-> +
-> +		sub_leds[fled_id].fled_id = fled_id;
-> +
-> +		cfg->label[fled_id] =
-> +			of_get_property(child_node, "label", NULL) ? :
-> +						child_node->name;
-
-I think you should copy the string here, or keep a reference to child_node.
-
-of_property_read_string() might be useful.
-
-> +
-> +		ret = of_property_read_u32(child_node, "led-max-microamp",
-> +					&cfg->iout_torch_max[fled_id]);
-> +		if (ret < 0) {
-> +			cfg->iout_torch_max[fled_id] = TORCH_IOUT_MIN;
-> +			dev_warn(dev, "led-max-microamp DT property missing\n");
-> +		}
-> +
-> +		ret = of_property_read_u32(child_node, "flash-max-microamp",
-> +					&cfg->iout_flash_max[fled_id]);
-> +		if (ret < 0) {
-> +			cfg->iout_flash_max[fled_id] = FLASH_IOUT_MIN;
-> +			dev_warn(dev,
-> +				 "flash-max-microamp DT property missing\n");
-> +		}
-> +
-> +		ret = of_property_read_u32(child_node, "flash-max-timeout-us",
-> +					&cfg->flash_timeout_max[fled_id]);
-> +		if (ret < 0) {
-> +			cfg->flash_timeout_max[fled_id] = FLASH_TIMEOUT_MIN;
-> +			dev_warn(dev,
-> +				 "flash-max-timeout-us DT property missing\n");
-> +		}
-> +
-> +		if (++cfg->num_leds == 2 ||
-> +		    (max77693_fled_used(led, FLED1) &&
-> +		     max77693_fled_used(led, FLED2)))
-
-of_node_put(child_node);
-
-> +			break;
-> +	}
-> +
-> +	if (cfg->num_leds == 0) {
-> +		dev_err(dev, "No DT child node found for connected LED(s).\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-
-With these matters addressed,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index ef3c33e3757d..d04fbdb49158 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -386,7 +386,7 @@ static char *i2c_devs[128] = {
+ 	[ 0x5a >> 1 ] = "remote control",
+ };
+ 
+-static void do_i2c_scan(char *name, struct i2c_client *c)
++static void do_i2c_scan(struct i2c_client *c)
+ {
+ 	unsigned char buf;
+ 	int i,rc;
+@@ -396,8 +396,8 @@ static void do_i2c_scan(char *name, struct i2c_client *c)
+ 		rc = i2c_master_recv(c,&buf,0);
+ 		if (rc < 0)
+ 			continue;
+-		printk("%s: i2c scan: found device @ 0x%x  [%s]\n",
+-		       name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
++		pr_info("i2c scan: found device @ 0x%x  [%s]\n",
++			 i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+ 	}
+ }
+ 
+@@ -415,7 +415,7 @@ int saa7134_i2c_register(struct saa7134_dev *dev)
+ 
+ 	saa7134_i2c_eeprom(dev,dev->eedata,sizeof(dev->eedata));
+ 	if (i2c_scan)
+-		do_i2c_scan(dev->name,&dev->i2c_client);
++		do_i2c_scan(&dev->i2c_client);
+ 
+ 	/* Instantiate the IR receiver device, if present */
+ 	saa7134_probe_i2c_ir(dev);
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 89f5fcf12722..c6036557b468 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -831,8 +831,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 		break;
+ 	}
+ 	if (NULL == ir_codes) {
+-		printk("%s: Oops: IR config error [card=%d]\n",
+-		       dev->name, dev->board);
++		pr_err("Oops: IR config error [card=%d]\n", dev->board);
+ 		return -ENODEV;
+ 	}
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+index 360f447bd74d..6320b64d3528 100644
+--- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
++++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+@@ -674,12 +674,11 @@ static inline int saa_dsp_wait_bit(struct saa7134_dev *dev, int bit)
+ 	}
+ 	while (0 == (state & bit)) {
+ 		if (unlikely(0 == count)) {
+-			printk("%s: dsp access wait timeout [bit=%s]\n",
+-			       dev->name,
+-			       (bit & SAA7135_DSP_RWSTATE_WRR) ? "WRR" :
+-			       (bit & SAA7135_DSP_RWSTATE_RDB) ? "RDB" :
+-			       (bit & SAA7135_DSP_RWSTATE_IDA) ? "IDA" :
+-			       "???");
++			pr_err("dsp access wait timeout [bit=%s]\n",
++				 (bit & SAA7135_DSP_RWSTATE_WRR) ? "WRR" :
++				 (bit & SAA7135_DSP_RWSTATE_RDB) ? "RDB" :
++				 (bit & SAA7135_DSP_RWSTATE_IDA) ? "IDA" :
++				 "???");
+ 			return -EIO;
+ 		}
+ 		saa_wait(DSP_DELAY);
 -- 
-Kind regards,
+2.1.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
