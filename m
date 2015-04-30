@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57677 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:60155 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754826AbbDJRGh (ORCPT
+	with ESMTP id S1751135AbbD3OI4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2015 13:06:37 -0400
-Message-ID: <5528031B.60408@infradead.org>
-Date: Fri, 10 Apr 2015 10:06:35 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-CC: linux-kernel@vger.kernel.org, Benoit Parrot <bparrot@ti.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Apr 10 (media/i2c/ov2659)
-References: <20150410211806.574ae8f9@canb.auug.org.au>
-In-Reply-To: <20150410211806.574ae8f9@canb.auug.org.au>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Apr 2015 10:08:56 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 04/22] vivid: fix bad indenting
+Date: Thu, 30 Apr 2015 11:08:24 -0300
+Message-Id: <cb935bebf4749114a7ae10fcd28d0f830b9dc2c5.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/15 04:18, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Changes since 20150409:
-> 
+drivers/media/platform/vivid/vivid-vid-out.c:1155 vivid_vid_out_g_parm() warn: inconsistent indenting
 
-on x86_64:
-when # CONFIG_VIDEO_V4L2_SUBDEV_API is not set:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-
-  CC [M]  drivers/media/i2c/ov2659.o
-../drivers/media/i2c/ov2659.c: In function 'ov2659_get_fmt':
-../drivers/media/i2c/ov2659.c:1054:3: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-   mf = v4l2_subdev_get_try_format(sd, cfg, 0);
-   ^
-../drivers/media/i2c/ov2659.c:1054:6: warning: assignment makes pointer from integer without a cast [enabled by default]
-   mf = v4l2_subdev_get_try_format(sd, cfg, 0);
-      ^
-../drivers/media/i2c/ov2659.c: In function 'ov2659_set_fmt':
-../drivers/media/i2c/ov2659.c:1129:6: warning: assignment makes pointer from integer without a cast [enabled by default]
-   mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-      ^
-../drivers/media/i2c/ov2659.c: In function 'ov2659_open':
-../drivers/media/i2c/ov2659.c:1264:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
-     v4l2_subdev_get_try_format(sd, fh->pad, 0);
-                                      ^
-
-
-
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 0af43dc7715c..00f42df947c0 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -1152,7 +1152,8 @@ int vivid_vid_out_g_parm(struct file *file, void *priv,
+ 	parm->parm.output.capability   = V4L2_CAP_TIMEPERFRAME;
+ 	parm->parm.output.timeperframe = dev->timeperframe_vid_out;
+ 	parm->parm.output.writebuffers  = 1;
+-return 0;
++
++	return 0;
+ }
+ 
+ int vidioc_subscribe_event(struct v4l2_fh *fh,
 -- 
-~Randy
+2.1.0
+
