@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta1.cl.cam.ac.uk ([128.232.25.21]:45342 "EHLO
-	mta1.cl.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473AbbDPJyY (ORCPT
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:33172 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719AbbD3Loo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2015 05:54:24 -0400
-Received: from dirac.cl.cam.ac.uk ([128.232.65.23])
-	by mta1.cl.cam.ac.uk with esmtp (Exim 4.63)
-	(envelope-from <Markus.Kuhn@cl.cam.ac.uk>)
-	id 1YigKs-0007Vw-Pa
-	for linux-media@vger.kernel.org; Thu, 16 Apr 2015 10:43:50 +0100
-Message-ID: <552F8497.6010900@cl.cam.ac.uk>
-Date: Thu, 16 Apr 2015 10:44:55 +0100
-From: Markus Kuhn <Markus.Kuhn@cl.cam.ac.uk>
+	Thu, 30 Apr 2015 07:44:44 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: honestech VIDBOX NW07 (eMPIA EM28284)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5542105A.1010601@cogentembedded.com>
+References: <1430327133-8461-1-git-send-email-ykaneko0929@gmail.com>
+	<5542105A.1010601@cogentembedded.com>
+Date: Thu, 30 Apr 2015 13:44:43 +0200
+Message-ID: <CAMuHMdVufCUC+kP-mHgZNLHsvCbMvTGzehdX3X9J9t1SPTQY=Q@mail.gmail.com>
+Subject: Re: [PATCH/RFC] v4l: vsp1: Align crop rectangle to even boundary for
+ YUV formats
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've recently bought an "honestech VIDBOX for Mac pack"
-which contains an "honestech VIDBOX NW07" analog video to
-USB grabber device based on the eMPIA EM28284 chip. The only
-other chip on the PCB is a 24C32WP 4 kB serial EEPROM.
+On Thu, Apr 30, 2015 at 1:22 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+>> Since there is no distintion between 12bit and 16bit YUV formats in
+>
+>    Вistinсtion.
 
-USB ID = eb1a:5188
+Distinction?
 
-What is the status of Linux support for this device?
+Gr{oetje,eeting}s,
 
-I've written up all information that I have about it so far at
+                        Geert
 
-   http://linuxtv.org/wiki/index.php/Honestech_Vidbox_NW07
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-including a PCB photo and lsusb -v output.
-
-What can I do to help getting a Linux driver for it working?
-
-Markus
-
-http://www.honestech.com/main/DriverUpdates.asp#VIDBOXdrivers
-http://www.honestech.com/main/VIDBOXforMac.asp
-
--- 
-Markus Kuhn, Computer Laboratory, University of Cambridge
-http://www.cl.cam.ac.uk/~mgk25/ || CB3 0FD, Great Britain
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
