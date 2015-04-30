@@ -1,47 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40380 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753756AbbDHKQz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2015 06:16:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: whittenburg@gmail.com
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: OMAP3 ISP previewer Y10 to UYVY conversion
-Date: Wed, 08 Apr 2015 13:17:13 +0300
-Message-ID: <4266372.QbGlLsYjom@avalon>
-In-Reply-To: <CABcw_OkPa_xuN_R5B3PfVWcVKxVXFRCJS4xEvaGbCH=Vvdhbgg@mail.gmail.com>
-References: <CABcw_Okm1ZVob1s_JxZaRk_oFP2efh38qEyDeok4K2066dcMvQ@mail.gmail.com> <1885047.DP4uMGgtdr@avalon> <CABcw_OkPa_xuN_R5B3PfVWcVKxVXFRCJS4xEvaGbCH=Vvdhbgg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:60001 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbbD3OIw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2015 10:08:52 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 06/22] m2m-deinterlace: remove dead code
+Date: Thu, 30 Apr 2015 11:08:26 -0300
+Message-Id: <812cec75b047f06d96385c1192f53f9a20b2d6e6.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
+References: <cf299adba61007966689167eae0f09265aa9abbc.1430402823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+drivers/media/platform/m2m-deinterlace.c:1063 deinterlace_probe() info: ignoring unreachable code.
 
-On Tuesday 07 April 2015 11:45:10 Chris Whittenburg wrote:
-> On Tue, Apr 7, 2015 at 10:51 AM, Laurent Pinchart wrote:
-> > I suspect the RGB2RGB conversion matrix to be wrong. The default setting
-> > is supposed to handle fluorescent lighting. You could try setting the
-> > RGB2RGB matrix to the identity matrix and see if this helps. See
-> > http://git.ideasonboard.org/omap3-isp-live.git/blob/HEAD:/isp/controls.c#l
-> > 184 for sample code.
-> > 
-> > Another matrix that could be worth being reprogrammed is the RGB2YUV
-> > matrix, which also defaults to fluorescent lighting. Sample code to
-> > reprogram it is available in the same location.
-> 
-> Thanks Laurent...
-> 
-> Just to verify, the conversion matrix still plays a role even though
-> the input format is Y10?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Yes it does. The preview engine first converts Y10 to RGB by duplicating the Y 
-value for all three channels, then feeds it through the RGB2RGB matrix, the 
-gamma table, and the RGB2YUV matrix.
-
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 92d954973ccf..c07f367aa436 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -1060,7 +1060,6 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-	v4l2_m2m_release(pcdev->m2m_dev);
+ err_m2m:
+ 	video_unregister_device(&pcdev->vfd);
+ err_ctx:
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0
 
