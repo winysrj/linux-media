@@ -1,71 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:16019 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203AbbEHNv0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 09:51:26 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NO1001Y0AHNL910@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 May 2015 14:51:23 +0100 (BST)
-Message-id: <554CBF54.4050000@samsung.com>
-Date: Fri, 08 May 2015 15:51:16 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 13/18] s5k5baf: fix subdev type
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
- <d37f5695458429869abaae3f7974d296c3fa8349.1431046915.git.mchehab@osg.samsung.com>
-In-reply-to: <d37f5695458429869abaae3f7974d296c3fa8349.1431046915.git.mchehab@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42665 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751257AbbEALeP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2015 07:34:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [RFC PATCH 0/3] Add VIDIOC_SUBDEV_QUERYCAP
+Date: Fri,  1 May 2015 13:33:47 +0200
+Message-Id: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
-> This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
-> some subdevs with a non-existing type.
->
-> As this is a sensor driver, the proper type is likely
-> MEDIA_ENT_T_CAM_SENSOR.
+This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev devices
+as discussed during the ELC in San Jose and as discussed here:
 
-This driver exposes two media entities:
-- pure camera sensor, it has type
-MEDIA_ENT_T_V4L2_SUBDEV_SENSOR/MEDIA_ENT_T_CAM_SENSOR,
-- image processing entity, I have assigned to it MEDIA_ENT_T_V4L2_SUBDEV
-type,
-as there were no better option.
-Maybe it would be better to introduce another define for such entities,
-for example MEDIA_ENT_T_CAM_ISP?
-The same applies to s5c73m3 driver.
+http://www.spinics.net/lists/linux-media/msg88009.html
 
-Anyway this patch breaks current code as type field is used internally
-to distinguish both entities in subdev callbacks  -
-s5k5baf_is_cis_subdev function.
-Of course the function can be rewritten if necessary.
+It also adds the entity_id to v4l2_capability.
 
-Regards
-Andrzej
 
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-> index fadd48d35a55..8373552847ab 100644
-> --- a/drivers/media/i2c/s5k5baf.c
-> +++ b/drivers/media/i2c/s5k5baf.c
-> @@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
->  
->  	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
->  	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
->  	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads, 0);
->  
->  	if (!ret)
+Hans Verkuil (3):
+  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
+  DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+  videodev2.h: add entity_id to struct v4l2_capability
+
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-querycap.xml          |  18 ++-
+ .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   7 ++
+ drivers/media/v4l2-core/v4l2-subdev.c              |  19 +++
+ include/uapi/linux/v4l2-subdev.h                   |  12 ++
+ include/uapi/linux/videodev2.h                     |   5 +-
+ 7 files changed, 199 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+
+-- 
+2.1.4
 
