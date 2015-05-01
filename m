@@ -1,39 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34206 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbbEALpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 07:45:34 -0400
-Message-ID: <55436758.70208@xs4all.nl>
-Date: Fri, 01 May 2015 13:45:28 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] saa7164: fix compiler warning
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mx08lb.world4you.com ([81.19.149.118]:56750 "EHLO
+	mx08lb.world4you.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbbEBATF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2015 20:19:05 -0400
+From: Thomas Reitmayr <treitmayr@devbase.at>
+To: linux-media@vger.kernel.org
+Cc: Thomas Reitmayr <treitmayr@devbase.at>
+Subject: [PATCH] media: Fix regression in some more dib0700 based devices.
+Date: Sat,  2 May 2015 01:18:04 +0200
+Message-Id: <1430522284-9138-1-git-send-email-treitmayr@devbase.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/pci/saa7164/saa7164-dvb.c: In function ‘saa7164_dvb_register’:
-drivers/media/pci/saa7164/saa7164-dvb.c:701:7: warning: ‘client_tuner’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-    if (!client_tuner || !client_tuner->dev.driver)
-       ^
+Fix an oops during device initialization by correctly setting size_of_priv
+instead of leaving it 0.
+The regression was introduced by 8abe4a0a3f6d4217b16a ("[media] dib7000:
+export just one symbol") and only fixed for one type of dib0700 based
+devices in 9e334c75642b6e5bfb95 ("[media] Fix regression in some dib0700
+based devices").
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=92301
 
-diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c b/drivers/media/pci/saa7164/saa7164-dvb.c
-index c68ce26..9969800 100644
---- a/drivers/media/pci/saa7164/saa7164-dvb.c
-+++ b/drivers/media/pci/saa7164/saa7164-dvb.c
-@@ -698,7 +698,7 @@ int saa7164_dvb_register(struct saa7164_port *port)
- 			request_module(info.type);
- 			client_demod = i2c_new_device(&dev->i2c_bus[2].i2c_adap,
- 						      &info);
--			if (!client_tuner || !client_tuner->dev.driver)
-+			if (!client_demod || !client_demod->dev.driver)
- 				goto frontend_detach;
+Fixes: 8abe4a0a3f6d4217b16a ("[media] dib7000: export just one symbol")
+Signed-off-by: Thomas Reitmayr <treitmayr@devbase.at>
+---
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 90cee38..e87ce83 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -3944,6 +3944,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
  
- 			if (!try_module_get(client_demod->dev.driver->owner)) {
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+ 			}},
++				.size_of_priv = sizeof(struct
++						dib0700_adapter_state),
+ 			}, {
+ 			.num_frontends = 1,
+ 			.fe = {{
+@@ -3956,6 +3958,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
+ 			}},
++				.size_of_priv = sizeof(struct
++						dib0700_adapter_state),
+ 			}
+ 		},
+ 
+@@ -4009,6 +4013,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+ 			}},
++				.size_of_priv = sizeof(struct
++						dib0700_adapter_state),
+ 			},
+ 		},
+ 
+-- 
+2.1.4
+
