@@ -1,85 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49807 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753573AbbEFG5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 02:57:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 8/8] DocBook/media: document the new media_device_info fields.
-Date: Wed,  6 May 2015 08:57:23 +0200
-Message-Id: <1430895443-41839-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:33814 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754354AbbEAPv0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2015 11:51:26 -0400
+From: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+Subject: [PATCH 4/4] media: platform: sp5: Constify platform_device_id
+Date: Sat,  2 May 2015 00:51:03 +0900
+Message-Id: <1430495463-31633-4-git-send-email-k.kozlowski.k@gmail.com>
+In-Reply-To: <1430495463-31633-1-git-send-email-k.kozlowski.k@gmail.com>
+References: <1430495463-31633-1-git-send-email-k.kozlowski.k@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The platform_device_id is not modified by the driver and core uses it as
+const.
 
-Document major, minor and entity_id, and that MEDIA_IOC_DEVICE_INFO
-can be called for other media devices as well, besides just the
-media controller.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
 ---
- .../DocBook/media/v4l/media-ioc-device-info.xml    | 35 ++++++++++++++++++----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ drivers/media/platform/s5p-g2d/g2d.c     | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 2 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-device-info.xml b/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
-index 2ce5214..9506cf6 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
-@@ -49,11 +49,20 @@
-   <refsect1>
-     <title>Description</title>
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index ec3e1248923d..421a7c3b595b 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -787,7 +787,7 @@ static const struct of_device_id exynos_g2d_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, exynos_g2d_match);
  
--    <para>All media devices must support the <constant>MEDIA_IOC_DEVICE_INFO</constant>
--    ioctl. To query device information, applications call the ioctl with a
--    pointer to a &media-device-info;. The driver fills the structure and returns
--    the information to the application.
--    The ioctl never fails.</para>
-+    <para>All media devices, both the media controller device itself and any
-+    device node used to access a media entity, must support the
-+    <constant>MEDIA_IOC_DEVICE_INFO</constant> ioctl. To query device information,
-+    applications call the ioctl with a pointer to a &media-device-info;. The driver
-+    fills the structure and returns the information to the application.
-+    The ioctl never fails, unless it is not a media device, in which case an error
-+    is returned, most likely the &ENOTTY;.</para>
-+
-+    <para>Besides getting the device information from the media controller device
-+    itself, applications can use this ioctl as well to check if a device node is part
-+    of a media controller. If the ioctl succeeds, then the <structfield>major</structfield>
-+    and <structfield>minor</structfield> fields will give you the major and minor
-+    numbers of the media controller device and the <structfield>entity_id</structfield>
-+    field gives you the entity ID of the media device.</para>
+-static struct platform_device_id g2d_driver_ids[] = {
++static const struct platform_device_id g2d_driver_ids[] = {
+ 	{
+ 		.name = "s5p-g2d",
+ 		.driver_data = (unsigned long)&g2d_drvdata_v3x,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8333fbc2fe96..fa878cb04004 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1463,7 +1463,7 @@ static struct s5p_mfc_variant mfc_drvdata_v8 = {
+ 	.fw_name[0]     = "s5p-mfc-v8.fw",
+ };
  
-     <table pgwide="1" frame="none" id="media-device-info">
-       <title>struct <structname>media_device_info</structname></title>
-@@ -110,6 +119,22 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry><structfield>major</structfield></entry>
-+	    <entry>The major number of the media device node.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>minor</structfield></entry>
-+	    <entry>The minor number of the media device node.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>entity_id</structfield></entry>
-+	    <entry>The entity ID if this ioctl was called for a device that is
-+	    an entity. The media controller will set this to 0.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
- 	    <entry><structfield>reserved</structfield>[31]</entry>
- 	    <entry>Reserved for future extensions. Drivers and applications must
- 	    set this array to zero.</entry>
+-static struct platform_device_id mfc_driver_ids[] = {
++static const struct platform_device_id mfc_driver_ids[] = {
+ 	{
+ 		.name = "s5p-mfc",
+ 		.driver_data = (unsigned long)&mfc_drvdata_v5,
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 0e74aabf5f9a..e8c069de6238 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -96,7 +96,7 @@ struct hdmi_device {
+ 	struct hdmi_resources res;
+ };
+ 
+-static struct platform_device_id hdmi_driver_types[] = {
++static const struct platform_device_id hdmi_driver_types[] = {
+ 	{
+ 		.name		= "s5pv210-hdmi",
+ 	}, {
 -- 
 2.1.4
 
