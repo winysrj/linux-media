@@ -1,162 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:35272 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992576AbbEOVcl (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45819 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753350AbbEALeV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2015 17:32:41 -0400
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pavel Machek <pavel@ucw.cz>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	maxx <maxx@spaceboyz.net>,
-	=?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH] radio-bcm2048: Enable access to automute and ctrl registers
-Date: Fri, 15 May 2015 23:31:51 +0200
-Message-Id: <1431725511-7379-1-git-send-email-pali.rohar@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 1 May 2015 07:34:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/3] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+Date: Fri,  1 May 2015 13:33:49 +0200
+Message-Id: <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: maxx <maxx@spaceboyz.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This enables access to automute function of the chip via sysfs and
-gives direct access to FM_AUDIO_CTRL0/1 registers, also via sysfs. I
-don't think this is so important but helps in developing radio scanner
-apps.
+Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
 
-Patch writen by maxx@spaceboyz.net
-
-Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-Cc: maxx@spaceboyz.net
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c |   96 +++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   2 +-
+ .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 +++++++++++++++++++++
+ 3 files changed, 142 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 1482d4b..8f9ba7b 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -826,6 +826,93 @@ static int bcm2048_get_mute(struct bcm2048_device *bdev)
- 	return err;
- }
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1..23607bc 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-subdev-g-fmt;
+     &sub-subdev-g-frame-interval;
+     &sub-subdev-g-selection;
++    &sub-subdev-querycap;
+     &sub-subscribe-event;
+     <!-- End of ioctls. -->
+     &sub-mmap;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index 20fda75..c1ed844 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -54,7 +54,7 @@ kernel devices compatible with this specification and to obtain
+ information about driver and hardware capabilities. The ioctl takes a
+ pointer to a &v4l2-capability; which is filled by the driver. When the
+ driver is not compatible with this specification the ioctl returns an
+-&EINVAL;.</para>
++&ENOTTY;.</para>
  
-+static int bcm2048_set_automute(struct bcm2048_device *bdev, u8 automute)
-+{
-+	int err;
+     <table pgwide="1" frame="none" id="v4l2-capability">
+       <title>struct <structname>v4l2_capability</structname></title>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+new file mode 100644
+index 0000000..a1cbb36
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+@@ -0,0 +1,140 @@
++<refentry id="vidioc-subdev-querycap">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+	mutex_lock(&bdev->mutex);
++  <refnamediv>
++    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
++    <refpurpose>Query sub-device capabilities</refpurpose>
++  </refnamediv>
 +
-+	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_PAUSE, automute);
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_subdev_capability *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
-+	mutex_unlock(&bdev->mutex);
-+	return err;
-+}
++  <refsect1>
++    <title>Arguments</title>
 +
-+static int bcm2048_get_automute(struct bcm2048_device *bdev)
-+{
-+	int err;
-+	u8 value;
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
 +
-+	mutex_lock(&bdev->mutex);
++  <refsect1>
++    <title>Description</title>
 +
-+	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_PAUSE, &value);
++    <para>All V4L2 sub-devices support the
++<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
++kernel devices compatible with this specification and to obtain
++information about driver and hardware capabilities. The ioctl takes a
++pointer to a &v4l2-subdev-capability; which is filled by the driver. When the
++driver is not compatible with this specification the ioctl returns an
++&ENOTTY;.</para>
 +
-+	mutex_unlock(&bdev->mutex);
++    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
++      <title>struct <structname>v4l2_subdev_capability</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>version</structfield></entry>
++	    <entry><para>Version number of the driver.</para>
++<para>The version reported is provided by the
++V4L2 subsystem following the kernel numbering scheme. However, it
++may not always return the same version as the kernel if, for example,
++a stable or distribution-modified kernel uses the V4L2 stack from a
++newer kernel.</para>
++<para>The version number is formatted using the
++<constant>KERNEL_VERSION()</constant> macro:</para></entry>
++	  </row>
++	  <row>
++	    <entry spanname="hspan"><para>
++<programlisting>
++#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
 +
-+	if (!err)
-+		err = value;
++__u32 version = KERNEL_VERSION(0, 8, 1);
 +
-+	return err;
-+}
++printf ("Version: %u.%u.%u\n",
++	(version &gt;&gt; 16) &amp; 0xFF,
++	(version &gt;&gt; 8) &amp; 0xFF,
++	 version &amp; 0xFF);
++</programlisting></para></entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>device_caps</structfield></entry>
++	    <entry>Sub-device capabilities of the opened device, see <xref
++		linkend="subdevice-capabilities" />.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>pads</structfield></entry>
++	    <entry>The number of pads of this sub-device. May be 0 if there are no
++	    pads.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>entity_id</structfield></entry>
++	    <entry>The media controller entity ID of the sub-device. This is only valid if
++	    the <constant>V4L2_SUBDEV_CAP_ENTITY</constant> capability is set.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[48]</entry>
++	    <entry>Reserved for future extensions. Drivers must set
++this array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
 +
-+static int bcm2048_set_ctrl0(struct bcm2048_device *bdev, u8 value)
-+{
-+	int err;
++    <table pgwide="1" frame="none" id="subdevice-capabilities">
++      <title>Sub-Device Capabilities Flags</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
++	    <entry>0x00000001</entry>
++	    <entry>The sub-device is a media controller entity and
++	    the <structfield>entity_id</structfield> field of &v4l2-subdev-capability;
++	    is valid.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
 +
-+	mutex_lock(&bdev->mutex);
-+
-+	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL0, value);
-+
-+	mutex_unlock(&bdev->mutex);
-+	return err;
-+}
-+
-+static int bcm2048_set_ctrl1(struct bcm2048_device *bdev, u8 value)
-+{
-+	int err;
-+
-+	mutex_lock(&bdev->mutex);
-+
-+	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL1, value);
-+
-+	mutex_unlock(&bdev->mutex);
-+	return err;
-+}
-+
-+static int bcm2048_get_ctrl0(struct bcm2048_device *bdev)
-+{
-+	int err;
-+	u8 value;
-+
-+	mutex_lock(&bdev->mutex);
-+
-+	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL0, &value);
-+
-+	mutex_unlock(&bdev->mutex);
-+
-+	if (!err)
-+		err = value;
-+
-+	return err;
-+}
-+
-+static int bcm2048_get_ctrl1(struct bcm2048_device *bdev)
-+{
-+	int err;
-+	u8 value;
-+
-+	mutex_lock(&bdev->mutex);
-+
-+	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL1, &value);
-+
-+	mutex_unlock(&bdev->mutex);
-+
-+	if (!err)
-+		err = value;
-+
-+	return err;
-+}
-+
- static int bcm2048_set_audio_route(struct bcm2048_device *bdev, u8 route)
- {
- 	int err;
-@@ -2058,6 +2145,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 
- DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
- DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(automute, unsigned, int, "%x", 0)
-+DEFINE_SYSFS_PROPERTY(ctrl0, unsigned, int, "%x", 0)
-+DEFINE_SYSFS_PROPERTY(ctrl1, unsigned, int, "%x", 0)
- DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
- DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
- 
-@@ -2095,6 +2185,12 @@ static struct device_attribute attrs[] = {
- 		bcm2048_power_state_write),
- 	__ATTR(mute, S_IRUGO | S_IWUSR, bcm2048_mute_read,
- 		bcm2048_mute_write),
-+	__ATTR(automute, S_IRUGO | S_IWUSR, bcm2048_automute_read,
-+		bcm2048_automute_write),
-+	__ATTR(ctrl0, S_IRUGO | S_IWUSR, bcm2048_ctrl0_read,
-+		bcm2048_ctrl0_write),
-+	__ATTR(ctrl1, S_IRUGO | S_IWUSR, bcm2048_ctrl1_read,
-+		bcm2048_ctrl1_write),
- 	__ATTR(audio_route, S_IRUGO | S_IWUSR, bcm2048_audio_route_read,
- 		bcm2048_audio_route_write),
- 	__ATTR(dac_output, S_IRUGO | S_IWUSR, bcm2048_dac_output_read,
++  <refsect1>
++    &return-value;
++  </refsect1>
++</refentry>
 -- 
-1.7.9.5
+2.1.4
 
