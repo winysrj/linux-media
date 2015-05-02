@@ -1,121 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53716 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219AbbEAC0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2015 22:26:54 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 099A32A160C
-	for <linux-media@vger.kernel.org>; Fri,  1 May 2015 04:26:48 +0200 (CEST)
-Date: Fri, 01 May 2015 04:26:47 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from rcdn-iport-3.cisco.com ([173.37.86.74]:54105 "EHLO
+	rcdn-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750715AbbEDKBX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:01:23 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150501022648.099A32A160C@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH] v4l2-dv-timings: fix overflow in gtf timings calculation
+Date: Sat,  2 May 2015 22:53:06 +0530
+Message-Id: <1430587386-28409-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The intermediate calculation in the expression for hblank can exceed
+32 bit signed range. This overflow can lead to negative values for
+hblank. Typecasting intermediate variable to higher precision.
 
-Results of the daily build of media_tree:
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-date:		Fri May  1 04:00:18 CEST 2015
-git branch:	test
-git hash:	bb17141cc57c40065462c64d61c0ae362466c0c0
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-0.slh.3-amd64
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 86e11d1..9d27f05 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -573,15 +573,15 @@ bool v4l2_detect_gtf(unsigned frame_height,
+ 
+ 	/* Horizontal */
+ 	if (default_gtf)
+-		h_blank = ((image_width * GTF_D_C_PRIME * hfreq) -
+-					(image_width * GTF_D_M_PRIME * 1000) +
+-			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
+-			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
++		h_blank = ((image_width * GTF_D_C_PRIME * (long long)hfreq) -
++			  ((long long)image_width * GTF_D_M_PRIME * 1000) +
++			  ((long long)hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
++			  ((long long)hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
+ 	else
+-		h_blank = ((image_width * GTF_S_C_PRIME * hfreq) -
+-					(image_width * GTF_S_M_PRIME * 1000) +
+-			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
+-			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
++		h_blank = ((image_width * GTF_S_C_PRIME * (long long)hfreq) -
++			  ((long long)image_width * GTF_S_M_PRIME * 1000) +
++			  ((long long)hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
++			  ((long long)hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
+ 
+ 	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
+ 		  (2 * GTF_CELL_GRAN);
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
