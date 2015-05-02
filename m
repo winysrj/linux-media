@@ -1,146 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45945 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332AbbEHMFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 08:05:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Cheolhyun Park <pch851130@gmail.com>,
-	Benoit Taine <benoit.taine@lip6.fr>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH] media: replace bellow -> below
-Date: Fri, 08 May 2015 15:05:21 +0300
-Message-ID: <3571020.QtjJPoh1sD@avalon>
-In-Reply-To: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
-References: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx17lb.world4you.com ([81.19.149.127]:40213 "EHLO
+	mx17lb.world4you.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894AbbEBHTN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2015 03:19:13 -0400
+Received: from [91.119.82.180] (helo=tomcom)
+	by mx17lb.world4you.com with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.77)
+	(envelope-from <treitmayr@devbase.at>)
+	id 1YoRhf-0001po-IA
+	for linux-media@vger.kernel.org; Sat, 02 May 2015 09:19:11 +0200
+Message-ID: <1430551151.29019.6.camel@devbase.at>
+Subject: Re: [PATCH] media: Fix regression in some more dib0700 based
+ devices.
+From: Thomas Reitmayr <treitmayr@devbase.at>
+To: linux-media@vger.kernel.org
+Date: Sat, 02 May 2015 09:19:11 +0200
+In-Reply-To: <1430522284-9138-1-git-send-email-treitmayr@devbase.at>
+References: <1430522284-9138-1-git-send-email-treitmayr@devbase.at>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
+as indicated by the "Fixes:" commit, this problem exists from kernel
+version 3.17 up until now. Please consider forwarding the fix to
+linux-stable if it looks ok to you.
+Best regards,
+-Thomas
 
-On Friday 08 May 2015 09:01:28 Mauro Carvalho Chehab wrote:
-> Bellow is yelling. Ok, sometimes the code is yells a lot, but
-> but this is not the case there ;)
 
-:-)
-
-checkpatch.pl has support for finding common spelling mistakes nowadays. 
-Instead of fixing them one by one, should we run it on the whole media 
-subsystem and fix all detected errors in one go ?
-
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Am Samstag, den 02.05.2015, 01:18 +0200 schrieb Thomas Reitmayr:
+> Fix an oops during device initialization by correctly setting size_of_priv
+> instead of leaving it 0.
+> The regression was introduced by 8abe4a0a3f6d4217b16a ("[media] dib7000:
+> export just one symbol") and only fixed for one type of dib0700 based
+> devices in 9e334c75642b6e5bfb95 ("[media] Fix regression in some dib0700
+> based devices").
 > 
-> diff --git a/drivers/media/common/siano/smsir.c
-> b/drivers/media/common/siano/smsir.c index 1d60d200d9ab..41f2a3939979
-> 100644
-> --- a/drivers/media/common/siano/smsir.c
-> +++ b/drivers/media/common/siano/smsir.c
-> @@ -78,7 +78,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
->  	dev->dev.parent = coredev->device;
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=92301
 > 
->  #if 0
-> -	/* TODO: properly initialize the parameters bellow */
-> +	/* TODO: properly initialize the parameters below */
->  	dev->input_id.bustype = BUS_USB;
->  	dev->input_id.version = 1;
->  	dev->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
-> diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-> b/drivers/media/dvb-frontends/drx39xyj/drxj.c index
-> 61f76038442a..52245354bf04 100644
-> --- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-> +++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-> @@ -9541,7 +9541,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance
-> *demod) /* ----------------------------------------- */
->  	/* Pre Viterbi Symbol Error Rate Calculation */
->  	/* ----------------------------------------- */
-> -	/* pre viterbi SER is good if it is bellow 0.025 */
-> +	/* pre viterbi SER is good if it is below 0.025 */
+> Fixes: 8abe4a0a3f6d4217b16a ("[media] dib7000: export just one symbol")
+> Signed-off-by: Thomas Reitmayr <treitmayr@devbase.at>
+> ---
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
->  	/* get the register value */
->  	/*   no of quadrature symbol errors */
-> diff --git a/drivers/media/dvb-frontends/drxk_hard.c
-> b/drivers/media/dvb-frontends/drxk_hard.c index d46cf5f7cd2e..ad35264a3819
-> 100644
-> --- a/drivers/media/dvb-frontends/drxk_hard.c
-> +++ b/drivers/media/dvb-frontends/drxk_hard.c
-> @@ -544,7 +544,7 @@ error:
->  static int init_state(struct drxk_state *state)
->  {
->  	/*
-> -	 * FIXME: most (all?) of the values bellow should be moved into
-> +	 * FIXME: most (all?) of the values below should be moved into
->  	 * struct drxk_config, as they are probably board-specific
->  	 */
->  	u32 ul_vsb_if_agc_mode = DRXK_AGC_CTRL_AUTO;
-> diff --git a/drivers/media/dvb-frontends/tda10021.c
-> b/drivers/media/dvb-frontends/tda10021.c index 1bff7f457e19..28d987068048
-> 100644
-> --- a/drivers/media/dvb-frontends/tda10021.c
-> +++ b/drivers/media/dvb-frontends/tda10021.c
-> @@ -258,7 +258,7 @@ static int tda10021_set_parameters(struct dvb_frontend
-> *fe) }
-> 
->  	/*
-> -	 * gcc optimizes the code bellow the same way as it would code:
-> +	 * gcc optimizes the code below the same way as it would code:
->  	 *           "if (qam > 5) return -EINVAL;"
->  	 * Yet, the code is clearer, as it shows what QAM standards are
->  	 * supported by the driver, and avoids the usage of magic numbers on
-> diff --git a/drivers/media/dvb-frontends/tda10023.c
-> b/drivers/media/dvb-frontends/tda10023.c index ca1e0d54b69a..f92fbbbb4a71
-> 100644
-> --- a/drivers/media/dvb-frontends/tda10023.c
-> +++ b/drivers/media/dvb-frontends/tda10023.c
-> @@ -331,7 +331,7 @@ static int tda10023_set_parameters(struct dvb_frontend
-> *fe) }
-> 
->  	/*
-> -	 * gcc optimizes the code bellow the same way as it would code:
-> +	 * gcc optimizes the code below the same way as it would code:
->  	 *		 "if (qam > 5) return -EINVAL;"
->  	 * Yet, the code is clearer, as it shows what QAM standards are
->  	 * supported by the driver, and avoids the usage of magic numbers on
-> diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
-> index 070c152da95a..0c50e5285cf6 100644
-> --- a/drivers/media/i2c/tvaudio.c
-> +++ b/drivers/media/i2c/tvaudio.c
-> @@ -272,7 +272,7 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name,
-> audiocmd *cmd) return -EINVAL;
->  	}
-> 
-> -	/* FIXME: it seems that the shadow bytes are wrong bellow !*/
-> +	/* FIXME: it seems that the shadow bytes are wrong below !*/
-> 
->  	/* update our shadow register set; print bytes if (debug > 0) */
->  	v4l2_dbg(1, debug, sd, "chip_cmd(%s): reg=%d, data:",
-> diff --git a/drivers/media/tuners/tuner-xc2028.c
-> b/drivers/media/tuners/tuner-xc2028.c index d12f5e4ad8bf..4e941f00b600
-> 100644
-> --- a/drivers/media/tuners/tuner-xc2028.c
-> +++ b/drivers/media/tuners/tuner-xc2028.c
-> @@ -1094,7 +1094,7 @@ static int generic_set_freq(struct dvb_frontend *fe,
-> u32 freq /* in HZ */, * Still need tests for XC3028L (firmware 3.2 or
-> upper)
->  		 * So, for now, let's just comment the per-firmware
->  		 * version of this change. Reports with xc3028l working
-> -		 * with and without the lines bellow are welcome
-> +		 * with and without the lines below are welcome
->  		 */
-> 
->  		if (priv->firm_version < 0x0302) {
-
--- 
-Regards,
-
-Laurent Pinchart
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index 90cee38..e87ce83 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -3944,6 +3944,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>  
+>  				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+>  			}},
+> +				.size_of_priv = sizeof(struct
+> +						dib0700_adapter_state),
+>  			}, {
+>  			.num_frontends = 1,
+>  			.fe = {{
+> @@ -3956,6 +3958,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>  
+>  				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
+>  			}},
+> +				.size_of_priv = sizeof(struct
+> +						dib0700_adapter_state),
+>  			}
+>  		},
+>  
+> @@ -4009,6 +4013,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>  
+>  				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+>  			}},
+> +				.size_of_priv = sizeof(struct
+> +						dib0700_adapter_state),
+>  			},
+>  		},
+>  
 
