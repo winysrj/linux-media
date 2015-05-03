@@ -1,423 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:35103 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbbESCRC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2015 22:17:02 -0400
-Received: by qcbgu10 with SMTP id gu10so658870qcb.2
-        for <linux-media@vger.kernel.org>; Mon, 18 May 2015 19:17:01 -0700 (PDT)
-From: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-Subject: [PATCH v2] au0828: Add support for media controller
-Date: Mon, 18 May 2015 23:16:44 -0300
-Message-Id: <1432001804-4903-1-git-send-email-chehabrafael@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40878 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752258AbbEDHob (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:44:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/3] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+Date: Mon, 04 May 2015 01:29:20 +0300
+Message-ID: <2025720.hkQNlttbI3@avalon>
+In-Reply-To: <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl>
+References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for analog and dvb tv using media controller
+Hi Hans,
 
-Signed-off-by: Rafael Lourenço de Lima Chehab <chehabrafael@gmail.com>
----
-v2:cleanups
- drivers/media/dvb-frontends/au8522_decoder.c |  17 +++++
- drivers/media/dvb-frontends/au8522_priv.h    |  12 ++++
- drivers/media/usb/au0828/au0828-cards.c      |   2 -
- drivers/media/usb/au0828/au0828-core.c       | 100 +++++++++++++++++++++++++++
- drivers/media/usb/au0828/au0828-dvb.c        |  10 +++
- drivers/media/usb/au0828/au0828-video.c      |  83 ++++++++++++++++++++++
- drivers/media/usb/au0828/au0828.h            |   6 ++
- 7 files changed, 228 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 33aa9410b624..24990db7ba38 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -731,6 +731,9 @@ static int au8522_probe(struct i2c_client *client,
- 	struct v4l2_subdev *sd;
- 	int instance;
- 	struct au8522_config *demod_config;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int ret;
-+#endif
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter,
-@@ -767,6 +770,20 @@ static int au8522_probe(struct i2c_client *client,
- 
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &au8522_ops);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+
-+	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+
-+	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
-+				state->pads, 0);
-+	if (ret < 0) {
-+		v4l_info(client, "failed to initialize media entity!\n");
-+		return ret;
-+	}
-+#endif
- 
- 	hdl = &state->hdl;
- 	v4l2_ctrl_handler_init(hdl, 4);
-diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
-index b8aca1c84786..ed6eb2675508 100644
---- a/drivers/media/dvb-frontends/au8522_priv.h
-+++ b/drivers/media/dvb-frontends/au8522_priv.h
-@@ -39,6 +39,14 @@
- #define AU8522_DIGITAL_MODE 1
- #define AU8522_SUSPEND_MODE 2
- 
-+enum au8522_media_pads {
-+	AU8522_PAD_INPUT,
-+	AU8522_PAD_VID_OUT,
-+	AU8522_PAD_VBI_OUT,
-+
-+	AU8522_NUM_PADS
-+};
-+
- struct au8522_state {
- 	struct i2c_client *c;
- 	struct i2c_adapter *i2c;
-@@ -68,6 +76,10 @@ struct au8522_state {
- 	u32 id;
- 	u32 rev;
- 	struct v4l2_ctrl_handler hdl;
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_pad pads[AU8522_NUM_PADS];
-+#endif
- };
- 
- /* These are routines shared by both the VSB/QAM demodulator and the analog
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index edc27355f271..6b469e8c4c6e 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -195,8 +195,6 @@ void au0828_card_setup(struct au0828_dev *dev)
- 
- 	dprintk(1, "%s()\n", __func__);
- 
--	dev->board = au0828_boards[dev->boardnr];
--
- 	if (dev->i2c_rc == 0) {
- 		dev->i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_client, eeprom, sizeof(eeprom));
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 082ae6ba492f..0378a2c99ebb 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -127,8 +127,22 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	return status;
- }
- 
-+static void au0828_unregister_media_device(struct au0828_dev *dev)
-+{
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (dev->media_dev) {
-+		media_device_unregister(dev->media_dev);
-+		kfree(dev->media_dev);
-+		dev->media_dev = NULL;
-+	}
-+#endif
-+}
-+
- static void au0828_usb_release(struct au0828_dev *dev)
- {
-+	au0828_unregister_media_device(dev);
-+
- 	/* I2C */
- 	au0828_i2c_unregister(dev);
- 
-@@ -161,6 +175,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	*/
- 	dev->dev_state = DEV_DISCONNECTED;
- 
-+	au0828_unregister_media_device(dev);
-+
- 	au0828_rc_unregister(dev);
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
-@@ -180,6 +196,81 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	au0828_usb_release(dev);
- }
- 
-+static void au0828_media_device_register(struct au0828_dev *dev,
-+					  struct usb_device *udev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev;
-+	int ret;
-+
-+	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	if (!mdev)
-+		return;
-+
-+	mdev->dev = &udev->dev;
-+
-+	if (!dev->board.name)
-+		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
-+	else
-+		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
-+	if (udev->serial)
-+		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
-+	strcpy(mdev->bus_info, udev->devpath);
-+	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
-+	mdev->driver_version = LINUX_VERSION_CODE;
-+
-+	ret = media_device_register(mdev);
-+	if (ret) {
-+		pr_err(
-+			"Couldn't create a media device. Error: %d\n",
-+			ret);
-+		kfree(mdev);
-+		return;
-+	}
-+
-+	dev->media_dev = mdev;
-+#endif
-+}
-+
-+
-+static void au0828_create_media_graph(struct au0828_dev *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = dev->media_dev;
-+	struct media_entity *entity;
-+	struct media_entity *tuner = NULL, *decoder = NULL;
-+
-+	if (!mdev)
-+		return;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		switch (entity->type) {
-+		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+			tuner = entity;
-+			break;
-+		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
-+			decoder = entity;
-+			break;
-+		}
-+	}
-+
-+	/* Analog setup, using tuner as a link */
-+
-+	if (!decoder)
-+		return;
-+
-+	if (tuner)
-+		media_entity_create_link(tuner, 0, decoder, 0,
-+					 MEDIA_LNK_FL_ENABLED);
-+	if (dev->vdev.entity.links)
-+		media_entity_create_link(decoder, 1, &dev->vdev.entity, 0,
-+				 MEDIA_LNK_FL_ENABLED);
-+	if (dev->vbi_dev.entity.links)
-+		media_entity_create_link(decoder, 2, &dev->vbi_dev.entity, 0,
-+				 MEDIA_LNK_FL_ENABLED);
-+#endif
-+}
-+
- static int au0828_usb_probe(struct usb_interface *interface,
- 	const struct usb_device_id *id)
- {
-@@ -222,11 +313,18 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	mutex_init(&dev->dvb.lock);
- 	dev->usbdev = usbdev;
- 	dev->boardnr = id->driver_info;
-+	dev->board = au0828_boards[dev->boardnr];
-+
-+	/* Register the media controller */
-+	au0828_media_device_register(dev, usbdev);
- 
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
- 
- 	/* Create the v4l2_device */
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->v4l2_dev.mdev = dev->media_dev;
-+#endif
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
- 		pr_err("%s() v4l2_device_register failed\n",
-@@ -285,6 +383,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 
- 	mutex_unlock(&dev->lock);
- 
-+	au0828_create_media_graph(dev);
-+
- 	return retval;
- }
- 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index c267d76f5b3c..c01772c4f9f0 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -415,6 +415,11 @@ static int dvb_register(struct au0828_dev *dev)
- 		       result);
- 		goto fail_adapter;
- 	}
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	dvb->adapter.mdev = dev->media_dev;
-+#endif
-+
- 	dvb->adapter.priv = dev;
- 
- 	/* register frontend */
-@@ -480,6 +485,11 @@ static int dvb_register(struct au0828_dev *dev)
- 
- 	dvb->start_count = 0;
- 	dvb->stop_count = 0;
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	dvb_create_media_graph(&dvb->adapter);
-+#endif
-+
- 	return 0;
- 
- fail_fe_conn:
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 1a362a041ab3..4ebe13673adf 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -637,6 +637,75 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
- 	return rc;
- }
- 
-+static int au0828_enable_analog_tuner(struct au0828_dev *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = dev->media_dev;
-+	struct media_entity  *entity, *decoder = NULL, *source;
-+	struct media_link *link, *found_link = NULL;
-+	int i, ret, active_links = 0;
-+
-+	if (!mdev)
-+		return 0;
-+
-+	/*
-+	 * This will find the tuner that is connected into the decoder.
-+	 * Technically, this is not 100% correct, as the device may be
-+	 * using an analog input instead of the tuner. However, as we can't
-+	 * do DVB streaming while the DMA engine is being used for V4L2,
-+	 * this should be enough for the actual needs.
-+	 */
-+	media_device_for_each_entity(entity, mdev) {
-+		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-+			decoder = entity;
-+			break;
-+		}
-+	}
-+	if (!decoder)
-+		return 0;
-+
-+	for (i = 0; i < decoder->num_links; i++) {
-+		link = &decoder->links[i];
-+		if (link->sink->entity == decoder) {
-+			found_link = link;
-+			if (link->flags & MEDIA_LNK_FL_ENABLED)
-+				active_links++;
-+			break;
-+		}
-+	}
-+
-+	if (active_links == 1 || !found_link)
-+		return 0;
-+
-+	source = found_link->source->entity;
-+	for (i = 0; i < source->num_links; i++) {
-+		struct media_entity *sink;
-+		int flags = 0;
-+
-+		link = &source->links[i];
-+		sink = link->sink->entity;
-+
-+		if (sink == entity)
-+			flags = MEDIA_LNK_FL_ENABLED;
-+
-+		ret = media_entity_setup_link(link, flags);
-+		if (ret) {
-+			pr_err(
-+				"Couldn't change link %s->%s to %s. Error %d\n",
-+				source->name, sink->name,
-+				flags ? "enabled" : "disabled",
-+				ret);
-+			return ret;
-+		} else
-+			au0828_isocdbg(
-+				"link %s->%s was %s\n",
-+				source->name, sink->name,
-+				flags ? "ENABLED" : "disabled");
-+	}
-+#endif
-+	return 0;
-+}
-+
- static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
-@@ -652,6 +721,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	*nplanes = 1;
- 	sizes[0] = size;
- 
-+	au0828_enable_analog_tuner(dev);
-+
- 	return 0;
- }
- 
-@@ -1821,6 +1892,18 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
- 	strcpy(dev->vbi_dev.name, "au0828a vbi");
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad, 0);
-+	if (ret < 0)
-+		pr_err("failed to initialize video media entity!\n");
-+
-+	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad, 0);
-+	if (ret < 0)
-+		pr_err("failed to initialize vbi media entity!\n");
-+#endif
-+
- 	/* initialize videobuf2 stuff */
- 	retval = au0828_vb2_setup(dev);
- 	if (retval != 0) {
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 3b480005ce3b..7e6a3bbc68ab 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -32,6 +32,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
-+#include <media/media-device.h>
- 
- /* DVB */
- #include "demux.h"
-@@ -275,6 +276,11 @@ struct au0828_dev {
- 	/* Preallocated transfer digital transfer buffers */
- 
- 	char *dig_transfer_buffer[URB_COUNT];
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *media_dev;
-+	struct media_pad video_pad, vbi_pad;
-+#endif
- };
- 
- 
+On Friday 01 May 2015 13:33:49 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+>  .../DocBook/media/v4l/vidioc-querycap.xml          |   2 +-
+>  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 ++++++++++++++++++
+>  3 files changed, 142 insertions(+), 1 deletion(-)
+>  create mode 100644
+> Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml
+> b/Documentation/DocBook/media/v4l/v4l2.xml index e98caa1..23607bc 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-subdev-g-fmt;
+>      &sub-subdev-g-frame-interval;
+>      &sub-subdev-g-selection;
+> +    &sub-subdev-querycap;
+>      &sub-subscribe-event;
+>      <!-- End of ioctls. -->
+>      &sub-mmap;
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
+> 20fda75..c1ed844 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> @@ -54,7 +54,7 @@ kernel devices compatible with this specification and to
+> obtain information about driver and hardware capabilities. The ioctl takes
+> a pointer to a &v4l2-capability; which is filled by the driver. When the
+> driver is not compatible with this specification the ioctl returns an
+> -&EINVAL;.</para>
+> +&ENOTTY;.</para>
+
+I'd split this change to a separate patch as it's unrelated to 
+VIDIOC_SUBDEV_QUERYCAP.
+
+We can't really guarantee that non-V4L2 drivers will return -ENOTTY, they 
+might be buggy and return a different error code. That's slightly nitpicking 
+though.
+
+>      <table pgwide="1" frame="none" id="v4l2-capability">
+>        <title>struct <structname>v4l2_capability</structname></title>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+> b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml new file mode
+> 100644
+> index 0000000..a1cbb36
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+> @@ -0,0 +1,140 @@
+> +<refentry id="vidioc-subdev-querycap">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
+> +    <refpurpose>Query sub-device capabilities</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_subdev_capability
+> *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>All V4L2 sub-devices support the
+> +<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
+> +kernel devices compatible with this specification and to obtain
+> +information about driver and hardware capabilities. The ioctl takes a
+> +pointer to a &v4l2-subdev-capability; which is filled by the driver. When
+> the
+> +driver is not compatible with this specification the ioctl returns an
+> +&ENOTTY;.</para>
+> +
+> +    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
+> +      <title>struct <structname>v4l2_subdev_capability</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>version</structfield></entry>
+> +	    <entry><para>Version number of the driver.</para>
+> +<para>The version reported is provided by the
+> +V4L2 subsystem following the kernel numbering scheme. However, it
+> +may not always return the same version as the kernel if, for example,
+> +a stable or distribution-modified kernel uses the V4L2 stack from a
+> +newer kernel.</para>
+> +<para>The version number is formatted using the
+> +<constant>KERNEL_VERSION()</constant> macro:</para></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="hspan"><para>
+> +<programlisting>
+> +#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
+> +
+> +__u32 version = KERNEL_VERSION(0, 8, 1);
+> +
+> +printf ("Version: %u.%u.%u\n",
+> +	(version &gt;&gt; 16) &amp; 0xFF,
+> +	(version &gt;&gt; 8) &amp; 0xFF,
+> +	 version &amp; 0xFF);
+> +</programlisting></para></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>device_caps</structfield></entry>
+> +	    <entry>Sub-device capabilities of the opened device, see <xref
+> +		linkend="subdevice-capabilities" />.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>pads</structfield></entry>
+> +	    <entry>The number of pads of this sub-device. May be 0 if there are 
+no
+> +	    pads.
+
+Should we mention explicitly that the pads field is only valid if 
+V4L2_SUBDEV_CAP_ENTITY is set ?
+
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>entity_id</structfield></entry>
+> +	    <entry>The media controller entity ID of the sub-device. This is only
+> valid if
+> +	    the <constant>V4L2_SUBDEV_CAP_ENTITY</constant> capability is set.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[48]</entry>
+> +	    <entry>Reserved for future extensions. Drivers must set
+> +this array to zero.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +    <table pgwide="1" frame="none" id="subdevice-capabilities">
+> +      <title>Sub-Device Capabilities Flags</title>
+> +      <tgroup cols="3">
+> +	&cs-def;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
+> +	    <entry>0x00000001</entry>
+> +	    <entry>The sub-device is a media controller entity and
+> +	    the <structfield>entity_id</structfield> field of
+> &v4l2-subdev-capability;
+> +	    is valid.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +  </refsect1>
+> +</refentry>
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
