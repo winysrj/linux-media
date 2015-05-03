@@ -1,93 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38013 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174AbbEWV7p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2015 17:59:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l: subdev: Add pad config allocator and init
-Date: Sat, 23 May 2015 21:24:41 +0300
-Message-ID: <12906805.RcB5KU0kGN@avalon>
+Received: from mout.gmx.net ([212.227.17.21]:58834 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750989AbbECRyI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 13:54:08 -0400
+Date: Sun, 3 May 2015 19:54:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/9] imx074: don't call imx074_find_datafmt() twice
+In-Reply-To: <1430646876-19594-2-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1505031948000.4237@axis700.grange>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+ <1430646876-19594-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new subdev operation to initialize a subdev pad config array, and
-a helper function to allocate and initialize the array. This can be used
-by bridge drivers to implement try format based on subdev pad
-operations.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           |  3 +++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+Thanks for fixing the drivers!
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 63596063b213..d594fe566be2 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -35,7 +35,7 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	fh->pad = v4l2_subdev_alloc_pad_config(sd);
- 	if (fh->pad == NULL)
- 		return -ENOMEM;
- #endif
-@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
- 		sink, link, &source_fmt, &sink_fmt);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+
-+	if (!sd->entity.num_pads)
-+		return NULL;
-+
-+	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg)
-+		return NULL;
-+
-+	v4l2_subdev_call(sd, pad, init_cfg, cfg);
-+
-+	return cfg;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 8f5da73dacff..7860d67574f5 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -483,6 +483,8 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	void (*init_cfg)(struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
-@@ -675,6 +677,7 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt);
- int v4l2_subdev_link_validate(struct media_link *link);
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
- #endif /* CONFIG_MEDIA_CONTROLLER */
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
--- 
-Regards,
+On Sun, 3 May 2015, Hans Verkuil wrote:
 
-Laurent Pinchart
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Simplify imx074_set_fmt().
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/i2c/soc_camera/imx074.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+> index f68c235..4226f06 100644
+> --- a/drivers/media/i2c/soc_camera/imx074.c
+> +++ b/drivers/media/i2c/soc_camera/imx074.c
+> @@ -171,8 +171,9 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
+>  		/* MIPI CSI could have changed the format, double-check */
+>  		if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>  			return -EINVAL;
+> -		mf->code	= imx074_colour_fmts[0].code;
+> -		mf->colorspace	= imx074_colour_fmts[0].colorspace;
+> +		fmt = imx074_colour_fmts;
+> +		mf->code = fmt->code;
+> +		mf->colorspace = fmt->colorspace;
 
+Uhm, why this change? I understand, that this is equivalent code, but (1) 
+is it at all related to the change? and (2) imx074_colour_fmts is an 
+array, so, I'd prefer to keep it as is. I do use pointer arithmetics for 
+array, but then I'd do something like
+
++		fmt = imx074_colour_fmts + 0;
++		mf->code = fmt->code;
++		mf->colorspace = fmt->colorspace;
+
+which looks silly:) And then - even more importantly - you overwrite the 
+fmt variable, which is then used below instead of calling 
+imx074_find_datafmt() again. So, now you assign a (theoretically) 
+different value to priv->fmt. I know that array only has one element and 
+imx074_find_datafmt() will anyway just return it, but, I don't see why 
+this change is needed?
+
+Thanks
+Guennadi
+
+>  	}
+>  
+>  	mf->width	= IMX074_WIDTH;
+> @@ -180,7 +181,7 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
+>  	mf->field	= V4L2_FIELD_NONE;
+>  
+>  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> -		priv->fmt = imx074_find_datafmt(mf->code);
+> +		priv->fmt = fmt;
+>  	else
+>  		cfg->try_fmt = *mf;
+>  
+> -- 
+> 2.1.4
+> 
