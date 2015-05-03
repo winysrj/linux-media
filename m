@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58077 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753738AbbEALlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 07:41:09 -0400
-Message-ID: <5543664F.3090803@xs4all.nl>
-Date: Fri, 01 May 2015 13:41:03 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:32884 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255AbbECLDk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2015 07:03:40 -0400
+Received: by pacwv17 with SMTP id wv17so135794432pac.0
+        for <linux-media@vger.kernel.org>; Sun, 03 May 2015 04:03:40 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC PATCH 0/3] Add VIDIOC_SUBDEV_QUERYCAP
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAL9G6WU9g25Ybr6wo+-OBOfMu2xsR_DpywxqKmbUfqmf8a9pog@mail.gmail.com>
+References: <CAL9G6WU9g25Ybr6wo+-OBOfMu2xsR_DpywxqKmbUfqmf8a9pog@mail.gmail.com>
+Date: Sun, 3 May 2015 13:03:39 +0200
+Message-ID: <CAG_g8w6MOdqJLQYLDyqt+SBXhiCqQTHHMJxN7NB_VboFEZX0Rg@mail.gmail.com>
+Subject: Re: Kernel crash with dvb devices
+From: crow <crow@linux.org.ba>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/2015 01:33 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev devices
-> as discussed during the ELC in San Jose and as discussed here:
-> 
-> http://www.spinics.net/lists/linux-media/msg88009.html
-> 
-> It also adds the entity_id to v4l2_capability.
+Hi,
+I don’t have S660 but the S650 and I have hat also kernel crash see on
+the link [1]. For this i am using an workaround inside grub (I am on
+Archlinux x86_64):
+/etc/default/grub:
+GRUB_CMDLINE_LINUX_DEFAULT="irqpoll ipv6.disable=1"
 
-Question: why do we have CONFIG_VIDEO_V4L2_SUBDEV_API? I don't really see the
-point of this and I would propose to remove this config option and instead
-use CONFIG_MEDIA_CONTROLLER.
+With the irqpoll I don’t have crashes. Of course it would be great to
+fix this. Maybe it can help you to.
 
-I don't see the use-case of having MEDIA_CONTROLLER defined but not
-VIDEO_V4L2_SUBDEV_API.
+[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg79486.html
 
-Comments?
+Regards,
 
-	Hans
-
-> 
-> 
-> Hans Verkuil (3):
->   v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
->   DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
->   videodev2.h: add entity_id to struct v4l2_capability
-> 
->  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->  .../DocBook/media/v4l/vidioc-querycap.xml          |  18 ++-
->  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 +++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c               |   7 ++
->  drivers/media/v4l2-core/v4l2-subdev.c              |  19 +++
->  include/uapi/linux/v4l2-subdev.h                   |  12 ++
->  include/uapi/linux/videodev2.h                     |   5 +-
->  7 files changed, 199 insertions(+), 3 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-> 
-
+On Sat, May 2, 2015 at 11:55 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
+> Hello list,
+>
+> I have some DVB devices in a MythTV backend:
+>
+> TeVii S660 USB
+> Hauppauge Nova-TD Stick (52009)
+> Avermedia Super 007
+>
+> The problems is that sometimes I got a kernel crash and I need to
+> reboot the machine. Here is a log: http://paste.debian.net/170723/
+>
+> Is this kernel/module/firmware problem?
+>
+> I am using Debian Jessie with 3.16.0-4-amd64 kernel.
+>
+> Thanks for your help.
+>
+> Best regards.
+>
+> --
+> Josu Lazkano
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
