@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:37980 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbbEYMu5 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47334 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751803AbbECJzA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 08:50:57 -0400
-Message-id: <55631AAC.6080507@samsung.com>
-Date: Mon, 25 May 2015 14:50:52 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
- samsung,flash-led property
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
- <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
- <555DA119.9030904@samsung.com>
- <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
- <555DDD88.8080601@samsung.com>
- <20150523120348.GA3170@valkosipuli.retiisi.org.uk> <55630EE1.90307@samsung.com>
-In-reply-to: <55630EE1.90307@samsung.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Sun, 3 May 2015 05:55:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 8/9] ov9740: avoid calling ov9740_res_roundup() twice
+Date: Sun,  3 May 2015 11:54:35 +0200
+Message-Id: <1430646876-19594-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 05/25/2015 02:00 PM, Sylwester Nawrocki wrote:
-> Hi,
->
-> On 23/05/15 14:03, Sakari Ailus wrote:
->> On Thu, May 21, 2015 at 03:28:40PM +0200, Sylwester Nawrocki wrote:
->>> flash-leds = <&flash_xx &image_sensor_x>, <...>;
->>
->> One more matter to consider: xenon flash devices.
->>
->> How about samsung,camera-flashes (and ti,camera-flashes)? After pondering
->> this awhile, I'm ok with removing the vendor prefix as well.
->>
->> Let me know what you think.
->
-> I thought about it a bit more and I have some doubts about semantics
-> as above. I'm fine with 'camera-flashes' as far as name is concerned.
->
-> Perhaps we should put only phandles to leds or xenon flash devices
-> in the 'camera-flashes' property. I think it would be more future
-> proof in case there is more nodes needed to describe the camera flash
-> (or a camera module) than the above two. And phandles to corresponding
-> image sensor device nodes would be put in a separate property.
+Simplify ov9740_s_fmt.
 
-Could you give examples of the cases you are thinking of?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov9740.c | 18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-> camera-flashes = <&flash_xx>, ...
-> camera-flash-masters = <&image_sensor_x>, ...
->
-> Then pairs at same index would describe a single flash, 0 would indicate
-> a null entry if needed.
-
-When it should be needed?
-
-> Similarly we could create properties for other sub-devices of a camera
-> module, like lenses, etc.
-
-
+diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
+index 03a7fc7..61a8e18 100644
+--- a/drivers/media/i2c/soc_camera/ov9740.c
++++ b/drivers/media/i2c/soc_camera/ov9740.c
+@@ -673,20 +673,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov9740_priv *priv = to_ov9740(sd);
+-	enum v4l2_colorspace cspace;
+-	u32 code = mf->code;
+ 	int ret;
+ 
+-	ov9740_res_roundup(&mf->width, &mf->height);
+-
+-	switch (code) {
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-		cspace = V4L2_COLORSPACE_SRGB;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+ 	ret = ov9740_reg_write_array(client, ov9740_defaults,
+ 				     ARRAY_SIZE(ov9740_defaults));
+ 	if (ret < 0)
+@@ -696,11 +684,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	mf->code	= code;
+-	mf->colorspace	= cspace;
+-
+-	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
+-
++	priv->current_mf = *mf;
+ 	return ret;
+ }
+ 
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.4
+
