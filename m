@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:56816 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754078AbbESMLN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 08:11:13 -0400
-Date: Tue, 19 May 2015 14:11:04 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jemma Denson <jdenson@gmail.com>
-Subject: Re: [PATCH 1/3] cx24120: don't initialize a var that won't be used
-Message-ID: <20150519141104.075816d6@dibcom294.coe.adi.dibcom.com>
-In-Reply-To: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
-References: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:35230 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbbECNAr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2015 09:00:47 -0400
+Received: by lbbuc2 with SMTP id uc2so89475159lbb.2
+        for <linux-media@vger.kernel.org>; Sun, 03 May 2015 06:00:46 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v3 4/6] rtl28xxu: add I2C read without write
+Date: Sun,  3 May 2015 16:00:21 +0300
+Message-Id: <1430658023-17579-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1430658023-17579-1-git-send-email-olli.salonen@iki.fi>
+References: <1430658023-17579-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, 
+Add support for I2C read operation without a preceeding write.
 
-On Tue, 19 May 2015 08:23:36 -0300 Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
+While here, change the error code to EOPNOTSUPP in case an
+unsupported I2C operation is attempted.
 
-> As reported by smatch:
-> drivers/media/dvb-frontends/cx24120.c: In function 'cx24120_message_send':
-> drivers/media/dvb-frontends/cx24120.c:368:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
->   int ret, ficus;
->       ^
-> 
-> The values written by cx24120 are never checked. So, remove the
-> check here too. That's said, the best would be to do the reverse,
-> but globally: to properly handle the error codes.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Woudl you mind me integrating your patches on my tree which I then
-will ask you to pull?
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index f1a7613..5e0c015 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -232,8 +232,14 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			req.data = msg[0].buf;
+ 			ret = rtl28xxu_ctrl_msg(d, &req);
+ 		}
++	} else if (num == 1 && (msg[0].flags & I2C_M_RD)) {
++		req.value = (msg[0].addr << 1);
++		req.index = CMD_I2C_DA_RD;
++		req.size = msg[0].len;
++		req.data = msg[0].buf;
++		ret = rtl28xxu_ctrl_msg(d, &req);
+ 	} else {
+-		ret = -EINVAL;
++		ret = -EOPNOTSUPP;
+ 	}
+ 
+ err_mutex_unlock:
+-- 
+1.9.1
 
---
-Patrick.
