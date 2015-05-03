@@ -1,134 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:33012 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174AbbEGN3I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 09:29:08 -0400
-Received: by pdbnk13 with SMTP id nk13so41535594pdb.0
-        for <linux-media@vger.kernel.org>; Thu, 07 May 2015 06:29:08 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk,
-	airlied@linux.ie, kgene@kernel.org, thierry.reding@gmail.com,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	mchehab@osg.samsung.com, gregkh@linuxfoundation.org
-Cc: linaro-kernel@lists.linaro.org, robdclark@gmail.com,
-	daniel@ffwll.ch, Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v2] dma-buf: add ref counting for module as exporter
-Date: Thu,  7 May 2015 18:58:44 +0530
-Message-Id: <1431005324-22234-1-git-send-email-sumit.semwal@linaro.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47334 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751255AbbECJyv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 05:54:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/9] imx074: don't call imx074_find_datafmt() twice
+Date: Sun,  3 May 2015 11:54:28 +0200
+Message-Id: <1430646876-19594-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add reference counting on a kernel module that exports dma-buf and
-implements its operations. This prevents the module from being unloaded
-while DMABUF file is in use.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The original patch [1] was submitted by Tomasz Stanislawski, but this
-is a simpler way to do it.
+Simplify imx074_set_fmt().
 
-v2: move owner to struct dma_buf, and use DEFINE_DMA_BUF_EXPORT_INFO
-    macro to simplify the change.
-
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-
-[1]: https://lkml.org/lkml/2012/8/8/163
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/dma-buf/dma-buf.c | 10 +++++++++-
- include/linux/dma-buf.h   | 10 ++++++++--
- 2 files changed, 17 insertions(+), 3 deletions(-)
+ drivers/media/i2c/soc_camera/imx074.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index c5a9138a6a8d..0eff4bf56ef6 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -29,6 +29,7 @@
- #include <linux/anon_inodes.h>
- #include <linux/export.h>
- #include <linux/debugfs.h>
-+#include <linux/module.h>
- #include <linux/seq_file.h>
- #include <linux/poll.h>
- #include <linux/reservation.h>
-@@ -64,6 +65,7 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 	BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
- 
- 	dmabuf->ops->release(dmabuf);
-+	module_put(dmabuf->owner);
- 
- 	mutex_lock(&db_list.lock);
- 	list_del(&dmabuf->list_node);
-@@ -302,14 +304,20 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
- 		return ERR_PTR(-EINVAL);
+diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+index f68c235..4226f06 100644
+--- a/drivers/media/i2c/soc_camera/imx074.c
++++ b/drivers/media/i2c/soc_camera/imx074.c
+@@ -171,8 +171,9 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
+ 		/* MIPI CSI could have changed the format, double-check */
+ 		if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 			return -EINVAL;
+-		mf->code	= imx074_colour_fmts[0].code;
+-		mf->colorspace	= imx074_colour_fmts[0].colorspace;
++		fmt = imx074_colour_fmts;
++		mf->code = fmt->code;
++		mf->colorspace = fmt->colorspace;
  	}
  
-+	if (!try_module_get(exp_info->owner))
-+		return ERR_PTR(-ENOENT);
-+
- 	dmabuf = kzalloc(alloc_size, GFP_KERNEL);
--	if (dmabuf == NULL)
-+	if (!dmabuf) {
-+		module_put(exp_info->owner);
- 		return ERR_PTR(-ENOMEM);
-+	}
+ 	mf->width	= IMX074_WIDTH;
+@@ -180,7 +181,7 @@ static int imx074_set_fmt(struct v4l2_subdev *sd,
+ 	mf->field	= V4L2_FIELD_NONE;
  
- 	dmabuf->priv = exp_info->priv;
- 	dmabuf->ops = exp_info->ops;
- 	dmabuf->size = exp_info->size;
- 	dmabuf->exp_name = exp_info->exp_name;
-+	dmabuf->owner = exp_info->owner;
- 	init_waitqueue_head(&dmabuf->poll);
- 	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
- 	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 2f0b431b73e0..f98bd7068d55 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -115,6 +115,8 @@ struct dma_buf_ops {
-  * @attachments: list of dma_buf_attachment that denotes all devices attached.
-  * @ops: dma_buf_ops associated with this buffer object.
-  * @exp_name: name of the exporter; useful for debugging.
-+ * @owner: pointer to exporter module; used for refcounting when exporter is a
-+ *         kernel module.
-  * @list_node: node for dma_buf accounting and debugging.
-  * @priv: exporter specific private data for this buffer object.
-  * @resv: reservation object linked to this dma-buf
-@@ -129,6 +131,7 @@ struct dma_buf {
- 	unsigned vmapping_counter;
- 	void *vmap_ptr;
- 	const char *exp_name;
-+	struct module *owner;
- 	struct list_head list_node;
- 	void *priv;
- 	struct reservation_object *resv;
-@@ -164,7 +167,8 @@ struct dma_buf_attachment {
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		priv->fmt = imx074_find_datafmt(mf->code);
++		priv->fmt = fmt;
+ 	else
+ 		cfg->try_fmt = *mf;
  
- /**
-  * struct dma_buf_export_info - holds information needed to export a dma_buf
-- * @exp_name:	name of the exporting module - useful for debugging.
-+ * @exp_name:	name of the exporter - useful for debugging.
-+ * @owner:	pointer to exporter module - used for refcounting kernel module
-  * @ops:	Attach allocator-defined dma buf ops to the new buffer
-  * @size:	Size of the buffer
-  * @flags:	mode flags for the file
-@@ -176,6 +180,7 @@ struct dma_buf_attachment {
-  */
- struct dma_buf_export_info {
- 	const char *exp_name;
-+	struct module *owner;
- 	const struct dma_buf_ops *ops;
- 	size_t size;
- 	int flags;
-@@ -187,7 +192,8 @@ struct dma_buf_export_info {
-  * helper macro for exporters; zeros and fills in most common values
-  */
- #define DEFINE_DMA_BUF_EXPORT_INFO(a)	\
--	struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME }
-+	struct dma_buf_export_info a = { .exp_name = KBUILD_MODNAME, \
-+					 .owner = THIS_MODULE }
- 
- /**
-  * get_dma_buf - convenience wrapper for get_file.
 -- 
-1.9.1
+2.1.4
 
