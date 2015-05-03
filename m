@@ -1,190 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59439 "EHLO mx2.suse.de"
+Received: from mout.gmx.net ([212.227.15.19]:64982 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965139AbbEFH20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 03:28:26 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
-Date: Wed,  6 May 2015 09:28:08 +0200
-Message-Id: <1430897296-5469-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
-References: <1430897296-5469-1-git-send-email-jack@suse.cz>
+	id S1750990AbbECRph (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 13:45:37 -0400
+Date: Sun, 3 May 2015 19:45:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: soc-camera: opinion poll - future directions
+In-Reply-To: <55465967.4060405@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1505031935450.4237@axis700.grange>
+References: <Pine.LNX.4.64.1505031800140.4237@axis700.grange>
+ <55465967.4060405@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently vb2 core acquires mmap_sem just around call to
-__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
-lockdep warning) it isn't necessary to acquire it so early as we no
-longer have to drop queue mutex before acquiring mmap_sem. So push
-acquisition of mmap_sem down into .get_userptr and .put_userptr memops
-so that the semaphore is acquired for a shorter time and it is clearer
-what it is needed for.
+Hi Hans,
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 2 --
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 +++++++
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +++++-
- 4 files changed, 18 insertions(+), 3 deletions(-)
+On Sun, 3 May 2015, Hans Verkuil wrote:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 66ada01c796c..20cdbc0900ea 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1657,9 +1657,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
--		down_read(&current->mm->mmap_sem);
- 		ret = __qbuf_userptr(vb, b);
--		up_read(&current->mm->mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 644dec73d220..620c4aa78881 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -532,7 +532,9 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 		sg_free_table(sgt);
- 		kfree(sgt);
- 	}
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- }
- 
-@@ -616,6 +618,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		goto fail_buf;
- 	}
- 
-+	down_read(&current->mm->mmap_sem);
- 	/* current->mm->mmap_sem is taken by videobuf2 core */
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
-@@ -642,6 +645,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-+			up_read(&current->mm->mmap_sem);
- 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
- 			buf->size = size;
- 			kfree(pages);
-@@ -651,6 +655,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		pr_err("failed to get user pages\n");
- 		goto fail_vma;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
-@@ -713,10 +718,12 @@ fail_get_user_pages:
- 		while (n_pages)
- 			put_page(pages[--n_pages]);
- 
-+	down_read(&current->mm->mmap_sem);
- fail_vma:
- 	vb2_put_vma(buf->vma);
- 
- fail_pages:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(pages); /* kfree is NULL-proof */
- 
- fail_buf:
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 45c708e463b9..afd4b514affc 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf->pages)
- 		goto userptr_fail_alloc_pages;
- 
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
- 		dprintk(1, "no vma for address %lu\n", vaddr);
-@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-+	up_read(&current->mm->mmap_sem);
- 
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
-@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
- 	if (!vma_is_io(buf->vma))
- 		while (--num_pages_from_user >= 0)
- 			put_page(buf->pages[num_pages_from_user]);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
- userptr_fail_find_vma:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf->pages);
- userptr_fail_alloc_pages:
- 	kfree(buf);
-@@ -362,7 +366,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 			put_page(buf->pages[i]);
- 	}
- 	kfree(buf->pages);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- }
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 657ab302a5cf..0ba40be21ebd 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
- 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		if (!buf->vaddr)
- 			goto fail_get_user_pages;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	buf->vaddr += offset;
- 	return buf;
-@@ -133,6 +134,7 @@ fail_get_user_pages:
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- 
- 	return NULL;
-@@ -144,6 +146,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
- 
-+	down_read(&current->mm->mmap_sem);
- 	if (buf->pages) {
- 		if (vaddr)
- 			vm_unmap_ram((void *)vaddr, buf->n_pages);
-@@ -157,6 +160,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 		vb2_put_vma(buf->vma);
- 		iounmap((__force void __iomem *)buf->vaddr);
- 	}
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- }
- 
--- 
-2.1.4
+> Hi Guennadi,
+> 
+> On 05/03/2015 06:11 PM, Guennadi Liakhovetski wrote:
+> > Hi all,
+> > 
+> > Just a quick opinion poll - where and how should the soc-camera framework 
+> > and drivers be heading? Possible (probably not all) directions:
+> > 
+> > (1) all is good, keep as is. That means keep all drivers, killing them off 
+> > only when it becomes very obvious, that noone wants them, keep developing 
+> > drivers, that are still being used and updating all of them on any API 
+> > updates. Keep me as maintainer, which means slow patch processing rate and 
+> > no active participation in new developments - at hardware, soc-camera or 
+> > V4L levels.
+> > 
+> > (2) we want more! I.e. some contributors are planning to either add new 
+> > drivers to it or significantly develop existing ones, see significant 
+> > benefit in it. In this case it might become necessary to replace me with 
+> > someone, who can be more active in this area.
+> > 
+> > (3) slowly phase out. Try to either deprecate and remove soc-camera 
+> > drivers one by one or move them out to become independent V4L2 host or 
+> > subdevice drivers, but keep updating while still there.
+> > 
+> > (4) basically as (3) but even more aggressively - get rid of it ASAP:)
+> > 
+> > Opinions? Expecially would be interesting to hear from respective 
+> > host-driver maintainers / developers, sorry, not adding CCs, they probably 
+> > read the list anyway:)
+> 
+> I'm closest to 1. I would certainly not use it for new drivers, I see no
+> reason to do that anymore. The core frameworks are quite good these days
+> and I think the need for soc-camera has basically disappeared. But there
+> is no need to phase out or remove soc-camera drivers (unless they are
+> clearly broken and nobody will fix them). And if someone wants to turn
+> a soc-camera driver into a standalone driver, then I would encourage
+> that.
 
+Understand, thanks.
+
+> However, there are two things that need work fairly soon:
+> 
+> 1) the dependency of subdev drivers on soc_camera: that has to go. I plan
+> to work on that, but the first step is to replace the video crop ops by
+> the pad selection ops. I finally got my Renesas sh7724 board up and running,
+
+Uhm... Does anyone really still care about V4L on SuperH?..
+
+> so I hope to make progress on this soon. I'll update soc-camera as well
+> to conform to v4l2-compliance. Once that's done I will investigate how to
+> remove the soc-camera dependency.
+> 
+> The soc-camera dependency kills the reusability of those drivers and it
+> really needs to be addressed.
+> 
+> 2) Converting soc-camera videobuf drivers to vb2. At some point vb1 will be
+> removed, so any remaining vb1 driver will likely be killed off if nobody does
+> the conversion. I believe it is only omap1 and pxa that still use videobuf.
+> 
+> I think omap1 might be a candidate for removal, but I don't know about the pxa.
+> Guennadi, what is the status of these drivers?
+
+Dont know, sorry. PXA in general seems to still be quite actively 
+maintained - I recently saw a patch series for PXA CCF support, so, 
+probably V4L is still in use too.
+
+> If I would do a vb2 conversion
+> for the pxa, would you be able to test it?
+
+I have a board with PXA270, and it still seems to be in the mainline, but 
+I don't know how easy it would be to get it running with a current kernel.
+
+Thanks
+Guennadi
