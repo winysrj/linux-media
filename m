@@ -1,135 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53749 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753348AbbEMHXG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 03:23:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ovebryne@cisco.com, marbugge@cisco.com, matrandg@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 4/5] adv7604/adv7842: replace FMT_CHANGED by V4L2_DEVICE_NOTIFY_EVENT
-Date: Wed, 13 May 2015 09:22:43 +0200
-Message-Id: <1431501764-44250-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1431501764-44250-1-git-send-email-hverkuil@xs4all.nl>
-References: <1431501764-44250-1-git-send-email-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40875 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252AbbEDHo1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:44:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 3/3] videodev2.h: add entity_id to struct v4l2_capability
+Date: Mon, 04 May 2015 01:31:59 +0300
+Message-ID: <6142421.YpIavoBsT0@avalon>
+In-Reply-To: <1430480030-29136-4-git-send-email-hverkuil@xs4all.nl>
+References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-This makes it easier for the bridge driver to just passthrough such
-events to the corresponding device node.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 12 +++++++++---
- drivers/media/i2c/adv7842.c | 11 +++++++++--
- include/media/adv7604.h     |  1 -
- include/media/adv7842.h     |  3 ---
- 4 files changed, 18 insertions(+), 9 deletions(-)
+On Friday 01 May 2015 13:33:50 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Export the entity ID (if any) of the video device.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index be3f866..aaa37b0 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -341,6 +341,11 @@ static const struct adv76xx_video_standards adv76xx_prim_mode_hdmi_gr[] = {
- 	{ },
- };
- 
-+static const struct v4l2_event adv76xx_ev_fmt = {
-+	.type = V4L2_EVENT_SOURCE_CHANGE,
-+	.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-+};
-+
- /* ----------------------------------------------------------------------- */
- 
- static inline struct adv76xx_state *to_state(struct v4l2_subdev *sd)
-@@ -1744,11 +1749,11 @@ static int adv76xx_s_routing(struct v4l2_subdev *sd,
- 	state->selected_input = input;
- 
- 	disable_input(sd);
--
- 	select_input(sd);
--
- 	enable_input(sd);
- 
-+	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
-+			   (void *)&adv76xx_ev_fmt);
- 	return 0;
- }
- 
-@@ -1915,7 +1920,8 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
- 			__func__, fmt_change, fmt_change_digital);
- 
--		v4l2_subdev_notify(sd, ADV76XX_FMT_CHANGE, NULL);
-+		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
-+				   (void *)&adv76xx_ev_fmt);
- 
- 		if (handled)
- 			*handled = true;
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index dceabc2..f5248ba 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -242,6 +242,11 @@ static const struct adv7842_video_standards adv7842_prim_mode_hdmi_gr[] = {
- 	{ },
- };
- 
-+static const struct v4l2_event adv7842_ev_fmt = {
-+	.type = V4L2_EVENT_SOURCE_CHANGE,
-+	.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-+};
-+
- /* ----------------------------------------------------------------------- */
- 
- static inline struct adv7842_state *to_state(struct v4l2_subdev *sd)
-@@ -1975,7 +1980,8 @@ static int adv7842_s_routing(struct v4l2_subdev *sd,
- 	select_input(sd, state->vid_std_select);
- 	enable_input(sd);
- 
--	v4l2_subdev_notify(sd, ADV7842_FMT_CHANGE, NULL);
-+	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
-+			   (void *)&adv7842_ev_fmt);
- 
- 	return 0;
- }
-@@ -2208,7 +2214,8 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			 "%s: fmt_change_cp = 0x%x, fmt_change_digital = 0x%x, fmt_change_sdp = 0x%x\n",
- 			 __func__, fmt_change_cp, fmt_change_digital,
- 			 fmt_change_sdp);
--		v4l2_subdev_notify(sd, ADV7842_FMT_CHANGE, NULL);
-+		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
-+				   (void *)&adv7842_ev_fmt);
- 		if (handled)
- 			*handled = true;
- 	}
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index 9ecf353..a913859 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -168,6 +168,5 @@ enum adv76xx_pad {
- 
- /* notify events */
- #define ADV76XX_HOTPLUG		1
--#define ADV76XX_FMT_CHANGE	2
- 
- #endif
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index 64a66d0..1f38db8 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -230,9 +230,6 @@ struct adv7842_platform_data {
- #define V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL	(V4L2_CID_DV_CLASS_BASE + 0x1001)
- #define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 0x1002)
- 
--/* notify events */
--#define ADV7842_FMT_CHANGE	1
--
- /* custom ioctl, used to test the external RAM that's used by the
-  * deinterlacer. */
- #define ADV7842_CMD_RAM_TEST _IO('V', BASE_VIDIOC_PRIVATE)
+I would postpone this until we finish the DVB+MC discussion and properly 
+define the relationship between device nodes and MC, as it could have 
+implications on the V4L2 side as well.
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/DocBook/media/v4l/vidioc-querycap.xml | 16 +++++++++++++++-
+>  drivers/media/v4l2-core/v4l2-ioctl.c                |  7 +++++++
+>  include/uapi/linux/videodev2.h                      |  5 ++++-
+>  3 files changed, 26 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
+> c1ed844..4a7737c 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+> @@ -154,7 +154,14 @@ printf ("Version: %u.%u.%u\n",
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> -	    <entry><structfield>reserved</structfield>[3]</entry>
+> +	    <entry><structfield>entity_id</structfield></entry>
+> +	    <entry>The media controller entity ID of the device. This is only
+> valid if
+> +	    the <constant>V4L2_CAP_ENTITY</constant> capability is set.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[2]</entry>
+>  	    <entry>Reserved for future extensions. Drivers must set
+>  this array to zero.</entry>
+>  	  </row>
+> @@ -308,6 +315,13 @@ modulator programming see
+>  fields.</entry>
+>  	  </row>
+>  	  <row>
+> +	    <entry><constant>V4L2_CAP_ENTITY</constant></entry>
+> +	    <entry>0x00400000</entry>
+> +	    <entry>The device is a media controller entity and
+> +	    the <structfield>entity_id</structfield> field of &v4l2-capability;
+> +	    is valid.</entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
+>  	    <entry>0x01000000</entry>
+>  	    <entry>The device supports the <link
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index 1476602..5179611 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1011,6 +1011,7 @@ static void v4l_sanitize_format(struct v4l2_format
+> *fmt) static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
+>  {
+> +	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
+>  	int ret;
+> 
+> @@ -1019,6 +1020,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops
+> *ops, ret = ops->vidioc_querycap(file, fh, cap);
+> 
+>  	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (vfd->entity.parent) {
+> +		cap->capabilities |= V4L2_CAP_ENTITY;
+> +		cap->entity_id = vfd->entity.id;
+> +	}
+> +#endif
+>  	/*
+>  	 * Drivers MUST fill in device_caps, so check for this and
+>  	 * warn if it was forgotten.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index fa376f7..af7a667 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -307,6 +307,7 @@ struct v4l2_fract {
+>    * @version:	   KERNEL_VERSION
+>    * @capabilities: capabilities of the physical device as a whole
+>    * @device_caps:  capabilities accessed via this particular device (node)
+> +  * @entity_id:    the media controller entity ID
+>    * @reserved:	   reserved fields for future extensions
+>    */
+>  struct v4l2_capability {
+> @@ -316,7 +317,8 @@ struct v4l2_capability {
+>  	__u32   version;
+>  	__u32	capabilities;
+>  	__u32	device_caps;
+> -	__u32	reserved[3];
+> +	__u32	entity_id;
+> +	__u32	reserved[2];
+>  };
+> 
+>  /* Values for 'capabilities' field */
+> @@ -348,6 +350,7 @@ struct v4l2_capability {
+> 
+>  #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
+>  #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended 
+pixel
+> format */ +#define V4L2_CAP_ENTITY                 0x00400000  /* This is a
+> Media Controller entity */
+> 
+>  #define V4L2_CAP_READWRITE              0x01000000  /* read/write
+> systemcalls */ #define V4L2_CAP_ASYNCIO                0x02000000  /* async
+> I/O */
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
