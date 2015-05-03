@@ -1,89 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56465 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755456AbbESLXx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 07:23:53 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jemma Denson <jdenson@gmail.com>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>
-Subject: [PATCH 3/3] cx24120: constify static data
-Date: Tue, 19 May 2015 08:23:38 -0300
-Message-Id: <ed8e1da77d31ecd9f1509d160c9d990c58faae22.1432034614.git.mchehab@osg.samsung.com>
-In-Reply-To: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
-References: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
-In-Reply-To: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
-References: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:63862 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750990AbbECVJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 17:09:39 -0400
+Date: Sun, 3 May 2015 23:09:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 9/9] mt9t112: initialize left and top
+In-Reply-To: <Pine.LNX.4.64.1505032250430.6055@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1505032308500.6055@axis700.grange>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+ <1430646876-19594-10-git-send-email-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1505032250430.6055@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use const on the static data, as gcc may optimize better the
-code. Also, would prevent that some code would override the
-data there.
+On Sun, 3 May 2015, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Hi Hans,
+> 
+> On Sun, 3 May 2015, Hans Verkuil wrote:
+> 
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The left and top variables were uninitialized, leading to unexpected
+> > results.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/i2c/soc_camera/mt9t112.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
+> > index de10a76..02190d6 100644
+> > --- a/drivers/media/i2c/soc_camera/mt9t112.c
+> > +++ b/drivers/media/i2c/soc_camera/mt9t112.c
+> > @@ -952,7 +952,8 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
+> >  	struct v4l2_mbus_framefmt *mf = &format->format;
+> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >  	struct mt9t112_priv *priv = to_mt9t112(client);
+> > -	unsigned int top, left;
+> > +	unsigned int top = priv->frame.top;
+> > +	unsigned int left = priv->frame.left;
+> 
+> I don't think this is needed. We don't care about left and top in 
+> mt9t112_set_fmt().
+> 
+> How about my comment about a duplicated call to mt9t112_set_params()? Can 
+> we have it fixed too?
 
-diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
-index 2dcd93f63408..2b3f83d5b997 100644
---- a/drivers/media/dvb-frontends/cx24120.c
-+++ b/drivers/media/dvb-frontends/cx24120.c
-@@ -704,12 +704,14 @@ static int cx24120_read_status(struct dvb_frontend *fe, fe_status_t *status)
-  * Used for decoding the REG_FECMODE register
-  * once tuned in.
-  */
--static struct cx24120_modfec {
-+struct cx24120_modfec {
- 	fe_delivery_system_t delsys;
- 	fe_modulation_t mod;
- 	fe_code_rate_t fec;
- 	u8 val;
--} modfec_lookup_table[] = {
-+};
-+
-+static const struct cx24120_modfec modfec_lookup_table[] = {
- 	/*delsys     mod    fec       val */
- 	{ SYS_DVBS,  QPSK,  FEC_1_2,  0x01 },
- 	{ SYS_DVBS,  QPSK,  FEC_2_3,  0x02 },
-@@ -784,7 +786,7 @@ static int cx24120_get_fec(struct dvb_frontend *fe)
-  * There's probably some way of calculating these but I
-  * can't determine the pattern
-  */
--static struct cx24120_clock_ratios_table {
-+struct cx24120_clock_ratios_table {
- 	fe_delivery_system_t delsys;
- 	fe_pilot_t pilot;
- 	fe_modulation_t mod;
-@@ -792,7 +794,9 @@ static struct cx24120_clock_ratios_table {
- 	u32 m_rat;
- 	u32 n_rat;
- 	u32 rate;
--} clock_ratios_table[] = {
-+};
-+
-+static const struct cx24120_clock_ratios_table clock_ratios_table[] = {
- 	/*delsys     pilot      mod    fec       m_rat    n_rat   rate */
- 	{ SYS_DVBS2, PILOT_OFF, QPSK,  FEC_1_2,  273088,  254505, 274 },
- 	{ SYS_DVBS2, PILOT_OFF, QPSK,  FEC_3_5,  17272,   13395,  330 },
-@@ -921,12 +925,14 @@ static int cx24120_set_inversion(struct cx24120_state *state,
- }
- 
- /* FEC lookup table for tuning */
--static struct cx24120_modfec_table {
-+struct cx24120_modfec_table {
- 	fe_delivery_system_t delsys;
- 	fe_modulation_t mod;
- 	fe_code_rate_t fec;
- 	u8 val;
--} modfec_table[] = {
-+};
-+
-+static const struct cx24120_modfec_table modfec_table[] = {
- 	/*delsys     mod    fec       val */
- 	{ SYS_DVBS,  QPSK,  FEC_1_2,  0x2e },
- 	{ SYS_DVBS,  QPSK,  FEC_2_3,  0x2f },
--- 
-2.1.0
+Sorry, just saw your comment in patch #0:) Np, let's postpone this then.
 
+Thanks
+Guennadi
