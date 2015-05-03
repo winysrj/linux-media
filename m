@@ -1,59 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:55785 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932707AbbELTyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 15:54:49 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org
-Subject: v4.1-rcX regression in v4l2 build
-Date: Tue, 12 May 2015 21:46:27 +0200
-Message-ID: <87d225mve4.fsf@belgarion.home>
+Received: from mout.gmx.net ([212.227.17.21]:59838 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751708AbbECUYP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 16:24:15 -0400
+Date: Sun, 3 May 2015 22:24:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 5/9] ov5642: avoid calling ov5642_find_datafmt() twice
+In-Reply-To: <1430646876-19594-6-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1505032223340.6055@axis700.grange>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+ <1430646876-19594-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Hans,
 
-Today I noticed the mioa701 build is broken on v4.1-rcX series. It was working
-in v4.0.
+On Sun, 3 May 2015, Hans Verkuil wrote:
 
-The build error I get is :
-  LINK    vmlinux
-  LD      vmlinux.o
-  MODPOST vmlinux.o
-  GEN     .version
-  CHK     include/generated/compile.h
-  UPD     include/generated/compile.h
-  CC      init/version.o
-  LD      init/built-in.o
-drivers/built-in.o: In function `v4l2_clk_set_rate':
-/home/rj/mio_linux/kernel/drivers/media/v4l2-core/v4l2-clk.c:196: undefined reference to `clk_round_rate'
-Makefile:932: recipe for target 'vmlinux' failed
-make: *** [vmlinux] Error 1
-make: Target '_all' not remade because of errors.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Simplify ov5642_set_fmt().
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/i2c/soc_camera/ov5642.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
+> index bab9ac0..061fca3 100644
+> --- a/drivers/media/i2c/soc_camera/ov5642.c
+> +++ b/drivers/media/i2c/soc_camera/ov5642.c
+> @@ -804,14 +804,15 @@ static int ov5642_set_fmt(struct v4l2_subdev *sd,
+>  	if (!fmt) {
+>  		if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>  			return -EINVAL;
+> -		mf->code	= ov5642_colour_fmts[0].code;
+> -		mf->colorspace	= ov5642_colour_fmts[0].colorspace;
+> +		fmt = ov5642_colour_fmts;
+> +		mf->code = fmt->code;
+> +		mf->colorspace = fmt->colorspace;
 
-I have no idea what changed. Do you have a clue ?
+Again - I still don't see why this is needed.
 
-Cheers.
+Thanks
+Guennadi
 
--- 
-Robert
-
-PS: A small extract of my .config
-rj@belgarion:~/mio_linux/kernel$ grep CLK .config
-CONFIG_HAVE_CLK=y
-CONFIG_PM_CLK=y
-# CONFIG_MMC_CLKGATE is not set
-CONFIG_CLKDEV_LOOKUP=y
-CONFIG_CLKSRC_OF=y
-CONFIG_CLKSRC_MMIO=y
-CONFIG_CLKSRC_PXA=y
-rj@belgarion:~/mio_linux/kernel$ grep V4L .config
-CONFIG_VIDEO_V4L2=y
-CONFIG_V4L_PLATFORM_DRIVERS=y
-# CONFIG_V4L_MEM2MEM_DRIVERS is not set
-# CONFIG_V4L_TEST_DRIVERS is not set
-CONFIG_DVB_AU8522_V4L=m
+>  	}
+>  
+>  	mf->field	= V4L2_FIELD_NONE;
+>  
+>  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> -		priv->fmt = ov5642_find_datafmt(mf->code);
+> +		priv->fmt = fmt;
+>  	else
+>  		cfg->try_fmt = *mf;
+>  	return 0;
+> -- 
+> 2.1.4
+> 
