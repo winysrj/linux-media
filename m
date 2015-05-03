@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:56482 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbbEZNLA (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47334 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751644AbbECJy4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:11:00 -0400
-Date: Tue, 26 May 2015 12:17:25 +0100 (BST)
-From: William Towle <william.towle@codethink.co.uk>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-cc: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 07/20] media: soc_camera: rcar_vin: Add BT.709 24-bit
- RGB888 input support
-In-Reply-To: <Pine.LNX.4.64.1505251615220.26358@axis700.grange>
-Message-ID: <alpine.DEB.2.02.1505261209030.6402@xk120.dyn.ducie.codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-8-git-send-email-william.towle@codethink.co.uk> <Pine.LNX.4.64.1505251615220.26358@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Sun, 3 May 2015 05:54:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/9] ov5642: avoid calling ov5642_find_datafmt() twice
+Date: Sun,  3 May 2015 11:54:32 +0200
+Message-Id: <1430646876-19594-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 25 May 2015, Guennadi Liakhovetski wrote:
-> How about this version of this patch:
->
-> https://patchwork.linuxtv.org/patch/28098/
->
-> ? I personally like that one better, it seems clearer to me. This one
-> first sets a bit to vnmp, then make another check and inverts it, whereas
-> that version clearly sets it just for equal colour-spaces. I just never
-> got with proper Sob and (maybe?) authorship.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Guennadi,
-   Thanks for noticing - we reverted this patch to the version
-previously indicated in testing and it didn't get set back.
+Simplify ov5642_set_fmt().
 
-   We have a test branch for the next version, and I shall attend to
-this and the other authorship comments you made immediately.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov5642.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Thanks,
-   Wills.
+diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
+index bab9ac0..061fca3 100644
+--- a/drivers/media/i2c/soc_camera/ov5642.c
++++ b/drivers/media/i2c/soc_camera/ov5642.c
+@@ -804,14 +804,15 @@ static int ov5642_set_fmt(struct v4l2_subdev *sd,
+ 	if (!fmt) {
+ 		if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 			return -EINVAL;
+-		mf->code	= ov5642_colour_fmts[0].code;
+-		mf->colorspace	= ov5642_colour_fmts[0].colorspace;
++		fmt = ov5642_colour_fmts;
++		mf->code = fmt->code;
++		mf->colorspace = fmt->colorspace;
+ 	}
+ 
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		priv->fmt = ov5642_find_datafmt(mf->code);
++		priv->fmt = fmt;
+ 	else
+ 		cfg->try_fmt = *mf;
+ 	return 0;
+-- 
+2.1.4
+
