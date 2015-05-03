@@ -1,58 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:38692 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444AbbETOLY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:11:24 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v8 6/8] DT: s5c73m3: Add documentation for samsung,flash-led
- property
-Date: Wed, 20 May 2015 16:10:13 +0200
-Message-id: <1432131015-22397-7-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:65233 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750852AbbECQLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 12:11:04 -0400
+Received: from axis700.grange ([78.35.82.51]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MHokD-1YqJWl1WRB-003eV6 for
+ <linux-media@vger.kernel.org>; Sun, 03 May 2015 18:11:02 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 774FB40BD9
+	for <linux-media@vger.kernel.org>; Sun,  3 May 2015 18:11:00 +0200 (CEST)
+Date: Sun, 3 May 2015 18:11:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: soc-camera: opinion poll - future directions
+Message-ID: <Pine.LNX.4.64.1505031800140.4237@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a description of 'samsung,flash-led' property
-to the samsung-s5c73m3.txt.
+Hi all,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: devicetree@vger.kernel.org
----
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |    5 +++++
- 1 file changed, 5 insertions(+)
+Just a quick opinion poll - where and how should the soc-camera framework 
+and drivers be heading? Possible (probably not all) directions:
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
-index 2c85c45..8a413c0 100644
---- a/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
-@@ -32,6 +32,10 @@ Optional properties:
- - clock-frequency   : the frequency at which the "cis_extclk" clock should be
- 		      configured to operate, in Hz; if this property is not
- 		      specified default 24 MHz value will be used.
-+- samsung,flash-led : phandle to the flash LED associated with this sensor.
-+		      Flash LED is represented by the child node of a flash LED
-+		      device
-+		      (see Documentation/devicetree/bindings/leds/common.txt).
- 
- The common video interfaces bindings (see video-interfaces.txt) should be used
- to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
-@@ -78,6 +82,7 @@ i2c@138A000000 {
- 		clock-names = "cis_extclk";
- 		reset-gpios = <&gpf1 3 1>;
- 		standby-gpios = <&gpm0 1 1>;
-+		samsung,flash-led = <&camera1_flash>;
- 		port {
- 			s5c73m3_ep: endpoint {
- 				remote-endpoint = <&csis0_ep>;
--- 
-1.7.9.5
+(1) all is good, keep as is. That means keep all drivers, killing them off 
+only when it becomes very obvious, that noone wants them, keep developing 
+drivers, that are still being used and updating all of them on any API 
+updates. Keep me as maintainer, which means slow patch processing rate and 
+no active participation in new developments - at hardware, soc-camera or 
+V4L levels.
 
+(2) we want more! I.e. some contributors are planning to either add new 
+drivers to it or significantly develop existing ones, see significant 
+benefit in it. In this case it might become necessary to replace me with 
+someone, who can be more active in this area.
+
+(3) slowly phase out. Try to either deprecate and remove soc-camera 
+drivers one by one or move them out to become independent V4L2 host or 
+subdevice drivers, but keep updating while still there.
+
+(4) basically as (3) but even more aggressively - get rid of it ASAP:)
+
+Opinions? Expecially would be interesting to hear from respective 
+host-driver maintainers / developers, sorry, not adding CCs, they probably 
+read the list anyway:)
+
+Thanks
+Guennadi
