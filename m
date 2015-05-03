@@ -1,60 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:51366 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752835AbbETJSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 05:18:11 -0400
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [RFC PATCH 6/6] [media] rc: teach lirc how to send scancodes
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Wed, 20 May 2015 11:18:09 +0200
-From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-In-Reply-To: <20150520060853.5d3a5e0d@recife.lan>
-References: <cover.1426801061.git.sean@mess.org>
- <985a9b11e5e02eb43e16d27db23086528434be24.1426801061.git.sean@mess.org>
- <d83477bae9a733323fd072def6384a3b@hardeman.nu>
- <20150520060853.5d3a5e0d@recife.lan>
-Message-ID: <cd8f8ae67e82660173b0d291f394d810@hardeman.nu>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52785 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751802AbbECJy7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 05:54:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/9] ov9640: avoid calling ov9640_res_roundup() twice
+Date: Sun,  3 May 2015 11:54:34 +0200
+Message-Id: <1430646876-19594-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-05-20 11:08, Mauro Carvalho Chehab wrote:
-> Em Wed, 20 May 2015 10:53:59 +0200
-> David Härdeman <david@hardeman.nu> escreveu:
-> 
->> On 2015-03-19 22:50, Sean Young wrote:
->> > The send mode has to be switched to LIRC_MODE_SCANCODE and then you can
->> > send one scancode with a write. The encoding is the same as for
->> > receiving
->> > scancodes.
->> 
->> Why do the encoding in-kernel when it can be done in userspace?
->> 
->> I'd understand if it was hardware that accepted a scancode as input, 
->> but
->> that doesn't seem to be the case?
-> 
-> IMO, that makes the interface clearer. Also, the encoding code is 
-> needed
-> anyway, as it is needed to setup the wake up keycode on some hardware.
-> So, we already added encoder capabilities at some decoders:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I know.
+Simplify ov9640_s_fmt and ov9640_set_fmt
 
-But with the proposed API userspace would have to first try to send a 
-scancode + protocol, then see what the error code was, and if it 
-indicated that the kernel couldn't encode the scancode, userspace would 
-anyway have to encode it itself and then try again with raw events?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov9640.c | 24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
 
-I think that's a bad API (to put it mildly).
-
-There's simply no need to encode the scancodes in kernel (even if the 
-code happens to be present for a random and fluctuating set of 
-protocols) and any well-written userspace would have to include code to 
-encode to any protocol it wants to support (since it can't rely on the 
-kernel supporting any given protocol)....what does that buy you except a 
-hairy API and added complexity?
+diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
+index 8caae1c..c8ac41e 100644
+--- a/drivers/media/i2c/soc_camera/ov9640.c
++++ b/drivers/media/i2c/soc_camera/ov9640.c
+@@ -486,11 +486,8 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov9640_reg_alt alts = {0};
+-	enum v4l2_colorspace cspace;
+-	u32 code = mf->code;
+ 	int ret;
+ 
+-	ov9640_res_roundup(&mf->width, &mf->height);
+ 	ov9640_alter_regs(mf->code, &alts);
+ 
+ 	ov9640_reset(client);
+@@ -499,24 +496,7 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
+ 	if (ret)
+ 		return ret;
+ 
+-	switch (code) {
+-	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+-		cspace = V4L2_COLORSPACE_SRGB;
+-		break;
+-	default:
+-		code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		cspace = V4L2_COLORSPACE_JPEG;
+-	}
+-
+-	ret = ov9640_write_regs(client, mf->width, code, &alts);
+-	if (!ret) {
+-		mf->code	= code;
+-		mf->colorspace	= cspace;
+-	}
+-
+-	return ret;
++	return ov9640_write_regs(client, mf->width, mf->code, &alts);
+ }
+ 
+ static int ov9640_set_fmt(struct v4l2_subdev *sd,
+@@ -539,8 +519,10 @@ static int ov9640_set_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	default:
+ 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
++		/* fall through */
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		mf->colorspace = V4L2_COLORSPACE_JPEG;
++		break;
+ 	}
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-- 
+2.1.4
 
