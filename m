@@ -1,812 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60064 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933240AbbELRvK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 13:51:10 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 2/3] e4000: various small changes
-Date: Tue, 12 May 2015 20:50:43 +0300
-Message-Id: <1431453044-3775-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1431453044-3775-1-git-send-email-crope@iki.fi>
-References: <1431453044-3775-1-git-send-email-crope@iki.fi>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50098 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751060AbbECKVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 06:21:44 -0400
+Message-ID: <5545F6AE.1000607@xs4all.nl>
+Date: Sun, 03 May 2015 12:21:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com
+CC: laurent.pinchart@ideasonboard.com,
+	sergei.shtylyov@cogentembedded.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3 1/1] V4L2: platform: Renesas R-Car JPEG codec driver
+References: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Rename device state from 's' to 'dev'.
-* Move single include to driver private header.
-* Change error handling type of each function to one I tend use
-nowadays.
-* Remove dummy register write from init. Even Windows driver does this
-multiple times remove it as I have never seen any I2C errors.
-* Define I2C client pointer for each function and use it.
-* Do not clean tuner ops during driver remove - not needed.
-* Disable sysfs device bind / unbind. We are not allowed manually
-bind / unbind device from the driver currently.
-* Rename some other variables.
+Hi Mikhail,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c      | 358 +++++++++++++++++++-------------------
- drivers/media/tuners/e4000.h      |   1 -
- drivers/media/tuners/e4000_priv.h |   5 +-
- 3 files changed, 178 insertions(+), 186 deletions(-)
+Thank you for the patch!
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index cda8bcf..57bdca4 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -19,113 +19,112 @@
-  */
- 
- #include "e4000_priv.h"
--#include <linux/math64.h>
- 
- static int e4000_init(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 
--	dev_dbg(&s->client->dev, "\n");
--
--	/* dummy I2C to ensure I2C wakes up */
--	ret = regmap_write(s->regmap, 0x02, 0x40);
-+	dev_dbg(&client->dev, "\n");
- 
- 	/* reset */
--	ret = regmap_write(s->regmap, 0x00, 0x01);
-+	ret = regmap_write(dev->regmap, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	/* disable output clock */
--	ret = regmap_write(s->regmap, 0x06, 0x00);
-+	ret = regmap_write(dev->regmap, 0x06, 0x00);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_write(s->regmap, 0x7a, 0x96);
-+	ret = regmap_write(dev->regmap, 0x7a, 0x96);
- 	if (ret)
- 		goto err;
- 
- 	/* configure gains */
--	ret = regmap_bulk_write(s->regmap, 0x7e, "\x01\xfe", 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x7e, "\x01\xfe", 2);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_write(s->regmap, 0x82, 0x00);
-+	ret = regmap_write(dev->regmap, 0x82, 0x00);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_write(s->regmap, 0x24, 0x05);
-+	ret = regmap_write(dev->regmap, 0x24, 0x05);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(s->regmap, 0x87, "\x20\x01", 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x87, "\x20\x01", 2);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(s->regmap, 0x9f, "\x7f\x07", 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x9f, "\x7f\x07", 2);
- 	if (ret)
- 		goto err;
- 
- 	/* DC offset control */
--	ret = regmap_write(s->regmap, 0x2d, 0x1f);
-+	ret = regmap_write(dev->regmap, 0x2d, 0x1f);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(s->regmap, 0x70, "\x01\x01", 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x70, "\x01\x01", 2);
- 	if (ret)
- 		goto err;
- 
- 	/* gain control */
--	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	ret = regmap_write(dev->regmap, 0x1a, 0x17);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_write(s->regmap, 0x1f, 0x1a);
-+	ret = regmap_write(dev->regmap, 0x1f, 0x1a);
- 	if (ret)
- 		goto err;
- 
--	s->active = true;
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev->active = true;
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_sleep(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 
--	dev_dbg(&s->client->dev, "\n");
-+	dev_dbg(&client->dev, "\n");
- 
--	s->active = false;
-+	dev->active = false;
- 
--	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	ret = regmap_write(dev->regmap, 0x00, 0x00);
- 	if (ret)
- 		goto err;
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_set_params(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i;
- 	unsigned int div_n, k, k_cw, div_out;
- 	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
- 
--	dev_dbg(&s->client->dev,
--			"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
--			c->delivery_system, c->frequency, c->bandwidth_hz);
-+	dev_dbg(&client->dev,
-+		"delivery_system=%d frequency=%u bandwidth_hz=%u\n",
-+		c->delivery_system, c->frequency, c->bandwidth_hz);
- 
- 	/* gain control manual */
--	ret = regmap_write(s->regmap, 0x1a, 0x00);
-+	ret = regmap_write(dev->regmap, 0x1a, 0x00);
- 	if (ret)
- 		goto err;
- 
-@@ -148,20 +147,19 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		if (c->frequency <= e4000_pll_lut[i].freq)
- 			break;
- 	}
--
- 	if (i == ARRAY_SIZE(e4000_pll_lut)) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	#define F_REF s->clock
-+	#define F_REF dev->clk
- 	div_out = e4000_pll_lut[i].div_out;
- 	f_vco = (u64) c->frequency * div_out;
- 	/* calculate PLL integer and fractional control word */
- 	div_n = div_u64_rem(f_vco, F_REF, &k);
- 	k_cw = div_u64((u64) k * 0x10000, F_REF);
- 
--	dev_dbg(&s->client->dev,
-+	dev_dbg(&client->dev,
- 		"frequency=%u f_vco=%llu F_REF=%u div_n=%u k=%u k_cw=%04x div_out=%u\n",
- 		c->frequency, f_vco, F_REF, div_n, k, k_cw, div_out);
- 
-@@ -170,7 +168,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	buf[2] = (k_cw >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div_out_reg;
--	ret = regmap_bulk_write(s->regmap, 0x09, buf, 5);
-+	ret = regmap_bulk_write(dev->regmap, 0x09, buf, 5);
- 	if (ret)
- 		goto err;
- 
-@@ -179,13 +177,12 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		if (c->frequency <= e400_lna_filter_lut[i].freq)
- 			break;
- 	}
--
- 	if (i == ARRAY_SIZE(e400_lna_filter_lut)) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	ret = regmap_write(s->regmap, 0x10, e400_lna_filter_lut[i].val);
-+	ret = regmap_write(dev->regmap, 0x10, e400_lna_filter_lut[i].val);
- 	if (ret)
- 		goto err;
- 
-@@ -194,7 +191,6 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		if (c->bandwidth_hz <= e4000_if_filter_lut[i].freq)
- 			break;
- 	}
--
- 	if (i == ARRAY_SIZE(e4000_if_filter_lut)) {
- 		ret = -EINVAL;
- 		goto err;
-@@ -203,7 +199,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	buf[0] = e4000_if_filter_lut[i].reg11_val;
- 	buf[1] = e4000_if_filter_lut[i].reg12_val;
- 
--	ret = regmap_bulk_write(s->regmap, 0x11, buf, 2);
-+	ret = regmap_bulk_write(dev->regmap, 0x11, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -212,39 +208,38 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		if (c->frequency <= e4000_band_lut[i].freq)
- 			break;
- 	}
--
- 	if (i == ARRAY_SIZE(e4000_band_lut)) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	ret = regmap_write(s->regmap, 0x07, e4000_band_lut[i].reg07_val);
-+	ret = regmap_write(dev->regmap, 0x07, e4000_band_lut[i].reg07_val);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_write(s->regmap, 0x78, e4000_band_lut[i].reg78_val);
-+	ret = regmap_write(dev->regmap, 0x78, e4000_band_lut[i].reg78_val);
- 	if (ret)
- 		goto err;
- 
- 	/* DC offset */
- 	for (i = 0; i < 4; i++) {
- 		if (i == 0)
--			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7e\x24", 3);
-+			ret = regmap_bulk_write(dev->regmap, 0x15, "\x00\x7e\x24", 3);
- 		else if (i == 1)
--			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7f", 2);
-+			ret = regmap_bulk_write(dev->regmap, 0x15, "\x00\x7f", 2);
- 		else if (i == 2)
--			ret = regmap_bulk_write(s->regmap, 0x15, "\x01", 1);
-+			ret = regmap_bulk_write(dev->regmap, 0x15, "\x01", 1);
- 		else
--			ret = regmap_bulk_write(s->regmap, 0x16, "\x7e", 1);
-+			ret = regmap_bulk_write(dev->regmap, 0x16, "\x7e", 1);
- 
- 		if (ret)
- 			goto err;
- 
--		ret = regmap_write(s->regmap, 0x29, 0x01);
-+		ret = regmap_write(dev->regmap, 0x29, 0x01);
- 		if (ret)
- 			goto err;
- 
--		ret = regmap_bulk_read(s->regmap, 0x2a, buf, 3);
-+		ret = regmap_bulk_read(dev->regmap, 0x2a, buf, 3);
- 		if (ret)
- 			goto err;
- 
-@@ -255,30 +250,31 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	swap(q_data[2], q_data[3]);
- 	swap(i_data[2], i_data[3]);
- 
--	ret = regmap_bulk_write(s->regmap, 0x50, q_data, 4);
-+	ret = regmap_bulk_write(dev->regmap, 0x50, q_data, 4);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_bulk_write(s->regmap, 0x60, i_data, 4);
-+	ret = regmap_bulk_write(dev->regmap, 0x60, i_data, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* gain control auto */
--	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	ret = regmap_write(dev->regmap, 0x1a, 0x17);
- 	if (ret)
- 		goto err;
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 
--	dev_dbg(&s->client->dev, "\n");
-+	dev_dbg(&client->dev, "\n");
- 
- 	*frequency = 0; /* Zero-IF */
- 
-@@ -288,141 +284,146 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- #if IS_ENABLED(CONFIG_VIDEO_V4L2)
- static int e4000_set_lna_gain(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "lna auto=%d->%d val=%d->%d\n",
--			s->lna_gain_auto->cur.val, s->lna_gain_auto->val,
--			s->lna_gain->cur.val, s->lna_gain->val);
-+	dev_dbg(&client->dev, "lna auto=%d->%d val=%d->%d\n",
-+		dev->lna_gain_auto->cur.val, dev->lna_gain_auto->val,
-+		dev->lna_gain->cur.val, dev->lna_gain->val);
- 
--	if (s->lna_gain_auto->val && s->if_gain_auto->cur.val)
-+	if (dev->lna_gain_auto->val && dev->if_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (s->lna_gain_auto->val)
-+	else if (dev->lna_gain_auto->val)
- 		u8tmp = 0x19;
--	else if (s->if_gain_auto->cur.val)
-+	else if (dev->if_gain_auto->cur.val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = regmap_write(s->regmap, 0x1a, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (s->lna_gain_auto->val == false) {
--		ret = regmap_write(s->regmap, 0x14, s->lna_gain->val);
-+	if (dev->lna_gain_auto->val == false) {
-+		ret = regmap_write(dev->regmap, 0x14, dev->lna_gain->val);
- 		if (ret)
- 			goto err;
- 	}
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "mixer auto=%d->%d val=%d->%d\n",
--			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
--			s->mixer_gain->cur.val, s->mixer_gain->val);
-+	dev_dbg(&client->dev, "mixer auto=%d->%d val=%d->%d\n",
-+		dev->mixer_gain_auto->cur.val, dev->mixer_gain_auto->val,
-+		dev->mixer_gain->cur.val, dev->mixer_gain->val);
- 
--	if (s->mixer_gain_auto->val)
-+	if (dev->mixer_gain_auto->val)
- 		u8tmp = 0x15;
- 	else
- 		u8tmp = 0x14;
- 
--	ret = regmap_write(s->regmap, 0x20, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x20, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (s->mixer_gain_auto->val == false) {
--		ret = regmap_write(s->regmap, 0x15, s->mixer_gain->val);
-+	if (dev->mixer_gain_auto->val == false) {
-+		ret = regmap_write(dev->regmap, 0x15, dev->mixer_gain->val);
- 		if (ret)
- 			goto err;
- 	}
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_set_if_gain(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 buf[2];
- 	u8 u8tmp;
- 
--	dev_dbg(&s->client->dev, "if auto=%d->%d val=%d->%d\n",
--			s->if_gain_auto->cur.val, s->if_gain_auto->val,
--			s->if_gain->cur.val, s->if_gain->val);
-+	dev_dbg(&client->dev, "if auto=%d->%d val=%d->%d\n",
-+		dev->if_gain_auto->cur.val, dev->if_gain_auto->val,
-+		dev->if_gain->cur.val, dev->if_gain->val);
- 
--	if (s->if_gain_auto->val && s->lna_gain_auto->cur.val)
-+	if (dev->if_gain_auto->val && dev->lna_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (s->lna_gain_auto->cur.val)
-+	else if (dev->lna_gain_auto->cur.val)
- 		u8tmp = 0x19;
--	else if (s->if_gain_auto->val)
-+	else if (dev->if_gain_auto->val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = regmap_write(s->regmap, 0x1a, u8tmp);
-+	ret = regmap_write(dev->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (s->if_gain_auto->val == false) {
--		buf[0] = e4000_if_gain_lut[s->if_gain->val].reg16_val;
--		buf[1] = e4000_if_gain_lut[s->if_gain->val].reg17_val;
--		ret = regmap_bulk_write(s->regmap, 0x16, buf, 2);
-+	if (dev->if_gain_auto->val == false) {
-+		buf[0] = e4000_if_gain_lut[dev->if_gain->val].reg16_val;
-+		buf[1] = e4000_if_gain_lut[dev->if_gain->val].reg17_val;
-+		ret = regmap_bulk_write(dev->regmap, 0x16, buf, 2);
- 		if (ret)
- 			goto err;
- 	}
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_pll_lock(struct dvb_frontend *fe)
- {
--	struct e4000 *s = fe->tuner_priv;
-+	struct e4000_dev *dev = fe->tuner_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
--	unsigned int utmp;
-+	unsigned int uitmp;
- 
--	ret = regmap_read(s->regmap, 0x07, &utmp);
-+	ret = regmap_read(dev->regmap, 0x07, &uitmp);
- 	if (ret)
- 		goto err;
- 
--	s->pll_lock->val = (utmp & 0x01);
--err:
--	if (ret)
--		dev_dbg(&s->client->dev, "failed=%d\n", ret);
-+	dev->pll_lock->val = (uitmp & 0x01);
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
-+	struct e4000_dev *dev = container_of(ctrl->handler, struct e4000_dev, hdl);
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 
--	if (!s->active)
-+	if (!dev->active)
- 		return 0;
- 
- 	switch (ctrl->id) {
- 	case  V4L2_CID_RF_TUNER_PLL_LOCK:
--		ret = e4000_pll_lock(s->fe);
-+		ret = e4000_pll_lock(dev->fe);
- 		break;
- 	default:
--		dev_dbg(&s->client->dev, "unknown ctrl: id=%d name=%s\n",
--				ctrl->id, ctrl->name);
-+		dev_dbg(&client->dev, "unknown ctrl: id=%d name=%s\n",
-+			ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -431,35 +432,35 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 
- static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
--	struct dvb_frontend *fe = s->fe;
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	struct e4000_dev *dev = container_of(ctrl->handler, struct e4000_dev, hdl);
-+	struct i2c_client *client = dev->client;
-+	struct dtv_frontend_properties *c = &dev->fe->dtv_property_cache;
- 	int ret;
- 
--	if (!s->active)
-+	if (!dev->active)
- 		return 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:
--		c->bandwidth_hz = s->bandwidth->val;
--		ret = e4000_set_params(s->fe);
-+		c->bandwidth_hz = dev->bandwidth->val;
-+		ret = e4000_set_params(dev->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_LNA_GAIN:
--		ret = e4000_set_lna_gain(s->fe);
-+		ret = e4000_set_lna_gain(dev->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_MIXER_GAIN:
--		ret = e4000_set_mixer_gain(s->fe);
-+		ret = e4000_set_mixer_gain(dev->fe);
- 		break;
- 	case  V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
- 	case  V4L2_CID_RF_TUNER_IF_GAIN:
--		ret = e4000_set_if_gain(s->fe);
-+		ret = e4000_set_if_gain(dev->fe);
- 		break;
- 	default:
--		dev_dbg(&s->client->dev, "unknown ctrl: id=%d name=%s\n",
--				ctrl->id, ctrl->name);
-+		dev_dbg(&client->dev, "unknown ctrl: id=%d name=%s\n",
-+			ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -491,138 +492,129 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
-  * subdev itself, just to avoid reinventing the wheel.
-  */
- static int e4000_probe(struct i2c_client *client,
--		const struct i2c_device_id *id)
-+		       const struct i2c_device_id *id)
- {
-+	struct e4000_dev *dev;
- 	struct e4000_config *cfg = client->dev.platform_data;
- 	struct dvb_frontend *fe = cfg->fe;
--	struct e4000 *s;
- 	int ret;
--	unsigned int utmp;
-+	unsigned int uitmp;
- 	static const struct regmap_config regmap_config = {
- 		.reg_bits = 8,
- 		.val_bits = 8,
--		.max_register = 0xff,
- 	};
- 
--	s = kzalloc(sizeof(struct e4000), GFP_KERNEL);
--	if (!s) {
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (!dev) {
- 		ret = -ENOMEM;
--		dev_err(&client->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
--	s->clock = cfg->clock;
--	s->client = client;
--	s->fe = cfg->fe;
--	s->regmap = devm_regmap_init_i2c(client, &regmap_config);
--	if (IS_ERR(s->regmap)) {
--		ret = PTR_ERR(s->regmap);
--		goto err;
-+	dev->clk = cfg->clock;
-+	dev->client = client;
-+	dev->fe = cfg->fe;
-+	dev->regmap = devm_regmap_init_i2c(client, &regmap_config);
-+	if (IS_ERR(dev->regmap)) {
-+		ret = PTR_ERR(dev->regmap);
-+		goto err_kfree;
- 	}
- 
- 	/* check if the tuner is there */
--	ret = regmap_read(s->regmap, 0x02, &utmp);
-+	ret = regmap_read(dev->regmap, 0x02, &uitmp);
- 	if (ret)
--		goto err;
-+		goto err_kfree;
- 
--	dev_dbg(&s->client->dev, "chip id=%02x\n", utmp);
-+	dev_dbg(&client->dev, "chip id=%02x\n", uitmp);
- 
--	if (utmp != 0x40) {
-+	if (uitmp != 0x40) {
- 		ret = -ENODEV;
--		goto err;
-+		goto err_kfree;
- 	}
- 
- 	/* put sleep as chip seems to be in normal mode by default */
--	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	ret = regmap_write(dev->regmap, 0x00, 0x00);
- 	if (ret)
--		goto err;
-+		goto err_kfree;
- 
- #if IS_ENABLED(CONFIG_VIDEO_V4L2)
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&s->hdl, 9);
--	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_handler_init(&dev->hdl, 9);
-+	dev->bandwidth_auto = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
--	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	dev->bandwidth = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
--	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
--	s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &dev->bandwidth_auto, 0, false);
-+	dev->lna_gain_auto = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_LNA_GAIN_AUTO, 0, 1, 1, 1);
--	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	dev->lna_gain = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_LNA_GAIN, 0, 15, 1, 10);
--	v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
--	s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &dev->lna_gain_auto, 0, false);
-+	dev->mixer_gain_auto = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO, 0, 1, 1, 1);
--	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	dev->mixer_gain = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_MIXER_GAIN, 0, 1, 1, 1);
--	v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
--	s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &dev->mixer_gain_auto, 0, false);
-+	dev->if_gain_auto = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_IF_GAIN_AUTO, 0, 1, 1, 1);
--	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	dev->if_gain = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_IF_GAIN, 0, 54, 1, 0);
--	v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
--	s->pll_lock = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &dev->if_gain_auto, 0, false);
-+	dev->pll_lock = v4l2_ctrl_new_std(&dev->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_PLL_LOCK,  0, 1, 1, 0);
--	if (s->hdl.error) {
--		ret = s->hdl.error;
--		dev_err(&s->client->dev, "Could not initialize controls\n");
--		v4l2_ctrl_handler_free(&s->hdl);
--		goto err;
-+	if (dev->hdl.error) {
-+		ret = dev->hdl.error;
-+		dev_err(&client->dev, "Could not initialize controls\n");
-+		v4l2_ctrl_handler_free(&dev->hdl);
-+		goto err_kfree;
- 	}
- 
--	s->sd.ctrl_handler = &s->hdl;
-+	dev->sd.ctrl_handler = &dev->hdl;
- #endif
--
--	dev_info(&s->client->dev, "Elonics E4000 successfully identified\n");
--
--	fe->tuner_priv = s;
-+	fe->tuner_priv = dev;
- 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
-+	v4l2_set_subdevdata(&dev->sd, client);
-+	i2c_set_clientdata(client, &dev->sd);
- 
--	v4l2_set_subdevdata(&s->sd, client);
--	i2c_set_clientdata(client, &s->sd);
--
-+	dev_info(&client->dev, "Elonics E4000 successfully identified\n");
- 	return 0;
-+err_kfree:
-+	kfree(dev);
- err:
--	if (ret) {
--		dev_dbg(&client->dev, "failed=%d\n", ret);
--		kfree(s);
--	}
--
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int e4000_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
--	struct e4000 *s = container_of(sd, struct e4000, sd);
--	struct dvb_frontend *fe = s->fe;
-+	struct e4000_dev *dev = container_of(sd, struct e4000_dev, sd);
- 
- 	dev_dbg(&client->dev, "\n");
- 
- #if IS_ENABLED(CONFIG_VIDEO_V4L2)
--	v4l2_ctrl_handler_free(&s->hdl);
-+	v4l2_ctrl_handler_free(&dev->hdl);
- #endif
--	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
--	fe->tuner_priv = NULL;
--	kfree(s);
-+	kfree(dev);
- 
- 	return 0;
- }
- 
--static const struct i2c_device_id e4000_id[] = {
-+static const struct i2c_device_id e4000_id_table[] = {
- 	{"e4000", 0},
- 	{}
- };
--MODULE_DEVICE_TABLE(i2c, e4000_id);
-+MODULE_DEVICE_TABLE(i2c, e4000_id_table);
- 
- static struct i2c_driver e4000_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "e4000",
-+		.suppress_bind_attrs = true,
- 	},
- 	.probe		= e4000_probe,
- 	.remove		= e4000_remove,
--	.id_table	= e4000_id,
-+	.id_table	= e4000_id_table,
- };
- 
- module_i2c_driver(e4000_driver);
-diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-index e74b8b2..aa9340c 100644
---- a/drivers/media/tuners/e4000.h
-+++ b/drivers/media/tuners/e4000.h
-@@ -21,7 +21,6 @@
- #ifndef E4000_H
- #define E4000_H
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- /*
-diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-index 6214fc0..8e991df 100644
---- a/drivers/media/tuners/e4000_priv.h
-+++ b/drivers/media/tuners/e4000_priv.h
-@@ -22,14 +22,15 @@
- #define E4000_PRIV_H
- 
- #include "e4000.h"
-+#include <linux/math64.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
- #include <linux/regmap.h>
- 
--struct e4000 {
-+struct e4000_dev {
- 	struct i2c_client *client;
- 	struct regmap *regmap;
--	u32 clock;
-+	u32 clk;
- 	struct dvb_frontend *fe;
- 	struct v4l2_subdev sd;
- 	bool active;
--- 
-http://palosaari.fi/
+I have one high-level comment: please rename the source to r-car-jpu.c. It's
+good practice to start with the SoC name since 'jpu' by itself is not very
+descriptive.
 
+I have a few more comments (mostly easy ones) below:
+
+On 04/29/2015 11:53 PM, Mikhail Ulyanov wrote:
+> Here's the the driver for the Renesas R-Car JPEG processing unit driver.
+> 
+> The driver is implemented within the V4L2 framework as a mem-to-mem device.  It
+> presents two video nodes to userspace, one for the encoding part, and one for
+> the decoding part.
+> 
+> It was found that the only working mode for encoding is no markers output, so we
+> generate it with software. In current version of driver we also use software
+> JPEG header parsing because with hardware parsing performance is lower then
+> desired.
+> 
+> From a userspace point of view the encoding process is typical (S_FMT, REQBUF,
+> optionally QUERYBUF, QBUF, STREAMON, DQBUF) for both the source and destination
+> queues. The decoding process requires that the source queue performs S_FMT,
+> REQBUF, (QUERYBUF), QBUF and STREAMON. After STREAMON on the source queue, it is
+> possible to perform G_FMT on the destination queue to find out the processed
+> image width and height in order to be able to allocate an appropriate buffer -
+> it is assumed that the user does not pass the compressed image width and height
+> but instead this information is parsed from the JPEG input. This is done in
+> kernel. Then REQBUF, QBUF and STREAMON on the destination queue complete the
+> decoding and it is possible to DQBUF from both queues and finish the operation.
+> 
+> During encoding the available formats are: V4L2_PIX_FMT_NV12M and
+> V4L2_PIX_FMT_NV16M for source and V4L2_PIX_FMT_JPEG for destination.
+> 
+> During decoding the available formats are: V4L2_PIX_FMT_JPEG for source and
+> V4L2_PIX_FMT_NV12M and V4L2_PIX_FMT_NV16M for destination.
+> 
+> Performance of current version:
+> 1280x800 NV12 image encoding/decoding
+> 	decoding ~121 FPS
+> 	encoding ~190 FPS
+> 
+> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> ---
+> Changes since v2:
+>     - Kconfig entry reordered
+>     - unnecessary clk_disable_unprepare(jpu->clk) removed
+>     - ref_count fixed in jpu_resume
+>     - enable DMABUF in src_vq->io_modes
+>     - remove jpu_s_priority jpu_g_priority
+>     - jpu_g_selection fixed
+>     - timeout in jpu_reset added and hardware reset reworked
+>     - remove unused macros
+>     - JPEG header parsing now is software because of performance issues
+>       based on s5p-jpu code
+>     - JPEG header generation redesigned:
+>       JPEG header(s) pre-generated and memcpy'ed on encoding
+>       we only fill the necessary fields
+>       more "transparent" header format description
+>     - S_FMT, G_FMT and TRY_FMT hooks redesigned
+>       partially inspired by VSP1 driver code
+>     - some code was reformatted
+>     - image formats handling redesigned
+>     - multi-planar V4L2 API now in use
+>     - now passes v4l2-compliance tool check
+> 
+> Cnanges since v1:
+>     - s/g_fmt function simplified
+>     - default format for queues added
+>     - dumb vidioc functions added to be in compliance with standard api:
+>         jpu_s_priority, jpu_g_priority
+>     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
+>       now in use by the same reason
+> 
+>  drivers/media/platform/Kconfig  |   11 +
+>  drivers/media/platform/Makefile |    1 +
+>  drivers/media/platform/jpu.c    | 1724 +++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 1736 insertions(+)
+>  create mode 100644 drivers/media/platform/jpu.c
+> 
+
+<snip>
+
+> diff --git a/drivers/media/platform/jpu.c b/drivers/media/platform/jpu.c
+> new file mode 100644
+> index 0000000..6c658cc
+> --- /dev/null
+> +++ b/drivers/media/platform/jpu.c
+
+<snip>
+
+> +/**
+> + * struct jpu - JPEG IP abstraction
+> + * @mutex: the mutex protecting this structure
+> + * @lock: spinlock protecting the device contexts
+> + * @v4l2_dev: v4l2 device for mem2mem mode
+> + * @vfd_encoder: video device node for encoder mem2mem mode
+> + * @vfd_decoder: video device node for decoder mem2mem mode
+> + * @m2m_dev: v4l2 mem2mem device data
+> + * @regs: JPEG IP registers mapping
+> + * @irq: JPEG IP irq
+> + * @clk: JPEG IP clock
+> + * @dev: JPEG IP struct device
+> + * @alloc_ctx: videobuf2 memory allocator's context
+> + * @ref_counter: reference counter
+> + */
+> +struct jpu {
+> +	struct mutex	mutex;
+> +	spinlock_t	lock;
+> +	struct v4l2_device	v4l2_dev;
+> +	struct video_device	*vfd_encoder;
+> +	struct video_device	*vfd_decoder;
+
+Please just embed these video_device structs (so remove the '*'). This means
+that the release callback of each video_device should be set to
+video_device_release_empty() and that the video_device_alloc/release can be
+removed.
+
+The use of video_device_alloc/release is deprecated and will eventually
+disappear.
+
+> +	struct v4l2_m2m_dev	*m2m_dev;
+> +
+> +	void __iomem		*regs;
+> +	unsigned int		irq;
+> +	struct clk		*clk;
+> +	struct device		*dev;
+> +	void			*alloc_ctx;
+> +	int			ref_count;
+> +};
+> +
+
+<snip>
+
+> +static struct jpu_fmt jpu_formats[] = {
+> +	{ "JPEG JFIF", V4L2_PIX_FMT_JPEG, V4L2_COLORSPACE_JPEG,
+> +	  {0, 0}, 0, 0, 0, 1, JPU_ENC_CAPTURE | JPU_DEC_OUTPUT },
+> +	{ "YUV 4:2:2 planar, Y/CbCr", V4L2_PIX_FMT_NV16M, V4L2_COLORSPACE_SRGB,
+> +	  {8, 16}, 2, 2, JPU_JPEG_422, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
+> +	{ "YUV 4:2:0 planar, Y/CbCr", V4L2_PIX_FMT_NV12M, V4L2_COLORSPACE_SRGB,
+> +	  {8, 16}, 2, 2, JPU_JPEG_420, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE }
+> +};
+
+Drop the 'name' field: the v4l2 core will now fill in the format description
+based on the fourcc value. This change was merged a few days ago in the media_tree
+repo.
+
+<snip>
+
+> +static int jpu_enum_fmt(struct v4l2_fmtdesc *f, u32 type)
+> +{
+> +	unsigned int i, num = 0;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(jpu_formats); ++i) {
+> +		if (jpu_formats[i].types & type) {
+> +			if (num == f->index)
+> +				break;
+> +			++num;
+> +		}
+> +	}
+> +
+> +	if (i >= ARRAY_SIZE(jpu_formats))
+> +		return -EINVAL;
+> +
+> +	strlcpy(f->description, jpu_formats[i].name, sizeof(f->description));
+
+So this line can be dropped as well.
+
+> +	f->pixelformat = jpu_formats[i].fourcc;
+> +
+> +	return 0;
+> +}
+
+<snip>
+
+> +static int jpu_g_selection(struct file *file, void *priv,
+> +			   struct v4l2_selection *s)
+> +{
+> +	struct jpu_ctx *ctx = fh_to_ctx(priv);
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +		s->r.width = ctx->out_q.format.width;
+> +		s->r.height = ctx->out_q.format.height;
+> +		break;
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+> +		s->r.width = ctx->cap_q.format.width;
+> +		s->r.height = ctx->cap_q.format.height;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	s->r.left = 0;
+> +	s->r.top = 0;
+> +	return 0;
+> +}
+
+Why do you implement g_selection? You cannot crop or compose, so what's the point?
+
+The code is wrong anyway since it does not check s->type. CROP for a CAPTURE vs an
+OUTPUT buffer should result in different values.
+
+<snip>
+
+> +static int jpu_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void jpu_stop_streaming(struct vb2_queue *q)
+> +{
+> +}
+
+You can drop these empty start/stop functions.
+
+> +
+> +static struct vb2_ops jpu_qops = {
+> +	.queue_setup		= jpu_queue_setup,
+> +	.buf_prepare		= jpu_buf_prepare,
+> +	.buf_queue		= jpu_buf_queue,
+> +	.wait_prepare		= vb2_ops_wait_prepare,
+> +	.wait_finish		= vb2_ops_wait_finish,
+> +	.start_streaming	= jpu_start_streaming,
+> +	.stop_streaming		= jpu_stop_streaming,
+> +};
+> +
+
+<snip>
+
+Regards,
+
+	Hans
