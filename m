@@ -1,86 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9266 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185AbbEUJKx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:10:53 -0400
-Message-id: <555DA119.9030904@samsung.com>
-Date: Thu, 21 May 2015 11:10:49 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
- samsung,flash-led property
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
- <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.18]:62206 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751007AbbECUez (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 May 2015 16:34:55 -0400
+Date: Sun, 3 May 2015 22:34:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 7/9] ov9640: avoid calling ov9640_res_roundup() twice
+In-Reply-To: <1430646876-19594-8-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1505032234040.6055@axis700.grange>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+ <1430646876-19594-8-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Hans,
 
-On 05/21/2015 12:00 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Wed, May 20, 2015 at 04:10:15PM +0200, Jacek Anaszewski wrote:
->> This patch adds examples for samsung,flash-led property to the
->> samsung-fimc.txt.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: devicetree@vger.kernel.org
->> ---
->>   .../devicetree/bindings/media/samsung-fimc.txt     |    4 ++++
->>   1 file changed, 4 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> index 922d6f8..57edffa 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -126,6 +126,8 @@ Example:
->>   			clocks = <&camera 1>;
->>   			clock-names = "mclk";
->>
->> +			samsung,flash-led = <&front_cam_flash>;
->> +
->>   			port {
->>   				s5k6aa_ep: endpoint {
->>   					remote-endpoint = <&fimc0_ep>;
->> @@ -147,6 +149,8 @@ Example:
->>   			clocks = <&camera 0>;
->>   			clock-names = "mclk";
->>
->> +			samsung,flash-led = <&rear_cam_flash>;
->> +
->>   			port {
->>   				s5c73m3_1: endpoint {
->>   					data-lanes = <1 2 3 4>;
->
-> Oops. I missed this property would have ended to the sensor's DT node. I
-> don't think we should have properties here that are parsed by another
-> driver --- let's discuss this tomorrow.
+On Sun, 3 May 2015, Hans Verkuil wrote:
 
-exynos4-is driver already parses sensor nodes (at least their 'port'
-sub-nodes).
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Simplify ov9640_s_fmt and ov9640_set_fmt
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/i2c/soc_camera/ov9640.c | 24 +++---------------------
+>  1 file changed, 3 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
+> index 8caae1c..c8ac41e 100644
+> --- a/drivers/media/i2c/soc_camera/ov9640.c
+> +++ b/drivers/media/i2c/soc_camera/ov9640.c
+> @@ -486,11 +486,8 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	struct ov9640_reg_alt alts = {0};
+> -	enum v4l2_colorspace cspace;
+> -	u32 code = mf->code;
+>  	int ret;
+>  
+> -	ov9640_res_roundup(&mf->width, &mf->height);
+>  	ov9640_alter_regs(mf->code, &alts);
+>  
+>  	ov9640_reset(client);
+> @@ -499,24 +496,7 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
+>  	if (ret)
+>  		return ret;
+>  
+> -	switch (code) {
+> -	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+> -	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+> -		cspace = V4L2_COLORSPACE_SRGB;
+> -		break;
+> -	default:
+> -		code = MEDIA_BUS_FMT_UYVY8_2X8;
+> -	case MEDIA_BUS_FMT_UYVY8_2X8:
+> -		cspace = V4L2_COLORSPACE_JPEG;
+> -	}
+> -
+> -	ret = ov9640_write_regs(client, mf->width, code, &alts);
+> -	if (!ret) {
+> -		mf->code	= code;
+> -		mf->colorspace	= cspace;
+> -	}
+> -
+> -	return ret;
+> +	return ov9640_write_regs(client, mf->width, mf->code, &alts);
+>  }
+>  
+>  static int ov9640_set_fmt(struct v4l2_subdev *sd,
+> @@ -539,8 +519,10 @@ static int ov9640_set_fmt(struct v4l2_subdev *sd,
+>  		break;
+>  	default:
+>  		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+> +		/* fall through */
+>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+>  		mf->colorspace = V4L2_COLORSPACE_JPEG;
+> +		break;
 
-> There are two main options that I can think of --- either put the property
-> under the bridge (ISP) driver's device node as a temporary solution that
-> works on a few ISP drivers, or think how sensor modules should be modelled,
-> in which case we'd have some idea how lens device would be taken into
-> account.
->
-> Cc Sebastian.
->
+Again, not sure this is a good idea. Otherwise
 
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
--- 
-Best Regards,
-Jacek Anaszewski
+Thanks
+Guennadi
+
+>  	}
+>  
+>  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> -- 
+> 2.1.4
+> 
