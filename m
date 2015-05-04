@@ -1,266 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51451 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185AbbE1Vtv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:51 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
-Subject: [PATCH 12/35] DocBook: rewrite FE_GET_PROPERTY/FE_SET_PROPERTY to use the std way
-Date: Thu, 28 May 2015 18:49:15 -0300
-Message-Id: <271e9ddefa5f4ab45b26dd653dcdd9d03a163099.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:23673 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909AbbEDRdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 13:33:24 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: [PATCH v6 00/11]
+Date: Mon, 04 May 2015 19:32:53 +0200
+Message-id: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the standard way of documenting ioctls for FE_GET_PROPERTY
-and FE_SET_PROPERTY.
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The sixth version of this patchset addresses recent comments on the mailing
+list. Please see the changelog below for details.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 7ddab2ba9b40..272d2e5c7488 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -7,6 +7,7 @@ the capability ioctls weren't implemented yet via the new way.</para>
- <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
- API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
- struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
-+
- <section id="dtv-stats">
- <title>DTV stats type</title>
- <programlisting>
-@@ -66,102 +67,6 @@ struct dtv_properties {
- </programlisting>
- </section>
- 
--<section id="FE_GET_PROPERTY">
--<title>FE_GET_PROPERTY</title>
--<para>DESCRIPTION
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>This ioctl call returns one or more frontend properties. This call only
-- requires read-only access to the device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--<para>SYNOPSIS
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>int ioctl(int fd, int request = <link linkend="FE_GET_PROPERTY">FE_GET_PROPERTY</link>,
-- dtv_properties &#x22C6;props);</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--<para>PARAMETERS
--</para>
--<informaltable><tgroup cols="2"><tbody><row><entry align="char">
--<para>int fd</para>
--</entry><entry
-- align="char">
--<para>File descriptor returned by a previous call to open().</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>int num</para>
--</entry><entry
-- align="char">
--<para>Equals <link linkend="FE_GET_PROPERTY">FE_GET_PROPERTY</link> for this command.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>struct dtv_property *props</para>
--</entry><entry
-- align="char">
--<para>Points to the location where the front-end property commands are stored.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--&return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row>
--  <entry align="char"><para>EOPNOTSUPP</para></entry>
--  <entry align="char"><para>Property type not supported.</para></entry>
-- </row></tbody></tgroup></informaltable>
--</section>
--
--<section id="FE_SET_PROPERTY">
--<title>FE_SET_PROPERTY</title>
--<para>DESCRIPTION
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>This ioctl call sets one or more frontend properties. This call
-- requires read/write access to the device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--<para>SYNOPSIS
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>int ioctl(int fd, int request = <link linkend="FE_SET_PROPERTY">FE_SET_PROPERTY</link>,
-- dtv_properties &#x22C6;props);</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--<para>PARAMETERS
--</para>
--<informaltable><tgroup cols="2"><tbody><row><entry align="char">
--<para>int fd</para>
--</entry><entry
-- align="char">
--<para>File descriptor returned by a previous call to open().</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>int num</para>
--</entry><entry
-- align="char">
--<para>Equals <link linkend="FE_SET_PROPERTY">FE_SET_PROPERTY</link> for this command.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>struct dtv_property *props</para>
--</entry><entry
-- align="char">
--<para>Points to the location where the front-end property commands are stored.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--&return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row>
--  <entry align="char"><para>EOPNOTSUPP</para></entry>
--  <entry align="char"><para>Property type not supported.</para></entry>
-- </row></tbody></tgroup></informaltable>
--</section>
--
- <section>
- 	<title>Property types</title>
- <para>
-@@ -1315,3 +1220,120 @@ enum fe_interleaving {
- 	</section>
- 	</section>
- </section>
-+
-+<refentry id="FE_GET_PROPERTY">
-+  <refmeta>
-+    <refentrytitle>ioctl FE_GET_PROPERTY</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>FE_GET_PROPERTY</refname>
-+    <refpurpose>Returns one or more frontend properties. This call only
-+ requires read-only access to the device</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>&dtv-property; *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+        <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>FE_GET_PROPERTY</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	    <para>pointer to &dtv-property;</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>All DVB frontend devices support the
-+<constant>FE_GET_PROPERTY</constant> ioctl. It is used to get properties and
-+statistics from the frontend.
-+&return-value-dvb;.
-+</para>
-+</refsect1>
-+</refentry>
-+
-+<refentry id="FE_SET_PROPERTY">
-+  <refmeta>
-+    <refentrytitle>ioctl FE_SET_PROPERTY</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>FE_SET_PROPERTY</refname>
-+    <refpurpose>Sets one or more frontend properties. This call
-+ requires read/write access to the device</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>&dtv-property; *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+        <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>FE_SET_PROPERTY</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	    <para>pointer to &dtv-property;</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>All DVB frontend devices support the
-+<constant>FE_SET_PROPERTY</constant> ioctl. It is used to sets one or more
-+frontend properties. This is the basic command to request the frontend to tune
-+into some frequency and to start decoding the digital TV signal.
-+&return-value-dvb;.
-+</para>
-+</refsect1>
-+</refentry>
+Best wishes,
+Kamil Debski
+
+Changes since v5
+================
+- drop struct cec_timeval in favour of a __u64 that keeps the timestamp in ns
+- remove userspace documentation from Documentation/cec.txt as userspace API
+  is described in the DocBook
+- add missing documentation for the passthrough mode to the DocBook
+- add information about the number of events that can be queued
+- fix misspelling of reply
+- fix behaviour of posting an event in cec_received_msg, such that the behaviour
+  is consistent with the documentation
+
+Changes since v4
+================
+- add sequence numbering to transmitted messages
+- add sequence number handling to event hanlding
+- add passthrough mode
+- change reserved field sizes
+- fixed CEC version defines and addec CEC 2.0 commands
+- add DocBook documentation
+
+Changes since v3
+================
+- remove the promiscuous mode
+- rewrite the devicetree patches
+- fixes, expansion and partial rewrite of the documentation
+- reorder of API structures and addition of reserved fields
+- use own struct to report time (32/64 bit safe)
+- fix of handling events
+- add cec.h to include/uapi/linux/Kbuild
+- fixes in the adv76xx driver (add missing methods, change adv7604 to adv76xx)
+- cleanup of debug messages in s5p-cec driver
+- remove non necessary claiming of a gpio in the s5p-cec driver
+- cleanup headers of the s5p-cec driver
+
+Changes since v2
+===============-
+- added promiscuous mode
+- added new key codes to the input framework
+- add vendor ID reporting
+- add the possibility to clear assigned logical addresses
+- cleanup of the rc cec map
+
+Changes since v1
+================
+- documentation edited and moved to the Documentation folder
+- added key up/down message handling
+- add missing CEC commands to the cec.h file
+
+Background
+==========
+
+The work on a common CEC framework was started over three years ago by Hans
+Verkuil. Unfortunately the work has stalled. As I have received the task of
+creating a driver for the CEC interface module present on the Exynos range of
+SoCs, I got in touch with Hans. He replied that the work stalled due to his
+lack of time.
+
+Original RFC by Hans Verkuil/Martin Bugge
+=========================================
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
+
+
+Hans Verkuil (5):
+  cec: add HDMI CEC framework
+  DocBook/media: add CEC documentation
+  v4l2-subdev: add HDMI CEC ops
+  cec: adv7604: add cec support.
+  cec: adv7511: add cec support.
+
+Kamil Debski (6):
+  dts: exynos4*: add HDMI CEC pin definition to pinctrl
+  dts: exynos4: add node for the HDMI CEC device
+  dts: exynos4412-odroid*: enable the HDMI CEC device
+  HID: add HDMI CEC specific keycodes
+  rc: Add HDMI CEC protoctol handling
+  cec: s5p-cec: Add s5p-cec driver
+
+ Documentation/DocBook/media/Makefile               |    4 +-
+ Documentation/DocBook/media/v4l/biblio.xml         |   10 +
+ Documentation/DocBook/media/v4l/cec-api.xml        |   74 ++
+ Documentation/DocBook/media/v4l/cec-func-close.xml |   59 +
+ Documentation/DocBook/media/v4l/cec-func-ioctl.xml |   73 ++
+ Documentation/DocBook/media/v4l/cec-func-open.xml  |   94 ++
+ Documentation/DocBook/media/v4l/cec-func-poll.xml  |   89 ++
+ .../DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml |  275 +++++
+ .../DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml |   78 ++
+ .../DocBook/media/v4l/cec-ioc-g-adap-state.xml     |   87 ++
+ Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml |  173 +++
+ .../DocBook/media/v4l/cec-ioc-g-event.xml          |  125 ++
+ .../DocBook/media/v4l/cec-ioc-g-passthrough.xml    |   88 ++
+ .../DocBook/media/v4l/cec-ioc-g-vendor-id.xml      |   70 ++
+ .../DocBook/media/v4l/cec-ioc-receive.xml          |  185 +++
+ Documentation/DocBook/media_api.tmpl               |    6 +-
+ Documentation/cec.txt                              |  165 +++
+ .../devicetree/bindings/media/s5p-cec.txt          |   33 +
+ arch/arm/boot/dts/exynos4.dtsi                     |   12 +
+ arch/arm/boot/dts/exynos4210-pinctrl.dtsi          |    7 +
+ arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |    4 +
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |    7 +
+ drivers/media/Kconfig                              |    6 +
+ drivers/media/Makefile                             |    2 +
+ drivers/media/cec.c                                | 1191 ++++++++++++++++++++
+ drivers/media/i2c/adv7511.c                        |  347 +++++-
+ drivers/media/i2c/adv7604.c                        |  207 +++-
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/s5p-cec/Makefile            |    4 +
+ drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |   37 +
+ .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   |  208 ++++
+ drivers/media/platform/s5p-cec/regs-cec.h          |   96 ++
+ drivers/media/platform/s5p-cec/s5p_cec.c           |  283 +++++
+ drivers/media/platform/s5p-cec/s5p_cec.h           |   76 ++
+ drivers/media/rc/keymaps/Makefile                  |    1 +
+ drivers/media/rc/keymaps/rc-cec.c                  |  144 +++
+ drivers/media/rc/rc-main.c                         |    1 +
+ include/media/adv7511.h                            |    6 +-
+ include/media/cec.h                                |  142 +++
+ include/media/rc-core.h                            |    1 +
+ include/media/rc-map.h                             |    5 +-
+ include/media/v4l2-subdev.h                        |    8 +
+ include/uapi/linux/Kbuild                          |    1 +
+ include/uapi/linux/cec.h                           |  332 ++++++
+ include/uapi/linux/input.h                         |   12 +
+ 46 files changed, 4824 insertions(+), 15 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-state.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-passthrough.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-vendor-id.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+ create mode 100644 Documentation/cec.txt
+ create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
+ create mode 100644 drivers/media/cec.c
+ create mode 100644 drivers/media/platform/s5p-cec/Makefile
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+ create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+ create mode 100644 include/media/cec.h
+ create mode 100644 include/uapi/linux/cec.h
+
 -- 
-2.4.1
+1.7.9.5
 
