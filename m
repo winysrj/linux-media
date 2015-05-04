@@ -1,48 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39644 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933286AbbEOKby (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2015 06:31:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] DocBook/media: fix syntax error
-Date: Fri, 15 May 2015 12:31:36 +0200
-Message-Id: <1431685897-11153-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:56938 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbbEDRec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 13:34:32 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH v6 08/11] v4l2-subdev: add HDMI CEC ops
+Date: Mon, 04 May 2015 19:33:01 +0200
+Message-id: <1430760785-1169-9-git-send-email-k.debski@samsung.com>
+In-reply-to: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Missing varlistentry tags.
+Add callbacks to the v4l2_subdev_video_ops.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/media/v4l2-subdev.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-index 6cfc53b..8b98a0e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-@@ -186,13 +186,15 @@ In that case the application should be able to safely reuse the buffer and
- continue streaming.
- 	</para>
- 	</listitem>
-+      </varlistentry>
-+      <varlistentry>
- 	<term><errorcode>EPIPE</errorcode></term>
- 	<listitem>
- 	  <para><constant>VIDIOC_DQBUF</constant> returns this on an empty
- capture queue for mem2mem codecs if a buffer with the
- <constant>V4L2_BUF_FLAG_LAST</constant> was already dequeued and no new buffers
- are expected to become available.
--	</para>
-+	  </para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 2f0a345..9323e10 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -40,6 +40,9 @@
+ #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
+ #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ 
++#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
++#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
+@@ -48,6 +51,7 @@ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
+ struct v4l2_mbus_frame_desc;
++struct cec_msg;
+ 
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -352,6 +356,10 @@ struct v4l2_subdev_video_ops {
+ 			     const struct v4l2_mbus_config *cfg);
+ 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+ 			   unsigned int *size);
++	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
++	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
++	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
++	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
+ };
+ 
+ /*
 -- 
-2.1.4
+1.7.9.5
 
