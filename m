@@ -1,181 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49249 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757151AbbEVOAD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 10:00:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52221 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633AbbEDKvN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:51:13 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/11] cobalt: fix sparse warnings
-Date: Fri, 22 May 2015 15:59:38 +0200
-Message-Id: <1432303184-8594-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
-References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 1/5] [media] DocBook media: document codec draining flow
+Date: Mon,  4 May 2015 12:51:04 +0200
+Message-Id: <1430736668-28582-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
+References: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Document the interaction between VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and
+VIDIOC_ENCODER_CMD V4L2_ENC_CMD_STOP to start the draining, the V4L2_EVENT_EOS
+event signalling all capture buffers are finished and ready to be dequeud,
+the new V4L2_BUF_FLAG_LAST buffer flag indicating the last buffer being dequeued
+from the capture queue, and the poll and VIDIOC_DQBUF ioctl return values once
+the queue is drained.
 
-drivers/media/pci/cobalt/cobalt-flash.c:39:36: warning: incorrect type in initializer (different address spaces)
-drivers/media/pci/cobalt/cobalt-flash.c:54:36: warning: incorrect type in initializer (different address spaces)
-drivers/media/pci/cobalt/cobalt-flash.c:63:36: warning: incorrect type in initializer (different address spaces)
-drivers/media/pci/cobalt/cobalt-flash.c:82:36: warning: incorrect type in initializer (different address spaces)
-drivers/media/pci/cobalt/cobalt-flash.c:107:19: warning: incorrect type in assignment (different address spaces)
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cobalt/cobalt-cpld.c   |  4 ++--
- drivers/media/pci/cobalt/cobalt-driver.c |  4 ++--
- drivers/media/pci/cobalt/cobalt-driver.h | 12 ++++++------
- drivers/media/pci/cobalt/cobalt-flash.c  | 16 ++++++----------
- 4 files changed, 16 insertions(+), 20 deletions(-)
+Changes since v5:
+ - Drop "mem2mem" from subject.
+ - Mention possibly empty last buffer in the documentation.
+---
+ Documentation/DocBook/media/v4l/io.xml                 | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml | 12 +++++++++++-
+ Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml | 10 +++++++++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml        |  8 ++++++++
+ 4 files changed, 40 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cobalt/cobalt-cpld.c b/drivers/media/pci/cobalt/cobalt-cpld.c
-index 77ed9e5..05df458 100644
---- a/drivers/media/pci/cobalt/cobalt-cpld.c
-+++ b/drivers/media/pci/cobalt/cobalt-cpld.c
-@@ -26,12 +26,12 @@
- 
- static u16 cpld_read(struct cobalt *cobalt, u32 offset)
- {
--	return cobalt_bus_read32(cobalt, ADRS(offset));
-+	return cobalt_bus_read32(cobalt->bar1, ADRS(offset));
- }
- 
- static void cpld_write(struct cobalt *cobalt, u32 offset, u16 val)
- {
--	return cobalt_bus_write32(cobalt, ADRS(offset), val);
-+	return cobalt_bus_write32(cobalt->bar1, ADRS(offset), val);
- }
- 
- static void cpld_info_ver3(struct cobalt *cobalt)
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index 0534d71..c2974e6 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -296,11 +296,11 @@ static void cobalt_pci_iounmap(struct cobalt *cobalt, struct pci_dev *pci_dev)
- {
- 	if (cobalt->bar0) {
- 		pci_iounmap(pci_dev, cobalt->bar0);
--		cobalt->bar0 = 0;
-+		cobalt->bar0 = NULL;
- 	}
- 	if (cobalt->bar1) {
- 		pci_iounmap(pci_dev, cobalt->bar1);
--		cobalt->bar1 = 0;
-+		cobalt->bar1 = NULL;
- 	}
- }
- 
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.h b/drivers/media/pci/cobalt/cobalt-driver.h
-index bb062ff..3d9a9ffb 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.h
-+++ b/drivers/media/pci/cobalt/cobalt-driver.h
-@@ -342,17 +342,17 @@ static inline u32 cobalt_g_sysstat(struct cobalt *cobalt)
- 	return cobalt_read_bar1(cobalt, COBALT_SYS_STAT_BASE);
- }
- 
--#define ADRS_REG (cobalt->bar1 + COBALT_BUS_BAR1_BASE + 0)
--#define LOWER_DATA (cobalt->bar1 + COBALT_BUS_BAR1_BASE + 4)
--#define UPPER_DATA (cobalt->bar1 + COBALT_BUS_BAR1_BASE + 6)
-+#define ADRS_REG (bar1 + COBALT_BUS_BAR1_BASE + 0)
-+#define LOWER_DATA (bar1 + COBALT_BUS_BAR1_BASE + 4)
-+#define UPPER_DATA (bar1 + COBALT_BUS_BAR1_BASE + 6)
- 
--static inline u32 cobalt_bus_read32(struct cobalt *cobalt, u32 bus_adrs)
-+static inline u32 cobalt_bus_read32(void __iomem *bar1, u32 bus_adrs)
- {
- 	iowrite32(bus_adrs, ADRS_REG);
- 	return ioread32(LOWER_DATA);
- }
- 
--static inline void cobalt_bus_write16(struct cobalt *cobalt,
-+static inline void cobalt_bus_write16(void __iomem *bar1,
- 				      u32 bus_adrs, u16 data)
- {
- 	iowrite32(bus_adrs, ADRS_REG);
-@@ -362,7 +362,7 @@ static inline void cobalt_bus_write16(struct cobalt *cobalt,
- 		iowrite16(data, LOWER_DATA);
- }
- 
--static inline void cobalt_bus_write32(struct cobalt *cobalt,
-+static inline void cobalt_bus_write32(void __iomem *bar1,
- 				      u32 bus_adrs, u16 data)
- {
- 	iowrite32(bus_adrs, ADRS_REG);
-diff --git a/drivers/media/pci/cobalt/cobalt-flash.c b/drivers/media/pci/cobalt/cobalt-flash.c
-index 129f48f..89fd667 100644
---- a/drivers/media/pci/cobalt/cobalt-flash.c
-+++ b/drivers/media/pci/cobalt/cobalt-flash.c
-@@ -36,10 +36,9 @@ static struct map_info cobalt_flash_map = {
- 
- static map_word flash_read16(struct map_info *map, unsigned long offset)
- {
--	struct cobalt *cobalt = map->virt;
- 	map_word r;
- 
--	r.x[0] = cobalt_bus_read32(cobalt, ADRS(offset));
-+	r.x[0] = cobalt_bus_read32(map->virt, ADRS(offset));
- 	if (offset & 0x2)
- 		r.x[0] >>= 16;
- 	else
-@@ -51,22 +50,20 @@ static map_word flash_read16(struct map_info *map, unsigned long offset)
- static void flash_write16(struct map_info *map, const map_word datum,
- 			  unsigned long offset)
- {
--	struct cobalt *cobalt = map->virt;
- 	u16 data = (u16)datum.x[0];
- 
--	cobalt_bus_write16(cobalt, ADRS(offset), data);
-+	cobalt_bus_write16(map->virt, ADRS(offset), data);
- }
- 
- static void flash_copy_from(struct map_info *map, void *to,
- 			    unsigned long from, ssize_t len)
- {
--	struct cobalt *cobalt = map->virt;
- 	u32 src = from;
- 	u8 *dest = to;
- 	u32 data;
- 
- 	while (len) {
--		data = cobalt_bus_read32(cobalt, ADRS(src));
-+		data = cobalt_bus_read32(map->virt, ADRS(src));
- 		do {
- 			*dest = data >> (8 * (src & 3));
- 			src++;
-@@ -79,11 +76,10 @@ static void flash_copy_from(struct map_info *map, void *to,
- static void flash_copy_to(struct map_info *map, unsigned long to,
- 			  const void *from, ssize_t len)
- {
--	struct cobalt *cobalt = map->virt;
- 	const u8 *src = from;
- 	u32 dest = to;
- 
--	cobalt_info("%s: offset 0x%x: length %zu\n", __func__, dest, len);
-+	pr_info("%s: offset 0x%x: length %zu\n", __func__, dest, len);
- 	while (len) {
- 		u16 data = 0xffff;
- 
-@@ -94,7 +90,7 @@ static void flash_copy_to(struct map_info *map, unsigned long to,
- 			len--;
- 		} while (len && (dest % 2));
- 
--		cobalt_bus_write16(cobalt, ADRS(dest - 2), data);
-+		cobalt_bus_write16(map->virt, ADRS(dest - 2), data);
- 	}
- }
- 
-@@ -104,7 +100,7 @@ int cobalt_flash_probe(struct cobalt *cobalt)
- 	struct mtd_info *mtd;
- 
- 	BUG_ON(!map_bankwidth_supported(map->bankwidth));
--	map->virt = cobalt;
-+	map->virt = cobalt->bar1;
- 	map->read = flash_read16;
- 	map->write = flash_write16;
- 	map->copy_from = flash_copy_from;
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 1c17f80..cff2ffd 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1129,6 +1129,18 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
+ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
++	    <entry>0x00100000</entry>
++	    <entry>Last buffer produced by the hardware. mem2mem codec drivers
++set this flag on the capture queue for the last buffer when the
++<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
++<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. Due to hardware
++limitations, the last buffer may be empty. In this case the driver will set the
++<structfield>bytesused</structfield> field to 0, regardless of the format. Any
++Any subsequent call to the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl
++will not block anymore, but return an &EPIPE;.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+ 	    <entry>0x0000e000</entry>
+ 	    <entry>Mask for timestamp types below. To test the
+diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+index 9215627..73eb5cf 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+@@ -197,7 +197,17 @@ be muted when playing back at a non-standard speed.
+ this command does nothing. This command has two flags:
+ if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
+ set the picture to black after it stopped decoding. Otherwise the last image will
+-repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
++repeat. mem2mem decoders will stop producing new frames altogether. They will send
++a <constant>V4L2_EVENT_EOS</constant> event when the last frame has been decoded
++and all frames are ready to be dequeued and will set the
++<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last buffer of the
++capture queue to indicate there will be no new buffers produced to dequeue. This
++buffer may be empty, indicated by the driver setting the
++<structfield>bytesused</structfield> field to 0. Once the
++<constant>V4L2_BUF_FLAG_LAST</constant> flag was set, the
++<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block anymore,
++but return an &EPIPE;.
++If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
+ stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
+ will keep decoding until timestamp >= pts or until the last of the pending data from
+ its internal buffers was decoded.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+index 0619ca5..fc1d462 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
+@@ -129,7 +129,15 @@ this command.</entry>
+ encoding will continue until the end of the current <wordasword>Group
+ Of Pictures</wordasword>, otherwise encoding will stop immediately.
+ When the encoder is already stopped, this command does
+-nothing.</entry>
++nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
++when the last frame has been decoded and all frames are ready to be dequeued and
++will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last
++buffer of the capture queue to indicate there will be no new buffers produced to
++dequeue. This buffer may be empty, indicated by the driver setting the
++<structfield>bytesused</structfield> field to 0. Once the
++<constant>V4L2_BUF_FLAG_LAST</constant> flag was set, the
++<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block anymore,
++but return an &EPIPE;.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_ENC_CMD_PAUSE</constant></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 3504a7f..6cfc53b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -186,6 +186,14 @@ In that case the application should be able to safely reuse the buffer and
+ continue streaming.
+ 	</para>
+ 	</listitem>
++	<term><errorcode>EPIPE</errorcode></term>
++	<listitem>
++	  <para><constant>VIDIOC_DQBUF</constant> returns this on an empty
++capture queue for mem2mem codecs if a buffer with the
++<constant>V4L2_BUF_FLAG_LAST</constant> was already dequeued and no new buffers
++are expected to become available.
++	</para>
++	</listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect1>
 -- 
 2.1.4
 
