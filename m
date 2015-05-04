@@ -1,50 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:36147 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388AbbESQr1 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40532 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752511AbbEDK0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 12:47:27 -0400
-MIME-Version: 1.0
-In-Reply-To: <6092911.yr0lA5IaG4@wuerfel>
-References: <6092911.yr0lA5IaG4@wuerfel>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 19 May 2015 17:46:55 +0100
-Message-ID: <CA+V-a8tPSmRgNphN_CRjcsuL0xssDQ+3Oxne_mb=DQgs60ab8g@mail.gmail.com>
-Subject: Re: [PATCH] [media] ov2659: add v4l2_subdev dependency
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 4 May 2015 06:26:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 6/8] ov772x: avoid calling ov772x_select_params() twice
+Date: Mon,  4 May 2015 12:25:53 +0200
+Message-Id: <1430735155-24110-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch.
+Merge ov772x_s_fmt into ov772x_set_fmt.
 
-On Tue, May 19, 2015 at 1:39 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> The newly added ov2659 driver uses the v4l2 subdev API, but
-> can be enabled even when that API is not part of the kernel,
-> resulting in this build error:
->
-> media/i2c/ov2659.c: In function 'ov2659_get_fmt':
-> media/i2c/ov2659.c:1054:8: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-> media/i2c/ov2659.c:1054:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-> media/i2c/ov2659.c: In function 'ov2659_set_fmt':
-> media/i2c/ov2659.c:1129:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-> media/i2c/ov2659.c: In function 'ov2659_open':
-> media/i2c/ov2659.c:1264:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
->
-> This adds an explicit dependency, like all the other drivers have.
->
-Patch fixing the above issue is already posted in the ML [1].
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov772x.c | 41 +++++++++++------------------------
+ 1 file changed, 13 insertions(+), 28 deletions(-)
 
-[1] https://patchwork.linuxtv.org/patch/29665/
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index f150a8b..aa32bc5 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -895,38 +895,15 @@ static int ov772x_get_fmt(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+-{
+-	struct ov772x_priv *priv = to_ov772x(sd);
+-	const struct ov772x_color_format *cfmt;
+-	const struct ov772x_win_size *win;
+-	int ret;
+-
+-	ov772x_select_params(mf, &cfmt, &win);
+-
+-	ret = ov772x_set_params(priv, cfmt, win);
+-	if (ret < 0)
+-		return ret;
+-
+-	priv->win = win;
+-	priv->cfmt = cfmt;
+-
+-	mf->code = cfmt->code;
+-	mf->width = win->rect.width;
+-	mf->height = win->rect.height;
+-	mf->field = V4L2_FIELD_NONE;
+-	mf->colorspace = cfmt->colorspace;
+-
+-	return 0;
+-}
+-
+ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 		struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_format *format)
+ {
++	struct ov772x_priv *priv = to_ov772x(sd);
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size *win;
++	int ret;
+ 
+ 	if (format->pad)
+ 		return -EINVAL;
+@@ -939,9 +916,17 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
+ 	mf->field = V4L2_FIELD_NONE;
+ 	mf->colorspace = cfmt->colorspace;
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return ov772x_s_fmt(sd, mf);
+-	cfg->try_fmt = *mf;
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++		cfg->try_fmt = *mf;
++		return 0;
++	}
++
++	ret = ov772x_set_params(priv, cfmt, win);
++	if (ret < 0)
++		return ret;
++
++	priv->win = win;
++	priv->cfmt = cfmt;
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
 
-Cheers,
---Prabhakar Lad
