@@ -1,61 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51445 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169AbbE1Vtu (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39307 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751160AbbEDJY3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:50 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 33/35] DocBook: add a proper description for dvb_frontend_info.fe_type
-Date: Thu, 28 May 2015 18:49:36 -0300
-Message-Id: <7d9f980d7375ba315544c334c4be3fa0ac4a40e9.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	Mon, 4 May 2015 05:24:29 -0400
+From: Fabien Dessenne <fabien.dessenne@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	<hugues.fruchet@st.com>
+Subject: [PATCH v2 1/3] [media] bdisp: add DT bindings documentation
+Date: Mon, 4 May 2015 11:24:19 +0200
+Message-ID: <1430731461-8496-2-git-send-email-fabien.dessenne@st.com>
+In-Reply-To: <1430731461-8496-1-git-send-email-fabien.dessenne@st.com>
+References: <1430731461-8496-1-git-send-email-fabien.dessenne@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fe_type is deprecated at the DVB API. However, it may still
-be used by legacy DVBv3 applications. While this works with old
-devices, modern devices may support more than one delivery
-system.
+This adds DT binding documentation for STMicroelectronics bdisp driver.
 
-Add an explanation about that and a point to what should be
-used, instead, in order for legacy apps to support newer hardware.
+Signed-off-by: Fabien Dessenne <fabien.dessenne@st.com>
+---
+ .../devicetree/bindings/media/st,stih4xx.txt       | 32 ++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-index e2817f830312..1eedc4ce0e4a 100644
---- a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-+++ b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-@@ -45,9 +45,19 @@
- supported via the new <link linkend="FE_GET_PROPERTY">FE_GET_PROPERTY/FE_GET_SET_PROPERTY</link> ioctl's, using the <link linkend="DTV-DELIVERY-SYSTEM">DTV_DELIVERY_SYSTEM</link> parameter.
- </para>
- 
--<para>The usage of this field is deprecated, as it doesn't report all supported standards, and
--will provide an incomplete information for frontends that support multiple delivery systems.
--Please use <link linkend="DTV-ENUM-DELSYS">DTV_ENUM_DELSYS</link> instead.</para>
-+<para>In the old days, &dvb-frontend-info; used to contain
-+    <constant>fe_type_t</constant> field to indicate the delivery systems,
-+    filled with either FE_QPSK, FE_QAM, FE_OFDM or FE_ATSC. While this is
-+    still filled to keep backward compatibility, the usage of this
-+    field is deprecated, as it can report just one delivery system, but some
-+    devices support multiple delivery systems. Please use
-+    <link linkend="DTV-ENUM-DELSYS">DTV_ENUM_DELSYS</link> instead.
-+</para>
-+<para>On devices that support multiple delivery systems,
-+    &dvb-frontend-info;::<constant>fe_type_t</constant> is filled with the
-+    currently standard, as selected by the last call to
-+    <link linkend="FE_GET_PROPERTY">FE_SET_PROPERTY</link>
-+    using the &DTV-DELIVERY-SYSTEM; property.</para>
- </section>
- 
- 
+diff --git a/Documentation/devicetree/bindings/media/st,stih4xx.txt b/Documentation/devicetree/bindings/media/st,stih4xx.txt
+new file mode 100644
+index 0000000..df655cd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,stih4xx.txt
+@@ -0,0 +1,32 @@
++STMicroelectronics stih4xx platforms
++
++bdisp: 2D blitter for STMicroelectronics SoC.
++
++Required properties:
++- compatible: should be "st,stih407-bdisp".
++- reg: BDISP physical address location and length.
++- interrupts: BDISP interrupt number.
++- clocks: from common clock binding: handle hardware IP needed clocks, the
++  number of clocks may depend on the SoC type.
++  See ../clocks/clock-bindings.txt for details.
++- clock-names: names of the clocks listed in clocks property in the same order.
++
++Example:
++
++	bdisp0:bdisp@9f10000 {
++		compatible = "st,stih407-bdisp";
++		reg = <0x9f10000 0x1000>;
++		interrupts = <GIC_SPI 38 IRQ_TYPE_NONE>;
++		clock-names = "bdisp";
++		clocks = <&clk_s_c0_flexgen CLK_IC_BDISP_0>;
++	};
++
++Aliases:
++Each BDISP should have a numbered alias in the aliases node, in the form of
++bdispN, N = 0 or 1.
++
++Example:
++
++	aliases {
++		bdisp0 = &bdisp0;
++	};
 -- 
-2.4.1
+1.9.1
 
