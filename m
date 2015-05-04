@@ -1,189 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59726 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.17.22]:61102 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752296AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 13:08:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [ATTN 5/9] DocBook: document SDR transmitter
-Date: Tue, 26 May 2015 20:08:06 +0300
-Message-Id: <1432660090-19574-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
-References: <1432660090-19574-1-git-send-email-crope@iki.fi>
+	id S1750977AbbEDHki (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 May 2015 03:40:38 -0400
+Date: Mon, 4 May 2015 09:40:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 9/9] mt9t112: initialize left and top
+In-Reply-To: <55472049.7010408@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1505040937020.9253@axis700.grange>
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+ <1430646876-19594-10-git-send-email-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1505032250430.6055@axis700.grange> <55472049.7010408@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L SDR transmitter (output) devices.
+On Mon, 4 May 2015, Hans Verkuil wrote:
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |  4 +++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
- Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
- Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
- Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
- .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
- 7 files changed, 42 insertions(+), 13 deletions(-)
+> On 05/03/2015 11:02 PM, Guennadi Liakhovetski wrote:
+> > Hi Hans,
+> > 
+> > On Sun, 3 May 2015, Hans Verkuil wrote:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> The left and top variables were uninitialized, leading to unexpected
+> >> results.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/i2c/soc_camera/mt9t112.c | 3 ++-
+> >>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
+> >> index de10a76..02190d6 100644
+> >> --- a/drivers/media/i2c/soc_camera/mt9t112.c
+> >> +++ b/drivers/media/i2c/soc_camera/mt9t112.c
+> >> @@ -952,7 +952,8 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
+> >>  	struct v4l2_mbus_framefmt *mf = &format->format;
+> >>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >>  	struct mt9t112_priv *priv = to_mt9t112(client);
+> >> -	unsigned int top, left;
+> >> +	unsigned int top = priv->frame.top;
+> >> +	unsigned int left = priv->frame.left;
+> > 
+> > I don't think this is needed. We don't care about left and top in 
+> > mt9t112_set_fmt().
+> 
+> On further analysis you are correct, it will work with random left/top
+> values. But I think it is 1) very unexpected and 2) bad form to leave it
+> with random values.
+> 
+> I prefer to keep this patch, unless you disagree.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index e8f28bf..a237e36 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
- 	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
- <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
- 	</listitem>
-+	<listitem>
-+	  <para>Added transmitter support for Software Defined Radio (SDR)
-+Interface.</para>
-+	</listitem>
-       </orderedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index 3344921..a659771 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
- <structfield>capabilities</structfield> field of &v4l2-capability;
- returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
- Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-+    </para>
-+    <para>
-+Devices supporting the SDR transmitter interface set the
-+<constant>V4L2_CAP_SDR_OUTPUT</constant> and
-+<constant>V4L2_CAP_MODULATOR</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability;
-+returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-+Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
-+    </para>
-+    <para>
- At least one of the read/write, streaming or asynchronous I/O methods must
- be supported.
-     </para>
-@@ -39,14 +49,15 @@ be supported.
-     <para>
- SDR devices can support <link linkend="control">controls</link>, and must
- support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
--for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
--frequency.
-+for setting the ADC/DAC sampling rate (sampling frequency) and the possible
-+radio frequency (RF).
-     </para>
- 
-     <para>
--The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
--the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
--tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-+The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
-+device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
-+tuner type is used for setting radio frequency.
-+The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
- Normally the SDR tuner is #0 and the RF tuner is #1.
-     </para>
- 
-@@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
-     <title>Data Format Negotiation</title>
- 
-     <para>
--The SDR capture device uses the <link linkend="format">format</link> ioctls to
--select the capture format. Both the sampling resolution and the data streaming
--format are bound to that selectable format. In addition to the basic
-+The SDR device uses the <link linkend="format">format</link> ioctls to
-+select the capture and output format. Both the sampling resolution and the data
-+streaming format are bound to that selectable format. In addition to the basic
- <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
- must be supported as well.
-     </para>
-@@ -69,7 +80,8 @@ must be supported as well.
-     <para>
- To use the <link linkend="format">format</link> ioctls applications set the
- <structfield>type</structfield> field of a &v4l2-format; to
--<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
-+<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
-+<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
- <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
- union as needed per the desired operation.
- Currently there is two fields, <structfield>pixelformat</structfield> and
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index bfe6662..5f8d96e 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1006,8 +1006,14 @@ should set this to 0.</entry>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
- 	    <entry>11</entry>
--	    <entry>Buffer for Software Defined Radio (SDR), see <xref
--		linkend="sdr" />.</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
-+		<xref linkend="sdr" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
-+	    <entry>12</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
-+		<xref linkend="sdr" />.</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index fcde4e2..987bd7d 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1541,7 +1541,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
-   <section id="sdr-formats">
-     <title>SDR Formats</title>
- 
--    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
-+    <para>These formats are used for <link linkend="sdr">SDR</link>
- interface only.</para>
- 
-     &sub-sdr-cu08;
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index b94d381..6a658ac 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -157,6 +157,7 @@ applications. -->
- 	<authorinitials>ap</authorinitials>
- 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
- Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
-+Added transmitter support for Software Defined Radio (SDR) Interface.
- 	</revremark>
-       </revision>
- 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-index 4fe19a7a..ffcb448 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-@@ -175,7 +175,7 @@ capture and output devices.</entry>
- 	    <entry>&v4l2-sdr-format;</entry>
- 	    <entry><structfield>sdr</structfield></entry>
- 	    <entry>Definition of a data format, see
--<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-+<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index 20fda75..cd82148 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -308,6 +308,12 @@ modulator programming see
- fields.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
-+	    <entry>0x00400000</entry>
-+	    <entry>The device supports the
-+<link linkend="sdr">SDR Output</link> interface.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
- 	    <entry>0x01000000</entry>
- 	    <entry>The device supports the <link
--- 
-http://palosaari.fi/
+Sorry, but I do. Assigning those specific values to left and top makes the 
+code even more confusing, it makes it look like that makes any sense, 
+whereas it doesn't. If anything we can add a comment there. Or we can pass 
+NULL and make sure to catch it somewhere down the line.
 
+Thanks
+Guennadi
+
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > How about my comment about a duplicated call to mt9t112_set_params()? Can 
+> > we have it fixed too?
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> >>  	int i;
+> >>  
+> >>  	if (format->pad)
+> >> -- 
+> >> 2.1.4
+> >>
+> 
