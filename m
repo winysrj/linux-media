@@ -1,53 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:59362 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651AbbESMjY (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37509 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752497AbbEDK0R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 08:39:24 -0400
-From: Arnd Bergmann <arnd@arndb.de>
+	Mon, 4 May 2015 06:26:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Benoit Parrot <bparrot@ti.com>,
-	Prabhakar <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] [media] ov2659: add v4l2_subdev dependency
-Date: Tue, 19 May 2015 14:39:12 +0200
-Message-ID: <6092911.yr0lA5IaG4@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 4/8] ov2640: avoid calling ov2640_select_win() twice
+Date: Mon,  4 May 2015 12:25:51 +0200
+Message-Id: <1430735155-24110-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added ov2659 driver uses the v4l2 subdev API, but
-can be enabled even when that API is not part of the kernel,
-resulting in this build error:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-media/i2c/ov2659.c: In function 'ov2659_get_fmt':
-media/i2c/ov2659.c:1054:8: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-media/i2c/ov2659.c:1054:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-media/i2c/ov2659.c: In function 'ov2659_set_fmt':
-media/i2c/ov2659.c:1129:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-media/i2c/ov2659.c: In function 'ov2659_open':
-media/i2c/ov2659.c:1264:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
+Simplify ov2640_set_params and ov2640_set_fmt.
 
-This adds an explicit dependency, like all the other drivers have.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/ov2640.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: c4c0283ab3c ("[media] media: i2c: add support for omnivision's ov2659 sensor")
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 9b4f5de..5dcaf24 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -769,15 +769,15 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
+ 	return &ov2640_supported_win_sizes[default_size];
+ }
+ 
+-static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+-			     u32 code)
++static int ov2640_set_params(struct i2c_client *client,
++			     const struct ov2640_win_size *win, u32 code)
+ {
+ 	struct ov2640_priv       *priv = to_ov2640(client);
+ 	const struct regval_list *selected_cfmt_regs;
+ 	int ret;
+ 
+ 	/* select win */
+-	priv->win = ov2640_select_win(width, height);
++	priv->win = win;
+ 
+ 	/* select format */
+ 	priv->cfmt_code = 0;
+@@ -798,6 +798,7 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
+ 		selected_cfmt_regs = ov2640_uyvy_regs;
++		break;
+ 	}
+ 
+ 	/* reset hardware */
+@@ -832,8 +833,6 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 		goto err;
+ 
+ 	priv->cfmt_code = code;
+-	*width = priv->win->width;
+-	*height = priv->win->height;
+ 
+ 	return 0;
+ 
+@@ -887,14 +886,13 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	const struct ov2640_win_size *win;
+ 
+ 	if (format->pad)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * select suitable win, but don't store it
+-	 */
+-	ov2640_select_win(&mf->width, &mf->height);
++	/* select suitable win */
++	win = ov2640_select_win(&mf->width, &mf->height);
+ 
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+@@ -905,14 +903,15 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ 		break;
+ 	default:
+ 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
++		/* fall through */
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		mf->colorspace = V4L2_COLORSPACE_JPEG;
++		break;
+ 	}
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return ov2640_set_params(client, &mf->width,
+-					 &mf->height, mf->code);
++		return ov2640_set_params(client, win, mf->code);
+ 	cfg->try_fmt = *mf;
+ 	return 0;
+ }
+-- 
+2.1.4
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 6f30ea76151a..db01ed84918f 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -469,7 +469,7 @@ config VIDEO_SMIAPP_PLL
- config VIDEO_OV2659
- 	tristate "OmniVision OV2659 sensor support"
- 	depends on VIDEO_V4L2 && I2C
--	depends on MEDIA_CAMERA_SUPPORT
-+	depends on MEDIA_CAMERA_SUPPORT && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the OmniVision
- 	  OV2659 camera.
