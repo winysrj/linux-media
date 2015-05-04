@@ -1,104 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:33542 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756647AbbE3SKi (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49776 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750798AbbEDH6k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 May 2015 14:10:38 -0400
-Received: by wgez8 with SMTP id z8so85176510wge.0
-        for <linux-media@vger.kernel.org>; Sat, 30 May 2015 11:10:37 -0700 (PDT)
-From: Jemma Denson <jdenson@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, patrick.boettcher@posteo.de,
-	Jemma Denson <jdenson@gmail.com>
-Subject: [PATCH v2 2/4] b2c2: Move stream reset code from flexcop-pci to flexcop
-Date: Sat, 30 May 2015 19:10:07 +0100
-Message-Id: <1433009409-5622-3-git-send-email-jdenson@gmail.com>
-In-Reply-To: <1433009409-5622-1-git-send-email-jdenson@gmail.com>
-References: <1433009409-5622-1-git-send-email-jdenson@gmail.com>
+	Mon, 4 May 2015 03:58:40 -0400
+Message-ID: <554726A6.804@xs4all.nl>
+Date: Mon, 04 May 2015 09:58:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/3] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl> <2025720.hkQNlttbI3@avalon>
+In-Reply-To: <2025720.hkQNlttbI3@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As this bit of code is resetting the flexcop stream and the hardware
-filter a better place for it is in flexcop-hw-filter.c
+On 05/04/2015 12:29 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Friday 01 May 2015 13:33:49 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+>>  .../DocBook/media/v4l/vidioc-querycap.xml          |   2 +-
+>>  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 ++++++++++++++++++
+>>  3 files changed, 142 insertions(+), 1 deletion(-)
+>>  create mode 100644
+>> Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml
+>> b/Documentation/DocBook/media/v4l/v4l2.xml index e98caa1..23607bc 100644
+>> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+>> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+>> @@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
+>>      &sub-subdev-g-fmt;
+>>      &sub-subdev-g-frame-interval;
+>>      &sub-subdev-g-selection;
+>> +    &sub-subdev-querycap;
+>>      &sub-subscribe-event;
+>>      <!-- End of ioctls. -->
+>>      &sub-mmap;
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
+>> 20fda75..c1ed844 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+>> @@ -54,7 +54,7 @@ kernel devices compatible with this specification and to
+>> obtain information about driver and hardware capabilities. The ioctl takes
+>> a pointer to a &v4l2-capability; which is filled by the driver. When the
+>> driver is not compatible with this specification the ioctl returns an
+>> -&EINVAL;.</para>
+>> +&ENOTTY;.</para>
+> 
+> I'd split this change to a separate patch as it's unrelated to 
+> VIDIOC_SUBDEV_QUERYCAP.
 
-Signed-off-by: Jemma Denson <jdenson@gmail.com>
----
- drivers/media/common/b2c2/flexcop-common.h    |  1 +
- drivers/media/common/b2c2/flexcop-hw-filter.c | 17 ++++++++++++++++-
- drivers/media/pci/b2c2/flexcop-pci.c          | 14 +-------------
- 3 files changed, 18 insertions(+), 14 deletions(-)
+You are right. I just happened to come across this while adding the subdev-querycap
+text.
 
-diff --git a/drivers/media/common/b2c2/flexcop-common.h b/drivers/media/common/b2c2/flexcop-common.h
-index 2b2460e..184adda 100644
---- a/drivers/media/common/b2c2/flexcop-common.h
-+++ b/drivers/media/common/b2c2/flexcop-common.h
-@@ -177,6 +177,7 @@ void flexcop_dump_reg(struct flexcop_device *fc,
- int flexcop_pid_feed_control(struct flexcop_device *fc,
- 		struct dvb_demux_feed *dvbdmxfeed, int onoff);
- void flexcop_hw_filter_init(struct flexcop_device *fc);
-+void flexcop_stream_reset(struct flexcop_device *fc);
- 
- void flexcop_smc_ctrl(struct flexcop_device *fc, int onoff);
- 
-diff --git a/drivers/media/common/b2c2/flexcop-hw-filter.c b/drivers/media/common/b2c2/flexcop-hw-filter.c
-index 8220257..da000ba 100644
---- a/drivers/media/common/b2c2/flexcop-hw-filter.c
-+++ b/drivers/media/common/b2c2/flexcop-hw-filter.c
-@@ -218,7 +218,6 @@ int flexcop_pid_feed_control(struct flexcop_device *fc,
- 	}
- 	return 0;
- }
--EXPORT_SYMBOL(flexcop_pid_feed_control);
- 
- void flexcop_hw_filter_init(struct flexcop_device *fc)
- {
-@@ -242,3 +241,19 @@ void flexcop_hw_filter_init(struct flexcop_device *fc)
- 
- 	flexcop_null_filter_ctrl(fc, 1);
- }
-+
-+void flexcop_stream_reset(struct flexcop_device *fc)
-+{
-+	struct dvb_demux_feed *feed;
-+
-+	spin_lock_irq(&fc->demux.lock);
-+	list_for_each_entry(feed, &fc->demux.feed_list, list_head) {
-+		flexcop_pid_feed_control(fc, feed, 0);
-+	}
-+
-+	list_for_each_entry(feed, &fc->demux.feed_list, list_head) {
-+		flexcop_pid_feed_control(fc, feed, 1);
-+	}
-+	spin_unlock_irq(&fc->demux.lock);
-+}
-+EXPORT_SYMBOL(flexcop_stream_reset);
-diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
-index 8b5e0b3..eb3b31f 100644
---- a/drivers/media/pci/b2c2/flexcop-pci.c
-+++ b/drivers/media/pci/b2c2/flexcop-pci.c
-@@ -112,21 +112,9 @@ static void flexcop_pci_irq_check_work(struct work_struct *work)
- 		if (fc_pci->count == fc_pci->count_prev) {
- 			deb_chk("no IRQ since the last check\n");
- 			if (fc_pci->stream_problem++ == 3) {
--				struct dvb_demux_feed *feed;
- 				deb_info("flexcop-pci: stream problem, resetting pid filter\n");
- 
--				spin_lock_irq(&fc->demux.lock);
--				list_for_each_entry(feed, &fc->demux.feed_list,
--						list_head) {
--					flexcop_pid_feed_control(fc, feed, 0);
--				}
--
--				list_for_each_entry(feed, &fc->demux.feed_list,
--						list_head) {
--					flexcop_pid_feed_control(fc, feed, 1);
--				}
--				spin_unlock_irq(&fc->demux.lock);
--
-+				flexcop_stream_reset(fc);
- 				fc_pci->stream_problem = 0;
- 			}
- 		} else {
--- 
-2.1.0
+> We can't really guarantee that non-V4L2 drivers will return -ENOTTY, they 
+> might be buggy and return a different error code. That's slightly nitpicking 
+> though.
+
+Well, ENOTTY is much more likely than EINVAL :-) But I can replace it with:
+
+"...returns an error, most likely &ENOTTY;." and use the same phrase for
+subdev-querycap.
+
+> 
+>>      <table pgwide="1" frame="none" id="v4l2-capability">
+>>        <title>struct <structname>v4l2_capability</structname></title>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml new file mode
+>> 100644
+>> index 0000000..a1cbb36
+>> --- /dev/null
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+>> @@ -0,0 +1,140 @@
+>> +<refentry id="vidioc-subdev-querycap">
+>> +  <refmeta>
+>> +    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
+>> +    &manvol;
+>> +  </refmeta>
+>> +
+>> +  <refnamediv>
+>> +    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
+>> +    <refpurpose>Query sub-device capabilities</refpurpose>
+>> +  </refnamediv>
+>> +
+>> +  <refsynopsisdiv>
+>> +    <funcsynopsis>
+>> +      <funcprototype>
+>> +	<funcdef>int <function>ioctl</function></funcdef>
+>> +	<paramdef>int <parameter>fd</parameter></paramdef>
+>> +	<paramdef>int <parameter>request</parameter></paramdef>
+>> +	<paramdef>struct v4l2_subdev_capability
+>> *<parameter>argp</parameter></paramdef>
+>> +      </funcprototype>
+>> +    </funcsynopsis>
+>> +  </refsynopsisdiv>
+>> +
+>> +  <refsect1>
+>> +    <title>Arguments</title>
+>> +
+>> +    <variablelist>
+>> +      <varlistentry>
+>> +	<term><parameter>fd</parameter></term>
+>> +	<listitem>
+>> +	  <para>&fd;</para>
+>> +	</listitem>
+>> +      </varlistentry>
+>> +      <varlistentry>
+>> +	<term><parameter>request</parameter></term>
+>> +	<listitem>
+>> +	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
+>> +	</listitem>
+>> +      </varlistentry>
+>> +      <varlistentry>
+>> +	<term><parameter>argp</parameter></term>
+>> +	<listitem>
+>> +	  <para></para>
+>> +	</listitem>
+>> +      </varlistentry>
+>> +    </variablelist>
+>> +  </refsect1>
+>> +
+>> +  <refsect1>
+>> +    <title>Description</title>
+>> +
+>> +    <para>All V4L2 sub-devices support the
+>> +<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
+>> +kernel devices compatible with this specification and to obtain
+>> +information about driver and hardware capabilities. The ioctl takes a
+>> +pointer to a &v4l2-subdev-capability; which is filled by the driver. When
+>> the
+>> +driver is not compatible with this specification the ioctl returns an
+>> +&ENOTTY;.</para>
+>> +
+>> +    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
+>> +      <title>struct <structname>v4l2_subdev_capability</structname></title>
+>> +      <tgroup cols="3">
+>> +	&cs-str;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>version</structfield></entry>
+>> +	    <entry><para>Version number of the driver.</para>
+>> +<para>The version reported is provided by the
+>> +V4L2 subsystem following the kernel numbering scheme. However, it
+>> +may not always return the same version as the kernel if, for example,
+>> +a stable or distribution-modified kernel uses the V4L2 stack from a
+>> +newer kernel.</para>
+>> +<para>The version number is formatted using the
+>> +<constant>KERNEL_VERSION()</constant> macro:</para></entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry spanname="hspan"><para>
+>> +<programlisting>
+>> +#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
+>> +
+>> +__u32 version = KERNEL_VERSION(0, 8, 1);
+>> +
+>> +printf ("Version: %u.%u.%u\n",
+>> +	(version &gt;&gt; 16) &amp; 0xFF,
+>> +	(version &gt;&gt; 8) &amp; 0xFF,
+>> +	 version &amp; 0xFF);
+>> +</programlisting></para></entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>device_caps</structfield></entry>
+>> +	    <entry>Sub-device capabilities of the opened device, see <xref
+>> +		linkend="subdevice-capabilities" />.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>pads</structfield></entry>
+>> +	    <entry>The number of pads of this sub-device. May be 0 if there are 
+> no
+>> +	    pads.
+> 
+> Should we mention explicitly that the pads field is only valid if 
+> V4L2_SUBDEV_CAP_ENTITY is set ?
+
+Yes, we can do that. I checked that all subdev drivers that create a v4l-subdev
+node are also a media entity. I wasn't sure about that before.
+
+Regards,
+
+	Hans
+
+> 
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>entity_id</structfield></entry>
+>> +	    <entry>The media controller entity ID of the sub-device. This is only
+>> valid if
+>> +	    the <constant>V4L2_SUBDEV_CAP_ENTITY</constant> capability is set.
+>> +	    </entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>reserved</structfield>[48]</entry>
+>> +	    <entry>Reserved for future extensions. Drivers must set
+>> +this array to zero.</entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>> +
+>> +    <table pgwide="1" frame="none" id="subdevice-capabilities">
+>> +      <title>Sub-Device Capabilities Flags</title>
+>> +      <tgroup cols="3">
+>> +	&cs-def;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
+>> +	    <entry>0x00000001</entry>
+>> +	    <entry>The sub-device is a media controller entity and
+>> +	    the <structfield>entity_id</structfield> field of
+>> &v4l2-subdev-capability;
+>> +	    is valid.</entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>> +  </refsect1>
+>> +
+>> +  <refsect1>
+>> +    &return-value;
+>> +  </refsect1>
+>> +</refentry>
+> 
 
