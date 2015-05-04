@@ -1,83 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55906 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595AbbE2KKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 06:10:46 -0400
-Message-ID: <55683B18.1020902@xs4all.nl>
-Date: Fri, 29 May 2015 12:10:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ben Hutchings <ben.hutchings@codethink.co.uk>,
-	Rob Taylor <rob.taylor@codethink.co.uk>
-CC: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com
-Subject: Re: [Linux-kernel] [PATCH 13/20] media: soc_camera: v4l2-compliance
- fixes for querycap
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>	 <1432139980-12619-14-git-send-email-william.towle@codethink.co.uk>	 <555D7419.8000303@xs4all.nl> <555DD3B4.2080308@codethink.co.uk> <1432861681.5061.73.camel@codethink.co.uk>
-In-Reply-To: <1432861681.5061.73.camel@codethink.co.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52228 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753038AbbEDKvO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:51:14 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 4/5] [media] coda: Set last buffer flag and fix EOS event
+Date: Mon,  4 May 2015 12:51:07 +0200
+Message-Id: <1430736668-28582-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
+References: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2015 03:08 AM, Ben Hutchings wrote:
-> On Thu, 2015-05-21 at 13:46 +0100, Rob Taylor wrote:
->> On 21/05/15 06:58, Hans Verkuil wrote:
->>> On 05/20/2015 06:39 PM, William Towle wrote:
->>>> Fill in bus_info field and zero reserved field.
->>>>
->>>> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
->>>> Reviewed-by: William Towle <william.towle@codethink.co.uk>
->>>> ---
->>>>  drivers/media/platform/soc_camera/soc_camera.c |    2 ++
->>>>  1 file changed, 2 insertions(+)
->>>>
->>>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
->>>> index fd7497e..583c5e6 100644
->>>> --- a/drivers/media/platform/soc_camera/soc_camera.c
->>>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
->>>> @@ -954,6 +954,8 @@ static int soc_camera_querycap(struct file *file, void  *priv,
->>>>  	WARN_ON(priv != file->private_data);
->>>>  
->>>>  	strlcpy(cap->driver, ici->drv_name, sizeof(cap->driver));
->>>> +	strlcpy(cap->bus_info, "platform:soc_camera", sizeof(cap->bus_info));
->>>> +	memset(cap->reserved, 0, sizeof(cap->reserved));
->>>
->>> Why the memset? That shouldn't be needed.
->>
->> v4l2-complience complained it wasn't zero (v4l2-compliance.cpp:308 in
->> v4l-utils v1.6.2 [1])
+Setting the last buffer flag causes the videobuf2 core to return -EPIPE from
+DQBUF calls on the capture queue after the last buffer is dequeued.
+This patch also fixes the EOS event to conform to the specification. It now is
+sent right after the last buffer has been decoded instead of when the last
+buffer is dequeued.
 
-William, you should use the latest v4l-utils compiled from the git repo.
-Unlikely to be related to this, though.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    |  4 ++--
+ drivers/media/platform/coda/coda-common.c | 27 +++++++++++----------------
+ drivers/media/platform/coda/coda.h        |  3 +++
+ 3 files changed, 16 insertions(+), 18 deletions(-)
 
-> 
-> I'm puzzled by that.  Isn't this function called by v4l_querycap(),
-> which is called by video_usercopy()?  And video_usercopy() zeroes the
-> entire structure before doing so, or at least it appears to be intended
-> to.
-
-Right. So I don't understand this. Can you dig a bit deeper why this would
-be needed here? It should not be necessary at all, so if reserved is non-zero,
-then someone is writing data where it shouldn't.
-
-Regards,
-
-	Hans
-
-> 
-> Anyway, if we're failing to initialise kernel memory that's copied to
-> user-space, that's a (usually minor) security issue and the fix ought to
-> be cc'd to stable.
-> 
-> Ben.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index d043007..109797b 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1305,7 +1305,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
++	coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
+ 
+ 	ctx->gopcounter--;
+ 	if (ctx->gopcounter < 0)
+@@ -1975,7 +1975,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		}
+ 		vb2_set_plane_payload(dst_buf, 0, payload);
+ 
+-		v4l2_m2m_buf_done(dst_buf, ctx->frame_errors[display_idx] ?
++		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
+ 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 8e6fe02..6d6e0ca 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -724,35 +724,30 @@ static int coda_qbuf(struct file *file, void *priv,
+ }
+ 
+ static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
+-				      struct v4l2_buffer *buf)
++				      struct vb2_buffer *buf)
+ {
+ 	struct vb2_queue *src_vq;
+ 
+ 	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 
+ 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
+-		(buf->sequence == (ctx->qsequence - 1)));
++		(buf->v4l2_buf.sequence == (ctx->qsequence - 1)));
+ }
+ 
+-static int coda_dqbuf(struct file *file, void *priv,
+-		      struct v4l2_buffer *buf)
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state)
+ {
+-	struct coda_ctx *ctx = fh_to_ctx(priv);
+-	int ret;
++	const struct v4l2_event eos_event = {
++		.type = V4L2_EVENT_EOS
++	};
+ 
+-	ret = v4l2_m2m_dqbuf(file, ctx->fh.m2m_ctx, buf);
+-
+-	/* If this is the last capture buffer, emit an end-of-stream event */
+-	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+-	    coda_buf_is_end_of_stream(ctx, buf)) {
+-		const struct v4l2_event eos_event = {
+-			.type = V4L2_EVENT_EOS
+-		};
++	if (coda_buf_is_end_of_stream(ctx, buf)) {
++		buf->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
+ 
+ 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
+ 	}
+ 
+-	return ret;
++	v4l2_m2m_buf_done(buf, state);
+ }
+ 
+ static int coda_g_selection(struct file *file, void *fh,
+@@ -865,7 +860,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 
+ 	.vidioc_qbuf		= coda_qbuf,
+ 	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+-	.vidioc_dqbuf		= coda_dqbuf,
++	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
+ 	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
+ 
+ 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 6a5c8f6..8e0af22 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -287,6 +287,9 @@ static inline unsigned int coda_get_bitstream_payload(struct coda_ctx *ctx)
+ 
+ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
+ 
++void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		       enum vb2_buffer_state state);
++
+ int coda_h264_padding(int size, char *p);
+ 
+ bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
+-- 
+2.1.4
 
