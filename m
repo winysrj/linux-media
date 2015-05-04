@@ -1,58 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49542 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934260AbbEMNIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 09:08:30 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 0/9 v5] Helper to abstract vma handling in media layer
-Date: Wed, 13 May 2015 15:08:06 +0200
-Message-Id: <1431522495-4692-1-git-send-email-jack@suse.cz>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53101 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751365AbbEDHbb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 May 2015 03:31:31 -0400
+Message-ID: <55472049.7010408@xs4all.nl>
+Date: Mon, 04 May 2015 09:31:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 9/9] mt9t112: initialize left and top
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl> <1430646876-19594-10-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1505032250430.6055@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1505032250430.6055@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello,
+On 05/03/2015 11:02 PM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Sun, 3 May 2015, Hans Verkuil wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The left and top variables were uninitialized, leading to unexpected
+>> results.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/soc_camera/mt9t112.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
+>> index de10a76..02190d6 100644
+>> --- a/drivers/media/i2c/soc_camera/mt9t112.c
+>> +++ b/drivers/media/i2c/soc_camera/mt9t112.c
+>> @@ -952,7 +952,8 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
+>>  	struct v4l2_mbus_framefmt *mf = &format->format;
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	struct mt9t112_priv *priv = to_mt9t112(client);
+>> -	unsigned int top, left;
+>> +	unsigned int top = priv->frame.top;
+>> +	unsigned int left = priv->frame.left;
+> 
+> I don't think this is needed. We don't care about left and top in 
+> mt9t112_set_fmt().
 
-I'm sending the fifth version of my patch series to abstract vma handling
-from the various media drivers. The patches got some review from mm people and
-testing from device driver guys so unless someone objects, patches will be
-queued in media tree for the next merge window.
+On further analysis you are correct, it will work with random left/top
+values. But I think it is 1) very unexpected and 2) bad form to leave it
+with random values.
 
-After this patch set drivers have to know much less details about vmas, their
-types, and locking. Also quite some code is removed from them. As a bonus
-drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
-this series is to remove knowledge about mmap_sem locking from as many places a
-possible so that we can change it with reasonable effort.
+I prefer to keep this patch, unless you disagree.
 
-The core of the series is the new helper get_vaddr_frames() which is given a
-virtual address and it fills in PFNs / struct page pointers (depending on VMA
-type) into the provided array. If PFNs correspond to normal pages it also grabs
-references to these pages. The difference from get_user_pages() is that this
-function can also deal with pfnmap, and io mappings which is what the media
-drivers need.
+Regards,
 
-I have tested the patches with vivid driver so at least vb2 code got some
-exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
-exynos driver which is only for Samsung platform is completely untested).
+	Hans
 
-								Honza
-Changes since v4:
-* Minor cleanups and fixes pointed out by Mel and Vlasta
-* Added Acked-by tags
+> 
+> How about my comment about a duplicated call to mt9t112_set_params()? Can 
+> we have it fixed too?
+> 
+> Thanks
+> Guennadi
+> 
+>>  	int i;
+>>  
+>>  	if (format->pad)
+>> -- 
+>> 2.1.4
+>>
 
-Changes since v3:
-* Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
-* Fixed error path for exynos driver
-
-Changes since v2:
-* Renamed functions and structures as Mel suggested
-* Other minor changes suggested by Mel
-* Rebased on top of 4.1-rc2
-* Changed functions to get pointer to array of pages / pfns to perform
-  conversion if necessary. This fixes possible issue in the omap I may have
-  introduced in v2 and generally makes the API less errorprone.
