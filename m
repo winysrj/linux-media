@@ -1,144 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37421 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751272AbbEaWZr (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59881 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752043AbbEDH0C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 18:25:47 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, linux-leds@vger.kernel.org,
-	j.anaszewski@samsung.com, cooloney@gmail.com,
-	s.nawrocki@samsung.com, mchehab@osg.samsung.com,
-	g.liakhovetski@gmx.de
-Subject: [PATCH v1.1 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
-Date: Mon,  1 Jun 2015 01:24:39 +0300
-Message-Id: <1433111079-22457-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4071589.mUaJIGvIJX@avalon>
-References: <4071589.mUaJIGvIJX@avalon>
+	Mon, 4 May 2015 03:26:02 -0400
+Message-ID: <55471EFF.4040004@xs4all.nl>
+Date: Mon, 04 May 2015 09:25:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 4/9] ov2640: avoid calling ov2640_select_win() twice
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl> <1430646876-19594-5-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1505032011550.4237@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1505032011550.4237@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 async sub-devices are currently matched (OF case) based on the struct
-device_node pointer in struct device. LED devices may have more than one
-LED, and in that case the OF node to match is not directly the device's
-node, but a LED's node.
+On 05/03/2015 08:19 PM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Sun, 3 May 2015, Hans Verkuil wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Simplify ov2640_set_params and ov2640_set_fmt.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> ---
+>>  drivers/media/i2c/soc_camera/ov2640.c | 21 ++++++++++-----------
+>>  1 file changed, 10 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+>> index 9b4f5de..5dcaf24 100644
+>> --- a/drivers/media/i2c/soc_camera/ov2640.c
+>> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+>> @@ -769,15 +769,15 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
+>>  	return &ov2640_supported_win_sizes[default_size];
+>>  }
+>>  
+>> -static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>> -			     u32 code)
+>> +static int ov2640_set_params(struct i2c_client *client,
+>> +			     const struct ov2640_win_size *win, u32 code)
+>>  {
+>>  	struct ov2640_priv       *priv = to_ov2640(client);
+>>  	const struct regval_list *selected_cfmt_regs;
+>>  	int ret;
+>>  
+>>  	/* select win */
+>> -	priv->win = ov2640_select_win(width, height);
+>> +	priv->win = win;
+>>  
+>>  	/* select format */
+>>  	priv->cfmt_code = 0;
+>> @@ -798,6 +798,7 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+>>  		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
+>>  		selected_cfmt_regs = ov2640_uyvy_regs;
+>> +		break;
+> 
+> Hm, IIRC, some versions of gcc complain like "break at the end of a switch 
+> statement is deprecated." Why did you add this at two locations? Are you 
+> seeing a warning? If not, maybe better not do that.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-since v1:
+I have never seen such a warning in 20 odd years of using gcc. It is bad practice
+not to add a break at the end in case someone adds a new case later or shuffles
+cases around and misses that there was no break.
 
-- Move conditional setting of struct v4l2_subdev.of_node from
-  v4l2_device_register_subdev() to v4l2_async_register_subdev.
+And since 99% of all switch statements in the kernel have a break at the end,
+I would say that any gcc issues with that would have been spotted ages ago.
 
-- Remove the check for NULL struct v4l2_subdev.of_node from match_of() as
-  it's no longer needed.
+Regards,
 
-- Unconditionally state in the struct v4l2_subdev.of_node field comment that
-  the field contains (a pointer to) the sub-device's of_node.
+	Hans
 
- drivers/media/v4l2-core/v4l2-async.c | 34 ++++++++++++++++++++++------------
- include/media/v4l2-subdev.h          |  2 ++
- 2 files changed, 24 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 85a6a34..b0badac 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -22,10 +22,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- 
--static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
--	struct i2c_client *client = i2c_verify_client(dev);
-+	struct i2c_client *client = i2c_verify_client(sd->dev);
- 	return client &&
- 		asd->match.i2c.adapter_id == client->adapter->nr &&
- 		asd->match.i2c.address == client->addr;
-@@ -34,14 +34,24 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
- #endif
- }
- 
--static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_devname(struct v4l2_subdev *sd,
-+			  struct v4l2_async_subdev *asd)
- {
--	return !strcmp(asd->match.device_name.name, dev_name(dev));
-+	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
--static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return dev->of_node == asd->match.of.node;
-+	return sd->of_node == asd->match.of.node;
-+}
-+
-+static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-+{
-+	if (!asd->match.custom.match)
-+		/* Match always */
-+		return true;
-+
-+	return asd->match.custom.match(sd->dev, asd);
- }
- 
- static LIST_HEAD(subdev_list);
-@@ -51,17 +61,14 @@ static DEFINE_MUTEX(list_lock);
- static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
- 						    struct v4l2_subdev *sd)
- {
-+	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 	struct v4l2_async_subdev *asd;
--	bool (*match)(struct device *, struct v4l2_async_subdev *);
- 
- 	list_for_each_entry(asd, &notifier->waiting, list) {
- 		/* bus_type has been verified valid before */
- 		switch (asd->match_type) {
- 		case V4L2_ASYNC_MATCH_CUSTOM:
--			match = asd->match.custom.match;
--			if (!match)
--				/* Match always */
--				return asd;
-+			match = match_custom;
- 			break;
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 			match = match_devname;
-@@ -79,7 +86,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		}
- 
- 		/* match cannot be NULL here */
--		if (match(sd->dev, asd))
-+		if (match(sd, asd))
- 			return asd;
- 	}
- 
-@@ -266,6 +273,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_notifier *notifier;
- 
-+	if (!sd->of_node && sd->dev)
-+		sd->of_node = sd->dev->of_node;
-+
- 	mutex_lock(&list_lock);
- 
- 	INIT_LIST_HEAD(&sd->async_list);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 8f5da73..8a17c24 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -603,6 +603,8 @@ struct v4l2_subdev {
- 	struct video_device *devnode;
- 	/* pointer to the physical device, if any */
- 	struct device *dev;
-+	/* A device_node of the subdev, usually the same as dev->of_node. */
-+	struct device_node *of_node;
- 	/* Links this subdev to a global subdev_list or @notifier->done list. */
- 	struct list_head async_list;
- 	/* Pointer to respective struct v4l2_async_subdev. */
--- 
-2.1.4
+> 
+> Otherwise
+> 
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> Thanks
+> Guennadi
+> 
+>>  	}
+>>  
+>>  	/* reset hardware */
+>> @@ -832,8 +833,6 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>>  		goto err;
+>>  
+>>  	priv->cfmt_code = code;
+>> -	*width = priv->win->width;
+>> -	*height = priv->win->height;
+>>  
+>>  	return 0;
+>>  
+>> @@ -887,14 +886,13 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+>>  {
+>>  	struct v4l2_mbus_framefmt *mf = &format->format;
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +	const struct ov2640_win_size *win;
+>>  
+>>  	if (format->pad)
+>>  		return -EINVAL;
+>>  
+>> -	/*
+>> -	 * select suitable win, but don't store it
+>> -	 */
+>> -	ov2640_select_win(&mf->width, &mf->height);
+>> +	/* select suitable win */
+>> +	win = ov2640_select_win(&mf->width, &mf->height);
+>>  
+>>  	mf->field	= V4L2_FIELD_NONE;
+>>  
+>> @@ -905,14 +903,15 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+>>  		break;
+>>  	default:
+>>  		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+>> +		/* fall through */
+>>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+>>  		mf->colorspace = V4L2_COLORSPACE_JPEG;
+>> +		break;
+>>  	}
+>>  
+>>  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>> -		return ov2640_set_params(client, &mf->width,
+>> -					 &mf->height, mf->code);
+>> +		return ov2640_set_params(client, win, mf->code);
+>>  	cfg->try_fmt = *mf;
+>>  	return 0;
+>>  }
+>> -- 
+>> 2.1.4
+>>
 
