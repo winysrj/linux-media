@@ -1,67 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37659 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754519AbbEZN1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:27:11 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <vinod.koul@intel.com>, <tony@atomide.com>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52219 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752225AbbEDKvN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:51:13 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Kamil Debski <k.debski@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 12/13] [media] omap3isp: Support for deferred probing when requesting DMA channel
-Date: Tue, 26 May 2015 16:26:07 +0300
-Message-ID: <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
-In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 0/5] Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE
+Date: Mon,  4 May 2015 12:51:03 +0200
+Message-Id: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-channel. Only fall back to pio mode if the error code returned is not
--EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
+At the V4L2 codec API session during ELC-E 2014, we agreed that for the decoder
+draining flow, after a V4L2_DEC_CMD_STOP decoder command was issued, the last
+decoded buffer should get dequeued with a V4L2_BUF_FLAG_LAST set. After that,
+poll should immediately return and all following VIDIOC_DQBUF should return
+-EPIPE until the stream is stopped or decoding continued via V4L2_DEC_CMD_START.
+(or STREAMOFF/STREAMON).
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/platform/omap3isp/isphist.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+Changes since v5:
+ - Documentation patch changed according to Kamil's and Hans' feedback.
 
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 7138b043a4aa..e690ca13af0e 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -499,14 +499,20 @@ int omap3isp_hist_init(struct isp_device *isp)
- 		if (res)
- 			sig = res->start;
- 
--		hist->dma_ch = dma_request_slave_channel_compat(mask,
-+		hist->dma_ch = dma_request_slave_channel_compat_reason(mask,
- 				omap_dma_filter_fn, &sig, isp->dev, "hist");
--		if (!hist->dma_ch)
-+		if (IS_ERR(hist->dma_ch)) {
-+			ret = PTR_ERR(hist->dma_ch);
-+			if (ret == -EPROBE_DEFER)
-+				return ret;
-+
-+			hist->dma_ch = NULL;
- 			dev_warn(isp->dev,
- 				 "hist: DMA channel request failed, using PIO\n");
--		else
-+		} else {
- 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
- 				dma_chan_name(hist->dma_ch));
-+		}
- 	}
- 
- 	hist->ops = &hist_ops;
+regards
+Philipp
+
+Peter Seiderer (1):
+  [media] videodev2: Add V4L2_BUF_FLAG_LAST
+
+Philipp Zabel (4):
+  [media] DocBook media: document codec draining flow
+  [media] videobuf2: return -EPIPE from DQBUF after the last buffer
+  [media] coda: Set last buffer flag and fix EOS event
+  [media] s5p-mfc: Set last buffer flag
+
+ Documentation/DocBook/media/v4l/io.xml             | 12 ++++++++++
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       | 12 +++++++++-
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       | 10 +++++++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |  8 +++++++
+ drivers/media/platform/coda/coda-bit.c             |  4 ++--
+ drivers/media/platform/coda/coda-common.c          | 27 +++++++++-------------
+ drivers/media/platform/coda/coda.h                 |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  1 +
+ drivers/media/v4l2-core/v4l2-mem2mem.c             | 10 +++++++-
+ drivers/media/v4l2-core/videobuf2-core.c           | 19 ++++++++++++++-
+ include/media/videobuf2-core.h                     | 13 +++++++++++
+ include/trace/events/v4l2.h                        |  3 ++-
+ include/uapi/linux/videodev2.h                     |  2 ++
+ 13 files changed, 101 insertions(+), 23 deletions(-)
+
 -- 
-2.3.5
+2.1.4
 
