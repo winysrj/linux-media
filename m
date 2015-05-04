@@ -1,72 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39311 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031384AbbEEJbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 05:31:01 -0400
-Date: Tue, 5 May 2015 06:30:55 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.1-rc3] media fixes
-Message-ID: <20150505063055.054b0057@recife.lan>
+Received: from mail-bn1hn0251.outbound.protection.outlook.com ([157.56.110.251]:41725
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751013AbbEDO7x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 10:59:53 -0400
+From: "Kalal, Beth R" <Beth.Kalal@providence.org>
+To: "Kalal, Beth R" <Beth.Kalal@providence.org>
+Subject: RE: ITS help desk
+Date: Mon, 4 May 2015 14:29:34 +0000
+Message-ID: <7FF567186AEB8640BC20A682C345A9753AB4AC81@WN35118.or.providence.org>
+References: <7FF567186AEB8640BC20A682C345A9753AB49F0B@WN35118.or.providence.org>
+In-Reply-To: <7FF567186AEB8640BC20A682C345A9753AB49F0B@WN35118.or.providence.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Dear Mailbox User
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.1-3
+   Please be informed that your Email account on file has been listed for suspension and will be disabled shortly if not activated now. Errors were discovered in your account. For security reasons, you are required to secure and revalidate your mailbox by clicking here on update portal<http://outlook-web--app.jigsy.com/> and fill out the requirements to automatically Revalidate your mailbox and Upgrade its quota size.
 
 
-For 3 driver fixes:
+ITS help desk
+ADMIN TEAM
+ © 1995 - 2015 Outlook Communications
 
-- one fix for omap4, fixing a regression due to a subsystem API that
-  got removed for 4.1 (commit efde234674d9);
-- one fix for one of the formats supported by Marvel ccic driver;
-- one fix on rcar_vin driver that, when stopping abnormally, the driver
-  can't return from wait_for_completion.
 
-Thanks!
-Mauro
 
--
 
-The following changes since commit 64131a87f2aae2ed9e05d8227c5b009ca6c50d98:
 
-  Merge branch 'drm-next-merged' of git://people.freedesktop.org/~airlied/linux into v4l_for_linus (2015-04-21 09:44:55 -0300)
 
-are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.1-3
 
-for you to fetch changes up to fefad2d54beb8aad6bf4ac6daeb74f86f52565de:
 
-  [media] v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon (2015-04-28 08:38:23 -0300)
 
-----------------------------------------------------------------
-media fixes for v4.1-rc3
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      [media] marvell-ccic: fix Y'CbCr ordering
 
-Koji Matsuoka (1):
-      [media] media: soc_camera: rcar_vin: Fix wait_for_completion
 
-Laurent Pinchart (1):
-      [media] v4l: omap4iss: Replace outdated OMAP4 control pad API with syscon
 
- drivers/media/platform/marvell-ccic/mcam-core.c | 14 +++++++-------
- drivers/media/platform/marvell-ccic/mcam-core.h |  8 ++++----
- drivers/media/platform/soc_camera/rcar_vin.c    |  7 ++++++-
- drivers/staging/media/omap4iss/Kconfig          |  1 +
- drivers/staging/media/omap4iss/iss.c            | 11 +++++++++++
- drivers/staging/media/omap4iss/iss.h            |  4 ++++
- drivers/staging/media/omap4iss/iss_csiphy.c     | 12 +++++++-----
- 7 files changed, 40 insertions(+), 17 deletions(-)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+________________________________
+
+This message is intended for the sole use of the addressee, and may contain information that is privileged, confidential and exempt from disclosure under applicable law. If you are not the addressee you are hereby notified that you may not use, copy, disclose, or distribute to anyone the message or any information contained in the message. If you have received this message in error, please immediately advise the sender by reply email and delete this message.
