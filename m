@@ -1,188 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49543 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933431AbbEMNIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 09:08:30 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
-Date: Wed, 13 May 2015 15:08:07 +0200
-Message-Id: <1431522495-4692-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45129 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752542AbbEDK00 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 May 2015 06:26:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 8/8] ov9740: avoid calling ov9740_res_roundup() twice
+Date: Mon,  4 May 2015 12:25:55 +0200
+Message-Id: <1430735155-24110-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently vb2 core acquires mmap_sem just around call to
-__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
-lockdep warning) it isn't necessary to acquire it so early as we no
-longer have to drop queue mutex before acquiring mmap_sem. So push
-acquisition of mmap_sem down into .get_userptr and .put_userptr memops
-so that the semaphore is acquired for a shorter time and it is clearer
-what it is needed for.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Simplify ov9740_s_fmt.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/v4l2-core/videobuf2-core.c       | 2 --
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 +++++++
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +++++-
- 4 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/media/i2c/soc_camera/ov9740.c | 18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 66ada01c796c..20cdbc0900ea 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1657,9 +1657,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
--		down_read(&current->mm->mmap_sem);
- 		ret = __qbuf_userptr(vb, b);
--		up_read(&current->mm->mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 644dec73d220..620c4aa78881 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -532,7 +532,9 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 		sg_free_table(sgt);
- 		kfree(sgt);
- 	}
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- }
+diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
+index 03a7fc7..61a8e18 100644
+--- a/drivers/media/i2c/soc_camera/ov9740.c
++++ b/drivers/media/i2c/soc_camera/ov9740.c
+@@ -673,20 +673,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov9740_priv *priv = to_ov9740(sd);
+-	enum v4l2_colorspace cspace;
+-	u32 code = mf->code;
+ 	int ret;
  
-@@ -616,6 +618,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		goto fail_buf;
- 	}
- 
-+	down_read(&current->mm->mmap_sem);
- 	/* current->mm->mmap_sem is taken by videobuf2 core */
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
-@@ -642,6 +645,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-+			up_read(&current->mm->mmap_sem);
- 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
- 			buf->size = size;
- 			kfree(pages);
-@@ -651,6 +655,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		pr_err("failed to get user pages\n");
- 		goto fail_vma;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
-@@ -713,10 +718,12 @@ fail_get_user_pages:
- 		while (n_pages)
- 			put_page(pages[--n_pages]);
- 
-+	down_read(&current->mm->mmap_sem);
- fail_vma:
- 	vb2_put_vma(buf->vma);
- 
- fail_pages:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(pages); /* kfree is NULL-proof */
- 
- fail_buf:
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 45c708e463b9..afd4b514affc 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf->pages)
- 		goto userptr_fail_alloc_pages;
- 
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
- 		dprintk(1, "no vma for address %lu\n", vaddr);
-@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-+	up_read(&current->mm->mmap_sem);
- 
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
-@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
- 	if (!vma_is_io(buf->vma))
- 		while (--num_pages_from_user >= 0)
- 			put_page(buf->pages[num_pages_from_user]);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
- userptr_fail_find_vma:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf->pages);
- userptr_fail_alloc_pages:
- 	kfree(buf);
-@@ -362,7 +366,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 			put_page(buf->pages[i]);
- 	}
- 	kfree(buf->pages);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- }
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 657ab302a5cf..0ba40be21ebd 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
+-	ov9740_res_roundup(&mf->width, &mf->height);
 -
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
- 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		if (!buf->vaddr)
- 			goto fail_get_user_pages;
- 	}
-+	up_read(&current->mm->mmap_sem);
+-	switch (code) {
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-		cspace = V4L2_COLORSPACE_SRGB;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+ 	ret = ov9740_reg_write_array(client, ov9740_defaults,
+ 				     ARRAY_SIZE(ov9740_defaults));
+ 	if (ret < 0)
+@@ -696,11 +684,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 	if (ret < 0)
+ 		return ret;
  
- 	buf->vaddr += offset;
- 	return buf;
-@@ -133,6 +134,7 @@ fail_get_user_pages:
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- 
- 	return NULL;
-@@ -144,6 +146,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
- 
-+	down_read(&current->mm->mmap_sem);
- 	if (buf->pages) {
- 		if (vaddr)
- 			vm_unmap_ram((void *)vaddr, buf->n_pages);
-@@ -157,6 +160,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 		vb2_put_vma(buf->vma);
- 		iounmap((__force void __iomem *)buf->vaddr);
- 	}
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
+-	mf->code	= code;
+-	mf->colorspace	= cspace;
+-
+-	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
+-
++	priv->current_mf = *mf;
+ 	return ret;
  }
  
 -- 
