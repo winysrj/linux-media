@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:35281 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267AbbEXSed (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40532 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752296AbbEDK0H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2015 14:34:33 -0400
-Received: by igbyr2 with SMTP id yr2so23236415igb.0
-        for <linux-media@vger.kernel.org>; Sun, 24 May 2015 11:34:32 -0700 (PDT)
-MIME-Version: 1.0
-From: Helen Fornazier <helen.fornazier@gmail.com>
-Date: Sun, 24 May 2015 15:34:12 -0300
-Message-ID: <CAPW4XYY9V83vWQ7o80RjnT3XEjK4depLa=Atio+YxsyQoOOoYA@mail.gmail.com>
-Subject: Outreachy Program
+	Mon, 4 May 2015 06:26:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Cc: g.liakhovetski@gmx.de
+Subject: [PATCHv2 0/8] soc-camera sensor improvements
+Date: Mon,  4 May 2015 12:25:47 +0200
+Message-Id: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everybody!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I am Helen and I've been selected by the Outreachy Program
-(https://gnome.org/outreachy) to work in the Media Controller Virtual
-Driver project (http://kernelnewbies.org/LaurentPinchart), mentored by
-Laurent Pinchart.
+As per Guennadi's suggestions, improve the code of various soc-camera sensor
+drivers to avoid duplicating code.
 
-The main goal of this project is to develop a media driver that can
-simulate a device with a user specified topology. I.e, the driver
-should have pre-defined sub-devices (scalers, bayer, debayer, RGB/YUV
-Capture, sensors, generating images inside the kernel as Vivid does)
-that can be linked together by user space in run-time and compose a
-video pipe-line.
-Thus, the user will be able to simulate many devices with different topologies.
+Changes since v1:
 
-I'll be interacting with most of you to discuss a good API for a
-dynamic topology of a media device and I will probably post some
-kernel newbie questions on the way.
+- Remove unnecessary change in imx074 and ov5642
+- Dropped patch 9. It was not needed after all.
 
-The project goes from May 25 to August 25.
-Here is my blog: http://helenfornazier.blogspot.com.br/
-I am going to post under Outreachy category at least once every two
-weeks: http://helenfornazier.blogspot.com.br/feeds/posts/default/-/Outreachy?alt=rss
+Regards,
 
-My nick on irc is koike (its my middle name).
+	Hans
 
-I do hope to learn a lot, do my best and have fun.
+Hans Verkuil (8):
+  imx074: don't call imx074_find_datafmt() twice
+  mt9m001: avoid calling mt9m001_find_datafmt() twice
+  mt9v022: avoid calling mt9v022_find_datafmt() twice
+  ov2640: avoid calling ov2640_select_win() twice
+  ov5642: avoid calling ov5642_find_datafmt() twice
+  ov772x: avoid calling ov772x_select_params() twice
+  ov9640: avoid calling ov9640_res_roundup() twice
+  ov9740: avoid calling ov9740_res_roundup() twice
 
-Best regards,
+ drivers/media/i2c/soc_camera/imx074.c  |  2 +-
+ drivers/media/i2c/soc_camera/mt9m001.c |  8 +++----
+ drivers/media/i2c/soc_camera/mt9v022.c |  8 +++----
+ drivers/media/i2c/soc_camera/ov2640.c  | 21 +++++++++--------
+ drivers/media/i2c/soc_camera/ov5642.c  |  2 +-
+ drivers/media/i2c/soc_camera/ov772x.c  | 41 +++++++++++-----------------------
+ drivers/media/i2c/soc_camera/ov9640.c  | 24 +++-----------------
+ drivers/media/i2c/soc_camera/ov9740.c  | 18 +--------------
+ 8 files changed, 37 insertions(+), 87 deletions(-)
 
 -- 
-Helen Mae Koike Fornazier
+2.1.4
+
