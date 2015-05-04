@@ -1,92 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:62429 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754487AbbEUIyL (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37952 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751649AbbEDKUL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 04:54:11 -0400
-Message-id: <555D9D2F.9020500@samsung.com>
-Date: Thu, 21 May 2015 10:54:07 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
- v4l2_flash_init()
-References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
- <1432076645-4799-5-git-send-email-sakari.ailus@iki.fi>
- <555C582E.8000807@samsung.com> <555C63CF.2020304@samsung.com>
- <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
- <555C906D.4030902@samsung.com>
- <20150520143143.GA8601@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150520143143.GA8601@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 4 May 2015 06:20:11 -0400
+Message-ID: <554747D0.50008@xs4all.nl>
+Date: Mon, 04 May 2015 12:20:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 8/9] ov9740: avoid calling ov9740_res_roundup() twice
+References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl> <1430646876-19594-9-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1505032244370.6055@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1505032244370.6055@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 05/20/2015 04:31 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Wed, May 20, 2015 at 03:47:25PM +0200, Jacek Anaszewski wrote:
-> ...
->>>>>> --- a/drivers/leds/leds-aat1290.c
->>>>>> +++ b/drivers/leds/leds-aat1290.c
->>>>>> @@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
->>>>>> platform_device *pdev)
->>>>>>       led_cdev->dev->of_node = sub_node;
->>>>>>
->>>>>>       /* Create V4L2 Flash subdev. */
->>>>>> -    led->v4l2_flash = v4l2_flash_init(fled_cdev,
->>>>>> -                      &v4l2_flash_ops,
->>>>>> -                      &v4l2_sd_cfg);
->>>>>> +    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
->>>>>> +                      &v4l2_flash_ops, &v4l2_sd_cfg);
->>>>>
->>>>> Here the first argument should be led_cdev->dev, not dev, which is
->>>>> &pdev->dev, whereas led_cdev->dev is returned by
->>>>> device_create_with_groups (it takes dev as a parent) called from
->>>>> led_classdev_register.
->>>>
->>>> The reason for this is the fact that pdev->dev has its of_node
->>>> field initialized, which makes v4l2_async trying to match
->>>> subdev by parent node of a LED device, not by sub-LED related
->>>> DT node.
->>>
->>> If v4l2_subdev->of_node is set, then it won't be replaced with one from
->>> struct device. I.e. you need to provide of_node pointer only if it's
->>> different from dev->of_node.
->>>
+On 05/03/2015 10:47 PM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Sun, 3 May 2015, Hans Verkuil wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
 >>
->> It will always be different since dev->of_node pointer is related
->> to the main DT node of LED device, whereas each LED connected to it
->> must be expressed in the form of sub-node, as
->> Documentation/devicetree/bindings/leds/common.txt DT states.
->
-> You can still refer to the device's root device_node using a phandle.
+>> Simplify ov9740_s_fmt.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> ---
+>>  drivers/media/i2c/soc_camera/ov9740.c | 18 +-----------------
+>>  1 file changed, 1 insertion(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
+>> index 03a7fc7..61a8e18 100644
+>> --- a/drivers/media/i2c/soc_camera/ov9740.c
+>> +++ b/drivers/media/i2c/soc_camera/ov9740.c
+>> @@ -673,20 +673,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+>>  {
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	struct ov9740_priv *priv = to_ov9740(sd);
+>> -	enum v4l2_colorspace cspace;
+>> -	u32 code = mf->code;
+>>  	int ret;
+>>  
+>> -	ov9740_res_roundup(&mf->width, &mf->height);
+>> -
+>> -	switch (code) {
+>> -	case MEDIA_BUS_FMT_YUYV8_2X8:
+>> -		cspace = V4L2_COLORSPACE_SRGB;
+>> -		break;
+>> -	default:
+>> -		return -EINVAL;
+>> -	}
+>> -
+> 
+> ov9740_s_fmt() is also called from ov9740_s_power(), so, don't we have to 
+> do this simplification the other way round - remove redundant code from 
+> ov9740_set_fmt() instead?
 
-Why should I need to refer to the device's root node?
+Yes, but s_power is also calling ov9740_res_roundup() and it sets mf->code and
+mf->colorspace to the correct values. So this code in s_fmt is a duplicate
+for both s_power and for set_fmt. It can't be removed from set_fmt either
+since it is needed for the TRY_FORMAT case anyway.
 
-What I meant here was that DT documentation enforces that even if
-there is a single LED connected to the device it has to be expressed
-as a sub-node anyway. Each LED will have to be matched by the phandle
-to the sub-node representing it. This implies that v4l2_subdev->of_node
-(related to sub-LED DT node) will be always different from dev->of_node
-(related to LED controller DT node).
+So IMHO it makes sense to remove it from s_fmt.
 
-> Say, if you have a LED flash controller with an indicator. It's intended to
-> be used together with the flash LED, and the existing as3645a driver exposes
-> it through the same sub-device. I think that'd make sense with LED class
-> driver as well (i.e. you'd have two LED class devices but a single
-> sub-device). Small changes to the wrapper would be needed.
->
+Regards,
 
-How the sub-device name should look like then? We would have to
-concatenate somehow both LED class device names?
+	Hans
 
--- 
-Best Regards,
-Jacek Anaszewski
+> 
+> Thanks
+> Guennadi
+> 
+>>  	ret = ov9740_reg_write_array(client, ov9740_defaults,
+>>  				     ARRAY_SIZE(ov9740_defaults));
+>>  	if (ret < 0)
+>> @@ -696,11 +684,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+>>  	if (ret < 0)
+>>  		return ret;
+>>  
+>> -	mf->code	= code;
+>> -	mf->colorspace	= cspace;
+>> -
+>> -	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
+>> -
+>> +	priv->current_mf = *mf;
+>>  	return ret;
+>>  }
+>>  
+>> -- 
+>> 2.1.4
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
