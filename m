@@ -1,60 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57318 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752218AbbEHJH6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 05:07:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ovebryne@cisco.com, marbugge@cisco.com, matrandg@cisco.com,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
-Subject: [PATCH 3/5] v4l2-subdev: allow subdev to send an event to the v4l2_device notify function
-Date: Fri,  8 May 2015 11:07:26 +0200
-Message-Id: <1431076048-1963-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1431076048-1963-1-git-send-email-hverkuil@xs4all.nl>
-References: <1431076048-1963-1-git-send-email-hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:35657 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2993499AbbEEQBY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 12:01:24 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 8/9] media: vb2: Remove unused functions
+Date: Tue,  5 May 2015 18:01:17 +0200
+Message-Id: <1430841678-11117-9-git-send-email-jack@suse.cz>
+In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
+References: <1430841678-11117-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "jean-michel.hautbois@vodalys.com" <jean-michel.hautbois@vodalys.com>
+Conversion to the use of pinned pfns made some functions unused. Remove
+them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
 
-All drivers use custom notifications, in particular when source changes.
-The bridge only has to map the subdev that sends it to whatever video node it is connected to.
-
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- Documentation/video4linux/v4l2-framework.txt | 4 ++++
- include/media/v4l2-subdev.h                  | 2 ++
- 2 files changed, 6 insertions(+)
+ drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
+ include/media/videobuf2-memops.h           |   6 --
+ 2 files changed, 120 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 59e619f..75d5c18 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -1129,6 +1129,10 @@ available event type is 'class base + 1'.
- An example on how the V4L2 events may be used can be found in the OMAP
- 3 ISP driver (drivers/media/platform/omap3isp).
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 0ec186d41b9b..48c6a49c4928 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -23,120 +23,6 @@
+ #include <media/videobuf2-memops.h>
  
-+A subdev can directly send an event to the v4l2_device notify function with
-+V4L2_DEVICE_NOTIFY_EVENT. This allows the bridge to map the subdev that sends
-+the event to the video node(s) associated with the subdev that need to be
-+informed about such an event.
+ /**
+- * vb2_get_vma() - acquire and lock the virtual memory area
+- * @vma:	given virtual memory area
+- *
+- * This function attempts to acquire an area mapped in the userspace for
+- * the duration of a hardware operation. The area is "locked" by performing
+- * the same set of operation that are done when process calls fork() and
+- * memory areas are duplicated.
+- *
+- * Returns a copy of a virtual memory region on success or NULL.
+- */
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
+-{
+-	struct vm_area_struct *vma_copy;
+-
+-	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
+-	if (vma_copy == NULL)
+-		return NULL;
+-
+-	if (vma->vm_ops && vma->vm_ops->open)
+-		vma->vm_ops->open(vma);
+-
+-	if (vma->vm_file)
+-		get_file(vma->vm_file);
+-
+-	memcpy(vma_copy, vma, sizeof(*vma));
+-
+-	vma_copy->vm_mm = NULL;
+-	vma_copy->vm_next = NULL;
+-	vma_copy->vm_prev = NULL;
+-
+-	return vma_copy;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_vma);
+-
+-/**
+- * vb2_put_userptr() - release a userspace virtual memory area
+- * @vma:	virtual memory region associated with the area to be released
+- *
+- * This function releases the previously acquired memory area after a hardware
+- * operation.
+- */
+-void vb2_put_vma(struct vm_area_struct *vma)
+-{
+-	if (!vma)
+-		return;
+-
+-	if (vma->vm_ops && vma->vm_ops->close)
+-		vma->vm_ops->close(vma);
+-
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-
+-	kfree(vma);
+-}
+-EXPORT_SYMBOL_GPL(vb2_put_vma);
+-
+-/**
+- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
+- * @vaddr:	starting virtual address of the area to be verified
+- * @size:	size of the area
+- * @res_paddr:	will return physical address for the given vaddr
+- * @res_vma:	will return locked copy of struct vm_area for the given area
+- *
+- * This function will go through memory area of size @size mapped at @vaddr and
+- * verify that the underlying physical pages are contiguous. If they are
+- * contiguous the virtual memory area is locked and a @res_vma is filled with
+- * the copy and @res_pa set to the physical address of the buffer.
+- *
+- * Returns 0 on success.
+- */
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long offset, start, end;
+-	unsigned long this_pfn, prev_pfn;
+-	dma_addr_t pa = 0;
+-
+-	start = vaddr;
+-	offset = start & ~PAGE_MASK;
+-	end = start + size;
+-
+-	vma = find_vma(mm, start);
+-
+-	if (vma == NULL || vma->vm_end < end)
+-		return -EFAULT;
+-
+-	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
+-		int ret = follow_pfn(vma, start, &this_pfn);
+-		if (ret)
+-			return ret;
+-
+-		if (prev_pfn == 0)
+-			pa = this_pfn << PAGE_SHIFT;
+-		else if (this_pfn != prev_pfn + 1)
+-			return -EFAULT;
+-
+-		prev_pfn = this_pfn;
+-	}
+-
+-	/*
+-	 * Memory is contigous, lock vma and return to the caller
+-	 */
+-	*res_vma = vb2_get_vma(vma);
+-	if (*res_vma == NULL)
+-		return -ENOMEM;
+-
+-	*res_pa = pa + offset;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+-
+-/**
+  * vb2_create_framevec() - map virtual addresses to pfns
+  * @start:	Virtual user address where we start mapping
+  * @length:	Length of a range to map
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 2f0564ff5f31..830b5239fd8b 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -31,12 +31,6 @@ struct vb2_vmarea_handler {
  
- V4L2 clocks
- -----------
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 8f5da73..dc20102 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -40,6 +40,8 @@
- #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
- #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ extern const struct vm_operations_struct vb2_common_vm_ops;
  
-+#define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event_subscription;
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+-
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+-void vb2_put_vma(struct vm_area_struct *vma);
+-
+ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 					 unsigned long length,
+ 					 bool write);
 -- 
 2.1.4
 
