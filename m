@@ -1,78 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58393 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:50244 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756771AbbEVUe1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 16:34:27 -0400
-Message-ID: <555F92CD.1010504@osg.samsung.com>
-Date: Fri, 22 May 2015 14:34:21 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
-	damien@zamaudio.com, chris.j.arges@canonical.com,
-	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
-	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
-	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
-CC: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 0/2] Update ALSA driver to use media controller API
-References: <cover.1431110739.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1431110739.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	id S1752283AbbEEV7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:59:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 12/21] tua9001: remove media attach
+Date: Wed,  6 May 2015 00:58:33 +0300
+Message-Id: <1430863122-9888-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2015 01:31 PM, Shuah Khan wrote:
-> This patch series updates ALSA driver to use media controller
-> API to share tuner with DVB and V4L2 drivers that control AU0828
-> media device. Two new interfaces are added to media controller
-> API to enable creating media device as a device resource. This
-> allows creating media device as a device resource on the main
-> struct device that is common to all drivers that control a single
-> media hardware and share resources on it. Drivers then can find
-> the common media device to register entities and manage links,
-> and pipelines.
-> 
-> Tested with and without CONFIG_MEDIA_CONTROLLER enabled.
-> Tested tuner entity doesn't exist case as au0828 v4l2
-> driver is the one that will create the tuner when it gets
-> updated to use media controller API.
-> 
-> Please note that au0828 updates media controller are necessary
-> before the resource sharing can work across ALSA and au0828
-> dvb and v4l2 drivers. This work is in progress and another
-> developer is working on it.
-> 
-> Shuah Khan (2):
->   media: new media controller API for device resource support
->   sound/usb: Update ALSA driver to use media controller API
-> 
->  drivers/media/media-device.c | 33 +++++++++++++++++++++++++
->  include/media/media-device.h |  2 ++
->  sound/usb/card.c             |  5 ++++
->  sound/usb/card.h             | 12 +++++++++
->  sound/usb/pcm.c              | 23 +++++++++++++++++-
->  sound/usb/quirks-table.h     |  1 +
->  sound/usb/quirks.c           | 58 +++++++++++++++++++++++++++++++++++++++++++-
->  sound/usb/quirks.h           |  6 +++++
->  sound/usb/stream.c           | 40 ++++++++++++++++++++++++++++++
->  sound/usb/usbaudio.h         |  1 +
->  10 files changed, 179 insertions(+), 2 deletions(-)
-> 
+We are using I2C client binding now, so remove old media attach.
 
-Hi Mauro, Hans, Pinchart, and Takashi,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tua9001.c | 88 ++----------------------------------------
+ drivers/media/tuners/tua9001.h | 20 ----------
+ 2 files changed, 4 insertions(+), 104 deletions(-)
 
-Any feedback on this series?
-
-thanks,
--- Shuah
-
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 55cac20..87e8518 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -47,23 +47,6 @@ static int tua9001_wr_reg(struct tua9001_priv *priv, u8 reg, u16 val)
+ 	return ret;
+ }
+ 
+-static int tua9001_release(struct dvb_frontend *fe)
+-{
+-	struct tua9001_priv *priv = fe->tuner_priv;
+-	int ret = 0;
+-
+-	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
+-
+-	if (fe->callback)
+-		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+-				TUA9001_CMD_CEN, 0);
+-
+-	kfree(fe->tuner_priv);
+-	fe->tuner_priv = NULL;
+-
+-	return ret;
+-}
+-
+ static int tua9001_init(struct dvb_frontend *fe)
+ {
+ 	struct tua9001_priv *priv = fe->tuner_priv;
+@@ -96,18 +79,11 @@ static int tua9001_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c-gate */
+-
+ 	for (i = 0; i < ARRAY_SIZE(data); i++) {
+ 		ret = tua9001_wr_reg(priv, data[i].reg, data[i].val);
+ 		if (ret < 0)
+-			goto err_i2c_gate_ctrl;
++			goto err;
+ 	}
+-
+-err_i2c_gate_ctrl:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
+ err:
+ 	if (ret < 0)
+ 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+@@ -181,32 +157,25 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+ 	data[1].reg = 0x1f;
+ 	data[1].val = frequency;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c-gate */
+-
+ 	if (fe->callback) {
+ 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+ 				TUA9001_CMD_RXEN, 0);
+ 		if (ret < 0)
+-			goto err_i2c_gate_ctrl;
++			goto err;
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(data); i++) {
+ 		ret = tua9001_wr_reg(priv, data[i].reg, data[i].val);
+ 		if (ret < 0)
+-			goto err_i2c_gate_ctrl;
++			goto err;
+ 	}
+ 
+ 	if (fe->callback) {
+ 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+ 				TUA9001_CMD_RXEN, 1);
+ 		if (ret < 0)
+-			goto err_i2c_gate_ctrl;
++			goto err;
+ 	}
+-
+-err_i2c_gate_ctrl:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
+ err:
+ 	if (ret < 0)
+ 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+@@ -234,8 +203,6 @@ static const struct dvb_tuner_ops tua9001_tuner_ops = {
+ 		.frequency_step = 0,
+ 	},
+ 
+-	.release = tua9001_release,
+-
+ 	.init = tua9001_init,
+ 	.sleep = tua9001_sleep,
+ 	.set_params = tua9001_set_params,
+@@ -243,52 +210,6 @@ static const struct dvb_tuner_ops tua9001_tuner_ops = {
+ 	.get_if_frequency = tua9001_get_if_frequency,
+ };
+ 
+-struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+-		struct i2c_adapter *i2c, struct tua9001_config *cfg)
+-{
+-	struct tua9001_priv *priv = NULL;
+-	int ret;
+-
+-	priv = kzalloc(sizeof(struct tua9001_priv), GFP_KERNEL);
+-	if (priv == NULL)
+-		return NULL;
+-
+-	priv->i2c_addr = cfg->i2c_addr;
+-	priv->i2c = i2c;
+-
+-	if (fe->callback) {
+-		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+-				TUA9001_CMD_CEN, 1);
+-		if (ret < 0)
+-			goto err;
+-
+-		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+-				TUA9001_CMD_RXEN, 0);
+-		if (ret < 0)
+-			goto err;
+-
+-		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
+-				TUA9001_CMD_RESETN, 1);
+-		if (ret < 0)
+-			goto err;
+-	}
+-
+-	dev_info(&priv->i2c->dev,
+-			"%s: Infineon TUA 9001 successfully attached\n",
+-			KBUILD_MODNAME);
+-
+-	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
+-			sizeof(struct dvb_tuner_ops));
+-
+-	fe->tuner_priv = priv;
+-	return fe;
+-err:
+-	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
+-	kfree(priv);
+-	return NULL;
+-}
+-EXPORT_SYMBOL(tua9001_attach);
+-
+ static int tua9001_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -331,7 +252,6 @@ static int tua9001_probe(struct i2c_client *client,
+ 	fe->tuner_priv = dev;
+ 	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
+ 			sizeof(struct dvb_tuner_ops));
+-	fe->ops.tuner_ops.release = NULL;
+ 	i2c_set_clientdata(client, dev);
+ 
+ 	dev_info(&client->dev, "Infineon TUA 9001 successfully attached\n");
+diff --git a/drivers/media/tuners/tua9001.h b/drivers/media/tuners/tua9001.h
+index 0b4fc8d..5328ab2 100644
+--- a/drivers/media/tuners/tua9001.h
++++ b/drivers/media/tuners/tua9001.h
+@@ -21,7 +21,6 @@
+ #ifndef TUA9001_H
+ #define TUA9001_H
+ 
+-#include <linux/kconfig.h>
+ #include "dvb_frontend.h"
+ 
+ /*
+@@ -37,13 +36,6 @@ struct tua9001_platform_data {
+ 	struct dvb_frontend *dvb_frontend;
+ };
+ 
+-struct tua9001_config {
+-	/*
+-	 * I2C address
+-	 */
+-	u8 i2c_addr;
+-};
+-
+ /*
+  * TUA9001 I/O PINs:
+  *
+@@ -64,16 +56,4 @@ struct tua9001_config {
+ #define TUA9001_CMD_RESETN  1
+ #define TUA9001_CMD_RXEN    2
+ 
+-#if IS_REACHABLE(CONFIG_MEDIA_TUNER_TUA9001)
+-extern struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+-		struct i2c_adapter *i2c, struct tua9001_config *cfg);
+-#else
+-static inline struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+-		struct i2c_adapter *i2c, struct tua9001_config *cfg)
+-{
+-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+-	return NULL;
+-}
+-#endif
+-
+ #endif
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+http://palosaari.fi/
+
