@@ -1,170 +1,477 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51819 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400AbbEDKVp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:21:45 -0400
-Message-ID: <1430734901.3722.30.camel@pengutronix.de>
-Subject: Re: [PATCH v5 1/5] [media] DocBook media: document mem2mem draining
- flow
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de
-Date: Mon, 04 May 2015 12:21:41 +0200
-In-Reply-To: <553E3836.80606@xs4all.nl>
-References: <1429518504-14880-1-git-send-email-p.zabel@pengutronix.de>
-	 <1429518504-14880-2-git-send-email-p.zabel@pengutronix.de>
-	 <553E3836.80606@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:59304 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752926AbbEEV7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:59:01 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 19/21] fc2580: implement V4L2 subdevice for SDR control
+Date: Wed,  6 May 2015 00:58:40 +0300
+Message-Id: <1430863122-9888-19-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, Kamil,
+Implement V4L2 subdevice for bandwidth and frequency controls of
+SDR usage. That driver now implements both DVB frontend and V4L2
+subdevice. Driver itself is I2C driver. Lets see how it works.
 
-thank you for your comments.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/fc2580.c      | 262 +++++++++++++++++++++++++++++++++----
+ drivers/media/tuners/fc2580.h      |   5 +
+ drivers/media/tuners/fc2580_priv.h |  11 ++
+ 3 files changed, 249 insertions(+), 29 deletions(-)
 
-Am Montag, den 27.04.2015, 15:23 +0200 schrieb Hans Verkuil:
-> Hi Philipp,
-> 
-> I finally got around to reviewing this patch series. Sorry for the delay, but
-> here are my comments:
->
-> On 04/20/2015 10:28 AM, Philipp Zabel wrote:
-> > Document the interaction between VIDIOC_DECODER_CMD V4L2_DEC_CMD_STOP and
-> > VIDIOC_ENCODER_CMD V4L2_ENC_CMD_STOP to start the draining, the V4L2_EVENT_EOS
-> > event signalling all capture buffers are finished and ready to be dequeud,
-> > the new V4L2_BUF_FLAG_LAST buffer flag indicating the last buffer being dequeued
-> > from the capture queue, and the poll and VIDIOC_DQBUF ioctl return values once
-> > the queue is drained.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > Changes since v4:
-> >  - Split out documentation changes into a separate patch
-> >  - Changed wording following Pawel's suggestions.
-> > ---
-> >  Documentation/DocBook/media/v4l/io.xml                 | 10 ++++++++++
-> >  Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml |  9 ++++++++-
-> >  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |  8 +++++++-
-> >  Documentation/DocBook/media/v4l/vidioc-qbuf.xml        |  8 ++++++++
-> >  4 files changed, 33 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> > index 1c17f80..f561037 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -1129,6 +1129,16 @@ in this buffer has not been created by the CPU but by some DMA-capable unit,
-> >  in which case caches have not been used.</entry>
-> >  	  </row>
-> >  	  <row>
-> > +	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
-> > +	    <entry>0x00100000</entry>
-> > +	    <entry>Last buffer produced by the hardware. mem2mem codec drivers
-> > +set this flag on the capture queue for the last buffer when the
-> > +<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
-> > +<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. Any subsequent
-> > +call to the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block
-> > +anymore, but return an &EPIPE;.</entry>
-> 
-> As Kamil mentioned in his review, we should allow for bytesused == 0 here.
-
-How about:
-
-@@ -1134,9 +1134,11 @@ in which case caches have not been used.</entry>
-            <entry>Last buffer produced by the hardware. mem2mem codec drivers
- set this flag on the capture queue for the last buffer when the
- <link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> or
--<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. Any subsequent
--call to the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block
--anymore, but return an &EPIPE;.</entry>
-+<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called. Due to hardware
-+limitations, the last buffer may be empty. In this case the driver will set the
-+<structfield>bytesused</structfield> field to 0, regardless of the format. Any
-+Any subsequent call to the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl
-+will not block anymore, but return an &EPIPE;.</entry>
-          </row>
-          <row>
-            <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
-
-> > +	  </row>
-> > +	  <row>
-> >  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
-> >  	    <entry>0x0000e000</entry>
-> >  	    <entry>Mask for timestamp types below. To test the
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > index 9215627..6502d82 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> > @@ -197,7 +197,14 @@ be muted when playing back at a non-standard speed.
-> >  this command does nothing. This command has two flags:
-> >  if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
-> >  set the picture to black after it stopped decoding. Otherwise the last image will
-> > -repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-> > +repeat. mem2mem decoders will stop producing new frames altogether. They will send
-> > +a <constant>V4L2_EVENT_EOS</constant> event when the last frame has been decoded
-> > +and all frames are ready to be dequeued and will set the
-> > +<constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last buffer of the
-> 
-> Make a note here as well that the last buffer might be an empty buffer.
-
-@@ -201,9 +201,12 @@ repeat. mem2mem decoders will stop producing new frames altogether. They will se
- a <constant>V4L2_EVENT_EOS</constant> event when the last frame has been decoded
- and all frames are ready to be dequeued and will set the
- <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last buffer of the
--capture queue to indicate there will be no new buffers produced to dequeue. Once
--this flag was set, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl
--will not block anymore, but return an &EPIPE;.
-+capture queue to indicate there will be no new buffers produced to dequeue. This
-+buffer may be empty, indicated by the driver setting the
-+<structfield>bytesused</structfield> field to 0. Once the
-+<constant>V4L2_BUF_FLAG_LAST</constant> flag was set, the
-+<link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block anymore,
-+but return an &EPIPE;.
- If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
- stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
- will keep decoding until timestamp >= pts or until the last of the pending data from
-
-> > +capture queue to indicate there will be no new buffers produced to dequeue. Once
-> > +this flag was set, the <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl
-> > +will not block anymore, but return an &EPIPE;.
-> > +If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-> >  stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
-> >  will keep decoding until timestamp >= pts or until the last of the pending data from
-> >  its internal buffers was decoded.
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > index 0619ca5..3cdb841 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> > @@ -129,7 +129,13 @@ this command.</entry>
-> >  encoding will continue until the end of the current <wordasword>Group
-> >  Of Pictures</wordasword>, otherwise encoding will stop immediately.
-> >  When the encoder is already stopped, this command does
-> > -nothing.</entry>
-> > +nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
-> > +when the last frame has been decoded and all frames are ready to be dequeued and
-> > +will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last
-> > +buffer of the capture queue to indicate there will be no new buffers produced to
-> 
-> Ditto.
-
-@@ -133,7 +133,9 @@ nothing. mem2mem encoders will send a <constant>V4L2_EVENT_EOS</constant> event
- when the last frame has been decoded and all frames are ready to be dequeued and
- will set the <constant>V4L2_BUF_FLAG_LAST</constant> buffer flag on the last
- buffer of the capture queue to indicate there will be no new buffers produced to
--dequeue. Once this flag was set, the
-+dequeue. This buffer may be empty, indicated by the driver setting the
-+<structfield>bytesused</structfield> field to 0. Once the
-+<constant>V4L2_BUF_FLAG_LAST</constant> flag was set, the
- <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl will not block anymore,
- but return an &EPIPE;.</entry>
-          </row>
-
-regards
-Philipp
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index 30cee76..db21902 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -38,20 +38,19 @@ static int fc2580_wr_reg_ff(struct fc2580_dev *dev, u8 reg, u8 val)
+ 		return regmap_write(dev->regmap, reg, val);
+ }
+ 
+-static int fc2580_set_params(struct dvb_frontend *fe)
++static int fc2580_set_params(struct fc2580_dev *dev)
+ {
+-	struct fc2580_dev *dev = fe->tuner_priv;
+ 	struct i2c_client *client = dev->client;
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+ 	unsigned int uitmp, div_ref, div_ref_val, div_n, k, k_cw, div_out;
+ 	u64 f_vco;
+ 	u8 synth_config;
+ 	unsigned long timeout;
+ 
+-	dev_dbg(&client->dev,
+-		"delivery_system=%u frequency=%u bandwidth_hz=%u\n",
+-		c->delivery_system, c->frequency, c->bandwidth_hz);
++	if (!dev->active) {
++		dev_dbg(&client->dev, "tuner is sleeping\n");
++		return 0;
++	}
+ 
+ 	/*
+ 	 * Fractional-N synthesizer
+@@ -69,7 +68,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	 *                               +-------+
+ 	 */
+ 	for (i = 0; i < ARRAY_SIZE(fc2580_pll_lut); i++) {
+-		if (c->frequency <= fc2580_pll_lut[i].freq)
++		if (dev->f_frequency <= fc2580_pll_lut[i].freq)
+ 			break;
+ 	}
+ 	if (i == ARRAY_SIZE(fc2580_pll_lut)) {
+@@ -80,7 +79,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	#define DIV_PRE_N 2
+ 	#define F_REF dev->clk
+ 	div_out = fc2580_pll_lut[i].div_out;
+-	f_vco = (u64) c->frequency * div_out;
++	f_vco = (u64) dev->f_frequency * div_out;
+ 	synth_config = fc2580_pll_lut[i].band;
+ 	if (f_vco < 2600000000ULL)
+ 		synth_config |= 0x06;
+@@ -106,8 +105,9 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	k_cw = div_u64((u64) k * 0x100000, uitmp);
+ 
+ 	dev_dbg(&client->dev,
+-		"frequency=%u f_vco=%llu F_REF=%u div_ref=%u div_n=%u k=%u div_out=%u k_cw=%0x\n",
+-		c->frequency, f_vco, F_REF, div_ref, div_n, k, div_out, k_cw);
++		"frequency=%u bandwidth=%u f_vco=%llu F_REF=%u div_ref=%u div_n=%u k=%u div_out=%u k_cw=%0x\n",
++		dev->f_frequency, dev->f_bandwidth, f_vco, F_REF, div_ref,
++		div_n, k, div_out, k_cw);
+ 
+ 	ret = regmap_write(dev->regmap, 0x02, synth_config);
+ 	if (ret)
+@@ -131,7 +131,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 
+ 	/* registers */
+ 	for (i = 0; i < ARRAY_SIZE(fc2580_freq_regs_lut); i++) {
+-		if (c->frequency <= fc2580_freq_regs_lut[i].freq)
++		if (dev->f_frequency <= fc2580_freq_regs_lut[i].freq)
+ 			break;
+ 	}
+ 	if (i == ARRAY_SIZE(fc2580_freq_regs_lut)) {
+@@ -237,7 +237,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 
+ 	/* IF filters */
+ 	for (i = 0; i < ARRAY_SIZE(fc2580_if_filter_lut); i++) {
+-		if (c->bandwidth_hz <= fc2580_if_filter_lut[i].freq)
++		if (dev->f_bandwidth <= fc2580_if_filter_lut[i].freq)
+ 			break;
+ 	}
+ 	if (i == ARRAY_SIZE(fc2580_if_filter_lut)) {
+@@ -249,7 +249,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	uitmp = (unsigned int) 8058000 - (c->bandwidth_hz * 122 / 100 / 2);
++	uitmp = (unsigned int) 8058000 - (dev->f_bandwidth * 122 / 100 / 2);
+ 	uitmp = div64_u64((u64) dev->clk * uitmp, 1000000000000ULL);
+ 	ret = regmap_write(dev->regmap, 0x37, uitmp);
+ 	if (ret)
+@@ -285,9 +285,8 @@ err:
+ 	return ret;
+ }
+ 
+-static int fc2580_init(struct dvb_frontend *fe)
++static int fc2580_init(struct fc2580_dev *dev)
+ {
+-	struct fc2580_dev *dev = fe->tuner_priv;
+ 	struct i2c_client *client = dev->client;
+ 	int ret, i;
+ 
+@@ -300,56 +299,236 @@ static int fc2580_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
++	dev->active = true;
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+-static int fc2580_sleep(struct dvb_frontend *fe)
++static int fc2580_sleep(struct fc2580_dev *dev)
+ {
+-	struct fc2580_dev *dev = fe->tuner_priv;
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
++	dev->active = false;
++
+ 	ret = regmap_write(dev->regmap, 0x02, 0x0a);
+ 	if (ret)
+ 		goto err;
+-
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+-static int fc2580_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++/*
++ * DVB API
++ */
++static int fc2580_dvb_set_params(struct dvb_frontend *fe)
+ {
+ 	struct fc2580_dev *dev = fe->tuner_priv;
+-	struct i2c_client *client = dev->client;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+-	dev_dbg(&client->dev, "\n");
++	dev->f_frequency = c->frequency;
++	dev->f_bandwidth = c->bandwidth_hz;
++	return fc2580_set_params(dev);
++}
+ 
+-	*frequency = 0; /* Zero-IF */
++static int fc2580_dvb_init(struct dvb_frontend *fe)
++{
++	return fc2580_init(fe->tuner_priv);
++}
+ 
++static int fc2580_dvb_sleep(struct dvb_frontend *fe)
++{
++	return fc2580_sleep(fe->tuner_priv);
++}
++
++static int fc2580_dvb_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	*frequency = 0; /* Zero-IF */
+ 	return 0;
+ }
+ 
+-static const struct dvb_tuner_ops fc2580_tuner_ops = {
++static const struct dvb_tuner_ops fc2580_dvb_tuner_ops = {
+ 	.info = {
+ 		.name           = "FCI FC2580",
+ 		.frequency_min  = 174000000,
+ 		.frequency_max  = 862000000,
+ 	},
+ 
+-	.init = fc2580_init,
+-	.sleep = fc2580_sleep,
+-	.set_params = fc2580_set_params,
++	.init = fc2580_dvb_init,
++	.sleep = fc2580_dvb_sleep,
++	.set_params = fc2580_dvb_set_params,
+ 
+-	.get_if_frequency = fc2580_get_if_frequency,
++	.get_if_frequency = fc2580_dvb_get_if_frequency,
+ };
+ 
++/*
++ * V4L2 API
++ */
++#if IS_ENABLED(CONFIG_VIDEO_V4L2)
++static const struct v4l2_frequency_band bands[] = {
++	{
++		.type = V4L2_TUNER_RF,
++		.index = 0,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =   130000000,
++		.rangehigh  =  2000000000,
++	},
++};
++
++static inline struct fc2580_dev *fc2580_subdev_to_dev(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct fc2580_dev, subdev);
++}
++
++static int fc2580_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++	int ret;
++
++	dev_dbg(&client->dev, "on=%d\n", on);
++
++	if (on)
++		ret = fc2580_init(dev);
++	else
++		ret = fc2580_sleep(dev);
++	if (ret)
++		return ret;
++
++	return fc2580_set_params(dev);
++}
++
++static const struct v4l2_subdev_core_ops fc2580_subdev_core_ops = {
++	.s_power                  = fc2580_s_power,
++};
++
++static int fc2580_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *v)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "index=%d\n", v->index);
++
++	strlcpy(v->name, "FCI FC2580", sizeof(v->name));
++	v->type = V4L2_TUNER_RF;
++	v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	v->rangelow  = bands[0].rangelow;
++	v->rangehigh = bands[0].rangehigh;
++	return 0;
++}
++
++static int fc2580_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *v)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "index=%d\n", v->index);
++	return 0;
++}
++
++static int fc2580_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "tuner=%d\n", f->tuner);
++	f->frequency = dev->f_frequency;
++	return 0;
++}
++
++static int fc2580_s_frequency(struct v4l2_subdev *sd,
++			      const struct v4l2_frequency *f)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "tuner=%d type=%d frequency=%u\n",
++		f->tuner, f->type, f->frequency);
++
++	dev->f_frequency = clamp_t(unsigned int, f->frequency,
++				   bands[0].rangelow, bands[0].rangehigh);
++	return fc2580_set_params(dev);
++}
++
++static int fc2580_enum_freq_bands(struct v4l2_subdev *sd,
++				  struct v4l2_frequency_band *band)
++{
++	struct fc2580_dev *dev = fc2580_subdev_to_dev(sd);
++	struct i2c_client *client = dev->client;
++
++	dev_dbg(&client->dev, "tuner=%d type=%d index=%d\n",
++		band->tuner, band->type, band->index);
++
++	if (band->index >= ARRAY_SIZE(bands))
++		return -EINVAL;
++
++	band->capability = bands[band->index].capability;
++	band->rangelow = bands[band->index].rangelow;
++	band->rangehigh = bands[band->index].rangehigh;
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops fc2580_subdev_tuner_ops = {
++	.g_tuner                  = fc2580_g_tuner,
++	.s_tuner                  = fc2580_s_tuner,
++	.g_frequency              = fc2580_g_frequency,
++	.s_frequency              = fc2580_s_frequency,
++	.enum_freq_bands          = fc2580_enum_freq_bands,
++};
++
++static const struct v4l2_subdev_ops fc2580_subdev_ops = {
++	.core                     = &fc2580_subdev_core_ops,
++	.tuner                    = &fc2580_subdev_tuner_ops,
++};
++
++static int fc2580_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct fc2580_dev *dev = container_of(ctrl->handler, struct fc2580_dev, hdl);
++	struct i2c_client *client = dev->client;
++	int ret;
++
++	dev_dbg(&client->dev, "ctrl: id=%d name=%s cur.val=%d val=%d\n",
++		ctrl->id, ctrl->name, ctrl->cur.val, ctrl->val);
++
++	switch (ctrl->id) {
++	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
++	case V4L2_CID_RF_TUNER_BANDWIDTH:
++		/*
++		 * TODO: Auto logic does not work 100% correctly as tuner driver
++		 * do not have information to calculate maximum suitable
++		 * bandwidth. Calculating it is responsible of master driver.
++		 */
++		dev->f_bandwidth = dev->bandwidth->val;
++		ret = fc2580_set_params(dev);
++		break;
++	default:
++		dev_dbg(&client->dev, "unknown ctrl");
++		ret = -EINVAL;
++	}
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops fc2580_ctrl_ops = {
++	.s_ctrl = fc2580_s_ctrl,
++};
++#endif
++
++static struct v4l2_subdev *fc2580_get_v4l2_subdev(struct i2c_client *client)
++{
++	struct fc2580_dev *dev = i2c_get_clientdata(client);
++
++	if (dev->subdev.ops)
++		return &dev->subdev;
++	else
++		return NULL;
++}
++
+ static int fc2580_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -395,9 +574,31 @@ static int fc2580_probe(struct i2c_client *client,
+ 		goto err_kfree;
+ 	}
+ 
++#if IS_ENABLED(CONFIG_VIDEO_V4L2)
++	/* Register controls */
++	v4l2_ctrl_handler_init(&dev->hdl, 2);
++	dev->bandwidth_auto = v4l2_ctrl_new_std(&dev->hdl, &fc2580_ctrl_ops,
++						V4L2_CID_RF_TUNER_BANDWIDTH_AUTO,
++						0, 1, 1, 1);
++	dev->bandwidth = v4l2_ctrl_new_std(&dev->hdl, &fc2580_ctrl_ops,
++					   V4L2_CID_RF_TUNER_BANDWIDTH,
++					   3000, 10000000, 1, 3000);
++	v4l2_ctrl_auto_cluster(2, &dev->bandwidth_auto, 0, false);
++	if (dev->hdl.error) {
++		ret = dev->hdl.error;
++		dev_err(&client->dev, "Could not initialize controls\n");
++		v4l2_ctrl_handler_free(&dev->hdl);
++		goto err_kfree;
++	}
++	dev->subdev.ctrl_handler = &dev->hdl;
++	dev->f_frequency = bands[0].rangelow;
++	dev->f_bandwidth = dev->bandwidth->val;
++	v4l2_i2c_subdev_init(&dev->subdev, client, &fc2580_subdev_ops);
++#endif
+ 	fe->tuner_priv = dev;
+-	memcpy(&fe->ops.tuner_ops, &fc2580_tuner_ops,
+-			sizeof(struct dvb_tuner_ops));
++	memcpy(&fe->ops.tuner_ops, &fc2580_dvb_tuner_ops,
++	       sizeof(fe->ops.tuner_ops));
++	pdata->get_v4l2_subdev = fc2580_get_v4l2_subdev;
+ 	i2c_set_clientdata(client, dev);
+ 
+ 	dev_info(&client->dev, "FCI FC2580 successfully identified\n");
+@@ -415,6 +616,9 @@ static int fc2580_remove(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
++#if IS_ENABLED(CONFIG_VIDEO_V4L2)
++	v4l2_ctrl_handler_free(&dev->hdl);
++#endif
+ 	kfree(dev);
+ 	return 0;
+ }
+diff --git a/drivers/media/tuners/fc2580.h b/drivers/media/tuners/fc2580.h
+index 61ee0e8..862ea46 100644
+--- a/drivers/media/tuners/fc2580.h
++++ b/drivers/media/tuners/fc2580.h
+@@ -22,6 +22,8 @@
+ #define FC2580_H
+ 
+ #include "dvb_frontend.h"
++#include <media/v4l2-subdev.h>
++#include <linux/i2c.h>
+ 
+ /*
+  * I2C address
+@@ -32,10 +34,13 @@
+  * struct fc2580_platform_data - Platform data for the fc2580 driver
+  * @clk: Clock frequency (0 = internal clock).
+  * @dvb_frontend: DVB frontend.
++ * @get_v4l2_subdev: Get V4L2 subdev.
+  */
+ struct fc2580_platform_data {
+ 	u32 clk;
+ 	struct dvb_frontend *dvb_frontend;
++
++	struct v4l2_subdev* (*get_v4l2_subdev)(struct i2c_client *);
+ };
+ 
+ #endif
+diff --git a/drivers/media/tuners/fc2580_priv.h b/drivers/media/tuners/fc2580_priv.h
+index bd88b01..031a43d 100644
+--- a/drivers/media/tuners/fc2580_priv.h
++++ b/drivers/media/tuners/fc2580_priv.h
+@@ -22,6 +22,8 @@
+ #define FC2580_PRIV_H
+ 
+ #include "fc2580.h"
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-subdev.h>
+ #include <linux/regmap.h>
+ #include <linux/math64.h>
+ 
+@@ -131,6 +133,15 @@ struct fc2580_dev {
+ 	u32 clk;
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
++	struct v4l2_subdev subdev;
++	bool active;
++	unsigned int f_frequency;
++	unsigned int f_bandwidth;
++
++	/* Controls */
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
+ };
+ 
+ #endif
+-- 
+http://palosaari.fi/
 
