@@ -1,94 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:60235 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:40297 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752020AbbELVJS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 17:09:18 -0400
-Date: Tue, 12 May 2015 23:09:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: linux-media@vger.kernel.org
-Subject: Re: v4.1-rcX regression in v4l2 build
-In-Reply-To: <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1505122302570.11250@axis700.grange>
-References: <87d225mve4.fsf@belgarion.home> <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1752733AbbEEV7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:59:00 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 15/21] tua9001: use div_u64() for frequency calculation
+Date: Wed,  6 May 2015 00:58:36 +0300
+Message-Id: <1430863122-9888-15-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 12 May 2015, Guennadi Liakhovetski wrote:
+Use div_u64() to simplify and remove home made divides.
 
-> Hi Robert,
-> 
-> On Tue, 12 May 2015, Robert Jarzmik wrote:
-> 
-> > Hi Guennadi,
-> > 
-> > Today I noticed the mioa701 build is broken on v4.1-rcX series. It was working
-> > in v4.0.
-> > 
-> > The build error I get is :
-> >   LINK    vmlinux
-> >   LD      vmlinux.o
-> >   MODPOST vmlinux.o
-> >   GEN     .version
-> >   CHK     include/generated/compile.h
-> >   UPD     include/generated/compile.h
-> >   CC      init/version.o
-> >   LD      init/built-in.o
-> > drivers/built-in.o: In function `v4l2_clk_set_rate':
-> > /home/rj/mio_linux/kernel/drivers/media/v4l2-core/v4l2-clk.c:196: undefined reference to `clk_round_rate'
-> > Makefile:932: recipe for target 'vmlinux' failed
-> > make: *** [vmlinux] Error 1
-> > make: Target '_all' not remade because of errors.
-> 
-> Not good:(
-> 
-> > I have no idea what changed. Do you have a clue ?
-> 
-> I've seen some patches on ALKML for PXA CCF, is it in the mainline now? 
-> Could that have been the reason? Is CONFIG_COMMON_CLK defined in your 
-> .config? Although, no, it's not PXA CCF, it's most probably this
-> 
-> commit 4f528afcfbcac540c8690b41307cac5c22088ff1
-> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date:   Sun Feb 1 08:12:33 2015 -0300
-> 
->     [media] V4L: add CCF support to the v4l2_clk API
-> 
-> :( But I don't understand how this can happen. V4L is certainly not the 
-> only driver in your build, that uses clk ops! They are exported from 
-> drivers/clk/clk.c for GPL, but v4l2-dev.c defines the GPL licence, so, 
-> should be ok. V4L is built as a module in your configuration, right? Can 
-> you try building it into the image?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tua9001.c      | 9 +--------
+ drivers/media/tuners/tua9001_priv.h | 1 +
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-I think I know how this is possible. PXA uses arch/arm/mach-pxa/clock.c 
-for clk ops, and clk_round_rate() isn't defined there... Can we add a 
-dummy for PXA? It won't be used anyway as long as PXA doesn't support CCF.
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 09a1034..d4f6ca0 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -88,7 +88,6 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+ 	u16 val;
+-	u32 frequency;
+ 	struct tua9001_reg_val data[2];
+ 
+ 	dev_dbg(&client->dev,
+@@ -122,14 +121,8 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+ 
+ 	data[0].reg = 0x04;
+ 	data[0].val = val;
+-
+-	frequency = (c->frequency - 150000000);
+-	frequency /= 100;
+-	frequency *= 48;
+-	frequency /= 10000;
+-
+ 	data[1].reg = 0x1f;
+-	data[1].val = frequency;
++	data[1].val = div_u64((u64) (c->frequency - 150000000) * 48, 1000000);
+ 
+ 	if (fe->callback) {
+ 		ret = fe->callback(client->adapter,
+diff --git a/drivers/media/tuners/tua9001_priv.h b/drivers/media/tuners/tua9001_priv.h
+index 327ead9..bc406c5 100644
+--- a/drivers/media/tuners/tua9001_priv.h
++++ b/drivers/media/tuners/tua9001_priv.h
+@@ -18,6 +18,7 @@
+ #define TUA9001_PRIV_H
+ 
+ #include "tua9001.h"
++#include <linux/math64.h>
+ #include <linux/regmap.h>
+ 
+ struct tua9001_reg_val {
+-- 
+http://palosaari.fi/
 
-Thanks
-Guennadi
-
-> > 
-> > Cheers.
-> > 
-> > -- 
-> > Robert
-> > 
-> > PS: A small extract of my .config
-> > rj@belgarion:~/mio_linux/kernel$ grep CLK .config
-> > CONFIG_HAVE_CLK=y
-> > CONFIG_PM_CLK=y
-> > # CONFIG_MMC_CLKGATE is not set
-> > CONFIG_CLKDEV_LOOKUP=y
-> > CONFIG_CLKSRC_OF=y
-> > CONFIG_CLKSRC_MMIO=y
-> > CONFIG_CLKSRC_PXA=y
-> > rj@belgarion:~/mio_linux/kernel$ grep V4L .config
-> > CONFIG_VIDEO_V4L2=y
-> > CONFIG_V4L_PLATFORM_DRIVERS=y
-> > # CONFIG_V4L_MEM2MEM_DRIVERS is not set
-> > # CONFIG_V4L_TEST_DRIVERS is not set
-> > CONFIG_DVB_AU8522_V4L=m
-> > 
-> 
