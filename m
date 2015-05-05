@@ -1,87 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:49842 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753797AbbELUvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 16:51:31 -0400
-Date: Tue, 12 May 2015 22:51:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: linux-media@vger.kernel.org
-Subject: Re: v4.1-rcX regression in v4l2 build
-In-Reply-To: <87d225mve4.fsf@belgarion.home>
-Message-ID: <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
-References: <87d225mve4.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:35413 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761322AbbEEQeO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:34:14 -0400
+Received: by lbbuc2 with SMTP id uc2so132956806lbb.2
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:34:13 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 3/4] dw2102: debugging improvements
+Date: Tue,  5 May 2015 19:33:54 +0300
+Message-Id: <1430843635-24002-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
+References: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Move some info printouts to be debugging printouts that are only shown
+if debugging for the module is enabled. The module already implemented
+deb_rc and deb_xfer, but not deb_info.
 
-On Tue, 12 May 2015, Robert Jarzmik wrote:
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/dw2102.c | 6 ++++--
+ drivers/media/usb/dvb-usb/dw2102.h | 1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-> Hi Guennadi,
-> 
-> Today I noticed the mioa701 build is broken on v4.1-rcX series. It was working
-> in v4.0.
-> 
-> The build error I get is :
->   LINK    vmlinux
->   LD      vmlinux.o
->   MODPOST vmlinux.o
->   GEN     .version
->   CHK     include/generated/compile.h
->   UPD     include/generated/compile.h
->   CC      init/version.o
->   LD      init/built-in.o
-> drivers/built-in.o: In function `v4l2_clk_set_rate':
-> /home/rj/mio_linux/kernel/drivers/media/v4l2-core/v4l2-clk.c:196: undefined reference to `clk_round_rate'
-> Makefile:932: recipe for target 'vmlinux' failed
-> make: *** [vmlinux] Error 1
-> make: Target '_all' not remade because of errors.
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index b1f8a3f..7552521 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -881,6 +881,8 @@ static int su3000_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 		.len = 1
+ 	};
+ 
++	deb_info("%s: onoff: %d\n", __func__, onoff);
++
+ 	i2c_transfer(&adap->dev->i2c_adap, &msg, 1);
+ 
+ 	return 0;
+@@ -891,7 +893,7 @@ static int su3000_power_ctrl(struct dvb_usb_device *d, int i)
+ 	struct dw2102_state *state = (struct dw2102_state *)d->priv;
+ 	u8 obuf[] = {0xde, 0};
+ 
+-	info("%s: %d, initialized %d", __func__, i, state->initialized);
++	deb_info("%s: %d, initialized %d\n", __func__, i, state->initialized);
+ 
+ 	if (i && !state->initialized) {
+ 		state->initialized = 1;
+@@ -938,7 +940,7 @@ static int su3000_identify_state(struct usb_device *udev,
+ 				 struct dvb_usb_device_description **desc,
+ 				 int *cold)
+ {
+-	info("%s", __func__);
++	deb_info("%s\n", __func__);
+ 
+ 	*cold = 0;
+ 	return 0;
+diff --git a/drivers/media/usb/dvb-usb/dw2102.h b/drivers/media/usb/dvb-usb/dw2102.h
+index 5cd0b0e..1602368 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.h
++++ b/drivers/media/usb/dvb-usb/dw2102.h
+@@ -4,6 +4,7 @@
+ #define DVB_USB_LOG_PREFIX "dw2102"
+ #include "dvb-usb.h"
+ 
++#define deb_info(args...) dprintk(dvb_usb_dw2102_debug, 0x01, args)
+ #define deb_xfer(args...) dprintk(dvb_usb_dw2102_debug, 0x02, args)
+ #define deb_rc(args...)   dprintk(dvb_usb_dw2102_debug, 0x04, args)
+ #endif
+-- 
+1.9.1
 
-Not good:(
-
-> I have no idea what changed. Do you have a clue ?
-
-I've seen some patches on ALKML for PXA CCF, is it in the mainline now? 
-Could that have been the reason? Is CONFIG_COMMON_CLK defined in your 
-.config? Although, no, it's not PXA CCF, it's most probably this
-
-commit 4f528afcfbcac540c8690b41307cac5c22088ff1
-Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date:   Sun Feb 1 08:12:33 2015 -0300
-
-    [media] V4L: add CCF support to the v4l2_clk API
-
-:( But I don't understand how this can happen. V4L is certainly not the 
-only driver in your build, that uses clk ops! They are exported from 
-drivers/clk/clk.c for GPL, but v4l2-dev.c defines the GPL licence, so, 
-should be ok. V4L is built as a module in your configuration, right? Can 
-you try building it into the image?
-
-Thanks
-Guennadi
-
-> 
-> Cheers.
-> 
-> -- 
-> Robert
-> 
-> PS: A small extract of my .config
-> rj@belgarion:~/mio_linux/kernel$ grep CLK .config
-> CONFIG_HAVE_CLK=y
-> CONFIG_PM_CLK=y
-> # CONFIG_MMC_CLKGATE is not set
-> CONFIG_CLKDEV_LOOKUP=y
-> CONFIG_CLKSRC_OF=y
-> CONFIG_CLKSRC_MMIO=y
-> CONFIG_CLKSRC_PXA=y
-> rj@belgarion:~/mio_linux/kernel$ grep V4L .config
-> CONFIG_VIDEO_V4L2=y
-> CONFIG_V4L_PLATFORM_DRIVERS=y
-> # CONFIG_V4L_MEM2MEM_DRIVERS is not set
-> # CONFIG_V4L_TEST_DRIVERS is not set
-> CONFIG_DVB_AU8522_V4L=m
-> 
