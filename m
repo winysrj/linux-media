@@ -1,116 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35884 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753613AbbETOov (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:44:51 -0400
-Date: Wed, 20 May 2015 17:44:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v8 1/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Message-ID: <20150520144447.GB8601@valkosipuli.retiisi.org.uk>
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-2-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1432131015-22397-2-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:33781 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761322AbbEEQeJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:34:09 -0400
+Received: by lbbzk7 with SMTP id zk7so133162383lbb.0
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:34:08 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/4] dw2102: remove unnecessary newline from log printouts
+Date: Tue,  5 May 2015 19:33:53 +0300
+Message-Id: <1430843635-24002-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
+References: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+The info and warn functions already add a newline to the end of the
+log printouts, so remove the extra newline from the printouts.
 
-On Wed, May 20, 2015 at 04:10:08PM +0200, Jacek Anaszewski wrote:
-...
-> +struct v4l2_flash *v4l2_flash_init(
-> +	struct device *dev, struct device_node *of_node,
-> +	struct led_classdev_flash *fled_cdev, const struct v4l2_flash_ops *ops,
-> +	struct v4l2_flash_config *config)
-> +{
-> +	struct v4l2_flash *v4l2_flash;
-> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-> +	struct v4l2_subdev *sd;
-> +	int ret;
-> +
-> +	if (!fled_cdev || !ops || !config)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	v4l2_flash = devm_kzalloc(led_cdev->dev, sizeof(*v4l2_flash),
-> +					GFP_KERNEL);
-> +	if (!v4l2_flash)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	sd = &v4l2_flash->sd;
-> +	v4l2_flash->fled_cdev = fled_cdev;
-> +	v4l2_flash->ops = ops;
-> +	sd->dev = dev;
-> +	sd->of_node = of_node;
-> +	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
-> +	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	strlcpy(sd->name, config->dev_name, sizeof(sd->name));
-> +
-> +	ret = media_entity_init(&sd->entity, 0, NULL, 0);
-> +	if (ret < 0)
-> +		return ERR_PTR(ret);
-> +
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-> +
-> +	ret = v4l2_flash_init_controls(v4l2_flash, config);
-> +	if (ret < 0)
-> +		goto err_init_controls;
-> +
-> +	of_node_get(led_cdev->dev->of_node);
-> +
-> +	ret = v4l2_async_register_subdev(sd);
-> +	if (ret < 0)
-> +		goto err_async_register_sd;
-> +
-> +	return v4l2_flash;
-> +
-> +err_async_register_sd:
-> +	of_node_put(led_cdev->dev->of_node);
-> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> +err_init_controls:
-> +	media_entity_cleanup(&sd->entity);
-> +
-> +	return ERR_PTR(ret);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_flash_init);
-> +
-> +void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
-> +{
-> +	struct v4l2_subdev *sd;
-> +	struct led_classdev *led_cdev;
-> +
-> +	if (IS_ERR(v4l2_flash))
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/dw2102.c | 60 +++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-I propose to use IS_ERR_OR_NULL() instead. Then this can be safely called
-without calling v4l2_flash_init() first, making error handling easier.
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +		return;
-> +
-> +	sd = &v4l2_flash->sd;
-> +	led_cdev = &v4l2_flash->fled_cdev->led_cdev;
-> +
-> +	v4l2_async_unregister_subdev(sd);
-> +	of_node_put(led_cdev->dev->of_node);
-> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> +	media_entity_cleanup(&sd->entity);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_flash_release);
-
-...
-
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 4ad6bb2..b1f8a3f 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -307,7 +307,7 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 		u8 ibuf[MAX_XFER_SIZE], obuf[3];
+ 
+ 		if (2 + msg[1].len > sizeof(ibuf)) {
+-			warn("i2c rd: len=%d is too big!\n",
++			warn("i2c rd: len=%d is too big!",
+ 			     msg[1].len);
+ 			ret = -EOPNOTSUPP;
+ 			goto unlock;
+@@ -332,7 +332,7 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 			u8 obuf[MAX_XFER_SIZE];
+ 
+ 			if (2 + msg[0].len > sizeof(obuf)) {
+-				warn("i2c wr: len=%d is too big!\n",
++				warn("i2c wr: len=%d is too big!",
+ 				     msg[1].len);
+ 				ret = -EOPNOTSUPP;
+ 				goto unlock;
+@@ -350,7 +350,7 @@ static int dw2102_earda_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg ms
+ 			u8 obuf[MAX_XFER_SIZE];
+ 
+ 			if (2 + msg[0].len > sizeof(obuf)) {
+-				warn("i2c wr: len=%d is too big!\n",
++				warn("i2c wr: len=%d is too big!",
+ 				     msg[1].len);
+ 				ret = -EOPNOTSUPP;
+ 				goto unlock;
+@@ -426,7 +426,7 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
+ 				u8  ibuf[MAX_XFER_SIZE];
+ 
+ 				if (2 + msg[j].len > sizeof(ibuf)) {
+-					warn("i2c rd: len=%d is too big!\n",
++					warn("i2c rd: len=%d is too big!",
+ 					     msg[j].len);
+ 					ret = -EOPNOTSUPP;
+ 					goto unlock;
+@@ -463,7 +463,7 @@ static int dw2104_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[], i
+ 				u8 obuf[MAX_XFER_SIZE];
+ 
+ 				if (2 + msg[j].len > sizeof(obuf)) {
+-					warn("i2c wr: len=%d is too big!\n",
++					warn("i2c wr: len=%d is too big!",
+ 					     msg[j].len);
+ 					ret = -EOPNOTSUPP;
+ 					goto unlock;
+@@ -507,7 +507,7 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 		u8 ibuf[MAX_XFER_SIZE], obuf[3];
+ 
+ 		if (2 + msg[1].len > sizeof(ibuf)) {
+-			warn("i2c rd: len=%d is too big!\n",
++			warn("i2c rd: len=%d is too big!",
+ 			     msg[1].len);
+ 			ret = -EOPNOTSUPP;
+ 			goto unlock;
+@@ -532,7 +532,7 @@ static int dw3101_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			u8 obuf[MAX_XFER_SIZE];
+ 
+ 			if (2 + msg[0].len > sizeof(obuf)) {
+-				warn("i2c wr: len=%d is too big!\n",
++				warn("i2c wr: len=%d is too big!",
+ 				     msg[0].len);
+ 				ret = -EOPNOTSUPP;
+ 				goto unlock;
+@@ -623,7 +623,7 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				u8 ibuf[MAX_XFER_SIZE];
+ 
+ 				if (msg[j].len > sizeof(ibuf)) {
+-					warn("i2c rd: len=%d is too big!\n",
++					warn("i2c rd: len=%d is too big!",
+ 					     msg[j].len);
+ 					ret = -EOPNOTSUPP;
+ 					goto unlock;
+@@ -658,7 +658,7 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				u8 obuf[MAX_XFER_SIZE];
+ 
+ 				if (2 + msg[j].len > sizeof(obuf)) {
+-					warn("i2c wr: len=%d is too big!\n",
++					warn("i2c wr: len=%d is too big!",
+ 					     msg[j].len);
+ 					ret = -EOPNOTSUPP;
+ 					goto unlock;
+@@ -678,7 +678,7 @@ static int s6x0_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 				u8 obuf[MAX_XFER_SIZE];
+ 
+ 				if (2 + msg[j].len > sizeof(obuf)) {
+-					warn("i2c wr: len=%d is too big!\n",
++					warn("i2c wr: len=%d is too big!",
+ 					     msg[j].len);
+ 					ret = -EOPNOTSUPP;
+ 					goto unlock;
+@@ -891,7 +891,7 @@ static int su3000_power_ctrl(struct dvb_usb_device *d, int i)
+ 	struct dw2102_state *state = (struct dw2102_state *)d->priv;
+ 	u8 obuf[] = {0xde, 0};
+ 
+-	info("%s: %d, initialized %d\n", __func__, i, state->initialized);
++	info("%s: %d, initialized %d", __func__, i, state->initialized);
+ 
+ 	if (i && !state->initialized) {
+ 		state->initialized = 1;
+@@ -938,7 +938,7 @@ static int su3000_identify_state(struct usb_device *udev,
+ 				 struct dvb_usb_device_description **desc,
+ 				 int *cold)
+ {
+-	info("%s\n", __func__);
++	info("%s", __func__);
+ 
+ 	*cold = 0;
+ 	return 0;
+@@ -1172,7 +1172,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 				tuner_ops->set_bandwidth = stb6100_set_bandw;
+ 				tuner_ops->get_bandwidth = stb6100_get_bandw;
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached STV0900+STB6100!\n");
++				info("Attached STV0900+STB6100!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1186,7 +1186,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 					&dw2104_stv6110_config,
+ 					&d->dev->i2c_adap)) {
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached STV0900+STV6110A!\n");
++				info("Attached STV0900+STV6110A!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1197,7 +1197,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 				&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached cx24116!\n");
++			info("Attached cx24116!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1208,7 +1208,7 @@ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+ 		dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 			&dw2104_ts2020_config, &d->dev->i2c_adap);
+ 		d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-		info("Attached DS3000!\n");
++		info("Attached DS3000!");
+ 		return 0;
+ 	}
+ 
+@@ -1227,7 +1227,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 					&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached si21xx!\n");
++			info("Attached si21xx!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1239,7 +1239,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 			if (dvb_attach(stb6000_attach, d->fe_adap[0].fe, 0x61,
+ 					&d->dev->i2c_adap)) {
+ 				d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-				info("Attached stv0288!\n");
++				info("Attached stv0288!");
+ 				return 0;
+ 			}
+ 		}
+@@ -1251,7 +1251,7 @@ static int dw2102_frontend_attach(struct dvb_usb_adapter *d)
+ 					&d->dev->i2c_adap);
+ 		if (d->fe_adap[0].fe != NULL) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached stv0299!\n");
++			info("Attached stv0299!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1263,7 +1263,7 @@ static int dw3101_frontend_attach(struct dvb_usb_adapter *d)
+ 	d->fe_adap[0].fe = dvb_attach(tda10023_attach, &dw3101_tda10023_config,
+ 				&d->dev->i2c_adap, 0x48);
+ 	if (d->fe_adap[0].fe != NULL) {
+-		info("Attached tda10023!\n");
++		info("Attached tda10023!");
+ 		return 0;
+ 	}
+ 	return -EIO;
+@@ -1277,7 +1277,7 @@ static int zl100313_frontend_attach(struct dvb_usb_adapter *d)
+ 		if (dvb_attach(zl10039_attach, d->fe_adap[0].fe, 0x60,
+ 				&d->dev->i2c_adap)) {
+ 			d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
+-			info("Attached zl100313+zl10039!\n");
++			info("Attached zl100313+zl10039!");
+ 			return 0;
+ 		}
+ 	}
+@@ -1302,7 +1302,7 @@ static int stv0288_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached stv0288+stb6000!\n");
++	info("Attached stv0288+stb6000!");
+ 
+ 	return 0;
+ 
+@@ -1327,7 +1327,7 @@ static int ds3000_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached ds3000+ts2020!\n");
++	info("Attached ds3000+ts2020!");
+ 
+ 	return 0;
+ }
+@@ -1345,7 +1345,7 @@ static int prof_7500_frontend_attach(struct dvb_usb_adapter *d)
+ 
+ 	dw210x_op_rw(d->dev->udev, 0x8a, 0, 0, obuf, 2, DW210X_WRITE_MSG);
+ 
+-	info("Attached STV0900+STB6100A!\n");
++	info("Attached STV0900+STB6100A!");
+ 
+ 	return 0;
+ }
+@@ -1393,11 +1393,11 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 				&dw2104_ts2020_config,
+ 				&d->dev->i2c_adap)) {
+-		info("Attached DS3000/TS2020!\n");
++		info("Attached DS3000/TS2020!");
+ 		return 0;
+ 	}
+ 
+-	info("Failed to attach DS3000/TS2020!\n");
++	info("Failed to attach DS3000/TS2020!");
+ 	return -EIO;
+ }
+ 
+@@ -1442,12 +1442,12 @@ static int t220_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (d->fe_adap[0].fe != NULL) {
+ 		if (dvb_attach(tda18271_attach, d->fe_adap[0].fe, 0x60,
+ 					&d->dev->i2c_adap, &tda18271_config)) {
+-			info("Attached TDA18271HD/CXD2820R!\n");
++			info("Attached TDA18271HD/CXD2820R!");
+ 			return 0;
+ 		}
+ 	}
+ 
+-	info("Failed to attach TDA18271HD/CXD2820R!\n");
++	info("Failed to attach TDA18271HD/CXD2820R!");
+ 	return -EIO;
+ }
+ 
+@@ -1468,11 +1468,11 @@ static int m88rs2000_frontend_attach(struct dvb_usb_adapter *d)
+ 	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
+ 				&dw2104_ts2020_config,
+ 				&d->dev->i2c_adap)) {
+-		info("Attached RS2000/TS2020!\n");
++		info("Attached RS2000/TS2020!");
+ 		return 0;
+ 	}
+ 
+-	info("Failed to attach RS2000/TS2020!\n");
++	info("Failed to attach RS2000/TS2020!");
+ 	return -EIO;
+ }
+ 
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
