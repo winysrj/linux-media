@@ -1,89 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56356 "EHLO mx2.suse.de"
+Received: from mx02.posteo.de ([89.146.194.165]:49291 "EHLO mx02.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750994AbbEYNzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 09:55:36 -0400
-Date: Mon, 25 May 2015 15:55:33 +0200
-From: Jan Kara <jack@suse.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 0/9 v5] Helper to abstract vma handling in media layer
-Message-ID: <20150525135533.GA15663@quack.suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
- <55630994.7040006@xs4all.nl>
+	id S1751814AbbEETCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 15:02:35 -0400
+Date: Tue, 5 May 2015 21:02:23 +0200
+From: Felix Janda <felix.janda@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCHv2 1/4] Use off_t and off64_t instead of __off_t and __off64_t
+Message-ID: <20150505190223.GA4948@euler>
+References: <20150125203557.GA11999@euler>
+ <20150505093657.43acf519@recife.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <55630994.7040006@xs4all.nl>
+In-Reply-To: <20150505093657.43acf519@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 25-05-15 13:37:56, Hans Verkuil wrote:
-> Hi Jan,
-> 
-> On 05/13/2015 03:08 PM, Jan Kara wrote:
-> >   Hello,
-> > 
-> > I'm sending the fifth version of my patch series to abstract vma handling
-> > from the various media drivers. The patches got some review from mm people and
-> > testing from device driver guys so unless someone objects, patches will be
-> > queued in media tree for the next merge window.
-> 
-> What is the current status? I saw one comment for patch 9, so I assume it is not
-> quite ready yet.
-> 
-> Let me know when you think it is time to merge.
-  There was a minor comment to the exynos patch - I've sent updated version
-of that patch as a reply to the comment. Do you want me to resend the whole
-series? Otherwise I think you can just pick up the patches and merge them.
-Thanks!
+Since _LARGEFILE64_SOURCE is 1, these types coincide if defined.
 
-								Honza
+Signed-off-by: Felix Janda <felix.janda@posteo.de>
+---
+v2: rebased
 
-> > After this patch set drivers have to know much less details about vmas, their
-> > types, and locking. Also quite some code is removed from them. As a bonus
-> > drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
-> > this series is to remove knowledge about mmap_sem locking from as many places a
-> > possible so that we can change it with reasonable effort.
-> > 
-> > The core of the series is the new helper get_vaddr_frames() which is given a
-> > virtual address and it fills in PFNs / struct page pointers (depending on VMA
-> > type) into the provided array. If PFNs correspond to normal pages it also grabs
-> > references to these pages. The difference from get_user_pages() is that this
-> > function can also deal with pfnmap, and io mappings which is what the media
-> > drivers need.
-> > 
-> > I have tested the patches with vivid driver so at least vb2 code got some
-> > exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
-> > exynos driver which is only for Samsung platform is completely untested).
-> > 
-> > 								Honza
-> > Changes since v4:
-> > * Minor cleanups and fixes pointed out by Mel and Vlasta
-> > * Added Acked-by tags
-> > 
-> > Changes since v3:
-> > * Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
-> > * Fixed error path for exynos driver
-> > 
-> > Changes since v2:
-> > * Renamed functions and structures as Mel suggested
-> > * Other minor changes suggested by Mel
-> > * Rebased on top of 4.1-rc2
-> > * Changed functions to get pointer to array of pages / pfns to perform
-> >   conversion if necessary. This fixes possible issue in the omap I may have
-> >   introduced in v2 and generally makes the API less errorprone.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
+Mauro Carvalho Chehab wrote:
+
+Thanks for the review.
+
+> Em Sun, 25 Jan 2015 21:36:15 +0100
+> Felix Janda <felix.janda@posteo.de> escreveu:
 > 
+> > Since _LARGEFILE64_SOURCE is 1, these types coincide if defined.
+> 
+> The __off_t macro was also added by the FreeBSD patchset. Removing this
+> will likely break for FreeBSD.
+
+No. The patchset added a typedef of __off_t to off_t. Why? Because
+FreeBSD does not have off_t. By now for a similar reason there is a
+similar typedef for android. Generally, names starting with one or two
+underscores are implementation specific and not portable. If the source
+code did not use __off_t, there would be no need to introduce these
+typedefs.
+
+This patch removes all occurences of __off_t and __off64_t in the
+source code. 
+
+> So, provided that this is not causing any issues, better to keep it
+> as-is.
+
+It produces "error: unknown type name '__off_t'" on musl based linux
+systems.
+
+---
+ lib/libv4l1/v4l1compat.c               |  5 ++---
+ lib/libv4l2/v4l2convert.c              |  5 ++---
+ lib/libv4lconvert/libv4lsyscall-priv.h | 11 +++--------
+ 3 files changed, 7 insertions(+), 14 deletions(-)
+
+diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+index c641c17..282173b 100644
+--- a/lib/libv4l1/v4l1compat.c
++++ b/lib/libv4l1/v4l1compat.c
+@@ -116,14 +116,14 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
+ }
+ 
+ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
+-		__off_t offset)
++		off_t offset)
+ {
+ 	return v4l1_mmap(start, length, prot, flags, fd, offset);
+ }
+ 
+ #ifdef linux
+ LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
+-		__off64_t offset)
++		off64_t offset)
+ {
+ 	return v4l1_mmap(start, length, prot, flags, fd, offset);
+ }
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index 008408e..2c2f12a 100644
+@@ -148,14 +148,14 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
+ }
+ 
+ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
+-		__off_t offset)
++		off_t offset)
+ {
+ 	return v4l2_mmap(start, length, prot, flags, fd, offset);
+ }
+ 
+ #ifdef linux
+ LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
+-		__off64_t offset)
++		off64_t offset)
+ {
+ 	return v4l2_mmap(start, length, prot, flags, fd, offset);
+ }
+diff --git a/lib/libv4lconvert/libv4lsyscall-priv.h b/lib/libv4lconvert/libv4lsyscall-priv.h
+index f548fb2..f87eff4 100644
+--- a/lib/libv4lconvert/libv4lsyscall-priv.h
++++ b/lib/libv4lconvert/libv4lsyscall-priv.h
+@@ -59,11 +59,6 @@
+ #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
+ #define	MAP_ANONYMOUS MAP_ANON
+ #define	MMAP2_PAGE_SHIFT 0
+-typedef off_t __off_t;
+-#endif
+-
+-#if defined(ANDROID)
+-typedef off_t __off_t;
+ #endif
+ 
+ #undef SYS_OPEN
+@@ -95,15 +90,15 @@ typedef off_t __off_t;
+ #if defined(__FreeBSD__)
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
+ #elif defined(__FreeBSD_kernel__)
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
+ #else
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap2, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)((off) >> MMAP2_PAGE_SHIFT))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)((off) >> MMAP2_PAGE_SHIFT))
+ #endif
+ 
+ #define SYS_MUNMAP(addr, len) \
 -- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+2.3.6
