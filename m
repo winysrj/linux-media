@@ -1,93 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43102 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934577AbbEMPAv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 11:00:51 -0400
-Message-ID: <55536721.6070302@iki.fi>
-Date: Wed, 13 May 2015 18:00:49 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:34762 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757658AbbEEKO0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 06:14:26 -0400
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: rtl2832_sdr: move from staging to media
-References: <20150513111127.GA29021@mwanda>
-In-Reply-To: <20150513111127.GA29021@mwanda>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAHG8p1Afkvnmw4m=i=10g5R1kPO3PeDEnXj5_PchBbGv1nKo=A@mail.gmail.com>
+References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
+ <CAHG8p1AZMnV_ZLA1Ou=wejxwaHRObX1aAgO=xbXiwwEsJZ9EZA@mail.gmail.com>
+ <551D4220.7070303@xs4all.nl> <CAHG8p1AezvQk1Z0tQzFKXZa3Qnd4+MV53F7VP69vwvXVYaqmkg@mail.gmail.com>
+ <553A151B.7010907@xs4all.nl> <CAHG8p1Afkvnmw4m=i=10g5R1kPO3PeDEnXj5_PchBbGv1nKo=A@mail.gmail.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 5 May 2015 11:13:54 +0100
+Message-ID: <CA+V-a8vS_xHdb8ziuPD2408uKNp0WZmH=fw6uJp57HQOKyCmqA@mail.gmail.com>
+Subject: Re: [PATCH v4 00/17] media: blackfin: bfin_capture enhancements
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	adi-buildroot-devel@lists.sourceforge.net,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+Hi Scott,
 
-On 05/13/2015 02:11 PM, Dan Carpenter wrote:
-> Hello Antti Palosaari,
->
-> The patch 77bbb2b049c1: "rtl2832_sdr: move from staging to media"
-> from Jul 15, 2014, leads to the following static checker warning:
->
-> 	drivers/media/dvb-frontends/rtl2832_sdr.c:1265 rtl2832_sdr_s_ctrl()
-> 	warn: test_bit() bitwise op in bit number
->
-> This is harmless but messy.
->
-> drivers/media/dvb-frontends/rtl2832_sdr.c
->     109
->     110  struct rtl2832_sdr_dev {
->     111  #define POWER_ON           (1 << 1)
->     112  #define URB_BUF            (1 << 2)
->
-> We were supposed to use these to set ->flags on the next line.
->
->     113          unsigned long flags;
->     114
->     115          struct platform_device *pdev;
->     116
->     117          struct video_device vdev;
->     118          struct v4l2_device v4l2_dev;
->     119
->
-> [ snip ]
->
->     389                  dev_dbg(&pdev->dev, "alloc buf=%d %p (dma %llu)\n",
->     390                          dev->buf_num, dev->buf_list[dev->buf_num],
->     391                          (long long)dev->dma_addr[dev->buf_num]);
->     392                  dev->flags |= USB_STATE_URB_BUF;
->                                        ^^^^^^^^^^^^^^^^^
-> But we use USB_STATE_URB_BUF (0x1) instead of URB_BUF.
->
->     393          }
->
-> [ snip ]
->
->    1263                  c->bandwidth_hz = dev->bandwidth->val;
->    1264
->    1265                  if (!test_bit(POWER_ON, &dev->flags))
->                                        ^^^^^^^^
-> The original intent of the code was we test "if (dev->flags & POWER_ON)"
-> but really what this is doing is "if (dev->flags & (1 << POWER_ON))"
-> which is fine because we do it consistently, but it's not pretty and it
-> causes static checkers to complain (and rightfully so).
->
->    1266                          return 0;
->    1267
->    1268                  if (fe->ops.tuner_ops.set_params)
->    1269                          ret = fe->ops.tuner_ops.set_params(fe);
->    1270                  else
->    1271                          ret = 0;
->    1272                  break;
->    1273          default:
->
+On Tue, May 5, 2015 at 10:58 AM, Scott Jiang
+<scott.jiang.linux@gmail.com> wrote:
+> 2015-04-24 18:04 GMT+08:00 Hans Verkuil <hverkuil@xs4all.nl>:
+>> On 04/10/2015 12:42 PM, Scott Jiang wrote:
+>>> Hi Hans,
+>>>
+>>>>>
+>>>>> Hans, I tried to use v4l2-compliance but it failed to compile. Sorry
+>>>>> for telling you it have passed compilation because I forgot to use
+>>>>> blackfin toolchain.
+>>>>> ./configure --without-jpeg  --host=bfin-linux-uclibc --disable-libv4l
+>>>>>
+>>>>> The main problem is there is no argp.h in uClibc, how to disable checking this?
+>>>>>
+>>>>> checking for argp.h... no
+>>>>> configure: error: Cannot continue: argp.h not found
+>>>>>
+>>>>> Scott
+>>>>>
+>>>>
+>>>> Hi Scott,
+>>>>
+>>>> Can you try this patch for v4l-utils? It makes argp optional, and it should
+>>>> allow v4l2-compliance to compile with uclibc (unless there are more problems).
+>>>>
+>>>> I'm no autoconf guru, so I'm not certain if everything is correct, but it
+>>>> seemed to do its job when I remove argp.h from my system.
+>>>>
+>>>
+>>> Yes, I can pass configure now. But there is another error when make
+>>>
+>>> make[3]: Entering directory
+>>> `/home/scott/projects/git-kernel/v4l-utils/lib/libdvbv5'
+>>>   CC     libdvbv5_la-parse_string.lo
+>>> parse_string.c:26:19: error: iconv.h: No such file or directory
+>>> parse_string.c: In function 'dvb_iconv_to_charset':
+>>> parse_string.c:316: error: 'iconv_t' undeclared (first use in this function)
+>>>
+>>> I tried to pass this library, while --without-libdvbv5 is not supported.
+>>>
+>>
+>> If you can pass the configure step, then you should be able to run this:
+>>
+>> cd utils/v4l2-compliance
+>> cat *.cpp >x.cpp
+>> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
+>>
+>> (you need to use the right toolchain here, of course)
+>>
+>> If this compiles OK, then you have a v4l2-compliance tool that you can
+>> use.
+>>
+> Yes, this method works. The test results of v4l2-compliance are below,
+> I'm sorry the kernel has not upgraded to 4.0.
+> root:/> ./v4l2-compliance -d 0
 
-If you wish, you could fix those. Otherwise I will check issues pointed 
-and correct. Lets say I will wait at least one week your patch.
+v4l2-compliance with -s option would interesting to watch.
 
-[At the some point I am going to rewrote that USB streaming code as I am 
-not happy with it. Also I have one device which needs to stream data 
-both ways, from device to computer and from computer to device, which 
-should be take into account.]
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Cheers,
+--Prabhakar Lad
