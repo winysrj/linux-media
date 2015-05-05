@@ -1,83 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54885 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751520AbbEYMBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 08:01:33 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2E60F2A0095
-	for <linux-media@vger.kernel.org>; Mon, 25 May 2015 14:01:27 +0200 (CEST)
-Message-ID: <55630F17.1040306@xs4all.nl>
-Date: Mon, 25 May 2015 14:01:27 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx02.posteo.de ([89.146.194.165]:49318 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753323AbbEETCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 15:02:36 -0400
+Date: Tue, 5 May 2015 21:02:25 +0200
+From: Felix Janda <felix.janda@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCHv2 2/4] Test for ioctl() function signature
+Message-ID: <20150505190225.GA17531@euler>
+References: <20150125203625.GB11999@euler>
+ <20150505090549.22d51930@recife.lan>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] More fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150505090549.22d51930@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series merges various fixes and improves colorspace support.
+On glibc, ioctl has the signature ioctl(int, unsigned long int, ...).
+On musl, libc and according to POSIX it is ioctl(int, int, ...).
+Add a configure test adapted from gnulib's ioctl.m4 to make the
+DL_PRELOAD libraries work for both signatures.
 
-It also contains the Y16_BE patches which were not merged the previous time for
-no clear reason, and my patch updating the querycap error code description, this time
-with a better commit log explaining why we cannot say for certain what the error
-will be.
+Signed-off-by: Felix Janda <felix.janda@posteo.de>
+---
+v2: Fix declaration of HAVE_POSIX_IOCTL
 
-Regards,
+Mauro Carvalho Chehab wrote:
+> Em Sun, 25 Jan 2015 21:36:25 +0100
+> Felix Janda <felix.janda@posteo.de> escreveu:
+> 
+> > On glibc, ioctl has the signature ioctl(int, unsigned long int, ...).
+> > On musl, libc and according to POSIX it is ioctl(int, int, ...).
+> > Add a configure test adapted from gnulib's ioctl.m4 to make the
+> > DL_PRELOAD libraries work for both signatures.
+> 
+> 
+> This patch breaks compilation on Fedora:
+> 
+> v4l2convert.c:130:45: error: conflicting types for 'ioctl'
+>  LIBV4L_PUBLIC int ioctl(int fd, int request, ...)
+>                                              ^
+> In file included from v4l2convert.c:37:0:
+> /usr/include/sys/ioctl.h:41:12: note: previous declaration of 'ioctl' was here
+>  extern int ioctl (int __fd, unsigned long int __request, ...) __THROW;
+>             ^
 
-	Hans
+Sorry for the bad patch.
+./configure will have correctly identified in your case that ioctl does
+not have the POSIX signature, but by my mistake it still put
 
-The following changes since commit 2a80f296422a01178d0a993479369e94f5830127:
+#define HAVE_POSIX_IOCTL 1
 
-  [media] dvb-core: fix 32-bit overflow during bandwidth calculation (2015-05-20 14:01:46 -0300)
+into config.h. Should be fixed with this patch.
 
-are available in the git repository at:
+---
+ configure.ac              | 14 ++++++++++++++
+ lib/libv4l1/v4l1compat.c  |  4 ++++
+ lib/libv4l2/v4l2convert.c |  4 ++++
+ 3 files changed, 22 insertions(+)
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2k
-
-for you to fetch changes up to 4ec6c326de9d1a06444ebb54477b712850ce7f15:
-
-  v4l2: correct two SDR format names (2015-05-25 13:33:37 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-      vivid: SDR cap add 'CU08' Complex U8 format
-      v4l2: correct two SDR format names
-
-Hans Verkuil (9):
-      DocBook/media: add missing entry for V4L2_PIX_FMT_Y16_BE
-      ivtv: fix incorrect audio mode report in log_status
-      DocBook/media: fix querycap error code
-      videodev2.h: add COLORSPACE_DEFAULT
-      DocBook/media: document COLORSPACE_DEFAULT
-      videodev2.h: add COLORSPACE_RAW
-      DocBook/media: document COLORSPACE_RAW.
-      videodev2.h: add macros to map colorspace defaults
-      vivid: use new V4L2_MAP_*_DEFAULT defines
-
-Ricardo Ribalda Delgado (5):
-      media/videobuf2-dma-sg: Fix handling of sg_table structure
-      media/videobuf2-dma-contig: Save output from dma_map_sg
-      media/videobuf2-dma-vmalloc: Save output from dma_map_sg
-      media/v4l2-core: Add support for V4L2_PIX_FMT_Y16_BE
-      media/vivid: Add support for Y16_BE format
-
- Documentation/DocBook/media/v4l/pixfmt-y16-be.xml   | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml          | 13 ++++++++++
- Documentation/DocBook/media/v4l/vidioc-querycap.xml |  2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c                 |  3 ++-
- drivers/media/platform/vivid/vivid-core.c           |  7 ++++--
- drivers/media/platform/vivid/vivid-core.h           |  2 ++
- drivers/media/platform/vivid/vivid-sdr-cap.c        | 96 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------
- drivers/media/platform/vivid/vivid-sdr-cap.h        |  2 ++
- drivers/media/platform/vivid/vivid-tpg.c            | 60 +++++++++++++---------------------------------
- drivers/media/platform/vivid/vivid-vid-common.c     |  8 +++++++
- drivers/media/v4l2-core/v4l2-ioctl.c                |  5 ++--
- drivers/media/v4l2-core/videobuf2-dma-contig.c      |  6 ++---
- drivers/media/v4l2-core/videobuf2-dma-sg.c          | 22 ++++++++++-------
- drivers/media/v4l2-core/videobuf2-vmalloc.c         |  6 ++---
- include/uapi/linux/videodev2.h                      | 40 +++++++++++++++++++++++++++++++
- 15 files changed, 278 insertions(+), 75 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y16-be.xml
+diff --git a/configure.ac b/configure.ac
+index 330479c..79c1cfc 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -118,6 +118,20 @@ gl_VISIBILITY
+ AC_CHECK_HEADERS([sys/klog.h])
+ AC_CHECK_FUNCS([klogctl])
+ 
++AC_CACHE_CHECK([for ioctl with POSIX signature],
++  [gl_cv_func_ioctl_posix_signature],
++  [AC_COMPILE_IFELSE(
++     [AC_LANG_PROGRAM(
++        [[#include <sys/ioctl.h>]],
++        [[int ioctl (int, int, ...);]])
++     ],
++     [gl_cv_func_ioctl_posix_signature=yes],
++     [gl_cv_func_ioctl_posix_signature=no])
++  ])
++if test "x$gl_cv_func_ioctl_posix_signature" = xyes; then
++  AC_DEFINE([HAVE_POSIX_IOCTL], [1], [Have ioctl with POSIX signature])
++fi
++
+ AC_CHECK_FUNCS([__secure_getenv secure_getenv])
+ 
+ # Check host os
+diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+index e328288..c641c17 100644
+--- a/lib/libv4l1/v4l1compat.c
++++ b/lib/libv4l1/v4l1compat.c
+@@ -94,7 +94,11 @@ LIBV4L_PUBLIC int dup(int fd)
+ 	return v4l1_dup(fd);
+ }
+ 
++#ifdef HAVE_POSIX_IOCTL
++LIBV4L_PUBLIC int ioctl(int fd, int request, ...)
++#else
+ LIBV4L_PUBLIC int ioctl(int fd, unsigned long int request, ...)
++#endif
+ {
+ 	void *arg;
+ 	va_list ap;
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index d046834..008408e 100644
+--- a/lib/libv4l2/v4l2convert.c
++++ b/lib/libv4l2/v4l2convert.c
+@@ -126,7 +126,11 @@ LIBV4L_PUBLIC int dup(int fd)
+ 	return v4l2_dup(fd);
+ }
+ 
++#ifdef HAVE_POSIX_IOCTL
++LIBV4L_PUBLIC int ioctl(int fd, int request, ...)
++#else
+ LIBV4L_PUBLIC int ioctl(int fd, unsigned long int request, ...)
++#endif
+ {
+ 	void *arg;
+ 	va_list ap;
+-- 
+2.3.6
