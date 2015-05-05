@@ -1,100 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:33187 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292AbbEDSbl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 14:31:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <1430390061-7090-1-git-send-email-j.anaszewski@samsung.com>
-References: <1430390061-7090-1-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Mon, 4 May 2015 11:31:20 -0700
-Message-ID: <CAK5ve-J4tpEj1BXf70dH9SU43b9PG38k_fWNis0c05D-5Q7+fA@mail.gmail.com>
-Subject: Re: [PATCH v7] Documentation: leds: Add description of v4l2-flash sub-device
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:58873 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084AbbEEVmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:42:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/4] msi2500: revise synthesizer calculation
+Date: Wed,  6 May 2015 00:42:01 +0300
+Message-Id: <1430862122-9326-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1430862122-9326-1-git-send-email-crope@iki.fi>
+References: <1430862122-9326-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 30, 2015 at 3:34 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> This patch extends LED Flash class documention by
-> the description of interactions with v4l2-flash sub-device.
->
+Update synthesizer calculation to model I prefer nowadays. It is mostly
+just renaming some variables, but also minor functionality change how
+integer and fractional part are divided (using div_u64_rem()). Also, add
+'schematic' of synthesizer following my current understanding.
 
-Thanks, applied
--Bryan
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/msi2500/msi2500.c | 49 +++++++++++++++++++++++++------------
+ 1 file changed, 34 insertions(+), 15 deletions(-)
 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/leds/leds-class-flash.txt |   47 +++++++++++++++++++++++++++++++
->  1 file changed, 47 insertions(+)
->
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> index 19bb673..4cedc58 100644
-> --- a/Documentation/leds/leds-class-flash.txt
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -20,3 +20,50 @@ Following sysfs attributes are exposed for controlling flash LED devices:
->         - max_flash_timeout
->         - flash_strobe
->         - flash_fault
-> +
-> +
-> +V4L2 flash wrapper for flash LEDs
-> +=================================
-> +
-> +A LED subsystem driver can be controlled also from the level of VideoForLinux2
-> +subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-> +be defined in the kernel config.
-> +
-> +The driver must call the v4l2_flash_init function to get registered in the
-> +V4L2 subsystem. The function takes three arguments:
-> +- fled_cdev : the LED Flash class device to wrap
-> +- ops : V4L2 specific ops
-> +       * external_strobe_set - defines the source of the flash LED strobe -
-> +               V4L2_CID_FLASH_STROBE control or external source, typically
-> +               a sensor, which makes it possible to synchronise the flash
-> +               strobe start with exposure start,
-> +       * intensity_to_led_brightness and led_brightness_to_intensity - perform
-> +               enum led_brightness <-> V4L2 intensity conversion in a device
-> +               specific manner - they can be used for devices with non-linear
-> +               LED current scale.
-> +- config : configuration for V4L2 Flash sub-device
-> +       * dev_name - the name of the media entity, unique in the system,
-> +       * flash_faults - bitmask of flash faults that the LED Flash class
-> +               device can report; corresponding LED_FAULT* bit definitions are
-> +               available in <linux/led-class-flash.h>,
-> +       * intensity - constraints for the LED in the TORCH or INDICATOR mode,
-> +               in microamperes,
-> +       * has_external_strobe - determines whether the flash strobe source
-> +               can be switched to external,
-> +       * indicator_led - signifies that a led is of indicator type, which
-> +               implies that it can have only two V4L2 controls:
-> +               V4L2_CID_FLASH_INDICATOR_INTENSITY and V4L2_CID_FLASH_FAULT.
-> +
-> +On remove the v4l2_flash_release function has to be called, which takes one
-> +argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-> +
-> +Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
-> +v4l2 flash wrapper.
-> +
-> +Once the V4L2 sub-device is registered by the driver which created the Media
-> +controller device, the sub-device node acts just as a node of a native V4L2
-> +flash API device would. The calls are simply routed to the LED flash API.
-> +
-> +Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
-> +unavailable. The interface is re-enabled after the V4L2 flash sub-device
-> +is closed.
-> --
-> 1.7.9.5
->
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index efc761c..8605b96 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -682,11 +682,10 @@ static int msi2500_ctrl_msg(struct msi2500_state *s, u8 cmd, u32 data)
+ 	return ret;
+ }
+ 
+-#define F_REF 24000000
+-#define DIV_R_IN 2
+ static int msi2500_set_usb_adc(struct msi2500_state *s)
+ {
+-	int ret, div_n, div_m, div_r_out, f_sr, f_vco, fract;
++	int ret;
++	unsigned int f_vco, f_sr, div_n, k, k_cw, div_out;
+ 	u32 reg3, reg4, reg7;
+ 	struct v4l2_ctrl *bandwidth_auto;
+ 	struct v4l2_ctrl *bandwidth;
+@@ -728,6 +727,21 @@ static int msi2500_set_usb_adc(struct msi2500_state *s)
+ 	}
+ 
+ 	/*
++	 * Fractional-N synthesizer
++	 *
++	 *           +----------------------------------------+
++	 *           v                                        |
++	 *  Fref   +----+     +-------+     +-----+         +------+     +---+
++	 * ------> | PD | --> |  VCO  | --> | /2  | ------> | /N.F | <-- | K |
++	 *         +----+     +-------+     +-----+         +------+     +---+
++	 *                      |
++	 *                      |
++	 *                      v
++	 *                    +-------+     +-----+  Fout
++	 *                    | /Rout | --> | /12 | ------>
++	 *                    +-------+     +-----+
++	 */
++	/*
+ 	 * Synthesizer config is just a educated guess...
+ 	 *
+ 	 * [7:0]   0x03, register address
+@@ -754,10 +768,14 @@ static int msi2500_set_usb_adc(struct msi2500_state *s)
+ 	 *
+ 	 * VCO 202000000 - 720000000++
+ 	 */
++
++	#define F_REF 24000000
++	#define DIV_PRE_N 2
++	#define DIV_LO_OUT 12
+ 	reg3 = 0x01000303;
+ 	reg4 = 0x00000004;
+ 
+-	/* XXX: Filters? AGC? */
++	/* XXX: Filters? AGC? VCO band? */
+ 	if (f_sr < 6000000)
+ 		reg3 |= 0x1 << 20;
+ 	else if (f_sr < 7000000)
+@@ -767,24 +785,25 @@ static int msi2500_set_usb_adc(struct msi2500_state *s)
+ 	else
+ 		reg3 |= 0xd << 20;
+ 
+-	for (div_r_out = 4; div_r_out < 16; div_r_out += 2) {
+-		f_vco = f_sr * div_r_out * 12;
+-		dev_dbg(s->dev, "div_r_out=%d f_vco=%d\n", div_r_out, f_vco);
++	for (div_out = 4; div_out < 16; div_out += 2) {
++		f_vco = f_sr * div_out * DIV_LO_OUT;
++		dev_dbg(s->dev, "div_out=%d f_vco=%d\n", div_out, f_vco);
+ 		if (f_vco >= 202000000)
+ 			break;
+ 	}
+ 
+-	div_n = f_vco / (F_REF * DIV_R_IN);
+-	div_m = f_vco % (F_REF * DIV_R_IN);
+-	fract = 0x200000ul * div_m / (F_REF * DIV_R_IN);
++	/* Calculate PLL integer and fractional control word. */
++	div_n = div_u64_rem(f_vco, DIV_PRE_N * F_REF, &k);
++	k_cw = div_u64((u64) k * 0x200000, DIV_PRE_N * F_REF);
+ 
+ 	reg3 |= div_n << 16;
+-	reg3 |= (div_r_out / 2 - 1) << 10;
+-	reg3 |= ((fract >> 20) & 0x000001) << 15; /* [20] */
+-	reg4 |= ((fract >>  0) & 0x0fffff) <<  8; /* [19:0] */
++	reg3 |= (div_out / 2 - 1) << 10;
++	reg3 |= ((k_cw >> 20) & 0x000001) << 15; /* [20] */
++	reg4 |= ((k_cw >>  0) & 0x0fffff) <<  8; /* [19:0] */
+ 
+-	dev_dbg(s->dev, "f_sr=%d f_vco=%d div_n=%d div_m=%d div_r_out=%d reg3=%08x reg4=%08x\n",
+-			f_sr, f_vco, div_n, div_m, div_r_out, reg3, reg4);
++	dev_dbg(s->dev,
++		"f_sr=%u f_vco=%u div_n=%u k=%u div_out=%u reg3=%08x reg4=%08x\n",
++		f_sr, f_vco, div_n, k, div_out, reg3, reg4);
+ 
+ 	ret = msi2500_ctrl_msg(s, CMD_WREG, 0x00608008);
+ 	if (ret)
+-- 
+http://palosaari.fi/
+
