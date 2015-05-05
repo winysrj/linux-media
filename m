@@ -1,121 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40789 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754279AbbENCsU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 22:48:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1A1E22A00AD
-	for <linux-media@vger.kernel.org>; Thu, 14 May 2015 04:48:08 +0200 (CEST)
-Date: Thu, 14 May 2015 04:48:08 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:51448 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751551AbbEEV67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:58:59 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150514024808.1A1E22A00AD@tschai.lan>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 09/21] tua9001: add I2C bindings
+Date: Wed,  6 May 2015 00:58:30 +0300
+Message-Id: <1430863122-9888-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add I2C bindings.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tua9001.c      | 100 +++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/tua9001.h      |  13 +++++
+ drivers/media/tuners/tua9001_priv.h |   4 +-
+ 3 files changed, 114 insertions(+), 3 deletions(-)
 
-date:		Thu May 14 04:00:16 CEST 2015
-git branch:	test
-git hash:	e989a73ebd09d22c22ead51fa363a2f56f70f28a
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-1.slh.2-amd64
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 83a6240..55cac20 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -28,7 +28,7 @@ static int tua9001_wr_reg(struct tua9001_priv *priv, u8 reg, u16 val)
+ 	u8 buf[3] = { reg, (val >> 8) & 0xff, (val >> 0) & 0xff };
+ 	struct i2c_msg msg[1] = {
+ 		{
+-			.addr = priv->cfg->i2c_addr,
++			.addr = priv->i2c_addr,
+ 			.flags = 0,
+ 			.len = sizeof(buf),
+ 			.buf = buf,
+@@ -253,7 +253,7 @@ struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
+ 	if (priv == NULL)
+ 		return NULL;
+ 
+-	priv->cfg = cfg;
++	priv->i2c_addr = cfg->i2c_addr;
+ 	priv->i2c = i2c;
+ 
+ 	if (fe->callback) {
+@@ -289,6 +289,102 @@ err:
+ }
+ EXPORT_SYMBOL(tua9001_attach);
+ 
++static int tua9001_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct tua9001_priv *dev;
++	struct tua9001_platform_data *pdata = client->dev.platform_data;
++	struct dvb_frontend *fe = pdata->dvb_frontend;
++	int ret;
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	dev->client = client;
++	dev->i2c_addr = client->addr;
++	dev->i2c = client->adapter;
++	dev->fe = pdata->dvb_frontend;
++
++	if (fe->callback) {
++		ret = fe->callback(client->adapter,
++				   DVB_FRONTEND_COMPONENT_TUNER,
++				   TUA9001_CMD_CEN, 1);
++		if (ret)
++			goto err_kfree;
++
++		ret = fe->callback(client->adapter,
++				   DVB_FRONTEND_COMPONENT_TUNER,
++				   TUA9001_CMD_RXEN, 0);
++		if (ret)
++			goto err_kfree;
++
++		ret = fe->callback(client->adapter,
++				   DVB_FRONTEND_COMPONENT_TUNER,
++				   TUA9001_CMD_RESETN, 1);
++		if (ret)
++			goto err_kfree;
++	}
++
++	fe->tuner_priv = dev;
++	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
++			sizeof(struct dvb_tuner_ops));
++	fe->ops.tuner_ops.release = NULL;
++	i2c_set_clientdata(client, dev);
++
++	dev_info(&client->dev, "Infineon TUA 9001 successfully attached\n");
++	return 0;
++err_kfree:
++	kfree(dev);
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int tua9001_remove(struct i2c_client *client)
++{
++	struct tua9001_priv *dev = i2c_get_clientdata(client);
++	struct dvb_frontend *fe = dev->fe;
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (fe->callback) {
++		ret = fe->callback(client->adapter,
++				   DVB_FRONTEND_COMPONENT_TUNER,
++				   TUA9001_CMD_CEN, 0);
++		if (ret)
++			goto err_kfree;
++	}
++	kfree(dev);
++	return 0;
++err_kfree:
++	kfree(dev);
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static const struct i2c_device_id tua9001_id_table[] = {
++	{"tua9001", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, tua9001_id_table);
++
++static struct i2c_driver tua9001_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "tua9001",
++		.suppress_bind_attrs = true,
++	},
++	.probe		= tua9001_probe,
++	.remove		= tua9001_remove,
++	.id_table	= tua9001_id_table,
++};
++
++module_i2c_driver(tua9001_driver);
++
+ MODULE_DESCRIPTION("Infineon TUA 9001 silicon tuner driver");
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/tua9001.h b/drivers/media/tuners/tua9001.h
+index 2c3375c..0b4fc8d 100644
+--- a/drivers/media/tuners/tua9001.h
++++ b/drivers/media/tuners/tua9001.h
+@@ -24,6 +24,19 @@
+ #include <linux/kconfig.h>
+ #include "dvb_frontend.h"
+ 
++/*
++ * I2C address
++ * 0x60,
++ */
++
++/**
++ * struct tua9001_platform_data - Platform data for the tua9001 driver
++ * @dvb_frontend: DVB frontend.
++ */
++struct tua9001_platform_data {
++	struct dvb_frontend *dvb_frontend;
++};
++
+ struct tua9001_config {
+ 	/*
+ 	 * I2C address
+diff --git a/drivers/media/tuners/tua9001_priv.h b/drivers/media/tuners/tua9001_priv.h
+index 73cc1ce..3282a1a 100644
+--- a/drivers/media/tuners/tua9001_priv.h
++++ b/drivers/media/tuners/tua9001_priv.h
+@@ -27,8 +27,10 @@ struct reg_val {
+ };
+ 
+ struct tua9001_priv {
+-	struct tua9001_config *cfg;
++	struct i2c_client *client;
+ 	struct i2c_adapter *i2c;
++	u8 i2c_addr;
++	struct dvb_frontend *fe;
+ };
+ 
+ #endif
+-- 
+http://palosaari.fi/
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
