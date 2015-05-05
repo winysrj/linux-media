@@ -1,56 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:35368 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbbEGNyM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 09:54:12 -0400
-Received: by obcus9 with SMTP id us9so2271378obc.2
-        for <linux-media@vger.kernel.org>; Thu, 07 May 2015 06:54:11 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:39530 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757456AbbEEKmo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 06:42:44 -0400
+Date: Tue, 5 May 2015 07:42:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] usb: as102: as10x_cmd_cfg: Remove unused
+ function
+Message-ID: <20150505074238.3c5df54a@recife.lan>
+In-Reply-To: <1421017510-26243-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+References: <1421017510-26243-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 MIME-Version: 1.0
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Thu, 7 May 2015 15:53:51 +0200
-Message-ID: <CAH-u=818PWuf2w7e3ysJTD6La_6BMAyXwAodkXQTQe7jtHkSZA@mail.gmail.com>
-Subject: Coda : QP rate control encoding
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Mon, 12 Jan 2015 00:05:10 +0100
+Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se> escreveu:
 
-I am playing a bit with the coda encoder on i.MX6 and try to get the
-most quality out of it. So, I am trying to use the controls of the
-driver, in particular h264_i_frame_qp_value and h264_p_frame_qp_value.
+> Remove the function as10x_cmd_eLNA_change_mode() that is not used anywhere.
+> 
+> This was partially found by using a static code analysis program called cppcheck.
 
-I can get something with the following pipeline :
-gst-launch-1.0 -evvv v4l2src num-buffers=2000
-device=/dev/v4l/by-path/ipu1-capture io-mode=dmabuf !
-"video/x-raw,width=1280,height=720,framerate=25/1,format=YUY2" !
-v4l2convert device=/dev/v4l/by-path/ipu1-scaler capture-io-mode=dmabuf
-output-io-mode=dmabuf-import !
-'video/x-raw,width=640,height=360,format=NV12' ! v4l2video0h264enc
-output-io-mode=dmabuf-import
-extra-controls="controls,h264_i_frame_qp_value=24,h264_p_frame_qp_value=30,video_gop_size=32"
-! queue ! progressreport name=p2 ! h264parse ! matroskamux ! filesink
-location=/data/test_encode_360p.mkv
+The fix here should add support for it, as the DVB core now supports
+changing the LNA settings via DTV_LNA property, as described at:
+	http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-LNA
 
-With those values, I get ~800kbps for a 360p converted frame. This is nice :).
-The same video as an input with only the "bitrate" parameter set is
-not visually similar.
+Regards,
+Mauro
 
-But, when trying to encode a 720p video with the same QP parameters,
-it is not working (the first keyframe is not ok, seems to be a P frame
-instead of I, as it is 2000 bits and should be ~40000). I am keeping
-the videoscaler in this second case, as it should be used as a color
-converter.
-
-Philipp, did you do some tests like this one ? Did you observe that
-the encoder can maybe be too long to get a frame encoded when desired
-quality is "high" ?
-Maybe do you have some ideas about this ?
-
-Thanks,
-JM
+> 
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> ---
+>  drivers/media/usb/as102/as10x_cmd.h     |    1 -
+>  drivers/media/usb/as102/as10x_cmd_cfg.c |   49 -------------------------------
+>  2 files changed, 50 deletions(-)
+> 
+> diff --git a/drivers/media/usb/as102/as10x_cmd.h b/drivers/media/usb/as102/as10x_cmd.h
+> index e06b84e..d87fc2f 100644
+> --- a/drivers/media/usb/as102/as10x_cmd.h
+> +++ b/drivers/media/usb/as102/as10x_cmd.h
+> @@ -518,6 +518,5 @@ int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap,
+>  			  uint16_t tag,
+>  			  uint32_t *pvalue);
+>  
+> -int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode);
+>  int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);
+>  #endif
+> diff --git a/drivers/media/usb/as102/as10x_cmd_cfg.c b/drivers/media/usb/as102/as10x_cmd_cfg.c
+> index c87f2ca..74def1f 100644
+> --- a/drivers/media/usb/as102/as10x_cmd_cfg.c
+> +++ b/drivers/media/usb/as102/as10x_cmd_cfg.c
+> @@ -130,55 +130,6 @@ out:
+>  }
+>  
+>  /**
+> - * as10x_cmd_eLNA_change_mode - send eLNA change mode command to AS10x
+> - * @adap:      pointer to AS10x bus adapter
+> - * @mode:      mode selected:
+> - *	        - ON    : 0x0 => eLNA always ON
+> - *	        - OFF   : 0x1 => eLNA always OFF
+> - *	        - AUTO  : 0x2 => eLNA follow hysteresis parameters
+> - *				 to be ON or OFF
+> - *
+> - * Return 0 on success or negative value in case of error.
+> - */
+> -int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode)
+> -{
+> -	int error;
+> -	struct as10x_cmd_t *pcmd, *prsp;
+> -
+> -	pcmd = adap->cmd;
+> -	prsp = adap->rsp;
+> -
+> -	/* prepare command */
+> -	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+> -			sizeof(pcmd->body.cfg_change_mode.req));
+> -
+> -	/* fill command */
+> -	pcmd->body.cfg_change_mode.req.proc_id =
+> -		cpu_to_le16(CONTROL_PROC_ELNA_CHANGE_MODE);
+> -	pcmd->body.cfg_change_mode.req.mode = mode;
+> -
+> -	/* send command */
+> -	if (adap->ops->xfer_cmd) {
+> -		error  = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+> -				sizeof(pcmd->body.cfg_change_mode.req)
+> -				+ HEADER_SIZE, (uint8_t *) prsp,
+> -				sizeof(prsp->body.cfg_change_mode.rsp)
+> -				+ HEADER_SIZE);
+> -	} else {
+> -		error = AS10X_CMD_ERROR;
+> -	}
+> -
+> -	if (error < 0)
+> -		goto out;
+> -
+> -	/* parse response */
+> -	error = as10x_rsp_parse(prsp, CONTROL_PROC_ELNA_CHANGE_MODE_RSP);
+> -
+> -out:
+> -	return error;
+> -}
+> -
+> -/**
+>   * as10x_context_rsp_parse - Parse context command response
+>   * @prsp:       pointer to AS10x command response buffer
+>   * @proc_id:    id of the command
