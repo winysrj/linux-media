@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37661 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:57172 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946020AbbEENuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 09:50:09 -0400
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <s.nawrocki@samsung.com>, Nikhil Devshatwar <nikhil.nd@ti.com>
-Subject: [PATCH] v4l: of: Correct pclk-sample for BT656 bus
-Date: Tue, 5 May 2015 19:19:59 +0530
-Message-ID: <1430833799-31936-1-git-send-email-nikhil.nd@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1751623AbbEEV67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:58:59 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/21] af9035: bind fc2580 using I2C binding
+Date: Wed,  6 May 2015 00:58:24 +0300
+Message-Id: <1430863122-9888-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current v4l2_of_parse_parallel_bus function attempts to parse the
-DT properties for the parallel bus as well as BT656 bus.
-If the pclk-sample property is defined for the BT656 bus, it is still
-marked as a parallel bus.
-Fix this by parsing the pclk after the bus_type is selected.
-Only when hsync or vsync properties are specified, the bus_type should
-be set to V4L2_MBUS_PARALLEL.
+Change fc2580 driver from media binding to I2C client binding.
 
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-of.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index c52fb96..b27cbb1 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -93,10 +93,6 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
- 			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 80a29f5..558166d 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1265,11 +1265,6 @@ static struct tda18218_config af9035_tda18218_config = {
+ 	.i2c_wr_max = 21,
+ };
  
--	if (!of_property_read_u32(node, "pclk-sample", &v))
--		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
--			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+-static const struct fc2580_config af9035_fc2580_config = {
+-	.i2c_addr = 0x56,
+-	.clock = 16384000,
+-};
 -
- 	if (!of_property_read_u32(node, "field-even-active", &v))
- 		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
- 			V4L2_MBUS_FIELD_EVEN_LOW;
-@@ -105,6 +101,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	else
- 		endpoint->bus_type = V4L2_MBUS_BT656;
- 
-+	if (!of_property_read_u32(node, "pclk-sample", &v))
-+		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-+			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+ static const struct fc0012_config af9035_fc0012_config[] = {
+ 	{
+ 		.i2c_address = 0x63,
+@@ -1390,7 +1385,11 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 		fe = dvb_attach(tda18218_attach, adap->fe[0],
+ 				&d->i2c_adap, &af9035_tda18218_config);
+ 		break;
+-	case AF9033_TUNER_FC2580:
++	case AF9033_TUNER_FC2580: {
++		struct fc2580_platform_data fc2580_pdata = {
++			.dvb_frontend = adap->fe[0],
++		};
 +
- 	if (!of_property_read_u32(node, "data-active", &v))
- 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
- 			V4L2_MBUS_DATA_ACTIVE_LOW;
+ 		/* Tuner enable using gpiot2_o, gpiot2_en and gpiot2_on  */
+ 		ret = af9035_wr_reg_mask(d, 0xd8eb, 0x01, 0x01);
+ 		if (ret < 0)
+@@ -1406,9 +1405,14 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 		usleep_range(10000, 50000);
+ 		/* attach tuner */
+-		fe = dvb_attach(fc2580_attach, adap->fe[0],
+-				&d->i2c_adap, &af9035_fc2580_config);
++		ret = af9035_add_i2c_dev(d, "fc2580", 0x56, &fc2580_pdata,
++					 &d->i2c_adap);
++		if (ret)
++			goto err;
++
++		fe = adap->fe[0];
+ 		break;
++	}
+ 	case AF9033_TUNER_FC0012:
+ 		/*
+ 		 * AF9035 gpiot2 = FC0012 enable
+@@ -1611,6 +1615,7 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ 	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
+ 
+ 	switch (state->af9033_config[adap->id].tuner) {
++	case AF9033_TUNER_FC2580:
+ 	case AF9033_TUNER_IT9135_38:
+ 	case AF9033_TUNER_IT9135_51:
+ 	case AF9033_TUNER_IT9135_52:
 -- 
-1.7.9.5
+http://palosaari.fi/
 
