@@ -1,63 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:38708 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520AbbEYMAp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 08:00:45 -0400
-Message-id: <55630EE1.90307@samsung.com>
-Date: Mon, 25 May 2015 14:00:33 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
- samsung,flash-led property
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
- <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
- <555DA119.9030904@samsung.com>
- <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
- <555DDD88.8080601@samsung.com>
- <20150523120348.GA3170@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150523120348.GA3170@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mail-vn0-f49.google.com ([209.85.216.49]:42559 "EHLO
+	mail-vn0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735AbbEEEAR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 00:00:17 -0400
+MIME-Version: 1.0
+In-Reply-To: <1430760785-1169-4-git-send-email-k.debski@samsung.com>
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+	<1430760785-1169-4-git-send-email-k.debski@samsung.com>
+Date: Tue, 5 May 2015 13:00:17 +0900
+Message-ID: <CAJKOXPdhkiJstkpgAmf6iWRk6vhkiGGg7Lun9=xFc7zMnZHUOQ@mail.gmail.com>
+Subject: Re: [PATCH v6 03/11] dts: exynos4412-odroid*: enable the HDMI CEC device
+From: =?UTF-8?Q?Krzysztof_Koz=C5=82owski?= <k.kozlowski.k@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2015-05-05 2:32 GMT+09:00 Kamil Debski <k.debski@samsung.com>:
+> Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+> family of SoCs.
+>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
 
-On 23/05/15 14:03, Sakari Ailus wrote:
-> On Thu, May 21, 2015 at 03:28:40PM +0200, Sylwester Nawrocki wrote:
->> flash-leds = <&flash_xx &image_sensor_x>, <...>;
-> 
-> One more matter to consider: xenon flash devices.
-> 
-> How about samsung,camera-flashes (and ti,camera-flashes)? After pondering
-> this awhile, I'm ok with removing the vendor prefix as well.
-> 
-> Let me know what you think.
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-I thought about it a bit more and I have some doubts about semantics
-as above. I'm fine with 'camera-flashes' as far as name is concerned.
-
-Perhaps we should put only phandles to leds or xenon flash devices
-in the 'camera-flashes' property. I think it would be more future
-proof in case there is more nodes needed to describe the camera flash
-(or a camera module) than the above two. And phandles to corresponding
-image sensor device nodes would be put in a separate property.
-
-camera-flashes = <&flash_xx>, ...
-camera-flash-masters = <&image_sensor_x>, ...
-
-Then pairs at same index would describe a single flash, 0 would indicate
-a null entry if needed.
-Similarly we could create properties for other sub-devices of a camera
-module, like lenses, etc.
-
---
-Thanks,
-Sylwester
+Best regards,
+Krzysztof
