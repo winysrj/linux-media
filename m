@@ -1,174 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59488 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752972AbbEFH22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 03:28:28 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 6/9] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
-Date: Wed,  6 May 2015 09:28:13 +0200
-Message-Id: <1430897296-5469-7-git-send-email-jack@suse.cz>
-In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
-References: <1430897296-5469-1-git-send-email-jack@suse.cz>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:33691 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761318AbbEEQeD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:34:03 -0400
+Received: by lbbzk7 with SMTP id zk7so133160130lbb.0
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:34:02 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/4] dw2102: remove unnecessary printing of MAC address
+Date: Tue,  5 May 2015 19:33:52 +0300
+Message-Id: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert vb2_vmalloc_get_userptr() to use frame vector infrastructure.
-When we are doing that there's no need to allocate page array and some
-code can be simplified.
+While reading the MAC address for SU3000-based devices the system was
+printing excessive debug information in the logs:
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Output before the patch:
+
+[ 1515.780692] bc 00 00 00 00 00
+[ 1515.781440] bc ea 00 00 00 00
+[ 1515.782251] bc ea 2b 00 00 00
+[ 1515.783094] bc ea 2b 46 00 00
+[ 1515.783816] bc ea 2b 46 12 00
+[ 1515.784565] bc ea 2b 46 12 92
+[ 1515.784571] dvb-usb: MAC address: bc:ea:2b:46:12:92
+
+Output after the patch:
+
+[ 3803.495706] dvb-usb: MAC address: bc:ea:2b:46:12:92
+
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-vmalloc.c | 94 +++++++++++------------------
- 1 file changed, 36 insertions(+), 58 deletions(-)
+ drivers/media/usb/dvb-usb/dw2102.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 0ba40be21ebd..d2ce81fa2cdf 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -23,11 +23,9 @@
- 
- struct vb2_vmalloc_buf {
- 	void				*vaddr;
--	struct page			**pages;
--	struct vm_area_struct		*vma;
-+	struct frame_vector		*vec;
- 	enum dma_data_direction		dma_dir;
- 	unsigned long			size;
--	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- 	struct dma_buf			*dbuf;
-@@ -76,10 +74,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				     enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
--	unsigned long first, last;
--	int n_pages, offset;
--	struct vm_area_struct *vma;
--	dma_addr_t physp;
-+	struct frame_vector *vec;
-+	int n_pages, offset, i;
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
-@@ -88,53 +84,36 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->dma_dir = dma_dir;
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 28fd6ba..4ad6bb2 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -928,8 +928,6 @@ static int su3000_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
+ 			break;
+ 		else
+ 			mac[i] = ibuf[0];
 -
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, vaddr);
--	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
--		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
--			goto fail_pages_array_alloc;
--		buf->vma = vma;
--		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
--		if (!buf->vaddr)
--			goto fail_pages_array_alloc;
-+	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec))
-+		goto fail_pfnvec_create;
-+	buf->vec = vec;
-+	n_pages = frame_vector_count(vec);
-+	if (frame_vector_to_pages(vec) < 0) {
-+		unsigned long *nums = frame_vector_pfns(vec);
-+
-+		/*
-+		 * We cannot get page pointers for these pfns. Check memory is
-+		 * physically contiguous and use direct mapping.
-+		 */
-+		for (i = 1; i < n_pages; i++)
-+			if (nums[i-1] + 1 != nums[i])
-+				goto fail_map;
-+		buf->vaddr = (__force void *)
-+				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
- 	} else {
--		first = vaddr >> PAGE_SHIFT;
--		last  = (vaddr + size - 1) >> PAGE_SHIFT;
--		buf->n_pages = last - first + 1;
--		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
--				     GFP_KERNEL);
--		if (!buf->pages)
--			goto fail_pages_array_alloc;
--
--		/* current->mm->mmap_sem is taken by videobuf2 core */
--		n_pages = get_user_pages(current, current->mm,
--					 vaddr & PAGE_MASK, buf->n_pages,
--					 dma_dir == DMA_FROM_DEVICE,
--					 1, /* force */
--					 buf->pages, NULL);
--		if (n_pages != buf->n_pages)
--			goto fail_get_user_pages;
--
--		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-+		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
- 					PAGE_KERNEL);
--		if (!buf->vaddr)
--			goto fail_get_user_pages;
+-		debug_dump(mac, 6, printk);
  	}
--	up_read(&current->mm->mmap_sem);
  
-+	if (!buf->vaddr)
-+		goto fail_map;
- 	buf->vaddr += offset;
- 	return buf;
- 
--fail_get_user_pages:
--	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
--		 buf->n_pages);
--	while (--n_pages >= 0)
--		put_page(buf->pages[n_pages]);
--	kfree(buf->pages);
--
--fail_pages_array_alloc:
--	up_read(&current->mm->mmap_sem);
-+fail_map:
-+	vb2_destroy_framevec(vec);
-+fail_pfnvec_create:
- 	kfree(buf);
- 
- 	return NULL;
-@@ -145,22 +124,21 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 	struct vb2_vmalloc_buf *buf = buf_priv;
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
-+	struct page **pages;
-+	unsigned int n_pages;
- 
--	down_read(&current->mm->mmap_sem);
--	if (buf->pages) {
-+	if (!buf->vec->is_pfns) {
-+		n_pages = frame_vector_count(buf->vec);
-+		pages = frame_vector_pages(buf->vec);
- 		if (vaddr)
--			vm_unmap_ram((void *)vaddr, buf->n_pages);
--		for (i = 0; i < buf->n_pages; ++i) {
--			if (buf->dma_dir == DMA_FROM_DEVICE)
--				set_page_dirty_lock(buf->pages[i]);
--			put_page(buf->pages[i]);
--		}
--		kfree(buf->pages);
-+			vm_unmap_ram((void *)vaddr, n_pages);
-+		if (buf->dma_dir == DMA_FROM_DEVICE)
-+			for (i = 0; i < n_pages; i++)
-+				set_page_dirty_lock(pages[i]);
- 	} else {
--		vb2_put_vma(buf->vma);
- 		iounmap((__force void __iomem *)buf->vaddr);
- 	}
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
+ 	return 0;
 -- 
-2.1.4
+1.9.1
 
