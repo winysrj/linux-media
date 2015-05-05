@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49249 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756782AbbEVOAA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 10:00:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58260 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752495AbbEEV7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 17:59:00 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/11] cobalt: fix compiler warnings on 32 bit OSes
-Date: Fri, 22 May 2015 15:59:36 +0200
-Message-Id: <1432303184-8594-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
-References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 11/21] rtl28xxu: bind tua9001 using I2C binding
+Date: Wed,  6 May 2015 00:58:32 +0300
+Message-Id: <1430863122-9888-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
+References: <1430863122-9888-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Change tua9001 driver from media binding to I2C client binding.
 
-Fixes these warnings:
-
-drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'omni_sg_dma_start':
-drivers/media/pci/cobalt/cobalt-omnitek.c:112:28: warning: right shift count >= width of type [-Wshift-count-overflow]
-  iowrite32((u32)(desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
-                            ^
-drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_create':
-drivers/media/pci/cobalt/cobalt-omnitek.c:222:28: warning: right shift count >= width of type [-Wshift-count-overflow]
-     d->next_h = (u32)(next >> 32);
-                            ^
-drivers/media/pci/cobalt/cobalt-omnitek.c:268:32: warning: right shift count >= width of type [-Wshift-count-overflow]
-    d->next_h = (u32)(desc->bus >> 32);
-                                ^
-drivers/media/pci/cobalt/cobalt-omnitek.c:275:27: warning: right shift count >= width of type [-Wshift-count-overflow]
-    d->next_h = (u32)(next >> 32);
-                           ^
-drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_chain':
-drivers/media/pci/cobalt/cobalt-omnitek.c:293:31: warning: right shift count >= width of type [-Wshift-count-overflow]
-   d->next_h = (u32)(next->bus >> 32);
-                               ^
-drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_loopback':
-drivers/media/pci/cobalt/cobalt-omnitek.c:332:30: warning: right shift count >= width of type [-Wshift-count-overflow]
-  d->next_h = (u32)(desc->bus >> 32);
-                              ^
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/cobalt/cobalt-omnitek.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/cobalt/cobalt-omnitek.c b/drivers/media/pci/cobalt/cobalt-omnitek.c
-index 5604458..a28a848 100644
---- a/drivers/media/pci/cobalt/cobalt-omnitek.c
-+++ b/drivers/media/pci/cobalt/cobalt-omnitek.c
-@@ -109,7 +109,7 @@ void omni_sg_dma_start(struct cobalt_stream *s, struct sg_dma_desc_info *desc)
- {
- 	struct cobalt *cobalt = s->cobalt;
- 
--	iowrite32((u32)(desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
-+	iowrite32((u32)((u64)desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
- 	iowrite32((u32)desc->bus & NEXT_ADRS_MSK, DESCRIPTOR(s->dma_channel));
- 	iowrite32(ENABLE | SCATTER_GATHER_MODE | START, CS_REG(s->dma_channel));
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index d5b1808..9a65291 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1018,10 +1018,6 @@ err:
+ 	return ret;
  }
-@@ -219,7 +219,7 @@ int descriptor_list_create(struct cobalt *cobalt,
- 				offset += d->bytes;
- 				addr += d->bytes;
- 				next += sizeof(struct sg_dma_descriptor);
--				d->next_h = (u32)(next >> 32);
-+				d->next_h = (u32)((u64)next >> 32);
- 				d->next_l = (u32)next |
- 					(to_pci ? WRITE_TO_PCI : 0);
- 				bytes -= d->bytes;
-@@ -265,14 +265,14 @@ int descriptor_list_create(struct cobalt *cobalt,
- 		next += sizeof(struct sg_dma_descriptor);
- 		if (size == 0) {
- 			/* Loopback to the first descriptor */
--			d->next_h = (u32)(desc->bus >> 32);
-+			d->next_h = (u32)((u64)desc->bus >> 32);
- 			d->next_l = (u32)desc->bus |
- 				(to_pci ? WRITE_TO_PCI : 0) | INTERRUPT_ENABLE;
- 			if (!to_pci)
- 				d->local = 0x22222222;
- 			desc->last_desc_virt = d;
- 		} else {
--			d->next_h = (u32)(next >> 32);
-+			d->next_h = (u32)((u64)next >> 32);
- 			d->next_l = (u32)next | (to_pci ? WRITE_TO_PCI : 0);
+ 
+-static struct tua9001_config rtl2832u_tua9001_config = {
+-	.i2c_addr = 0x60,
+-};
+-
+ static const struct fc0012_config rtl2832u_fc0012_config = {
+ 	.i2c_address = 0x63, /* 0xc6 >> 1 */
+ 	.xtal_freq = FC_XTAL_28_8_MHZ,
+@@ -1121,7 +1117,12 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 			dev->i2c_client_tuner = client;
  		}
- 		d++;
-@@ -290,7 +290,7 @@ void descriptor_list_chain(struct sg_dma_desc_info *this,
- 		d->next_h = 0;
- 		d->next_l = direction | INTERRUPT_ENABLE | END_OF_CHAIN;
- 	} else {
--		d->next_h = (u32)(next->bus >> 32);
-+		d->next_h = (u32)((u64)next->bus >> 32);
- 		d->next_l = (u32)next->bus | direction | INTERRUPT_ENABLE;
- 	}
- }
-@@ -329,7 +329,7 @@ void descriptor_list_loopback(struct sg_dma_desc_info *desc)
- {
- 	struct sg_dma_descriptor *d = desc->last_desc_virt;
+ 		break;
+-	case TUNER_RTL2832_TUA9001:
++	case TUNER_RTL2832_TUA9001: {
++		struct tua9001_platform_data tua9001_pdata = {
++			.dvb_frontend = adap->fe[0],
++		};
++		struct i2c_board_info board_info = {};
++
+ 		/* enable GPIO1 and GPIO4 as output */
+ 		ret = rtl28xxu_wr_reg_mask(d, SYS_GPIO_DIR, 0x00, 0x12);
+ 		if (ret)
+@@ -1131,10 +1132,20 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		if (ret)
+ 			goto err;
  
--	d->next_h = (u32)(desc->bus >> 32);
-+	d->next_h = (u32)((u64)desc->bus >> 32);
- 	d->next_l = (u32)desc->bus | (d->next_l & DESCRIPTOR_FLAG_MSK);
- }
- 
+-		fe = dvb_attach(tua9001_attach, adap->fe[0],
+-				dev->demod_i2c_adapter,
+-				&rtl2832u_tua9001_config);
++		strlcpy(board_info.type, "tua9001", I2C_NAME_SIZE);
++		board_info.addr = 0x60;
++		board_info.platform_data = &tua9001_pdata;
++		request_module("tua9001");
++		client = i2c_new_device(dev->demod_i2c_adapter, &board_info);
++		if (client == NULL || client->dev.driver == NULL)
++			break;
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			break;
++		}
++		dev->i2c_client_tuner = client;
+ 		break;
++	}
+ 	case TUNER_RTL2832_R820T:
+ 		fe = dvb_attach(r820t_attach, adap->fe[0],
+ 				dev->demod_i2c_adapter,
 -- 
-2.1.4
+http://palosaari.fi/
 
