@@ -1,152 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52225 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035AbbEDKvO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:51:14 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v6 3/5] [media] videobuf2: return -EPIPE from DQBUF after the last buffer
-Date: Mon,  4 May 2015 12:51:06 +0200
-Message-Id: <1430736668-28582-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
-References: <1430736668-28582-1-git-send-email-p.zabel@pengutronix.de>
+Received: from cantor2.suse.de ([195.135.220.15]:35709 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2993504AbbEEQB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2015 12:01:26 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
+Date: Tue,  5 May 2015 18:01:12 +0200
+Message-Id: <1430841678-11117-4-git-send-email-jack@suse.cz>
+In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
+References: <1430841678-11117-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the last buffer was dequeued from a capture queue, let poll return
-immediately and let DQBUF return -EPIPE to signal there will no more
-buffers to dequeue until STREAMOFF.
-The driver signals the last buffer by setting the V4L2_BUF_FLAG_LAST.
-To reenable dequeuing on the capture queue, the driver must explicitly
-call vb2_clear_last_buffer_queued. The last buffer queued flag is
-cleared automatically during STREAMOFF.
+Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+hand made mapping of virtual address to physical address. Also the
+function leaked page reference from get_user_pages() so fix that by
+properly release the reference when omap_vout_buffer_release() is
+called.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c   | 10 +++++++++-
- drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++++++++++-
- include/media/videobuf2-core.h           | 13 +++++++++++++
- 3 files changed, 40 insertions(+), 2 deletions(-)
+ drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 73824a5..cbef15c 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -564,8 +564,16 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 
- 	if (list_empty(&src_q->done_list))
- 		poll_wait(file, &src_q->done_wq, wait);
--	if (list_empty(&dst_q->done_list))
-+	if (list_empty(&dst_q->done_list)) {
-+		/*
-+		 * If the last buffer was dequeued from the capture queue,
-+		 * return immediately. DQBUF will return -EPIPE.
-+		 */
-+		if (dst_q->last_buffer_dequeued)
-+			return rc | POLLIN | POLLRDNORM;
-+
- 		poll_wait(file, &dst_q->done_wq, wait);
-+	}
- 
- 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
- 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 66ada01..b2c1305 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1945,6 +1945,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
- 			return -EIO;
- 		}
- 
-+		if (q->last_buffer_dequeued) {
-+			dprintk(3, "last buffer dequeued already, will not wait for buffers\n");
-+			return -EPIPE;
-+		}
-+
- 		if (!list_empty(&q->done_list)) {
- 			/*
- 			 * Found a buffer that we were waiting for.
-@@ -2100,6 +2105,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	/* Remove from videobuf queue */
- 	list_del(&vb->queued_entry);
- 	q->queued_count--;
-+	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
-+	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
-+		q->last_buffer_dequeued = true;
- 	/* go back to dequeued state */
- 	__vb2_dqbuf(vb);
- 
-@@ -2313,6 +2321,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 */
- 	__vb2_queue_cancel(q);
- 	q->waiting_for_buffers = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	q->last_buffer_dequeued = false;
- 
- 	dprintk(3, "successful\n");
- 	return 0;
-@@ -2655,8 +2664,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	if (V4L2_TYPE_IS_OUTPUT(q->type) && q->queued_count < q->num_buffers)
- 		return res | POLLOUT | POLLWRNORM;
- 
--	if (list_empty(&q->done_list))
-+	if (list_empty(&q->done_list)) {
-+		/*
-+		 * If the last buffer was dequeued from a capture queue,
-+		 * return immediately. DQBUF will return -EPIPE.
-+		 */
-+		if (q->last_buffer_dequeued)
-+			return res | POLLIN | POLLRDNORM;
-+
- 		poll_wait(file, &q->done_wq, wait);
-+	}
- 
- 	/*
- 	 * Take first buffer available for dequeuing.
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index a5790fd..22a44c2 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -381,6 +381,9 @@ struct v4l2_fh;
-  * @waiting_for_buffers: used in poll() to check if vb2 is still waiting for
-  *		buffers. Only set for capture queues if qbuf has not yet been
-  *		called since poll() needs to return POLLERR in that situation.
-+ * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
-+ *		last decoded buffer was already dequeued. Set for capture queues
-+ *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-  */
-@@ -423,6 +426,7 @@ struct vb2_queue {
- 	unsigned int			start_streaming_called:1;
- 	unsigned int			error:1;
- 	unsigned int			waiting_for_buffers:1;
-+	unsigned int			last_buffer_dequeued:1;
- 
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
-@@ -603,6 +607,15 @@ static inline bool vb2_start_streaming_called(struct vb2_queue *q)
- 	return q->start_streaming_called;
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 17b189a81ec5..d3f6d82ccbc1 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
  }
  
-+/**
-+ * vb2_clear_last_buffer_dequeued() - clear last buffer dequeued flag of queue
-+ * @q:		videobuf queue
-+ */
-+static inline void vb2_clear_last_buffer_dequeued(struct vb2_queue *q)
-+{
-+	q->last_buffer_dequeued = false;
-+}
-+
  /*
-  * The following functions are not part of the vb2 core API, but are simple
-  * helper functions that you can use in your struct v4l2_file_operations,
+- * omap_vout_uservirt_to_phys: This inline function is used to convert user
+- * space virtual address to physical address.
++ * omap_vout_get_userptr: Convert user space virtual address to physical
++ * address.
+  */
+-static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
++static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
++				 u32 *physp)
+ {
+-	unsigned long physp = 0;
+-	struct vm_area_struct *vma;
+-	struct mm_struct *mm = current->mm;
++	struct frame_vector *vec;
++	int ret;
+ 
+ 	/* For kernel direct-mapped memory, take the easy way */
+-	if (virtp >= PAGE_OFFSET)
+-		return virt_to_phys((void *) virtp);
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(mm, virtp);
+-	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+-		/* this will catch, kernel-allocated, mmaped-to-usermode
+-		   addresses */
+-		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+-		up_read(&current->mm->mmap_sem);
+-	} else {
+-		/* otherwise, use get_user_pages() for general userland pages */
+-		int res, nr_pages = 1;
+-		struct page *pages;
++	if (virtp >= PAGE_OFFSET) {
++		*physp = virt_to_phys((void *)virtp);
++		return 0;
++	}
+ 
+-		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+-				0, &pages, NULL);
+-		up_read(&current->mm->mmap_sem);
++	vec = frame_vector_create(1);
++	if (!vec)
++		return -ENOMEM;
+ 
+-		if (res == nr_pages) {
+-			physp =  __pa(page_address(&pages[0]) +
+-					(virtp & ~PAGE_MASK));
+-		} else {
+-			printk(KERN_WARNING VOUT_NAME
+-					"get_user_pages failed\n");
+-			return 0;
+-		}
++	ret = get_vaddr_frames(virtp, 1, 1, 0, vec);
++	if (ret != 1) {
++		frame_vector_destroy(vec);
++		return -EINVAL;
+ 	}
++	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
++	vb->priv = vec;
+ 
+-	return physp;
++	return 0;
+ }
+ 
+ /*
+@@ -788,11 +776,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 	 * address of the buffer
+ 	 */
+ 	if (V4L2_MEMORY_USERPTR == vb->memory) {
++		int ret;
++
+ 		if (0 == vb->baddr)
+ 			return -EINVAL;
+ 		/* Physical address */
+-		vout->queued_buf_addr[vb->i] = (u8 *)
+-			omap_vout_uservirt_to_phys(vb->baddr);
++		ret = omap_vout_get_userptr(vb, vb->baddr,
++				(u32 *)&vout->queued_buf_addr[vb->i]);
++		if (ret < 0)
++			return ret;
+ 	} else {
+ 		unsigned long addr, dma_addr;
+ 		unsigned long size;
+@@ -841,9 +833,12 @@ static void omap_vout_buffer_release(struct videobuf_queue *q,
+ 	struct omap_vout_device *vout = q->priv_data;
+ 
+ 	vb->state = VIDEOBUF_NEEDS_INIT;
++	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
++		struct frame_vector *vec = vb->priv;
+ 
+-	if (V4L2_MEMORY_MMAP != vout->memory)
+-		return;
++		put_vaddr_frames(vec);
++		frame_vector_destroy(vec);
++	}
+ }
+ 
+ /*
 -- 
 2.1.4
 
