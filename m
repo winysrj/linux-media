@@ -1,69 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39307 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751160AbbEDJY3 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753458AbbEFG5h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 05:24:29 -0400
-From: Fabien Dessenne <fabien.dessenne@st.com>
-To: <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	<hugues.fruchet@st.com>
-Subject: [PATCH v2 1/3] [media] bdisp: add DT bindings documentation
-Date: Mon, 4 May 2015 11:24:19 +0200
-Message-ID: <1430731461-8496-2-git-send-email-fabien.dessenne@st.com>
-In-Reply-To: <1430731461-8496-1-git-send-email-fabien.dessenne@st.com>
-References: <1430731461-8496-1-git-send-email-fabien.dessenne@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 6 May 2015 02:57:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: [RFCv2 PATCH 0/8] Add VIDIOC_SUBDEV_QUERYCAP and use MEDIA_IOC_DEVICE_INFO
+Date: Wed,  6 May 2015 08:57:15 +0200
+Message-Id: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds DT binding documentation for STMicroelectronics bdisp driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Fabien Dessenne <fabien.dessenne@st.com>
----
- .../devicetree/bindings/media/st,stih4xx.txt       | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
+This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev devices
+as discussed during the ELC in San Jose and as discussed here:
 
-diff --git a/Documentation/devicetree/bindings/media/st,stih4xx.txt b/Documentation/devicetree/bindings/media/st,stih4xx.txt
-new file mode 100644
-index 0000000..df655cd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,stih4xx.txt
-@@ -0,0 +1,32 @@
-+STMicroelectronics stih4xx platforms
-+
-+bdisp: 2D blitter for STMicroelectronics SoC.
-+
-+Required properties:
-+- compatible: should be "st,stih407-bdisp".
-+- reg: BDISP physical address location and length.
-+- interrupts: BDISP interrupt number.
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clocks/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
-+
-+Example:
-+
-+	bdisp0:bdisp@9f10000 {
-+		compatible = "st,stih407-bdisp";
-+		reg = <0x9f10000 0x1000>;
-+		interrupts = <GIC_SPI 38 IRQ_TYPE_NONE>;
-+		clock-names = "bdisp";
-+		clocks = <&clk_s_c0_flexgen CLK_IC_BDISP_0>;
-+	};
-+
-+Aliases:
-+Each BDISP should have a numbered alias in the aliases node, in the form of
-+bdispN, N = 0 or 1.
-+
-+Example:
-+
-+	aliases {
-+		bdisp0 = &bdisp0;
-+	};
+http://www.spinics.net/lists/linux-media/msg88009.html
+
+It also add support for MEDIA_IOC_DEVICE_INFO to any media entities so
+applications can use that to find the media controller and detailed information
+about the entity.
+
+This is the second RFC patch series. The main changes are:
+
+- Drop the entity ID from the querycap ioctls
+- Instead have every entity device implement MEDIA_IOC_DEVICE_INFO
+- Add major, minor and entity_id fields to struct media_device_info:
+  this allows applications to find the MC device and to determine
+  the entity ID of the device for which they called the ioctl. It
+  is 0 for the MC (entity IDs are always > 0 for entities).
+
+This is IMHO simple, consistent, and it will work for any media entity.
+
+Regards,
+
+	Hans
+
+PS: I have not tested the DVB changes yet. I hope I got those right.
+
+Hans Verkuil (8):
+  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
+  DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+  videodev2.h: add V4L2_CAP_ENTITY to querycap
+  media: add major/minor/entity_id to struct media_device_info
+  v4l2-subdev: add MEDIA_IOC_DEVICE_INFO
+  v4l2-ioctl: add MEDIA_IOC_DEVICE_INFO
+  dvb: add MEDIA_IOC_DEVICE_INFO
+  DocBook/media: document the new media_device_info fields.
+
+ .../DocBook/media/v4l/media-ioc-device-info.xml    |  35 +++++-
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   6 +
+ .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 125 +++++++++++++++++++++
+ drivers/media/dvb-core/dmxdev.c                    |  24 +++-
+ drivers/media/dvb-core/dvb_ca_en50221.c            |  11 ++
+ drivers/media/dvb-core/dvb_net.c                   |  11 ++
+ drivers/media/media-device.c                       |  29 +++--
+ drivers/media/media-devnode.c                      |   5 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  43 ++++++-
+ drivers/media/v4l2-core/v4l2-subdev.c              |  26 +++++
+ include/media/media-device.h                       |   3 +
+ include/media/media-devnode.h                      |   1 +
+ include/uapi/linux/media.h                         |   5 +-
+ include/uapi/linux/v4l2-subdev.h                   |  10 ++
+ include/uapi/linux/videodev2.h                     |   1 +
+ 16 files changed, 316 insertions(+), 20 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+
 -- 
-1.9.1
+2.1.4
 
