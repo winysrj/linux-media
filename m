@@ -1,109 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35147 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbbESLBL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 07:01:11 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antoine Jacquet <royale@zerezo.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-usb@vger.kernel.org
-Subject: [PATCH 1/2] usb drivers: use BUG_ON() instead of if () BUG
-Date: Tue, 19 May 2015 08:00:56 -0300
-Message-Id: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+Received: from mout.kundenserver.de ([212.227.17.10]:58331 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbbEFQRf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 12:17:35 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: y2038@lists.linaro.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Kamil Debski <k.debski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, mchehab@osg.samsung.com,
+	dmitry.torokhov@gmail.com, dri-devel@lists.freedesktop.org,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de,
+	linux-input@vger.kernel.org, m.szyprowski@samsung.com,
+	linux-media@vger.kernel.org
+Subject: Re: [Y2038] [PATCH v4 06/10] cec: add HDMI CEC framework: y2038 question
+Date: Wed, 06 May 2015 18:17:05 +0200
+Message-ID: <10564120.sr4VXNmXf3@wuerfel>
+In-Reply-To: <554A3A09.9050208@xs4all.nl>
+References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <4726638.QZKcRc97FC@wuerfel> <554A3A09.9050208@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some USB drivers have a logic at the VB buffer handling like:
-	if (in_interrupt())
-		BUG();
-Use, instead:
-	BUG_ON(in_interrupt());
+On Wednesday 06 May 2015 17:58:01 Hans Verkuil wrote:
+> 
+> On 05/04/2015 12:14 PM, Arnd Bergmann wrote:
+> > On Monday 04 May 2015 09:42:36 Hans Verkuil wrote:
+> >> Ping! (Added Arnd to the CC list)
+> > 
+> > Hi Hans,
+> > 
+> > sorry I missed this the first time
+> > 
+> >> On 04/27/2015 09:40 AM, Hans Verkuil wrote:
+> >>> Added the y2038 mailinglist since I would like to get their input for
+> >>> this API.
+> >>>
+> >>> Y2038 experts, can you take a look at my comment in the code below?
+> >>>
+> >>> Thanks!
+> >>
+> >> Arnd, I just saw your patch series adding struct __kernel_timespec to
+> >> uapi/linux/time.h. I get the feeling that it might take a few kernel
+> >> cycles before we have a timespec64 available in userspace. Based on that
+> >> I think this CEC API should drop the timestamps for now and wait until
+> >> timespec64 becomes available before adding it.
+> >>
+> >> The timestamps are a nice-to-have, but not critical. So adding it later
+> >> shouldn't be a problem. What is your opinion?
+> > 
+> > It will take a little while for the patches to make it in, I would guess
+> > 4.3 at the earliest. Using your own struct works just as well and would
+> > be less ambiguous.
+> > 
+> > However, for timestamps, I would recommend not using timespec anyway.
+> > Instead, just use a single 64-bit nanosecond value from ktime_get_ns()
+> > (or ktime_get_boot_ns() if you need a time that keeps ticking across
+> > suspend). This is more efficient to get and simpler to use as long
+> > as you don't need to convert from nanosecond to timespec.
+> 
+> Possibly stupid follow-up question:
+> 
+> is ktime_get_ns() just a different representation as ktime_get_ts64()?
 
-Btw, this logic looks weird on my eyes. We should convert them
-to use VB2, in order to avoid those crappy things.
+Yes.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Or is there some offset between the two? They seem to be identical based
+> on a quick test, but I'd like to be certain that that's always the case.
+>
+> Users need to be able to relate this timestamp to a struct timespec as
+> returned by V4L2 (and others).
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 855a708387c6..47a98a2014a5 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1249,8 +1249,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
- 	struct cx231xx *dev = fh->dev;
- 	unsigned long flags = 0;
- 
--	if (in_interrupt())
--		BUG();
-+	BUG_ON(in_interrupt());
- 
- 	spin_lock_irqsave(&dev->video_mode.slock, flags);
- 	if (dev->USE_ISO) {
-diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-index 80261ac40208..a08014d20a5c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-@@ -192,8 +192,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
- 	struct cx231xx_fh *fh = vq->priv_data;
- 	struct cx231xx *dev = fh->dev;
- 	unsigned long flags = 0;
--	if (in_interrupt())
--		BUG();
-+	BUG_ON(in_interrupt());
- 
- 	/* We used to wait for the buffer to finish here, but this didn't work
- 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index af44f2d1c0a1..c6ff8968286a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -749,8 +749,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
- 	struct cx231xx *dev = fh->dev;
- 	unsigned long flags = 0;
- 
--	if (in_interrupt())
--		BUG();
-+	BUG_ON(in_interrupt());
- 
- 	/* We used to wait for the buffer to finish here, but this didn't work
- 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 77ce9efe1f24..26b6ae8d04da 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -714,8 +714,7 @@ static void free_buffer(struct videobuf_queue *vq, struct tm6000_buffer *buf)
- 	struct tm6000_core   *dev = fh->dev;
- 	unsigned long flags;
- 
--	if (in_interrupt())
--		BUG();
-+	BUG_ON(in_interrupt());
- 
- 	/* We used to wait for the buffer to finish here, but this didn't work
- 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
-diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
-index ca850316d379..7433ba5c4bad 100644
---- a/drivers/media/usb/zr364xx/zr364xx.c
-+++ b/drivers/media/usb/zr364xx/zr364xx.c
-@@ -377,8 +377,7 @@ static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer *buf)
- {
- 	_DBG("%s\n", __func__);
- 
--	if (in_interrupt())
--		BUG();
-+	BUG_ON(in_interrupt());
- 
- 	videobuf_vmalloc_free(&buf->vb);
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
--- 
-2.1.0
+* ktime_get_ns() uses the same timebase as ktime_get_ts64().
+* ktime_get_boot_ns() uses the same timebase as ktime_get_boottime() or
+  getboottime64(), which differs from the first after suspend
+* ktime_get_real_ns() uses the same time as gettimeofday() in user space,
+  which is always different from the other two.
 
+	Arnd
