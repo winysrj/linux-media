@@ -1,163 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36651 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023AbbEHBM4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:56 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Joe Perches <joe@perches.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Axel Lin <axel.lin@ingics.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: [PATCH 06/18] media controller: rename analog TV decoder
-Date: Thu,  7 May 2015 22:12:28 -0300
-Message-Id: <404817c5796244fe30bb29c883e7e9e07cf8e06c.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54419 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753553AbbEFG5x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 02:57:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 7/8] dvb: add MEDIA_IOC_DEVICE_INFO
+Date: Wed,  6 May 2015 08:57:22 +0200
+Message-Id: <1430895443-41839-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To keep coherency, let's also remove V4L2_SUBDEV from the analog
-TV decoder, calling it by its function, and not by the V4L2
-API mapping.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So,
+Support the MEDIA_IOC_DEVICE_INFO ioctl for DVB entities.
 
-	MEDIA_ENT_T_V4L2_SUBDEV_DECODER -> MEDIA_ENT_T_ATV_DECODER
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-core/dmxdev.c         | 24 +++++++++++++++++++++++-
+ drivers/media/dvb-core/dvb_ca_en50221.c | 11 +++++++++++
+ drivers/media/dvb-core/dvb_net.c        | 11 +++++++++++
+ 3 files changed, 45 insertions(+), 1 deletion(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 27082b07f4c2..9b3861058f0d 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -231,7 +231,7 @@
- 	    <entry>Lens controller</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_ATV_DECODER</constant></entry>
- 	    <entry>Video decoder, the basic function of the video decoder is to
- 	    accept analogue video from a wide variety of sources such as
- 	    broadcast, DVD players, cameras and video cassette recorders, in
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index a493c0b0b5fe..e8f0b53cc253 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1212,7 +1212,7 @@ static int adv7180_probe(struct i2c_client *client,
- 		goto err_unregister_vpp_client;
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index d0e3f9d..ab096eb 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -967,6 +967,17 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		return -ERESTARTSYS;
  
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	sd->entity.flags |= MEDIA_ENT_T_ATV_DECODER;
- 	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
- 	if (ret)
- 		goto err_free_ctrl;
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index e15a789ad596..cd8a3c273ab8 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -5208,7 +5208,7 @@ static int cx25840_probe(struct i2c_client *client,
- 	state->pads[CX25840_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[CX25840_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[CX25840_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	sd->entity.type = MEDIA_ENT_T_ATV_DECODER;
- 
- 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
- 				state->pads, 0);
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 24e47279e30c..77744c390941 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1106,7 +1106,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	decoder->sd.entity.flags |= MEDIA_ENT_T_ATV_DECODER;
- 
- 	ret = media_entity_init(&decoder->sd.entity, 1, &decoder->pad, 0);
- 	if (ret < 0) {
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 05077cffd235..3facef49aef1 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1019,7 +1019,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	device->sd.entity.flags |= MEDIA_ENT_T_ATV_DECODER;
- 
- 	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
- 	if (error < 0)
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index fe00da105e77..a756f74f0adc 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1216,7 +1216,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
--		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
-+		case MEDIA_ENT_T_ATV_DECODER:
- 			decoder = entity;
- 			break;
- 		}
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index af44f2d1c0a1..bed4ee28916d 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -119,7 +119,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 	 * this should be enough for the actual needs.
- 	 */
- 	media_device_for_each_entity(entity, mdev) {
--		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-+		if (entity->type == MEDIA_ENT_T_ATV_DECODER) {
- 			decoder = entity;
- 			break;
- 		}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 0de9912411c5..9b3d80e765f0 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -54,8 +54,8 @@ struct media_device_info {
- #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
- #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
- #define MEDIA_ENT_T_CAM_LENS	(MEDIA_ENT_T_CAM_SENSOR + 2)
--/* A converter of analogue video to its digital representation. */
--#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+ 	switch (cmd) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	case MEDIA_IOC_DEVICE_INFO: {
++		struct media_device_info *info = parg;
 +
-+#define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
++		if (dmxdev->dvbdev->entity->parent == NULL)
++			return -ENOTTY;
++		media_device_fill_info(dmxdev->dvbdev->entity->parent, info);
++		info->entity_id = dmxdev->dvbdev->entity->id;
++		break;
++	}
++#endif
+ 	case DMX_START:
+ 		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
+ 			mutex_unlock(&dmxdev->mutex);
+@@ -1152,12 +1163,23 @@ static int dvb_dvr_do_ioctl(struct file *file,
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
+ 	unsigned long arg = (unsigned long)parg;
+-	int ret;
++	int ret = 0;
  
- #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+ 	if (mutex_lock_interruptible(&dmxdev->mutex))
+ 		return -ERESTARTSYS;
  
-@@ -86,6 +86,8 @@ struct media_device_info {
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
- #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
- #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+ 	switch (cmd) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	case MEDIA_IOC_DEVICE_INFO: {
++		struct media_device_info *info = parg;
 +
-+#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
- #endif
++		if (dvbdev->entity->parent == NULL)
++			return -ENOTTY;
++		media_device_fill_info(dvbdev->entity->parent, info);
++		info->entity_id = dvbdev->entity->id;
++		break;
++	}
++#endif
+ 	case DMX_SET_BUFFER_SIZE:
+ 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
+ 		break;
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 7293775..eca19f5 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1198,6 +1198,17 @@ static int dvb_ca_en50221_io_do_ioctl(struct file *file,
+ 		return -ERESTARTSYS;
  
- /* Used bitmasks for media_entity_desc::flags */
+ 	switch (cmd) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	case MEDIA_IOC_DEVICE_INFO: {
++		struct media_device_info *info = parg;
++
++		if (dvbdev->entity->parent == NULL)
++			return -ENOTTY;
++		media_device_fill_info(dvbdev->entity->parent, info);
++		info->entity_id = dvbdev->entity->id;
++		break;
++	}
++#endif
+ 	case CA_RESET:
+ 		for (slot = 0; slot < ca->slot_count; slot++) {
+ 			mutex_lock(&ca->slot_info[slot].slot_lock);
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index a694fb1..1c0c889 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -1322,6 +1322,17 @@ static int dvb_net_do_ioctl(struct file *file,
+ 		return -ERESTARTSYS;
+ 
+ 	switch (cmd) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	case MEDIA_IOC_DEVICE_INFO: {
++		struct media_device_info *info = parg;
++
++		if (dvbdev->entity->parent == NULL)
++			return -ENOTTY;
++		media_device_fill_info(dvbdev->entity->parent, info);
++		info->entity_id = dvbdev->entity->id;
++		break;
++	}
++#endif
+ 	case NET_ADD_IF:
+ 	{
+ 		struct dvb_net_if *dvbnetif = parg;
 -- 
-2.1.0
+2.1.4
 
