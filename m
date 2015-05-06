@@ -1,86 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:34762 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757658AbbEEKO0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 06:14:26 -0400
+Received: from heidi.turbocat.net ([88.198.202.214]:33496 "EHLO
+	mail.turbocat.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbbEFN3U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 09:29:20 -0400
+Message-ID: <554A175D.6030103@selasky.org>
+Date: Wed, 06 May 2015 15:30:05 +0200
+From: Hans Petter Selasky <hps@selasky.org>
 MIME-Version: 1.0
-In-Reply-To: <CAHG8p1Afkvnmw4m=i=10g5R1kPO3PeDEnXj5_PchBbGv1nKo=A@mail.gmail.com>
-References: <1425825653-14768-1-git-send-email-prabhakar.csengg@gmail.com>
- <CAHG8p1AZMnV_ZLA1Ou=wejxwaHRObX1aAgO=xbXiwwEsJZ9EZA@mail.gmail.com>
- <551D4220.7070303@xs4all.nl> <CAHG8p1AezvQk1Z0tQzFKXZa3Qnd4+MV53F7VP69vwvXVYaqmkg@mail.gmail.com>
- <553A151B.7010907@xs4all.nl> <CAHG8p1Afkvnmw4m=i=10g5R1kPO3PeDEnXj5_PchBbGv1nKo=A@mail.gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 5 May 2015 11:13:54 +0100
-Message-ID: <CA+V-a8vS_xHdb8ziuPD2408uKNp0WZmH=fw6uJp57HQOKyCmqA@mail.gmail.com>
-Subject: Re: [PATCH v4 00/17] media: blackfin: bfin_capture enhancements
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	adi-buildroot-devel@lists.sourceforge.net,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Felix Janda <felix.janda@posteo.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] Wrap LFS64 functions only if __GLIBC__
+References: <20150125203636.GC11999@euler> <20150505093402.4c29d565@recife.lan>
+In-Reply-To: <20150505093402.4c29d565@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
+On 05/05/15 14:34, Mauro Carvalho Chehab wrote:
+> I'm afraid that removing the above would break for FreeBSD, as I think
+> it also uses glibc, but not 100% sure.
+>
+> So, either we should get an ack from Hans Peter, or you should
+> change the tests to:
+>
+> 	#if linux && __GLIBC__
 
-On Tue, May 5, 2015 at 10:58 AM, Scott Jiang
-<scott.jiang.linux@gmail.com> wrote:
-> 2015-04-24 18:04 GMT+08:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> On 04/10/2015 12:42 PM, Scott Jiang wrote:
->>> Hi Hans,
->>>
->>>>>
->>>>> Hans, I tried to use v4l2-compliance but it failed to compile. Sorry
->>>>> for telling you it have passed compilation because I forgot to use
->>>>> blackfin toolchain.
->>>>> ./configure --without-jpeg  --host=bfin-linux-uclibc --disable-libv4l
->>>>>
->>>>> The main problem is there is no argp.h in uClibc, how to disable checking this?
->>>>>
->>>>> checking for argp.h... no
->>>>> configure: error: Cannot continue: argp.h not found
->>>>>
->>>>> Scott
->>>>>
->>>>
->>>> Hi Scott,
->>>>
->>>> Can you try this patch for v4l-utils? It makes argp optional, and it should
->>>> allow v4l2-compliance to compile with uclibc (unless there are more problems).
->>>>
->>>> I'm no autoconf guru, so I'm not certain if everything is correct, but it
->>>> seemed to do its job when I remove argp.h from my system.
->>>>
->>>
->>> Yes, I can pass configure now. But there is another error when make
->>>
->>> make[3]: Entering directory
->>> `/home/scott/projects/git-kernel/v4l-utils/lib/libdvbv5'
->>>   CC     libdvbv5_la-parse_string.lo
->>> parse_string.c:26:19: error: iconv.h: No such file or directory
->>> parse_string.c: In function 'dvb_iconv_to_charset':
->>> parse_string.c:316: error: 'iconv_t' undeclared (first use in this function)
->>>
->>> I tried to pass this library, while --without-libdvbv5 is not supported.
->>>
->>
->> If you can pass the configure step, then you should be able to run this:
->>
->> cd utils/v4l2-compliance
->> cat *.cpp >x.cpp
->> g++ -o v4l2-compliance x.cpp -I . -I ../../include/ -DNO_LIBV4L2
->>
->> (you need to use the right toolchain here, of course)
->>
->> If this compiles OK, then you have a v4l2-compliance tool that you can
->> use.
->>
-> Yes, this method works. The test results of v4l2-compliance are below,
-> I'm sorry the kernel has not upgraded to 4.0.
-> root:/> ./v4l2-compliance -d 0
+Hi,
 
-v4l2-compliance with -s option would interesting to watch.
+Linux might be defined when compiling webcamd. The following should be fine:
 
-Cheers,
---Prabhakar Lad
+-#ifdef linux
++#if defined(linux) && defined(__GLIBC__)
+
+Thank you!
+
+--HPS
