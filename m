@@ -1,39 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:36495 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752952AbbEETWk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 15:22:40 -0400
-Received: by wgiu9 with SMTP id u9so31179787wgi.3
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 12:22:39 -0700 (PDT)
-Message-ID: <5549187D.6090708@googlemail.com>
-Date: Tue, 05 May 2015 21:22:37 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:48112 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750829AbbEFKqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 06:46:44 -0400
+Message-ID: <5549F112.1000405@suse.cz>
+Date: Wed, 06 May 2015 12:46:42 +0200
+From: Vlastimil Babka <vbabka@suse.cz>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Felix Janda <felix.janda@posteo.de>,
-	Hans Petter Selasky <hselasky@freebsd.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] Wrap LFS64 functions only if __GLIBC__
-References: <20150125203636.GC11999@euler> <20150505093402.4c29d565@recife.lan>
-In-Reply-To: <20150505093402.4c29d565@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+To: Jan Kara <jack@suse.cz>, linux-mm@kvack.org
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys()
+ to use get_vaddr_pfns()
+References: <1430897296-5469-1-git-send-email-jack@suse.cz> <1430897296-5469-4-git-send-email-jack@suse.cz>
+In-Reply-To: <1430897296-5469-4-git-send-email-jack@suse.cz>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/05/15 14:34, Mauro Carvalho Chehab wrote:
-> Em Sun, 25 Jan 2015 21:36:36 +0100
-> Felix Janda <felix.janda@posteo.de> escreveu:
->> -#ifdef linux
->> +#ifdef __GLIBC__
-> 
-> Hmm... linux was added here to avoid breaking on FreeBSD, on this
-> changeset:
-> 
-> So, either we should get an ack from Hans Peter, or you should
-> change the tests to:
-> 
-> 	#if linux && __GLIBC__
+On 05/06/2015 09:28 AM, Jan Kara wrote:
+> Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+> hand made mapping of virtual address to physical address. Also the
+> function leaked page reference from get_user_pages() so fix that by
+> properly release the reference when omap_vout_buffer_release() is
+> called.
+>
+> Signed-off-by: Jan Kara <jack@suse.cz>
+> ---
+>   drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
+>   1 file changed, 31 insertions(+), 36 deletions(-)
+>
 
-That would be needed to not break Debian/kFreeBSD which is a FreeBSD
-Kernel with GNU C library.
+...
+
+> +	vec = frame_vector_create(1);
+> +	if (!vec)
+> +		return -ENOMEM;
+>
+> -		if (res == nr_pages) {
+> -			physp =  __pa(page_address(&pages[0]) +
+> -					(virtp & ~PAGE_MASK));
+> -		} else {
+> -			printk(KERN_WARNING VOUT_NAME
+> -					"get_user_pages failed\n");
+> -			return 0;
+> -		}
+> +	ret = get_vaddr_frames(virtp, 1, 1, 0, vec);
+
+Use true/false where appropriate.
