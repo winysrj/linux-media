@@ -1,102 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:58193 "EHLO mout.gmx.net"
+Received: from cantor2.suse.de ([195.135.220.15]:59488 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750908AbbEYOS1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 10:18:27 -0400
-Date: Mon, 25 May 2015 16:18:21 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 07/20] media: soc_camera: rcar_vin: Add BT.709 24-bit
- RGB888 input support
-In-Reply-To: <1432139980-12619-8-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1505251615220.26358@axis700.grange>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
- <1432139980-12619-8-git-send-email-william.towle@codethink.co.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1752972AbbEFH22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 03:28:28 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 6/9] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
+Date: Wed,  6 May 2015 09:28:13 +0200
+Message-Id: <1430897296-5469-7-git-send-email-jack@suse.cz>
+In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
+References: <1430897296-5469-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+Convert vb2_vmalloc_get_userptr() to use frame vector infrastructure.
+When we are doing that there's no need to allocate page array and some
+code can be simplified.
 
-How about this version of this patch:
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 94 +++++++++++------------------
+ 1 file changed, 36 insertions(+), 58 deletions(-)
 
-https://patchwork.linuxtv.org/patch/28098/
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 0ba40be21ebd..d2ce81fa2cdf 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -23,11 +23,9 @@
+ 
+ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
+-	struct page			**pages;
+-	struct vm_area_struct		*vma;
++	struct frame_vector		*vec;
+ 	enum dma_data_direction		dma_dir;
+ 	unsigned long			size;
+-	unsigned int			n_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct dma_buf			*dbuf;
+@@ -76,10 +74,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				     enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+-	unsigned long first, last;
+-	int n_pages, offset;
+-	struct vm_area_struct *vma;
+-	dma_addr_t physp;
++	struct frame_vector *vec;
++	int n_pages, offset, i;
+ 
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -88,53 +84,36 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->dma_dir = dma_dir;
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+-		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+-			goto fail_pages_array_alloc;
+-		buf->vma = vma;
+-		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
+-		if (!buf->vaddr)
+-			goto fail_pages_array_alloc;
++	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto fail_pfnvec_create;
++	buf->vec = vec;
++	n_pages = frame_vector_count(vec);
++	if (frame_vector_to_pages(vec) < 0) {
++		unsigned long *nums = frame_vector_pfns(vec);
++
++		/*
++		 * We cannot get page pointers for these pfns. Check memory is
++		 * physically contiguous and use direct mapping.
++		 */
++		for (i = 1; i < n_pages; i++)
++			if (nums[i-1] + 1 != nums[i])
++				goto fail_map;
++		buf->vaddr = (__force void *)
++				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
+ 	} else {
+-		first = vaddr >> PAGE_SHIFT;
+-		last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-		buf->n_pages = last - first + 1;
+-		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
+-				     GFP_KERNEL);
+-		if (!buf->pages)
+-			goto fail_pages_array_alloc;
+-
+-		/* current->mm->mmap_sem is taken by videobuf2 core */
+-		n_pages = get_user_pages(current, current->mm,
+-					 vaddr & PAGE_MASK, buf->n_pages,
+-					 dma_dir == DMA_FROM_DEVICE,
+-					 1, /* force */
+-					 buf->pages, NULL);
+-		if (n_pages != buf->n_pages)
+-			goto fail_get_user_pages;
+-
+-		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
+ 					PAGE_KERNEL);
+-		if (!buf->vaddr)
+-			goto fail_get_user_pages;
+ 	}
+-	up_read(&current->mm->mmap_sem);
+ 
++	if (!buf->vaddr)
++		goto fail_map;
+ 	buf->vaddr += offset;
+ 	return buf;
+ 
+-fail_get_user_pages:
+-	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
+-		 buf->n_pages);
+-	while (--n_pages >= 0)
+-		put_page(buf->pages[n_pages]);
+-	kfree(buf->pages);
+-
+-fail_pages_array_alloc:
+-	up_read(&current->mm->mmap_sem);
++fail_map:
++	vb2_destroy_framevec(vec);
++fail_pfnvec_create:
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -145,22 +124,21 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	struct vb2_vmalloc_buf *buf = buf_priv;
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
++	struct page **pages;
++	unsigned int n_pages;
+ 
+-	down_read(&current->mm->mmap_sem);
+-	if (buf->pages) {
++	if (!buf->vec->is_pfns) {
++		n_pages = frame_vector_count(buf->vec);
++		pages = frame_vector_pages(buf->vec);
+ 		if (vaddr)
+-			vm_unmap_ram((void *)vaddr, buf->n_pages);
+-		for (i = 0; i < buf->n_pages; ++i) {
+-			if (buf->dma_dir == DMA_FROM_DEVICE)
+-				set_page_dirty_lock(buf->pages[i]);
+-			put_page(buf->pages[i]);
+-		}
+-		kfree(buf->pages);
++			vm_unmap_ram((void *)vaddr, n_pages);
++		if (buf->dma_dir == DMA_FROM_DEVICE)
++			for (i = 0; i < n_pages; i++)
++				set_page_dirty_lock(pages[i]);
+ 	} else {
+-		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
+ }
+ 
+-- 
+2.1.4
 
-? I personally like that one better, it seems clearer to me. This one 
-first sets a bit to vnmp, then make another check and inverts it, whereas 
-that version clearly sets it just for equal colour-spaces. I just never 
-got with proper Sob and (maybe?) authorship.
-
-Thanks
-Guennadi
-
-On Wed, 20 May 2015, William Towle wrote:
-
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> 
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> 
-> Modified to use MEDIA_BUS_FMT_* constants
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |   15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index db7700b..0f67646 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -98,6 +98,7 @@
->  #define VNMC_INF_YUV10_BT656	(2 << 16)
->  #define VNMC_INF_YUV10_BT601	(3 << 16)
->  #define VNMC_INF_YUV16		(5 << 16)
-> +#define VNMC_INF_RGB888		(6 << 16)
->  #define VNMC_VUP		(1 << 10)
->  #define VNMC_IM_ODD		(0 << 3)
->  #define VNMC_IM_ODD_EVEN	(1 << 3)
-> @@ -620,6 +621,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  
->  	/* input interface */
->  	switch (icd->current_fmt->code) {
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +		/* BT.601/BT.709 24-bit RGB-888 */
-> +		vnmc |= VNMC_INF_RGB888;
-> +		break;
->  	case MEDIA_BUS_FMT_YUYV8_1X16:
->  		/* BT.601/BT.1358 16bit YCbCr422 */
->  		vnmc |= VNMC_INF_YUV16;
-> @@ -679,6 +684,15 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  	if (output_is_yuv)
->  		vnmc |= VNMC_BPS;
->  
-> +	/*
-> +	 * The above assumes YUV input, toggle BPS for RGB input.
-> +	 * RGB inputs can be detected by checking that the most-significant
-> +	 * two bits of INF are set. This corresponds to the bits
-> +	 * set in VNMC_INF_RGB888.
-> +	 */
-> +	if ((vnmc & VNMC_INF_RGB888) == VNMC_INF_RGB888)
-> +		vnmc ^= VNMC_BPS;
-> +
->  	/* progressive or interlaced mode */
->  	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
->  
-> @@ -1423,6 +1437,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
->  	case MEDIA_BUS_FMT_YUYV8_1X16:
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
->  	case MEDIA_BUS_FMT_YUYV10_2X10:
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
->  		if (cam->extra_fmt)
->  			break;
->  
-> -- 
-> 1.7.10.4
-> 
