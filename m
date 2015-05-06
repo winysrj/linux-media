@@ -1,211 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33385 "EHLO lists.s-osg.org"
+Received: from cantor2.suse.de ([195.135.220.15]:59493 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849AbbETMMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 08:12:21 -0400
-Date: Wed, 20 May 2015 09:12:16 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Vasily Khoruzhick <anarsoul@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] gspca: sn9c2028: Add support for Genius Videocam
- Live v2
-Message-ID: <20150520091216.494f6d9d@recife.lan>
-In-Reply-To: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
-References: <1429859044-18071-1-git-send-email-anarsoul@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S965146AbbEFH23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 03:28:29 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 5/9] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
+Date: Wed,  6 May 2015 09:28:12 +0200
+Message-Id: <1430897296-5469-6-git-send-email-jack@suse.cz>
+In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
+References: <1430897296-5469-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 24 Apr 2015 10:04:03 +0300
-Vasily Khoruzhick <anarsoul@gmail.com> escreveu:
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 97 +++++-------------------------
+ 1 file changed, 15 insertions(+), 82 deletions(-)
 
-> This cam seems to return different values on long commands, so make status check
-> in sn9c2028_long_command() more tolerant. Anyway, read value isn't used anywhere
-> later.
-> 
-> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index afd4b514affc..4ee1b3fbfe2a 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
++	struct frame_vector		*vec;
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+-	struct vm_area_struct		*vma;
+ 
+ 	struct dma_buf_attachment	*db_attach;
+ };
+@@ -224,25 +224,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+ 
+-static inline int vma_is_io(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+-}
+-
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size,
+ 				    enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+-	unsigned long first, last;
+-	int num_pages_from_user;
+-	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	DEFINE_DMA_ATTRS(attrs);
++	struct frame_vector *vec;
+ 
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+-
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+@@ -253,63 +245,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_sgt = &buf->sg_table;
++	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto userptr_fail_pfnvec;
++	buf->vec = vec;
+ 
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+-	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+-	buf->num_pages = last - first + 1;
+-
+-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+-			     GFP_KERNEL);
+-	if (!buf->pages)
+-		goto userptr_fail_alloc_pages;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (!vma) {
+-		dprintk(1, "no vma for address %lu\n", vaddr);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma->vm_end < vaddr + size) {
+-		dprintk(1, "vma at %lu is too small for %lu bytes\n",
+-			vaddr, size);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	buf->vma = vb2_get_vma(vma);
+-	if (!buf->vma) {
+-		dprintk(1, "failed to copy vma\n");
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma_is_io(buf->vma)) {
+-		for (num_pages_from_user = 0;
+-		     num_pages_from_user < buf->num_pages;
+-		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
+-			unsigned long pfn;
+-
+-			if (follow_pfn(vma, vaddr, &pfn)) {
+-				dprintk(1, "no page for address %lu\n", vaddr);
+-				break;
+-			}
+-			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+-		}
+-	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
+-					     vaddr & PAGE_MASK,
+-					     buf->num_pages,
+-					     buf->dma_dir == DMA_FROM_DEVICE,
+-					     1, /* force */
+-					     buf->pages,
+-					     NULL);
+-	up_read(&current->mm->mmap_sem);
+-
+-	if (num_pages_from_user != buf->num_pages)
+-		goto userptr_fail_get_user_pages;
++	buf->pages = frame_vector_pages(vec);
++	if (IS_ERR(buf->pages))
++		goto userptr_fail_sgtable;
++	buf->num_pages = frame_vector_count(vec);
+ 
+ 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+-		goto userptr_fail_alloc_table_from_pages;
++		goto userptr_fail_sgtable;
+ 
+ 	sgt = &buf->sg_table;
+ 	/*
+@@ -323,19 +271,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 
+ userptr_fail_map:
+ 	sg_free_table(&buf->sg_table);
+-userptr_fail_alloc_table_from_pages:
+-userptr_fail_get_user_pages:
+-	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+-		buf->num_pages, num_pages_from_user);
+-	if (!vma_is_io(buf->vma))
+-		while (--num_pages_from_user >= 0)
+-			put_page(buf->pages[num_pages_from_user]);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-userptr_fail_find_vma:
+-	up_read(&current->mm->mmap_sem);
+-	kfree(buf->pages);
+-userptr_fail_alloc_pages:
++userptr_fail_sgtable:
++	vb2_destroy_framevec(vec);
++userptr_fail_pfnvec:
+ 	kfree(buf);
+ 	return NULL;
+ }
+@@ -362,13 +300,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	while (--i >= 0) {
+ 		if (buf->dma_dir == DMA_FROM_DEVICE)
+ 			set_page_dirty_lock(buf->pages[i]);
+-		if (!vma_is_io(buf->vma))
+-			put_page(buf->pages[i]);
+ 	}
+-	kfree(buf->pages);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
+ }
+ 
+-- 
+2.1.4
 
-Hans,
-
-You forgot to add your SOB on those two patches on your pull request.
-
-> ---
-> v2: update commit message to explain change in sn9c2028_long_command()
-> 
->  drivers/media/usb/gspca/sn9c2028.c | 120 ++++++++++++++++++++++++++++++++++++-
->  1 file changed, 119 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-> index 39b6b2e..317b02c 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.c
-> +++ b/drivers/media/usb/gspca/sn9c2028.c
-> @@ -2,6 +2,7 @@
->   * SN9C2028 library
->   *
->   * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
-> + * Copyright (C) 2015 Vasily Khoruzhick <anarsoul@gmail.com>
-
-Hmm... adding a new copyright driver-wide only justifies if you changed 30%
-or more of the code. The copyright of your changes will be preserved at
-the git history.
-
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -128,7 +129,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
->  	status = -1;
->  	for (i = 0; i < 256 && status < 2; i++)
->  		status = sn9c2028_read1(gspca_dev);
-> -	if (status != 2) {
-> +	if (status < 0) {
->  		pr_err("long command status read error %d\n", status);
->  		return (status < 0) ? status : -EIO;
->  	}
-> @@ -178,6 +179,9 @@ static int sd_config(struct gspca_dev *gspca_dev,
->  	case 0x7005:
->  		PDEBUG(D_PROBE, "Genius Smart 300 camera");
->  		break;
-> +	case 0x7003:
-> +		PDEBUG(D_PROBE, "Genius Videocam Live v2");
-> +		break;
->  	case 0x8000:
->  		PDEBUG(D_PROBE, "DC31VC");
->  		break;
-> @@ -530,6 +534,116 @@ static int start_genius_cam(struct gspca_dev *gspca_dev)
->  				  ARRAY_SIZE(genius_start_commands));
->  }
->  
-> +static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
-> +{
-> +	int r;
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +	struct init_command genius_vcam_live_start_commands[] = {
-> +		{{0x0c, 0x01, 0x00, 0x00, 0x00, 0x00}, 0},
-> +		{{0x16, 0x01, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x10, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
-> +
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
-> +		{{0x1c, 0x20, 0x00, 0x2d, 0x00, 0x00}, 4},
-> +		{{0x13, 0x20, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x21, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x22, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x23, 0x01, 0x01, 0x00, 0x00}, 4},
-> +		{{0x13, 0x24, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2a, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2b, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
-> +		{{0x12, 0x34, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x34, 0x01, 0xa1, 0x00, 0x00}, 4},
-> +		{{0x13, 0x35, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x01, 0x04, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x02, 0x92, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x25, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x26, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x27, 0x88, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x30, 0x38, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x31, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x32, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x33, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x34, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x5b, 0x0a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x13, 0x25, 0x01, 0x28, 0x00, 0x00}, 4},
-> +		{{0x13, 0x26, 0x01, 0x1e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
-> +		{{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
-> +		{{0x13, 0x29, 0x01, 0x62, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2d, 0x01, 0x03, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2e, 0x01, 0x0f, 0x00, 0x00}, 4},
-> +		{{0x13, 0x2f, 0x01, 0x0c, 0x00, 0x00}, 4},
-> +		{{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x21, 0x2a, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x23, 0x28, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x11, 0x04, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x13, 0x03, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x15, 0xe0, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x16, 0x02, 0x00, 0x00, 0x00}, 4},
-> +		{{0x11, 0x17, 0x80, 0x00, 0x00, 0x00}, 4},
-> +		{{0x1c, 0x20, 0x00, 0x2a, 0x00, 0x00}, 1},
-> +		{{0x20, 0x34, 0xa1, 0x00, 0x00, 0x00}, 0},
-> +		/* Camera should start to capture now. */
-> +		{{0x12, 0x27, 0x01, 0x00, 0x00, 0x00}, 0},
-> +		{{0x1b, 0x32, 0x26, 0x00, 0x00, 0x00}, 0},
-> +		{{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
-> +	};
-> +
-> +	r = run_start_commands(gspca_dev, genius_vcam_live_start_commands,
-> +				  ARRAY_SIZE(genius_vcam_live_start_commands));
-> +	if (r < 0)
-> +		return r;
-> +
-> +	return r;
-> +}
-> +
->  static int start_vivitar_cam(struct gspca_dev *gspca_dev)
->  {
->  	struct init_command vivitar_start_commands[] = {
-> @@ -623,6 +737,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
->  	case 0x7005:
->  		err_code = start_genius_cam(gspca_dev);
->  		break;
-> +	case 0x7003:
-> +		err_code = start_genius_videocam_live(gspca_dev);
-> +		break;
->  	case 0x8001:
->  		err_code = start_spy_cam(gspca_dev);
->  		break;
-> @@ -701,6 +818,7 @@ static const struct sd_desc sd_desc = {
->  /* -- module initialisation -- */
->  static const struct usb_device_id device_table[] = {
->  	{USB_DEVICE(0x0458, 0x7005)}, /* Genius Smart 300, version 2 */
-> +	{USB_DEVICE(0x0458, 0x7003)}, /* Genius Videocam Live v2  */
->  	/* The Genius Smart is untested. I can't find an owner ! */
->  	/* {USB_DEVICE(0x0c45, 0x8000)}, DC31VC, Don't know this camera */
->  	{USB_DEVICE(0x0c45, 0x8001)}, /* Wild Planet digital spy cam */
