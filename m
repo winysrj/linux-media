@@ -1,232 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40878 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258AbbEDHob (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:44:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 2/3] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-Date: Mon, 04 May 2015 01:29:20 +0300
-Message-ID: <2025720.hkQNlttbI3@avalon>
-In-Reply-To: <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl>
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:24450 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965AbbEFKXa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 06:23:30 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v3 2/3] media: atmel-isi: add runtime pm support
+Date: Wed, 6 May 2015 18:25:54 +0800
+Message-ID: <1430907955-28665-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1430907955-28665-1-git-send-email-josh.wu@atmel.com>
+References: <1430907955-28665-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
+clock).
+And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
+access ISI registers.
 
-Thank you for the patch.
+In the meantime, as clock_start()/clock_stop() is used to control the
+mclk not ISI peripheral clock. So move this to start[stop]_streaming()
+function.
 
-On Friday 01 May 2015 13:33:49 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->  .../DocBook/media/v4l/vidioc-querycap.xml          |   2 +-
->  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 ++++++++++++++++++
->  3 files changed, 142 insertions(+), 1 deletion(-)
->  create mode 100644
-> Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml
-> b/Documentation/DocBook/media/v4l/v4l2.xml index e98caa1..23607bc 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-subdev-g-fmt;
->      &sub-subdev-g-frame-interval;
->      &sub-subdev-g-selection;
-> +    &sub-subdev-querycap;
->      &sub-subscribe-event;
->      <!-- End of ioctls. -->
->      &sub-mmap;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
-> 20fda75..c1ed844 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -54,7 +54,7 @@ kernel devices compatible with this specification and to
-> obtain information about driver and hardware capabilities. The ioctl takes
-> a pointer to a &v4l2-capability; which is filled by the driver. When the
-> driver is not compatible with this specification the ioctl returns an
-> -&EINVAL;.</para>
-> +&ENOTTY;.</para>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
-I'd split this change to a separate patch as it's unrelated to 
-VIDIOC_SUBDEV_QUERYCAP.
+Changes in v3: None
+Changes in v2:
+- merged v1 two patch into one.
+- use runtime_pm_put() instead of runtime_pm_put_sync()
+- enable peripheral clock before access ISI registers.
 
-We can't really guarantee that non-V4L2 drivers will return -ENOTTY, they 
-might be buggy and return a different error code. That's slightly nitpicking 
-though.
+ drivers/media/platform/soc_camera/atmel-isi.c | 51 +++++++++++++++++++++++----
+ 1 file changed, 45 insertions(+), 6 deletions(-)
 
->      <table pgwide="1" frame="none" id="v4l2-capability">
->        <title>struct <structname>v4l2_capability</structname></title>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml new file mode
-> 100644
-> index 0000000..a1cbb36
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-> @@ -0,0 +1,140 @@
-> +<refentry id="vidioc-subdev-querycap">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
-> +    <refpurpose>Query sub-device capabilities</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_subdev_capability
-> *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>All V4L2 sub-devices support the
-> +<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
-> +kernel devices compatible with this specification and to obtain
-> +information about driver and hardware capabilities. The ioctl takes a
-> +pointer to a &v4l2-subdev-capability; which is filled by the driver. When
-> the
-> +driver is not compatible with this specification the ioctl returns an
-> +&ENOTTY;.</para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
-> +      <title>struct <structname>v4l2_subdev_capability</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>version</structfield></entry>
-> +	    <entry><para>Version number of the driver.</para>
-> +<para>The version reported is provided by the
-> +V4L2 subsystem following the kernel numbering scheme. However, it
-> +may not always return the same version as the kernel if, for example,
-> +a stable or distribution-modified kernel uses the V4L2 stack from a
-> +newer kernel.</para>
-> +<para>The version number is formatted using the
-> +<constant>KERNEL_VERSION()</constant> macro:</para></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="hspan"><para>
-> +<programlisting>
-> +#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
-> +
-> +__u32 version = KERNEL_VERSION(0, 8, 1);
-> +
-> +printf ("Version: %u.%u.%u\n",
-> +	(version &gt;&gt; 16) &amp; 0xFF,
-> +	(version &gt;&gt; 8) &amp; 0xFF,
-> +	 version &amp; 0xFF);
-> +</programlisting></para></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>device_caps</structfield></entry>
-> +	    <entry>Sub-device capabilities of the opened device, see <xref
-> +		linkend="subdevice-capabilities" />.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>pads</structfield></entry>
-> +	    <entry>The number of pads of this sub-device. May be 0 if there are 
-no
-> +	    pads.
-
-Should we mention explicitly that the pads field is only valid if 
-V4L2_SUBDEV_CAP_ENTITY is set ?
-
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>entity_id</structfield></entry>
-> +	    <entry>The media controller entity ID of the sub-device. This is only
-> valid if
-> +	    the <constant>V4L2_SUBDEV_CAP_ENTITY</constant> capability is set.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[48]</entry>
-> +	    <entry>Reserved for future extensions. Drivers must set
-> +this array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="subdevice-capabilities">
-> +      <title>Sub-Device Capabilities Flags</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
-> +	    <entry>0x00000001</entry>
-> +	    <entry>The sub-device is a media controller entity and
-> +	    the <structfield>entity_id</structfield> field of
-> &v4l2-subdev-capability;
-> +	    is valid.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +  </refsect1>
-> +</refentry>
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 31254b4..2b05f89 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+ 
+ #include <media/atmel-isi.h>
+@@ -384,6 +385,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	/* Reset ISI */
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+ 	if (ret < 0) {
+@@ -441,6 +444,8 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
+ 	if (ret < 0)
+ 		dev_err(icd->parent, "Disable ISI timed out\n");
++
++	pm_runtime_put(ici->v4l2_dev.dev);
+ }
+ 
+ static struct vb2_ops isi_video_qops = {
+@@ -509,7 +514,13 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (mf.code != xlate->code)
+ 		return -EINVAL;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
++
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -722,14 +733,9 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+-	ret = clk_prepare_enable(isi->pclk);
+-	if (ret)
+-		return ret;
+-
+ 	if (!IS_ERR(isi->mck)) {
+ 		ret = clk_prepare_enable(isi->mck);
+ 		if (ret) {
+-			clk_disable_unprepare(isi->pclk);
+ 			return ret;
+ 		}
+ 	}
+@@ -744,7 +750,6 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ 
+ 	if (!IS_ERR(isi->mck))
+ 		clk_disable_unprepare(isi->mck);
+-	clk_disable_unprepare(isi->pclk);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -841,8 +846,13 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	isi_writel(isi, ISI_CFG1, cfg1);
+ 
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	return 0;
+ }
+ 
+@@ -1039,6 +1049,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	soc_host->v4l2_dev.dev	= &pdev->dev;
+ 	soc_host->nr		= pdev->id;
+ 
++	pm_suspend_ignore_children(&pdev->dev, true);
++	pm_runtime_enable(&pdev->dev);
++
+ 	if (isi->pdata.asd_sizes) {
+ 		soc_host->asd = isi->pdata.asd;
+ 		soc_host->asd_sizes = isi->pdata.asd_sizes;
+@@ -1052,6 +1065,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_register_soc_camera_host:
++	pm_runtime_disable(&pdev->dev);
+ err_req_irq:
+ err_ioremap:
+ 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+@@ -1064,6 +1078,30 @@ err_alloc_ctx:
+ 	return ret;
+ }
+ 
++static int atmel_isi_runtime_suspend(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	clk_disable_unprepare(isi->pclk);
++
++	return 0;
++}
++static int atmel_isi_runtime_resume(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	return clk_prepare_enable(isi->pclk);
++}
++
++static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
++	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
++				atmel_isi_runtime_resume, NULL)
++};
++
+ static const struct of_device_id atmel_isi_of_match[] = {
+ 	{ .compatible = "atmel,at91sam9g45-isi" },
+ 	{ }
+@@ -1075,6 +1113,7 @@ static struct platform_driver atmel_isi_driver = {
+ 	.driver		= {
+ 		.name = "atmel_isi",
+ 		.of_match_table = of_match_ptr(atmel_isi_of_match),
++		.pm	= &atmel_isi_dev_pm_ops,
+ 	},
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
