@@ -1,264 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:23701 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbbEDReD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 13:34:03 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
-Subject: =?UTF-8?q?=5BPATCH=20v6=2005/11=5D=20rc=3A=20Add=20HDMI=20CEC=20protoctol=20handling?=
-Date: Mon, 04 May 2015 19:32:58 +0200
-Message-id: <1430760785-1169-6-git-send-email-k.debski@samsung.com>
-In-reply-to: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
-References: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:12576 "EHLO
+	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbbEFJTc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 05:19:32 -0400
+Date: Wed, 6 May 2015 11:19:21 +0200
+From: Thierry Reding <treding@nvidia.com>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Dave Airlie <airlied@redhat.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>
+Subject: Re: [RFC] How implement Secure Data Path ?
+Message-ID: <20150506091919.GC16325@ulmo.nvidia.com>
+References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+ <20150505175405.2787db4b@lxorguk.ukuu.org.uk>
+ <20150506083552.GF30184@phenom.ffwll.local>
+MIME-Version: 1.0
+In-Reply-To: <20150506083552.GF30184@phenom.ffwll.local>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="hYooF8G/hrfVAmum"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add handling of remote control events coming from the HDMI CEC bus.
-This patch includes a new keymap that maps values found in the CEC
-messages to the keys pressed and released. Also, a new protocol has
-been added to the core.
+--hYooF8G/hrfVAmum
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/rc/keymaps/Makefile |    1 +
- drivers/media/rc/keymaps/rc-cec.c |  144 +++++++++++++++++++++++++++++++++++++
- drivers/media/rc/rc-main.c        |    1 +
- include/media/rc-core.h           |    1 +
- include/media/rc-map.h            |    5 +-
- 5 files changed, 151 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+On Wed, May 06, 2015 at 10:35:52AM +0200, Daniel Vetter wrote:
+> On Tue, May 05, 2015 at 05:54:05PM +0100, One Thousand Gnomes wrote:
+> > > First what is Secure Data Path ? SDP is a set of hardware features to=
+ garanty
+> > > that some memories regions could only be read and/or write by specifi=
+c hardware
+> > > IPs. You can imagine it as a kind of memory firewall which grant/revo=
+ke
+> > > accesses to memory per devices. Firewall configuration must be done i=
+n a trusted
+> > > environment: for ARM architecture we plan to use OP-TEE + a trusted
+> > > application to do that.
+> >=20
+> > It's not just an ARM feature so any basis for this in the core code
+> > should be generic, whether its being enforced by ARM SDP, various Intel
+> > feature sets or even via a hypervisor.
+> >=20
+> > > I have try 2 "hacky" approachs with dma_buf:
+> > > - add a secure field in dma_buf structure and configure firewall in
+> > >   dma_buf_{map/unmap}_attachment() functions.
+> >=20
+> > How is SDP not just another IOMMU. The only oddity here is that it
+> > happens to configure buffers the CPU can't touch and it has a control
+> > mechanism that is designed to cover big media corp type uses where the
+> > threat model is that the system owner is the enemy. Why does anything c=
+are
+> > about it being SDP, there are also generic cases this might be a useful
+> > optimisation (eg knowing the buffer isn't CPU touched so you can optimi=
+se
+> > cache flushing).
+> >=20
+> > The control mechanism is a device/platform detail as with any IOMMU. It
+> > doesn't matter who configures it or how, providing it happens.
+> >=20
+> > We do presumably need some small core DMA changes - anyone trying to map
+> > such a buffer into CPU space needs to get a warning or error but what
+> > else ?
+> >=20
+> > > >From buffer allocation point of view I also facing a problem because=
+ when v4l2
+> > > or drm/kms are exporting buffers by using dma_buf they don't attaching
+> > > themself on it and never call dma_buf_{map/unmap}_attachment(). This =
+is not
+> > > an issue in those framework while it is how dma_buf exporters are
+> > > supposed to work.
+> >=20
+> > Which could be addressed if need be.
+> >=20
+> > So if "SDP" is just another IOMMU feature, just as stuff like IMR is on
+> > some x86 devices, and hypervisor enforced protection is on assorted
+> > platforms why do we need a special way to do it ? Is there anything
+> > actually needed beyond being able to tell the existing DMA code that th=
+is
+> > buffer won't be CPU touched and wiring it into the DMA operations for t=
+he
+> > platform ?
+>=20
+> Iirc most of the dma api stuff gets unhappy when memory isn't struct page
+> backed. In i915 we do use sg tables everywhere though (even for memory not
+> backed by struct page, e.g. the "stolen" range the bios prereserves), but
+> we fill those out manually.
+>=20
+> A possible generic design I see is to have a secure memory allocator
+> device which doesn nothing else but hand out dma-bufs.
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index abf6079..56f10d6 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-behold.o \
- 			rc-behold-columbus.o \
- 			rc-budget-ci-old.o \
-+			rc-cec.o \
- 			rc-cinergy-1400.o \
- 			rc-cinergy.o \
- 			rc-delock-61959.o \
-diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
-new file mode 100644
-index 0000000..cc5b318
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-cec.c
-@@ -0,0 +1,144 @@
-+/* Keytable for the CEC remote control
-+ *
-+ * Copyright (c) 2015 by Kamil Debski
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
-+ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-+ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
-+
-+static struct rc_map_table cec[] = {
-+	{ 0x00, KEY_OK },
-+	{ 0x01, KEY_UP },
-+	{ 0x02, KEY_DOWN },
-+	{ 0x03, KEY_LEFT },
-+	{ 0x04, KEY_RIGHT },
-+	{ 0x05, KEY_RIGHT_UP },
-+	{ 0x06, KEY_RIGHT_DOWN },
-+	{ 0x07, KEY_LEFT_UP },
-+	{ 0x08, KEY_LEFT_DOWN },
-+	{ 0x09, KEY_CONTEXT_MENU }, /* CEC Spec: Root Menu - see Note 2 */
-+	/* Note 2: This is the initial display that a device shows. It is
-+	 * device-dependent and can be, for example, a contents menu, setup
-+	 * menu, favorite menu or other menu. The actual menu displayed
-+	 * may also depend on the device’s current state. */
-+	{ 0x0a, KEY_SETUP },
-+	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
-+	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
-+	{ 0x0d, KEY_EXIT },
-+	/* 0x0e-0x1f: Reserved */
-+	/* 0x20-0x29: Keys 0 to 9 */
-+	{ 0x20, KEY_NUMERIC_0 },
-+	{ 0x21, KEY_NUMERIC_1 },
-+	{ 0x22, KEY_NUMERIC_2 },
-+	{ 0x23, KEY_NUMERIC_3 },
-+	{ 0x24, KEY_NUMERIC_4 },
-+	{ 0x25, KEY_NUMERIC_5 },
-+	{ 0x26, KEY_NUMERIC_6 },
-+	{ 0x27, KEY_NUMERIC_7 },
-+	{ 0x28, KEY_NUMERIC_8 },
-+	{ 0x29, KEY_NUMERIC_9 },
-+	{ 0x2a, KEY_DOT },
-+	{ 0x2b, KEY_ENTER },
-+	{ 0x2c, KEY_CLEAR },
-+	/* 0x2d-0x2e: Reserved */
-+	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
-+	{ 0x30, KEY_CHANNELUP },
-+	{ 0x31, KEY_CHANNELDOWN },
-+	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
-+	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
-+	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
-+	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
-+	{ 0x36, KEY_HELP },
-+	{ 0x37, KEY_PAGEUP },
-+	{ 0x38, KEY_PAGEDOWN },
-+	/* 0x39-0x3f: Reserved */
-+	{ 0x40, KEY_POWER },
-+	{ 0x41, KEY_VOLUMEUP },
-+	{ 0x42, KEY_VOLUMEDOWN },
-+	{ 0x43, KEY_MUTE },
-+	{ 0x44, KEY_PLAY },
-+	{ 0x45, KEY_STOP },
-+	{ 0x46, KEY_PAUSE },
-+	{ 0x47, KEY_RECORD },
-+	{ 0x48, KEY_REWIND },
-+	{ 0x49, KEY_FASTFORWARD },
-+	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
-+	{ 0x4b, KEY_FORWARD },
-+	{ 0x4c, KEY_BACK },
-+	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
-+	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
-+	/* 0x4f: Reserved */
-+	{ 0x50, KEY_ANGLE },
-+	{ 0x51, KEY_TV2 },
-+	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
-+	{ 0x53, KEY_EPG },
-+	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
-+	{ 0x55, KEY_CONFIG },
-+	/* 0x56-0x5f: Reserved */
-+	{ 0x60, KEY_PLAY }, /* CEC Spec: Play Function */
-+	{ 0x6024, KEY_PLAY },
-+	{ 0x6020, KEY_PAUSE },
-+	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
-+	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
-+	{ 0x63, KEY_PAUSE }, /* CEC Spec: Pause-Record Function */
-+	{ 0x64, KEY_STOP }, /* CEC Spec: Stop Function */
-+	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
-+	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
-+	/* The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 * */
-+	/* 0x67: CEC Spec: Tune Function */
-+	/* 0x68: CEC Spec: Seleect Media Function */
-+	/* 0x69: CEC Spec: Select A/V Input Function */
-+	/* 0x6a: CEC Spec: Select Audio Input Function */
-+	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
-+	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
-+	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
-+	/* 0x6e-0x70: Reserved */
-+	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
-+	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
-+	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
-+	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
-+	{ 0x75, KEY_F5 },
-+	{ 0x76, KEY_DVB }, /* CEC Spec: Data - see Note 3 */
-+	/* Note 3: This is used, for example, to enter or leave a digital TV
-+	 * data broadcast application. */
-+	/* 0x77-0xff: Reserved */
-+};
-+
-+static struct rc_map_list cec_map = {
-+	.map = {
-+		.scan		= cec,
-+		.size		= ARRAY_SIZE(cec),
-+		.rc_type	= RC_TYPE_CEC,
-+		.name		= RC_MAP_CEC,
-+	}
-+};
-+
-+static int __init init_rc_map_cec(void)
-+{
-+	return rc_map_register(&cec_map);
-+}
-+
-+static void __exit exit_rc_map_cec(void)
-+{
-+	rc_map_unregister(&cec_map);
-+}
-+
-+module_init(init_rc_map_cec);
-+module_exit(exit_rc_map_cec);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Kamil Debski");
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index f8c5e47..37d1ce0 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -801,6 +801,7 @@ static struct {
- 	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
- 	{ RC_BIT_LIRC,		"lirc"		},
- 	{ RC_BIT_XMP,		"xmp"		},
-+	{ RC_BIT_CEC,		"cec"		},
- };
- 
- /**
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 2c7fbca..7c9d15d 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -32,6 +32,7 @@ do {								\
- enum rc_driver_type {
- 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
- 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
-+	RC_DRIVER_CEC,
- };
- 
- /**
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index e7a1514..2058a89 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -32,6 +32,7 @@ enum rc_type {
- 	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype) protocol */
- 	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
- 	RC_TYPE_XMP		= 19,	/* XMP protocol */
-+	RC_TYPE_CEC		= 20,	/* CEC protocol */
- };
- 
- #define RC_BIT_NONE		0
-@@ -55,6 +56,7 @@ enum rc_type {
- #define RC_BIT_RC6_MCE		(1 << RC_TYPE_RC6_MCE)
- #define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
- #define RC_BIT_XMP		(1 << RC_TYPE_XMP)
-+#define RC_BIT_CEC		(1 << RC_TYPE_CEC)
- 
- #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC | \
- 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-@@ -63,7 +65,7 @@ enum rc_type {
- 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
- 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
--			 RC_BIT_XMP)
-+			 RC_BIT_XMP | RC_BIT_CEC)
- 
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
-@@ -125,6 +127,7 @@ void rc_map_init(void);
- #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
- #define RC_MAP_BEHOLD                    "rc-behold"
- #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
-+#define RC_MAP_CEC                       "rc-cec"
- #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
- #define RC_MAP_CINERGY                   "rc-cinergy"
- #define RC_MAP_DELOCK_61959              "rc-delock-61959"
--- 
-1.7.9.5
+Are you suggesting a device file with a custom set of IOCTLs for this?
+Or some in-kernel API that would perform the secure allocations? I
+suspect the former would be better suited, because it gives applications
+the control over whether they need secure buffers or not. The latter
+would require custom extensions in every driver to make them allocate
+=66rom a secure memory pool.
 
+For my understanding, would the secure memory allocator be responsible
+for setting up the permissions to access the memory at attachment time?
+
+>                                                        With that we can
+> hide the platform-specific allocation methods in there (some need to
+> allocate from carveouts, other just need to mark the pages specifically).
+> Also dma-buf has explicit methods for cpu access, which are allowed to
+> fail. And using the dma-buf attach tracking we can also reject dma to
+> devices which cannot access the secure memory. Given all that I think
+> going through the dma-buf interface but with a special-purpose allocator
+> seems to fit.
+
+That sounds like a flexible enough design to me. I think it's something
+that we could easily implement on Tegra. The memory controller on Tegra
+implements this using a special video-protect aperture (VPR) and memory
+clients can individually be allowed access to this aperture. That means
+VPR is a carveout that is typically set up by some secure firmware, and
+that in turn, as I understand it, would imply we won't have struct page
+pointers for the backing memory in this case either.
+
+I suspect that it should work out fine to not require struct page backed
+memory for this infrastructure since by definition the CPU won't be
+allowed to access it anyway.
+
+> I'm not sure whether a special iommu is a good idea otoh: I'd expect that
+> for most devices the driver would need to decide about which iommu to pick
+> (or maybe keep track of some special flags for an extended dma_map
+> interface). At least looking at gpu drivers using iommus would require
+> special code, whereas fully hiding all this behind the dma-buf interface
+> should fit in much better.
+
+As I understand it, even though the VPR on Tegra is a carveout it still
+is subject to IOMMU translation. So if IOMMU translation is enabled for
+a device (say the display controller), then all accesses to memory will
+be translated, whether they are to VPR or non-protected memory. Again I
+think this should work out fine with a special secure allocator. If the
+SG tables are filled in properly drivers should be able to cope.
+
+It's possible that existing IOMMU drivers would require modification to
+make this work, though. For example, the default_iommu_map_sg() function
+currently uses sg_page(), so that wouldn't be able to map secure buffers
+to I/O virtual addresses. That said, drivers could reimplement this on
+top of iommu_map(), though that may imply suboptimal performance on the
+mapping operation.
+
+Similarly some backing implementations of the DMA API rely on struct
+page pointers being present. But it seems more like you wouldn't want to
+use the DMA API at all if you want to use this kind of protected memory.
+
+Thierry
+
+--hYooF8G/hrfVAmum
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJVSdyUAAoJEN0jrNd/PrOhCqQQAIbxyIe+HSyOwtTGO5wjf+2W
+MjlPrB9aZb0RGOJrW8IxsAttwnMaKHZ9q8Qregsv0yy9p3gJNheEig35wCevQY0f
+JdXQFceSWU78W43jhrezGhd9DK2V0B26HC0TYfaGIbbal9pSjvSpukAeUbzLMMEM
+Bjx8k+hb/ZEN3BYjU4WGaMk60RkmD3ElVGEc/u+NmAZ2pKDDYwupS3iSPvDCjMrY
+VLQnkgKWdkv/J4FuBeEuj65ASCvtlxOZyu2RcWpuqPgzdN8Fleruosj/YTgoA5HU
+BdKyZC5zkFEpR1pCNBlT/uqxTBv/GdUKo1bXX9wG5+B3KNnsOsnFdagRyfIfdtMh
+9duODq4tIDG1ZVvpYH0xDdvFc44rQqGciHQm1iG3WF/XfJbevd43dUunKnshLpLv
+3854jiC+gYkAQUI362AQ91fKWeMnOkC3f6fEvPKS2zbWs9oslBW8cTa/tf0wN+GH
+KgPu27YTx1pfkAmxuXmmqgCawtQOamHOYdG6l/Yel5G1P+2aekxs+HCa02IWPjwv
+Lup1/oxiEAgO9/kZUXIqkl5vlsZ7k93MCzRQfKr4X+1ntZSeas56miuEuDeIEgOJ
+WRhHeD8y/SDR3rPxm26X0pTuqqXHGrSGEE217GfTolBjw8Trr+tB0i68pkc1JzDH
+ifry7FzNZTQ+uz7qd/uO
+=mPX5
+-----END PGP SIGNATURE-----
+
+--hYooF8G/hrfVAmum--
