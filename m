@@ -1,139 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:33426 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755464AbbEGKrJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 06:47:09 -0400
-Received: by pdbnk13 with SMTP id nk13so38116265pdb.0
-        for <linux-media@vger.kernel.org>; Thu, 07 May 2015 03:47:08 -0700 (PDT)
+Received: from gw.shic.co.uk ([94.23.159.123]:33446 "EHLO gw.shic.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752445AbbEFQuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 12:50:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by gw.shic.co.uk (Postfix) with ESMTP id BC63416C1502
+	for <linux-media@vger.kernel.org>; Wed,  6 May 2015 17:50:30 +0100 (BST)
+Received: from gw.shic.co.uk ([IPv6:::ffff:192.168.42.2])
+	by localhost (localhost [::ffff:127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 9HCSyzdjGohA for <linux-media@vger.kernel.org>;
+	Wed,  6 May 2015 17:50:27 +0100 (BST)
+Received: from [192.168.0.135] (unknown [192.168.0.135])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by gw.shic.co.uk (Postfix) with ESMTPSA id 893AE16C1124
+	for <linux-media@vger.kernel.org>; Wed,  6 May 2015 17:50:27 +0100 (BST)
+Message-ID: <554A4653.7070503@shic.co.uk>
+Date: Wed, 06 May 2015 17:50:27 +0100
+From: Steve <sjh_lmml@shic.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <20150507081026.GA19773@kroah.com>
-References: <1430983852-19267-1-git-send-email-sumit.semwal@linaro.org> <20150507081026.GA19773@kroah.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 7 May 2015 16:16:47 +0530
-Message-ID: <CAO_48GGjgRP=ab1wjGABguP3BaWPriLou_C-Su2C0kSeMS3Y4Q@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: add ref counting for module as exporter
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	rmk+kernel@arm.linux.org.uk, Dave Airlie <airlied@linux.ie>,
-	kgene@kernel.org, Thierry Reding <thierry.reding@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	intel-gfx@lists.freedesktop.org, linux-tegra@vger.kernel.org,
-	inki.dae@samsung.com,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Mystique SaTiX-S2 Sky V2 USB (DVBSKY S960 clone) - Linux driver.
+References: <55439450.1080206@shic.co.uk>	<55442943.2070304@gmx.net> <CAAZRmGz=KVkKf6+z9r2yoZ+8nTenUN-2briAFtV0ogcfW0iAEQ@mail.gmail.com>
+In-Reply-To: <CAAZRmGz=KVkKf6+z9r2yoZ+8nTenUN-2briAFtV0ogcfW0iAEQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7 May 2015 at 13:40, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Thu, May 07, 2015 at 01:00:52PM +0530, Sumit Semwal wrote:
->> Add reference counting on a kernel module that exports dma-buf and
->> implements its operations. This prevents the module from being unloaded
->> while DMABUF file is in use.
->>
->> The original patch [1] was submitted by Tomasz, but he's since shifted
->> jobs and a ping didn't elicit any response.
->>
->>   [tomasz: Original author]
->> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->> Acked-by: Daniel Vetter <daniel@ffwll.ch>
->>   [sumits: updated & rebased as per review comments]
->> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
->>
->> [1]: https://lkml.org/lkml/2012/8/8/163
->> ---
->>  drivers/dma-buf/dma-buf.c                      | 9 ++++++++-
->>  drivers/gpu/drm/armada/armada_gem.c            | 1 +
->>  drivers/gpu/drm/drm_prime.c                    | 1 +
->>  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     | 1 +
->>  drivers/gpu/drm/i915/i915_gem_dmabuf.c         | 1 +
->>  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      | 1 +
->>  drivers/gpu/drm/tegra/gem.c                    | 1 +
->>  drivers/gpu/drm/udl/udl_dmabuf.c               | 1 +
->>  drivers/gpu/drm/vmwgfx/vmwgfx_prime.c          | 1 +
->>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 1 +
->>  drivers/media/v4l2-core/videobuf2-dma-sg.c     | 1 +
->>  drivers/media/v4l2-core/videobuf2-vmalloc.c    | 1 +
->>  drivers/staging/android/ion/ion.c              | 1 +
->>  include/linux/dma-buf.h                        | 2 ++
->>  14 files changed, 22 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
->> index c5a9138a6a8d..9583eac0238f 100644
->> --- a/drivers/dma-buf/dma-buf.c
->> +++ b/drivers/dma-buf/dma-buf.c
->> @@ -29,6 +29,7 @@
->>  #include <linux/anon_inodes.h>
->>  #include <linux/export.h>
->>  #include <linux/debugfs.h>
->> +#include <linux/module.h>
->>  #include <linux/seq_file.h>
->>  #include <linux/poll.h>
->>  #include <linux/reservation.h>
->> @@ -64,6 +65,7 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->>       BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
->>
->>       dmabuf->ops->release(dmabuf);
->> +     module_put(dmabuf->ops->owner);
->>
->>       mutex_lock(&db_list.lock);
->>       list_del(&dmabuf->list_node);
->> @@ -302,9 +304,14 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
->>               return ERR_PTR(-EINVAL);
->>       }
->>
->> +     if (!try_module_get(exp_info->ops->owner))
->> +             return ERR_PTR(-ENOENT);
->> +
->>       dmabuf = kzalloc(alloc_size, GFP_KERNEL);
->> -     if (dmabuf == NULL)
->> +     if (!dmabuf) {
->> +             module_put(exp_info->ops->owner);
->>               return ERR_PTR(-ENOMEM);
->> +     }
->>
->>       dmabuf->priv = exp_info->priv;
->>       dmabuf->ops = exp_info->ops;
->> diff --git a/drivers/gpu/drm/armada/armada_gem.c b/drivers/gpu/drm/armada/armada_gem.c
->> index 580e10acaa3a..d2c5fc1269b7 100644
->> --- a/drivers/gpu/drm/armada/armada_gem.c
->> +++ b/drivers/gpu/drm/armada/armada_gem.c
->> @@ -524,6 +524,7 @@ armada_gem_dmabuf_mmap(struct dma_buf *buf, struct vm_area_struct *vma)
->>  }
->>
->>  static const struct dma_buf_ops armada_gem_prime_dmabuf_ops = {
->> +     .owner = THIS_MODULE,
->>       .map_dma_buf    = armada_gem_prime_map_dma_buf,
->>       .unmap_dma_buf  = armada_gem_prime_unmap_dma_buf,
->>       .release        = drm_gem_dmabuf_release,
+Hi, thanks for your help so far...
+
+It's taken a few days - but I've now tried a variety of things without 
+arriving at any resolution.
+
+Prior to posting, I had not downloaded any firmware.
+
+I placed the firmware from 
+http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz into 
+/lib/firmware... I rebooted - the only difference I discovered is that, 
+this time, my keyboard and mouse stopped working when the SaTiX device 
+was plugged in.  Investigating syslog (after a reboot) suggested the 
+error messages (previously posted) remained.
+
+I downloaded and built the latest v4l-dvb sources.  The upshot was that 
+the device returned to failing as in my original post (i.e. without 
+stopping my keyboard/mouse from working.)
+
+I tried several USB cables - no improvement.
+
+I hooked the SaTiX device up to a modern, Dell, Windows 8.1 laptop. 
+Windows recognised the device as an S960, but was not able to 
+(automatically) determine any drivers for it.  (I have no windows 
+software for this device.)
+
+I installed Ubuntu onto a VirtualBox instance, and configured it to use 
+the SaTiX.  At first, I thought I'd made progress as lsusb worked... 
+however I quickly discovered an error message:
+
+         dvb_usb_v2: this USB2.0 device cannot be run on a USB1.1 port 
+(it lacks a hardware PID filter)
+
+Having installed the extension pack for VirtualBox (to support virtual 
+USB 2.0) the SaTiX device behaved identically to on the original (Ubuntu 
+native) PC - i.e. the same errors in dmesg and lsusb fails to work after 
+the device has been attached.
+
+The only new information that I have are the device diagnostics from 
+Windows - the device reports:
+
+        Bestunar S960                            <--  I was surprised
+        not to see "SaTiX" here.
+        Vendor ID : 0572
+        Product ID : 6831
+        Version : 0000
+        Revision : 20130511
+
+The green light, on the front of the device, only comes on once Linux 
+has recognised the device...
+
+Can anyone offer any other advice?  Have I been sent a different 
+Sky-S960 clone to the one I ordered?
+
+On 03/05/15 08:44, Olli Salonen wrote:
+> Hi Steve,
 >
-> The "easier" way to do this is change the registration function to add
-> the module owner automatically, which keeps you from having to modify
-> all of the individual drivers.  Look at how pci and usb do this for
-> their driver registration functions.  That should result in a much
-> smaller patch, that always works properly for everyone (there's no way
-> for driver to get it wrong.)
+> I've got the device in question and can confirm that it works ok.
 >
-Thanks Greg; but of course, you're right! We already have a
-DEFINE_DMA_BUF_EXPORT_INFO macro, so this is far easier incorporated
-into that.
-
-I will spin up the (much simpler) patch and repost!
-
-> thanks,
+> lsusb definitely should work ok - maybe there's indeed something wrong
+> with your device. As suggested by P. van Gaans, maybe you can try your
+> device on another computer or even on Windows and see if it works
+> there.
 >
-> greg k-h
+> Cheers,
+> -olli
+>
+>
+> On 2 May 2015 at 03:32, P. van Gaans<w3ird_n3rd@gmx.net>  wrote:
+>> On 05/01/2015 04:57 PM, Steve wrote:
+>>> Hi,
+>>>
+>>> I'm trying a direct mail to you as you are associated with this page:
+>>>
+>>>       http://linuxtv.org/wiki/index.php/DVB-S2_USB_Devices
+>>>
+>>> I have bought a Mystique SaTiX-S2 Sky V2 USB (DVBSKY S960 clone) - but
+>>> it doesn't work with my 3.19 kernel, which I'd assumed it would from the
+>>> above page.
+>>>
+>>> I've tried asking about the problem in various ways - first to
+>>> "AskUbuntu":
+>>>
+>>>
+>>> http://askubuntu.com/questions/613406/absent-frontend0-with-usb-dvbsky-s960-s860-driver-bug
+>>>
+>>>
+>>> ... and, more recently, on the Linux-Media mailing list.  Without
+>>> convincing myself that I've contacted the right person/people to give
+>>> constructive feedback.
+>>>
+>>> By any chance can you offer me some advice about who it is best to
+>>> approach?  (Obviously I'd also be grateful if you can shed any light on
+>>> this problem.)
+>>>
+>>> Steve
+>>>
+>>>
+>> Hi Steve,
+>>
+>> The page actually states "Support in-kernel is expected in Linux kernel
+>> 3.18.". Devil's advocate, but it doesn't say it's actually there or
+>> guarantees it ever will. At the time it was written, 3.18 wasn't out yet.
+>> Looking at your dmesg output however it seems your kernel is aware of the
+>> device. (so the patch made it) As for me, I was offered a bargain for
+>> another device so I have no S960.
+>>
+>> Linux-media mailing list is the right place. (and here we are) A few quick
+>> suggestions:
+>>
+>> Did you really, really, really get the right firmware and are you absolutely
+>> positive it's in the right location and has the right filename? Does dmesg
+>> mention the firmware being loaded?
+>>
+>> Get/compile the latest v4l-dvb sources.
+>> (http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers)
+>> Maybe it's just a bug that has already been fixed.
+>>
+>> Try another program to access the device. But if even lsusb hangs, this is
+>> pretty much moot.
+>>
+>> Make sure the power supply/device is functioning properly. Try it on another
+>> OS to make sure it's not defective.
+>>
+>> Try another computer, preferably with another chipset. If your RAM is faulty
+>> or you have a funky USB-controller, you can experience strange problems.
+>>
+>> Good luck!
+>>
+>> Best regards,
+>>
+>> P. van Gaans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message tomajordomo@vger.kernel.org
+>> More majordomo info athttp://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message tomajordomo@vger.kernel.org
+> More majordomo info athttp://vger.kernel.org/majordomo-info.html
 
-
-Best regards,
-Sumit.
