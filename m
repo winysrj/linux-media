@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:53244 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754122AbbESMJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 08:09:56 -0400
-Date: Tue, 19 May 2015 14:09:53 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Jemma Denson <jdenson@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL] For 4.2 (or even 4.1?) add support for cx24120/Technisat
- SkyStar S2
-Message-ID: <20150519140953.0c34185d@dibcom294.coe.adi.dibcom.com>
-In-Reply-To: <555B1D9F.5060206@gmail.com>
-References: <20150420092720.3cb092ba@dibcom294.coe.adi.dibcom.com>
-	<20150427171628.5ba22752@recife.lan>
-	<20150427232523.08c1c8f1@lappi3.parrot.biz>
-	<20150427214022.1ff9f61f@recife.lan>
-	<20150429133501.38eacfa0@dibcom294.coe.adi.dibcom.com>
-	<20150429085526.655677d8@recife.lan>
-	<20150514184040.094c8a95@recife.lan>
-	<20150515102433.15ec0b3d@dibcom294.coe.adi.dibcom.com>
-	<20150515112449.4f460aab@recife.lan>
-	<55560E2F.40502@gmail.com>
-	<20150519075728.1424abf1@recife.lan>
-	<555B1D9F.5060206@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:42577 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751147AbbEFPYv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 11:24:51 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NNX00HU8PHDE4B0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 May 2015 16:24:49 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTPA id <0NNX000R3PHC4420@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 May 2015 16:24:48 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] mem2mem changes for v4.2
+Date: Wed, 06 May 2015 17:24:47 +0200
+Message-id: <"0d8701d08810$ca4b6f60$5ee24e20$@debski"@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 19 May 2015 12:25:19 +0100 Jemma Denson <jdenson@gmail.com>
-wrote:
+The following changes since commit 1555f3bf5cc172e7d23c2b8db10d656d15bec13e:
 
-> On 19/05/15 11:57, Mauro Carvalho Chehab wrote:
-> >
-> >> The only thing left now is moving UCB & BER over to DVBv5 stats - we
-> >> haven't got anything close to any specs for this demod so I'm struggling
-> >> to work out how to handle the counter increment.
-> >> It's not helped by my signal not being marginal enough to see any errors
-> >> anyway!
-> >>
-> >> What's the best course of action here - either leave those two out
-> >> entirely or fudge something to get the numbers to about the right
-> >> magnitude and worry about making it more accurate at a later date?
-> > I prefer to have something, even not 100% acurate, reported via DVBv5.
-> >
-> > Regards,
-> > Mauro
-> 
-> I think I've managed to work it out now :) It's set to use a 16 bit BER 
-> window and what I did manage to see suggests that the window is based on 
-> packets. So it's just a case of calculating things from there.
-> 
-> I implemented something for BER lastnight but it does need a little 
-> tidying. UCB should be much more straightforward. I should be able to 
-> find time during the week, or if not this weekend. I'll send the patches 
-> through to Patrick to add to his tree and then we can have a v3 pull 
-> request.
+  [media] saa7164: fix compiler warning (2015-05-01 09:09:58 -0300)
 
-Great job. Let's do it so. I will check with Mauro about his patches.
+are available in the git repository at:
 
---
-Patrick.
+  git://linuxtv.org/kdebski/media_tree_2.git for-4.2
+
+for you to fetch changes up to 4fd781a3dfeac6b98e8aabfbbab73627ea6c9958:
+
+  s5p-mfc: Set last buffer flag (2015-05-06 17:22:51 +0200)
+
+----------------------------------------------------------------
+Krzysztof Kozlowski (4):
+      media: platform: exynos-gsc: Constify platform_device_id
+      media: platform: exynos4-is: Constify platform_device_id
+      media: platform: s3c-camif: Constify platform_device_id
+      media: platform: s5p: Constify platform_device_id
+
+Peter Seiderer (1):
+      videodev2: Add V4L2_BUF_FLAG_LAST
+
+Philipp Zabel (4):
+      DocBook media: document codec draining flow
+      videobuf2: return -EPIPE from DQBUF after the last buffer
+      coda: Set last buffer flag and fix EOS event
+      s5p-mfc: Set last buffer flag
+
+ Documentation/DocBook/media/v4l/io.xml             |   12 +++++++++
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |   12 ++++++++-
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |   10 +++++++-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |    8 ++++++
+ drivers/media/platform/coda/coda-bit.c             |    4 +--
+ drivers/media/platform/coda/coda-common.c          |   27
+++++++++------------
+ drivers/media/platform/coda/coda.h                 |    3 +++
+ drivers/media/platform/exynos-gsc/gsc-core.c       |    2 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |    2 +-
+ drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    3 ++-
+ drivers/media/platform/s5p-tv/hdmi_drv.c           |    2 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   10 +++++++-
+ drivers/media/v4l2-core/videobuf2-core.c           |   19 +++++++++++++-
+ include/media/videobuf2-core.h                     |   13 ++++++++++
+ include/trace/events/v4l2.h                        |    3 ++-
+ include/uapi/linux/videodev2.h                     |    2 ++
+ 18 files changed, 107 insertions(+), 29 deletions(-)
+
