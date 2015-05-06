@@ -1,85 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50996 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754419AbbEZN0l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:26:41 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <vinod.koul@intel.com>, <tony@atomide.com>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 05/13] mmc: omap_hsmmc: Support for deferred probing when requesting DMA channels
-Date: Tue, 26 May 2015 16:26:00 +0300
-Message-ID: <1432646768-12532-6-git-send-email-peter.ujfalusi@ti.com>
-In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43192 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753558AbbEFAuS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 20:50:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	Dave Airlie <airlied@redhat.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>
+Subject: Re: [RFC] How implement Secure Data Path ?
+Date: Wed, 06 May 2015 03:50:13 +0300
+Message-ID: <6502790.6UvsMdppjg@avalon>
+In-Reply-To: <20150505162752.GA12132@infradead.org>
+References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com> <20150505162752.GA12132@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-channels. In case of error, return the error code we received including
--EPROBE_DEFER
+On Tuesday 05 May 2015 09:27:52 Christoph Hellwig wrote:
+> On Tue, May 05, 2015 at 05:39:57PM +0200, Benjamin Gaignard wrote:
+> > Since few months I'm looking for Linaro to how do Secure Data Path (SPD).
+> > I have tried and implemented multiple thinks but I always facing
+> > architecture issues so I would like to get your help to solve the
+> > problem.
+> > 
+> > First what is Secure Data Path ? SDP is a set of hardware features to
+> > garanty that some memories regions could only be read and/or write by
+> > specific hardware IPs. You can imagine it as a kind of memory firewall
+> > which grant/revoke accesses to memory per devices. Firewall configuration
+> > must be done in a trusted environment: for ARM architecture we plan to
+> > use OP-TEE + a trusted application to do that.
+> > 
+> > One typical use case for SDP in a video playback which involve those
+> > elements: decrypt -> video decoder -> transform -> display
+> 
+> Sounds like a good enough reason not to implement it ever.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/omap_hsmmc.c | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+The irony of it is to post an RFC on they day before 
+http://www.defectivebydesign.org/dayagainstdrm/ :-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 57bb85930f81..d252478391ee 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2088,23 +2088,21 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
- 
--	host->rx_chan =
--		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
--						 &rx_req, &pdev->dev, "rx");
-+	host->rx_chan = dma_request_slave_channel_compat_reason(mask,
-+				omap_dma_filter_fn, &rx_req, &pdev->dev, "rx");
- 
--	if (!host->rx_chan) {
-+	if (IS_ERR(host->rx_chan)) {
- 		dev_err(mmc_dev(host->mmc), "unable to obtain RX DMA engine channel %u\n", rx_req);
--		ret = -ENXIO;
-+		ret = PTR_ERR(host->rx_chan);
- 		goto err_irq;
- 	}
- 
--	host->tx_chan =
--		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
--						 &tx_req, &pdev->dev, "tx");
-+	host->tx_chan = dma_request_slave_channel_compat_reason(mask,
-+				omap_dma_filter_fn, &tx_req, &pdev->dev, "tx");
- 
--	if (!host->tx_chan) {
-+	if (IS_ERR(host->tx_chan)) {
- 		dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel %u\n", tx_req);
--		ret = -ENXIO;
-+		ret = PTR_ERR(host->tx_chan);
- 		goto err_irq;
- 	}
- 
-@@ -2166,9 +2164,9 @@ err_slot_name:
- 	if (host->use_reg)
- 		omap_hsmmc_reg_put(host);
- err_irq:
--	if (host->tx_chan)
-+	if (!IS_ERR_OR_NULL(host->tx_chan))
- 		dma_release_channel(host->tx_chan);
--	if (host->rx_chan)
-+	if (!IS_ERR_OR_NULL(host->rx_chan))
- 		dma_release_channel(host->rx_chan);
- 	pm_runtime_put_sync(host->dev);
- 	pm_runtime_disable(host->dev);
 -- 
-2.3.5
+Regards,
+
+Laurent Pinchart
 
