@@ -1,132 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58164 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753013AbbEHOIf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 10:08:35 -0400
-Date: Fri, 8 May 2015 11:08:26 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-Message-ID: <20150508110826.00e4e954@recife.lan>
-In-Reply-To: <554CB863.1040006@xs4all.nl>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
-	<554CA862.8070407@xs4all.nl>
-	<20150508095754.1c39a276@recife.lan>
-	<554CB863.1040006@xs4all.nl>
+Received: from mail-yk0-f182.google.com ([209.85.160.182]:35435 "EHLO
+	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812AbbEFL35 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 07:29:57 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150506083552.GF30184@phenom.ffwll.local>
+References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+	<20150505175405.2787db4b@lxorguk.ukuu.org.uk>
+	<20150506083552.GF30184@phenom.ffwll.local>
+Date: Wed, 6 May 2015 07:29:56 -0400
+Message-ID: <CAF6AEGsXYZy7_wON0gHRYYpxXCH5LfxCvWfFAp-rRj5TbGU0Jg@mail.gmail.com>
+Subject: Re: [RFC] How implement Secure Data Path ?
+From: Rob Clark <robdclark@gmail.com>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	Dave Airlie <airlied@redhat.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 08 May 2015 15:21:39 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 05/08/2015 02:57 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 08 May 2015 14:13:22 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
-> >>> Finally, let's rename the tuner entity. inside the media subsystem,
-> >>> a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
-> >>> It could even be used on other subsystems, like network, for wireless
-> >>> devices.
-> >>>
-> >>> So, it is not constricted to V4L2 API, or to a subdev.
-> >>>
-> >>> Let's then rename it as:
-> >>> 	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
-> >>
-> >> See patch 04/18.
-> > 
-> > Mapping the tuner as a V4L2_SUBDEV is plain wrong. We can't assume
-> > that a tuner will always be mapped via V4L2 subdev API.
-> 
-> True. Today we have subdevs that have no device node to control them, so
-> in that case it would just be a SUBDEV entity. There are subdevs that make
-> a v4l-subdev device node, so those can be V4L(2)_SUBDEV entities.
-> 
-> The question is: what are your ideas for e.g. DVB-only tuners? Would they
-> get a DVB-like device node? (so DTV_SUBDEV)
-
-I guess we may need DVB subdevs in the future. For now, I don't see
-much usage.
-
-> Would hybrid tuners have two
-> device nodes? One v4l-subdev, one dvb/dtv-subdev?
-
-No. A tuner is a tuner. The very same device can be used for analog or
-digital TV. Ok, there are tuners that only work for digital TV (satellite
-tuners, typically), because satellite requires a different tuning range,
-and require an extra hardware to power up the satellite antena. So, on
-most devices, the tuner is integrated with SEC.
-
-In any case, I don't see any reason why artificially one piece of hardware
-component (tuner) into one subdevice entity per API.
-
-What it might make sense in the future is to have some DVB-specific ioctls
-for a hybrid tuner,  in order to allow adjusting its internal filters to
-an specific digital TV standard.
-
-> Just curious what your thoughts are.
-> 
-> Brainstorming:
-> 
-> It might be better to map each device node to an entity and each hardware
-> component (tuner, DMA engine) to an entity, and avoid this mixing of
-> hw entity vs device node entity.
-
-Ok, but then we need to properly define the namespaces for HW and for
-Linux API components.
-
-So, we would have a namespace like:
- 
-	- ENT_T_DEVNODE_DVB_(FE|CA|NET|DEMUX|DVR) for the DVB API device nodes;
-	- ENT_T_DEVNODE_V4L for the radio/swradio/video/vbi devnodes, or,
-alternatively, use ENT_T_DEVNODE_V4L_(RADIO|SWRADIO|VIDEO|VBI);
-	- ENT_T_HW_(TUNER|CAM_SENSOR|ATV_DEMOD|DTV_DEMOD|...) for the
-hardware components.
-
-In other words, the namespace would actually define two subtypes:
-	- devnodes;
-	- hardware components
-
-There's one advantage on this strategy: it is easier to keep backward
-compatibility, IMHO, as we'll be preserving 1 << 16 for device nodes
-and 2 << 16 for hardware components.
-
-Yet, we'll need to add an entity for the V4L2 hardware DMA (with makes
-sense to me), and this might break backward compatibility if not done
-well.
-
-It should be said that, in such case, hardware components will then
-mean not only V4L2-specific hardware (V4L2_SUBDEV_foo), but also DVB,
-ALSA, ... components.
-
-So, we'll still need a way to identify what of those components are
-V4L2 subdevs, probably using the properties API.
-
-If you all agree with that, I'll respin the patch series to map the
-entities like that.
-
-Regards,
-Mauro
+On Wed, May 6, 2015 at 4:35 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Tue, May 05, 2015 at 05:54:05PM +0100, One Thousand Gnomes wrote:
+>> > First what is Secure Data Path ? SDP is a set of hardware features to garanty
+>> > that some memories regions could only be read and/or write by specific hardware
+>> > IPs. You can imagine it as a kind of memory firewall which grant/revoke
+>> > accesses to memory per devices. Firewall configuration must be done in a trusted
+>> > environment: for ARM architecture we plan to use OP-TEE + a trusted
+>> > application to do that.
+>>
+>> It's not just an ARM feature so any basis for this in the core code
+>> should be generic, whether its being enforced by ARM SDP, various Intel
+>> feature sets or even via a hypervisor.
+>>
+>> > I have try 2 "hacky" approachs with dma_buf:
+>> > - add a secure field in dma_buf structure and configure firewall in
+>> >   dma_buf_{map/unmap}_attachment() functions.
+>>
+>> How is SDP not just another IOMMU. The only oddity here is that it
+>> happens to configure buffers the CPU can't touch and it has a control
+>> mechanism that is designed to cover big media corp type uses where the
+>> threat model is that the system owner is the enemy. Why does anything care
+>> about it being SDP, there are also generic cases this might be a useful
+>> optimisation (eg knowing the buffer isn't CPU touched so you can optimise
+>> cache flushing).
+>>
+>> The control mechanism is a device/platform detail as with any IOMMU. It
+>> doesn't matter who configures it or how, providing it happens.
+>>
+>> We do presumably need some small core DMA changes - anyone trying to map
+>> such a buffer into CPU space needs to get a warning or error but what
+>> else ?
+>>
+>> > >From buffer allocation point of view I also facing a problem because when v4l2
+>> > or drm/kms are exporting buffers by using dma_buf they don't attaching
+>> > themself on it and never call dma_buf_{map/unmap}_attachment(). This is not
+>> > an issue in those framework while it is how dma_buf exporters are
+>> > supposed to work.
+>>
+>> Which could be addressed if need be.
+>>
+>> So if "SDP" is just another IOMMU feature, just as stuff like IMR is on
+>> some x86 devices, and hypervisor enforced protection is on assorted
+>> platforms why do we need a special way to do it ? Is there anything
+>> actually needed beyond being able to tell the existing DMA code that this
+>> buffer won't be CPU touched and wiring it into the DMA operations for the
+>> platform ?
+>
+> Iirc most of the dma api stuff gets unhappy when memory isn't struct page
+> backed. In i915 we do use sg tables everywhere though (even for memory not
+> backed by struct page, e.g. the "stolen" range the bios prereserves), but
+> we fill those out manually.
+>
+> A possible generic design I see is to have a secure memory allocator
+> device which doesn nothing else but hand out dma-bufs. With that we can
+> hide the platform-specific allocation methods in there (some need to
+> allocate from carveouts, other just need to mark the pages specifically).
+> Also dma-buf has explicit methods for cpu access, which are allowed to
+> fail. And using the dma-buf attach tracking we can also reject dma to
+> devices which cannot access the secure memory. Given all that I think
+> going through the dma-buf interface but with a special-purpose allocator
+> seems to fit.
+>
+> I'm not sure whether a special iommu is a good idea otoh: I'd expect that
+> for most devices the driver would need to decide about which iommu to pick
+> (or maybe keep track of some special flags for an extended dma_map
+> interface). At least looking at gpu drivers using iommus would require
+> special code, whereas fully hiding all this behind the dma-buf interface
+> should fit in much better.
 
 
-> 
-> Hmm, we need a another brainstorm meeting...
-> 
-> Regards,
-> 
-> 	Hans
+jfwiw, I'd fully expect devices to be dealing with a mix of secure and
+insecure buffers, so I'm also not really sure how the 'special iommu'
+plan would play out..
+
+I think 'secure' allocator device sounds attractive from PoV of
+separating out platform nonsense.. not sure if it is exactly that
+easy, since importing device probably needs to set some special bits
+here and there..
+
+BR,
+-R
+
+
+> -Daniel
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> http://blog.ffwll.ch
