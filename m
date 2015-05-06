@@ -1,125 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35708 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993505AbbEEQB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 12:01:26 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 4/9] vb2: Provide helpers for mapping virtual addresses
-Date: Tue,  5 May 2015 18:01:13 +0200
-Message-Id: <1430841678-11117-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
-References: <1430841678-11117-1-git-send-email-jack@suse.cz>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753469AbbEFG5p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 02:57:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 2/8] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
+Date: Wed,  6 May 2015 08:57:17 +0200
+Message-Id: <1430895443-41839-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide simple helper functions to map virtual address range into an
-array of pfns / pages.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-memops.c | 58 ++++++++++++++++++++++++++++++
- include/media/videobuf2-memops.h           |  5 +++
- 2 files changed, 63 insertions(+)
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 125 +++++++++++++++++++++
+ 2 files changed, 126 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
 
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index 81c1ad8b2cf1..0ec186d41b9b 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
- 
- /**
-+ * vb2_create_framevec() - map virtual addresses to pfns
-+ * @start:	Virtual user address where we start mapping
-+ * @length:	Length of a range to map
-+ * @write:	Should we map for writing into the area
-+ *
-+ * This function allocates and fills in a vector with pfns corresponding to
-+ * virtual address range passed in arguments. If pfns have corresponding pages,
-+ * page references are also grabbed to pin pages in memory. The function
-+ * returns pointer to the vector on success and error pointer in case of
-+ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
-+ */
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write)
-+{
-+	int ret;
-+	unsigned long first, last;
-+	unsigned long nr;
-+	struct frame_vector *vec;
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1..23607bc 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-subdev-g-fmt;
+     &sub-subdev-g-frame-interval;
+     &sub-subdev-g-selection;
++    &sub-subdev-querycap;
+     &sub-subscribe-event;
+     <!-- End of ioctls. -->
+     &sub-mmap;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+new file mode 100644
+index 0000000..7c4fceb
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+@@ -0,0 +1,125 @@
++<refentry id="vidioc-subdev-querycap">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+	first = start >> PAGE_SHIFT;
-+	last = (start + length - 1) >> PAGE_SHIFT;
-+	nr = last - first + 1;
-+	vec = frame_vector_create(nr);
-+	if (!vec)
-+		return ERR_PTR(-ENOMEM);
-+	ret = get_vaddr_frames(start, nr, write, 1, vec);
-+	if (ret < 0)
-+		goto out_destroy;
-+	/* We accept only complete set of PFNs */
-+	if (ret != nr) {
-+		ret = -EFAULT;
-+		goto out_release;
-+	}
-+	return vec;
-+out_release:
-+	put_vaddr_frames(vec);
-+out_destroy:
-+	frame_vector_destroy(vec);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(vb2_create_framevec);
++  <refnamediv>
++    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
++    <refpurpose>Query sub-device capabilities</refpurpose>
++  </refnamediv>
 +
-+/**
-+ * vb2_destroy_framevec() - release vector of mapped pfns
-+ * @vec:	vector of pfns / pages to release
-+ *
-+ * This releases references to all pages in the vector @vec (if corresponding
-+ * pfns are backed by pages) and frees the passed vector.
-+ */
-+void vb2_destroy_framevec(struct frame_vector *vec)
-+{
-+	put_vaddr_frames(vec);
-+	frame_vector_destroy(vec);
-+}
-+EXPORT_SYMBOL(vb2_destroy_framevec);
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_subdev_capability *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
-+/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index f05444ca8c0c..2f0564ff5f31 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -15,6 +15,7 @@
- #define _MEDIA_VIDEOBUF2_MEMOPS_H
- 
- #include <media/videobuf2-core.h>
-+#include <linux/mm.h>
- 
- /**
-  * vb2_vmarea_handler - common vma refcount tracking handler
-@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write);
-+void vb2_destroy_framevec(struct frame_vector *vec);
- 
- #endif
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>All V4L2 sub-devices support the
++<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
++kernel devices compatible with this specification and to obtain
++information about driver and hardware capabilities. The ioctl takes a
++pointer to a &v4l2-subdev-capability; which is filled by the driver. When the
++driver is not compatible with this specification the ioctl returns an
++error, most likely the &ENOTTY;.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
++      <title>struct <structname>v4l2_subdev_capability</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>version</structfield></entry>
++	    <entry><para>Version number of the driver.</para>
++<para>The version reported is provided by the
++V4L2 subsystem following the kernel numbering scheme. However, it
++may not always return the same version as the kernel if, for example,
++a stable or distribution-modified kernel uses the V4L2 stack from a
++newer kernel.</para>
++<para>The version number is formatted using the
++<constant>KERNEL_VERSION()</constant> macro:</para></entry>
++	  </row>
++	  <row>
++	    <entry spanname="hspan"><para>
++<programlisting>
++#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
++
++__u32 version = KERNEL_VERSION(0, 8, 1);
++
++printf ("Version: %u.%u.%u\n",
++	(version &gt;&gt; 16) &amp; 0xFF,
++	(version &gt;&gt; 8) &amp; 0xFF,
++	 version &amp; 0xFF);
++</programlisting></para></entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>device_caps</structfield></entry>
++	    <entry>Sub-device capabilities of the opened device, see <xref
++		linkend="subdevice-capabilities" />.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[50]</entry>
++	    <entry>Reserved for future extensions. Drivers must set
++this array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="subdevice-capabilities">
++      <title>Sub-Device Capabilities Flags</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
++	    <entry>0x00000001</entry>
++	    <entry>The sub-device is a media controller entity. If this
++capability is set, then you can call &MEDIA-IOC-DEVICE-INFO;.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++  </refsect1>
++</refentry>
 -- 
 2.1.4
 
