@@ -1,115 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:36720 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917AbbECHOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2015 03:14:24 -0400
-Received: by pdea3 with SMTP id a3so134766975pde.3
-        for <linux-media@vger.kernel.org>; Sun, 03 May 2015 00:14:23 -0700 (PDT)
-Received: from shambles.windy (c122-106-152-45.carlnfd1.nsw.optusnet.com.au. [122.106.152.45])
-        by mx.google.com with ESMTPSA id ax2sm9293993pac.21.2015.05.03.00.14.21
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 03 May 2015 00:14:22 -0700 (PDT)
-Date: Sun, 3 May 2015 17:14:12 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: issue with videobuf2-dma-sg.ko
-Message-ID: <20150503071410.GA57577@shambles.windy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:33183 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751983AbbEFM1T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 08:27:19 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Emil Velikov' <emil.l.velikov@gmail.com>
+Cc: 'ML dri-devel' <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org,
+	"'moderated list:ARM/S5P EXYNOS AR...'"
+	<linux-samsung-soc@vger.kernel.org>, sean@mess.org,
+	mchehab@osg.samsung.com,
+	'Dmitry Torokhov' <dmitry.torokhov@gmail.com>,
+	lars@opdenkamp.eu, 'Kyungmin Park' <kyungmin.park@samsung.com>,
+	thomas@tommie-lie.de, linux-input@vger.kernel.org,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+References: <1430301765-22202-1-git-send-email-k.debski@samsung.com>
+ <1430301765-22202-13-git-send-email-k.debski@samsung.com>
+ <CACvgo52hDYpgv2FY8X-O7SC=+2YMn7osHt_V=NJxP+4REaw1=Q@mail.gmail.com>
+ <"0af301d0832f$f0ffec70$d2ffc550$@debski"@samsung.com>
+ <CACvgo50jMOCG5K1iM=SFE2CFYR6JMN3LBPmNtKO__Tra3KkCRQ@mail.gmail.com>
+In-reply-to: <CACvgo50jMOCG5K1iM=SFE2CFYR6JMN3LBPmNtKO__Tra3KkCRQ@mail.gmail.com>
+Subject: RE: [PATCH] libgencec: Add userspace library for the generic CEC
+ kernel interface
+Date: Wed, 06 May 2015 14:27:14 +0200
+Message-id: <"0d5f01d087f7$fce607f0$f6b217d0$@debski"@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8BIT
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Emil,
 
-I am trying to load the cx23885 module. It fails to load and I get this in dmesg;
+From: Emil Velikov [mailto:emil.l.velikov@gmail.com]
+Sent: Tuesday, May 05, 2015 5:03 PM
+> 
+> Hi Kamil,
+> 
+> It seems that you've only incorporated the libgencec.pc suggestion.
+> Did you change your mind about the others, found out something funny
+> with them (if so can you let me know what) or simply forgot about them ?
 
-  [  433.506983] videobuf2_dma_sg: Unknown symbol dma_buf_export (err 0)
+I have to admit that I was sending the patchset in a hurry and I forgot to merge all the changes in the lib. I am sorry. I have prepared an updated version just now and I am going to send it soon.
 
-I wrote a small script to load each of the dependencies one at a time,
-which shows pretty clearly the problem is videobuf2-dma-sg.ko.
+> 
+> On 30 April 2015 at 11:25, Kamil Debski <k.debski@samsung.com> wrote:
+> > Hi Emil,
+> >
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Emil Velikov
+> > Sent: Wednesday, April 29, 2015 5:00 PM
+> >>
+> >> Hi Kamil,
+> >>
+> >> Allow me to put a few suggestions:
+> >>
+> >> On 29 April 2015 at 11:02, Kamil Debski <k.debski@samsung.com> wrote:
+> 
+> >> > diff --git a/m4/.gitkeep b/m4/.gitkeep new file mode 100644 index
+> >> > 0000000..e69de29
+> >> Haven't seen any projects doing this. Curious what the benefits of
+> >> keeping and empty folder might be ?
+> >
+> > When I run autoreconf -i it complained about missing m4 folder, hence
+> > I added this filler file such that the folder is created. Any
+> > suggestion on how to do this better?
+> >
+> Ahh yes - that lovely message. It turns out that older versions of
+> automake will even error out [1], rather than just printing out a
+> warning. A handy workaround would be to add a .gitignore (and a second
+> one in the top folder) list. Plus it will slim down the untracked files
+> list and let you clearly see when git add was missed :-)
 
-I am up to date with the media_tree:
-  $ git log |head
-  commit 59366d3bbae4f67ae3b3a32696faa0798cef1b67
-  Author: Hans Verkuil <hans.verkuil@cisco.com>
-  Date:   Sat May 2 10:41:49 2015 +0200
+Adding .gitignore files is a good suggestion. Will do.
 
-      v4l/compat.h: fix compiler warning
+> 
+> Cheers
+> Emil
+> 
+> [1] https://bugzilla.redhat.com/show_bug.cgi?id=901333
 
-      In file included from <command-line>:0:0:
-      v4l/compat.h:1605:11: warning: 'struct device_node' declared inside parameter list
-                 u64 *out_values, size_t sz)
-       	              ^
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-Can anyone point out how to fix this?
-What other information would be useful?
-Cheers
-Vince
-
-System details
-
-  $ uname -a
-  Linux ubuntu 3.13.0-51-generic #84-Ubuntu SMP Wed Apr 15 12:11:46 UTC 2015 i686 i686 i686 GNU/Linux
-  
-  $ sudo sh load.sh
-  videobuf2_core 3
-  videodev 2
-  rc_core 1
-  altera_ci 0
-  modprobe -v altera_ci
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/pci/cx23885/altera-ci.ko
-  v4l2_common 2
-  snd_pcm 4
-  snd 17
-  tveeprom 0
-  modprobe -v tveeprom
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/common/tveeprom.ko
-  cx2341x 0
-  modprobe -v cx2341x
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/common/cx2341x.ko
-  videobuf2_dma_sg 0
-  modprobe -v videobuf2_dma_sg
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/v4l2-core/videobuf2-dma-sg.ko
-  modprobe: ERROR: could not insert 'videobuf2_dma_sg': Unknown symbol in module, or unknown parameter (see dmesg)
-  videobuf2_dvb 0
-  modprobe -v videobuf2_dvb
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/v4l2-core/videobuf2-dvb.ko
-  dvb_core 2
-  tda18271 0
-  modprobe -v tda18271
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/tuners/tda18271.ko
-  altera_stapl 0
-  modprobe -v altera_stapl
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/misc/altera-stapl/altera-stapl.ko
-  cx23885 0
-  modprobe -v cx23885
-  insmod /lib/modules/3.13.0-51-generic/kernel/drivers/media/v4l2-core/videobuf2-dma-sg.ko
-  modprobe: ERROR: could not insert 'cx23885': Unknown symbol in module, or unknown parameter (see dmesg)
-  
-  $ dmesg|tail
-  [   38.177893] nvidia 0000:01:00.0: irq 43 for MSI/MSI-X
-  [   39.350957] init: plymouth-upstart-bridge main process ended, respawning
-  [   39.390535] init: plymouth-upstart-bridge main process (1381) terminated with status 1
-  [   39.390563] init: plymouth-upstart-bridge main process ended, respawning
-  [   56.994291] audit_printk_skb: 123 callbacks suppressed
-  [   56.994298] type=1400 audit(1430633192.185:74): apparmor="STATUS" operation="profile_replace" profile="unconfined" name="/usr/lib/cups/backend/cups-pdf" pid=2295 comm="apparmor_parser"
-  [   56.994310] type=1400 audit(1430633192.185:75): apparmor="STATUS" operation="profile_replace" profile="unconfined" name="/usr/sbin/cupsd" pid=2295 comm="apparmor_parser"
-  [   56.994991] type=1400 audit(1430633192.185:76): apparmor="STATUS" operation="profile_replace" profile="unconfined" name="/usr/sbin/cupsd" pid=2295 comm="apparmor_parser"
-  [  122.119702] videobuf2_dma_sg: Unknown symbol dma_buf_export (err 0)
-  [  122.243021] videobuf2_dma_sg: Unknown symbol dma_buf_export (err 0)
-  
-  
-  
-  $ cat load.sh
-  #!/bin/sh
-  for m in videobuf2_core videodev rc_core altera_ci v4l2_common snd_pcm snd tveeprom cx2341x videobuf2_dma_sg videobuf2_dvb dvb_core tda18271 altera_stapl cx23885
-  do
-      n=`lsmod|grep -F $m -c`
-      echo $m $n
-      [ $n -eq 0 ] || continue
-      echo modprobe -v $m
-      modprobe -v $m
-  done
-  
