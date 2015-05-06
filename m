@@ -1,56 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:36575 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbbE0OaZ (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43342 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750868AbbEFCtJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 10:30:25 -0400
-Received: by pdfh10 with SMTP id h10so17518330pdf.3
-        for <linux-media@vger.kernel.org>; Wed, 27 May 2015 07:30:25 -0700 (PDT)
-From: Takeshi Yoshimura <yos@sslab.ics.keio.ac.jp>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Christopher Reimer <linux@creimer.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Takeshi Yoshimura <yos@sslab.ics.keio.ac.jp>
-Subject: [PATCH 1/1] [media] ddbridge: Do not free_irq() if request_irq() failed
-Date: Wed, 27 May 2015 14:28:14 +0000
-Message-Id: <1432736894-10368-1-git-send-email-yos@sslab.ics.keio.ac.jp>
+	Tue, 5 May 2015 22:49:09 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 538152A0089
+	for <linux-media@vger.kernel.org>; Wed,  6 May 2015 04:48:54 +0200 (CEST)
+Date: Wed, 06 May 2015 04:48:54 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150506024854.538152A0089@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Takeshi Yoshimura <yos@sslab.ics.keio.ac.jp>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-My static checker detected that free_irq() is called even after 
-request_irq() failed in ddb_probe(). In this case, the kernel may try to 
-free dev->pdev->irq although the IRQ is not assigned. This event rarely 
-occurs, but always introduces a warning if it happens.
+Results of the daily build of media_tree:
 
-"goto fail1" always results in disabling enabled MSI and releasing a 
-requested IRQ. It seems like the former handling is necessary. So I added
-a conditional branch before the free_irq() (stat == 0 means request_irq() 
-succeeds).
+date:		Wed May  6 04:00:16 CEST 2015
+git branch:	test
+git hash:	1555f3bf5cc172e7d23c2b8db10d656d15bec13e
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-0.slh.3-amd64
 
-Signed-off-by: Takeshi Yoshimura <yos@sslab.ics.keio.ac.jp>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 9e3492e..0ac2dd3 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1630,7 +1630,8 @@ fail1:
- 	printk(KERN_ERR "fail1\n");
- 	if (dev->msi)
- 		pci_disable_msi(dev->pdev);
--	free_irq(dev->pdev->irq, dev);
-+	if (stat == 0)
-+		free_irq(dev->pdev->irq, dev);
- fail:
- 	printk(KERN_ERR "fail\n");
- 	ddb_unmap(dev);
--- 
-2.1.0
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
