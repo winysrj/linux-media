@@ -1,82 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:49893 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbbECUrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 16:47:09 -0400
-Date: Sun, 3 May 2015 22:47:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 8/9] ov9740: avoid calling ov9740_res_roundup() twice
-In-Reply-To: <1430646876-19594-9-git-send-email-hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1505032244370.6055@axis700.grange>
-References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
- <1430646876-19594-9-git-send-email-hverkuil@xs4all.nl>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:43026 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751626AbbEFKWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 06:22:39 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v3 0/3] media: atmel-isi: rework on the clock part and add runtime pm support
+Date: Wed, 6 May 2015 18:25:52 +0800
+Message-ID: <1430907955-28665-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch series fix the peripheral clock code and enable runtime pm
+support.
+Also it clean up the code which is for the compatiblity of mck.
 
-On Sun, 3 May 2015, Hans Verkuil wrote:
+Changes in v3:
+- remove useless definition: ISI_DEFAULT_MCLK_FREQ
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Simplify ov9740_s_fmt.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/i2c/soc_camera/ov9740.c | 18 +-----------------
->  1 file changed, 1 insertion(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-> index 03a7fc7..61a8e18 100644
-> --- a/drivers/media/i2c/soc_camera/ov9740.c
-> +++ b/drivers/media/i2c/soc_camera/ov9740.c
-> @@ -673,20 +673,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  	struct ov9740_priv *priv = to_ov9740(sd);
-> -	enum v4l2_colorspace cspace;
-> -	u32 code = mf->code;
->  	int ret;
->  
-> -	ov9740_res_roundup(&mf->width, &mf->height);
-> -
-> -	switch (code) {
-> -	case MEDIA_BUS_FMT_YUYV8_2X8:
-> -		cspace = V4L2_COLORSPACE_SRGB;
-> -		break;
-> -	default:
-> -		return -EINVAL;
-> -	}
-> -
+Changes in v2:
+- this file is new added.
+- merged v1 two patch into one.
+- use runtime_pm_put() instead of runtime_pm_put_sync()
+- enable peripheral clock before access ISI registers.
+- totally remove clock_start()/clock_stop() as they are optional.
 
-ov9740_s_fmt() is also called from ov9740_s_power(), so, don't we have to 
-do this simplification the other way round - remove redundant code from 
-ov9740_set_fmt() instead?
+Josh Wu (3):
+  media: atmel-isi: remove the useless code which disable isi
+  media: atmel-isi: add runtime pm support
+  media: atmel-isi: remove mck back compatiable code as it's not need
 
-Thanks
-Guennadi
+ drivers/media/platform/soc_camera/atmel-isi.c | 102 ++++++++++++--------------
+ 1 file changed, 45 insertions(+), 57 deletions(-)
 
->  	ret = ov9740_reg_write_array(client, ov9740_defaults,
->  				     ARRAY_SIZE(ov9740_defaults));
->  	if (ret < 0)
-> @@ -696,11 +684,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
->  	if (ret < 0)
->  		return ret;
->  
-> -	mf->code	= code;
-> -	mf->colorspace	= cspace;
-> -
-> -	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
-> -
-> +	priv->current_mf = *mf;
->  	return ret;
->  }
->  
-> -- 
-> 2.1.4
-> 
+-- 
+1.9.1
+
