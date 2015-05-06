@@ -1,134 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f48.google.com ([209.85.192.48]:33263 "EHLO
-	mail-qg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267AbbEVF1j convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 01:27:39 -0400
-Received: by qgfa63 with SMTP id a63so3827515qgf.0
-        for <linux-media@vger.kernel.org>; Thu, 21 May 2015 22:27:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20150521194034.GB19532@hardeman.nu>
-References: <20150519203851.GC18036@hardeman.nu>
-	<CAKv9HNb=qK18mGj9dOdyqEPvABU8b8aAEmGa1s2NULC4g0KX-Q@mail.gmail.com>
-	<20150520182901.GB13624@hardeman.nu>
-	<CAKv9HNZdsse=ETkKpZWPN8Z+kLA_aNxpvEtr_WFGp5ZpaZ36dg@mail.gmail.com>
-	<20150520204557.GB15223@hardeman.nu>
-	<CAKv9HNZEQJkCE3b0OcOGg_o59aYiTwLhQ0f=ji1obcJcG7ePwA@mail.gmail.com>
-	<32cae92aa099067315d1a13c7302957f@hardeman.nu>
-	<CAKv9HNZ_JjCutG-V+77vu2xMEihbRrYJSr4QR+LESSdrM71+yQ@mail.gmail.com>
-	<db6f383689a45d2d9b5346c41e48d535@hardeman.nu>
-	<CAKv9HNY5jM-i5i420iu_kcfS2ZsnnMjdED59fxkxH5e5mjYe=Q@mail.gmail.com>
-	<20150521194034.GB19532@hardeman.nu>
-Date: Fri, 22 May 2015 08:27:38 +0300
-Message-ID: <CAKv9HNbsCK_1XbYMgO3Monui9JnHc7knJL3yon9FUMJ_MCLppg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/7] rc: rc-ir-raw: Add scancode encoder callback
-From: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
-To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org,
+Received: from cantor2.suse.de ([195.135.220.15]:42591 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751535AbbEFO67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 10:58:59 -0400
+Date: Wed, 6 May 2015 16:58:52 +0200
+From: Jan Kara <jack@suse.cz>
+To: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	James Hogan <james@albanarts.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
+Message-ID: <20150506145852.GA27648@quack.suse.cz>
+References: <1430897296-5469-1-git-send-email-jack@suse.cz>
+ <1430897296-5469-3-git-send-email-jack@suse.cz>
+ <5549F0DF.4030205@suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5549F0DF.4030205@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 May 2015 at 22:40, David Härdeman <david@hardeman.nu> wrote:
-> On Thu, May 21, 2015 at 05:22:08PM +0300, Antti Seppälä wrote:
->>On 21 May 2015 at 15:30, David Härdeman <david@hardeman.nu> wrote:
->>> On 2015-05-21 13:51, Antti Seppälä wrote:
->>>>
->>>> On 21 May 2015 at 12:14, David Härdeman <david@hardeman.nu> wrote:
->>>>>
->>>>> I'm talking about ir_raw_encode_scancode() which is entirely broken in
->>>>> its
->>>>> current state. It will, given more than one enabled protocol, encode a
->>>>> scancode to pulse/space events according to the rules of a randomly
->>>>> chosen
->>>>> protocol. That random selection will be influenced by things like *module
->>>>> load order* (independent of the separate fact that passing multiple
->>>>> protocols to it is completely bogus in the first place).
->>>>>
->>>>> To be clear: the same scancode may be encoded differently depending on if
->>>>> you've load the nec decoder before or after the rc5 decoder! That kind of
->>>>> behavior can't go into a release kernel (Mauro...).
->>>>>
->>>>
->>>> So... if the ir_raw_handler_list is sorted to eliminate the randomness
->>>> caused by module load ordering you will be happy (or happier)?
->>>
->>>
->>> No, cause it's a horrible hack. And the caller of ir_raw_handler_list()
->>> still has no idea of knowing (given more than one protocol) which protocol a
->>> given scancode will be encoded according to.
->>>
->>
->>Okay, so how about "demuxing" the first protocol before handing them
->>to encoder callback? Simply something like below:
->>
->>-               if (handler->protocols & protocols && handler->encode) {
->>+               if (handler->protocols & ffs(protocols) && handler->encode) {
->>
->>Now the behavior is well-defined even when multiple protocols are selected.
->
-> Your patchset introduced ir_raw_encode_scancode() as well as the only
-> two callers of that function:
->
-> drivers/media/rc/nuvoton-cir.c
-> drivers/media/rc/rc-loopback.c
->
-> I realize that the sysfs wakeup_protocols file (which bakes several
-> protocols into one label) makes defining *the* protocol difficult, but
-> if you're going to add hacks like this, keep them to the sole driver
-> using the API rather than the core API itself.
->
-> That is, change nvt_ir_raw_change_wakeup_protocol() so that it picks a
-> single protocol, no matter how many are passed to it (the img-ir driver
-> already sets a precedent here so it wouldn't be an API change to change
-> to a set of protocols which might be different than what the user
-> suggested). (Also...yes, that'll make supporting several versions of
-> e.g. RC6 impossible with the current sysfs code).
->
+On Wed 06-05-15 12:45:51, Vlastimil Babka wrote:
+> On 05/06/2015 09:28 AM, Jan Kara wrote:
+> >Provide new function get_vaddr_frames().  This function maps virtual
+> >addresses from given start and fills given array with page frame numbers of
+> >the corresponding pages. If given start belongs to a normal vma, the function
+> >grabs reference to each of the pages to pin them in memory. If start
+> >belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
+> >must make sure pfns aren't reused for anything else while he is using
+> >them.
+> >
+> >This function is created for various drivers to simplify handling of
+> >their buffers.
+> >
+> >Signed-off-by: Jan Kara <jack@suse.cz>
+> 
+> Acked-by: Vlastimil Babka <vbabka@suse.cz>
+> 
+> With some nitpicks below...
+> 
+> >---
+> >  include/linux/mm.h |  44 +++++++++++
+> >  mm/gup.c           | 214 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 258 insertions(+)
+> >
+> >diff --git a/include/linux/mm.h b/include/linux/mm.h
+> >index 0755b9fd03a7..dcd1f02a78e9 100644
+> >--- a/include/linux/mm.h
+> >+++ b/include/linux/mm.h
+> >@@ -20,6 +20,7 @@
+> >  #include <linux/shrinker.h>
+> >  #include <linux/resource.h>
+> >  #include <linux/page_ext.h>
+> >+#include <linux/err.h>
+> >
+> >  struct mempolicy;
+> >  struct anon_vma;
+> >@@ -1197,6 +1198,49 @@ long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+> >  		    int write, int force, struct page **pages);
+> >  int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+> >  			struct page **pages);
+> >+
+> >+/* Container for pinned pfns / pages */
+> >+struct frame_vector {
+> >+	unsigned int nr_allocated;	/* Number of frames we have space for */
+> >+	unsigned int nr_frames;	/* Number of frames stored in ptrs array */
+> >+	bool got_ref;		/* Did we pin pages by getting page ref? */
+> >+	bool is_pfns;		/* Does array contain pages or pfns? */
+> >+	void *ptrs[0];		/* Array of pinned pfns / pages. Use
+> >+				 * pfns_vector_pages() or pfns_vector_pfns()
+> >+				 * for access */
+> >+};
+> >+
+> >+struct frame_vector *frame_vector_create(unsigned int nr_frames);
+> >+void frame_vector_destroy(struct frame_vector *vec);
+> >+int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
+> >+		     bool write, bool force, struct frame_vector *vec);
+> >+void put_vaddr_frames(struct frame_vector *vec);
+> >+int frame_vector_to_pages(struct frame_vector *vec);
+> >+void frame_vector_to_pfns(struct frame_vector *vec);
+> >+
+> >+static inline unsigned int frame_vector_count(struct frame_vector *vec)
+> >+{
+> >+	return vec->nr_frames;
+> >+}
+> >+
+> >+static inline struct page **frame_vector_pages(struct frame_vector *vec)
+> >+{
+> >+	if (vec->is_pfns) {
+> >+		int err = frame_vector_to_pages(vec);
+> >+
+> >+		if (err)
+> >+			return ERR_PTR(err);
+> >+	}
+> >+	return (struct page **)(vec->ptrs);
+> >+}
+> >+
+> >+static inline unsigned long *frame_vector_pfns(struct frame_vector *vec)
+> >+{
+> >+	if (!vec->is_pfns)
+> >+		frame_vector_to_pfns(vec);
+> >+	return (unsigned long *)(vec->ptrs);
+> >+}
+> >+
+> >  struct kvec;
+> >  int get_kernel_pages(const struct kvec *iov, int nr_pages, int write,
+> >  			struct page **pages);
+> >diff --git a/mm/gup.c b/mm/gup.c
+> >index 6297f6bccfb1..8db5c40e65c4 100644
+> >--- a/mm/gup.c
+> >+++ b/mm/gup.c
+> >@@ -8,6 +8,7 @@
+> >  #include <linux/rmap.h>
+> >  #include <linux/swap.h>
+> >  #include <linux/swapops.h>
+> >+#include <linux/vmalloc.h>
+> >
+> >  #include <linux/sched.h>
+> >  #include <linux/rwsem.h>
+> >@@ -936,6 +937,219 @@ int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
+> >  	return ret;	/* 0 or negative error code */
+> >  }
+> >
+> >+/*
+> >+ * get_vaddr_frames() - map virtual addresses to pfns
+> >+ * @start:	starting user address
+> >+ * @nr_frames:	number of pages / pfns from start to map
+> >+ * @write:	whether pages will be written to by the caller
+> >+ * @force:	whether to force write access even if user mapping is
+> >+ *		readonly. This will result in the page being COWed even
+> >+ *		in MAP_SHARED mappings. You do not want this.
+> 
+> "You do not want this" and yet some of the drivers in later patches
+> do. That looks weird. Explain better?
+  That was copied from get_user_pages() comment but that got changed in the
+mean time. I've referenced that instead of copying it.
 
-I think that approach too is far from perfect as it leaves us with
-questions such as: How do we let the user know what variant of
-protocol the label "rc-6" really means? If in nvt we hardcode it to
-mean RC6-0-16 and a new driver cames along which chooses
-RC_TYPE_RC6_6A_24 how do we tell the user that the implementations
-differ? What if the scancode that was fed was really RC_TYPE_RC6_MCE?
+> >+ * @vec:	structure which receives pages / pfns of the addresses mapped.
+> >+ *		It should have space for at least nr_frames entries.
+> >+ *
+> >+ * This function maps virtual addresses from @start and fills @vec structure
+> >+ * with page frame numbers or page pointers to corresponding pages (choice
+> >+ * depends on the type of the vma underlying the virtual address). If @start
+> >+ * belongs to a normal vma, the function grabs reference to each of the pages
+> >+ * to pin them in memory. If @start belongs to VM_IO | VM_PFNMAP vma, we don't
+> >+ * touch page structures and the caller must make sure pfns aren't reused for
+> >+ * anything else while he is using them.
+> >+ *
+> >+ * The function returns number of pages mapped which may be less than
+> >+ * @nr_frames. In particular we stop mapping if there are more vmas of
+> >+ * different type underlying the specified range of virtual addresses.
+> 
+> The function can also return e.g. -EFAULT, shouldn't that be documented too?
+  I've added a comment that the function can return error.
 
-If only there were a sysfs api to set the exact variant life would be simpler...
+> >+ *
+> >+ * This function takes care of grabbing mmap_sem as necessary.
+> >+ */
+> >+int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+> >+		     bool write, bool force, struct frame_vector *vec)
+> >+{
+> >+	struct mm_struct *mm = current->mm;
+> >+	struct vm_area_struct *vma;
+> >+	int ret = 0;
+> >+	int err;
+> >+	int locked = 1;
+> 
+> It looks strange that locked is set to 1 before taking the actual
+> mmap_sem. Also future-proofing.
+  OK.
 
-> Then change both ir_raw_encode_scancode() to take a single protocol enum
-> and change the *encode function pointer in struct ir_raw_handler to also
-> take a single protocol enum.
->
-> That way encoders won't have to guess (using scanmasks...!?) what
-> protocol they should encode to.
->
-> And Mauro...I strongly suggest you revert all of this encoding stuff
-> until this has been fixed...it's broken.
->
+> >+/**
+> >+ * frame_vector_destroy() - free memory allocated to carry frame vector
+> >+ * @vec:	Frame vector to free
+> >+ *
+> >+ * Free structure allocated by frame_vector_create() to carry frames.
+> >+ */
+> >+void frame_vector_destroy(struct frame_vector *vec)
+> >+{
+> 
+> Add some VM_BUG_ON()'s for nr_frames and got_ref perhaps?
+  Good idea. Added:
+VM_BUG_ON(vec->nr_frames > 0);
+  Asserting got_ref when nr_frames is 0 is pointless... Thanks for review!
 
-Let me shortly recap the points made so far about the encoding stuff:
-
-* If user enables multiple wakeup_protocols then the first matching
-one will be used to do the encoding. "First" being the module that was
-loaded first.
-
-* Currently the encoders use heuristics to determine the intended
-protocol variant from the scancode that was fed and from the length of
-the scanmask. This causes the programmer using the encoder to not know
-which exact variant will be used (until after the encoding is done
-when the information can be made available if needed). The way current
-sysfs api works using heuristics was a design choice since we don't
-have a better way to specify the protocol variant.
-
-Hope I didn't miss anything?
-
-So yeah.. The code isn't "broken" in a sense that it wouldn't work.
-It's more a question of what we want the api to look like.
-
-Mauro what do you think should be done?
+								Honza
 
 -- 
-Antti
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
