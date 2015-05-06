@@ -1,106 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:55923 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbbECUa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 16:30:29 -0400
-Date: Sun, 3 May 2015 22:30:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 6/9] ov772x: avoid calling ov772x_select_params() twice
-In-Reply-To: <1430646876-19594-7-git-send-email-hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1505032229550.6055@axis700.grange>
-References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
- <1430646876-19594-7-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753469AbbEFG5m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 02:57:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 1/8] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
+Date: Wed,  6 May 2015 08:57:16 +0200
+Message-Id: <1430895443-41839-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 3 May 2015, Hans Verkuil wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Merge ov772x_s_fmt into ov772x_set_fmt.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
+that apps can call to determine that it is indeed a V4L2 device, there
+is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
+solve that, and it will allow utilities like v4l2-compliance to be used
+with these devices as well.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 14 ++++++++++++++
+ include/uapi/linux/v4l2-subdev.h      | 10 ++++++++++
+ 2 files changed, 24 insertions(+)
 
-Thanks
-Guennadi
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6359606..50ada27 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -25,6 +25,7 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ #include <linux/export.h>
++#include <linux/version.h>
+ 
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+@@ -187,6 +188,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ #endif
+ 
+ 	switch (cmd) {
++	case VIDIOC_SUBDEV_QUERYCAP: {
++		struct v4l2_subdev_capability *cap = arg;
++
++		cap->version = LINUX_VERSION_CODE;
++		cap->device_caps = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		if (sd->entity.parent)
++			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
++#endif
++		memset(cap->reserved, 0, sizeof(cap->reserved));
++		break;
++	}
++
+ 	case VIDIOC_QUERYCTRL:
+ 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+ 
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index dbce2b5..1848b74 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -154,9 +154,19 @@ struct v4l2_subdev_selection {
+ 	__u32 reserved[8];
+ };
+ 
++struct v4l2_subdev_capability {
++	__u32 version;
++	__u32 device_caps;
++	__u32 reserved[50];
++};
++
++/* This v4l2_subdev is also a media entity and the entity_id field is valid */
++#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
++
+ /* Backwards compatibility define --- to be removed */
+ #define v4l2_subdev_edid v4l2_edid
+ 
++#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
+ #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
+-- 
+2.1.4
 
-> ---
->  drivers/media/i2c/soc_camera/ov772x.c | 41 +++++++++++------------------------
->  1 file changed, 13 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-> index f150a8b..aa32bc5 100644
-> --- a/drivers/media/i2c/soc_camera/ov772x.c
-> +++ b/drivers/media/i2c/soc_camera/ov772x.c
-> @@ -895,38 +895,15 @@ static int ov772x_get_fmt(struct v4l2_subdev *sd,
->  	return 0;
->  }
->  
-> -static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
-> -{
-> -	struct ov772x_priv *priv = to_ov772x(sd);
-> -	const struct ov772x_color_format *cfmt;
-> -	const struct ov772x_win_size *win;
-> -	int ret;
-> -
-> -	ov772x_select_params(mf, &cfmt, &win);
-> -
-> -	ret = ov772x_set_params(priv, cfmt, win);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	priv->win = win;
-> -	priv->cfmt = cfmt;
-> -
-> -	mf->code = cfmt->code;
-> -	mf->width = win->rect.width;
-> -	mf->height = win->rect.height;
-> -	mf->field = V4L2_FIELD_NONE;
-> -	mf->colorspace = cfmt->colorspace;
-> -
-> -	return 0;
-> -}
-> -
->  static int ov772x_set_fmt(struct v4l2_subdev *sd,
->  		struct v4l2_subdev_pad_config *cfg,
->  		struct v4l2_subdev_format *format)
->  {
-> +	struct ov772x_priv *priv = to_ov772x(sd);
->  	struct v4l2_mbus_framefmt *mf = &format->format;
->  	const struct ov772x_color_format *cfmt;
->  	const struct ov772x_win_size *win;
-> +	int ret;
->  
->  	if (format->pad)
->  		return -EINVAL;
-> @@ -939,9 +916,17 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
->  	mf->field = V4L2_FIELD_NONE;
->  	mf->colorspace = cfmt->colorspace;
->  
-> -	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> -		return ov772x_s_fmt(sd, mf);
-> -	cfg->try_fmt = *mf;
-> +	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		cfg->try_fmt = *mf;
-> +		return 0;
-> +	}
-> +
-> +	ret = ov772x_set_params(priv, cfmt, win);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	priv->win = win;
-> +	priv->cfmt = cfmt;
->  	return 0;
->  }
->  
-> -- 
-> 2.1.4
-> 
