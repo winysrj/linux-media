@@ -1,49 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39968 "EHLO mail.kapsi.fi"
+Received: from cantor2.suse.de ([195.135.220.15]:59439 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932393AbbERULN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2015 16:11:13 -0400
-Received: from dyn3-82-128-184-18.psoas.suomi.net ([82.128.184.18] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1YuRNX-0005D8-ET
-	for linux-media@vger.kernel.org; Mon, 18 May 2015 23:11:11 +0300
-Message-ID: <555A475E.30203@iki.fi>
-Date: Mon, 18 May 2015 23:11:10 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 4.2] e4000 changes
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S965139AbbEFH20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 03:28:26 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
+Date: Wed,  6 May 2015 09:28:08 +0200
+Message-Id: <1430897296-5469-2-git-send-email-jack@suse.cz>
+In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
+References: <1430897296-5469-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 9cae84b32dd52768cf2fd2fcb214c3f570676c4b:
+Currently vb2 core acquires mmap_sem just around call to
+__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
+lockdep warning) it isn't necessary to acquire it so early as we no
+longer have to drop queue mutex before acquiring mmap_sem. So push
+acquisition of mmap_sem down into .get_userptr and .put_userptr memops
+so that the semaphore is acquired for a shorter time and it is clearer
+what it is needed for.
 
-   [media] DocBook/media: fix syntax error (2015-05-18 16:27:31 -0300)
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 --
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 +++++++
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +++++-
+ 4 files changed, 18 insertions(+), 3 deletions(-)
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git e4000_pull
-
-for you to fetch changes up to 75cc72378f9ee9dcd9ecc99edd87e795438f0455:
-
-   e4000: implement V4L2 subdevice tuner and core ops (2015-05-18 
-23:07:31 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (3):
-       e4000: revise synthesizer calculation
-       e4000: various small changes
-       e4000: implement V4L2 subdevice tuner and core ops
-
-  drivers/media/tuners/e4000.c      | 592 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------
-  drivers/media/tuners/e4000.h      |   1 -
-  drivers/media/tuners/e4000_priv.h |  11 ++--
-  3 files changed, 380 insertions(+), 224 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 66ada01c796c..20cdbc0900ea 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1657,9 +1657,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+-		down_read(&current->mm->mmap_sem);
+ 		ret = __qbuf_userptr(vb, b);
+-		up_read(&current->mm->mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 644dec73d220..620c4aa78881 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -532,7 +532,9 @@ static void vb2_dc_put_userptr(void *buf_priv)
+ 		sg_free_table(sgt);
+ 		kfree(sgt);
+ 	}
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+@@ -616,6 +618,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		goto fail_buf;
+ 	}
+ 
++	down_read(&current->mm->mmap_sem);
+ 	/* current->mm->mmap_sem is taken by videobuf2 core */
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+@@ -642,6 +645,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (ret) {
+ 		unsigned long pfn;
+ 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
++			up_read(&current->mm->mmap_sem);
+ 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
+ 			buf->size = size;
+ 			kfree(pages);
+@@ -651,6 +655,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		pr_err("failed to get user pages\n");
+ 		goto fail_vma;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 	if (!sgt) {
+@@ -713,10 +718,12 @@ fail_get_user_pages:
+ 		while (n_pages)
+ 			put_page(pages[--n_pages]);
+ 
++	down_read(&current->mm->mmap_sem);
+ fail_vma:
+ 	vb2_put_vma(buf->vma);
+ 
+ fail_pages:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(pages); /* kfree is NULL-proof */
+ 
+ fail_buf:
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 45c708e463b9..afd4b514affc 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_alloc_pages;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+ 		dprintk(1, "no vma for address %lu\n", vaddr);
+@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					     1, /* force */
+ 					     buf->pages,
+ 					     NULL);
++	up_read(&current->mm->mmap_sem);
+ 
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
+ 	if (!vma_is_io(buf->vma))
+ 		while (--num_pages_from_user >= 0)
+ 			put_page(buf->pages[num_pages_from_user]);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
+ userptr_fail_find_vma:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf->pages);
+ userptr_fail_alloc_pages:
+ 	kfree(buf);
+@@ -362,7 +366,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 			put_page(buf->pages[i]);
+ 	}
+ 	kfree(buf->pages);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 657ab302a5cf..0ba40be21ebd 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+ 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		if (!buf->vaddr)
+ 			goto fail_get_user_pages;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	buf->vaddr += offset;
+ 	return buf;
+@@ -133,6 +134,7 @@ fail_get_user_pages:
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -144,6 +146,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	if (buf->pages) {
+ 		if (vaddr)
+ 			vm_unmap_ram((void *)vaddr, buf->n_pages);
+@@ -157,6 +160,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
 -- 
-http://palosaari.fi/
+2.1.4
+
