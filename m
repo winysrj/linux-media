@@ -1,123 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:36569 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbEJWZr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 May 2015 18:25:47 -0400
-Received: by wizk4 with SMTP id k4so85033768wiz.1
-        for <linux-media@vger.kernel.org>; Sun, 10 May 2015 15:25:46 -0700 (PDT)
-Message-ID: <554FDAE7.4010906@gmail.com>
-Date: Mon, 11 May 2015 00:25:43 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from down.free-electrons.com ([37.187.137.238]:47241 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750924AbbEGHhJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 03:37:09 -0400
+Date: Thu, 7 May 2015 09:37:02 +0200
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Paul Walmsley <paul@pwsan.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Message-ID: <20150507093702.0b58753d@bbrezillon>
+In-Reply-To: <20150507063953.GC32399@codeaurora.org>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+	<20150507063953.GC32399@codeaurora.org>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: dvb_usb_af9015: command failed=1 _ lsdvb  >=  3.19.x
-References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com> <554F352F.10301@gmail.com>
-In-Reply-To: <554F352F.10301@gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10.05.2015 12:38, poma wrote:
-> On 08.05.2015 12:59, poma wrote:
->> On 08.05.2015 12:20, poma wrote:
->>>
->>> [    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
->>>
->>> [    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
->>> [    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
->>> [    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
->>> [    0.994859] usb 1-2: Product: DVB-T 2
->>>
->>> [    1.001398] usb 1-2: Manufacturer: Afatech
->>> [    1.003555] usb 1-2: SerialNumber: 010101010600001
->>> [    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
->>> [    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
->>> [    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
->>>
->>> [   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
->>> [   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
->>> [   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
->>>
->>> [   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
->>> [   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
->>> [   12.343650] mxl5007t 13-00c0: creating new instance
->>> [   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
->>> [   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
->>> [   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
->>> [   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
->>> [   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
->>> [   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
->>> [   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
->>> [   12.564554] mxl5007t 13-00c0: attaching existing instance
->>> [   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
->>> [   12.567555] mxl5007t_soft_reset: 521: failed!
->>> [   12.569745] mxl5007t_attach: error -121 on line 907
->>> [   12.571231] usbcore: registered new interface driver dvb_usb_af9015
->>>
->>>
->>> $ lsdvb
->>>
->>> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
->>> 		Version: 0.0.4
->>> 		Copyright (C) Manu Abraham
->>> $ 
->>>
->>
->>
->> Afatech AF9015 reference design:
->>
->> 3.18.12-200.fc21.x86_64        - OK
->>
->> 3.19.7-200.fc21.x86_64         - KO
->> 4.0.2-200.fc21.x86_64          - KO
->> 4.1.0-0.rc2.git3.1.fc23.x86_64 - KO
->>
->>
->> If you have a patch to test, shout loudly.
->>
->>
+Hi Stephen,
+
+On Wed, 6 May 2015 23:39:53 -0700
+Stephen Boyd <sboyd@codeaurora.org> wrote:
+
+> On 04/30, Boris Brezillon wrote:
+> > Clock rates are stored in an unsigned long field, but ->round_rate()
+> > (which returns a rounded rate from a requested one) returns a long
+> > value (errors are reported using negative error codes), which can lead
+> > to long overflow if the clock rate exceed 2Ghz.
+> > 
+> > Change ->round_rate() prototype to return 0 or an error code, and pass the
+> > requested rate as a pointer so that it can be adjusted depending on
+> > hardware capabilities.
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > Tested-by: Heiko Stuebner <heiko@sntech.de>
+> > Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+> > Reviewed-by: Heiko Stuebner <heiko@sntech.de>
 > 
-> Looks like the same bug:
-> AVerMedia HD Volar (A867) - Afatech AF9033
-> http://forum.sifteam.eu/sifbox-by-sif-team/125122-kernel-3-19-a867-xgaz-dove.html
+> This patch is fairly invasive, and it probably doesn't even
+> matter for most of these clock providers to be able to round a
+> rate above 2GHz.
+
+Fair enough.
+
+> I've been trying to remove the .round_rate op
+> from the framework by encouraging new features via the
+> .determine_rate op.
+
+Oh, I wasn't aware of that (BTW, that's a good thing).
+Maybe this should be clearly stated (both in the struct clk_ops
+kerneldoc header and in Documentation/clk.txt).
+
+> Sadly, we still have to do a flag day and
+> change all the .determine_rate ops when we want to add things.
+
+Yes, but the number of clk drivers implementing ->determine_rate() is
+still quite limited compared to those implementing ->round_rate().
+
 > 
-> http://git.linuxtv.org/cgit.cgi/media_build.git - no positive effect.
+> What if we changed determine_rate ops to take a struct
+> clk_determine_info (or some better named structure) instead of
+> the current list of arguments that it currently takes? Then when
+> we want to make these sorts of framework wide changes we can just
+> throw a new member into that structure and be done.
+
+I really like this idea, especially since I was wondering if we could
+pass other 'clk rate requirements' like the rounding policy (down,
+closest, up), or the maximum clk inaccuracy.
+
 > 
+> It doesn't solve the unsigned long to int return value problem
+> though. We can solve that by gradually introducing a new op and
+> handling another case in the rounding path. If we can come up
+> with some good name for that new op like .decide_rate or
+> something then it makes things nicer in the long run. I like the
+> name .determine_rate though :/
+
+Why not changing the ->determine_rate() prototype. As said above, the
+number of clk drivers implementing this function is still quite
+limited, and I guess we can have an ack for all of them.
+
 > 
-> Ho ho ho
+> The benefit of all this is that we don't have to worry about
+> finding the random clk providers that get added into other
+> subsystems and fixing them up. If drivers actually care about
+> this problem then they'll be fixed to use the proper op. FYI,
+> last time we updated the function signature of .determine_rate we
+> broke a couple drivers along the way.
 > 
 
-It seems the 'lsdvb' is what made the device unusable after re/boot.
-Of course this applies to kernel >= 3.19.x
-The device has to be unplugged and after a minute or two plugged back to be usable again.
+Hm, IMHO, adding a new op is not a good thing. I agree that it eases
+the transition, but ITOH you'll have to live with old/deprecated ops in
+your clk_ops structure with people introducing new drivers still using
+the old ops (see the number of clk drivers implementing ->round_rate()
+instead of ->determine_rate()).
 
+Best Regards,
 
-$ lsdvb
+Boris
 
-		lsdvb: Simple utility to list PCI/PCIe DVB devices
-		Version: 0.0.4
-		Copyright (C) Manu Abraham
-
-usb (5:0 -868620712:32665) on PCI Domain:-874755276 Bus:32665 Device:2098 Function:0
-	DEVICE:0 ADAPTER:0 FRONTEND:0 (Afatech AF9013) 
-		 FE_OFDM Fmin=174MHz Fmax=862MHz
-	DEVICE:0 ADAPTER:1 FRONTEND:0 (Afatech AF9013) 
-		 FE_OFDM Fmin=174MHz Fmax=862MHz
-
-$ dmesg
-[   80.332837] usb 2-2: dvb_usb_af9015: command failed=1
-[   80.332857] i2c i2c-13: af9013: i2c wr failed=-5 reg=d607 len=1
-[   80.337837] usb 2-2: dvb_usb_af9015: command failed=1
-[   80.337848] mxl5007t_write_reg: 472: failed!
-[   80.337853] mxl5007t_sleep: error -121 on line 709
-[   80.338324] usb 2-2: dvb_usb_af9015: command failed=1
-[   80.338328] mxl5007t_write_reg: 472: failed!
-[   80.338332] mxl5007t_sleep: error -121 on line 711
-
-
-
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
