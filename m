@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753458AbbEFG5h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 02:57:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Subject: [RFCv2 PATCH 0/8] Add VIDIOC_SUBDEV_QUERYCAP and use MEDIA_IOC_DEVICE_INFO
-Date: Wed,  6 May 2015 08:57:15 +0200
-Message-Id: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:38449 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751061AbbEGUtq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 May 2015 16:49:46 -0400
+Message-ID: <554BCFE8.6020200@iki.fi>
+Date: Thu, 07 May 2015 23:49:44 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 5/6] si2168: add I2C error handling
+References: <1430658023-17579-1-git-send-email-olli.salonen@iki.fi> <1430658023-17579-3-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1430658023-17579-3-git-send-email-olli.salonen@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Moikka!
+I didn't make any tests, but I could guess that error flag is set by 
+firmware when some unsupported / invalid parameter is given as a 
+firmware command request.
 
-This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev devices
-as discussed during the ELC in San Jose and as discussed here:
+Anyhow, I am not sure which is proper error code to return. Could you 
+please study, check from API docs and so, which are suitable error 
+codes. EINVAL sounds proper code, but imho it is not good as generally 
+it is returned by driver when invalid parameters are requested and I 
+would like to see some other code to make difference (between driver and 
+firmware error).
 
-http://www.spinics.net/lists/linux-media/msg88009.html
+regards
+Antti
 
-It also add support for MEDIA_IOC_DEVICE_INFO to any media entities so
-applications can use that to find the media controller and detailed information
-about the entity.
 
-This is the second RFC patch series. The main changes are:
-
-- Drop the entity ID from the querycap ioctls
-- Instead have every entity device implement MEDIA_IOC_DEVICE_INFO
-- Add major, minor and entity_id fields to struct media_device_info:
-  this allows applications to find the MC device and to determine
-  the entity ID of the device for which they called the ioctl. It
-  is 0 for the MC (entity IDs are always > 0 for entities).
-
-This is IMHO simple, consistent, and it will work for any media entity.
-
-Regards,
-
-	Hans
-
-PS: I have not tested the DVB changes yet. I hope I got those right.
-
-Hans Verkuil (8):
-  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-  DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-  videodev2.h: add V4L2_CAP_ENTITY to querycap
-  media: add major/minor/entity_id to struct media_device_info
-  v4l2-subdev: add MEDIA_IOC_DEVICE_INFO
-  v4l2-ioctl: add MEDIA_IOC_DEVICE_INFO
-  dvb: add MEDIA_IOC_DEVICE_INFO
-  DocBook/media: document the new media_device_info fields.
-
- .../DocBook/media/v4l/media-ioc-device-info.xml    |  35 +++++-
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 +
- .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 125 +++++++++++++++++++++
- drivers/media/dvb-core/dmxdev.c                    |  24 +++-
- drivers/media/dvb-core/dvb_ca_en50221.c            |  11 ++
- drivers/media/dvb-core/dvb_net.c                   |  11 ++
- drivers/media/media-device.c                       |  29 +++--
- drivers/media/media-devnode.c                      |   5 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |  43 ++++++-
- drivers/media/v4l2-core/v4l2-subdev.c              |  26 +++++
- include/media/media-device.h                       |   3 +
- include/media/media-devnode.h                      |   1 +
- include/uapi/linux/media.h                         |   5 +-
- include/uapi/linux/v4l2-subdev.h                   |  10 ++
- include/uapi/linux/videodev2.h                     |   1 +
- 16 files changed, 316 insertions(+), 20 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+On 05/03/2015 04:00 PM, Olli Salonen wrote:
+> Return error from si2168_cmd_execute in case the demodulator returns an
+> error.
+>
+> Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+> ---
+>   drivers/media/dvb-frontends/si2168.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 29a5936..b68ab34 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -60,6 +60,12 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+>   				jiffies_to_msecs(jiffies) -
+>   				(jiffies_to_msecs(timeout) - TIMEOUT));
+>
+> +		/* error bit set? */
+> +		if ((cmd->args[0] >> 6) & 0x01) {
+> +			ret = -EREMOTEIO;
+> +			goto err_mutex_unlock;
+> +		}
+> +
+>   		if (!((cmd->args[0] >> 7) & 0x01)) {
+>   			ret = -ETIMEDOUT;
+>   			goto err_mutex_unlock;
+>
 
 -- 
-2.1.4
-
+http://palosaari.fi/
