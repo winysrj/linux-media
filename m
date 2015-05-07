@@ -1,215 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:33607 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbbEaGVN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 02:21:13 -0400
-Date: Sun, 31 May 2015 11:51:05 +0530
-From: Tina Ruchandani <ruchandani.tina@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: y2038@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Shuah Khan <shuah.kh@samsung.com>,
-	Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH v2] [media] dvb-frontend: Replace timeval with ktime_t
-Message-ID: <20150531062105.GA3455@tinar>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:35368 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbbEGNyM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 09:54:12 -0400
+Received: by obcus9 with SMTP id us9so2271378obc.2
+        for <linux-media@vger.kernel.org>; Thu, 07 May 2015 06:54:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Thu, 7 May 2015 15:53:51 +0200
+Message-ID: <CAH-u=818PWuf2w7e3ysJTD6La_6BMAyXwAodkXQTQe7jtHkSZA@mail.gmail.com>
+Subject: Coda : QP rate control encoding
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Robert Schwebel <r.schwebel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct timeval uses a 32-bit seconds representation which will
-overflow in the year 2038 and beyond. This patch replaces
-the usage of struct timeval with ktime_t which is a 64-bit
-timestamp and is year 2038 safe.
-This patch is part of a larger attempt to remove all instances
-of 32-bit timekeeping variables (timeval, timespec, time_t)
-which are not year 2038 safe, from the kernel.
-The patch is a work-in-progress - correctness of the following
-changes is unclear:
-(a) Usage of timeval_usec_diff - The function seems to subtract
-usec values without caring about the difference of the seconds field.
-There may be an implicit assumption in the original code that the
-time delta is always of the order of microseconds.
-The patch replaces the usage of timeval_usec_diff with
-ktime_to_us(ktime_sub()) which computes the real timestamp difference,
-not just the difference in the usec field.
-(b) printk diffing the tv[i] and tv[i-1] values. The original
-printk statement seems to get the order wrong. This patch preserves
-that order.
+Hi,
 
-Signed-off-by: Tina Ruchandani <ruchandani.tina@gmail.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
+I am playing a bit with the coda encoder on i.MX6 and try to get the
+most quality out of it. So, I am trying to use the controls of the
+driver, in particular h264_i_frame_qp_value and h264_p_frame_qp_value.
 
---
-Changes in v2:
-- Use the more concise ktime_us_delta
-- Preserve the waketime argument in dvb_frontend_sleep_until as
-a pointer, fixes bug introduced in v1 of the patch where the caller
-doesn't get its timestamp modified.
----
- drivers/media/dvb-core/dvb_frontend.c | 40 +++++++++--------------------------
- drivers/media/dvb-core/dvb_frontend.h |  3 +--
- drivers/media/dvb-frontends/stv0299.c | 11 +++++-----
- 3 files changed, 17 insertions(+), 37 deletions(-)
+I can get something with the following pipeline :
+gst-launch-1.0 -evvv v4l2src num-buffers=2000
+device=/dev/v4l/by-path/ipu1-capture io-mode=dmabuf !
+"video/x-raw,width=1280,height=720,framerate=25/1,format=YUY2" !
+v4l2convert device=/dev/v4l/by-path/ipu1-scaler capture-io-mode=dmabuf
+output-io-mode=dmabuf-import !
+'video/x-raw,width=640,height=360,format=NV12' ! v4l2video0h264enc
+output-io-mode=dmabuf-import
+extra-controls="controls,h264_i_frame_qp_value=24,h264_p_frame_qp_value=30,video_gop_size=32"
+! queue ! progressreport name=p2 ! h264parse ! matroskamux ! filesink
+location=/data/test_encode_360p.mkv
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 882ca41..c110e37 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -40,6 +40,7 @@
- #include <linux/freezer.h>
- #include <linux/jiffies.h>
- #include <linux/kthread.h>
-+#include <linux/ktime.h>
- #include <asm/processor.h>
- 
- #include "dvb_frontend.h"
-@@ -889,42 +890,21 @@ static void dvb_frontend_stop(struct dvb_frontend *fe)
- 				fepriv->thread);
- }
- 
--s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime)
--{
--	return ((curtime.tv_usec < lasttime.tv_usec) ?
--		1000000 - lasttime.tv_usec + curtime.tv_usec :
--		curtime.tv_usec - lasttime.tv_usec);
--}
--EXPORT_SYMBOL(timeval_usec_diff);
--
--static inline void timeval_usec_add(struct timeval *curtime, u32 add_usec)
--{
--	curtime->tv_usec += add_usec;
--	if (curtime->tv_usec >= 1000000) {
--		curtime->tv_usec -= 1000000;
--		curtime->tv_sec++;
--	}
--}
--
- /*
-  * Sleep until gettimeofday() > waketime + add_usec
-  * This needs to be as precise as possible, but as the delay is
-  * usually between 2ms and 32ms, it is done using a scheduled msleep
-  * followed by usleep (normally a busy-wait loop) for the remainder
-  */
--void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec)
-+void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec)
- {
--	struct timeval lasttime;
- 	s32 delta, newdelta;
- 
--	timeval_usec_add(waketime, add_usec);
--
--	do_gettimeofday(&lasttime);
--	delta = timeval_usec_diff(lasttime, *waketime);
-+	ktime_add_us(*waketime, add_usec);
-+	delta = ktime_us_delta(ktime_get_real(), *waketime);
- 	if (delta > 2500) {
- 		msleep((delta - 1500) / 1000);
--		do_gettimeofday(&lasttime);
--		newdelta = timeval_usec_diff(lasttime, *waketime);
-+		newdelta = ktime_us_delta(ktime_get_real(), *waketime);
- 		delta = (newdelta > delta) ? 0 : newdelta;
- 	}
- 	if (delta > 0)
-@@ -2458,13 +2438,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 			 * include the initialization or start bit
- 			 */
- 			unsigned long swcmd = ((unsigned long) parg) << 1;
--			struct timeval nexttime;
--			struct timeval tv[10];
-+			ktime_t nexttime;
-+			ktime_t tv[10];
- 			int i;
- 			u8 last = 1;
- 			if (dvb_frontend_debug)
- 				printk("%s switch command: 0x%04lx\n", __func__, swcmd);
--			do_gettimeofday(&nexttime);
-+			nexttime = ktime_get_real();
- 			if (dvb_frontend_debug)
- 				tv[0] = nexttime;
- 			/* before sending a command, initialize by sending
-@@ -2475,7 +2455,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 
- 			for (i = 0; i < 9; i++) {
- 				if (dvb_frontend_debug)
--					do_gettimeofday(&tv[i + 1]);
-+					tv[i+1] = ktime_get_real();
- 				if ((swcmd & 0x01) != last) {
- 					/* set voltage to (last ? 13V : 18V) */
- 					fe->ops.set_voltage(fe, (last) ? SEC_VOLTAGE_13 : SEC_VOLTAGE_18);
-@@ -2489,7 +2469,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 				printk("%s(%d): switch delay (should be 32k followed by all 8k\n",
- 					__func__, fe->dvb->num);
- 				for (i = 1; i < 10; i++)
--					printk("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
-+					printk("%d: %d\n", i, (int) ktime_to_us(ktime_sub(tv[i-1], tv[i])));
- 			}
- 			err = 0;
- 			fepriv->state = FESTATE_DISEQC;
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 816269e..5b64686 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -439,7 +439,6 @@ extern void dvb_frontend_reinitialise(struct dvb_frontend *fe);
- extern int dvb_frontend_suspend(struct dvb_frontend *fe);
- extern int dvb_frontend_resume(struct dvb_frontend *fe);
- 
--extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
--extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
-+extern void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec);
- 
- #endif
-diff --git a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
-index b57ecf4..70c8065 100644
---- a/drivers/media/dvb-frontends/stv0299.c
-+++ b/drivers/media/dvb-frontends/stv0299.c
-@@ -44,6 +44,7 @@
- 
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/ktime.h>
- #include <linux/module.h>
- #include <linux/string.h>
- #include <linux/slab.h>
-@@ -404,8 +405,8 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
- 	u8 lv_mask = 0x40;
- 	u8 last = 1;
- 	int i;
--	struct timeval nexttime;
--	struct timeval tv[10];
-+	ktime_t nexttime;
-+	ktime_t tv[10];
- 
- 	reg0x08 = stv0299_readreg (state, 0x08);
- 	reg0x0c = stv0299_readreg (state, 0x0c);
-@@ -418,7 +419,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
- 	if (debug_legacy_dish_switch)
- 		printk ("%s switch command: 0x%04lx\n",__func__, cmd);
- 
--	do_gettimeofday (&nexttime);
-+	nexttime = ktime_get_real();
- 	if (debug_legacy_dish_switch)
- 		tv[0] = nexttime;
- 	stv0299_writeregI (state, 0x0c, reg0x0c | 0x50); /* set LNB to 18V */
-@@ -427,7 +428,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
- 
- 	for (i=0; i<9; i++) {
- 		if (debug_legacy_dish_switch)
--			do_gettimeofday (&tv[i+1]);
-+			tv[i+1] = ktime_get_real();
- 		if((cmd & 0x01) != last) {
- 			/* set voltage to (last ? 13V : 18V) */
- 			stv0299_writeregI (state, 0x0c, reg0x0c | (last ? lv_mask : 0x50));
-@@ -443,7 +444,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
- 		printk ("%s(%d): switch delay (should be 32k followed by all 8k\n",
- 			__func__, fe->dvb->num);
- 		for (i = 1; i < 10; i++)
--			printk ("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
-+			printk("%d: %d\n", i, (int) ktime_to_us(ktime_sub(tv[i-1], tv[i])));
- 	}
- 
- 	return 0;
--- 
-2.2.0.rc0.207.ga3a616c
+With those values, I get ~800kbps for a 360p converted frame. This is nice :).
+The same video as an input with only the "bitrate" parameter set is
+not visually similar.
 
+But, when trying to encode a 720p video with the same QP parameters,
+it is not working (the first keyframe is not ok, seems to be a P frame
+instead of I, as it is 2000 bits and should be ~40000). I am keeping
+the videoscaler in this second case, as it should be used as a color
+converter.
+
+Philipp, did you do some tests like this one ? Did you observe that
+the encoder can maybe be too long to get a frame encoded when desired
+quality is "high" ?
+Maybe do you have some ideas about this ?
+
+Thanks,
+JM
