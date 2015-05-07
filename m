@@ -1,143 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51331 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754667AbbE1Vto (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58103 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752518AbbEGGW3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:44 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	Thu, 7 May 2015 02:22:29 -0400
+Message-ID: <554B0496.7050902@xs4all.nl>
+Date: Thu, 07 May 2015 08:22:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 22/35] DocBook: reformat FE_SET_FRONTEND_TUNE_MODE ioctl
-Date: Thu, 28 May 2015 18:49:25 -0300
-Message-Id: <b0ac361917cb97f04ba179680e788660f2b54165.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] sta2x11: use monotonic timestamp
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the proper format for FE_SET_FRONTEND_TUNE_MODE documentation.
+V4L2 drivers should use MONOTONIC timestamps instead of gettimeofday, which is
+affected by daylight savings time.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
- create mode 100644 Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
-
-diff --git a/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml b/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
-new file mode 100644
-index 000000000000..30bc99dc4c1c
---- /dev/null
-+++ b/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
-@@ -0,0 +1,64 @@
-+<refentry id="FE_SET_FRONTEND_TUNE_MODE">
-+  <refmeta>
-+    <refentrytitle>ioctl FE_SET_FRONTEND_TUNE_MODE</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>FE_SET_FRONTEND_TUNE_MODE</refname>
-+    <refpurpose>Allow setting tuner mode flags to the frontend.</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>unsigned int <parameter>flags</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+        <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fe_fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>FE_SET_FRONTEND_TUNE_MODE</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>flags</parameter></term>
-+	<listitem>
-+	    <para>Valid flags:</para>
-+	    <itemizedlist>
-+		<listitem>0 - normal tune mode</listitem>
-+		<listitem>FE_TUNE_MODE_ONESHOT - When set, this flag will
-+		    disable any zigzagging or other "normal" tuning behaviour.
-+		    Additionally, there will be no automatic monitoring of the
-+		    lock status, and hence no frontend events will be
-+		    generated. If a frontend device is closed, this flag will
-+		    be automatically turned off when the device is reopened
-+		    read-write.</listitem>
-+	    </itemizedlist>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>Allow setting tuner mode flags to the frontend, between 0 (normal)
-+	or FE_TUNE_MODE_ONESHOT mode</para>
-+&return-value-dvb;
-+</refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 079f631cc848..645f92bec767 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -738,37 +738,7 @@ typedef enum fe_hierarchy {
- &return-value-dvb;
- </section>
- 
--<section id="FE_SET_FRONTEND_TUNE_MODE">
--<title>FE_SET_FRONTEND_TUNE_MODE</title>
--<para>DESCRIPTION</para>
--<informaltable><tgroup cols="1"><tbody><row>
--<entry align="char">
--<para>Allow setting tuner mode flags to the frontend.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
--
--<para>SYNOPSIS</para>
--<informaltable><tgroup cols="1"><tbody><row>
--<entry align="char">
--<para>int ioctl(int fd, int request =
--<link linkend="FE_SET_FRONTEND_TUNE_MODE">FE_SET_FRONTEND_TUNE_MODE</link>, unsigned int flags);</para>
--</entry>
--</row></tbody></tgroup></informaltable>
--
--<para>PARAMETERS</para>
--<informaltable><tgroup cols="2"><tbody><row>
--<entry align="char">
--	<para>unsigned int flags</para>
--</entry>
--<entry align="char">
--<para>
--FE_TUNE_MODE_ONESHOT When set, this flag will disable any zigzagging or other "normal" tuning behaviour. Additionally, there will be no automatic monitoring of the lock status, and hence no frontend events will be generated. If a frontend device is closed, this flag will be automatically turned off when the device is reopened read-write.
--</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--&return-value-dvb;
--</section>
-+&sub-fe-set-frontend-tune-mode;
- 
- </section>
- 
--- 
-2.4.1
-
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index d384a6b..59b3a36 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -813,7 +813,7 @@ static irqreturn_t vip_irq(int irq, struct sta2x11_vip *vip)
+ 		/* Disable acquisition */
+ 		reg_write(vip, DVP_CTL, reg_read(vip, DVP_CTL) & ~DVP_CTL_ENA);
+ 		/* Remove the active buffer from the list */
+-		do_gettimeofday(&vip->active->vb.v4l2_buf.timestamp);
++		v4l2_get_timestamp(&vip->active->vb.v4l2_buf.timestamp);
+ 		vip->active->vb.v4l2_buf.sequence = vip->sequence++;
+ 		vb2_buffer_done(&vip->active->vb, VB2_BUF_STATE_DONE);
+ 	}
+@@ -864,6 +864,7 @@ static int sta2x11_vip_init_buffer(struct sta2x11_vip *vip)
+ 	vip->vb_vidq.buf_struct_size = sizeof(struct vip_buffer);
+ 	vip->vb_vidq.ops = &vip_video_qops;
+ 	vip->vb_vidq.mem_ops = &vb2_dma_contig_memops;
++	vip->vb_vidq.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	err = vb2_queue_init(&vip->vb_vidq);
+ 	if (err)
+ 		return err;
