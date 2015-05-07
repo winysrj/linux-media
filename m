@@ -1,52 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dcvr.yhbt.net ([64.71.152.64]:53172 "EHLO dcvr.yhbt.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750922AbbEIEvK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 May 2015 00:51:10 -0400
-Date: Sat, 9 May 2015 04:51:09 +0000
-From: Eric Wong <normalperson@yhbt.net>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
-	damien@zamaudio.com, chris.j.arges@canonical.com,
-	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
-	pmatilai@laiskiainen.org, jussi@sonarnerd.net, fisch602@gmail.com,
-	joe@oampo.co.uk, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 2/2] sound/usb: Update ALSA driver to use media
- controller API
-Message-ID: <20150509045109.GA6528@dcvr.yhbt.net>
-References: <cover.1431110739.git.shuahkh@osg.samsung.com>
- <dd21d1282a85d620be1aae497b66ccb355e458ba.1431110739.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dd21d1282a85d620be1aae497b66ccb355e458ba.1431110739.git.shuahkh@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45456 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752355AbbEGCtH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 May 2015 22:49:07 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A05DF2A0097
+	for <linux-media@vger.kernel.org>; Thu,  7 May 2015 04:48:53 +0200 (CEST)
+Date: Thu, 07 May 2015 04:48:53 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150507024853.A05DF2A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Shuah Khan <shuahkh@osg.samsung.com> wrote:
-> @@ -541,13 +591,19 @@ int snd_usb_create_quirk(struct snd_usb_audio *chip,
->  		[QUIRK_AUDIO_ALIGN_TRANSFER] = create_align_transfer_quirk,
->  		[QUIRK_AUDIO_STANDARD_MIXER] = create_standard_mixer_quirk,
->  	};
-> +	int ret;
->  
-> +	if (quirk->media_device) {
-> +		/* don't want to fail when media_device_init() doesn't work */
-> +		ret = media_device_init(iface);
-> +	}
->  	if (quirk->type < QUIRK_TYPE_COUNT) {
-> -		return quirk_funcs[quirk->type](chip, iface, driver, quirk);
-> +		ret = quirk_funcs[quirk->type](chip, iface, driver, quirk);
->  	} else {
->  		usb_audio_err(chip, "invalid quirk type %d\n", quirk->type);
->  		return -ENXIO;
->  	}
-> +	return ret;
->  }
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What is the point of saving 'ret' of media_device_init if it'll
-only be clobbered or ignored for ENXIO?
+Results of the daily build of media_tree:
+
+date:		Thu May  7 04:00:15 CEST 2015
+git branch:	test
+git hash:	1555f3bf5cc172e7d23c2b8db10d656d15bec13e
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-0.slh.3-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
