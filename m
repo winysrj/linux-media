@@ -1,96 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40532 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752511AbbEDK0X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 06:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 6/8] ov772x: avoid calling ov772x_select_params() twice
-Date: Mon,  4 May 2015 12:25:53 +0200
-Message-Id: <1430735155-24110-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+Received: from 251.110.2.81.in-addr.arpa ([81.2.110.251]:46321 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752886AbbEHTTJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 15:19:09 -0400
+Date: Fri, 8 May 2015 20:18:43 +0100
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Thierry Reding <treding@nvidia.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Dave Airlie <airlied@redhat.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>
+Subject: Re: [RFC] How implement Secure Data Path ?
+Message-ID: <20150508201843.3447049b@lxorguk.ukuu.org.uk>
+In-Reply-To: <20150508083735.GB15256@phenom.ffwll.local>
+References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+	<20150505175405.2787db4b@lxorguk.ukuu.org.uk>
+	<20150506083552.GF30184@phenom.ffwll.local>
+	<20150506091919.GC16325@ulmo.nvidia.com>
+	<20150506131532.GC30184@phenom.ffwll.local>
+	<20150507132218.GA24541@ulmo.nvidia.com>
+	<20150507135212.GD30184@phenom.ffwll.local>
+	<20150507174003.2a5b42e6@lxorguk.ukuu.org.uk>
+	<20150508083735.GB15256@phenom.ffwll.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> dma-buf user handles are fds, which means anything allocated can be passed
+> around nicely already. The question really is whether we'll have one ioctl
+> on top of a special dev node or a syscall. I thought that in these cases
+> where the dev node is only ever used to allocate the real thing, a syscall
+> is the preferred way to go.
 
-Merge ov772x_s_fmt into ov772x_set_fmt.
+So you'd go for
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/ov772x.c | 41 +++++++++++------------------------
- 1 file changed, 13 insertions(+), 28 deletions(-)
+	fd = dmabuf_alloc(blah..., O_whatever) ?
 
-diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-index f150a8b..aa32bc5 100644
---- a/drivers/media/i2c/soc_camera/ov772x.c
-+++ b/drivers/media/i2c/soc_camera/ov772x.c
-@@ -895,38 +895,15 @@ static int ov772x_get_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
--{
--	struct ov772x_priv *priv = to_ov772x(sd);
--	const struct ov772x_color_format *cfmt;
--	const struct ov772x_win_size *win;
--	int ret;
--
--	ov772x_select_params(mf, &cfmt, &win);
--
--	ret = ov772x_set_params(priv, cfmt, win);
--	if (ret < 0)
--		return ret;
--
--	priv->win = win;
--	priv->cfmt = cfmt;
--
--	mf->code = cfmt->code;
--	mf->width = win->rect.width;
--	mf->height = win->rect.height;
--	mf->field = V4L2_FIELD_NONE;
--	mf->colorspace = cfmt->colorspace;
--
--	return 0;
--}
--
- static int ov772x_set_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_format *format)
- {
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 	struct v4l2_mbus_framefmt *mf = &format->format;
- 	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
-+	int ret;
- 
- 	if (format->pad)
- 		return -EINVAL;
-@@ -939,9 +916,17 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
- 	mf->field = V4L2_FIELD_NONE;
- 	mf->colorspace = cfmt->colorspace;
- 
--	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--		return ov772x_s_fmt(sd, mf);
--	cfg->try_fmt = *mf;
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = *mf;
-+		return 0;
-+	}
-+
-+	ret = ov772x_set_params(priv, cfmt, win);
-+	if (ret < 0)
-+		return ret;
-+
-+	priv->win = win;
-+	priv->cfmt = cfmt;
- 	return 0;
- }
- 
--- 
-2.1.4
+Whichever I guess.. really we want open("/dev/foo/parameters.....") but
+we missed that chance a long time ago.
 
+The billion dollar question is how is the resource managed, who owns the
+object, who is charged for it, how to does containerise. We really ought
+to have a clear answer to that.
+
+> > I guess the same kind of logic as with GEM (except preferably without
+> > the DoS security holes) applies as to why its useful to have handles to
+> > the DMA buffers.
+> 
+> We have handles (well file descriptors) to dma-bufs already, I'm a bit
+> confused what you mean?
+
+I was agreeing with your argument - with GEM as an example that it works
+for the CPU accessing case.
+
+Alan
