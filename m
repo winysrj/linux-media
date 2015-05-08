@@ -1,58 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:35208 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932159AbbELIq1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 04:46:27 -0400
-Received: by lbbuc2 with SMTP id uc2so253154lbb.2
-        for <linux-media@vger.kernel.org>; Tue, 12 May 2015 01:46:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20150508201843.3447049b@lxorguk.ukuu.org.uk>
-References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
-	<20150505175405.2787db4b@lxorguk.ukuu.org.uk>
-	<20150506083552.GF30184@phenom.ffwll.local>
-	<20150506091919.GC16325@ulmo.nvidia.com>
-	<20150506131532.GC30184@phenom.ffwll.local>
-	<20150507132218.GA24541@ulmo.nvidia.com>
-	<20150507135212.GD30184@phenom.ffwll.local>
-	<20150507174003.2a5b42e6@lxorguk.ukuu.org.uk>
-	<20150508083735.GB15256@phenom.ffwll.local>
-	<20150508201843.3447049b@lxorguk.ukuu.org.uk>
-Date: Tue, 12 May 2015 10:46:26 +0200
-Message-ID: <CA+M3ks6fddVwvwiUSBkMccV7utVVuB=iBqGonURimavM=sSWUw@mail.gmail.com>
-Subject: Re: [RFC] How implement Secure Data Path ?
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Thierry Reding <treding@nvidia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+Received: from cantor2.suse.de ([195.135.220.15]:37192 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752584AbbEHOt2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 10:49:28 -0400
+Date: Fri, 8 May 2015 15:49:22 +0100
+From: Mel Gorman <mgorman@suse.de>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, linux-media@vger.kernel.org,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <robdclark@gmail.com>,
-	Dave Airlie <airlied@redhat.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
+Message-ID: <20150508144922.GO2462@suse.de>
+References: <1430897296-5469-1-git-send-email-jack@suse.cz>
+ <1430897296-5469-3-git-send-email-jack@suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1430897296-5469-3-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think now I have an answer to my question.
+On Wed, May 06, 2015 at 09:28:09AM +0200, Jan Kara wrote:
+> Provide new function get_vaddr_frames().  This function maps virtual
+> addresses from given start and fills given array with page frame numbers of
+> the corresponding pages. If given start belongs to a normal vma, the function
+> grabs reference to each of the pages to pin them in memory. If start
+> belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
+> must make sure pfns aren't reused for anything else while he is using
+> them.
+> 
+> This function is created for various drivers to simplify handling of
+> their buffers.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
 
-I will back come in a couple of weeks with a generic dmabuf allocator.
-The feature set of this should be:
-- allow to have per device specificone  allocator
-- ioctl for buffer allocation and exporting dmabuf file descriptor on /dev/foo
-- generic API to be able to call buffer securing module which is
-platform specific.
-- ioctl and kernel API to set/get dmabuf secure status
+Trivial comments only;
 
-Sumit had already done a draft of this kind of dmabuf allocator with
-his cenalloc [1]
-I think I will start from that.
+> ---
+>  include/linux/mm.h |  44 +++++++++++
+>  mm/gup.c           | 214 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 258 insertions(+)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 0755b9fd03a7..dcd1f02a78e9 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -20,6 +20,7 @@
+>  #include <linux/shrinker.h>
+>  #include <linux/resource.h>
+>  #include <linux/page_ext.h>
+> +#include <linux/err.h>
+>  
+>  struct mempolicy;
+>  struct anon_vma;
+> @@ -1197,6 +1198,49 @@ long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+>  		    int write, int force, struct page **pages);
+>  int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+>  			struct page **pages);
+> +
+> +/* Container for pinned pfns / pages */
+> +struct frame_vector {
+> +	unsigned int nr_allocated;	/* Number of frames we have space for */
+> +	unsigned int nr_frames;	/* Number of frames stored in ptrs array */
+> +	bool got_ref;		/* Did we pin pages by getting page ref? */
+> +	bool is_pfns;		/* Does array contain pages or pfns? */
+> +	void *ptrs[0];		/* Array of pinned pfns / pages. Use
+> +				 * pfns_vector_pages() or pfns_vector_pfns()
+> +				 * for access */
+> +};
+> +
+> +struct frame_vector *frame_vector_create(unsigned int nr_frames);
+> +void frame_vector_destroy(struct frame_vector *vec);
+> +int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
+> +		     bool write, bool force, struct frame_vector *vec);
+> +void put_vaddr_frames(struct frame_vector *vec);
+> +int frame_vector_to_pages(struct frame_vector *vec);
+> +void frame_vector_to_pfns(struct frame_vector *vec);
+> +
+> +static inline unsigned int frame_vector_count(struct frame_vector *vec)
+> +{
+> +	return vec->nr_frames;
+> +}
+> +
+> +static inline struct page **frame_vector_pages(struct frame_vector *vec)
+> +{
+> +	if (vec->is_pfns) {
+> +		int err = frame_vector_to_pages(vec);
+> +
+> +		if (err)
+> +			return ERR_PTR(err);
+> +	}
+> +	return (struct page **)(vec->ptrs);
+> +}
+> +
+> +static inline unsigned long *frame_vector_pfns(struct frame_vector *vec)
+> +{
+> +	if (!vec->is_pfns)
+> +		frame_vector_to_pfns(vec);
+> +	return (unsigned long *)(vec->ptrs);
+> +}
+> +
+>  struct kvec;
+>  int get_kernel_pages(const struct kvec *iov, int nr_pages, int write,
+>  			struct page **pages);
+> diff --git a/mm/gup.c b/mm/gup.c
+> index 6297f6bccfb1..8db5c40e65c4 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/rmap.h>
+>  #include <linux/swap.h>
+>  #include <linux/swapops.h>
+> +#include <linux/vmalloc.h>
+>  
+>  #include <linux/sched.h>
+>  #include <linux/rwsem.h>
+> @@ -936,6 +937,219 @@ int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
+>  	return ret;	/* 0 or negative error code */
+>  }
+>  
+> +/*
+> + * get_vaddr_frames() - map virtual addresses to pfns
+> + * @start:	starting user address
+> + * @nr_frames:	number of pages / pfns from start to map
+> + * @write:	whether pages will be written to by the caller
+> + * @force:	whether to force write access even if user mapping is
+> + *		readonly. This will result in the page being COWed even
+> + *		in MAP_SHARED mappings. You do not want this.
 
-Benjamin
+If they don't want it, why does it exist?
 
-[1] http://git.linaro.org/people/sumit.semwal/linux-3.x.git on
-cenalloc_wip branch.
+> + * @vec:	structure which receives pages / pfns of the addresses mapped.
+> + *		It should have space for at least nr_frames entries.
+> + *
+> + * This function maps virtual addresses from @start and fills @vec structure
+> + * with page frame numbers or page pointers to corresponding pages (choice
+> + * depends on the type of the vma underlying the virtual address). If @start
+> + * belongs to a normal vma, the function grabs reference to each of the pages
+> + * to pin them in memory. If @start belongs to VM_IO | VM_PFNMAP vma, we don't
+> + * touch page structures and the caller must make sure pfns aren't reused for
+> + * anything else while he is using them.
+> + *
+> + * The function returns number of pages mapped which may be less than
+> + * @nr_frames. In particular we stop mapping if there are more vmas of
+> + * different type underlying the specified range of virtual addresses.
+> + *
+> + * This function takes care of grabbing mmap_sem as necessary.
+> + */
+> +int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+> +		     bool write, bool force, struct frame_vector *vec)
+> +{
+> +	struct mm_struct *mm = current->mm;
+> +	struct vm_area_struct *vma;
+> +	int ret = 0;
+> +	int err;
+> +	int locked = 1;
+> +
+
+bool locked.
+
+> +	if (nr_frames == 0)
+> +		return 0;
+> +
+> +	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+> +		nr_frames = vec->nr_allocated;
+> +
+> +	down_read(&mm->mmap_sem);
+> +	vma = find_vma_intersection(mm, start, start + 1);
+> +	if (!vma) {
+> +		ret = -EFAULT;
+> +		goto out;
+> +	}
+> +	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
+> +		vec->got_ref = 1;
+> +		vec->is_pfns = 0;
+
+They're bools and while correct, it looks weird. There are a few
+instances of this but I won't comment on it again.
+
+> +		ret = get_user_pages_locked(current, mm, start, nr_frames,
+> +			write, force, (struct page **)(vec->ptrs), &locked);
+> +		goto out;
+> +	}
+> +
+> +	vec->got_ref = 0;
+> +	vec->is_pfns = 1;
+> +	do {
+> +		unsigned long *nums = frame_vector_pfns(vec);
+> +
+> +		while (ret < nr_frames && start + PAGE_SIZE <= vma->vm_end) {
+> +			err = follow_pfn(vma, start, &nums[ret]);
+> +			if (err) {
+> +				if (ret == 0)
+> +					ret = err;
+> +				goto out;
+> +			}
+> +			start += PAGE_SIZE;
+> +			ret++;
+> +		}
+> +		/*
+> +		 * We stop if we have enough pages or if VMA doesn't completely
+> +		 * cover the tail page.
+> +		 */
+> +		if (ret >= nr_frames || start < vma->vm_end)
+> +			break;
+> +		vma = find_vma_intersection(mm, start, start + 1);
+> +	} while (vma && vma->vm_flags & (VM_IO | VM_PFNMAP));
+> +out:
+> +	if (locked)
+> +		up_read(&mm->mmap_sem);
+> +	if (!ret)
+> +		ret = -EFAULT;
+> +	if (ret > 0)
+> +		vec->nr_frames = ret;
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(get_vaddr_frames);
+> +
+> +/**
+> + * put_vaddr_frames() - drop references to pages if get_vaddr_frames() acquired
+> + *			them
+> + * @vec:	frame vector to put
+> + *
+> + * Drop references to pages if get_vaddr_frames() acquired them. We also
+> + * invalidate the frame vector so that it is prepared for the next call into
+> + * get_vaddr_frames().
+> + */
+> +void put_vaddr_frames(struct frame_vector *vec)
+> +{
+> +	int i;
+> +	struct page **pages;
+> +
+> +	if (!vec->got_ref)
+> +		goto out;
+> +	pages = frame_vector_pages(vec);
+> +	/*
+> +	 * frame_vector_pages() might needed to do a conversion when we
+> +	 * get_vaddr_frames() got pages but vec was later converted to pfns.
+> +	 * But it shouldn't really fail to convert pfns back...
+> +	 */
+> +	BUG_ON(IS_ERR(pages));
+
+It's hard to see how it could but it is recoverable so BUG_ON is
+overkill. WARN_ON and return even though we potentially leaked now.
+
+> +	for (i = 0; i < vec->nr_frames; i++)
+> +		put_page(pages[i]);
+> +	vec->got_ref = 0;
+> +out:
+> +	vec->nr_frames = 0;
+> +}
+> +EXPORT_SYMBOL(put_vaddr_frames);
+> +
+> +/**
+> + * frame_vector_to_pages - convert frame vector to contain page pointers
+> + * @vec:	frame vector to convert
+> + *
+> + * Convert @vec to contain array of page pointers.  If the conversion is
+> + * successful, return 0. Otherwise return an error.
+> + */
+
+If you do another version, it would not hurt to mention that a page
+reference is not taken when doing this conversion.
+
+> +int frame_vector_to_pages(struct frame_vector *vec)
+> +{
+
+I think it's probably best to make the relevant counters in frame_vector
+signed and limit the maximum possible size of it. It's still not putting
+any practical limit on the size of the frame_vector.
+
+-- 
+Mel Gorman
+SUSE Labs
