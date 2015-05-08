@@ -1,110 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52401 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752302AbbE0QLA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:11:00 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 08/15] v4l: subdev: Add pad config allocator and init
-Date: Wed, 27 May 2015 17:10:46 +0100
-Message-Id: <1432743053-13479-9-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail-wg0-f53.google.com ([74.125.82.53]:32990 "EHLO
+	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026AbbEHIfR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 04:35:17 -0400
+Received: by wgin8 with SMTP id n8so65833512wgi.0
+        for <linux-media@vger.kernel.org>; Fri, 08 May 2015 01:35:16 -0700 (PDT)
+Date: Fri, 8 May 2015 10:37:35 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Thierry Reding <treding@nvidia.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <robdclark@gmail.com>,
+	Dave Airlie <airlied@redhat.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>
+Subject: Re: [RFC] How implement Secure Data Path ?
+Message-ID: <20150508083735.GB15256@phenom.ffwll.local>
+References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+ <20150505175405.2787db4b@lxorguk.ukuu.org.uk>
+ <20150506083552.GF30184@phenom.ffwll.local>
+ <20150506091919.GC16325@ulmo.nvidia.com>
+ <20150506131532.GC30184@phenom.ffwll.local>
+ <20150507132218.GA24541@ulmo.nvidia.com>
+ <20150507135212.GD30184@phenom.ffwll.local>
+ <20150507174003.2a5b42e6@lxorguk.ukuu.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150507174003.2a5b42e6@lxorguk.ukuu.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@linaro.org>
+On Thu, May 07, 2015 at 05:40:03PM +0100, One Thousand Gnomes wrote:
+> On Thu, 7 May 2015 15:52:12 +0200
+> Daniel Vetter <daniel@ffwll.ch> wrote:
+> 
+> > On Thu, May 07, 2015 at 03:22:20PM +0200, Thierry Reding wrote:
+> > > On Wed, May 06, 2015 at 03:15:32PM +0200, Daniel Vetter wrote:
+> > > > Yes the idea would be a special-purpose allocater thing like ion. Might
+> > > > even want that to be a syscall to do it properly.
+> > > 
+> > > Would you care to elaborate why a syscall would be more proper? Not that
+> > > I'm objecting to it, just for my education.
+> > 
+> > It seems to be the theme with someone proposing a global /dev node for a
+> > few system wide ioctls, then reviewers ask to make a proper ioctl out of
+> > it. E.g. kdbus, but I have vague memory of this happening a lot.
+> 
+> kdbus is not necessarily an advert for how to do anything 8)
+> 
+> If it can be user allocated then it really ought to be one or more device
+> nodes IMHO, because you want the resource to be passable between users,
+> you need a handle to it and you want it to go away nicely on last close.
+> In the cases where the CPU is allowed to or expected to have write only
+> access you also might want an mmap of it.
 
-Add a new subdev operation to initialize a subdev pad config array, and
-a helper function to allocate and initialize the array. This can be used
-by bridge drivers to implement try format based on subdev pad
-operations.
+dma-buf user handles are fds, which means anything allocated can be passed
+around nicely already. The question really is whether we'll have one ioctl
+on top of a special dev node or a syscall. I thought that in these cases
+where the dev node is only ever used to allocate the real thing, a syscall
+is the preferred way to go.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           | 10 ++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
+> I guess the same kind of logic as with GEM (except preferably without
+> the DoS security holes) applies as to why its useful to have handles to
+> the DMA buffers.
 
-Changes since v1:
-
-- Added v4l2_subdev_free_pad_config
----
- drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           |   10 ++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 6359606..d594fe5 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -35,7 +35,7 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	fh->pad = v4l2_subdev_alloc_pad_config(sd);
- 	if (fh->pad == NULL)
- 		return -ENOMEM;
- #endif
-@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
- 		sink, link, &source_fmt, &sink_fmt);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+
-+	if (!sd->entity.num_pads)
-+		return NULL;
-+
-+	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg)
-+		return NULL;
-+
-+	v4l2_subdev_call(sd, pad, init_cfg, cfg);
-+
-+	return cfg;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index dc20102..4a609f6 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -485,6 +485,8 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	void (*init_cfg)(struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
-@@ -677,7 +679,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt);
- int v4l2_subdev_link_validate(struct media_link *link);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-+
-+static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-+{
-+	kfree(cfg);
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
-+
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
+We have handles (well file descriptors) to dma-bufs already, I'm a bit
+confused what you mean?
+-Daniel
 -- 
-1.7.10.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
