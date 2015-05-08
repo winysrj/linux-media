@@ -1,50 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40316 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751208AbbEPXHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 May 2015 19:07:52 -0400
-Message-ID: <5557CDBE.2030806@iki.fi>
-Date: Sun, 17 May 2015 02:07:42 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35878 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751378AbbEHKqK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 06:46:10 -0400
+Message-ID: <554C93DE.2010205@xs4all.nl>
+Date: Fri, 08 May 2015 12:45:50 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-CC: Michael Krufky <mkrufky@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >=  4.1.x
-References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com> <554F352F.10301@gmail.com> <554FDAE7.4010906@gmail.com> <5550F842.3050604@gmail.com> <55520A08.1010605@iki.fi> <5552CB67.8070106@gmail.com>
-In-Reply-To: <5552CB67.8070106@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v6 07/11] DocBook/media: add CEC documentation
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-8-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1430760785-1169-8-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kamil,
 
+A few more comments about the documentation:
 
-On 05/13/2015 06:56 AM, poma wrote:
-> On 12.05.2015 16:11, Antti Palosaari wrote:
->> On 05/11/2015 09:43 PM, poma wrote:
->>> On 05/11/2015 12:25 AM, poma wrote:
->>>> On 10.05.2015 12:38, poma wrote:
->>>>> On 08.05.2015 12:59, poma wrote:
-> Is a beer keg enough as bribe? :)
-> Just do not say that you drink juice.
->
-> After the reverting of all changes
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/log/drivers/media/tuners/mxl5007t.c
->
-> device now survives both, 'lsdvb' and rc kernels.
->
-> Besides, despite all this, this device is already not working at its full potential.
-> One of the tuners can withstand a few hours and then hangs.
-> After that, in the application e.g. vlc is needed to select the second tuner and so continue to use the device.
-> So this is actually a "single-seater" as Formula 1.
-> Vroom vroom!
+First of all you should add some documentation about what the passthrough mode
+actually is. Right now all this says is that you can enable or disable it, but
+not what it actually does.
 
-try that
-http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/commit/?h=af9015_mxl5007t_1
+And next I have a few small comments about the timestamp documentation:
 
-Antti
+> diff --git a/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml b/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
+> new file mode 100644
+> index 0000000..cbde320
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
+> @@ -0,0 +1,125 @@
 
--- 
-http://palosaari.fi/
+...
+
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>CEC devices can send asynchronous events. These can be retrieved by calling
+> +    the <constant>CEC_G_EVENT</constant> ioctl. If the file descriptor is in non-blocking
+> +    mode and no event is pending, then it will return -1 and set errno to the &EAGAIN;.</para>
+> +
+> +    <para>There can be up to 40 events queued up. If more events are added, then the oldest event will be discarded.</para>
+> +
+> +    <table pgwide="1" frame="none" id="cec-event">
+> +      <title>struct <structname>cec_event</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u64</entry>
+> +	    <entry><structfield>ts</structfield></entry>
+> +	    <entry>Timestamp of the event in ns.</entry>
+
+"Timestamp of the event in ns. This is based on the monotonic clock. Applications
+can access this clock using <function>clock_gettime(2)</function> with clock ID
+<constant>CLOCK_MONOTONIC</constant>. To turn this into a <structname>struct timespec</structname>
+use:
+
+<programlisting>
+	struct timespec tmspec;
+
+	tmspec.tv_sec = ts / 1000000000;
+	tmspec.tv_nsec = ts % 1000000000;
+<programlisting>"
+
+(I hope the docbook syntax for programlisting is correct)
+
+<snip>
+
+> diff --git a/Documentation/DocBook/media/v4l/cec-ioc-receive.xml b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+> new file mode 100644
+> index 0000000..dbec20a
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+> @@ -0,0 +1,185 @@
+
+...
+
+> +    <table pgwide="1" frame="none" id="cec-msg">
+> +      <title>struct <structname>cec_msg</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u64</entry>
+> +	    <entry><structfield>ts</structfield></entry>
+> +	    <entry>Timestamp of when the message was transmitted in ns in the case
+> +	    of <constant>CEC_TRANSMIT</constant> with <structfield>reply</structfield>
+> +	    set to 0, or the timestamp of the received message in all other cases.</entry>
+
+The same timestamp explanation should be given here.
+
+Regards,
+
+	Hans
