@@ -1,188 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59493 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965146AbbEFH23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 03:28:29 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 5/9] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
-Date: Wed,  6 May 2015 09:28:12 +0200
-Message-Id: <1430897296-5469-6-git-send-email-jack@suse.cz>
-In-Reply-To: <1430897296-5469-1-git-send-email-jack@suse.cz>
-References: <1430897296-5469-1-git-send-email-jack@suse.cz>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35377 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751319AbbEHLy0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 07:54:26 -0400
+Message-ID: <554CA3DF.9030700@xs4all.nl>
+Date: Fri, 08 May 2015 13:54:07 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?windows-1252?Q?S=F6ren_Brink?= =?windows-1252?Q?mann?=
+	<soren.brinkmann@xilinx.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 03/18] media controller: use MEDIA_ENT_T_AV_DMA for A/V
+ DMA engines
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <afb84e3d80fc4f6f2465a123012f161b8c29f1c4.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <afb84e3d80fc4f6f2465a123012f161b8c29f1c4.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 97 +++++-------------------------
- 1 file changed, 15 insertions(+), 82 deletions(-)
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> At the Video4Linux API, the /dev/video?, /dev/vbi? and
+> /dev/radio? device nodes are used for the chipset that
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index afd4b514affc..4ee1b3fbfe2a 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
-+	struct frame_vector		*vec;
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
- 	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
--	struct vm_area_struct		*vma;
+You should add /dev/swradio? for SDR devices.
+
+> provides the bridge between video/radio streams and the
+> USB, PCI or CPU buses.
+> 
+> Such bridge is also typically used to control the V4L2 device
+> as a hole.
+
+hole -> whole
+
+> 
+> For video streaming devices and SDR radio devices, they're
+> also associated with the DMA engines that transfer the
+> video stream (or SDR stream) to the CPU's memory.
+> 
+> It should be noticed, however, this is not true on non-SDR
+> radio devices,
+
+I think you forgot that SDR devices are not using /dev/radio
+but /dev/swradio. They have different names. Radio devices never
+stream (OK, I think there are one or two exceptions, but that's really
+because nobody bothered to make an alsa driver. Those boards are
+in practice out of spec.)
+
+> and may also not be true on embedded devices
+> that, due to DRM reasons, don't allow writing unencrypted
+> data on a memory that could be seen by the CPU.
+
+This actually might still work by using opaque DMABUF handles. But that's
+under discussion right now in the Secure Data Path thread.
+
+Another reason can also be that the SoC vendor re-invented the wheel
+and made there own DMA streaming solution. You can still make V4L drivers
+that control the video receivers/transmitters, but for the actual streaming
+you are forced to use the vendor's crap code (hello TI!).
+
+I've bitter experiences with that :-(
  
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -224,25 +224,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size,
- 				    enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
--	unsigned long first, last;
--	int num_pages_from_user;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	DEFINE_DMA_ATTRS(attrs);
-+	struct frame_vector *vec;
- 
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
--
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
-@@ -253,63 +245,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 	buf->dma_sgt = &buf->sg_table;
-+	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec))
-+		goto userptr_fail_pfnvec;
-+	buf->vec = vec;
- 
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->num_pages = last - first + 1;
--
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
--	if (!buf->pages)
--		goto userptr_fail_alloc_pages;
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		dprintk(1, "no vma for address %lu\n", vaddr);
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		dprintk(1, "vma at %lu is too small for %lu bytes\n",
--			vaddr, size);
--		goto userptr_fail_find_vma;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		dprintk(1, "failed to copy vma\n");
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma_is_io(buf->vma)) {
--		for (num_pages_from_user = 0;
--		     num_pages_from_user < buf->num_pages;
--		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
--			unsigned long pfn;
--
--			if (follow_pfn(vma, vaddr, &pfn)) {
--				dprintk(1, "no page for address %lu\n", vaddr);
--				break;
--			}
--			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
--		}
--	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->num_pages,
--					     buf->dma_dir == DMA_FROM_DEVICE,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--	up_read(&current->mm->mmap_sem);
--
--	if (num_pages_from_user != buf->num_pages)
--		goto userptr_fail_get_user_pages;
-+	buf->pages = frame_vector_pages(vec);
-+	if (IS_ERR(buf->pages))
-+		goto userptr_fail_sgtable;
-+	buf->num_pages = frame_vector_count(vec);
- 
- 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
--		goto userptr_fail_alloc_table_from_pages;
-+		goto userptr_fail_sgtable;
- 
- 	sgt = &buf->sg_table;
- 	/*
-@@ -323,19 +271,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- userptr_fail_map:
- 	sg_free_table(&buf->sg_table);
--userptr_fail_alloc_table_from_pages:
--userptr_fail_get_user_pages:
--	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--		buf->num_pages, num_pages_from_user);
--	if (!vma_is_io(buf->vma))
--		while (--num_pages_from_user >= 0)
--			put_page(buf->pages[num_pages_from_user]);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--userptr_fail_find_vma:
--	up_read(&current->mm->mmap_sem);
--	kfree(buf->pages);
--userptr_fail_alloc_pages:
-+userptr_fail_sgtable:
-+	vb2_destroy_framevec(vec);
-+userptr_fail_pfnvec:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -362,13 +300,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	while (--i >= 0) {
- 		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
--		if (!vma_is_io(buf->vma))
--			put_page(buf->pages[i]);
- 	}
--	kfree(buf->pages);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
--- 
-2.1.4
+> So, we'll eventually need to add another entity for such
+> bridge chipsets that have a video/vbi/radio device node
+> associated, but don't have DMA engines on (some) devnodes.
+> 
+> As, currently, we don't have any such case,
+
+??? Radio devices are exactly that.
+
+> let's for now
+> just rename the device nodes that are associated with a
+> DMA engine as MEDIA_ENT_T_AV_DMA.
+> 
+> So,
+> 	MEDIA_ENT_T_DEVNODE_V4L -> MEDIA_ENT_T_AV_DMA
+> 
+> PS.: This is not actually true for USB devices, as the
+> DMA engine is an internal component, as it is up to the
+> Kernel to strip the stream payload from the URB packages.
+
+How about MEDIA_ENT_T_DATA_STREAMING? Or perhaps DATA_IO? Perhaps even just
+"IO"?
+
+That would cover USB as well, and I dislike the use of "AV", since the
+data might contain other things besides audio and/or video.
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 5872f8bbf774..5b8147629159 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -183,7 +183,7 @@
+>  	    <entry>Unknown device node</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_AV_DMA</constant></entry>
+>  	    <entry>V4L video, radio or vbi device node</entry>
+>  	  </row>
+>  	  <row>
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> index efde88adf624..7fa0cc0f08f0 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> @@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+>  		struct xvip_dma *dma;
+>  
+> -		if (entity->type != MEDIA_ENT_T_DEVNODE_V4L)
+> +		if (entity->type != MEDIA_ENT_T_AV_DMA)
+>  			continue;
+>  
+>  		dma = to_xvip_dma(media_entity_to_video_device(entity));
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 71a1b93b0790..9ef920221b5a 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -912,7 +912,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>  	/* Part 5: Register the entity. */
+>  	if (vdev->v4l2_dev->mdev &&
+>  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+> -		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+> +		vdev->entity.type = MEDIA_ENT_T_AV_DMA;
+>  		vdev->entity.name = vdev->name;
+>  		vdev->entity.info.dev.major = VIDEO_MAJOR;
+>  		vdev->entity.info.dev.minor = vdev->minor;
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 63596063b213..9f8fc8330b3e 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -535,7 +535,7 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+>  		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+>  	}
+>  
+> -	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
+> +	WARN(pad->entity->type != MEDIA_ENT_T_AV_DMA,
+>  	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
+>  	     pad->entity->type, pad->entity->name);
+>  
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 775c11c6b173..a7aa2aac9c23 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -44,12 +44,12 @@ struct media_device_info {
+>  
+>  /* Used values for media_entity_desc::type */
+>  
+> -#define MEDIA_ENT_T_DEVNODE_V4L		(((1 << 16)) + 1)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE_V4L + 3)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE_V4L + 4)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE_V4L + 5)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE_V4L + 6)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE_V4L + 7)
+> +#define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
+>  
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
+> 
 
