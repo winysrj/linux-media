@@ -1,85 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:34945 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819AbbETHwD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 03:52:03 -0400
-From: Tommi Rantala <tt.rantala@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Tommi Rantala <tt.rantala@gmail.com>
-Subject: [PATCH] [media] cx231xx: Add support for Terratec Grabby
-Date: Wed, 20 May 2015 10:51:29 +0300
-Message-Id: <1432108289-15072-1-git-send-email-tt.rantala@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:36605 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398AbbEHBMy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:54 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: [PATCH 07/18] media controller: rename the tuner entity
+Date: Thu,  7 May 2015 22:12:29 -0300
+Message-Id: <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the Terratec Grabby with USB ID 0ccd:00a6.
+Finally, let's rename the tuner entity. inside the media subsystem,
+a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
+It could even be used on other subsystems, like network, for wireless
+devices.
 
-Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 28 ++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 2 files changed, 29 insertions(+)
+So, it is not constricted to V4L2 API, or to a subdev.
 
+Let's then rename it as:
+	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index 9b3861058f0d..5c7f366bb1f4 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -241,7 +241,7 @@
+ 	    signals.</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
++	    <entry><constant>MEDIA_ENT_T_TUNER</constant></entry>
+ 	    <entry>TV and/or radio tuner</entry>
+ 	  </row>
+ 	</tbody>
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 39846077045e..d6a096495035 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -393,7 +393,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 
+ 	media_device_for_each_entity(entity, mdev) {
+ 		switch (entity->type) {
+-		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++		case MEDIA_ENT_T_TUNER:
+ 			tuner = entity;
+ 			break;
+ 		case MEDIA_ENT_T_DTV_DEMOD:
 diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index fe00da1..404e17c 100644
+index a756f74f0adc..2a7331e3c4a0 100644
 --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
 +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -815,6 +815,32 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_TERRATEC_GRABBY] = {
-+		.name = "Terratec Grabby",
-+		.tuner_type = TUNER_ABSENT,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.norm = V4L2_STD_PAL,
-+		.no_alt_vanc = 1,
-+		.external_av = 1,
-+		.input = {{
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+@@ -1213,7 +1213,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
  
-@@ -880,6 +906,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
- 	{USB_DEVICE(0x1f4d, 0x0102),
- 	 .driver_info = CX231XX_BOARD_OTG102},
-+	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
-+	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
- 	{},
- };
+ 	media_device_for_each_entity(entity, mdev) {
+ 		switch (entity->type) {
+-		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++		case MEDIA_ENT_T_TUNER:
+ 			tuner = entity;
+ 			break;
+ 		case MEDIA_ENT_T_ATV_DECODER:
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index abdcffabcb59..ecf4e8a543b3 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -696,7 +696,7 @@ static int tuner_probe(struct i2c_client *client,
+ register_client:
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+-	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
++	t->sd.entity.type = MEDIA_ENT_T_TUNER;
+ 	t->sd.entity.name = t->name;
  
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 00d3bce..54790fb 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -77,6 +77,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx 19
- #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
- #define CX231XX_BOARD_HAUPPAUGE_955Q 21
-+#define CX231XX_BOARD_TERRATEC_GRABBY 22
+ 	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 9b3d80e765f0..6acc4be1378c 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -57,7 +57,7 @@ struct media_device_info {
  
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+ #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+ 
+-#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
++#define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+ 
+ #if 1
+ /*
+@@ -88,6 +88,8 @@ struct media_device_info {
+ #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+ 
+ #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
++
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_T_TUNER
+ #endif
+ 
+ /* Used bitmasks for media_entity_desc::flags */
 -- 
-1.9.3
+2.1.0
 
