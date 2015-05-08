@@ -1,54 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:61279 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039AbbESVfY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 17:35:24 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] [media] coda: remove extraneous TRACE_SYSTEM_STRING
-Date: Tue, 19 May 2015 23:34:33 +0200
-Message-ID: <4790110.OLqddgPxAn@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:36543 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467AbbEHBMu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:50 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 02/18] media controller: deprecate entity subtype
+Date: Thu,  7 May 2015 22:12:24 -0300
+Message-Id: <80e0882a4194460ca232f19ebbc85fa3338eda3f.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The coda tracing code causes lots of warnings like
+The media controller entity subtype doesn't make much sense,
+especially since V4L2 subdevices may also have associated devnodes.
 
-In file included from /git/arm-soc/include/trace/define_trace.h:90:0,
-                 from /git/arm-soc/drivers/media/platform/coda/trace.h:203,
-                 from /git/arm-soc/drivers/media/platform/coda/coda-bit.c:34:
-/git/arm-soc/include/trace/ftrace.h:28:0: warning: "TRACE_SYSTEM_STRING" redefined
- #define TRACE_SYSTEM_STRING __app(TRACE_SYSTEM_VAR,__trace_system_name)
- ^
-In file included from /git/arm-soc/include/trace/define_trace.h:83:0,
-                 from /git/arm-soc/drivers/media/platform/coda/trace.h:203,
-                 from /git/arm-soc/drivers/media/platform/coda/coda-bit.c:34:
-/git/arm-soc/drivers/media/platform/coda/./trace.h:12:0: note: this is the location of the previous definition
- #define TRACE_SYSTEM_STRING __stringify(TRACE_SYSTEM)
+So, better to get rid of it while it is not too late.
 
->From what I can tell, this is just the result of a bogus TRACE_SYSTEM_STRING
-definition, and removing that one makes the warnings go away.
+We need, of course, to keep the old symbols to avoid userspace
+breakage, but we should avoid using them internally at the
+Kernel.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 9a1a8f9953f ("[media] coda: Add tracing support")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
-index d1d06cbd1f6a..781bf7286d53 100644
---- a/drivers/media/platform/coda/trace.h
-+++ b/drivers/media/platform/coda/trace.h
-@@ -9,8 +9,6 @@
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4e816be3de39..775c11c6b173 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -42,31 +42,45 @@ struct media_device_info {
  
- #include "coda.h"
+ #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
  
--#define TRACE_SYSTEM_STRING __stringify(TRACE_SYSTEM)
++/* Used values for media_entity_desc::type */
++
++#define MEDIA_ENT_T_DEVNODE_V4L		(((1 << 16)) + 1)
++#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE_V4L + 3)
++#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE_V4L + 4)
++#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE_V4L + 5)
++#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE_V4L + 6)
++#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE_V4L + 7)
++
++#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
++#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
++#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 2)
++/* A converter of analogue video to its digital representation. */
++#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 3)
++
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 4)
++
++#if 1
++/*
++ * Legacy symbols.
++ * Kept just to avoid userspace compilation breakages.
++ * One day, the symbols bellow will be removed
++ */
++
+ #define MEDIA_ENT_TYPE_SHIFT		16
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+ #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+ 
+ #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
+-#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
++#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
++
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+-#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+-#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+-#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+-#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+-#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
+ 
+-/* Legacy symbol. Use it to avoid userspace compilation breakages */
++
+ #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
++#endif
+ 
+-#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
+-/* A converter of analogue video to its digital representation. */
+-#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
 -
- TRACE_EVENT(coda_bit_run,
- 	TP_PROTO(struct coda_ctx *ctx, int cmd),
+-#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
++/* Used bitmasks for media_entity_desc::flags */
  
+ #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+ 
+-- 
+2.1.0
 
