@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:34743 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761087AbbEEQyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:54:39 -0400
-Received: by lbcga7 with SMTP id ga7so133647160lbc.1
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:54:38 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH v4 2/6] dvbsky: use si2168 config option ts_clock_gapped
-Date: Tue,  5 May 2015 19:54:15 +0300
-Message-Id: <1430844859-24947-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1430844859-24947-1-git-send-email-olli.salonen@iki.fi>
-References: <1430844859-24947-1-git-send-email-olli.salonen@iki.fi>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49862 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752904AbbEHK7r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 06:59:47 -0400
+Message-ID: <554C9711.1030600@xs4all.nl>
+Date: Fri, 08 May 2015 12:59:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: Re: [PATCH v2] libgencec: Add userspace library for the generic CEC
+ kernel interface
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-13-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1430760785-1169-13-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the dvbsky driver to support gapped clock instead of the current
-hack.
+Hi Kamil,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On 05/04/2015 07:33 PM, Kamil Debski wrote:
+> This is the first version of the libGenCEC library. It was designed to
+> act as an interface between the generic CEC kernel API and userspace
+> applications. It provides a simple interface for applications and an
+> example application that can be used to test the CEC functionality.
+> 
+> signed-off-by: Kamil Debski <k.debski@samsung.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index cdf59bc..0f73b1d 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -615,7 +615,8 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter *adap)
- 	memset(&si2168_config, 0, sizeof(si2168_config));
- 	si2168_config.i2c_adapter = &i2c_adapter;
- 	si2168_config.fe = &adap->fe[0];
--	si2168_config.ts_mode = SI2168_TS_PARALLEL | 0x40;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_gapped = true;
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
- 	info.addr = 0x64;
--- 
-1.9.1
+I still strongly recommend that this library is added to the v4l-utils
+repo. That already has support for v4l, dvb, media controller and IR
+(i.e. everything under drivers/media), and the CEC library/utility should
+be added there IMHO.
 
+For example, I might want to use it in qv4l2, so being able to link it
+knowing that I always get the latest version is very useful.
+
+Also, v4l-utils is always updated to be in sync with the latest media_tree
+kernel, and since CEC is part of that you really don't want to reinvent the
+wheel in that respect.
+
+There were objections in the past to renaming v4l-utils to media-utils, but
+perhaps this should be revisited as it hasn't been v4l specific for a long 
+time now.
+
+Regards,
+
+	Hans
