@@ -1,32 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adm51.rev.netart.pl ([77.55.90.51]:33187 "EHLO
-	adm51.rev.netart.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957AbbEVAAL convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44814 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751603AbbEHLSq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 20:00:11 -0400
-Content-Type: text/plain; charset="iso-8859-1"
+	Fri, 8 May 2015 07:18:46 -0400
+Message-ID: <554C9B78.2060808@xs4all.nl>
+Date: Fri, 08 May 2015 13:18:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Re:
-To: Recipients <kontakt@odkrywcytalentow.pl>
-From: kontakt@odkrywcytalentow.pl
-Date: Fri, 22 May 2015 00:51:31 +0100
-Reply-To: fwfshelpdesk@gmail.com
-Message-Id: <20150521235138.653962DB68A@odkrywcyt.nazwa.pl>
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: Re: [PATCH v6 05/11] rc: Add HDMI CEC protoctol handling
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-6-git-send-email-k.debski@samsung.com> <554C97C3.5030806@xs4all.nl>
+In-Reply-To: <554C97C3.5030806@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Teraz mozesz uzyskac kredyt w wysokosci 2% za uniewaznic i dostac do 40 lat lub wiecej, aby splacic. Nie naleza do kredytów krótkoterminowych, które sprawiaja, ze zwróci sie w kilka tygodni lub miesiecy. Nasza oferta obejmuje; * Refinansowanie * Home Improvement * Kredyty samochodowe * Konsolidacja zadluzenia * Linia kredytowa * Druga hipoteczny * Biznes Pozyczki * Pozyczki Personal
+On 05/08/2015 01:02 PM, Hans Verkuil wrote:
+> On 05/04/2015 07:32 PM, Kamil Debski wrote:
+>> Add handling of remote control events coming from the HDMI CEC bus.
+>> This patch includes a new keymap that maps values found in the CEC
+>> messages to the keys pressed and released. Also, a new protocol has
+>> been added to the core.
+>>
+>> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-  Zdobadz pieniadze potrzebne dzis z duza iloscia czasu, aby dokonac platnosci powrotem. Aby zastosowac, aby wyslac wszystkie pytania lub zaproszenia fwfshelpdesk@gmail.com: + 1- 435-241-5945
+But if you could fix the typo in the subject: protoctol -> protocol, then
+that would be appreciated...
 
-************************************************************
-Now you can get a loan at 2% per annul and get up to 40 years or more to pay it back. Don't fall for the short term loans that make you pay back in weeks or months. Our offer include; *Refinance *Home Improvement *Auto Loans *Debt Consolidation*Line of Credit *Second Mortgage *Business Loans*Personal Loans
+Regards,
 
- Get the money you need today with plenty of time to make the payments back. To apply, send all inquiries to fwfshelpdesk@gmail.com or call : + 1- 435-241-5945
+	Hans
 
----
-This email is free from viruses and malware because avast! Antivirus protection is active.
-http://www.avast.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
