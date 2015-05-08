@@ -1,45 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52870 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760629AbbEEQ1w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:27:52 -0400
-Date: Tue, 5 May 2015 09:27:52 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Rob Clark <robdclark@gmail.com>,
-	Thierry Reding <treding@nvidia.com>,
-	Dave Airlie <airlied@redhat.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>
-Subject: Re: [RFC] How implement Secure Data Path ?
-Message-ID: <20150505162752.GA12132@infradead.org>
-References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37131 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbbEHK7V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 06:59:21 -0400
+Received: by widdi4 with SMTP id di4so23095446wid.0
+        for <linux-media@vger.kernel.org>; Fri, 08 May 2015 03:59:20 -0700 (PDT)
+Message-ID: <554C9704.2040503@gmail.com>
+Date: Fri, 08 May 2015 12:59:16 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+CC: Antti Palosaari <crope@iki.fi>
+Subject: Re: dvb_usb_af9015: command failed=1 - stable: 4.0.2
+References: <554C8E04.5090007@gmail.com>
+In-Reply-To: <554C8E04.5090007@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 05, 2015 at 05:39:57PM +0200, Benjamin Gaignard wrote:
-> Since few months I'm looking for Linaro to how do Secure Data Path (SPD).
-> I have tried and implemented multiple thinks but I always facing architecture
-> issues so I would like to get your help to solve the problem.
+On 08.05.2015 12:20, poma wrote:
 > 
-> First what is Secure Data Path ? SDP is a set of hardware features to garanty
-> that some memories regions could only be read and/or write by specific hardware
-> IPs. You can imagine it as a kind of memory firewall which grant/revoke
-> accesses to memory per devices. Firewall configuration must be done in a trusted
-> environment: for ARM architecture we plan to use OP-TEE + a trusted
-> application to do that.
+> [    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
 > 
-> One typical use case for SDP in a video playback which involve those elements:
-> decrypt -> video decoder -> transform -> display
+> [    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
+> [    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
+> [    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> [    0.994859] usb 1-2: Product: DVB-T 2
+> 
+> [    1.001398] usb 1-2: Manufacturer: Afatech
+> [    1.003555] usb 1-2: SerialNumber: 010101010600001
+> [    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
+> [    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
+> [    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
+> 
+> [   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
+> [   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+> [   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
+> 
+> [   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
+> [   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
+> [   12.343650] mxl5007t 13-00c0: creating new instance
+> [   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
+> [   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
+> [   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+> [   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
+> [   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
+> [   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
+> [   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
+> [   12.564554] mxl5007t 13-00c0: attaching existing instance
+> [   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
+> [   12.567555] mxl5007t_soft_reset: 521: failed!
+> [   12.569745] mxl5007t_attach: error -121 on line 907
+> [   12.571231] usbcore: registered new interface driver dvb_usb_af9015
+> 
+> 
+> $ lsdvb
+> 
+> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
+> 		Version: 0.0.4
+> 		Copyright (C) Manu Abraham
+> $ 
+> 
 
-Sounds like a good enough reason not to implement it ever.
+
+Afatech AF9015 reference design:
+
+3.18.12-200.fc21.x86_64        - OK
+
+3.19.7-200.fc21.x86_64         - KO
+4.0.2-200.fc21.x86_64          - KO
+4.1.0-0.rc2.git3.1.fc23.x86_64 - KO
+
+
+If you have a patch to test, shout loudly.
+
+
