@@ -1,152 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37656 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbEYPOo (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49969 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751469AbbEHNNi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 11:14:44 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v9 8/8] exynos4-is: Add support for v4l2-flash subdevs
-Date: Mon, 25 May 2015 17:14:03 +0200
-Message-id: <1432566843-6391-9-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 8 May 2015 09:13:38 -0400
+Message-ID: <554CB670.70107@xs4all.nl>
+Date: Fri, 08 May 2015 15:13:20 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 04/18] media controller: Rename camera entities
+References: <cover.1431046915.git.mchehab@osg.samsung.com>	<a1a45e1b62e9dc69fd0a2d11dff57a414304c541.1431046915.git.mchehab@osg.samsung.com>	<554CA5F5.1040101@xs4all.nl> <20150508095347.3f6e2a5a@recife.lan>
+In-Reply-To: <20150508095347.3f6e2a5a@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for external v4l2-flash devices.
-The support includes parsing "camera-flashes" DT property
-and asynchronous sub-device registration.
+On 05/08/2015 02:53 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 08 May 2015 14:03:01 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+>>> As explained before, the hole idea of subtypes at entities was
+>>
+>> hole -> whole
+>>
+>>> not nice. All V4L2 subdevs may have a device node associated.
+>>>
+>>> Also, the hole idea is to expose hardware IP blocks, so calling
+>>> them as V4L2 is a very bad practice, as they were not designed
+>>> for the V4L2 API. It is just the reverse.
+>>>
+>>> So, instead of using V4L2_SUBDEV, let's call the camera sub-
+>>> devices with CAM, instead:
+>>>
+>>> 	MEDIA_ENT_T_V4L2_SUBDEV_SENSOR -> MEDIA_ENT_T_CAM_SENSOR
+>>> 	MEDIA_ENT_T_V4L2_SUBDEV_FLASH  -> MEDIA_ENT_T_CAM_FLASH
+>>> 	MEDIA_ENT_T_V4L2_SUBDEV_LENS   -> MEDIA_ENT_T_CAM_LENS
+>>
+>> I would actually postpone this until Laurent has a properties API ready.
+>> These entity types are fatally flawed since an entity can combine functions
+>> in one. E.g. an i2c device (generally represented as a single entity) might
+>> provide for both sensor and flash. Or combine tuner and video decoder, etc.
+> 
+> Mapping one I2C address as one entity is plain wrong.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |   64 ++++++++++++++++++++++++-
- drivers/media/platform/exynos4-is/media-dev.h |    4 ++
- 2 files changed, 66 insertions(+), 2 deletions(-)
+I said 'i2c device', not i2c address. That would definitely be wrong. I'm also
+not saying that each i2c device (chip) maps always to one entity, although this
+is generally true. In the end it depends on the driver author to decide how
+to split up the functionality of the device into entities. There is no hard
+and fast rule for that.
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index ff36a3b..9fca1d4 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -455,6 +455,52 @@ rpm_put:
- 	return ret;
- }
- 
-+static int fimc_md_register_flash_entities(struct fimc_md *fmd)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node, *np_sensor,
-+		*np_flash;
-+	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
-+	struct v4l2_async_subdev *asd;
-+	int i, j, num_flashes = 0, num_elems;
-+
-+	num_elems = of_property_count_elems_of_size(parent,
-+				"samsung,camera-flashes", sizeof(np_flash));
-+	/* samsung,camera-flashes property is optional */
-+	if (num_elems < 0)
-+		return 0;
-+
-+	/* samsung,camera-flashes array must have even number of elements */
-+	if ((num_elems & 1) || (num_elems > FIMC_MAX_SENSORS * 2))
-+		return -EINVAL;
-+
-+	for (i = 0; i < num_elems; i += 2) {
-+		np_sensor = of_parse_phandle(parent,
-+					     "samsung,camera-flashes", i);
-+
-+		for (j = 0; j < fmd->num_sensors; j++)
-+			if (fmd->async_subdevs.sensors[j].match.of.node ==
-+			    np_sensor)
-+				break;
-+
-+		of_node_put(np_sensor);
-+
-+		if (j == fmd->num_sensors)
-+			continue;
-+
-+		np_flash = of_parse_phandle(parent, "samsung,camera-flashes",
-+						i + 1);
-+
-+		asd = &fmd->async_subdevs.flashes[num_flashes++];
-+		asd->match_type = V4L2_ASYNC_MATCH_OF;
-+		asd->match.of.node = np_flash;
-+		notifier->subdevs[notifier->num_subdevs++] = asd;
-+
-+		of_node_put(np_flash);
-+	}
-+
-+	return 0;
-+}
-+
- static int __of_get_csis_id(struct device_node *np)
- {
- 	u32 reg = 0;
-@@ -1280,6 +1326,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
- 	struct fimc_sensor_info *si = NULL;
- 	int i;
- 
-+	/*
-+	 * Flash sub-devices are controlled independently of ISP, and thus
-+	 * verify only that the sub-device being matched was previously
-+	 * registered.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(async_subdevs->flashes); i++)
-+		if (&async_subdevs->flashes[i] == asd)
-+			return 0;
-+
- 	/* Find platform data for this sensor subdev */
- 	for (i = 0; i < ARRAY_SIZE(async_subdevs->sensors); i++)
- 		if (fmd->sensor[i].asd == asd)
-@@ -1326,13 +1381,18 @@ static int fimc_md_register_async_entities(struct fimc_md *fmd)
- {
- 	struct device *dev = fmd->media_dev.dev;
- 	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
-+	int ret;
- 
--	notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_SENSORS,
-+	notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_ASYNC_ENTITIES,
- 					sizeof(*notifier->subdevs), GFP_KERNEL);
- 	if (!notifier->subdevs)
- 		return -ENOMEM;
- 
--	return fimc_md_register_sensor_entities(fmd);
-+	ret = fimc_md_register_sensor_entities(fmd);
-+	if (ret)
-+		return -EINVAL;
-+
-+	return fimc_md_register_flash_entities(fmd);
- }
- 
- static int fimc_md_probe(struct platform_device *pdev)
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index ff6d020..be9205c 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -33,7 +33,10 @@
- #define PINCTRL_STATE_IDLE	"idle"
- 
- #define FIMC_MAX_SENSORS	4
-+#define FIMC_MAX_FLASHES	4
-+#define FIMC_MAX_ASYNC_ENTITIES	(FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
- #define FIMC_MAX_CAMCLKS	2
-+
- #define DEFAULT_SENSOR_CLK_FREQ	24000000U
- 
- /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-@@ -95,6 +98,7 @@ struct fimc_sensor_info {
- 
- struct fimc_async_subdevs {
- 	struct v4l2_async_subdev sensors[FIMC_MAX_SENSORS];
-+	struct v4l2_async_subdev flashes[FIMC_MAX_FLASHES];
- };
- 
- struct cam_clk {
--- 
-1.7.9.5
+> So, if a single piece of hardware has the functions of two entities
+> (sensor and flash), it should be represented as two separate entities.
 
+Perhaps, perhaps not. There is in the general case no clear rule at what
+level you design your entities. In a complex pipeline it would be madness
+to map every little HW block to an entity since you would get a zillion
+entities, which is highly impractical. The cx25840 combines multiple
+functions (tuner, audio/video decoders), and I am not at all sure you
+would gain anything from splitting that up into smaller entities. In the
+end, if you would write a block diagram of your board the cx25840 would be
+a single block. And experience has shown that that is typically the right
+level for deciding what will be an entity or not.
+
+Also, in such devices the various functions are often intertwined and
+generally not easy to separate.
+
+> 
+> The I2C bus would matter if we were mapping the control plane of the
+> entities, adding PADs for the control lines. But last time I checked,
+> Laurent was still strongly opposed to that.
+> 
+>> Basically an entity like this is a sub-device (as in the literal meaning
+>> of being a part of a larger device) that has one or more functions and may
+>> have device node(s) associated with it. That is best expressed as properties.
+>>
+>> And you really do have to tell userspace that these entities expose a
+>> v4l-subdev device node. Renaming them doesn't make that go away.
+> 
+> Well, we should decide if we want the namespace and the entities
+> representing the hardware or representing the Linux API.
+> V4L2_SUBDEV has nothing to do with hardware. It is just an abstraction
+> that we've created on one of our subsystems.
+
+I agree. MEDIA_ENT_T_V4L2_SUBDEV_SENSOR basically contains two bits of
+information: the linux API used to access the entity and the function.
+
+Since you don't combine multiple APIs (e.g. ALSA and V4L2) for a single
+device node (I would certainly never allow such code in the kernel!) there
+is only one of those, but one entity can certainly combine multiple functions
+as I argued for above. Hence, those should be properties.
+
+Anyway, let's wait what Laurent thinks and setup an irc session for this.
+
+Regards,
+
+	Hans
