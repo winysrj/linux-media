@@ -1,155 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw2-out.broadcom.com ([216.31.210.63]:9631 "EHLO
-	mail-gw2-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbbEZSfW (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47051 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752617AbbEHMMw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 14:35:22 -0400
-Message-ID: <5564BD5D.1070601@broadcom.com>
-Date: Tue, 26 May 2015 11:37:17 -0700
-From: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+	Fri, 8 May 2015 08:12:52 -0400
+Message-ID: <554CA831.8070406@xs4all.nl>
+Date: Fri, 08 May 2015 14:12:33 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: <balbi@ti.com>
-CC: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	"Thomas Pugliese" <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	"Jean Delvare" <jdelvare@suse.de>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-ide@vger.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
-	"Anatol Pomazau" <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	<bcm-kernel-feedback-list@broadcom.com>
-Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com> <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com> <20150515005210.GA31534@saruman.tx.rr.com> <556391FE.1020503@broadcom.com> <20150526141938.GA25686@saruman.tx.rr.com>
-In-Reply-To: <20150526141938.GA25686@saruman.tx.rr.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Axel Lin <axel.lin@ingics.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 06/18] media controller: rename analog TV decoder
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <404817c5796244fe30bb29c883e7e9e07cf8e06c.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <404817c5796244fe30bb29c883e7e9e07cf8e06c.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> To keep coherency, let's also remove V4L2_SUBDEV from the analog
+> TV decoder, calling it by its function, and not by the V4L2
+> API mapping.
 
-On 15-05-26 07:19 AM, Felipe Balbi wrote:
-> HI,
->
-> On Mon, May 25, 2015 at 02:19:58PM -0700, Arun Ramamurthy wrote:
->>
->>
->> On 15-05-14 05:52 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Wed, Apr 22, 2015 at 04:04:10PM -0700, Arun Ramamurthy wrote:
->>>> Most of the phy providers use "select" to enable GENERIC_PHY. Since select
->>>> is only recommended when the config is not visible, GENERIC_PHY is changed
->>>> an invisible option. To maintain consistency, all phy providers are changed
->>>> to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
->>>> phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
->>>> dependency, so it is left as "select".
->>>>
->>>> Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
->>>> ---
->>>>   drivers/ata/Kconfig                       | 1 -
->>>>   drivers/media/platform/exynos4-is/Kconfig | 2 +-
->>>>   drivers/phy/Kconfig                       | 4 ++--
->>>>   drivers/usb/host/Kconfig                  | 4 ++--
->>>>   drivers/video/fbdev/exynos/Kconfig        | 2 +-
->>>>   5 files changed, 6 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
->>>> index 5f60155..6d2e881 100644
->>>> --- a/drivers/ata/Kconfig
->>>> +++ b/drivers/ata/Kconfig
->>>> @@ -301,7 +301,6 @@ config SATA_MV
->>>>   	tristate "Marvell SATA support"
->>>>   	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
->>>>   		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
->>>> -	select GENERIC_PHY
->>>>   	help
->>>>   	  This option enables support for the Marvell Serial ATA family.
->>>>   	  Currently supports 88SX[56]0[48][01] PCI(-X) chips,
->>>> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
->>>> index b7b2e47..b6f3eaa 100644
->>>> --- a/drivers/media/platform/exynos4-is/Kconfig
->>>> +++ b/drivers/media/platform/exynos4-is/Kconfig
->>>> @@ -31,7 +31,7 @@ config VIDEO_S5P_FIMC
->>>>   config VIDEO_S5P_MIPI_CSIS
->>>>   	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
->>>>   	depends on REGULATOR
->>>> -	select GENERIC_PHY
->>>> +	depends on GENERIC_PHY
->>>>   	help
->>>>   	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
->>>>   	  receiver (MIPI-CSIS) devices.
->>>> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
->>>> index 2962de2..edecdb1 100644
->>>> --- a/drivers/phy/Kconfig
->>>> +++ b/drivers/phy/Kconfig
->>>> @@ -5,7 +5,7 @@
->>>>   menu "PHY Subsystem"
->>>>
->>>>   config GENERIC_PHY
->>>> -	bool "PHY Core"
->>>> +	bool
->>>>   	help
->>>>   	  Generic PHY support.
->>>>
->>>> @@ -72,7 +72,7 @@ config PHY_MIPHY365X
->>>>   config PHY_RCAR_GEN2
->>>>   	tristate "Renesas R-Car generation 2 USB PHY driver"
->>>>   	depends on ARCH_SHMOBILE
->>>> -	depends on GENERIC_PHY
->>>> +	select GENERIC_PHY
->>>
->>> so some you changed from depends to select...
->>>
->>>>   	help
->>>>   	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
->>>>
->>>> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
->>>> index 5ad60e4..e2197e2 100644
->>>> --- a/drivers/usb/host/Kconfig
->>>> +++ b/drivers/usb/host/Kconfig
->>>> @@ -182,7 +182,7 @@ config USB_EHCI_HCD_SPEAR
->>>>   config USB_EHCI_HCD_STI
->>>>   	tristate "Support for ST STiHxxx on-chip EHCI USB controller"
->>>>   	depends on ARCH_STI && OF
->>>> -	select GENERIC_PHY
->>>> +	depends on GENERIC_PHY
->>>
->>> while others you changed from select to depends.
->>>
->>> NAK.
->>>
->> Felipe, I dont understand your concern, could you please explain it more
->> detail?  The logic behind the changes is that in cases where there was an
->> explicit dependency, I changed it to "depends on" and in other cases I
->> changed it to "selects". Thanks
->
-> Since GENERIC_PHY is visible from Kconfig, it would be much nicer to
-> avoid select altogether.
->
-Felipe, after discussion with the maintainers, I have made GENERIC_PHY 
-an invisible option as part of this change. Thanks
+Same issue as with patch 04/18.
+
+	Hans
+
+> 
+> So,
+> 
+> 	MEDIA_ENT_T_V4L2_SUBDEV_DECODER -> MEDIA_ENT_T_ATV_DECODER
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 27082b07f4c2..9b3861058f0d 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -231,7 +231,7 @@
+>  	    <entry>Lens controller</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_ATV_DECODER</constant></entry>
+>  	    <entry>Video decoder, the basic function of the video decoder is to
+>  	    accept analogue video from a wide variety of sources such as
+>  	    broadcast, DVD players, cameras and video cassette recorders, in
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index a493c0b0b5fe..e8f0b53cc253 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -1212,7 +1212,7 @@ static int adv7180_probe(struct i2c_client *client,
+>  		goto err_unregister_vpp_client;
+>  
+>  	state->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +	sd->entity.flags |= MEDIA_ENT_T_ATV_DECODER;
+>  	ret = media_entity_init(&sd->entity, 1, &state->pad, 0);
+>  	if (ret)
+>  		goto err_free_ctrl;
+> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> index e15a789ad596..cd8a3c273ab8 100644
+> --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> @@ -5208,7 +5208,7 @@ static int cx25840_probe(struct i2c_client *client,
+>  	state->pads[CX25840_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
+>  	state->pads[CX25840_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+>  	state->pads[CX25840_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +	sd->entity.type = MEDIA_ENT_T_ATV_DECODER;
+>  
+>  	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+>  				state->pads, 0);
+> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> index 24e47279e30c..77744c390941 100644
+> --- a/drivers/media/i2c/tvp514x.c
+> +++ b/drivers/media/i2c/tvp514x.c
+> @@ -1106,7 +1106,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> -	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +	decoder->sd.entity.flags |= MEDIA_ENT_T_ATV_DECODER;
+>  
+>  	ret = media_entity_init(&decoder->sd.entity, 1, &decoder->pad, 0);
+>  	if (ret < 0) {
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index 05077cffd235..3facef49aef1 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -1019,7 +1019,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	device->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> -	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +	device->sd.entity.flags |= MEDIA_ENT_T_ATV_DECODER;
+>  
+>  	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
+>  	if (error < 0)
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> index fe00da105e77..a756f74f0adc 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -1216,7 +1216,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+>  		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+>  			tuner = entity;
+>  			break;
+> -		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
+> +		case MEDIA_ENT_T_ATV_DECODER:
+>  			decoder = entity;
+>  			break;
+>  		}
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index af44f2d1c0a1..bed4ee28916d 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -119,7 +119,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+>  	 * this should be enough for the actual needs.
+>  	 */
+>  	media_device_for_each_entity(entity, mdev) {
+> -		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> +		if (entity->type == MEDIA_ENT_T_ATV_DECODER) {
+>  			decoder = entity;
+>  			break;
+>  		}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 0de9912411c5..9b3d80e765f0 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -54,8 +54,8 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
+>  #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
+>  #define MEDIA_ENT_T_CAM_LENS	(MEDIA_ENT_T_CAM_SENSOR + 2)
+> -/* A converter of analogue video to its digital representation. */
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+> +
+> +#define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+>  
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+>  
+> @@ -86,6 +86,8 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+> +
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
+>  #endif
+>  
+>  /* Used bitmasks for media_entity_desc::flags */
+> 
+
