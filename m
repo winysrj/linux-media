@@ -1,234 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:33164 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2993217AbbEEOlq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 10:41:46 -0400
-Received: by pdbnk13 with SMTP id nk13so198236775pdb.0
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 07:41:46 -0700 (PDT)
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47232 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753090AbbEHMDT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 08:03:19 -0400
+Message-ID: <554CA5F5.1040101@xs4all.nl>
+Date: Fri, 08 May 2015 14:03:01 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150211162312.GR8656@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <54DB12B5.4080000@samsung.com> <20150211111258.GP8656@n2100.arm.linux.org.uk>
- <54DB4908.10004@samsung.com> <20150211162312.GR8656@n2100.arm.linux.org.uk>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Tue, 5 May 2015 20:11:25 +0530
-Message-ID: <CAO_48GHf=Zt7Ju=N=FAVfaudApSV+rSfb+Wou7L1Dh3egULm9g@mail.gmail.com>
-Subject: Re: [RFCv3 2/2] dma-buf: add helpers for sharing attacher constraints
- with dma-parms
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Rob Clark <robdclark@gmail.com>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	Daniel Vetter <daniel@ffwll.ch>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 04/18] media controller: Rename camera entities
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <a1a45e1b62e9dc69fd0a2d11dff57a414304c541.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <a1a45e1b62e9dc69fd0a2d11dff57a414304c541.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell, everyone,
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> As explained before, the hole idea of subtypes at entities was
 
-First up, sincere apologies for being awol for sometime; had some
-personal / medical things to take care of, and then I thought I'd wait
-for the merge window to get over before beginning to discuss this
-again.
+hole -> whole
 
-On 11 February 2015 at 21:53, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Feb 11, 2015 at 01:20:24PM +0100, Marek Szyprowski wrote:
->> Hello,
->>
->> On 2015-02-11 12:12, Russell King - ARM Linux wrote:
->> >Which is a damn good reason to NAK it - by that admission, it's a half-baked
->> >idea.
->> >
->> >If all we want to know is whether the importer can accept only contiguous
->> >memory or not, make a flag to do that, and allow the exporter to test this
->> >flag.  Don't over-engineer this to make it _seem_ like it can do something
->> >that it actually totally fails with.
->> >
->> >As I've already pointed out, there's a major problem if you have already
->> >had a less restrictive attachment which has an active mapping, and a new
->> >more restrictive attachment comes along later.
->> >
->> >It seems from Rob's descriptions that we also need another flag in the
->> >importer to indicate whether it wants to have a valid struct page in the
->> >scatter list, or whether it (correctly) uses the DMA accessors on the
->> >scatter list - so that exporters can reject importers which are buggy.
->>
->> Okay, but flag-based approach also have limitations.
->
-> Yes, the flag-based approach doesn't let you describe in detail what
-> the importer can accept - which, given the issues that I've raised
-> is a *good* thing.  We won't be misleading anyone into thinking that
-> we can do something that's really half-baked, and which we have no
-> present requirement for.
->
-> This is precisely what Linus talks about when he says "don't over-
-> engineer" - if we over-engineer this, we end up with something that
-> sort-of works, and that's a bad thing.
->
-> The Keep It Simple approach here makes total sense - what are our
-> current requirements - to be able to say that an importer can only accept:
->   - contiguous memory rather than a scatterlist
->   - scatterlists with struct page pointers
->
-> Does solving that need us to compare all the constraints of each and
-> every importer, possibly ending up with constraints which can't be
-> satisfied?  No.  Does the flag approach satisfy the requirements?  Yes.
->
+> not nice. All V4L2 subdevs may have a device node associated.
+> 
+> Also, the hole idea is to expose hardware IP blocks, so calling
+> them as V4L2 is a very bad practice, as they were not designed
+> for the V4L2 API. It is just the reverse.
+> 
+> So, instead of using V4L2_SUBDEV, let's call the camera sub-
+> devices with CAM, instead:
+> 
+> 	MEDIA_ENT_T_V4L2_SUBDEV_SENSOR -> MEDIA_ENT_T_CAM_SENSOR
+> 	MEDIA_ENT_T_V4L2_SUBDEV_FLASH  -> MEDIA_ENT_T_CAM_FLASH
+> 	MEDIA_ENT_T_V4L2_SUBDEV_LENS   -> MEDIA_ENT_T_CAM_LENS
 
-So, for basic constraint-sharing, we'll just go with the flag based
-approach, with a flag (best place for it is still dev->dma_params I
-suppose) for denoting contiguous or scatterlist. Is that agreed, then?
-Also, with this idea, of course, there won't be any helpers for trying
-to calculate constraints; it would be totally the exporter's
-responsibility to handle it via the attach() dma_buf_op if it wishes
-to.
+I would actually postpone this until Laurent has a properties API ready.
+These entity types are fatally flawed since an entity can combine functions
+in one. E.g. an i2c device (generally represented as a single entity) might
+provide for both sensor and flash. Or combine tuner and video decoder, etc.
 
->> Frankly, if we want to make it really portable and sharable between devices,
->> then IMO we should get rid of struct scatterlist and replace it with simple
->> array of pfns in dma_buf. This way at least the problem of missing struct
->> page will be solved and the buffer representation will be also a bit more
->> compact.
->
-> ... and move the mapping and unmapping of the PFNs to the importer,
-> which IMHO is where it should already be (so the importer can decide
-> when it should map the buffer itself independently of getting the
-> details of the buffer.)
->
->> Such solution however also requires extending dma-mapping API to handle
->> mapping and unmapping of such pfn arrays. The advantage of this approach
->> is the fact that it will be completely new API, so it can be designed
->> well from the beginning.
->
-> As far as I'm aware, there was no big discussion of the dma_buf API -
-> it's something that just appeared one day (I don't remember seeing it
-> discussed.)  So, that may well be a good thing if it means we can get
-> these kinds of details better hammered out.
->
-> However, I don't share your view of "completely new API" - that would
-> be far too disruptive.  I think we can modify the existing API, to
-> achieve our goals.
->
-> I don't think changing the dma-mapping API just for this case is really
-> on though - if we're passed a list of PFNs, they either must be all
-> associated with a struct page - iow, pfn_valid(pfn) returns true for
-> all of them or none of them.  If none of them, then we need to be able
-> to convert those PFNs to a dma_addr_t for the target device (yes, that
-> may need the dma-mapping API augmenting.)
->
-> However, if they are associated with a struct page, then we should use
-> the established APIs and use a scatterlist, otherwise we're looking
-> at rewriting all IOMMUs and all DMA mapping implementations to handle
-> what would become a special case for dma_buf.
->
-> I'd rather... Keep It Simple.
->
-+1 for Keep it simple, and the idea overall. Though I suspect more
-dma-buf users (dri / v4l friends?) should comment if this doesn't help
-solve things on some platforms / subsystems that they care about.
+Basically an entity like this is a sub-device (as in the literal meaning
+of being a part of a larger device) that has one or more functions and may
+have device node(s) associated with it. That is best expressed as properties.
 
-> So, maybe, as a first step, let's augment dma_buf with a pair of
-> functions which get the "raw" unmapped scatterlist:
->
-> struct sg_table *dma_buf_get_scatterlist(struct dma_buf_attachment *attach)
-> {
->         struct sg_table *sg_table;
->
->         might_sleep();
->
->         if (!attach->dmabuf->ops->get_scatterlist)
->                 return ERR_PTR(-EINVAL);
->
->         sg_table = attach->dmabuf->ops->get_scatterlist(attach);
->         if (!sg_table)
->                 sg_table = ERR_PTR(-ENOMEM);
->
->         return sg_table;
-> }
->
-> void dma_buf_put_scatterlist(struct dma_buf_attachment *attach,
->                              struct sg_table *sg_table)
-> {
->         might_sleep();
->
->         attach->dmabuf->ops->put_scatterlist(attach, sg_table);
-> }
->
-> Implementations should arrange for dma_buf_get_scatterlist() to return
-> the EINVAL error pointer if they are unable to provide an unmapped
-> scatterlist (in other words, they are exporting a set of PFNs or
-> already-mapped dma_addr_t's.)  This can be done by either not
-> implementing the get_scatterlist method, or by implementing it and
-> returning that forementioned error pointer value.
->
-> Where these two are implemented and used, the importer is responsible
-> for calling dma_map_sg() and dma_unmap_sg() on the returned scatterlist
-> table.
->
-> unsigned long *dma_buf_get_pfns(struct dma_buf_attachment *attach)
-> {
->         unsigned long *pfns;
->
->         might_sleep();
->
->         if (!attach->dmabuf->ops->get_pfns)
->                 return ERR_PTR(-EINVAL);
->
->         return attach->dmabuf->ops->get_pfns(attach);
-> }
->
-> void dma_buf_put_pfns(struct dma_buf_attachment *attach, unsigned long *pfns)
-> {
->         might_sleep();
->
->         attach->dmabuf->ops->put_pfns(attach, pfns);
-> }
->
-> Similar to the above, but this gets a list of PFNs.  Each PFN entry prior
-> to the last describes a page starting at offset 0 extending to the end of
-> the page.  The last PFN entry describes a page starting at offset 0 and
-> extending to the offset of the attachment size within the page.  Again,
-> if not implemented or it is not possible to represent the buffer as PFNs,
-> it returns -EINVAL.
->
-> For the time being, we keep the existing dma_buf_map_attachment() and
-> dma_buf_unmap_attachment() while we transition users over to the new
-> interfaces.
->
-> We may wish to augment struct dma_buf_attachment with a couple of flags
-> to indicate which of these the attached dma_buf supports, so that drivers
-> can deal with these themselves.
->
-Could I please send a patchset first for the constraint-flags
-addition, and then take this up in a following patch-set, once we have
-agreement from other stake holders as well?
+And you really do have to tell userspace that these entities expose a
+v4l-subdev device node. Renaming them doesn't make that go away.
 
-Russell: would it be ok if we discuss it offline more? I am afraid I
-am not as knowledgeable on this topic, and would probably request your
-help / guidance here.
+Regards,
 
-> We may also wish in the longer term to keep dma_buf_map_attachment() but
-> implement it as a wrapper around get_scatterlist() as a helper to provide
-> its existing functionality - providing a mapped scatterlist.  Possibly
-> also including get_pfns() in that as well if we need to.
->
-> However, I would still like more thought put into Rob's issue to see
-> whether we can solve his problem with using the dma_addr_t in a more
-> elegant way.  (I wish I had some hardware to experiment with for that.)
->
-> --
-> FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-> according to speedtest.net.
+	Hans
 
-Best regards,
-~Sumit.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 5b8147629159..759604e3529f 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -219,15 +219,15 @@
+>  	    <entry>Unknown V4L sub-device</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_SENSOR</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_CAM_SENSOR</constant></entry>
+>  	    <entry>Video sensor</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_FLASH</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_CAM_FLASH</constant></entry>
+>  	    <entry>Flash controller</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_LENS</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_CAM_LENS</constant></entry>
+>  	    <entry>Lens controller</entry>
+>  	  </row>
+>  	  <row>
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index c70ababce954..c12f873a8e26 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -516,7 +516,7 @@ static int adp1653_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		goto free_and_quit;
+>  
+> -	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +	flash->subdev.entity.type = MEDIA_ENT_T_CAM_FLASH;
+>  
+>  	return 0;
+>  
+> diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
+> index 301084b07887..9a2872be11b0 100644
+> --- a/drivers/media/i2c/as3645a.c
+> +++ b/drivers/media/i2c/as3645a.c
+> @@ -831,7 +831,7 @@ static int as3645a_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		goto done;
+>  
+> -	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +	flash->subdev.entity.type = MEDIA_ENT_T_CAM_FLASH;
+>  
+>  	mutex_init(&flash->power_lock);
+>  
+> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+> index d9ece4b2d047..4d28cda77f4d 100644
+> --- a/drivers/media/i2c/lm3560.c
+> +++ b/drivers/media/i2c/lm3560.c
+> @@ -368,7 +368,7 @@ static int lm3560_subdev_init(struct lm3560_flash *flash,
+>  	rval = media_entity_init(&flash->subdev_led[led_no].entity, 0, NULL, 0);
+>  	if (rval < 0)
+>  		goto err_out;
+> -	flash->subdev_led[led_no].entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +	flash->subdev_led[led_no].entity.type = MEDIA_ENT_T_CAM_FLASH;
+>  
+>  	return rval;
+>  
+> diff --git a/drivers/media/i2c/lm3646.c b/drivers/media/i2c/lm3646.c
+> index 626fb4679c02..19ee2ac00be7 100644
+> --- a/drivers/media/i2c/lm3646.c
+> +++ b/drivers/media/i2c/lm3646.c
+> @@ -285,7 +285,7 @@ static int lm3646_subdev_init(struct lm3646_flash *flash)
+>  	rval = media_entity_init(&flash->subdev_led.entity, 0, NULL, 0);
+>  	if (rval < 0)
+>  		goto err_out;
+> -	flash->subdev_led.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +	flash->subdev_led.entity.type = MEDIA_ENT_T_CAM_FLASH;
+>  	return rval;
+>  
+>  err_out:
+> diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+> index 6404c0d93e7a..beb519cf8be4 100644
+> --- a/drivers/media/i2c/m5mols/m5mols_core.c
+> +++ b/drivers/media/i2c/m5mols/m5mols_core.c
+> @@ -978,7 +978,7 @@ static int m5mols_probe(struct i2c_client *client,
+>  	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
+>  	if (ret < 0)
+>  		return ret;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  
+>  	init_waitqueue_head(&info->irq_waitq);
+>  	mutex_init(&info->lock);
+> diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
+> index f197b6cbd407..a03556197405 100644
+> --- a/drivers/media/i2c/noon010pc30.c
+> +++ b/drivers/media/i2c/noon010pc30.c
+> @@ -779,7 +779,7 @@ static int noon010_probe(struct i2c_client *client,
+>  		goto np_err;
+>  
+>  	info->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
+>  	if (ret < 0)
+>  		goto np_err;
+> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+> index d700a1d0a6f2..63b9464e813f 100644
+> --- a/drivers/media/i2c/ov2659.c
+> +++ b/drivers/media/i2c/ov2659.c
+> @@ -1425,7 +1425,7 @@ static int ov2659_probe(struct i2c_client *client,
+>  
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, 1, &ov2659->pad, 0);
+>  	if (ret < 0) {
+>  		v4l2_ctrl_handler_free(&ov2659->ctrls);
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 2bc473385c91..ed3c0573a0f8 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -1500,7 +1500,7 @@ static int ov965x_probe(struct i2c_client *client,
+>  		return ret;
+>  
+>  	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, 1, &ov965x->pad, 0);
+>  	if (ret < 0)
+>  		return ret;
+> diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
+> index 97084237275d..23af7f90678a 100644
+> --- a/drivers/media/i2c/s5k4ecgx.c
+> +++ b/drivers/media/i2c/s5k4ecgx.c
+> @@ -961,7 +961,7 @@ static int s5k4ecgx_probe(struct i2c_client *client,
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+>  	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, 1, &priv->pad, 0);
+>  	if (ret)
+>  		return ret;
+> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> index bee73de347dc..fadd48d35a55 100644
+> --- a/drivers/media/i2c/s5k5baf.c
+> +++ b/drivers/media/i2c/s5k5baf.c
+> @@ -408,7 +408,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+>  
+>  static inline bool s5k5baf_is_cis_subdev(struct v4l2_subdev *sd)
+>  {
+> -	return sd->entity.type == MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	return sd->entity.type == MEDIA_ENT_T_CAM_SENSOR;
+>  }
+>  
+>  static inline struct s5k5baf *to_s5k5baf(struct v4l2_subdev *sd)
+> @@ -1904,7 +1904,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+>  	state->cis_pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, NUM_CIS_PADS, &state->cis_pad, 0);
+>  	if (ret < 0)
+>  		goto err;
+> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+> index d0ad6a25bdab..d2390c6e5dbe 100644
+> --- a/drivers/media/i2c/s5k6aa.c
+> +++ b/drivers/media/i2c/s5k6aa.c
+> @@ -1577,7 +1577,7 @@ static int s5k6aa_probe(struct i2c_client *client,
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+>  	s5k6aa->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  	ret = media_entity_init(&sd->entity, 1, &s5k6aa->pad, 0);
+>  	if (ret)
+>  		return ret;
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> index 636ebd6fe5dc..78f2cdd3561b 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2763,7 +2763,7 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+>  
+>  	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
+>  
+> -	sensor->pixel_array->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +	sensor->pixel_array->sd.entity.type = MEDIA_ENT_T_CAM_SENSOR;
+>  
+>  	/* final steps */
+>  	smiapp_read_frame_fmt(sensor);
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index a7aa2aac9c23..2e465ba087ba 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -51,13 +51,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
+>  #define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
+>  
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 2)
+> +#define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
+> +#define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
+> +#define MEDIA_ENT_T_CAM_LENS	(MEDIA_ENT_T_CAM_SENSOR + 2)
+>  /* A converter of analogue video to its digital representation. */
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 3)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+>  
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 4)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+>  
+>  #if 1
+>  /*
+> @@ -76,8 +76,10 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+>  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+>  
+> -
+>  #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+>  #endif
+>  
+>  /* Used bitmasks for media_entity_desc::flags */
+> 
+
