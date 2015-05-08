@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48905 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750859AbbEYLjh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 07:39:37 -0400
-Message-ID: <556309F3.6050609@xs4all.nl>
-Date: Mon, 25 May 2015 13:39:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Florian Echtler <floe@butterbrot.org>, hans.verkuil@cisco.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-CC: modin@yuri.at
-Subject: Re: [PATCH 0/4] [sur40] minor fixes & performance improvements
-References: <1432211382-5155-1-git-send-email-floe@butterbrot.org> <55630606.8020104@xs4all.nl> <556309C9.90503@butterbrot.org>
-In-Reply-To: <556309C9.90503@butterbrot.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bruce.bmat.com ([176.9.54.181]:48216 "EHLO bruce.bmat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751733AbbEHLQU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 07:16:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by bruce.bmat.com (Postfix) with ESMTP id 9F2175E480F
+	for <linux-media@vger.kernel.org>; Fri,  8 May 2015 13:16:19 +0200 (CEST)
+Received: from bruce.bmat.com ([127.0.0.1])
+	by localhost (bruce.bmat.srv [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id gQxOZIePr4oB for <linux-media@vger.kernel.org>;
+	Fri,  8 May 2015 13:16:17 +0200 (CEST)
+Received: from jbrines.bmat.office (207.90.135.37.dynamic.jazztel.es [37.135.90.207])
+	(Authenticated sender: jbrines@bmat.es)
+	by bruce.bmat.com (Postfix) with ESMTPSA id 86FFE1254002
+	for <linux-media@vger.kernel.org>; Fri,  8 May 2015 13:16:17 +0200 (CEST)
+From: =?iso-8859-1?Q?Javier_Brines_Garcia_=7C=A0BMAT?= <jbrines@bmat.es>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Subject: Fwd: Error with TBS6285
+Date: Fri, 8 May 2015 13:16:16 +0200
+References: <B13F8F10-6044-43B4-8006-D96690CC50B6@bmat.es>
+To: linux-media@vger.kernel.org
+Message-Id: <B137AE33-5722-4B67-BC43-D54902C5ADF2@bmat.es>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/25/2015 01:38 PM, Florian Echtler wrote:
-> On 25.05.2015 13:22, Hans Verkuil wrote:
->> On 05/21/2015 02:29 PM, Florian Echtler wrote:
->>> This patch series adds several small fixes, features & performance
->>> improvements. Many thanks to Martin Kaltenbrunner for testing the
->>> original driver & submitting the patches. 
->>
->> The patches look good, but can you repost with better commit logs (i.e. not
->> just a subject line). Maintainers have become picky about that and without logs
->> Mauro most likely will not accept it. Actually, I'm not even going to try :-)
-> 
-> OK, will do that later today. Should I just send it as a new patch
-> series, or in reply to the first one? What's the "best practice" here?
+Hi, 
 
-New patch series, just prefixed with '[PATCHv2 x/4]'.
+I'm trying to use this card for DVB-C and when I use w_scan I get this error:
 
-Thanks!
+-_-_-_-_ Getting frontend capabilities-_-_-_-_ 
+Using DVB API 5.3
+frontend 'TurboSight TBS 62x1 DVBT/T2 frontend' supports
+INVERSION_AUTO
+QAM_AUTO
+FEC_AUTO
+FREQ (42.00MHz ... 1002.00MHz)
+This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
 
-	Hans
+Any ideas?
 
+Many thanks,
