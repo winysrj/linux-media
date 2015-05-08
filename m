@@ -1,140 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56192 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752308AbbESXFb (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57318 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752218AbbEHJH6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 19:05:31 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 8 May 2015 05:07:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-leds@vger.kernel.org, j.anaszewski@samsung.com,
-	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Subject: [PATCH 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
-Date: Wed, 20 May 2015 02:04:01 +0300
-Message-Id: <1432076645-4799-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
-References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
+Cc: ovebryne@cisco.com, marbugge@cisco.com, matrandg@cisco.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Subject: [PATCH 3/5] v4l2-subdev: allow subdev to send an event to the v4l2_device notify function
+Date: Fri,  8 May 2015 11:07:26 +0200
+Message-Id: <1431076048-1963-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1431076048-1963-1-git-send-email-hverkuil@xs4all.nl>
+References: <1431076048-1963-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 async sub-devices are currently matched (OF case) based on the struct
-device_node pointer in struct device. LED devices may have more than one
-LED, and in that case the OF node to match is not directly the device's
-node, but a LED's node.
+From: "jean-michel.hautbois@vodalys.com" <jean-michel.hautbois@vodalys.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+All drivers use custom notifications, in particular when source changes.
+The bridge only has to map the subdev that sends it to whatever video node it is connected to.
+
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c  |   34 +++++++++++++++++++++------------
- drivers/media/v4l2-core/v4l2-device.c |    3 +++
- include/media/v4l2-subdev.h           |    2 ++
- 3 files changed, 27 insertions(+), 12 deletions(-)
+ Documentation/video4linux/v4l2-framework.txt | 4 ++++
+ include/media/v4l2-subdev.h                  | 2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 85a6a34..bcdd140 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -22,10 +22,10 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 59e619f..75d5c18 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -1129,6 +1129,10 @@ available event type is 'class base + 1'.
+ An example on how the V4L2 events may be used can be found in the OMAP
+ 3 ISP driver (drivers/media/platform/omap3isp).
  
--static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
- #if IS_ENABLED(CONFIG_I2C)
--	struct i2c_client *client = i2c_verify_client(dev);
-+	struct i2c_client *client = i2c_verify_client(sd->dev);
- 	return client &&
- 		asd->match.i2c.adapter_id == client->adapter->nr &&
- 		asd->match.i2c.address == client->addr;
-@@ -34,14 +34,27 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
- #endif
- }
++A subdev can directly send an event to the v4l2_device notify function with
++V4L2_DEVICE_NOTIFY_EVENT. This allows the bridge to map the subdev that sends
++the event to the video node(s) associated with the subdev that need to be
++informed about such an event.
  
--static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_devname(struct v4l2_subdev *sd,
-+			  struct v4l2_async_subdev *asd)
- {
--	return !strcmp(asd->match.device_name.name, dev_name(dev));
-+	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
--static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-+static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return dev->of_node == asd->match.of.node;
-+	struct device_node *of_node =
-+		sd->of_node ? sd->of_node : sd->dev->of_node;
-+
-+	return of_node == asd->match.of.node;
-+}
-+
-+static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-+{
-+	if (!asd->match.custom.match)
-+		/* Match always */
-+		return true;
-+
-+	return asd->match.custom.match(sd->dev, asd);
- }
- 
- static LIST_HEAD(subdev_list);
-@@ -51,17 +64,14 @@ static DEFINE_MUTEX(list_lock);
- static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
- 						    struct v4l2_subdev *sd)
- {
-+	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
- 	struct v4l2_async_subdev *asd;
--	bool (*match)(struct device *, struct v4l2_async_subdev *);
- 
- 	list_for_each_entry(asd, &notifier->waiting, list) {
- 		/* bus_type has been verified valid before */
- 		switch (asd->match_type) {
- 		case V4L2_ASYNC_MATCH_CUSTOM:
--			match = asd->match.custom.match;
--			if (!match)
--				/* Match always */
--				return asd;
-+			match = match_custom;
- 			break;
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 			match = match_devname;
-@@ -79,7 +89,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 		}
- 
- 		/* match cannot be NULL here */
--		if (match(sd->dev, asd))
-+		if (match(sd, asd))
- 			return asd;
- 	}
- 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 5b0a30b..a741c6c 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -157,6 +157,9 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	/* Warn if we apparently re-register a subdev */
- 	WARN_ON(sd->v4l2_dev != NULL);
- 
-+	if (!sd->of_node && sd->dev)
-+		sd->of_node = sd->dev->of_node;
-+
- 	/*
- 	 * The reason to acquire the module here is to avoid unloading
- 	 * a module of sub-device which is registered to a media
+ V4L2 clocks
+ -----------
 diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 8f5da73..5c51987 100644
+index 8f5da73..dc20102 100644
 --- a/include/media/v4l2-subdev.h
 +++ b/include/media/v4l2-subdev.h
-@@ -603,6 +603,8 @@ struct v4l2_subdev {
- 	struct video_device *devnode;
- 	/* pointer to the physical device, if any */
- 	struct device *dev;
-+	/* A device_node of the sub-device, iff not dev->of_node. */
-+	struct device_node *of_node;
- 	/* Links this subdev to a global subdev_list or @notifier->done list. */
- 	struct list_head async_list;
- 	/* Pointer to respective struct v4l2_async_subdev. */
+@@ -40,6 +40,8 @@
+ #define V4L2_SUBDEV_IR_TX_NOTIFY		_IOW('v', 1, u32)
+ #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ 
++#define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event_subscription;
 -- 
-1.7.10.4
+2.1.4
 
