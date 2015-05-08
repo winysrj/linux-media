@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx4-phx2.redhat.com ([209.132.183.25]:51912 "EHLO
-	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886AbbESMIW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 08:08:22 -0400
-Date: Tue, 19 May 2015 08:05:56 -0400 (EDT)
-From: Federico Simoncelli <fsimonce@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:36550 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751023AbbEHBMt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:49 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Michael Buesch <m@bues.ch>, Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Amber Thrall <amber.rose.thrall@gmail.com>,
-	James Harper <james.harper@ejbdigital.com.au>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Message-ID: <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
-In-Reply-To: <a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
-References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com> <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com> <a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
-Subject: Re: [PATCH 2/2] drivers: Simplify the return code
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	linux-api@vger.kernel.org
+Subject: [PATCH 08/18] media controller: add comments for the entity types
+Date: Thu,  7 May 2015 22:12:30 -0300
+Message-Id: <089802aaf4c9f80af162fe074b4d8a54d7f35a28.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Original Message -----
-> From: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
-> To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-> Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>, "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Lars-Peter
-> Clausen" <lars@metafoo.de>, "Michael Buesch" <m@bues.ch>, "Antti Palosaari" <crope@iki.fi>, "Hans Verkuil"
-> <hverkuil@xs4all.nl>, "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Ondrej Zary" <linux@rainbow-software.org>,
-> "Ramakrishnan Muthukrishnan" <ramakrmu@cisco.com>, "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>, "Takashi
-> Iwai" <tiwai@suse.de>, "Amber Thrall" <amber.rose.thrall@gmail.com>, "Federico Simoncelli" <fsimonce@redhat.com>,
-> "James Harper" <james.harper@ejbdigital.com.au>, "Dan Carpenter" <dan.carpenter@oracle.com>, "Konrad Rzeszutek Wilk"
-> <konrad.wilk@oracle.com>
-> Sent: Tuesday, May 19, 2015 1:00:57 PM
-> Subject: [PATCH 2/2] drivers: Simplify the return code
-> 
-> If the last thing we do in a function is to call another
-> function and then return its value, we don't need to store
-> the returned code into some ancillary var.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
-> b/drivers/media/dvb-frontends/lgs8gxx.c
-> index 3c92f36ea5c7..9b0166cdc7c2 100644
-> --- a/drivers/media/dvb-frontends/lgs8gxx.c
-> +++ b/drivers/media/dvb-frontends/lgs8gxx.c
-> @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
-> *priv,
->  	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
->  	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
->  
-> -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
-> -	if (ret != 0)
-> -		return ret;
-> -
-> -	return 0;
-> +	return lgs8gxx_write_reg(priv, reg_addr, t);
->  }
+Better document the linux/media.h UAPI header, by adding
+comments to each entity subtype.
 
-Personally I prefer the current style because it's more consistent with all
-the other calls in the same function (return ret when ret != 0).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-It also allows you to easily add/remove calls without having to deal with
-the last special case return my_last_fun_call(...).
-
-Anyway it's not a big deal, I think it's your call.
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 6acc4be1378c..8d47b70b7ea8 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -44,19 +44,25 @@ struct media_device_info {
+ 
+ /* Used values for media_entity_desc::type */
+ 
++/* Audio/video streaming bridges */
+ #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
++
++/* Digital TV entities */
+ #define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
+ #define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+ #define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+ #define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
+ #define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
+ 
++/* Camera entities */
+ #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
+ #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
+ #define MEDIA_ENT_T_CAM_LENS	(MEDIA_ENT_T_CAM_SENSOR + 2)
+ 
++/* Analog TV entities */
+ #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+ 
++/* Radio, Analog TV and/or Digital TV tuners */
+ #define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+ 
+ #if 1
 -- 
-Federico
+2.1.0
+
