@@ -1,216 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:33457 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669AbbEZPC0 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53374 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752166AbbEHMLI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 11:02:26 -0400
-Received: by wgez8 with SMTP id z8so99896119wge.0
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2015 08:02:11 -0700 (PDT)
-Date: Tue, 26 May 2015 17:02:06 +0200
-From: "Piotr S. Staszewski" <p.staszewski@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2] staging: media: omap4iss: Reformat overly long lines
-Message-ID: <20150526150206.GA30383@swordfish>
-References: <20150526085418.GA22775@swordfish>
+	Fri, 8 May 2015 08:11:08 -0400
+Message-ID: <554CA7C8.20505@xs4all.nl>
+Date: Fri, 08 May 2015 14:10:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150526085418.GA22775@swordfish>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 05/18] media controller: rename MEDIA_ENT_T_DEVNODE_DVB
+ entities
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reformats lines that were previously above 80 characters long,
-improving readability and making checkpatch.pl happier.
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> In order to reflect that the entities are actually the hardware
+> (or firmware, or in-kernel software), and are not associated
+> with the DVB API, let's remove DEVNODE_ from the entity names
+> and use DTV (Digital TV) for the entities.
+> 
+> The frontend is an special case: the frontend devnode actually
+> talks directly with the DTV demodulator. It may or may not also
+> talk with the SEC (Satellite Equipment Control) and with the
+> tuner. For the sake of unifying the nomenclature, let's call it
+> as MEDIA_ENT_T_DTV_DEMOD, because this component is always
+> there.
+> 
+> So:
+> 
+> 	MEDIA_ENT_T_DEVNODE_DVB_FE    -> MEDIA_ENT_T_DTV_DEMOD
+> 	MEDIA_ENT_T_DEVNODE_DVB_DEMUX -> MEDIA_ENT_T_DTV_DEMUX
+> 	MEDIA_ENT_T_DEVNODE_DVB_DVR   -> MEDIA_ENT_T_DTV_DVR
+> 	MEDIA_ENT_T_DEVNODE_DVB_CA    -> MEDIA_ENT_T_DTV_CA
+> 	MEDIA_ENT_T_DEVNODE_DVB_NET   -> MEDIA_ENT_T_DTV_NET
 
-Signed-off-by: Piotr S. Staszewski <p.staszewski@gmail.com>
----
- drivers/staging/media/omap4iss/iss_csi2.c    | 18 +++++++++++------
- drivers/staging/media/omap4iss/iss_ipipe.c   | 30 ++++++++++++++++++----------
- drivers/staging/media/omap4iss/iss_ipipeif.c | 10 ++++++----
- drivers/staging/media/omap4iss/iss_resizer.c |  8 +++++---
- 4 files changed, 42 insertions(+), 24 deletions(-)
+I'm happy with the new names.
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index d7ff769..bc83f82 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -828,8 +828,10 @@ static const struct iss_video_operations csi2_issvideo_ops = {
-  */
- 
- static struct v4l2_mbus_framefmt *
--__csi2_get_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which)
-+__csi2_get_format(struct iss_csi2_device *csi2,
-+		  struct v4l2_subdev_pad_config *cfg,
-+		  unsigned int pad,
-+		  enum v4l2_subdev_format_whence which)
- {
- 	if (which == V4L2_SUBDEV_FORMAT_TRY)
- 		return v4l2_subdev_get_try_format(&csi2->subdev, cfg, pad);
-@@ -838,8 +840,10 @@ __csi2_get_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *c
- }
- 
- static void
--csi2_try_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *cfg,
--		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
-+csi2_try_format(struct iss_csi2_device *csi2,
-+		struct v4l2_subdev_pad_config *cfg,
-+		unsigned int pad,
-+		struct v4l2_mbus_framefmt *fmt,
- 		enum v4l2_subdev_format_whence which)
- {
- 	u32 pixelcode;
-@@ -967,7 +971,8 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
-  * @fmt: pointer to v4l2 subdev format structure
-  * return -EINVAL or zero on success
-  */
--static int csi2_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int csi2_get_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   struct v4l2_subdev_format *fmt)
- {
- 	struct iss_csi2_device *csi2 = v4l2_get_subdevdata(sd);
-@@ -988,7 +993,8 @@ static int csi2_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
-  * @fmt: pointer to v4l2 subdev format structure
-  * return -EINVAL or zero on success
-  */
--static int csi2_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int csi2_set_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   struct v4l2_subdev_format *fmt)
- {
- 	struct iss_csi2_device *csi2 = v4l2_get_subdevdata(sd);
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index eaa82da..f94a592 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -24,8 +24,10 @@
- #include "iss_ipipe.h"
- 
- static struct v4l2_mbus_framefmt *
--__ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which);
-+__ipipe_get_format(struct iss_ipipe_device *ipipe,
-+		   struct v4l2_subdev_pad_config *cfg,
-+		   unsigned int pad,
-+		   enum v4l2_subdev_format_whence which);
- 
- static const unsigned int ipipe_fmts[] = {
- 	MEDIA_BUS_FMT_SGRBG10_1X10,
-@@ -176,8 +178,10 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
- }
- 
- static struct v4l2_mbus_framefmt *
--__ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which)
-+__ipipe_get_format(struct iss_ipipe_device *ipipe,
-+		   struct v4l2_subdev_pad_config *cfg,
-+		   unsigned int pad,
-+		   enum v4l2_subdev_format_whence which)
- {
- 	if (which == V4L2_SUBDEV_FORMAT_TRY)
- 		return v4l2_subdev_get_try_format(&ipipe->subdev, cfg, pad);
-@@ -193,9 +197,11 @@ __ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config
-  * @fmt: Format
-  */
- static void
--ipipe_try_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
--		enum v4l2_subdev_format_whence which)
-+ipipe_try_format(struct iss_ipipe_device *ipipe,
-+		 struct v4l2_subdev_pad_config *cfg,
-+		 unsigned int pad,
-+		 struct v4l2_mbus_framefmt *fmt,
-+		 enum v4l2_subdev_format_whence which)
- {
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int width = fmt->width;
-@@ -306,8 +312,9 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipe_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -329,8 +336,9 @@ static int ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_confi
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipe_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipe_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 530ac84..c0da13d 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -518,8 +518,9 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipeif_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipeif_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipeif_device *ipipeif = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -541,8 +542,9 @@ static int ipipeif_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_con
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipeif_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipeif_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipeif_device *ipipeif = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index 5f69012..5030cf3 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -580,8 +580,9 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int resizer_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int resizer_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -603,7 +604,8 @@ static int resizer_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_con
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int resizer_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int resizer_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
--- 
-2.4.1
+> 
+> PS.: we could actually not keep this define:
+> 	#define MEDIA_ENT_T_DEVNODE_DVB_FE MEDIA_ENT_T_DTV_DEMOD
+> 
+> As MEDIA_ENT_T_DEVNODE_DVB_FE symbol will not arrive any Kernel
+> version (being present only at the 4.1-rc kernels), but keeping
+> it helps to show that the DVB frontend node is actually associated
+> with the DTV demodulator. So, keeping it for now helps to better
+> document. Also, it avoids to break experimental versions of v4l-utils.
+> So, better to remove this only when we remove the remaining legacy
+> stuff.
 
+I disagree with that. Let's not introduce defines that are not going to
+be used. And v4l-utils is easily fixed.
 
--- 
-Piotr S. Staszewski                              http://www.drbig.one.pl
-dRbiG at FreeNode, IRCNet
-                         But all's one level plain he hunts for flowers.
+Instead of keeping an unused define, why not...
+
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 759604e3529f..27082b07f4c2 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -195,23 +195,23 @@
+>  	    <entry>ALSA card</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_FE</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_DTV_DEMOD</constant></entry>
+>  	    <entry>DVB frontend devnode</entry>
+
+... explain what is going on here? I.e. that this frontend always controls a demod
+and optionally also a tuner and/or SEC.
+
+Regards,
+
+	Hans
+
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DEMUX</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_DTV_DEMUX</constant></entry>
+>  	    <entry>DVB demux devnode</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DVR</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_DTV_DVR</constant></entry>
+>  	    <entry>DVB DVR devnode</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_CA</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_DTV_CA</constant></entry>
+>  	    <entry>DVB CAM devnode</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_NET</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_DTV_NET</constant></entry>
+>  	    <entry>DVB network devnode</entry>
+>  	  </row>
+>  	  <row>
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index 13bb57f0457f..39846077045e 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -221,26 +221,26 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+>  
+>  	switch (type) {
+>  	case DVB_DEVICE_FRONTEND:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
+> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMOD;
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+>  		break;
+>  	case DVB_DEVICE_DEMUX:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
+> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMUX;
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+>  		break;
+>  	case DVB_DEVICE_DVR:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
+> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DVR;
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		break;
+>  	case DVB_DEVICE_CA:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
+> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_CA;
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+>  		break;
+>  	case DVB_DEVICE_NET:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_NET;
+>  		break;
+>  	default:
+>  		kfree(dvbdev->entity);
+> @@ -396,16 +396,16 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+>  		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+>  			tuner = entity;
+>  			break;
+> -		case MEDIA_ENT_T_DEVNODE_DVB_FE:
+> +		case MEDIA_ENT_T_DTV_DEMOD:
+>  			fe = entity;
+>  			break;
+> -		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
+> +		case MEDIA_ENT_T_DTV_DEMUX:
+>  			demux = entity;
+>  			break;
+> -		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
+> +		case MEDIA_ENT_T_DTV_DVR:
+>  			dvr = entity;
+>  			break;
+> -		case MEDIA_ENT_T_DEVNODE_DVB_CA:
+> +		case MEDIA_ENT_T_DTV_CA:
+>  			ca = entity;
+>  			break;
+>  		}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 2e465ba087ba..0de9912411c5 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -45,11 +45,11 @@ struct media_device_info {
+>  /* Used values for media_entity_desc::type */
+>  
+>  #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
+> +#define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
+> +#define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+> +#define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+> +#define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
+> +#define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
+>  
+>  #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
+>  #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
+> @@ -76,7 +76,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+>  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+>  
+> -#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+> +#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DTV_DEMOD
+> +#define MEDIA_ENT_T_DEVNODE_DVB_FE	MEDIA_ENT_T_DTV_DEMOD
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	MEDIA_ENT_T_DTV_DEMUX
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	MEDIA_ENT_T_DTV_DVR
+> +#define MEDIA_ENT_T_DEVNODE_DVB_CA	MEDIA_ENT_T_DTV_CA
+> +#define MEDIA_ENT_T_DEVNODE_DVB_NET	MEDIA_ENT_T_DTV_NET
+> +
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+> 
+
