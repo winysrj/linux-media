@@ -1,60 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:4007 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674AbbEZNLT (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45334 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752778AbbEHMNj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:11:19 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v5 1/3] media: atmel-isi: disable ISI even it has codec request in stop_streaming()
-Date: Tue, 26 May 2015 17:54:45 +0800
-Message-ID: <1432634087-3356-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
-References: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
+	Fri, 8 May 2015 08:13:39 -0400
+Message-ID: <554CA862.8070407@xs4all.nl>
+Date: Fri, 08 May 2015 14:13:22 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In current code, stop_streaming() will just return if ISI is still
-working in the codec. But this is incorrect, we need to disable ISI even
-it is working on the codec. otherwise stop_streaming() will not work as
-we expected.
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> Finally, let's rename the tuner entity. inside the media subsystem,
+> a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
+> It could even be used on other subsystems, like network, for wireless
+> devices.
+> 
+> So, it is not constricted to V4L2 API, or to a subdev.
+> 
+> Let's then rename it as:
+> 	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+See patch 04/18.
 
-Changes in v5:
-- add new patch to fix the condition that codec request still in work.
+	Hans
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
-
- drivers/media/platform/soc_camera/atmel-isi.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 2879026..2227022 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -431,11 +431,9 @@ static void stop_streaming(struct vb2_queue *vq)
- 			time_before(jiffies, timeout))
- 		msleep(1);
- 
--	if (time_after(jiffies, timeout)) {
-+	if (time_after(jiffies, timeout))
- 		dev_err(icd->parent,
- 			"Timeout waiting for finishing codec request\n");
--		return;
--	}
- 
- 	/* Disable interrupts */
- 	isi_writel(isi, ISI_INTDIS,
--- 
-1.9.1
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 9b3861058f0d..5c7f366bb1f4 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -241,7 +241,7 @@
+>  	    signals.</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
+> +	    <entry><constant>MEDIA_ENT_T_TUNER</constant></entry>
+>  	    <entry>TV and/or radio tuner</entry>
+>  	  </row>
+>  	</tbody>
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index 39846077045e..d6a096495035 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -393,7 +393,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+>  
+>  	media_device_for_each_entity(entity, mdev) {
+>  		switch (entity->type) {
+> -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> +		case MEDIA_ENT_T_TUNER:
+>  			tuner = entity;
+>  			break;
+>  		case MEDIA_ENT_T_DTV_DEMOD:
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> index a756f74f0adc..2a7331e3c4a0 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -1213,7 +1213,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+>  
+>  	media_device_for_each_entity(entity, mdev) {
+>  		switch (entity->type) {
+> -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> +		case MEDIA_ENT_T_TUNER:
+>  			tuner = entity;
+>  			break;
+>  		case MEDIA_ENT_T_ATV_DECODER:
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index abdcffabcb59..ecf4e8a543b3 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -696,7 +696,7 @@ static int tuner_probe(struct i2c_client *client,
+>  register_client:
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> -	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+> +	t->sd.entity.type = MEDIA_ENT_T_TUNER;
+>  	t->sd.entity.name = t->name;
+>  
+>  	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 9b3d80e765f0..6acc4be1378c 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -57,7 +57,7 @@ struct media_device_info {
+>  
+>  #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+>  
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+> +#define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+>  
+>  #if 1
+>  /*
+> @@ -88,6 +88,8 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+>  
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
+> +
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_T_TUNER
+>  #endif
+>  
+>  /* Used bitmasks for media_entity_desc::flags */
+> 
 
