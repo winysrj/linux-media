@@ -1,171 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47100 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755843AbbE2Lfz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 07:35:55 -0400
-Message-ID: <55684ECE.9060003@ti.com>
-Date: Fri, 29 May 2015 17:04:38 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from lists.s-osg.org ([54.187.51.154]:57955 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751097AbbEHM43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 08:56:29 -0400
+Date: Fri, 8 May 2015 09:56:24 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 05/18] media controller: rename MEDIA_ENT_T_DEVNODE_DVB
+ entities
+Message-ID: <20150508095624.4b3783d0@recife.lan>
+In-Reply-To: <554CA7C8.20505@xs4all.nl>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+	<f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
+	<554CA7C8.20505@xs4all.nl>
 MIME-Version: 1.0
-To: <balbi@ti.com>, Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-CC: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	Jean Delvare <jdelvare@suse.de>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-ide@vger.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
-	Anatol Pomazau <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	<bcm-kernel-feedback-list@broadcom.com>
-Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com> <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com> <20150515005210.GA31534@saruman.tx.rr.com> <556391FE.1020503@broadcom.com> <20150526141938.GA25686@saruman.tx.rr.com> <5564BD5D.1070601@broadcom.com> <20150526183955.GW26599@saruman.tx.rr.com>
-In-Reply-To: <20150526183955.GW26599@saruman.tx.rr.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
+Em Fri, 08 May 2015 14:10:48 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Wednesday 27 May 2015 12:09 AM, Felipe Balbi wrote:
-> On Tue, May 26, 2015 at 11:37:17AM -0700, Arun Ramamurthy wrote:
->> Hi
->>
->> On 15-05-26 07:19 AM, Felipe Balbi wrote:
->>> HI,
->>>
->>> On Mon, May 25, 2015 at 02:19:58PM -0700, Arun Ramamurthy wrote:
->>>>
->>>>
->>>> On 15-05-14 05:52 PM, Felipe Balbi wrote:
->>>>> Hi,
->>>>>
->>>>> On Wed, Apr 22, 2015 at 04:04:10PM -0700, Arun Ramamurthy wrote:
->>>>>> Most of the phy providers use "select" to enable GENERIC_PHY. Since select
->>>>>> is only recommended when the config is not visible, GENERIC_PHY is changed
->>>>>> an invisible option. To maintain consistency, all phy providers are changed
->>>>>> to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
->>>>>> phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
->>>>>> dependency, so it is left as "select".
->>>>>>
->>>>>> Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
->>>>>> ---
->>>>>>   drivers/ata/Kconfig                       | 1 -
->>>>>>   drivers/media/platform/exynos4-is/Kconfig | 2 +-
->>>>>>   drivers/phy/Kconfig                       | 4 ++--
->>>>>>   drivers/usb/host/Kconfig                  | 4 ++--
->>>>>>   drivers/video/fbdev/exynos/Kconfig        | 2 +-
->>>>>>   5 files changed, 6 insertions(+), 7 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
->>>>>> index 5f60155..6d2e881 100644
->>>>>> --- a/drivers/ata/Kconfig
->>>>>> +++ b/drivers/ata/Kconfig
->>>>>> @@ -301,7 +301,6 @@ config SATA_MV
->>>>>>   	tristate "Marvell SATA support"
->>>>>>   	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
->>>>>>   		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
->>>>>> -	select GENERIC_PHY
->>>>>>   	help
->>>>>>   	  This option enables support for the Marvell Serial ATA family.
->>>>>>   	  Currently supports 88SX[56]0[48][01] PCI(-X) chips,
->>>>>> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
->>>>>> index b7b2e47..b6f3eaa 100644
->>>>>> --- a/drivers/media/platform/exynos4-is/Kconfig
->>>>>> +++ b/drivers/media/platform/exynos4-is/Kconfig
->>>>>> @@ -31,7 +31,7 @@ config VIDEO_S5P_FIMC
->>>>>>   config VIDEO_S5P_MIPI_CSIS
->>>>>>   	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
->>>>>>   	depends on REGULATOR
->>>>>> -	select GENERIC_PHY
->>>>>> +	depends on GENERIC_PHY
->>>>>>   	help
->>>>>>   	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
->>>>>>   	  receiver (MIPI-CSIS) devices.
->>>>>> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
->>>>>> index 2962de2..edecdb1 100644
->>>>>> --- a/drivers/phy/Kconfig
->>>>>> +++ b/drivers/phy/Kconfig
->>>>>> @@ -5,7 +5,7 @@
->>>>>>   menu "PHY Subsystem"
->>>>>>
->>>>>>   config GENERIC_PHY
->>>>>> -	bool "PHY Core"
->>>>>> +	bool
->>>>>>   	help
->>>>>>   	  Generic PHY support.
->>>>>>
->>>>>> @@ -72,7 +72,7 @@ config PHY_MIPHY365X
->>>>>>   config PHY_RCAR_GEN2
->>>>>>   	tristate "Renesas R-Car generation 2 USB PHY driver"
->>>>>>   	depends on ARCH_SHMOBILE
->>>>>> -	depends on GENERIC_PHY
->>>>>> +	select GENERIC_PHY
->>>>>
->>>>> so some you changed from depends to select...
->>>>>
->>>>>>   	help
->>>>>>   	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
->>>>>>
->>>>>> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
->>>>>> index 5ad60e4..e2197e2 100644
->>>>>> --- a/drivers/usb/host/Kconfig
->>>>>> +++ b/drivers/usb/host/Kconfig
->>>>>> @@ -182,7 +182,7 @@ config USB_EHCI_HCD_SPEAR
->>>>>>   config USB_EHCI_HCD_STI
->>>>>>   	tristate "Support for ST STiHxxx on-chip EHCI USB controller"
->>>>>>   	depends on ARCH_STI && OF
->>>>>> -	select GENERIC_PHY
->>>>>> +	depends on GENERIC_PHY
->>>>>
->>>>> while others you changed from select to depends.
->>>>>
->>>>> NAK.
->>>>>
->>>> Felipe, I dont understand your concern, could you please explain it more
->>>> detail?  The logic behind the changes is that in cases where there was an
->>>> explicit dependency, I changed it to "depends on" and in other cases I
->>>> changed it to "selects". Thanks
->>>
->>> Since GENERIC_PHY is visible from Kconfig, it would be much nicer to
->>> avoid select altogether.
->>>
->> Felipe, after discussion with the maintainers, I have made GENERIC_PHY an
->> invisible option as part of this change. Thanks
->
-> Then, if the option is invisible, how can you "depend" on it ? It can
-> never be selected by poking around in Kconfig. IMO, it's
-> counterintuitive that you need to enable a PHY driver before you can see
-> your EHCI/OHCI/whatever controller listed in Kconfig.
+> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> > In order to reflect that the entities are actually the hardware
+> > (or firmware, or in-kernel software), and are not associated
+> > with the DVB API, let's remove DEVNODE_ from the entity names
+> > and use DTV (Digital TV) for the entities.
+> > 
+> > The frontend is an special case: the frontend devnode actually
+> > talks directly with the DTV demodulator. It may or may not also
+> > talk with the SEC (Satellite Equipment Control) and with the
+> > tuner. For the sake of unifying the nomenclature, let's call it
+> > as MEDIA_ENT_T_DTV_DEMOD, because this component is always
+> > there.
+> > 
+> > So:
+> > 
+> > 	MEDIA_ENT_T_DEVNODE_DVB_FE    -> MEDIA_ENT_T_DTV_DEMOD
+> > 	MEDIA_ENT_T_DEVNODE_DVB_DEMUX -> MEDIA_ENT_T_DTV_DEMUX
+> > 	MEDIA_ENT_T_DEVNODE_DVB_DVR   -> MEDIA_ENT_T_DTV_DVR
+> > 	MEDIA_ENT_T_DEVNODE_DVB_CA    -> MEDIA_ENT_T_DTV_CA
+> > 	MEDIA_ENT_T_DEVNODE_DVB_NET   -> MEDIA_ENT_T_DTV_NET
+> 
+> I'm happy with the new names.
+> 
+> > 
+> > PS.: we could actually not keep this define:
+> > 	#define MEDIA_ENT_T_DEVNODE_DVB_FE MEDIA_ENT_T_DTV_DEMOD
+> > 
+> > As MEDIA_ENT_T_DEVNODE_DVB_FE symbol will not arrive any Kernel
+> > version (being present only at the 4.1-rc kernels), but keeping
+> > it helps to show that the DVB frontend node is actually associated
+> > with the DTV demodulator. So, keeping it for now helps to better
+> > document. Also, it avoids to break experimental versions of v4l-utils.
+> > So, better to remove this only when we remove the remaining legacy
+> > stuff.
+> 
+> I disagree with that. Let's not introduce defines that are not going to
+> be used. And v4l-utils is easily fixed.
+> 
+> Instead of keeping an unused define, why not...
 
-If the controller requires PHY for it to be functional, it is okay to make the 
-controller depend on PHY IMHO. We want to try and minimize the usage of 
-'select' wherever possible or else 'select' is the most intuitive way. The 
-other option is just to leave the 'depends on' and let the user select PHY.
+We agree to disagree here ;)
 
-Thanks
-Kishon
+> 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > index 759604e3529f..27082b07f4c2 100644
+> > --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > @@ -195,23 +195,23 @@
+> >  	    <entry>ALSA card</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_FE</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_DTV_DEMOD</constant></entry>
+> >  	    <entry>DVB frontend devnode</entry>
+> 
+> ... explain what is going on here? I.e. that this frontend always controls a demod
+> and optionally also a tuner and/or SEC.
+
+I'm actually doing just the renames on those initial patches. There are
+some adjustments to be done at the documentation, not just that.
+
+So, I opted to do such adjustment on the last patch of this series.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DEMUX</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_DTV_DEMUX</constant></entry>
+> >  	    <entry>DVB demux devnode</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DVR</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_DTV_DVR</constant></entry>
+> >  	    <entry>DVB DVR devnode</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_CA</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_DTV_CA</constant></entry>
+> >  	    <entry>DVB CAM devnode</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_NET</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_DTV_NET</constant></entry>
+> >  	    <entry>DVB network devnode</entry>
+> >  	  </row>
+> >  	  <row>
+> > diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> > index 13bb57f0457f..39846077045e 100644
+> > --- a/drivers/media/dvb-core/dvbdev.c
+> > +++ b/drivers/media/dvb-core/dvbdev.c
+> > @@ -221,26 +221,26 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+> >  
+> >  	switch (type) {
+> >  	case DVB_DEVICE_FRONTEND:
+> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
+> > +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMOD;
+> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+> >  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+> >  		break;
+> >  	case DVB_DEVICE_DEMUX:
+> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
+> > +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMUX;
+> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+> >  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+> >  		break;
+> >  	case DVB_DEVICE_DVR:
+> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
+> > +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DVR;
+> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+> >  		break;
+> >  	case DVB_DEVICE_CA:
+> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
+> > +		dvbdev->entity->type = MEDIA_ENT_T_DTV_CA;
+> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+> >  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+> >  		break;
+> >  	case DVB_DEVICE_NET:
+> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+> > +		dvbdev->entity->type = MEDIA_ENT_T_DTV_NET;
+> >  		break;
+> >  	default:
+> >  		kfree(dvbdev->entity);
+> > @@ -396,16 +396,16 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+> >  		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> >  			tuner = entity;
+> >  			break;
+> > -		case MEDIA_ENT_T_DEVNODE_DVB_FE:
+> > +		case MEDIA_ENT_T_DTV_DEMOD:
+> >  			fe = entity;
+> >  			break;
+> > -		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
+> > +		case MEDIA_ENT_T_DTV_DEMUX:
+> >  			demux = entity;
+> >  			break;
+> > -		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
+> > +		case MEDIA_ENT_T_DTV_DVR:
+> >  			dvr = entity;
+> >  			break;
+> > -		case MEDIA_ENT_T_DEVNODE_DVB_CA:
+> > +		case MEDIA_ENT_T_DTV_CA:
+> >  			ca = entity;
+> >  			break;
+> >  		}
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index 2e465ba087ba..0de9912411c5 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -45,11 +45,11 @@ struct media_device_info {
+> >  /* Used values for media_entity_desc::type */
+> >  
+> >  #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
+> > -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
+> > -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+> > -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+> > -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
+> > -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
+> > +#define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
+> > +#define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
+> > +#define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
+> > +#define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
+> > +#define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
+> >  
+> >  #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
+> >  #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
+> > @@ -76,7 +76,13 @@ struct media_device_info {
+> >  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+> >  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+> >  
+> > -#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+> > +#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DTV_DEMOD
+> > +#define MEDIA_ENT_T_DEVNODE_DVB_FE	MEDIA_ENT_T_DTV_DEMOD
+> > +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	MEDIA_ENT_T_DTV_DEMUX
+> > +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	MEDIA_ENT_T_DTV_DVR
+> > +#define MEDIA_ENT_T_DEVNODE_DVB_CA	MEDIA_ENT_T_DTV_CA
+> > +#define MEDIA_ENT_T_DEVNODE_DVB_NET	MEDIA_ENT_T_DTV_NET
+> > +
+> >  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
+> >  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
+> >  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+> > 
+> 
