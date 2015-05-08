@@ -1,78 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:38415 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbbEDJ50 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 05:57:26 -0400
-Message-ID: <5547427D.3000702@cisco.com>
-Date: Mon, 04 May 2015 11:57:17 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45945 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332AbbEHMFZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 08:05:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Shuah Khan <shuah.kh@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Cheolhyun Park <pch851130@gmail.com>,
+	Benoit Taine <benoit.taine@lip6.fr>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH] media: replace bellow -> below
+Date: Fri, 08 May 2015 15:05:21 +0300
+Message-ID: <3571020.QtjJPoh1sD@avalon>
+In-Reply-To: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
+References: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Martin Bugge <marbugge@cisco.com>
-Subject: Re: [PATCH] v4l2-dv-timings: fix overflow in gtf timings calculation
-References: <1430587386-28409-1-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1430587386-28409-1-git-send-email-prladdha@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/02/2015 07:23 PM, Prashant Laddha wrote:
-> The intermediate calculation in the expression for hblank can exceed
-> 32 bit signed range. This overflow can lead to negative values for
-> hblank. Typecasting intermediate variable to higher precision.
+Hi Mauro,
+
+On Friday 08 May 2015 09:01:28 Mauro Carvalho Chehab wrote:
+> Bellow is yelling. Ok, sometimes the code is yells a lot, but
+> but this is not the case there ;)
+
+:-)
+
+checkpatch.pl has support for finding common spelling mistakes nowadays. 
+Instead of fixing them one by one, should we run it on the whole media 
+subsystem and fix all detected errors in one go ?
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Martin Bugge <marbugge@cisco.com>
-> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dv-timings.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
+> diff --git a/drivers/media/common/siano/smsir.c
+> b/drivers/media/common/siano/smsir.c index 1d60d200d9ab..41f2a3939979
+> 100644
+> --- a/drivers/media/common/siano/smsir.c
+> +++ b/drivers/media/common/siano/smsir.c
+> @@ -78,7 +78,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+>  	dev->dev.parent = coredev->device;
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> index 86e11d1..9d27f05 100644
-> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> @@ -573,15 +573,15 @@ bool v4l2_detect_gtf(unsigned frame_height,
->  
->  	/* Horizontal */
->  	if (default_gtf)
-> -		h_blank = ((image_width * GTF_D_C_PRIME * hfreq) -
-> -					(image_width * GTF_D_M_PRIME * 1000) +
-> -			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
-> -			(hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
-> +		h_blank = ((image_width * GTF_D_C_PRIME * (long long)hfreq) -
-> +			  ((long long)image_width * GTF_D_M_PRIME * 1000) +
-> +			  ((long long)hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) / 2) /
-> +			  ((long long)hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000);
+>  #if 0
+> -	/* TODO: properly initialize the parameters bellow */
+> +	/* TODO: properly initialize the parameters below */
+>  	dev->input_id.bustype = BUS_USB;
+>  	dev->input_id.version = 1;
+>  	dev->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+> diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> b/drivers/media/dvb-frontends/drx39xyj/drxj.c index
+> 61f76038442a..52245354bf04 100644
+> --- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> +++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> @@ -9541,7 +9541,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance
+> *demod) /* ----------------------------------------- */
+>  	/* Pre Viterbi Symbol Error Rate Calculation */
+>  	/* ----------------------------------------- */
+> -	/* pre viterbi SER is good if it is bellow 0.025 */
+> +	/* pre viterbi SER is good if it is below 0.025 */
+> 
+>  	/* get the register value */
+>  	/*   no of quadrature symbol errors */
+> diff --git a/drivers/media/dvb-frontends/drxk_hard.c
+> b/drivers/media/dvb-frontends/drxk_hard.c index d46cf5f7cd2e..ad35264a3819
+> 100644
+> --- a/drivers/media/dvb-frontends/drxk_hard.c
+> +++ b/drivers/media/dvb-frontends/drxk_hard.c
+> @@ -544,7 +544,7 @@ error:
+>  static int init_state(struct drxk_state *state)
+>  {
+>  	/*
+> -	 * FIXME: most (all?) of the values bellow should be moved into
+> +	 * FIXME: most (all?) of the values below should be moved into
+>  	 * struct drxk_config, as they are probably board-specific
+>  	 */
+>  	u32 ul_vsb_if_agc_mode = DRXK_AGC_CTRL_AUTO;
+> diff --git a/drivers/media/dvb-frontends/tda10021.c
+> b/drivers/media/dvb-frontends/tda10021.c index 1bff7f457e19..28d987068048
+> 100644
+> --- a/drivers/media/dvb-frontends/tda10021.c
+> +++ b/drivers/media/dvb-frontends/tda10021.c
+> @@ -258,7 +258,7 @@ static int tda10021_set_parameters(struct dvb_frontend
+> *fe) }
+> 
+>  	/*
+> -	 * gcc optimizes the code bellow the same way as it would code:
+> +	 * gcc optimizes the code below the same way as it would code:
+>  	 *           "if (qam > 5) return -EINVAL;"
+>  	 * Yet, the code is clearer, as it shows what QAM standards are
+>  	 * supported by the driver, and avoids the usage of magic numbers on
+> diff --git a/drivers/media/dvb-frontends/tda10023.c
+> b/drivers/media/dvb-frontends/tda10023.c index ca1e0d54b69a..f92fbbbb4a71
+> 100644
+> --- a/drivers/media/dvb-frontends/tda10023.c
+> +++ b/drivers/media/dvb-frontends/tda10023.c
+> @@ -331,7 +331,7 @@ static int tda10023_set_parameters(struct dvb_frontend
+> *fe) }
+> 
+>  	/*
+> -	 * gcc optimizes the code bellow the same way as it would code:
+> +	 * gcc optimizes the code below the same way as it would code:
+>  	 *		 "if (qam > 5) return -EINVAL;"
+>  	 * Yet, the code is clearer, as it shows what QAM standards are
+>  	 * supported by the driver, and avoids the usage of magic numbers on
+> diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
+> index 070c152da95a..0c50e5285cf6 100644
+> --- a/drivers/media/i2c/tvaudio.c
+> +++ b/drivers/media/i2c/tvaudio.c
+> @@ -272,7 +272,7 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name,
+> audiocmd *cmd) return -EINVAL;
+>  	}
+> 
+> -	/* FIXME: it seems that the shadow bytes are wrong bellow !*/
+> +	/* FIXME: it seems that the shadow bytes are wrong below !*/
+> 
+>  	/* update our shadow register set; print bytes if (debug > 0) */
+>  	v4l2_dbg(1, debug, sd, "chip_cmd(%s): reg=%d, data:",
+> diff --git a/drivers/media/tuners/tuner-xc2028.c
+> b/drivers/media/tuners/tuner-xc2028.c index d12f5e4ad8bf..4e941f00b600
+> 100644
+> --- a/drivers/media/tuners/tuner-xc2028.c
+> +++ b/drivers/media/tuners/tuner-xc2028.c
+> @@ -1094,7 +1094,7 @@ static int generic_set_freq(struct dvb_frontend *fe,
+> u32 freq /* in HZ */, * Still need tests for XC3028L (firmware 3.2 or
+> upper)
+>  		 * So, for now, let's just comment the per-firmware
+>  		 * version of this change. Reports with xc3028l working
+> -		 * with and without the lines bellow are welcome
+> +		 * with and without the lines below are welcome
+>  		 */
+> 
+>  		if (priv->firm_version < 0x0302) {
 
-This will not work on systems that cannot divide 64 bit numbers. Use the do_div
-function for this. It's a common mistake to make when developing on Intel CPUs.
-Been there, done that :-) Multiple times, in fact...
-
-And I think it will help a lot if some additional variables are introduced since
-this calculation is getting complex.
-
-Also replace "/ 2" by ">> 1". That will guarantee that you do not need do_div for
-that. Probably unnecessary since I would expect gcc to be smart enough to replace
-/ 2 by >> 1 anyway, but it doesn't hurt.
-
+-- 
 Regards,
 
-	Hans
-
->  	else
-> -		h_blank = ((image_width * GTF_S_C_PRIME * hfreq) -
-> -					(image_width * GTF_S_M_PRIME * 1000) +
-> -			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
-> -			(hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
-> +		h_blank = ((image_width * GTF_S_C_PRIME * (long long)hfreq) -
-> +			  ((long long)image_width * GTF_S_M_PRIME * 1000) +
-> +			  ((long long)hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) / 2) /
-> +			  ((long long)hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000);
->  
->  	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
->  		  (2 * GTF_CELL_GRAN);
-> 
+Laurent Pinchart
 
