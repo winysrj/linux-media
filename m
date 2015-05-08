@@ -1,106 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60959 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752785AbbETIjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 04:39:42 -0400
-Date: Wed, 20 May 2015 05:39:29 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Federico Simoncelli <fsimonce@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Michael Buesch <m@bues.ch>, Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Amber Thrall <amber.rose.thrall@gmail.com>,
-	James Harper <james.harper@ejbdigital.com.au>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/2] drivers: Simplify the return code
-Message-ID: <20150520053929.4c151fae@recife.lan>
-In-Reply-To: <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
-References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
-	<0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
-	<a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
-	<577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57696 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753455AbbEHLab (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 07:30:31 -0400
+Message-ID: <554C9E45.7090800@xs4all.nl>
+Date: Fri, 08 May 2015 13:30:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Kamil Debski <k.debski@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v6 06/11] cec: add HDMI CEC framework
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-7-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1430760785-1169-7-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 May 2015 08:05:56 -0400 (EDT)
-Federico Simoncelli <fsimonce@redhat.com> escreveu:
+Hi Kamil,
 
-> ----- Original Message -----
-> > From: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
-> > To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-> > Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>, "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Lars-Peter
-> > Clausen" <lars@metafoo.de>, "Michael Buesch" <m@bues.ch>, "Antti Palosaari" <crope@iki.fi>, "Hans Verkuil"
-> > <hverkuil@xs4all.nl>, "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Ondrej Zary" <linux@rainbow-software.org>,
-> > "Ramakrishnan Muthukrishnan" <ramakrmu@cisco.com>, "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>, "Takashi
-> > Iwai" <tiwai@suse.de>, "Amber Thrall" <amber.rose.thrall@gmail.com>, "Federico Simoncelli" <fsimonce@redhat.com>,
-> > "James Harper" <james.harper@ejbdigital.com.au>, "Dan Carpenter" <dan.carpenter@oracle.com>, "Konrad Rzeszutek Wilk"
-> > <konrad.wilk@oracle.com>
-> > Sent: Tuesday, May 19, 2015 1:00:57 PM
-> > Subject: [PATCH 2/2] drivers: Simplify the return code
-> > 
-> > If the last thing we do in a function is to call another
-> > function and then return its value, we don't need to store
-> > the returned code into some ancillary var.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
-> > b/drivers/media/dvb-frontends/lgs8gxx.c
-> > index 3c92f36ea5c7..9b0166cdc7c2 100644
-> > --- a/drivers/media/dvb-frontends/lgs8gxx.c
-> > +++ b/drivers/media/dvb-frontends/lgs8gxx.c
-> > @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
-> > *priv,
-> >  	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
-> >  	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
-> >  
-> > -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
-> > -	if (ret != 0)
-> > -		return ret;
-> > -
-> > -	return 0;
-> > +	return lgs8gxx_write_reg(priv, reg_addr, t);
-> >  }
+Just two tiny issues, and after that you can add my:
+
+Reviewed-by: Hans Verkuil <hans.verkuil@ciso.com>
+
+to this.
+
+On 05/04/2015 07:32 PM, Kamil Debski wrote:
+> diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
+> new file mode 100644
+> index 0000000..67b0049
+> --- /dev/null
+> +++ b/include/uapi/linux/cec.h
+> @@ -0,0 +1,332 @@
+> +#ifndef _CEC_H
+> +#define _CEC_H
+> +
+> +#include <linux/types.h>
+> +
+> +struct cec_msg {
+> +	__u64 ts;
+> +	__u32 len;
+> +	__u32 status;
+> +	__u32 timeout;
+> +	/* timeout (in ms) is used to timeout CEC_RECEIVE.
+> +	   Set to 0 if you want to wait forever. */
+> +	__u8  msg[16];
+> +	__u8  reply;
+> +	/* If non-zero, then wait for a reply with this opcode.
+> +	   If there was an error when sending the msg or FeatureAbort
+> +	   was returned, then reply is set to 0.
+> +	   If reply is non-zero upon return, then len/msg are set to
+> +	   the received message.
+> +	   If reply is zero upon return and status has the
+> +	   CEC_TX_STATUS_FEATURE_ABORT bit set, then len/msg are set to the
+> +	   received feature abort message.
+> +	   If reply is zero upon return and status has the
+> +	   CEC_TX_STATUS_REPLY_TIMEOUT
+> +	   bit set, then no reply was seen at all.
+> +	   This field is ignored with CEC_RECEIVE.
+> +	   If reply is non-zero for CEC_TRANSMIT and the message is a broadcast,
+> +	   then -EINVAL is returned.
+> +	   if reply is non-zero, then timeout is set to 1000 (the required
+> +	   maximum response time).
+> +	 */
+> +	__u32 sequence;
+> +	/* The framework assigns a sequence number to messages that are sent.
+> +	 * This can be used to track replies to previously sent messages.
+> +	 */
+> +	__u8 reserved[35];
+> +};
+
+It is confusing in struct cec_msg that the comments come *after* the field
+they belong to instead of just before. Can you change this?
+
+> +
+> +#define CEC_G_EVENT		_IOWR('a', 9, struct cec_event)
+
+This can be __IOR since we never write anything.
+
+> +/*
+> +   Read and set the vendor ID of the CEC adapter.
+> + */
+> +#define CEC_G_VENDOR_ID		_IOR('a', 10, __u32)
+> +#define CEC_S_VENDOR_ID		_IOW('a', 11, __u32)
+> +/*
+> +   Enable/disable the passthrough mode
+> + */
+> +#define CEC_G_PASSTHROUGH	_IOR('a', 12, __u32)
+> +#define CEC_S_PASSTHROUGH	_IOW('a', 13, __u32)
+> +
+> +#endif
 > 
-> Personally I prefer the current style because it's more consistent with all
-> the other calls in the same function (return ret when ret != 0).
-> 
-> It also allows you to easily add/remove calls without having to deal with
-> the last special case return my_last_fun_call(...).
-> 
-> Anyway it's not a big deal, I think it's your call.
-
-First of all, I wrote this patch to test coccinelle (with was broken
-in Fedora 21 due to a dependency issue[1]). Once done, why not submit?
-So, it is not that I'm really wanting to do that.
-
-[1] https://bugzilla.redhat.com/show_bug.cgi?id=1218987
-
-Yet, as someone that review a lot of code, the above is a way better,
-as I can instantly check that the data returned by lgs8gxx_write_reg()
-will also be returned to the caller function. Ok, this optimizes a few
-milliseconds of my brain's processing, but it still means a faster
-review to me, with is a gain, as I spend big periods of time reviewing
-code. So, the simpler, the merrier.
-
-Also, I don't trust too much on compiler optimization. I mean: I don't
-expect that gcc will always do the right thing and remove the useless
-if. Writing software for so long time, I know that software has bugs.
-So, if I see something that can be easily optimized like the above
-code, I do. It is one less thing to trust that the compiler will do
-right.
 
 Regards,
-Mauro
 
+	Hans
