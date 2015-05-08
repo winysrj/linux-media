@@ -1,194 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51452 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932196AbbE1Vtv (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47301 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751097AbbEHLj3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:51 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org,
+	Fri, 8 May 2015 07:39:29 -0400
+Message-ID: <554CA060.7090006@xs4all.nl>
+Date: Fri, 08 May 2015 13:39:12 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-api@vger.kernel.org
-Subject: [PATCH 34/35] DocBook: Better document enum fe_modulation
-Date: Thu, 28 May 2015 18:49:37 -0300
-Message-Id: <057967adc76bbca08c671869313c0fda5f92ad9b.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+Subject: Re: [PATCH 02/18] media controller: deprecate entity subtype
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <80e0882a4194460ca232f19ebbc85fa3338eda3f.1431046915.git.mchehab@osg.samsung.com>
+In-Reply-To: <80e0882a4194460ca232f19ebbc85fa3338eda3f.1431046915.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using programlisting, use a table, as this provides
-a better view of the structure.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Just a typo, after that you can add my:
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 0fa4ccfd406d..d9861b54f8c8 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -137,25 +137,78 @@ get/set up to 64 properties. The actual meaning of each property is described on
- 	</section>
- 	<section id="DTV-MODULATION">
- 	<title><constant>DTV_MODULATION</constant></title>
--<para>Specifies the frontend modulation type for cable and satellite types. The modulation can be one of the types bellow:</para>
--<programlisting>
-- typedef enum fe_modulation {
--	QPSK,
--	QAM_16,
--	QAM_32,
--	QAM_64,
--	QAM_128,
--	QAM_256,
--	QAM_AUTO,
--	VSB_8,
--	VSB_16,
--	PSK_8,
--	APSK_16,
--	APSK_32,
--	DQPSK,
--	QAM_4_NR,
-- } fe_modulation_t;
--</programlisting>
-+<para>Specifies the frontend modulation type for delivery systems that supports
-+    more than one modulation type. The modulation can be one of the types
-+    defined by &fe-modulation;.</para>
-+
-+
-+<section id="fe-modulation-t">
-+<title>Modulation property</title>
-+
-+<para>Most of the digital TV standards currently offers more than one possible
-+    modulation (sometimes called as "constellation" on some standards). This
-+    enum contains the values used by the Kernel. Please notice that not all
-+    modulations are supported by a given standard.</para>
-+
-+<table pgwide="1" frame="none" id="fe-modulation">
-+    <title>enum fe_modulation</title>
-+    <tgroup cols="2">
-+	&cs-def;
-+	<thead>
-+	<row>
-+	    <entry>ID</entry>
-+	    <entry>Description</entry>
-+	</row>
-+	</thead>
-+	<tbody valign="top">
-+	<row>
-+	    <entry>QPSK</entry>
-+	    <entry>QPSK modulation</entry>
-+	</row><row>
-+	    <entry>QAM_16</entry>
-+	    <entry>16-QAM modulation</entry>
-+	</row><row>
-+	    <entry>QAM_32</entry>
-+	    <entry>32-QAM modulation</entry>
-+	</row><row>
-+	    <entry>QAM_64</entry>
-+	    <entry>64-QAM modulation</entry>
-+	</row><row>
-+	    <entry>QAM_128</entry>
-+	    <entry>128-QAM modulation</entry>
-+	</row><row>
-+	    <entry>QAM_256</entry>
-+	    <entry>256-QAM modulation</entry>
-+	</row><row>
-+	    <entry>QAM_AUTO</entry>
-+	    <entry>Autodetect QAM modulation</entry>
-+	</row><row>
-+	    <entry>VSB_8</entry>
-+	    <entry>8-VSB modulation</entry>
-+	</row><row>
-+	    <entry>VSB_16</entry>
-+	    <entry>16-VSB modulation</entry>
-+	</row><row>
-+	    <entry>PSK_8</entry>
-+	    <entry>8-PSK modulation</entry>
-+	</row><row>
-+	    <entry>APSK_16</entry>
-+	    <entry>16-APSK modulation</entry>
-+	</row><row>
-+	    <entry>APSK_32</entry>
-+	    <entry>32-APSK modulation</entry>
-+	</row><row>
-+	    <entry>DQPSK</entry>
-+	    <entry>DQPSK modulation</entry>
-+	</row><row>
-+	    <entry>QAM_4_NR</entry>
-+	    <entry>4-QAM-NR modulation</entry>
-+	</row>
-+        </tbody>
-+    </tgroup>
-+</table>
-+</section>
-+
- 	</section>
- 	<section id="DTV-BANDWIDTH-HZ">
- 		<title><constant>DTV_BANDWIDTH_HZ</constant></title>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 16a4648043d6..07c1284e88c8 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -100,32 +100,6 @@ detection.
- </para>
- </section>
- 
--<section id="fe-modulation-t">
--<title>frontend modulation type for QAM, OFDM and VSB</title>
--<para>For cable and terrestrial frontends, e. g. for
--<link linkend="dvb-qam-parameters"><constant>struct dvb_qpsk_parameters</constant></link>,
--<link linkend="dvb-ofdm-parameters"><constant>struct dvb_qam_parameters</constant></link> and
--<link linkend="dvb-vsb-parameters"><constant>struct dvb_qam_parameters</constant></link>,
--it needs to specify the quadrature modulation mode which can be one of the following:
--</para>
--<programlisting>
-- typedef enum fe_modulation {
--	QPSK,
--	QAM_16,
--	QAM_32,
--	QAM_64,
--	QAM_128,
--	QAM_256,
--	QAM_AUTO,
--	VSB_8,
--	VSB_16,
--	PSK_8,
--	APSK_16,
--	APSK_32,
--	DQPSK,
-- } fe_modulation_t;
--</programlisting>
--</section>
- 
- <section>
- <title>More OFDM parameters</title>
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 8bc672d57829..b2a27a15371c 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -178,7 +178,7 @@ typedef enum fe_code_rate {
- } fe_code_rate_t;
- 
- 
--typedef enum fe_modulation {
-+enum fe_modulation {
- 	QPSK,
- 	QAM_16,
- 	QAM_32,
-@@ -193,7 +193,9 @@ typedef enum fe_modulation {
- 	APSK_32,
- 	DQPSK,
- 	QAM_4_NR,
--} fe_modulation_t;
-+};
-+
-+typedef enum fe_modulation fe_modulation_t;
- 
- typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
--- 
-2.4.1
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks,
+
+	Hans
+
+On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> The media controller entity subtype doesn't make much sense,
+> especially since V4L2 subdevices may also have associated devnodes.
+> 
+> So, better to get rid of it while it is not too late.
+> 
+> We need, of course, to keep the old symbols to avoid userspace
+> breakage, but we should avoid using them internally at the
+> Kernel.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 4e816be3de39..775c11c6b173 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -42,31 +42,45 @@ struct media_device_info {
+>  
+>  #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+>  
+> +/* Used values for media_entity_desc::type */
+> +
+> +#define MEDIA_ENT_T_DEVNODE_V4L		(((1 << 16)) + 1)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE_V4L + 3)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE_V4L + 4)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE_V4L + 5)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE_V4L + 6)
+> +#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE_V4L + 7)
+> +
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 2)
+> +/* A converter of analogue video to its digital representation. */
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 3)
+> +
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 4)
+> +
+> +#if 1
+> +/*
+> + * Legacy symbols.
+> + * Kept just to avoid userspace compilation breakages.
+> + * One day, the symbols bellow will be removed
+
+bellow -> below
+
+> + */
+> +
+>  #define MEDIA_ENT_TYPE_SHIFT		16
+>  #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+>  #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+>  
+>  #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
+> -#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
+> +
+>  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+>  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+> -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
+>  
+> -/* Legacy symbol. Use it to avoid userspace compilation breakages */
+> +
+>  #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+> +#endif
+>  
+> -#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
+> -/* A converter of analogue video to its digital representation. */
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+> -
+> -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
+> +/* Used bitmasks for media_entity_desc::flags */
+>  
+>  #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+>  
+> 
 
