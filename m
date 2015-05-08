@@ -1,262 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50098 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbbECKVo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 06:21:44 -0400
-Message-ID: <5545F6AE.1000607@xs4all.nl>
-Date: Sun, 03 May 2015 12:21:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	horms@verge.net.au, magnus.damm@gmail.com
-CC: laurent.pinchart@ideasonboard.com,
-	sergei.shtylyov@cogentembedded.com, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v3 1/1] V4L2: platform: Renesas R-Car JPEG codec driver
-References: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-In-Reply-To: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:42738 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932097AbbEHMBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 08:01:41 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Shuah Khan <shuah.kh@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Cheolhyun Park <pch851130@gmail.com>,
+	Benoit Taine <benoit.taine@lip6.fr>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH] media: replace bellow -> below
+Date: Fri,  8 May 2015 09:01:28 -0300
+Message-Id: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mikhail,
+Bellow is yelling. Ok, sometimes the code is yells a lot, but
+but this is not the case there ;)
 
-Thank you for the patch!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I have one high-level comment: please rename the source to r-car-jpu.c. It's
-good practice to start with the SoC name since 'jpu' by itself is not very
-descriptive.
+diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
+index 1d60d200d9ab..41f2a3939979 100644
+--- a/drivers/media/common/siano/smsir.c
++++ b/drivers/media/common/siano/smsir.c
+@@ -78,7 +78,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	dev->dev.parent = coredev->device;
+ 
+ #if 0
+-	/* TODO: properly initialize the parameters bellow */
++	/* TODO: properly initialize the parameters below */
+ 	dev->input_id.bustype = BUS_USB;
+ 	dev->input_id.version = 1;
+ 	dev->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 61f76038442a..52245354bf04 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -9541,7 +9541,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance *demod)
+ 	/* ----------------------------------------- */
+ 	/* Pre Viterbi Symbol Error Rate Calculation */
+ 	/* ----------------------------------------- */
+-	/* pre viterbi SER is good if it is bellow 0.025 */
++	/* pre viterbi SER is good if it is below 0.025 */
+ 
+ 	/* get the register value */
+ 	/*   no of quadrature symbol errors */
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index d46cf5f7cd2e..ad35264a3819 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -544,7 +544,7 @@ error:
+ static int init_state(struct drxk_state *state)
+ {
+ 	/*
+-	 * FIXME: most (all?) of the values bellow should be moved into
++	 * FIXME: most (all?) of the values below should be moved into
+ 	 * struct drxk_config, as they are probably board-specific
+ 	 */
+ 	u32 ul_vsb_if_agc_mode = DRXK_AGC_CTRL_AUTO;
+diff --git a/drivers/media/dvb-frontends/tda10021.c b/drivers/media/dvb-frontends/tda10021.c
+index 1bff7f457e19..28d987068048 100644
+--- a/drivers/media/dvb-frontends/tda10021.c
++++ b/drivers/media/dvb-frontends/tda10021.c
+@@ -258,7 +258,7 @@ static int tda10021_set_parameters(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/*
+-	 * gcc optimizes the code bellow the same way as it would code:
++	 * gcc optimizes the code below the same way as it would code:
+ 	 *           "if (qam > 5) return -EINVAL;"
+ 	 * Yet, the code is clearer, as it shows what QAM standards are
+ 	 * supported by the driver, and avoids the usage of magic numbers on
+diff --git a/drivers/media/dvb-frontends/tda10023.c b/drivers/media/dvb-frontends/tda10023.c
+index ca1e0d54b69a..f92fbbbb4a71 100644
+--- a/drivers/media/dvb-frontends/tda10023.c
++++ b/drivers/media/dvb-frontends/tda10023.c
+@@ -331,7 +331,7 @@ static int tda10023_set_parameters(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/*
+-	 * gcc optimizes the code bellow the same way as it would code:
++	 * gcc optimizes the code below the same way as it would code:
+ 	 *		 "if (qam > 5) return -EINVAL;"
+ 	 * Yet, the code is clearer, as it shows what QAM standards are
+ 	 * supported by the driver, and avoids the usage of magic numbers on
+diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
+index 070c152da95a..0c50e5285cf6 100644
+--- a/drivers/media/i2c/tvaudio.c
++++ b/drivers/media/i2c/tvaudio.c
+@@ -272,7 +272,7 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name, audiocmd *cmd)
+ 		return -EINVAL;
+ 	}
+ 
+-	/* FIXME: it seems that the shadow bytes are wrong bellow !*/
++	/* FIXME: it seems that the shadow bytes are wrong below !*/
+ 
+ 	/* update our shadow register set; print bytes if (debug > 0) */
+ 	v4l2_dbg(1, debug, sd, "chip_cmd(%s): reg=%d, data:",
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index d12f5e4ad8bf..4e941f00b600 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1094,7 +1094,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 		 * Still need tests for XC3028L (firmware 3.2 or upper)
+ 		 * So, for now, let's just comment the per-firmware
+ 		 * version of this change. Reports with xc3028l working
+-		 * with and without the lines bellow are welcome
++		 * with and without the lines below are welcome
+ 		 */
+ 
+ 		if (priv->firm_version < 0x0302) {
+-- 
+2.1.0
 
-I have a few more comments (mostly easy ones) below:
-
-On 04/29/2015 11:53 PM, Mikhail Ulyanov wrote:
-> Here's the the driver for the Renesas R-Car JPEG processing unit driver.
-> 
-> The driver is implemented within the V4L2 framework as a mem-to-mem device.  It
-> presents two video nodes to userspace, one for the encoding part, and one for
-> the decoding part.
-> 
-> It was found that the only working mode for encoding is no markers output, so we
-> generate it with software. In current version of driver we also use software
-> JPEG header parsing because with hardware parsing performance is lower then
-> desired.
-> 
-> From a userspace point of view the encoding process is typical (S_FMT, REQBUF,
-> optionally QUERYBUF, QBUF, STREAMON, DQBUF) for both the source and destination
-> queues. The decoding process requires that the source queue performs S_FMT,
-> REQBUF, (QUERYBUF), QBUF and STREAMON. After STREAMON on the source queue, it is
-> possible to perform G_FMT on the destination queue to find out the processed
-> image width and height in order to be able to allocate an appropriate buffer -
-> it is assumed that the user does not pass the compressed image width and height
-> but instead this information is parsed from the JPEG input. This is done in
-> kernel. Then REQBUF, QBUF and STREAMON on the destination queue complete the
-> decoding and it is possible to DQBUF from both queues and finish the operation.
-> 
-> During encoding the available formats are: V4L2_PIX_FMT_NV12M and
-> V4L2_PIX_FMT_NV16M for source and V4L2_PIX_FMT_JPEG for destination.
-> 
-> During decoding the available formats are: V4L2_PIX_FMT_JPEG for source and
-> V4L2_PIX_FMT_NV12M and V4L2_PIX_FMT_NV16M for destination.
-> 
-> Performance of current version:
-> 1280x800 NV12 image encoding/decoding
-> 	decoding ~121 FPS
-> 	encoding ~190 FPS
-> 
-> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> ---
-> Changes since v2:
->     - Kconfig entry reordered
->     - unnecessary clk_disable_unprepare(jpu->clk) removed
->     - ref_count fixed in jpu_resume
->     - enable DMABUF in src_vq->io_modes
->     - remove jpu_s_priority jpu_g_priority
->     - jpu_g_selection fixed
->     - timeout in jpu_reset added and hardware reset reworked
->     - remove unused macros
->     - JPEG header parsing now is software because of performance issues
->       based on s5p-jpu code
->     - JPEG header generation redesigned:
->       JPEG header(s) pre-generated and memcpy'ed on encoding
->       we only fill the necessary fields
->       more "transparent" header format description
->     - S_FMT, G_FMT and TRY_FMT hooks redesigned
->       partially inspired by VSP1 driver code
->     - some code was reformatted
->     - image formats handling redesigned
->     - multi-planar V4L2 API now in use
->     - now passes v4l2-compliance tool check
-> 
-> Cnanges since v1:
->     - s/g_fmt function simplified
->     - default format for queues added
->     - dumb vidioc functions added to be in compliance with standard api:
->         jpu_s_priority, jpu_g_priority
->     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
->       now in use by the same reason
-> 
->  drivers/media/platform/Kconfig  |   11 +
->  drivers/media/platform/Makefile |    1 +
->  drivers/media/platform/jpu.c    | 1724 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 1736 insertions(+)
->  create mode 100644 drivers/media/platform/jpu.c
-> 
-
-<snip>
-
-> diff --git a/drivers/media/platform/jpu.c b/drivers/media/platform/jpu.c
-> new file mode 100644
-> index 0000000..6c658cc
-> --- /dev/null
-> +++ b/drivers/media/platform/jpu.c
-
-<snip>
-
-> +/**
-> + * struct jpu - JPEG IP abstraction
-> + * @mutex: the mutex protecting this structure
-> + * @lock: spinlock protecting the device contexts
-> + * @v4l2_dev: v4l2 device for mem2mem mode
-> + * @vfd_encoder: video device node for encoder mem2mem mode
-> + * @vfd_decoder: video device node for decoder mem2mem mode
-> + * @m2m_dev: v4l2 mem2mem device data
-> + * @regs: JPEG IP registers mapping
-> + * @irq: JPEG IP irq
-> + * @clk: JPEG IP clock
-> + * @dev: JPEG IP struct device
-> + * @alloc_ctx: videobuf2 memory allocator's context
-> + * @ref_counter: reference counter
-> + */
-> +struct jpu {
-> +	struct mutex	mutex;
-> +	spinlock_t	lock;
-> +	struct v4l2_device	v4l2_dev;
-> +	struct video_device	*vfd_encoder;
-> +	struct video_device	*vfd_decoder;
-
-Please just embed these video_device structs (so remove the '*'). This means
-that the release callback of each video_device should be set to
-video_device_release_empty() and that the video_device_alloc/release can be
-removed.
-
-The use of video_device_alloc/release is deprecated and will eventually
-disappear.
-
-> +	struct v4l2_m2m_dev	*m2m_dev;
-> +
-> +	void __iomem		*regs;
-> +	unsigned int		irq;
-> +	struct clk		*clk;
-> +	struct device		*dev;
-> +	void			*alloc_ctx;
-> +	int			ref_count;
-> +};
-> +
-
-<snip>
-
-> +static struct jpu_fmt jpu_formats[] = {
-> +	{ "JPEG JFIF", V4L2_PIX_FMT_JPEG, V4L2_COLORSPACE_JPEG,
-> +	  {0, 0}, 0, 0, 0, 1, JPU_ENC_CAPTURE | JPU_DEC_OUTPUT },
-> +	{ "YUV 4:2:2 planar, Y/CbCr", V4L2_PIX_FMT_NV16M, V4L2_COLORSPACE_SRGB,
-> +	  {8, 16}, 2, 2, JPU_JPEG_422, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE },
-> +	{ "YUV 4:2:0 planar, Y/CbCr", V4L2_PIX_FMT_NV12M, V4L2_COLORSPACE_SRGB,
-> +	  {8, 16}, 2, 2, JPU_JPEG_420, 2, JPU_ENC_OUTPUT | JPU_DEC_CAPTURE }
-> +};
-
-Drop the 'name' field: the v4l2 core will now fill in the format description
-based on the fourcc value. This change was merged a few days ago in the media_tree
-repo.
-
-<snip>
-
-> +static int jpu_enum_fmt(struct v4l2_fmtdesc *f, u32 type)
-> +{
-> +	unsigned int i, num = 0;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(jpu_formats); ++i) {
-> +		if (jpu_formats[i].types & type) {
-> +			if (num == f->index)
-> +				break;
-> +			++num;
-> +		}
-> +	}
-> +
-> +	if (i >= ARRAY_SIZE(jpu_formats))
-> +		return -EINVAL;
-> +
-> +	strlcpy(f->description, jpu_formats[i].name, sizeof(f->description));
-
-So this line can be dropped as well.
-
-> +	f->pixelformat = jpu_formats[i].fourcc;
-> +
-> +	return 0;
-> +}
-
-<snip>
-
-> +static int jpu_g_selection(struct file *file, void *priv,
-> +			   struct v4l2_selection *s)
-> +{
-> +	struct jpu_ctx *ctx = fh_to_ctx(priv);
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_CROP:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +		s->r.width = ctx->out_q.format.width;
-> +		s->r.height = ctx->out_q.format.height;
-> +		break;
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
-> +		s->r.width = ctx->cap_q.format.width;
-> +		s->r.height = ctx->cap_q.format.height;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +	s->r.left = 0;
-> +	s->r.top = 0;
-> +	return 0;
-> +}
-
-Why do you implement g_selection? You cannot crop or compose, so what's the point?
-
-The code is wrong anyway since it does not check s->type. CROP for a CAPTURE vs an
-OUTPUT buffer should result in different values.
-
-<snip>
-
-> +static int jpu_start_streaming(struct vb2_queue *q, unsigned int count)
-> +{
-> +	return 0;
-> +}
-> +
-> +static void jpu_stop_streaming(struct vb2_queue *q)
-> +{
-> +}
-
-You can drop these empty start/stop functions.
-
-> +
-> +static struct vb2_ops jpu_qops = {
-> +	.queue_setup		= jpu_queue_setup,
-> +	.buf_prepare		= jpu_buf_prepare,
-> +	.buf_queue		= jpu_buf_queue,
-> +	.wait_prepare		= vb2_ops_wait_prepare,
-> +	.wait_finish		= vb2_ops_wait_finish,
-> +	.start_streaming	= jpu_start_streaming,
-> +	.stop_streaming		= jpu_stop_streaming,
-> +};
-> +
-
-<snip>
-
-Regards,
-
-	Hans
