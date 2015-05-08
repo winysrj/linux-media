@@ -1,224 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50244 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:57968 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752283AbbEEV7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 17:59:00 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/21] tua9001: remove media attach
-Date: Wed,  6 May 2015 00:58:33 +0300
-Message-Id: <1430863122-9888-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
-References: <1430863122-9888-1-git-send-email-crope@iki.fi>
+	id S1752516AbbEHM6B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 08:58:01 -0400
+Date: Fri, 8 May 2015 09:57:54 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
+Message-ID: <20150508095754.1c39a276@recife.lan>
+In-Reply-To: <554CA862.8070407@xs4all.nl>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
+	<554CA862.8070407@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are using I2C client binding now, so remove old media attach.
+Em Fri, 08 May 2015 14:13:22 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/tua9001.c | 88 ++----------------------------------------
- drivers/media/tuners/tua9001.h | 20 ----------
- 2 files changed, 4 insertions(+), 104 deletions(-)
+> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> > Finally, let's rename the tuner entity. inside the media subsystem,
+> > a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
+> > It could even be used on other subsystems, like network, for wireless
+> > devices.
+> > 
+> > So, it is not constricted to V4L2 API, or to a subdev.
+> > 
+> > Let's then rename it as:
+> > 	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
+> 
+> See patch 04/18.
 
-diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
-index 55cac20..87e8518 100644
---- a/drivers/media/tuners/tua9001.c
-+++ b/drivers/media/tuners/tua9001.c
-@@ -47,23 +47,6 @@ static int tua9001_wr_reg(struct tua9001_priv *priv, u8 reg, u16 val)
- 	return ret;
- }
- 
--static int tua9001_release(struct dvb_frontend *fe)
--{
--	struct tua9001_priv *priv = fe->tuner_priv;
--	int ret = 0;
--
--	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
--
--	if (fe->callback)
--		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
--				TUA9001_CMD_CEN, 0);
--
--	kfree(fe->tuner_priv);
--	fe->tuner_priv = NULL;
--
--	return ret;
--}
--
- static int tua9001_init(struct dvb_frontend *fe)
- {
- 	struct tua9001_priv *priv = fe->tuner_priv;
-@@ -96,18 +79,11 @@ static int tua9001_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c-gate */
--
- 	for (i = 0; i < ARRAY_SIZE(data); i++) {
- 		ret = tua9001_wr_reg(priv, data[i].reg, data[i].val);
- 		if (ret < 0)
--			goto err_i2c_gate_ctrl;
-+			goto err;
- 	}
--
--err_i2c_gate_ctrl:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
- err:
- 	if (ret < 0)
- 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-@@ -181,32 +157,25 @@ static int tua9001_set_params(struct dvb_frontend *fe)
- 	data[1].reg = 0x1f;
- 	data[1].val = frequency;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c-gate */
--
- 	if (fe->callback) {
- 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
- 				TUA9001_CMD_RXEN, 0);
- 		if (ret < 0)
--			goto err_i2c_gate_ctrl;
-+			goto err;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(data); i++) {
- 		ret = tua9001_wr_reg(priv, data[i].reg, data[i].val);
- 		if (ret < 0)
--			goto err_i2c_gate_ctrl;
-+			goto err;
- 	}
- 
- 	if (fe->callback) {
- 		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
- 				TUA9001_CMD_RXEN, 1);
- 		if (ret < 0)
--			goto err_i2c_gate_ctrl;
-+			goto err;
- 	}
--
--err_i2c_gate_ctrl:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c-gate */
- err:
- 	if (ret < 0)
- 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-@@ -234,8 +203,6 @@ static const struct dvb_tuner_ops tua9001_tuner_ops = {
- 		.frequency_step = 0,
- 	},
- 
--	.release = tua9001_release,
--
- 	.init = tua9001_init,
- 	.sleep = tua9001_sleep,
- 	.set_params = tua9001_set_params,
-@@ -243,52 +210,6 @@ static const struct dvb_tuner_ops tua9001_tuner_ops = {
- 	.get_if_frequency = tua9001_get_if_frequency,
- };
- 
--struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
--		struct i2c_adapter *i2c, struct tua9001_config *cfg)
--{
--	struct tua9001_priv *priv = NULL;
--	int ret;
--
--	priv = kzalloc(sizeof(struct tua9001_priv), GFP_KERNEL);
--	if (priv == NULL)
--		return NULL;
--
--	priv->i2c_addr = cfg->i2c_addr;
--	priv->i2c = i2c;
--
--	if (fe->callback) {
--		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
--				TUA9001_CMD_CEN, 1);
--		if (ret < 0)
--			goto err;
--
--		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
--				TUA9001_CMD_RXEN, 0);
--		if (ret < 0)
--			goto err;
--
--		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
--				TUA9001_CMD_RESETN, 1);
--		if (ret < 0)
--			goto err;
--	}
--
--	dev_info(&priv->i2c->dev,
--			"%s: Infineon TUA 9001 successfully attached\n",
--			KBUILD_MODNAME);
--
--	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
--			sizeof(struct dvb_tuner_ops));
--
--	fe->tuner_priv = priv;
--	return fe;
--err:
--	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
--	kfree(priv);
--	return NULL;
--}
--EXPORT_SYMBOL(tua9001_attach);
--
- static int tua9001_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -331,7 +252,6 @@ static int tua9001_probe(struct i2c_client *client,
- 	fe->tuner_priv = dev;
- 	memcpy(&fe->ops.tuner_ops, &tua9001_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
--	fe->ops.tuner_ops.release = NULL;
- 	i2c_set_clientdata(client, dev);
- 
- 	dev_info(&client->dev, "Infineon TUA 9001 successfully attached\n");
-diff --git a/drivers/media/tuners/tua9001.h b/drivers/media/tuners/tua9001.h
-index 0b4fc8d..5328ab2 100644
---- a/drivers/media/tuners/tua9001.h
-+++ b/drivers/media/tuners/tua9001.h
-@@ -21,7 +21,6 @@
- #ifndef TUA9001_H
- #define TUA9001_H
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- /*
-@@ -37,13 +36,6 @@ struct tua9001_platform_data {
- 	struct dvb_frontend *dvb_frontend;
- };
- 
--struct tua9001_config {
--	/*
--	 * I2C address
--	 */
--	u8 i2c_addr;
--};
--
- /*
-  * TUA9001 I/O PINs:
-  *
-@@ -64,16 +56,4 @@ struct tua9001_config {
- #define TUA9001_CMD_RESETN  1
- #define TUA9001_CMD_RXEN    2
- 
--#if IS_REACHABLE(CONFIG_MEDIA_TUNER_TUA9001)
--extern struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
--		struct i2c_adapter *i2c, struct tua9001_config *cfg);
--#else
--static inline struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
--		struct i2c_adapter *i2c, struct tua9001_config *cfg)
--{
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif
--
- #endif
--- 
-http://palosaari.fi/
+Mapping the tuner as a V4L2_SUBDEV is plain wrong. We can't assume
+that a tuner will always be mapped via V4L2 subdev API.
 
+> 
+> 	Hans
+> 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > index 9b3861058f0d..5c7f366bb1f4 100644
+> > --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > @@ -241,7 +241,7 @@
+> >  	    signals.</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_TUNER</constant></entry>
+> >  	    <entry>TV and/or radio tuner</entry>
+> >  	  </row>
+> >  	</tbody>
+> > diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> > index 39846077045e..d6a096495035 100644
+> > --- a/drivers/media/dvb-core/dvbdev.c
+> > +++ b/drivers/media/dvb-core/dvbdev.c
+> > @@ -393,7 +393,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+> >  
+> >  	media_device_for_each_entity(entity, mdev) {
+> >  		switch (entity->type) {
+> > -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> > +		case MEDIA_ENT_T_TUNER:
+> >  			tuner = entity;
+> >  			break;
+> >  		case MEDIA_ENT_T_DTV_DEMOD:
+> > diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> > index a756f74f0adc..2a7331e3c4a0 100644
+> > --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> > +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> > @@ -1213,7 +1213,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+> >  
+> >  	media_device_for_each_entity(entity, mdev) {
+> >  		switch (entity->type) {
+> > -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> > +		case MEDIA_ENT_T_TUNER:
+> >  			tuner = entity;
+> >  			break;
+> >  		case MEDIA_ENT_T_ATV_DECODER:
+> > diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> > index abdcffabcb59..ecf4e8a543b3 100644
+> > --- a/drivers/media/v4l2-core/tuner-core.c
+> > +++ b/drivers/media/v4l2-core/tuner-core.c
+> > @@ -696,7 +696,7 @@ static int tuner_probe(struct i2c_client *client,
+> >  register_client:
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >  	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> > -	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+> > +	t->sd.entity.type = MEDIA_ENT_T_TUNER;
+> >  	t->sd.entity.name = t->name;
+> >  
+> >  	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index 9b3d80e765f0..6acc4be1378c 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -57,7 +57,7 @@ struct media_device_info {
+> >  
+> >  #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
+> >  
+> > -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+> > +#define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
+> >  
+> >  #if 1
+> >  /*
+> > @@ -88,6 +88,8 @@ struct media_device_info {
+> >  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
+> >  
+> >  #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
+> > +
+> > +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_T_TUNER
+> >  #endif
+> >  
+> >  /* Used bitmasks for media_entity_desc::flags */
+> > 
+> 
