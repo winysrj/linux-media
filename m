@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:35069 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574AbbEMJ0k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 05:26:40 -0400
-Received: by iebpz10 with SMTP id pz10so26524465ieb.2
-        for <linux-media@vger.kernel.org>; Wed, 13 May 2015 02:26:39 -0700 (PDT)
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:37121 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbbEIUvt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 May 2015 16:51:49 -0400
+Received: by widdi4 with SMTP id di4so59804501wid.0
+        for <linux-media@vger.kernel.org>; Sat, 09 May 2015 13:51:45 -0700 (PDT)
+Message-ID: <554E7360.9060301@googlemail.com>
+Date: Sat, 09 May 2015 22:51:44 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Date: Wed, 13 May 2015 10:26:39 +0100
-Message-ID: <CAOwYNKbkLgeEdfuC9m3ytjKKwPqxob6JD0pDtrkJFGqbY_a8Ag@mail.gmail.com>
-Subject: Disappearing dvb-usb stick IT9137FN (Kworld 499-2T)
-From: Mike Martin <mike@redtux.org.uk>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Felix Janda <felix.janda@posteo.de>,
+	Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/4] Use off_t and off64_t instead of __off_t and __off64_t
+References: <20150125203557.GA11999@euler> <20150505093657.43acf519@recife.lan> <20150505190223.GA4948@euler>
+In-Reply-To: <20150505190223.GA4948@euler>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hello,
 
-I have the above usb stick (dual frontend) which works fine for a
-while then just vanishes.
-ie: frontend just goes
- eg
+Due to complete lack of unit / integration tests I feel uncomfortable
+merging this patch without the ACK of Hans de Goede.
 
-ls /dev/dvb (I have a permanent DVB card as well)
-/dev/dvb/adapter0
-/dev/dvb/adapter1
-/dev/dvb/adapter2
+On 05/05/15 21:02, Felix Janda wrote:
+> Since _LARGEFILE64_SOURCE is 1, these types coincide if defined.
 
-goes to
+This statement is only partially true:
 
-ls /dev/dvb (I have a permanent DVB card as well)
-/dev/dvb/adapter0
+$ git grep _LARGEFILE64_SOURCE
+lib/libv4l1/v4l1compat.c:#define _LARGEFILE64_SOURCE 1
+lib/libv4l2/v4l2convert.c:#define _LARGEFILE64_SOURCE 1
 
-To get it back I have plug/unplug several times (rebooting the box
-seems to make no difference)
+So LARGEFILE64_SOURCE will be only defined within the wrappers.
+But libv4lsyscall-priv.h / SYS_MMAP is also used elsewhere.
 
-I am currently on fedora 21, but this seems to be a continual issue ,
-through at least fedora 18 to date
+But I wonder why SYS_MMAP is there in the first place? Maybe because in
+the LD_PRELOAD case the default mmap symbol resolves to our wrapper?
+But in that case can't we gently ask the loader to give us the next
+symbol in the chain via dlsym(RTLD_NEXT, "mmap")?
 
-I cant see anything obvious in dmesg or the logs
+Thanks,
+Gregor
 
-Any ideas
+
