@@ -1,98 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52385 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751947AbbE0QK7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:10:59 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 02/15] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
-Date: Wed, 27 May 2015 17:10:40 +0100
-Message-Id: <1432743053-13479-3-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:36434 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400AbbEIThM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 May 2015 15:37:12 -0400
+Received: by wizk4 with SMTP id k4so64470838wiz.1
+        for <linux-media@vger.kernel.org>; Sat, 09 May 2015 12:37:11 -0700 (PDT)
+Message-ID: <554E61E7.9060801@googlemail.com>
+Date: Sat, 09 May 2015 21:37:11 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
+MIME-Version: 1.0
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [patch]: v4l-utils/util/dvb add -C to manpages
+References: <20150508141628.GA93623@shambles.windy>
+In-Reply-To: <20150508141628.GA93623@shambles.windy>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-which is used by the ADV7612 chip.
+On 08/05/15 16:16, Vincent McIntyre wrote:
+> I noticed the -C option was in the help from the -? option
+> but not in the manpages.
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-
-Modified to use MEDIA_BUS_FMT_* constants
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index db7700b..16352a8 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -98,6 +98,7 @@
- #define VNMC_INF_YUV10_BT656	(2 << 16)
- #define VNMC_INF_YUV10_BT601	(3 << 16)
- #define VNMC_INF_YUV16		(5 << 16)
-+#define VNMC_INF_RGB888		(6 << 16)
- #define VNMC_VUP		(1 << 10)
- #define VNMC_IM_ODD		(0 << 3)
- #define VNMC_IM_ODD_EVEN	(1 << 3)
-@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	struct soc_camera_device *icd = priv->ici.icd;
- 	struct rcar_vin_cam *cam = icd->host_priv;
- 	u32 vnmc, dmr, interrupts;
--	bool progressive = false, output_is_yuv = false;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
- 
- 	switch (priv->field) {
- 	case V4L2_FIELD_TOP:
-@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-+		input_is_yuv = true;
- 		break;
- 	default:
- 		break;
-@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	vnmc |= VNMC_VUP;
- 
- 	/* If input and output use the same colorspace, use bypass mode */
--	if (output_is_yuv)
-+	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
- 	/* progressive or interlaced mode */
-@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
- 		if (cam->extra_fmt)
- 			break;
- 
--- 
-1.7.10.4
-
+Thanks. Applied.
