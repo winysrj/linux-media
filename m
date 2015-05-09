@@ -1,71 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48057 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758140AbbEaNLz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 09:11:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/9] adv7511: add xfer_func support
-Date: Sun, 31 May 2015 15:11:33 +0200
-Message-Id: <1433077899-18516-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:38547 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916AbbEIJKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 May 2015 05:10:49 -0400
+Received: from recife.lan (177.43.30.133.dynamic.adsl.gvt.net.br [177.43.30.133])
+	by lists.s-osg.org (Postfix) with ESMTPSA id 93AD5462B7
+	for <linux-media@vger.kernel.org>; Sat,  9 May 2015 02:10:47 -0700 (PDT)
+Date: Sat, 9 May 2015 06:10:44 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] article: Media Controller Support for Digital Video
+ Broadcasting - part 1
+Message-ID: <20150509061044.4df32644@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+For those interested on the Digital TV support and its planned evolution, I
+wrote an article briefly explaining the DTV hardware and the current needs
+that should be addressed by the Media Controller support:
 
-Still preliminary, but the information is at least there.
+	http://blogs.s-osg.org/media-controller-support-for-dvb-part-1/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7511.c | 5 +++++
- 1 file changed, 5 insertions(+)
+This is the first article of a series. I'm planning to write more articles
+as we add support at the Kernel, including the description of what got
+merged for Kernel 4.1. Stay tuned!
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 12d9320..9032567 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -101,6 +101,7 @@ struct adv7511_state {
- 	u32 colorspace;
- 	u32 ycbcr_enc;
- 	u32 quantization;
-+	u32 xfer_func;
- 	/* controls */
- 	struct v4l2_ctrl *hdmi_mode_ctrl;
- 	struct v4l2_ctrl *hotplug_ctrl;
-@@ -861,11 +862,13 @@ static int adv7511_get_fmt(struct v4l2_subdev *sd,
- 		format->format.colorspace = fmt->colorspace;
- 		format->format.ycbcr_enc = fmt->ycbcr_enc;
- 		format->format.quantization = fmt->quantization;
-+		format->format.xfer_func = fmt->xfer_func;
- 	} else {
- 		format->format.code = state->fmt_code;
- 		format->format.colorspace = state->colorspace;
- 		format->format.ycbcr_enc = state->ycbcr_enc;
- 		format->format.quantization = state->quantization;
-+		format->format.xfer_func = state->xfer_func;
- 	}
- 
- 	return 0;
-@@ -912,6 +915,7 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 		fmt->colorspace = format->format.colorspace;
- 		fmt->ycbcr_enc = format->format.ycbcr_enc;
- 		fmt->quantization = format->format.quantization;
-+		fmt->xfer_func = format->format.xfer_func;
- 		return 0;
- 	}
- 
-@@ -936,6 +940,7 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 	state->colorspace = format->format.colorspace;
- 	state->ycbcr_enc = format->format.ycbcr_enc;
- 	state->quantization = format->format.quantization;
-+	state->xfer_func = format->format.xfer_func;
- 
- 	switch (format->format.colorspace) {
- 	case V4L2_COLORSPACE_ADOBERGB:
--- 
-2.1.4
-
+Regards,
+Mauro
