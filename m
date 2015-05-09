@@ -1,84 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60027 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754142AbbE1WW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 18:22:29 -0400
-Date: Thu, 28 May 2015 19:22:23 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/35] dvb: split enum from typedefs at frontend.h
-Message-ID: <20150528192223.70b36203@recife.lan>
-In-Reply-To: <55678F64.6080801@xs4all.nl>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-	<6576f479a6e2449132811f5681e35d3794110d25.1432844837.git.mchehab@osg.samsung.com>
-	<55678F64.6080801@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36578 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751812AbbEICtO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2015 22:49:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1A88C2A1C05
+	for <linux-media@vger.kernel.org>; Sat,  9 May 2015 04:49:09 +0200 (CEST)
+Date: Sat, 09 May 2015 04:49:09 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150509024909.1A88C2A1C05@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 28 May 2015 23:57:56 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 05/28/2015 11:49 PM, Mauro Carvalho Chehab wrote:
-> > Using typedefs is already bad enough, but doing it together
-> > with enum declaration is even worse.
-> > 
-> > Also, it breaks the scripts at DocBook that would be generating
-> > reference pointers for the enums.
-> > 
-> > Well, we can't get rid of typedef right now, but let's at least
-> > declare it on a separate line, and let the scripts to generate
-> > the cross-reference, as this is needed for the next DocBook
-> > patches.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-> > index 466f56997272..7aeeb5a69fdf 100644
-> > --- a/include/uapi/linux/dvb/frontend.h
-> > +++ b/include/uapi/linux/dvb/frontend.h
-> > @@ -36,7 +36,7 @@ typedef enum fe_type {
-> >  } fe_type_t;
-> >  
-> >  
-> > -typedef enum fe_caps {
-> > +enum fe_caps {
-> >  	FE_IS_STUPID			= 0,
-> >  	FE_CAN_INVERSION_AUTO		= 0x1,
-> >  	FE_CAN_FEC_1_2			= 0x2,
-> > @@ -68,7 +68,9 @@ typedef enum fe_caps {
-> >  	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
-> >  	FE_CAN_RECOVER			= 0x40000000, /* frontend can recover from a cable unplug automatically */
-> >  	FE_CAN_MUTE_TS			= 0x80000000  /* frontend can stop spurious TS data output */
-> > -} fe_caps_t;
-> > +};
-> > +
-> > +typedef enum fe_caps_t;
-> 
-> This can't be right. This should be:
-> 
-> typedef enum fe_caps fe_caps_t;
-> 
-> Does it even compile?
-> 
-> Regards,
-> 
-> 	Hans
+Results of the daily build of media_tree:
 
+date:		Sat May  9 04:00:19 CEST 2015
+git branch:	test
+git hash:	c3f22501b52de17c6087b6fe6f2236e4183ac07c
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-0.slh.3-amd64
 
-Heh, true. Thanks for checking.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Yeah, this won't likely compile. 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-I'll double check the building troubles and fix them.
+Full logs are available here:
 
-Thanks for pointing it.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Regards,
-Mauro
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
