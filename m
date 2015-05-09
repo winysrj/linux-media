@@ -1,124 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:60371 "EHLO mout.gmx.net"
+Received: from dcvr.yhbt.net ([64.71.152.64]:53172 "EHLO dcvr.yhbt.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990AbbECST0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 14:19:26 -0400
-Date: Sun, 3 May 2015 20:19:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 4/9] ov2640: avoid calling ov2640_select_win() twice
-In-Reply-To: <1430646876-19594-5-git-send-email-hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1505032011550.4237@axis700.grange>
-References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
- <1430646876-19594-5-git-send-email-hverkuil@xs4all.nl>
+	id S1750922AbbEIEvK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 May 2015 00:51:10 -0400
+Date: Sat, 9 May 2015 04:51:09 +0000
+From: Eric Wong <normalperson@yhbt.net>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
+	damien@zamaudio.com, chris.j.arges@canonical.com,
+	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
+	pmatilai@laiskiainen.org, jussi@sonarnerd.net, fisch602@gmail.com,
+	joe@oampo.co.uk, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 2/2] sound/usb: Update ALSA driver to use media
+ controller API
+Message-ID: <20150509045109.GA6528@dcvr.yhbt.net>
+References: <cover.1431110739.git.shuahkh@osg.samsung.com>
+ <dd21d1282a85d620be1aae497b66ccb355e458ba.1431110739.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dd21d1282a85d620be1aae497b66ccb355e458ba.1431110739.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sun, 3 May 2015, Hans Verkuil wrote:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Simplify ov2640_set_params and ov2640_set_fmt.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/i2c/soc_camera/ov2640.c | 21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> index 9b4f5de..5dcaf24 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -769,15 +769,15 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
->  	return &ov2640_supported_win_sizes[default_size];
->  }
+Shuah Khan <shuahkh@osg.samsung.com> wrote:
+> @@ -541,13 +591,19 @@ int snd_usb_create_quirk(struct snd_usb_audio *chip,
+>  		[QUIRK_AUDIO_ALIGN_TRANSFER] = create_align_transfer_quirk,
+>  		[QUIRK_AUDIO_STANDARD_MIXER] = create_standard_mixer_quirk,
+>  	};
+> +	int ret;
 >  
-> -static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
-> -			     u32 code)
-> +static int ov2640_set_params(struct i2c_client *client,
-> +			     const struct ov2640_win_size *win, u32 code)
->  {
->  	struct ov2640_priv       *priv = to_ov2640(client);
->  	const struct regval_list *selected_cfmt_regs;
->  	int ret;
->  
->  	/* select win */
-> -	priv->win = ov2640_select_win(width, height);
-> +	priv->win = win;
->  
->  	/* select format */
->  	priv->cfmt_code = 0;
-> @@ -798,6 +798,7 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
->  	case MEDIA_BUS_FMT_UYVY8_2X8:
->  		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
->  		selected_cfmt_regs = ov2640_uyvy_regs;
-> +		break;
-
-Hm, IIRC, some versions of gcc complain like "break at the end of a switch 
-statement is deprecated." Why did you add this at two locations? Are you 
-seeing a warning? If not, maybe better not do that.
-
-Otherwise
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
-
+> +	if (quirk->media_device) {
+> +		/* don't want to fail when media_device_init() doesn't work */
+> +		ret = media_device_init(iface);
+> +	}
+>  	if (quirk->type < QUIRK_TYPE_COUNT) {
+> -		return quirk_funcs[quirk->type](chip, iface, driver, quirk);
+> +		ret = quirk_funcs[quirk->type](chip, iface, driver, quirk);
+>  	} else {
+>  		usb_audio_err(chip, "invalid quirk type %d\n", quirk->type);
+>  		return -ENXIO;
 >  	}
->  
->  	/* reset hardware */
-> @@ -832,8 +833,6 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
->  		goto err;
->  
->  	priv->cfmt_code = code;
-> -	*width = priv->win->width;
-> -	*height = priv->win->height;
->  
->  	return 0;
->  
-> @@ -887,14 +886,13 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
->  {
->  	struct v4l2_mbus_framefmt *mf = &format->format;
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	const struct ov2640_win_size *win;
->  
->  	if (format->pad)
->  		return -EINVAL;
->  
-> -	/*
-> -	 * select suitable win, but don't store it
-> -	 */
-> -	ov2640_select_win(&mf->width, &mf->height);
-> +	/* select suitable win */
-> +	win = ov2640_select_win(&mf->width, &mf->height);
->  
->  	mf->field	= V4L2_FIELD_NONE;
->  
-> @@ -905,14 +903,15 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
->  		break;
->  	default:
->  		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-> +		/* fall through */
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
->  	case MEDIA_BUS_FMT_UYVY8_2X8:
->  		mf->colorspace = V4L2_COLORSPACE_JPEG;
-> +		break;
->  	}
->  
->  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> -		return ov2640_set_params(client, &mf->width,
-> -					 &mf->height, mf->code);
-> +		return ov2640_set_params(client, win, mf->code);
->  	cfg->try_fmt = *mf;
->  	return 0;
+> +	return ret;
 >  }
-> -- 
-> 2.1.4
-> 
+
+What is the point of saving 'ret' of media_device_init if it'll
+only be clobbered or ignored for ENXIO?
