@@ -1,106 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0058.hostedemail.com ([216.40.44.58]:55147 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754755AbbE1Vcj (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36569 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbbEJWZr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:32:39 -0400
-Message-ID: <1432848754.1556.25.camel@perches.com>
-Subject: Re: [PATCH 1/9] drivers/media/usb/airspy/airspy.c: drop unneeded
- goto
-From: Joe Perches <joe@perches.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Antti Palosaari <crope@iki.fi>, kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 28 May 2015 14:32:34 -0700
-In-Reply-To: <1432846944-7122-2-git-send-email-Julia.Lawall@lip6.fr>
-References: <1432846944-7122-1-git-send-email-Julia.Lawall@lip6.fr>
-	 <1432846944-7122-2-git-send-email-Julia.Lawall@lip6.fr>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
+	Sun, 10 May 2015 18:25:47 -0400
+Received: by wizk4 with SMTP id k4so85033768wiz.1
+        for <linux-media@vger.kernel.org>; Sun, 10 May 2015 15:25:46 -0700 (PDT)
+Message-ID: <554FDAE7.4010906@gmail.com>
+Date: Mon, 11 May 2015 00:25:43 +0200
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: dvb_usb_af9015: command failed=1 _ lsdvb  >=  3.19.x
+References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com> <554F352F.10301@gmail.com>
+In-Reply-To: <554F352F.10301@gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2015-05-28 at 23:02 +0200, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
+On 10.05.2015 12:38, poma wrote:
+> On 08.05.2015 12:59, poma wrote:
+>> On 08.05.2015 12:20, poma wrote:
+>>>
+>>> [    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
+>>>
+>>> [    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
+>>> [    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
+>>> [    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+>>> [    0.994859] usb 1-2: Product: DVB-T 2
+>>>
+>>> [    1.001398] usb 1-2: Manufacturer: Afatech
+>>> [    1.003555] usb 1-2: SerialNumber: 010101010600001
+>>> [    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
+>>> [    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
+>>> [    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
+>>>
+>>> [   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
+>>> [   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+>>> [   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
+>>>
+>>> [   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
+>>> [   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
+>>> [   12.343650] mxl5007t 13-00c0: creating new instance
+>>> [   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
+>>> [   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
+>>> [   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+>>> [   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
+>>> [   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
+>>> [   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
+>>> [   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
+>>> [   12.564554] mxl5007t 13-00c0: attaching existing instance
+>>> [   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
+>>> [   12.567555] mxl5007t_soft_reset: 521: failed!
+>>> [   12.569745] mxl5007t_attach: error -121 on line 907
+>>> [   12.571231] usbcore: registered new interface driver dvb_usb_af9015
+>>>
+>>>
+>>> $ lsdvb
+>>>
+>>> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
+>>> 		Version: 0.0.4
+>>> 		Copyright (C) Manu Abraham
+>>> $ 
+>>>
+>>
+>>
+>> Afatech AF9015 reference design:
+>>
+>> 3.18.12-200.fc21.x86_64        - OK
+>>
+>> 3.19.7-200.fc21.x86_64         - KO
+>> 4.0.2-200.fc21.x86_64          - KO
+>> 4.1.0-0.rc2.git3.1.fc23.x86_64 - KO
+>>
+>>
+>> If you have a patch to test, shout loudly.
+>>
+>>
 > 
-> Delete jump to a label on the next line, when that label is not
-> used elsewhere.
+> Looks like the same bug:
+> AVerMedia HD Volar (A867) - Afatech AF9033
+> http://forum.sifteam.eu/sifbox-by-sif-team/125122-kernel-3-19-a867-xgaz-dove.html
+> 
+> http://git.linuxtv.org/cgit.cgi/media_build.git - no positive effect.
+> 
+> 
+> Ho ho ho
+> 
 
-Seems sensible but:
+It seems the 'lsdvb' is what made the device unusable after re/boot.
+Of course this applies to kernel >= 3.19.x
+The device has to be unplugged and after a minute or two plugged back to be usable again.
 
-> diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-[]
-> @@ -937,9 +937,6 @@ static int airspy_set_if_gain(struct airspy *s)
->  	ret = airspy_ctrl_msg(s, CMD_SET_VGA_GAIN, 0, s->if_gain->val,
->  			&u8tmp, 1);
->  	if (ret)
-> -		goto err;
-> -err:
-> -	if (ret)
->  		dev_dbg(s->dev, "failed=%d\n", ret);
->  
->  	return ret;
 
-Ideally the function above this should also be modified
-do drop the unnecessary double test of ret
+$ lsdvb
 
-static int airspy_set_mixer_gain(struct airspy *s)
-{
-	int ret;
-	u8 u8tmp;
+		lsdvb: Simple utility to list PCI/PCIe DVB devices
+		Version: 0.0.4
+		Copyright (C) Manu Abraham
 
-	dev_dbg(s->dev, "mixer auto=%d->%d val=%d->%d\n",
-			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
-			s->mixer_gain->cur.val, s->mixer_gain->val);
+usb (5:0 -868620712:32665) on PCI Domain:-874755276 Bus:32665 Device:2098 Function:0
+	DEVICE:0 ADAPTER:0 FRONTEND:0 (Afatech AF9013) 
+		 FE_OFDM Fmin=174MHz Fmax=862MHz
+	DEVICE:0 ADAPTER:1 FRONTEND:0 (Afatech AF9013) 
+		 FE_OFDM Fmin=174MHz Fmax=862MHz
 
-	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
-			&u8tmp, 1);
-	if (ret)
-		goto err;
+$ dmesg
+[   80.332837] usb 2-2: dvb_usb_af9015: command failed=1
+[   80.332857] i2c i2c-13: af9013: i2c wr failed=-5 reg=d607 len=1
+[   80.337837] usb 2-2: dvb_usb_af9015: command failed=1
+[   80.337848] mxl5007t_write_reg: 472: failed!
+[   80.337853] mxl5007t_sleep: error -121 on line 709
+[   80.338324] usb 2-2: dvb_usb_af9015: command failed=1
+[   80.338328] mxl5007t_write_reg: 472: failed!
+[   80.338332] mxl5007t_sleep: error -121 on line 711
 
-	if (s->mixer_gain_auto->val == false) {
-		ret = airspy_ctrl_msg(s, CMD_SET_MIXER_GAIN, 0,
-				s->mixer_gain->val, &u8tmp, 1);
-		if (ret)
-			goto err;
-	}
-err:
-	if (ret)
-		dev_dbg(s->dev, "failed=%d\n", ret);
-
-	return ret;
-}
-
-These could become something like:
-
-static int airspy_set_mixer_gain(struct airspy *s)
-{
-	int ret;
-	u8 u8tmp;
-
-	dev_dbg(s->dev, "mixer auto=%d->%d val=%d->%d\n",
-			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
-			s->mixer_gain->cur.val, s->mixer_gain->val);
-
-	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
-			&u8tmp, 1);
-	if (ret)
-		goto err;
-
-	if (s->mixer_gain_auto->val == false) {
-		ret = airspy_ctrl_msg(s, CMD_SET_MIXER_GAIN, 0,
-				s->mixer_gain->val, &u8tmp, 1);
-		if (ret)
-			goto err;
-	}
-
-	return 0;
-
-err:
-	dev_dbg(s->dev, "failed=%d\n", ret);
-	return ret;
-}
 
 
