@@ -1,51 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59880 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934169AbbEOM33 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2015 08:29:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx02.posteo.de ([89.146.194.165]:33200 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751109AbbEJK6A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 May 2015 06:58:00 -0400
+Received: from dovecot03.posteo.de (unknown [185.67.36.28])
+	by mx02.posteo.de (Postfix) with ESMTPS id CD5FB25AF52B
+	for <linux-media@vger.kernel.org>; Sun, 10 May 2015 12:57:59 +0200 (CEST)
+Received: from mail.posteo.de (localhost [127.0.0.1])
+	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3ll2Rq4rz0z5vN8
+	for <linux-media@vger.kernel.org>; Sun, 10 May 2015 12:57:59 +0200 (CEST)
+Date: Sun, 10 May 2015 12:57:48 +0200
+From: Felix Janda <felix.janda@posteo.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/6] videodev2.h: add COLORSPACE_DEFAULT
-Date: Fri, 15 May 2015 14:29:05 +0200
-Message-Id: <1431692950-17453-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1431692950-17453-1-git-send-email-hverkuil@xs4all.nl>
-References: <1431692950-17453-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCH 3/4] <sys/fcntl.h> is a less portable synonym to <fcntl.h>
+Message-ID: <20150510105748.GC27779@euler>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-V4L2_COLORSPACE_DEFAULT is added so we have a specific define for
-the default case where applications do not set it but leave it to 0.
-In that case the driver will set the colorspace based on what it
-captures.
-
-This is already used, but we never had a define for the value 0.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Felix Janda <felix.janda@posteo.de>
 ---
- include/uapi/linux/videodev2.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ utils/qv4l2/raw2sliced.cpp          | 2 +-
+ utils/v4l2-compliance/v4l-helpers.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 0f5a467..7810376 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -178,6 +178,12 @@ enum v4l2_memory {
+diff --git a/utils/qv4l2/raw2sliced.cpp b/utils/qv4l2/raw2sliced.cpp
+index 4db158a..9fee6e1 100644
+--- a/utils/qv4l2/raw2sliced.cpp
++++ b/utils/qv4l2/raw2sliced.cpp
+@@ -5,7 +5,7 @@
+ #include <string.h>
+ #include <assert.h>
+ #include <unistd.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>
  
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
- enum v4l2_colorspace {
-+	/*
-+	 * Default colorspace, i.e. let the driver figure it out.
-+	 * Can only be used with video capture.
-+	 */
-+	V4L2_COLORSPACE_DEFAULT       = 0,
-+
- 	/* SMPTE 170M: used for broadcast NTSC/PAL SDTV */
- 	V4L2_COLORSPACE_SMPTE170M     = 1,
+ #include "raw2sliced.h"
+ 
+diff --git a/utils/v4l2-compliance/v4l-helpers.h b/utils/v4l2-compliance/v4l-helpers.h
+index a36ca14..c7433e5 100644
+--- a/utils/v4l2-compliance/v4l-helpers.h
++++ b/utils/v4l2-compliance/v4l-helpers.h
+@@ -9,7 +9,7 @@
+ #include <time.h>
+ #include <unistd.h>
+ #include <sys/ioctl.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>
+ #include <sys/mman.h>
+ #include <errno.h>
  
 -- 
-2.1.4
+2.3.6
 
