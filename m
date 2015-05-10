@@ -1,92 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:19382 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766AbbEYPOS (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37230 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752043AbbEJCsu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 11:14:18 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v9 1/8] Documentation: leds: Add description of v4l2-flash
- sub-device
-Date: Mon, 25 May 2015 17:13:56 +0200
-Message-id: <1432566843-6391-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
+	Sat, 9 May 2015 22:48:50 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0AE0B2A0090
+	for <linux-media@vger.kernel.org>; Sun, 10 May 2015 04:48:43 +0200 (CEST)
+Date: Sun, 10 May 2015 04:48:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150510024843.0AE0B2A0090@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extends LED Flash class documention by
-the description of interactions with v4l2-flash sub-device.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-class-flash.txt |   50 +++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-index 19bb673..e8ba3dc 100644
---- a/Documentation/leds/leds-class-flash.txt
-+++ b/Documentation/leds/leds-class-flash.txt
-@@ -20,3 +20,53 @@ Following sysfs attributes are exposed for controlling flash LED devices:
- 	- max_flash_timeout
- 	- flash_strobe
- 	- flash_fault
-+
-+
-+V4L2 flash wrapper for flash LEDs
-+=================================
-+
-+A LED subsystem driver can be controlled also from the level of VideoForLinux2
-+subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-+be defined in the kernel config.
-+
-+The driver must call the v4l2_flash_init function to get registered in the
-+V4L2 subsystem. The function takes six arguments:
-+- dev       : flash device, e.g. an I2C device
-+- of_node   : of_node of the LED, may be NULL if the same as device's
-+- fled_cdev : LED flash class device to wrap
-+- iled_cdev : LED class device representing indicator LED associated with
-+	      the LED flash class device, may be NULL
-+- ops : V4L2 specific ops
-+	* external_strobe_set - defines the source of the flash LED strobe -
-+		V4L2_CID_FLASH_STROBE control or external source, typically
-+		a sensor, which makes it possible to synchronise the flash
-+		strobe start with exposure start,
-+	* intensity_to_led_brightness and led_brightness_to_intensity - perform
-+		enum led_brightness <-> V4L2 intensity conversion in a device
-+		specific manner - they can be used for devices with non-linear
-+		LED current scale.
-+- config : configuration for V4L2 Flash sub-device
-+	* dev_name - the name of the media entity, unique in the system,
-+	* flash_faults - bitmask of flash faults that the LED flash class
-+		device can report; corresponding LED_FAULT* bit definitions are
-+		available in <linux/led-class-flash.h>,
-+	* torch_intensity - constraints for the LED in TORCH mode
-+		in microamperes,
-+	* indicator_intensity - constraints for the indicator LED
-+		in microamperes,
-+	* has_external_strobe - determines whether the flash strobe source
-+		can be switched to external.
-+
-+On remove the v4l2_flash_release function has to be called, which takes one
-+argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-+
-+Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
-+v4l2 flash wrapper.
-+
-+Once the V4L2 sub-device is registered by the driver which created the Media
-+controller device, the sub-device node acts just as a node of a native V4L2
-+flash API device would. The calls are simply routed to the LED flash API.
-+
-+Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
-+unavailable. The interface is re-enabled after the V4L2 flash sub-device
-+is closed.
--- 
-1.7.9.5
+date:		Sun May 10 04:00:19 CEST 2015
+git branch:	test
+git hash:	c3f22501b52de17c6087b6fe6f2236e4183ac07c
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-1.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
