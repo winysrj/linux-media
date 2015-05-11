@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout-xforward.gmx.net ([82.165.159.12]:50080 "EHLO
-	mout-xforward.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbbEYRlF (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49733 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753954AbbEKMqZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 13:41:05 -0400
-Date: Mon, 25 May 2015 19:20:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 19/20] media: rcar_vin: Clean up format debugging statements
-In-Reply-To: <1432139980-12619-20-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1505251916350.26358@axis700.grange>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
- <1432139980-12619-20-git-send-email-william.towle@codethink.co.uk>
+	Mon, 11 May 2015 08:46:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 01/18] media controller: add EXPERIMENTAL to Kconfig option for DVB support
+Date: Mon, 11 May 2015 15:46:30 +0300
+Message-ID: <1726768.VJHFY9ifNM@avalon>
+In-Reply-To: <554C9F1A.6000502@xs4all.nl>
+References: <cover.1431046915.git.mchehab@osg.samsung.com> <35cb86bc03b693fd5ef6133c22c78aacfd63a0e2.1431046915.git.mchehab@osg.samsung.com> <554C9F1A.6000502@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
-
-On Wed, 20 May 2015, William Towle wrote:
-
-> Pretty print fourcc and code in format debugging statements.
+On Friday 08 May 2015 13:33:46 Hans Verkuil wrote:
+> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
+> > The Media Controller DVB support is still an experimental feature,
+> > as it is under heavy development. It is already said that it is
+> > an experimental feature at the help, but let make it even clearer
+> > and louder, as we may need to adjust some bits when we start using it
+> > on embedded drivers.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Reviewed-by: William Towle <william.towle@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |   22 +++++++++++++++-------
->  1 file changed, 15 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index b530503..0bebca5 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-[snip]
+And
 
-> @@ -1720,11 +1725,14 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  	int width, height;
->  	int ret;
->  
-> +	dev_dbg(icd->parent, "TRY_FMT(%c%c%c%c, %ux%u)\n",
-> +		pixfmtstr(pix->pixelformat), pix->width, pix->height);
-> +
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Why is this additional debugging needed? Doesn't an identical call in 
-soc_camera_try_fmt() already print the same information just before 
-calling rcar_vin_try_fmt()?
+> > diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> > index 3ef0f90b128f..8af89b084267 100644
+> > --- a/drivers/media/Kconfig
+> > +++ b/drivers/media/Kconfig
+> > @@ -95,7 +95,7 @@ config MEDIA_CONTROLLER
+> > 
+> >  	  This API is mostly used by camera interfaces in embedded platforms.
+> >  
+> >  config MEDIA_CONTROLLER_DVB
+> > 
+> > -	bool "Enable Media controller for DVB"
+> > +	bool "Enable Media controller for DVB (EXPERIMENTAL)"
+> > 
+> >  	depends on MEDIA_CONTROLLER
+> >  	---help---
+> >  	
+> >  	  Enable the media controller API support for DVB.
 
-Thanks
-Guennadi
+-- 
+Regards,
+
+Laurent Pinchart
+
