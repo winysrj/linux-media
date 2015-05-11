@@ -1,55 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51875 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756782AbbEVN7v (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36776 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752955AbbEKJj7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 09:59:51 -0400
-Received: from tschai.cisco.com (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 78DC42A0085
-	for <linux-media@vger.kernel.org>; Fri, 22 May 2015 15:59:45 +0200 (CEST)
+	Mon, 11 May 2015 05:39:59 -0400
+Message-ID: <5550789F.60304@xs4all.nl>
+Date: Mon, 11 May 2015 11:38:39 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 00/11] cobalt bug fixes, fixes for compiler/sparse warnings
-Date: Fri, 22 May 2015 15:59:33 +0200
-Message-Id: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
+References: <cover.1431046915.git.mchehab@osg.samsung.com>	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>	<554CA862.8070407@xs4all.nl>	<20150508095754.1c39a276@recife.lan>	<554CB863.1040006@xs4all.nl>	<20150508110826.00e4e954@recife.lan>	<554CC8E3.2030308@xs4all.nl>	<554DD3FE.1070806@xs4all.nl> <20150511063138.1ea10ccf@recife.lan>
+In-Reply-To: <20150511063138.1ea10ccf@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 05/11/2015 11:31 AM, Mauro Carvalho Chehab wrote:
+> Em Sat, 09 May 2015 11:31:42 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>>>>> Brainstorming:
+>>>>>
+>>>>> It might be better to map each device node to an entity and each hardware
+>>>>> component (tuner, DMA engine) to an entity, and avoid this mixing of
+>>>>> hw entity vs device node entity.
+>>
+>> There are two options here:
+>>
+>> either make each device node an entity, or expose the device node information
+>> as properties of an entity.
+>>
+>> The latter would be backwards compatible with what we do today. I'm trying to
+>> think of reasons why you would want to make each device node an entity in its
+>> own right.
+>>
+>> The problem today is that a video_device representing a video/vbi/radio/swradio
+>> device node is an entity, but it is really representing the dma engine. Which
+>> is weird for radio devices since there is no dma engine there.
+>>
+>> Implementing device nodes as entities in their own right does solve this problem,
+>> but implementing it as properties would be weird since a radio device node would
+>> be a property of a radio tuner entity, which can be a subdevice driver which means
+>> that the bridge driver would have to add the radio device property to a subdev
+>> driver, which feels really wrong to me.
+>>
+>> With this in mind I do think representing device nodes as entities in their own
+>> right makes sense.
+> 
+> I agree with that: devnodes should be entities, as they're the points to control
+> the hardware, and need to be known by the Kernel, no matter if they have DMA
+> engines associated with it or not. The better seems to map the DMA engine
+> as a property on those entities.
+> 
+>> But I would do this also for a v4l-subdev node. It's very
+>> inconsistent not to do that.
+> 
+> It should be easy to create an entity for each v4l-subdev node. I just
+> don't see much usage on it, and this will almost double the number of
+> entities.
 
-This patch series fixes two bugs in the cobalt driver and a pile of
-compiler and sparse fixes (mostly in cobalt as well).
+The memory is already allocated for that since it is part of struct video_device,
+which v4l-subdev uses. So I don't see this as a problem.
+
+> Also, in order to keep it backward-compatible, both the subdev
+> devnode and the subdev no-devnode entity should accept the same set of
+> ioctls.
+
+The ioctls always go through the video_device, that will not be changed by
+this.
+
+But I agree that there are other backward-compat issues. Unfortunately I cannot
+dedicate much time on this at the moment.
 
 Regards,
 
 	Hans
-
-Hans Verkuil (11):
-  cobalt: fix irqs used for the adv7511 transmitter
-  cobalt: fix 64-bit division link error
-  cobalt: fix compiler warnings on 32 bit OSes
-  e4000: fix compiler warning
-  cobalt: fix sparse warnings
-  cobalt: fix sparse warnings
-  cobalt: fix sparse warnings
-  cobalt: fix sparse warnings
-  cobalt: fix sparse warnings
-  cx24120: fix sparse warning
-  saa7164: fix sparse warning
-
- drivers/media/dvb-frontends/cx24120.c     |   2 +-
- drivers/media/pci/cobalt/cobalt-cpld.c    |   6 +-
- drivers/media/pci/cobalt/cobalt-driver.c  |  18 ++-
- drivers/media/pci/cobalt/cobalt-driver.h  |  22 +--
- drivers/media/pci/cobalt/cobalt-flash.c   |  18 +--
- drivers/media/pci/cobalt/cobalt-i2c.c     |  56 +++----
- drivers/media/pci/cobalt/cobalt-irq.c     |  58 ++++----
- drivers/media/pci/cobalt/cobalt-omnitek.c |  12 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c    | 235 ++++++++++++++++--------------
- drivers/media/pci/saa7164/saa7164-i2c.c   |   2 +-
- drivers/media/tuners/e4000.c              |   2 +-
- 11 files changed, 229 insertions(+), 202 deletions(-)
-
--- 
-2.1.4
-
