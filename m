@@ -1,126 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:36823 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272AbbEDIKS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 04:10:18 -0400
-Received: by pdea3 with SMTP id a3so156838165pde.3
-        for <linux-media@vger.kernel.org>; Mon, 04 May 2015 01:10:18 -0700 (PDT)
-Message-ID: <55472962.3000104@linaro.org>
-Date: Mon, 04 May 2015 13:40:10 +0530
-From: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Received: from lists.s-osg.org ([54.187.51.154]:47694 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752535AbbEKJbq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2015 05:31:46 -0400
+Date: Mon, 11 May 2015 06:31:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
+Message-ID: <20150511063138.1ea10ccf@recife.lan>
+In-Reply-To: <554DD3FE.1070806@xs4all.nl>
+References: <cover.1431046915.git.mchehab@osg.samsung.com>
+	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
+	<554CA862.8070407@xs4all.nl>
+	<20150508095754.1c39a276@recife.lan>
+	<554CB863.1040006@xs4all.nl>
+	<20150508110826.00e4e954@recife.lan>
+	<554CC8E3.2030308@xs4all.nl>
+	<554DD3FE.1070806@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc-camera: opinion poll - future directions
-References: <Pine.LNX.4.64.1505031800140.4237@axis700.grange> <55465967.4060405@xs4all.nl> <Pine.LNX.4.64.1505031935450.4237@axis700.grange> <55471D98.9020108@xs4all.nl>
-In-Reply-To: <55471D98.9020108@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Sat, 09 May 2015 11:31:42 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
+> >>> Brainstorming:
+> >>>
+> >>> It might be better to map each device node to an entity and each hardware
+> >>> component (tuner, DMA engine) to an entity, and avoid this mixing of
+> >>> hw entity vs device node entity.
+> 
+> There are two options here:
+> 
+> either make each device node an entity, or expose the device node information
+> as properties of an entity.
+> 
+> The latter would be backwards compatible with what we do today. I'm trying to
+> think of reasons why you would want to make each device node an entity in its
+> own right.
+> 
+> The problem today is that a video_device representing a video/vbi/radio/swradio
+> device node is an entity, but it is really representing the dma engine. Which
+> is weird for radio devices since there is no dma engine there.
+> 
+> Implementing device nodes as entities in their own right does solve this problem,
+> but implementing it as properties would be weird since a radio device node would
+> be a property of a radio tuner entity, which can be a subdevice driver which means
+> that the bridge driver would have to add the radio device property to a subdev
+> driver, which feels really wrong to me.
+> 
+> With this in mind I do think representing device nodes as entities in their own
+> right makes sense.
 
-On Monday 04 May 2015 12:49 PM, Hans Verkuil wrote:
-> On 05/03/2015 07:45 PM, Guennadi Liakhovetski wrote:
->> Hi Hans,
->>
->> On Sun, 3 May 2015, Hans Verkuil wrote:
->>
->>> Hi Guennadi,
->>>
->>> On 05/03/2015 06:11 PM, Guennadi Liakhovetski wrote:
->>>> Hi all,
->>>>
->>>> Just a quick opinion poll - where and how should the soc-camera framework
->>>> and drivers be heading? Possible (probably not all) directions:
->>>>
->>>> (1) all is good, keep as is. That means keep all drivers, killing them off
->>>> only when it becomes very obvious, that noone wants them, keep developing
->>>> drivers, that are still being used and updating all of them on any API
->>>> updates. Keep me as maintainer, which means slow patch processing rate and
->>>> no active participation in new developments - at hardware, soc-camera or
->>>> V4L levels.
->>>>
->>>> (2) we want more! I.e. some contributors are planning to either add new
->>>> drivers to it or significantly develop existing ones, see significant
->>>> benefit in it. In this case it might become necessary to replace me with
->>>> someone, who can be more active in this area.
->>>>
->>>> (3) slowly phase out. Try to either deprecate and remove soc-camera
->>>> drivers one by one or move them out to become independent V4L2 host or
->>>> subdevice drivers, but keep updating while still there.
->>>>
->>>> (4) basically as (3) but even more aggressively - get rid of it ASAP:)
->>>>
->>>> Opinions? Expecially would be interesting to hear from respective
->>>> host-driver maintainers / developers, sorry, not adding CCs, they probably
->>>> read the list anyway:)
->>>
->>> I'm closest to 1. I would certainly not use it for new drivers, I see no
->>> reason to do that anymore. The core frameworks are quite good these days
->>> and I think the need for soc-camera has basically disappeared. But there
->>> is no need to phase out or remove soc-camera drivers (unless they are
->>> clearly broken and nobody will fix them). And if someone wants to turn
->>> a soc-camera driver into a standalone driver, then I would encourage
->>> that.
->>
->> Understand, thanks.
->>
->>> However, there are two things that need work fairly soon:
->>>
->>> 1) the dependency of subdev drivers on soc_camera: that has to go. I plan
->>> to work on that, but the first step is to replace the video crop ops by
->>> the pad selection ops. I finally got my Renesas sh7724 board up and running,
->>
->> Uhm... Does anyone really still care about V4L on SuperH?..
->
-> I am :-)
->
-> It's the only soc-camera board I have, so it's good to have it working.
->
->>
->>> so I hope to make progress on this soon. I'll update soc-camera as well
->>> to conform to v4l2-compliance. Once that's done I will investigate how to
->>> remove the soc-camera dependency.
->>>
->>> The soc-camera dependency kills the reusability of those drivers and it
->>> really needs to be addressed.
->>>
->>> 2) Converting soc-camera videobuf drivers to vb2. At some point vb1 will be
->>> removed, so any remaining vb1 driver will likely be killed off if nobody does
->>> the conversion. I believe it is only omap1 and pxa that still use videobuf.
->>>
->>> I think omap1 might be a candidate for removal, but I don't know about the pxa.
->>> Guennadi, what is the status of these drivers?
->>
->> Dont know, sorry. PXA in general seems to still be quite actively
->> maintained - I recently saw a patch series for PXA CCF support, so,
->> probably V4L is still in use too.
->>
->>> If I would do a vb2 conversion
->>> for the pxa, would you be able to test it?
->>
->> I have a board with PXA270, and it still seems to be in the mainline, but
->> I don't know how easy it would be to get it running with a current kernel.
->
-> Can you take a look? If you can get it running, then I can make a patch for
-> you to try. But I don't want to put time into that unless I know you can
-> test it.
->
-> I think it is reasonable to phase out the omap1 driver: move it to staging
-> first and if nobody complains remove it altogether.
->
+I agree with that: devnodes should be entities, as they're the points to control
+the hardware, and need to be known by the Kernel, no matter if they have DMA
+engines associated with it or not. The better seems to map the DMA engine
+as a property on those entities.
 
-Hans,
+> But I would do this also for a v4l-subdev node. It's very
+> inconsistent not to do that.
 
-I think OMAP2_VOUT is also another candidate which we need to probably
-move it to staging and then remove it.
-I am not sure if anyone is still using it.
+It should be easy to create an entity for each v4l-subdev node. I just
+don't see much usage on it, and this will almost double the number of
+entities. Also, in order to keep it backward-compatible, both the subdev
+devnode and the subdev no-devnode entity should accept the same set of
+ioctls.
 
-It is just compiling as of now, but I am doubtful that it will work.
-
-
-Thanks,
-Vaibhav
+Regards,
+Mauro
