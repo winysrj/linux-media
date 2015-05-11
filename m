@@ -1,121 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38385 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029AbbEQCsS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 May 2015 22:48:18 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2417E2A008E
-	for <linux-media@vger.kernel.org>; Sun, 17 May 2015 04:48:02 +0200 (CEST)
-Date: Sun, 17 May 2015 04:48:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150517024802.2417E2A008E@tschai.lan>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44923 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751543AbbEKPLP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2015 11:11:15 -0400
+Message-ID: <5550C645.6090106@ti.com>
+Date: Mon, 11 May 2015 20:39:57 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
+	Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
+	Mathias Nyman <mathias.nyman@linux.intel.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Thomas Pugliese <thomas.pugliese@gmail.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	David Mosberger <davidm@egauge.net>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Gregory CLEMENT <gregory.clement@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kevin Hao <haokexin@gmail.com>, Jean Delvare <jdelvare@suse.de>
+CC: <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-ide@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
+	Anatol Pomazau <anatol@google.com>,
+	Jonathan Richardson <jonathar@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>,
+	<bcm-kernel-feedback-list@broadcom.com>
+Subject: Re: [PATCHv3 2/4] phy: core: Add devm_of_phy_get_by_index to phy-core
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com> <1429743853-10254-3-git-send-email-arun.ramamurthy@broadcom.com>
+In-Reply-To: <1429743853-10254-3-git-send-email-arun.ramamurthy@broadcom.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On Thursday 23 April 2015 04:34 AM, Arun Ramamurthy wrote:
+> Some generic drivers, such as ehci, may use multiple phys and for such
+> drivers referencing phy(s) by name(s) does not make sense. Instead of
+> inventing new naming schemes and using custom code to iterate through them,
+> such drivers are better of using nameless phy bindings and using this newly
+> introduced API to iterate through them.
+>
+> Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+> Reviewed-by: Ray Jui <rjui@broadcom.com>
+> Reviewed-by: Scott Branden <sbranden@broadcom.com>
+> ---
+>   Documentation/phy.txt   |  7 ++++++-
+>   drivers/phy/phy-core.c  | 32 ++++++++++++++++++++++++++++++++
+>   include/linux/phy/phy.h |  8 ++++++++
+>   3 files changed, 46 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/phy.txt b/Documentation/phy.txt
+> index 371361c..b388c5a 100644
+> --- a/Documentation/phy.txt
+> +++ b/Documentation/phy.txt
+> @@ -76,6 +76,8 @@ struct phy *phy_get(struct device *dev, const char *string);
+>   struct phy *phy_optional_get(struct device *dev, const char *string);
+>   struct phy *devm_phy_get(struct device *dev, const char *string);
+>   struct phy *devm_phy_optional_get(struct device *dev, const char *string);
+> +struct phy *devm_of_phy_get_by_index(struct device *dev, struct device_node *np,
+> +				     int index);
+>
+>   phy_get, phy_optional_get, devm_phy_get and devm_phy_optional_get can
+>   be used to get the PHY. In the case of dt boot, the string arguments
+> @@ -86,7 +88,10 @@ successful PHY get. On driver detach, release function is invoked on
+>   the the devres data and devres data is freed. phy_optional_get and
+>   devm_phy_optional_get should be used when the phy is optional. These
+>   two functions will never return -ENODEV, but instead returns NULL when
+> -the phy cannot be found.
+> +the phy cannot be found.Some generic drivers, such as ehci, may use multiple
+> +phys and for such drivers referencing phy(s) by name(s) does not make sense. In
+> +this case, devm_of_phy_get_by_index can be used to get a phy reference based on
+> +the index.
+>
+>   It should be noted that NULL is a valid phy reference. All phy
+>   consumer calls on the NULL phy become NOPs. That is the release calls,
+> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+> index 3791838..964a84d 100644
+> --- a/drivers/phy/phy-core.c
+> +++ b/drivers/phy/phy-core.c
+> @@ -623,6 +623,38 @@ struct phy *devm_of_phy_get(struct device *dev, struct device_node *np,
+>   EXPORT_SYMBOL_GPL(devm_of_phy_get);
+>
+>   /**
+> + * devm_of_phy_get_by_index() - lookup and obtain a reference to a phy by index.
+> + * @dev: device that requests this phy
+> + * @np: node containing the phy
+> + * @index: index of the phy
+> + *
+> + * Gets the phy using _of_phy_get(), and associates a device with it using
+> + * devres. On driver detach, release function is invoked on the devres data,
+> + * then, devres data is freed.
+> + *
+> + */
+> +struct phy *devm_of_phy_get_by_index(struct device *dev, struct device_node *np,
+> +				     int index)
+> +{
+> +	struct phy **ptr, *phy;
+> +
+> +	ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+> +	if (!ptr)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	phy = _of_phy_get(np, index);
+> +	if (!IS_ERR(phy)) {
+> +		*ptr = phy;
+> +		devres_add(dev, ptr);
+> +	} else {
+> +		devres_free(ptr);
+> +	}
+> +
+> +	return phy;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_of_phy_get_by_index);
+> +
+> +/**
+>    * phy_create() - create a new phy
+>    * @dev: device that is creating the new phy
+>    * @node: device node of the phy
+> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+> index a0197fa..978d5af 100644
+> --- a/include/linux/phy/phy.h
+> +++ b/include/linux/phy/phy.h
+> @@ -133,6 +133,8 @@ struct phy *devm_phy_get(struct device *dev, const char *string);
+>   struct phy *devm_phy_optional_get(struct device *dev, const char *string);
+>   struct phy *devm_of_phy_get(struct device *dev, struct device_node *np,
+>   			    const char *con_id);
+> +struct phy *devm_of_phy_get_by_index(struct device *dev, struct device_node *np,
+> +				     int index);
+>   void phy_put(struct phy *phy);
+>   void devm_phy_put(struct device *dev, struct phy *phy);
+>   struct phy *of_phy_get(struct device_node *np, const char *con_id);
+> @@ -261,6 +263,12 @@ static inline struct phy *devm_of_phy_get(struct device *dev,
+>   	return ERR_PTR(-ENOSYS);
+>   }
+>
+> +struct phy *devm_of_phy_get_by_index(struct device *dev, struct device_node *np,
+> +				     int index);
 
-date:		Sun May 17 04:00:15 CEST 2015
-git branch:	test
-git hash:	0fae1997f09796aca8ada5edc028aef587f6716c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-1.slh.2-amd64
+Fixed the compilation error because of the ';' in the end and merged it to 
+linux-phy.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+Kishon
