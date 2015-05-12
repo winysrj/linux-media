@@ -1,232 +1,415 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52109 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754076AbbEUTXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 15:23:13 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 2/5] m88ds3103: implement DVBv5 CNR statistics
-Date: Thu, 21 May 2015 22:22:49 +0300
-Message-Id: <1432236172-13964-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1432236172-13964-1-git-send-email-crope@iki.fi>
-References: <1432236172-13964-1-git-send-email-crope@iki.fi>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42827 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753359AbbELQCR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2015 12:02:17 -0400
+From: Fabien Dessenne <fabien.dessenne@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	<hugues.fruchet@st.com>
+Subject: [PATCH v3 0/3] Add media bdisp driver for stihxxx platforms
+Date: Tue, 12 May 2015 18:02:08 +0200
+Message-ID: <1431446531-11492-1-git-send-email-fabien.dessenne@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement DVBv5 CNR statistics.
-Wrap legacy DVBv3 SNR to DVBv5 CNR.
+This series of patches adds the support of v4l2 2D blitter driver for
+STMicroelectronics SOC.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/m88ds3103.c | 154 +++++++++++++++++---------------
- 1 file changed, 82 insertions(+), 72 deletions(-)
+version 3:
+	- Fixed selection / cropping.
+	- Fixed probe sequence.
+	- Fixed colorspace and field management.
+	- Fixed buffer management upon start streaming failure.
+	- Fixed missing format in enum_fmt
+	- Fixed queue_setup.
+	- Used additional vb2 helpers.
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 03dceb5..381a8ad 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -190,8 +190,9 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct m88ds3103_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int ret;
-+	int ret, i, itmp;
- 	u8 u8tmp;
-+	u8 buf[3];
- 
- 	*status = 0;
- 
-@@ -233,6 +234,77 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	dev_dbg(&priv->i2c->dev, "%s: lock=%02x status=%02x\n",
- 			__func__, u8tmp, *status);
- 
-+	/* CNR */
-+	if (priv->fe_status & FE_HAS_VITERBI) {
-+		unsigned int cnr, noise, signal, noise_tot, signal_tot;
-+
-+		cnr = 0;
-+		/* more iterations for more accurate estimation */
-+		#define M88DS3103_SNR_ITERATIONS 3
-+
-+		switch (c->delivery_system) {
-+		case SYS_DVBS:
-+			itmp = 0;
-+
-+			for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
-+				ret = m88ds3103_rd_reg(priv, 0xff, &buf[0]);
-+				if (ret)
-+					goto err;
-+
-+				itmp += buf[0];
-+			}
-+
-+			/* use of single register limits max value to 15 dB */
-+			/* SNR(X) dB = 10 * ln(X) / ln(10) dB */
-+			itmp = DIV_ROUND_CLOSEST(itmp, 8 * M88DS3103_SNR_ITERATIONS);
-+			if (itmp)
-+				cnr = div_u64((u64) 10000 * intlog2(itmp), intlog2(10));
-+			break;
-+		case SYS_DVBS2:
-+			noise_tot = 0;
-+			signal_tot = 0;
-+
-+			for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
-+				ret = m88ds3103_rd_regs(priv, 0x8c, buf, 3);
-+				if (ret)
-+					goto err;
-+
-+				noise = buf[1] << 6;    /* [13:6] */
-+				noise |= buf[0] & 0x3f; /*  [5:0] */
-+				noise >>= 2;
-+				signal = buf[2] * buf[2];
-+				signal >>= 1;
-+
-+				noise_tot += noise;
-+				signal_tot += signal;
-+			}
-+
-+			noise = noise_tot / M88DS3103_SNR_ITERATIONS;
-+			signal = signal_tot / M88DS3103_SNR_ITERATIONS;
-+
-+			/* SNR(X) dB = 10 * log10(X) dB */
-+			if (signal > noise) {
-+				itmp = signal / noise;
-+				cnr = div_u64((u64) 10000 * intlog10(itmp), (1 << 24));
-+			}
-+			break;
-+		default:
-+			dev_dbg(&priv->i2c->dev,
-+				"%s: invalid delivery_system\n", __func__);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		if (cnr) {
-+			c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+			c->cnr.stat[0].svalue = cnr;
-+		} else {
-+			c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		}
-+	} else {
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
- 	return 0;
- err:
- 	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-@@ -577,6 +649,7 @@ err:
- static int m88ds3103_init(struct dvb_frontend *fe)
- {
- 	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file;
-@@ -684,7 +757,9 @@ static int m88ds3103_init(struct dvb_frontend *fe)
- skip_fw_download:
- 	/* warm state */
- 	priv->warm = true;
--
-+	/* init stats here in order signal app which stats are supported */
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	return 0;
- 
- error_fw_release:
-@@ -702,6 +777,7 @@ static int m88ds3103_sleep(struct dvb_frontend *fe)
- 
- 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
- 
-+	priv->fe_status = 0;
- 	priv->delivery_system = SYS_UNDEFINED;
- 
- 	/* TS Hi-Z */
-@@ -908,80 +984,14 @@ err:
- 
- static int m88ds3103_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int ret, i, tmp;
--	u8 buf[3];
--	u16 noise, signal;
--	u32 noise_tot, signal_tot;
- 
--	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
--	/* reports SNR in resolution of 0.1 dB */
--
--	/* more iterations for more accurate estimation */
--	#define M88DS3103_SNR_ITERATIONS 3
--
--	switch (c->delivery_system) {
--	case SYS_DVBS:
--		tmp = 0;
--
--		for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
--			ret = m88ds3103_rd_reg(priv, 0xff, &buf[0]);
--			if (ret)
--				goto err;
--
--			tmp += buf[0];
--		}
--
--		/* use of one register limits max value to 15 dB */
--		/* SNR(X) dB = 10 * ln(X) / ln(10) dB */
--		tmp = DIV_ROUND_CLOSEST(tmp, 8 * M88DS3103_SNR_ITERATIONS);
--		if (tmp)
--			*snr = div_u64((u64) 100 * intlog2(tmp), intlog2(10));
--		else
--			*snr = 0;
--		break;
--	case SYS_DVBS2:
--		noise_tot = 0;
--		signal_tot = 0;
--
--		for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
--			ret = m88ds3103_rd_regs(priv, 0x8c, buf, 3);
--			if (ret)
--				goto err;
--
--			noise = buf[1] << 6;    /* [13:6] */
--			noise |= buf[0] & 0x3f; /*  [5:0] */
--			noise >>= 2;
--			signal = buf[2] * buf[2];
--			signal >>= 1;
--
--			noise_tot += noise;
--			signal_tot += signal;
--		}
--
--		noise = noise_tot / M88DS3103_SNR_ITERATIONS;
--		signal = signal_tot / M88DS3103_SNR_ITERATIONS;
--
--		/* SNR(X) dB = 10 * log10(X) dB */
--		if (signal > noise) {
--			tmp = signal / noise;
--			*snr = div_u64((u64) 100 * intlog10(tmp), (1 << 24));
--		} else {
--			*snr = 0;
--		}
--		break;
--	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
--				__func__);
--		ret = -EINVAL;
--		goto err;
--	}
-+	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
-+		*snr = div_s64(c->cnr.stat[0].svalue, 100);
-+	else
-+		*snr = 0;
- 
- 	return 0;
--err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
--	return ret;
- }
- 
- static int m88ds3103_read_ber(struct dvb_frontend *fe, u32 *ber)
+version 2:
+	- Renamed to STI_BDISP, inserted the sti directory.
+	- Reworked the cropping vs selection API.
+	- Used additional v4l2_m2m helpers and fops.
+	- Dropped pixel format description.
+	- Fixed memory release issue.
+
+version 1:
+	- Initial submission.
+
+The following features are supported and tested:
+- Color format conversion (RGB32, RGB24, RGB16, NV12, YUV420P)
+- Copy
+- Scale
+- Flip
+- Deinterlace
+- Wide (4K) picture support
+- Crop
+
+This driver uses the v4l2 mem2mem framework and its implementation was largely
+inspired by the Exynos G-Scaler (exynos-gsc) driver.
+
+The driver is mainly implemented across two files:
+- bdisp-v4l2.c
+- bdisp-hw.c
+bdisp-v4l2.c uses v4l2_m2m to manage the V4L2 interface with the userland.
+It calls the HW services that are implemented in bdisp-hw.c.
+
+The additional bdisp-debug.c file manages some debugfs entries.
+
+Below is the v4l2-compliance report for the sti bdisp driver.
+Note: using patched v4l2-compliance:
+"v4l2-compliance: test SELECTION only for the supported buf_type"
+
+
+root@st:~# v4l2-compliance   
+Driver Info:
+	Driver name   : 9f10000.bdisp
+	Card type     : 9f10000.bdisp
+	Bus info      : platform:bdisp0
+	Driver version: 4.0.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 3 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 42, Succeeded: 42, Failed: 0, Warnings: 12
+
+
+
+
+root@st:~# v4l2-compliance -s
+Driver Info:
+	Driver name   : 9f10000.bdisp
+	Card type     : 9f10000.bdisp
+	Bus info      : platform:bdisp0
+	Driver version: 4.0.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 3 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+		fail: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-buffers.cpp(346): buf.querybuf(node, i)
+		fail: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-buffers.cpp(921): testQueryBuf(node, cur_fmt.type, q.g_buffers())
+	test MMAP: FAIL
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 45, Succeeded: 44, Failed: 1, Warnings: 12
+
+
+
+
+root@st:~# v4l2-compliance -f
+Driver Info:
+	Driver name   : 9f10000.bdisp
+	Card type     : 9f10000.bdisp
+	Bus info      : platform:bdisp0
+	Driver version: 4.0.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 3 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more information see:
+		warn: /local/frq07368/view/opensdk-0.31/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+	Not supported for M2M devices
+
+Total: 42, Succeeded: 42, Failed: 0, Warnings: 12
+root@st:~# 
+
+
+
+
+Fabien Dessenne (3):
+  [media] bdisp: add DT bindings documentation
+  [media] bdisp: 2D blitter driver using v4l2 mem2mem framework
+  [media] bdisp: add debug file system
+
+ .../devicetree/bindings/media/st,stih4xx.txt       |   32 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/sti/bdisp/Kconfig           |    9 +
+ drivers/media/platform/sti/bdisp/Makefile          |    3 +
+ drivers/media/platform/sti/bdisp/bdisp-debug.c     |  668 +++++++++
+ drivers/media/platform/sti/bdisp/bdisp-filter.h    |  346 +++++
+ drivers/media/platform/sti/bdisp/bdisp-hw.c        |  823 ++++++++++++
+ drivers/media/platform/sti/bdisp/bdisp-reg.h       |  235 ++++
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 1419 ++++++++++++++++++++
+ drivers/media/platform/sti/bdisp/bdisp.h           |  216 +++
+ 11 files changed, 3763 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
+ create mode 100644 drivers/media/platform/sti/bdisp/Kconfig
+ create mode 100644 drivers/media/platform/sti/bdisp/Makefile
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp-debug.c
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp-filter.h
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp-hw.c
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp-reg.h
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+ create mode 100644 drivers/media/platform/sti/bdisp/bdisp.h
+
 -- 
-http://palosaari.fi/
+1.9.1
 
