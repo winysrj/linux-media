@@ -1,138 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35709 "EHLO mx2.suse.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:50674 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993504AbbEEQB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 12:01:26 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
-Date: Tue,  5 May 2015 18:01:12 +0200
-Message-Id: <1430841678-11117-4-git-send-email-jack@suse.cz>
-In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
-References: <1430841678-11117-1-git-send-email-jack@suse.cz>
+	id S932702AbbELP0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2015 11:26:16 -0400
+Message-ID: <55521B96.4030903@iki.fi>
+Date: Tue, 12 May 2015 18:26:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+CC: Olli Salonen <olli.salonen@iki.fi>
+Subject: [GIT PULL] GoTView MasterHD 3 USB tuner
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
-hand made mapping of virtual address to physical address. Also the
-function leaked page reference from get_user_pages() so fix that by
-properly release the reference when omap_vout_buffer_release() is
-called.
+The following changes since commit b2624ff4bf46869df66148b2e1e675981565742e:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
- 1 file changed, 31 insertions(+), 36 deletions(-)
+   [media] mantis: fix error handling (2015-05-12 08:12:18 -0300)
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 17b189a81ec5..d3f6d82ccbc1 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
- }
- 
- /*
-- * omap_vout_uservirt_to_phys: This inline function is used to convert user
-- * space virtual address to physical address.
-+ * omap_vout_get_userptr: Convert user space virtual address to physical
-+ * address.
-  */
--static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
-+static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
-+				 u32 *physp)
- {
--	unsigned long physp = 0;
--	struct vm_area_struct *vma;
--	struct mm_struct *mm = current->mm;
-+	struct frame_vector *vec;
-+	int ret;
- 
- 	/* For kernel direct-mapped memory, take the easy way */
--	if (virtp >= PAGE_OFFSET)
--		return virt_to_phys((void *) virtp);
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(mm, virtp);
--	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
--		/* this will catch, kernel-allocated, mmaped-to-usermode
--		   addresses */
--		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
--		up_read(&current->mm->mmap_sem);
--	} else {
--		/* otherwise, use get_user_pages() for general userland pages */
--		int res, nr_pages = 1;
--		struct page *pages;
-+	if (virtp >= PAGE_OFFSET) {
-+		*physp = virt_to_phys((void *)virtp);
-+		return 0;
-+	}
- 
--		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
--				0, &pages, NULL);
--		up_read(&current->mm->mmap_sem);
-+	vec = frame_vector_create(1);
-+	if (!vec)
-+		return -ENOMEM;
- 
--		if (res == nr_pages) {
--			physp =  __pa(page_address(&pages[0]) +
--					(virtp & ~PAGE_MASK));
--		} else {
--			printk(KERN_WARNING VOUT_NAME
--					"get_user_pages failed\n");
--			return 0;
--		}
-+	ret = get_vaddr_frames(virtp, 1, 1, 0, vec);
-+	if (ret != 1) {
-+		frame_vector_destroy(vec);
-+		return -EINVAL;
- 	}
-+	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
-+	vb->priv = vec;
- 
--	return physp;
-+	return 0;
- }
- 
- /*
-@@ -788,11 +776,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
- 	 * address of the buffer
- 	 */
- 	if (V4L2_MEMORY_USERPTR == vb->memory) {
-+		int ret;
-+
- 		if (0 == vb->baddr)
- 			return -EINVAL;
- 		/* Physical address */
--		vout->queued_buf_addr[vb->i] = (u8 *)
--			omap_vout_uservirt_to_phys(vb->baddr);
-+		ret = omap_vout_get_userptr(vb, vb->baddr,
-+				(u32 *)&vout->queued_buf_addr[vb->i]);
-+		if (ret < 0)
-+			return ret;
- 	} else {
- 		unsigned long addr, dma_addr;
- 		unsigned long size;
-@@ -841,9 +833,12 @@ static void omap_vout_buffer_release(struct videobuf_queue *q,
- 	struct omap_vout_device *vout = q->priv_data;
- 
- 	vb->state = VIDEOBUF_NEEDS_INIT;
-+	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
-+		struct frame_vector *vec = vb->priv;
- 
--	if (V4L2_MEMORY_MMAP != vout->memory)
--		return;
-+		put_vaddr_frames(vec);
-+		frame_vector_destroy(vec);
-+	}
- }
- 
- /*
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git si2168
+
+for you to fetch changes up to 0fa6e6a14e433b5b5daf836b88cde9cca26290a8:
+
+   rtl2832: add support for GoTView MasterHD 3 USB tuner (2015-05-12 
+18:22:44 +0300)
+
+----------------------------------------------------------------
+Olli Salonen (6):
+       si2168: add support for gapped clock
+       dvbsky: use si2168 config option ts_clock_gapped
+       si2168: add I2C error handling
+       si2157: support selection of IF interface
+       rtl28xxu: add I2C read without write
+       rtl2832: add support for GoTView MasterHD 3 USB tuner
+
+  drivers/media/dvb-frontends/rtl2832.c      |   4 ++++
+  drivers/media/dvb-frontends/rtl2832.h      |   1 +
+  drivers/media/dvb-frontends/rtl2832_priv.h |  25 +++++++++++++++++++++++++
+  drivers/media/dvb-frontends/si2168.c       |   9 +++++++++
+  drivers/media/dvb-frontends/si2168.h       |   3 +++
+  drivers/media/dvb-frontends/si2168_priv.h  |   1 +
+  drivers/media/pci/cx23885/cx23885-dvb.c    |   4 ++++
+  drivers/media/pci/saa7164/saa7164-dvb.c    |   3 +++
+  drivers/media/pci/smipcie/smipcie.c        |   1 +
+  drivers/media/tuners/si2157.c              |   4 +++-
+  drivers/media/tuners/si2157.h              |   6 ++++++
+  drivers/media/tuners/si2157_priv.h         |   1 +
+  drivers/media/usb/cx231xx/cx231xx-dvb.c    |   2 ++
+  drivers/media/usb/dvb-usb-v2/af9035.c      |   1 +
+  drivers/media/usb/dvb-usb-v2/dvbsky.c      |   5 ++++-
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c    | 125 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.h    |   5 +++++
+  drivers/media/usb/dvb-usb/cxusb.c          |   1 +
+  drivers/media/usb/em28xx/em28xx-dvb.c      |   2 ++
+  19 files changed, 197 insertions(+), 6 deletions(-)
+
 -- 
-2.1.4
-
+http://palosaari.fi/
