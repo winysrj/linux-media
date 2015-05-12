@@ -1,67 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55884 "EHLO mx2.suse.de"
+Received: from mout.gmx.net ([212.227.17.20]:60235 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292AbbEKOrN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2015 10:47:13 -0400
-Date: Mon, 11 May 2015 15:47:07 +0100
-From: Mel Gorman <mgorman@suse.de>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
-Message-ID: <20150511144707.GP2462@suse.de>
-References: <1430897296-5469-1-git-send-email-jack@suse.cz>
- <1430897296-5469-3-git-send-email-jack@suse.cz>
- <20150508144922.GO2462@suse.de>
- <20150511140019.GD25034@quack.suse.cz>
+	id S1752020AbbELVJS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2015 17:09:18 -0400
+Date: Tue, 12 May 2015 23:09:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: linux-media@vger.kernel.org
+Subject: Re: v4.1-rcX regression in v4l2 build
+In-Reply-To: <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1505122302570.11250@axis700.grange>
+References: <87d225mve4.fsf@belgarion.home> <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <20150511140019.GD25034@quack.suse.cz>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 11, 2015 at 04:00:19PM +0200, Jan Kara wrote:
-> > > +int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
-> > > +		     bool write, bool force, struct frame_vector *vec)
-> > > +{
-> > > +	struct mm_struct *mm = current->mm;
-> > > +	struct vm_area_struct *vma;
-> > > +	int ret = 0;
-> > > +	int err;
-> > > +	int locked = 1;
-> > > +
-> > 
-> > bool locked.
->   It cannot be bool. It is passed to get_user_pages_locked() which expects
-> int *.
+On Tue, 12 May 2015, Guennadi Liakhovetski wrote:
+
+> Hi Robert,
 > 
-
-My bad.
-
-> > > +int frame_vector_to_pages(struct frame_vector *vec)
-> > > +{
-> > 
-> > I think it's probably best to make the relevant counters in frame_vector
-> > signed and limit the maximum possible size of it. It's still not putting
-> > any practical limit on the size of the frame_vector.
->
->   I don't see a reason why counters in frame_vector should be signed... Can
-> you share your reason?  I've added a check into frame_vector_create() to
-> limit number of frames to INT_MAX / sizeof(void *) / 2 to avoid arithmetics
-> overflow. Thanks for review!
+> On Tue, 12 May 2015, Robert Jarzmik wrote:
 > 
+> > Hi Guennadi,
+> > 
+> > Today I noticed the mioa701 build is broken on v4.1-rcX series. It was working
+> > in v4.0.
+> > 
+> > The build error I get is :
+> >   LINK    vmlinux
+> >   LD      vmlinux.o
+> >   MODPOST vmlinux.o
+> >   GEN     .version
+> >   CHK     include/generated/compile.h
+> >   UPD     include/generated/compile.h
+> >   CC      init/version.o
+> >   LD      init/built-in.o
+> > drivers/built-in.o: In function `v4l2_clk_set_rate':
+> > /home/rj/mio_linux/kernel/drivers/media/v4l2-core/v4l2-clk.c:196: undefined reference to `clk_round_rate'
+> > Makefile:932: recipe for target 'vmlinux' failed
+> > make: *** [vmlinux] Error 1
+> > make: Target '_all' not remade because of errors.
+> 
+> Not good:(
+> 
+> > I have no idea what changed. Do you have a clue ?
+> 
+> I've seen some patches on ALKML for PXA CCF, is it in the mainline now? 
+> Could that have been the reason? Is CONFIG_COMMON_CLK defined in your 
+> .config? Although, no, it's not PXA CCF, it's most probably this
+> 
+> commit 4f528afcfbcac540c8690b41307cac5c22088ff1
+> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Date:   Sun Feb 1 08:12:33 2015 -0300
+> 
+>     [media] V4L: add CCF support to the v4l2_clk API
+> 
+> :( But I don't understand how this can happen. V4L is certainly not the 
+> only driver in your build, that uses clk ops! They are exported from 
+> drivers/clk/clk.c for GPL, but v4l2-dev.c defines the GPL licence, so, 
+> should be ok. V4L is built as a module in your configuration, right? Can 
+> you try building it into the image?
 
-Only that the return value of frame_vector_to_pages() returns int where
-as the potential range that is converted is unsigned int. I don't think
-there are any mistakes dealing with signed/unsigned but I don't see any
-advantage of using unsigned either and limiting it to INT_MAX either.
-It's not a big deal.
+I think I know how this is possible. PXA uses arch/arm/mach-pxa/clock.c 
+for clk ops, and clk_round_rate() isn't defined there... Can we add a 
+dummy for PXA? It won't be used anyway as long as PXA doesn't support CCF.
 
--- 
-Mel Gorman
-SUSE Labs
+Thanks
+Guennadi
+
+> > 
+> > Cheers.
+> > 
+> > -- 
+> > Robert
+> > 
+> > PS: A small extract of my .config
+> > rj@belgarion:~/mio_linux/kernel$ grep CLK .config
+> > CONFIG_HAVE_CLK=y
+> > CONFIG_PM_CLK=y
+> > # CONFIG_MMC_CLKGATE is not set
+> > CONFIG_CLKDEV_LOOKUP=y
+> > CONFIG_CLKSRC_OF=y
+> > CONFIG_CLKSRC_MMIO=y
+> > CONFIG_CLKSRC_PXA=y
+> > rj@belgarion:~/mio_linux/kernel$ grep V4L .config
+> > CONFIG_VIDEO_V4L2=y
+> > CONFIG_V4L_PLATFORM_DRIVERS=y
+> > # CONFIG_V4L_MEM2MEM_DRIVERS is not set
+> > # CONFIG_V4L_TEST_DRIVERS is not set
+> > CONFIG_DVB_AU8522_V4L=m
+> > 
+> 
