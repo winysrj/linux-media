@@ -1,359 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48046 "EHLO mx2.suse.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:40814 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750738AbbEFKp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 06:45:58 -0400
-Message-ID: <5549F0DF.4030205@suse.cz>
-Date: Wed, 06 May 2015 12:45:51 +0200
-From: Vlastimil Babka <vbabka@suse.cz>
+	id S933003AbbELRtF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2015 13:49:05 -0400
+Received: from dyn3-82-128-190-23.psoas.suomi.net ([82.128.190.23] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1YsEIh-00063r-H4
+	for linux-media@vger.kernel.org; Tue, 12 May 2015 20:49:03 +0300
+Message-ID: <55523D0E.1090605@iki.fi>
+Date: Tue, 12 May 2015 20:49:02 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jan Kara <jack@suse.cz>, linux-mm@kvack.org
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
-References: <1430897296-5469-1-git-send-email-jack@suse.cz> <1430897296-5469-3-git-send-email-jack@suse.cz>
-In-Reply-To: <1430897296-5469-3-git-send-email-jack@suse.cz>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 4.2] fc2580 / tua9001 / rtl2832_sdr
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/2015 09:28 AM, Jan Kara wrote:
-> Provide new function get_vaddr_frames().  This function maps virtual
-> addresses from given start and fills given array with page frame numbers of
-> the corresponding pages. If given start belongs to a normal vma, the function
-> grabs reference to each of the pages to pin them in memory. If start
-> belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
-> must make sure pfns aren't reused for anything else while he is using
-> them.
->
-> This function is created for various drivers to simplify handling of
-> their buffers.
->
-> Signed-off-by: Jan Kara <jack@suse.cz>
+The following changes since commit 250d2ff01623e80943c4ffed0308b0d19fe6625d:
 
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+   [media] rtl28xxu: fix return value check in rtl2832u_tuner_attach() 
+(2015-05-12 13:27:22 -0300)
 
-With some nitpicks below...
+are available in the git repository at:
 
-> ---
->   include/linux/mm.h |  44 +++++++++++
->   mm/gup.c           | 214 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->   2 files changed, 258 insertions(+)
->
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 0755b9fd03a7..dcd1f02a78e9 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -20,6 +20,7 @@
->   #include <linux/shrinker.h>
->   #include <linux/resource.h>
->   #include <linux/page_ext.h>
-> +#include <linux/err.h>
->
->   struct mempolicy;
->   struct anon_vma;
-> @@ -1197,6 +1198,49 @@ long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
->   		    int write, int force, struct page **pages);
->   int get_user_pages_fast(unsigned long start, int nr_pages, int write,
->   			struct page **pages);
-> +
-> +/* Container for pinned pfns / pages */
-> +struct frame_vector {
-> +	unsigned int nr_allocated;	/* Number of frames we have space for */
-> +	unsigned int nr_frames;	/* Number of frames stored in ptrs array */
-> +	bool got_ref;		/* Did we pin pages by getting page ref? */
-> +	bool is_pfns;		/* Does array contain pages or pfns? */
-> +	void *ptrs[0];		/* Array of pinned pfns / pages. Use
-> +				 * pfns_vector_pages() or pfns_vector_pfns()
-> +				 * for access */
-> +};
-> +
-> +struct frame_vector *frame_vector_create(unsigned int nr_frames);
-> +void frame_vector_destroy(struct frame_vector *vec);
-> +int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
-> +		     bool write, bool force, struct frame_vector *vec);
-> +void put_vaddr_frames(struct frame_vector *vec);
-> +int frame_vector_to_pages(struct frame_vector *vec);
-> +void frame_vector_to_pfns(struct frame_vector *vec);
-> +
-> +static inline unsigned int frame_vector_count(struct frame_vector *vec)
-> +{
-> +	return vec->nr_frames;
-> +}
-> +
-> +static inline struct page **frame_vector_pages(struct frame_vector *vec)
-> +{
-> +	if (vec->is_pfns) {
-> +		int err = frame_vector_to_pages(vec);
-> +
-> +		if (err)
-> +			return ERR_PTR(err);
-> +	}
-> +	return (struct page **)(vec->ptrs);
-> +}
-> +
-> +static inline unsigned long *frame_vector_pfns(struct frame_vector *vec)
-> +{
-> +	if (!vec->is_pfns)
-> +		frame_vector_to_pfns(vec);
-> +	return (unsigned long *)(vec->ptrs);
-> +}
-> +
->   struct kvec;
->   int get_kernel_pages(const struct kvec *iov, int nr_pages, int write,
->   			struct page **pages);
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 6297f6bccfb1..8db5c40e65c4 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -8,6 +8,7 @@
->   #include <linux/rmap.h>
->   #include <linux/swap.h>
->   #include <linux/swapops.h>
-> +#include <linux/vmalloc.h>
->
->   #include <linux/sched.h>
->   #include <linux/rwsem.h>
-> @@ -936,6 +937,219 @@ int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
->   	return ret;	/* 0 or negative error code */
->   }
->
-> +/*
-> + * get_vaddr_frames() - map virtual addresses to pfns
-> + * @start:	starting user address
-> + * @nr_frames:	number of pages / pfns from start to map
-> + * @write:	whether pages will be written to by the caller
-> + * @force:	whether to force write access even if user mapping is
-> + *		readonly. This will result in the page being COWed even
-> + *		in MAP_SHARED mappings. You do not want this.
+   git://linuxtv.org/anttip/media_tree.git fc2580_tua9001
 
-"You do not want this" and yet some of the drivers in later patches do. 
-That looks weird. Explain better?
+for you to fetch changes up to bb397f414b1e8bc100f3744ae5278897bf5ee790:
 
-> + * @vec:	structure which receives pages / pfns of the addresses mapped.
-> + *		It should have space for at least nr_frames entries.
-> + *
-> + * This function maps virtual addresses from @start and fills @vec structure
-> + * with page frame numbers or page pointers to corresponding pages (choice
-> + * depends on the type of the vma underlying the virtual address). If @start
-> + * belongs to a normal vma, the function grabs reference to each of the pages
-> + * to pin them in memory. If @start belongs to VM_IO | VM_PFNMAP vma, we don't
-> + * touch page structures and the caller must make sure pfns aren't reused for
-> + * anything else while he is using them.
-> + *
-> + * The function returns number of pages mapped which may be less than
-> + * @nr_frames. In particular we stop mapping if there are more vmas of
-> + * different type underlying the specified range of virtual addresses.
+   rtl28xxu: load SDR module for fc2580 based devices (2015-05-12 
+20:45:15 +0300)
 
-The function can also return e.g. -EFAULT, shouldn't that be documented too?
+----------------------------------------------------------------
+Antti Palosaari (21):
+       fc2580: implement I2C client bindings
+       rtl28xxu: bind fc2580 using I2C binding
+       af9035: bind fc2580 using I2C binding
+       fc2580: remove obsolete media attach
+       fc2580: improve set params logic
+       fc2580: cleanups and variable renames
+       fc2580: use regmap for register I2C access
+       af9035: fix device order in ID list
+       tua9001: add I2C bindings
+       af9035: bind tua9001 using I2C binding
+       rtl28xxu: bind tua9001 using I2C binding
+       tua9001: remove media attach
+       tua9001: various minor changes
+       tua9001: use regmap for I2C register access
+       tua9001: use div_u64() for frequency calculation
+       rtl2832: add inittab for FC2580 tuner
+       rtl28xxu: set correct FC2580 tuner for RTL2832 demod
+       fc2580: calculate filter control word dynamically
+       fc2580: implement V4L2 subdevice for SDR control
+       rtl2832_sdr: add support for fc2580 tuner
+       rtl28xxu: load SDR module for fc2580 based devices
 
-> + *
-> + * This function takes care of grabbing mmap_sem as necessary.
-> + */
-> +int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
-> +		     bool write, bool force, struct frame_vector *vec)
-> +{
-> +	struct mm_struct *mm = current->mm;
-> +	struct vm_area_struct *vma;
-> +	int ret = 0;
-> +	int err;
-> +	int locked = 1;
+  drivers/media/dvb-frontends/rtl2832.c      |   4 +
+  drivers/media/dvb-frontends/rtl2832.h      |   1 +
+  drivers/media/dvb-frontends/rtl2832_priv.h |  24 +++++
+  drivers/media/dvb-frontends/rtl2832_sdr.c  | 110 +++++++++++++++++++----
+  drivers/media/dvb-frontends/rtl2832_sdr.h  |   1 +
+  drivers/media/tuners/Kconfig               |   4 +-
+  drivers/media/tuners/fc2580.c              | 780 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------
+  drivers/media/tuners/fc2580.h              |  40 ++++-----
+  drivers/media/tuners/fc2580_priv.h         |  36 +++++---
+  drivers/media/tuners/tua9001.c             | 331 
++++++++++++++++++++++++++++++++++-----------------------------------
+  drivers/media/tuners/tua9001.h             |  35 +++-----
+  drivers/media/tuners/tua9001_priv.h        |  19 ++--
+  drivers/media/usb/dvb-usb-v2/af9035.c      |  55 +++++++-----
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c    |  66 ++++++++++----
+  14 files changed, 865 insertions(+), 641 deletions(-)
 
-It looks strange that locked is set to 1 before taking the actual 
-mmap_sem. Also future-proofing.
-
-> +
-> +	if (nr_frames == 0)
-> +		return 0;
-> +
-> +	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
-> +		nr_frames = vec->nr_allocated;
-> +
-> +	down_read(&mm->mmap_sem);
-> +	vma = find_vma_intersection(mm, start, start + 1);
-> +	if (!vma) {
-> +		ret = -EFAULT;
-> +		goto out;
-> +	}
-> +	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
-> +		vec->got_ref = 1;
-> +		vec->is_pfns = 0;
-> +		ret = get_user_pages_locked(current, mm, start, nr_frames,
-> +			write, force, (struct page **)(vec->ptrs), &locked);
-> +		goto out;
-> +	}
-> +
-> +	vec->got_ref = 0;
-> +	vec->is_pfns = 1;
-> +	do {
-> +		unsigned long *nums = frame_vector_pfns(vec);
-> +
-> +		while (ret < nr_frames && start + PAGE_SIZE <= vma->vm_end) {
-> +			err = follow_pfn(vma, start, &nums[ret]);
-> +			if (err) {
-> +				if (ret == 0)
-> +					ret = err;
-> +				goto out;
-> +			}
-> +			start += PAGE_SIZE;
-> +			ret++;
-> +		}
-> +		/*
-> +		 * We stop if we have enough pages or if VMA doesn't completely
-> +		 * cover the tail page.
-> +		 */
-> +		if (ret >= nr_frames || start < vma->vm_end)
-> +			break;
-> +		vma = find_vma_intersection(mm, start, start + 1);
-> +	} while (vma && vma->vm_flags & (VM_IO | VM_PFNMAP));
-> +out:
-> +	if (locked)
-> +		up_read(&mm->mmap_sem);
-> +	if (!ret)
-> +		ret = -EFAULT;
-> +	if (ret > 0)
-> +		vec->nr_frames = ret;
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(get_vaddr_frames);
-> +
-> +/**
-> + * put_vaddr_frames() - drop references to pages if get_vaddr_frames() acquired
-> + *			them
-> + * @vec:	frame vector to put
-> + *
-> + * Drop references to pages if get_vaddr_frames() acquired them. We also
-> + * invalidate the frame vector so that it is prepared for the next call into
-> + * get_vaddr_frames().
-> + */
-> +void put_vaddr_frames(struct frame_vector *vec)
-> +{
-> +	int i;
-> +	struct page **pages;
-> +
-> +	if (!vec->got_ref)
-> +		goto out;
-> +	pages = frame_vector_pages(vec);
-> +	/*
-> +	 * frame_vector_pages() might needed to do a conversion when we
-
-                                                           remove "we" ^
-
-> +	 * get_vaddr_frames() got pages but vec was later converted to pfns.
-> +	 * But it shouldn't really fail to convert pfns back...
-> +	 */
-> +	BUG_ON(IS_ERR(pages));
-> +	for (i = 0; i < vec->nr_frames; i++)
-> +		put_page(pages[i]);
-> +	vec->got_ref = 0;
-> +out:
-> +	vec->nr_frames = 0;
-> +}
-> +EXPORT_SYMBOL(put_vaddr_frames);
-> +
-> +/**
-> + * frame_vector_to_pages - convert frame vector to contain page pointers
-> + * @vec:	frame vector to convert
-> + *
-> + * Convert @vec to contain array of page pointers.  If the conversion is
-> + * successful, return 0. Otherwise return an error.
-> + */
-> +int frame_vector_to_pages(struct frame_vector *vec)
-> +{
-> +	int i;
-> +	unsigned long *nums;
-> +	struct page **pages;
-> +
-> +	if (!vec->is_pfns)
-> +		return 0;
-> +	nums = frame_vector_pfns(vec);
-> +	for (i = 0; i < vec->nr_frames; i++)
-> +		if (!pfn_valid(nums[i]))
-> +			return -EINVAL;
-> +	pages = (struct page **)nums;
-> +	for (i = 0; i < vec->nr_frames; i++)
-> +		pages[i] = pfn_to_page(nums[i]);
-> +	vec->is_pfns = 0;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(frame_vector_to_pages);
-> +
-> +/**
-> + * frame_vector_to_pfns - convert frame vector to contain pfns
-> + * @vec:	frame vector to convert
-> + *
-> + * Convert @vec to contain array of pfns.
-> + */
-> +void frame_vector_to_pfns(struct frame_vector *vec)
-> +{
-> +	int i;
-> +	unsigned long *nums;
-> +	struct page **pages;
-> +
-> +	if (vec->is_pfns)
-> +		return;
-> +	pages = (struct page **)(vec->ptrs);
-> +	nums = (unsigned long *)pages;
-> +	for (i = 0; i < vec->nr_frames; i++)
-> +		nums[i] = page_to_pfn(pages[i]);
-> +	vec->is_pfns = 1;
-> +}
-> +EXPORT_SYMBOL(frame_vector_to_pfns);
-> +
-> +/**
-> + * frame_vector_create() - allocate & initialize structure for pinned pfns
-> + * @nr_frames:	number of pfns slots we should reserve
-> + *
-> + * Allocate and initialize struct pinned_pfns to be able to hold @nr_pfns
-> + * pfns.
-> + */
-> +struct frame_vector *frame_vector_create(unsigned int nr_frames)
-> +{
-> +	struct frame_vector *vec;
-> +	int size = sizeof(struct frame_vector) + sizeof(void *) * nr_frames;
-> +
-> +	if (WARN_ON_ONCE(nr_frames == 0))
-> +		return NULL;
-> +	/*
-> +	 * Avoid higher order allocations, use vmalloc instead. It should
-> +	 * be rare anyway.
-> +	 */
-> +	if (size <= PAGE_SIZE)
-> +		vec = kmalloc(size, GFP_KERNEL);
-> +	else
-> +		vec = vmalloc(size);
-> +	if (!vec)
-> +		return NULL;
-> +	vec->nr_allocated = nr_frames;
-> +	vec->nr_frames = 0;
-> +	return vec;
-> +}
-> +EXPORT_SYMBOL(frame_vector_create);
-> +
-> +/**
-> + * frame_vector_destroy() - free memory allocated to carry frame vector
-> + * @vec:	Frame vector to free
-> + *
-> + * Free structure allocated by frame_vector_create() to carry frames.
-> + */
-> +void frame_vector_destroy(struct frame_vector *vec)
-> +{
-
-Add some VM_BUG_ON()'s for nr_frames and got_ref perhaps?
-
-> +	if (!is_vmalloc_addr(vec))
-> +		kfree(vec);
-> +	else
-> +		vfree(vec);
-> +}
-> +EXPORT_SYMBOL(frame_vector_destroy);
-> +
->   /**
->    * get_dump_page() - pin user page in memory while writing it to core dump
->    * @addr: user address
->
-
+-- 
+http://palosaari.fi/
