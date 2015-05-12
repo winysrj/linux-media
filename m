@@ -1,96 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:62313 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbbEDHnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:43:55 -0400
-Message-ID: <55472333.7000204@cisco.com>
-Date: Mon, 04 May 2015 09:43:47 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 9/9] mt9t112: initialize left and top
-References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl> <1430646876-19594-10-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1505032250430.6055@axis700.grange> <55472049.7010408@xs4all.nl> <Pine.LNX.4.64.1505040937020.9253@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1505040937020.9253@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55258 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751655AbbELCsm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2015 22:48:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 768382A0095
+	for <linux-media@vger.kernel.org>; Tue, 12 May 2015 04:48:32 +0200 (CEST)
+Date: Tue, 12 May 2015 04:48:32 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150512024832.768382A0095@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/04/2015 09:40 AM, Guennadi Liakhovetski wrote:
-> On Mon, 4 May 2015, Hans Verkuil wrote:
-> 
->> On 05/03/2015 11:02 PM, Guennadi Liakhovetski wrote:
->>> Hi Hans,
->>>
->>> On Sun, 3 May 2015, Hans Verkuil wrote:
->>>
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> The left and top variables were uninitialized, leading to unexpected
->>>> results.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/i2c/soc_camera/mt9t112.c | 3 ++-
->>>>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
->>>> index de10a76..02190d6 100644
->>>> --- a/drivers/media/i2c/soc_camera/mt9t112.c
->>>> +++ b/drivers/media/i2c/soc_camera/mt9t112.c
->>>> @@ -952,7 +952,8 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
->>>>  	struct v4l2_mbus_framefmt *mf = &format->format;
->>>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>>  	struct mt9t112_priv *priv = to_mt9t112(client);
->>>> -	unsigned int top, left;
->>>> +	unsigned int top = priv->frame.top;
->>>> +	unsigned int left = priv->frame.left;
->>>
->>> I don't think this is needed. We don't care about left and top in 
->>> mt9t112_set_fmt().
->>
->> On further analysis you are correct, it will work with random left/top
->> values. But I think it is 1) very unexpected and 2) bad form to leave it
->> with random values.
->>
->> I prefer to keep this patch, unless you disagree.
-> 
-> Sorry, but I do. Assigning those specific values to left and top makes the 
-> code even more confusing, it makes it look like that makes any sense, 
-> whereas it doesn't. If anything we can add a comment there. Or we can pass 
-> NULL and make sure to catch it somewhere down the line.
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What about this:
+Results of the daily build of media_tree:
 
-	unsigned int top = 0; /* don't care */
-	unsigned int left = 0; /* don't care */
+date:		Tue May 12 04:00:20 CEST 2015
+git branch:	test
+git hash:	4c0a65aec3784017aeeb1933c465f901568e98ee
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-1.slh.2-amd64
 
-Regards,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for mips
+smatch: ERRORS
 
-	Hans
+Detailed results are available here:
 
-> Thanks
-> Guennadi
-> 
->> Regards,
->>
->> 	Hans
->>
->>>
->>> How about my comment about a duplicated call to mt9t112_set_params()? Can 
->>> we have it fixed too?
->>>
->>> Thanks
->>> Guennadi
->>>
->>>>  	int i;
->>>>  
->>>>  	if (format->pad)
->>>> -- 
->>>> 2.1.4
->>>>
->>
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
