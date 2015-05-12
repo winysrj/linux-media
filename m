@@ -1,96 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52386 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752259AbbE0QK7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:10:59 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 01/15] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
-Date: Wed, 27 May 2015 17:10:39 +0100
-Message-Id: <1432743053-13479-2-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mout.gmx.net ([212.227.15.19]:49842 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753797AbbELUvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2015 16:51:31 -0400
+Date: Tue, 12 May 2015 22:51:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: linux-media@vger.kernel.org
+Subject: Re: v4.1-rcX regression in v4l2 build
+In-Reply-To: <87d225mve4.fsf@belgarion.home>
+Message-ID: <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
+References: <87d225mve4.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT entries for vin0, vin0_pins, and adv7612
+Hi Robert,
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+On Tue, 12 May 2015, Robert Jarzmik wrote:
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index aaa4f25..90c4531 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -370,7 +370,12 @@
- 		renesas,function = "usb2";
- 	};
- 
--	vin1_pins: vin {
-+	vin0_pins: vin0 {
-+		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
-+		renesas,function = "vin0";
-+	};
-+
-+	vin1_pins: vin1 {
- 		renesas,groups = "vin1_data8", "vin1_clk";
- 		renesas,function = "vin1";
- 	};
-@@ -531,6 +536,18 @@
- 		reg = <0x12>;
- 	};
- 
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		remote = <&vin0>;
-+
-+		port {
-+			hdmi_in_ep: endpoint {
-+				remote-endpoint = <&vin0ep0>;
-+			};
-+		};
-+	};
-+
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -646,6 +663,28 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&hdmi_in_ep>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
--- 
-1.7.10.4
+> Hi Guennadi,
+> 
+> Today I noticed the mioa701 build is broken on v4.1-rcX series. It was working
+> in v4.0.
+> 
+> The build error I get is :
+>   LINK    vmlinux
+>   LD      vmlinux.o
+>   MODPOST vmlinux.o
+>   GEN     .version
+>   CHK     include/generated/compile.h
+>   UPD     include/generated/compile.h
+>   CC      init/version.o
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `v4l2_clk_set_rate':
+> /home/rj/mio_linux/kernel/drivers/media/v4l2-core/v4l2-clk.c:196: undefined reference to `clk_round_rate'
+> Makefile:932: recipe for target 'vmlinux' failed
+> make: *** [vmlinux] Error 1
+> make: Target '_all' not remade because of errors.
 
+Not good:(
+
+> I have no idea what changed. Do you have a clue ?
+
+I've seen some patches on ALKML for PXA CCF, is it in the mainline now? 
+Could that have been the reason? Is CONFIG_COMMON_CLK defined in your 
+.config? Although, no, it's not PXA CCF, it's most probably this
+
+commit 4f528afcfbcac540c8690b41307cac5c22088ff1
+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date:   Sun Feb 1 08:12:33 2015 -0300
+
+    [media] V4L: add CCF support to the v4l2_clk API
+
+:( But I don't understand how this can happen. V4L is certainly not the 
+only driver in your build, that uses clk ops! They are exported from 
+drivers/clk/clk.c for GPL, but v4l2-dev.c defines the GPL licence, so, 
+should be ok. V4L is built as a module in your configuration, right? Can 
+you try building it into the image?
+
+Thanks
+Guennadi
+
+> 
+> Cheers.
+> 
+> -- 
+> Robert
+> 
+> PS: A small extract of my .config
+> rj@belgarion:~/mio_linux/kernel$ grep CLK .config
+> CONFIG_HAVE_CLK=y
+> CONFIG_PM_CLK=y
+> # CONFIG_MMC_CLKGATE is not set
+> CONFIG_CLKDEV_LOOKUP=y
+> CONFIG_CLKSRC_OF=y
+> CONFIG_CLKSRC_MMIO=y
+> CONFIG_CLKSRC_PXA=y
+> rj@belgarion:~/mio_linux/kernel$ grep V4L .config
+> CONFIG_VIDEO_V4L2=y
+> CONFIG_V4L_PLATFORM_DRIVERS=y
+> # CONFIG_V4L_MEM2MEM_DRIVERS is not set
+> # CONFIG_V4L_TEST_DRIVERS is not set
+> CONFIG_DVB_AU8522_V4L=m
+> 
