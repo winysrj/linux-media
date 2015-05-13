@@ -1,158 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51457 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932193AbbE1Vtv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:51 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 23/35] DocBook: reformat FE_ENABLE_HIGH_LNB_VOLTAGE ioctl
-Date: Thu, 28 May 2015 18:49:26 -0300
-Message-Id: <d21a6bdb0008b1e2ede2f5e59c0ce8b981dc829a.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+Received: from cantor2.suse.de ([195.135.220.15]:49545 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934187AbbEMNIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 09:08:30 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
+Date: Wed, 13 May 2015 15:08:09 +0200
+Message-Id: <1431522495-4692-4-git-send-email-jack@suse.cz>
+In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
+References: <1431522495-4692-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the proper format for FE_ENABLE_HIGH_LNB_VOLTAGE documentation.
+Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+hand made mapping of virtual address to physical address. Also the
+function leaked page reference from get_user_pages() so fix that by
+properly release the reference when omap_vout_buffer_release() is
+called.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 36 deletions(-)
 
- create mode 100644 Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
-
-diff --git a/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml b/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
-new file mode 100644
-index 000000000000..3ee08a82cc7c
---- /dev/null
-+++ b/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
-@@ -0,0 +1,61 @@
-+<refentry id="FE_ENABLE_HIGH_LNB_VOLTAGE">
-+  <refmeta>
-+    <refentrytitle>ioctl FE_ENABLE_HIGH_LNB_VOLTAGE</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>FE_ENABLE_HIGH_LNB_VOLTAGE</refname>
-+    <refpurpose>Select output DC level between normal LNBf voltages or higher
-+	LNBf voltages.</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>unsigned int <parameter>high</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+        <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fe_fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>FE_ENABLE_HIGH_LNB_VOLTAGE</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>high</parameter></term>
-+	<listitem>
-+	    <para>Valid flags:</para>
-+	    <itemizedlist>
-+		<listitem>0 - normal 13V and 18V.</listitem>
-+		<listitem>&gt;0 - enables slightly higher voltages instead of
-+		    13/18V, in order to compensate for long antena cables.</listitem>
-+	    </itemizedlist>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>Select output DC level between normal LNBf voltages or higher
-+	LNBf voltages between 0 (normal) or a value grater than 0 for higher
-+	voltages.</para>
-+&return-value-dvb;
-+</refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 645f92bec767..bb2cd9ef3b03 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -689,55 +689,7 @@ typedef enum fe_hierarchy {
- &return-value-dvb;
- </section>
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 17b189a81ec5..0e4b3cfacc5d 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
+ }
  
--<section id="FE_ENABLE_HIGH_LNB_VOLTAGE">
--<title>FE_ENABLE_HIGH_LNB_VOLTAGE</title>
--<para>DESCRIPTION
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>If high != 0 enables slightly higher voltages instead of 13/18V (to compensate
-- for long cables). This call requires read/write permissions. Not all DVB
-- adapters support this ioctl.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--<para>SYNOPSIS
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>int ioctl(int fd, int request =
-- <link linkend="FE_ENABLE_HIGH_LNB_VOLTAGE">FE_ENABLE_HIGH_LNB_VOLTAGE</link>, int high);</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--<para>PARAMETERS
--</para>
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>int fd</para>
--</entry><entry
-- align="char">
--<para>File descriptor returned by a previous call to open().</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>int request</para>
--</entry><entry
-- align="char">
--<para>Equals <link linkend="FE_SET_VOLTAGE">FE_SET_VOLTAGE</link> for this command.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>int high</para>
--</entry><entry
-- align="char">
--<para>The requested bus voltage.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--&return-value-dvb;
--</section>
--
-+&sub-fe-enable-high-lnb-voltage;
- &sub-fe-set-frontend-tune-mode;
+ /*
+- * omap_vout_uservirt_to_phys: This inline function is used to convert user
+- * space virtual address to physical address.
++ * omap_vout_get_userptr: Convert user space virtual address to physical
++ * address.
+  */
+-static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
++static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
++				 u32 *physp)
+ {
+-	unsigned long physp = 0;
+-	struct vm_area_struct *vma;
+-	struct mm_struct *mm = current->mm;
++	struct frame_vector *vec;
++	int ret;
  
- </section>
+ 	/* For kernel direct-mapped memory, take the easy way */
+-	if (virtp >= PAGE_OFFSET)
+-		return virt_to_phys((void *) virtp);
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(mm, virtp);
+-	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+-		/* this will catch, kernel-allocated, mmaped-to-usermode
+-		   addresses */
+-		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+-		up_read(&current->mm->mmap_sem);
+-	} else {
+-		/* otherwise, use get_user_pages() for general userland pages */
+-		int res, nr_pages = 1;
+-		struct page *pages;
++	if (virtp >= PAGE_OFFSET) {
++		*physp = virt_to_phys((void *)virtp);
++		return 0;
++	}
+ 
+-		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+-				0, &pages, NULL);
+-		up_read(&current->mm->mmap_sem);
++	vec = frame_vector_create(1);
++	if (!vec)
++		return -ENOMEM;
+ 
+-		if (res == nr_pages) {
+-			physp =  __pa(page_address(&pages[0]) +
+-					(virtp & ~PAGE_MASK));
+-		} else {
+-			printk(KERN_WARNING VOUT_NAME
+-					"get_user_pages failed\n");
+-			return 0;
+-		}
++	ret = get_vaddr_frames(virtp, 1, true, false, vec);
++	if (ret != 1) {
++		frame_vector_destroy(vec);
++		return -EINVAL;
+ 	}
++	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
++	vb->priv = vec;
+ 
+-	return physp;
++	return 0;
+ }
+ 
+ /*
+@@ -788,11 +776,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 	 * address of the buffer
+ 	 */
+ 	if (V4L2_MEMORY_USERPTR == vb->memory) {
++		int ret;
++
+ 		if (0 == vb->baddr)
+ 			return -EINVAL;
+ 		/* Physical address */
+-		vout->queued_buf_addr[vb->i] = (u8 *)
+-			omap_vout_uservirt_to_phys(vb->baddr);
++		ret = omap_vout_get_userptr(vb, vb->baddr,
++				(u32 *)&vout->queued_buf_addr[vb->i]);
++		if (ret < 0)
++			return ret;
+ 	} else {
+ 		unsigned long addr, dma_addr;
+ 		unsigned long size;
+@@ -841,9 +833,12 @@ static void omap_vout_buffer_release(struct videobuf_queue *q,
+ 	struct omap_vout_device *vout = q->priv_data;
+ 
+ 	vb->state = VIDEOBUF_NEEDS_INIT;
++	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
++		struct frame_vector *vec = vb->priv;
+ 
+-	if (V4L2_MEMORY_MMAP != vout->memory)
+-		return;
++		put_vaddr_frames(vec);
++		frame_vector_destroy(vec);
++	}
+ }
+ 
+ /*
 -- 
-2.4.1
+2.1.4
 
