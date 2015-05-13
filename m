@@ -1,116 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33340 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754AbbEZNnv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:43:51 -0400
-Message-id: <55643CCD.4070607@samsung.com>
-Date: Tue, 26 May 2015 11:28:45 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH v9 8/8] exynos4-is: Add support for v4l2-flash subdevs
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
- <1432566843-6391-9-git-send-email-j.anaszewski@samsung.com>
- <5564371E.2040705@samsung.com>
-In-reply-to: <5564371E.2040705@samsung.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+Received: from cantor2.suse.de ([195.135.220.15]:49582 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964820AbbEMNIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 09:08:32 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 5/9] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
+Date: Wed, 13 May 2015 15:08:11 +0200
+Message-Id: <1431522495-4692-6-git-send-email-jack@suse.cz>
+In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
+References: <1431522495-4692-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 97 +++++-------------------------
+ 1 file changed, 15 insertions(+), 82 deletions(-)
 
-Thanks for the review.
-
-On 05/26/2015 11:04 AM, Sylwester Nawrocki wrote:
-> On 25/05/15 17:14, Jacek Anaszewski wrote:
->> This patch adds support for external v4l2-flash devices.
->> The support includes parsing "camera-flashes" DT property
->
-> "samsung,camera-flashes" ?
-
-Right.
-
->> and asynchronous sub-device registration.
->
->> +static int fimc_md_register_flash_entities(struct fimc_md *fmd)
->> +{
->> +	struct device_node *parent = fmd->pdev->dev.of_node, *np_sensor,
->> +		*np_flash;
->> +	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
->> +	struct v4l2_async_subdev *asd;
->> +	int i, j, num_flashes = 0, num_elems;
->> +
->> +	num_elems = of_property_count_elems_of_size(parent,
->> +				"samsung,camera-flashes", sizeof(np_flash));
->
-> I think this should be of_property_count_u32_elems(), phandle is always
-> a 32-bit value [1], while size of a pointer depends on the architecture.
-
-Thanks for spotting this.
-
->
->> +	/* samsung,camera-flashes property is optional */
->> +	if (num_elems < 0)
->> +		return 0;
->> +
->> +	/* samsung,camera-flashes array must have even number of elements */
->> +	if ((num_elems & 1) || (num_elems > FIMC_MAX_SENSORS * 2))
->> +		return -EINVAL;
->> +
->> +	for (i = 0; i < num_elems; i += 2) {
->> +		np_sensor = of_parse_phandle(parent,
->> +					     "samsung,camera-flashes", i);
->> +
->> +		for (j = 0; j < fmd->num_sensors; j++)
->> +			if (fmd->async_subdevs.sensors[j].match.of.node ==
->> +			    np_sensor)
->> +				break;
->> +
->> +		of_node_put(np_sensor);
->
-> Would be good to add some comment here, why is the sensor required.
-> It's just a DT correctness check?
-
-Yes, it checks whether the phandle points to the sensor node
-which was previously registered.
-
-> Couldn't we carry on with the flash
-> registration after just emitting some warning?
-
-Hmm, I've just realized that with this code the flash phandle associated
-with the sensor phandle that hasn't been previously registered would be
-silently ignored.
-
-I agree that we should register the flash and emit warning in case
-sensor phandle doesn't point the known sensor.
-
->> +		if (j == fmd->num_sensors)
->> +			continue;
->> +
->> +		np_flash = of_parse_phandle(parent, "samsung,camera-flashes",
->> +						i + 1);
->> +
->> +		asd = &fmd->async_subdevs.flashes[num_flashes++];
->> +		asd->match_type = V4L2_ASYNC_MATCH_OF;
->> +		asd->match.of.node = np_flash;
->> +		notifier->subdevs[notifier->num_subdevs++] = asd;
->> +
->> +		of_node_put(np_flash);
->> +	}
->> +
->> +	return 0;
->> +}
->
-> Otherwise looks good to me.
->
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index afd4b514affc..4ee1b3fbfe2a 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
++	struct frame_vector		*vec;
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+-	struct vm_area_struct		*vma;
+ 
+ 	struct dma_buf_attachment	*db_attach;
+ };
+@@ -224,25 +224,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+ 
+-static inline int vma_is_io(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+-}
+-
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size,
+ 				    enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+-	unsigned long first, last;
+-	int num_pages_from_user;
+-	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	DEFINE_DMA_ATTRS(attrs);
++	struct frame_vector *vec;
+ 
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+-
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+@@ -253,63 +245,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_sgt = &buf->sg_table;
++	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto userptr_fail_pfnvec;
++	buf->vec = vec;
+ 
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+-	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+-	buf->num_pages = last - first + 1;
+-
+-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+-			     GFP_KERNEL);
+-	if (!buf->pages)
+-		goto userptr_fail_alloc_pages;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (!vma) {
+-		dprintk(1, "no vma for address %lu\n", vaddr);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma->vm_end < vaddr + size) {
+-		dprintk(1, "vma at %lu is too small for %lu bytes\n",
+-			vaddr, size);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	buf->vma = vb2_get_vma(vma);
+-	if (!buf->vma) {
+-		dprintk(1, "failed to copy vma\n");
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma_is_io(buf->vma)) {
+-		for (num_pages_from_user = 0;
+-		     num_pages_from_user < buf->num_pages;
+-		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
+-			unsigned long pfn;
+-
+-			if (follow_pfn(vma, vaddr, &pfn)) {
+-				dprintk(1, "no page for address %lu\n", vaddr);
+-				break;
+-			}
+-			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+-		}
+-	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
+-					     vaddr & PAGE_MASK,
+-					     buf->num_pages,
+-					     buf->dma_dir == DMA_FROM_DEVICE,
+-					     1, /* force */
+-					     buf->pages,
+-					     NULL);
+-	up_read(&current->mm->mmap_sem);
+-
+-	if (num_pages_from_user != buf->num_pages)
+-		goto userptr_fail_get_user_pages;
++	buf->pages = frame_vector_pages(vec);
++	if (IS_ERR(buf->pages))
++		goto userptr_fail_sgtable;
++	buf->num_pages = frame_vector_count(vec);
+ 
+ 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+-		goto userptr_fail_alloc_table_from_pages;
++		goto userptr_fail_sgtable;
+ 
+ 	sgt = &buf->sg_table;
+ 	/*
+@@ -323,19 +271,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 
+ userptr_fail_map:
+ 	sg_free_table(&buf->sg_table);
+-userptr_fail_alloc_table_from_pages:
+-userptr_fail_get_user_pages:
+-	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+-		buf->num_pages, num_pages_from_user);
+-	if (!vma_is_io(buf->vma))
+-		while (--num_pages_from_user >= 0)
+-			put_page(buf->pages[num_pages_from_user]);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-userptr_fail_find_vma:
+-	up_read(&current->mm->mmap_sem);
+-	kfree(buf->pages);
+-userptr_fail_alloc_pages:
++userptr_fail_sgtable:
++	vb2_destroy_framevec(vec);
++userptr_fail_pfnvec:
+ 	kfree(buf);
+ 	return NULL;
+ }
+@@ -362,13 +300,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	while (--i >= 0) {
+ 		if (buf->dma_dir == DMA_FROM_DEVICE)
+ 			set_page_dirty_lock(buf->pages[i]);
+-		if (!vma_is_io(buf->vma))
+-			put_page(buf->pages[i]);
+ 	}
+-	kfree(buf->pages);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
+ }
+ 
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.4
+
