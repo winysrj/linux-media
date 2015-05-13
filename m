@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53482 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161085AbbEUVYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 17:24:11 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45821 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753348AbbEMHXD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 03:23:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 8/8] cx23885: Hauppauge WinTV-HVR5525 bind I2C SEC
-Date: Fri, 22 May 2015 00:23:58 +0300
-Message-Id: <1432243438-12225-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1432243438-12225-1-git-send-email-crope@iki.fi>
-References: <1432243438-12225-1-git-send-email-crope@iki.fi>
+Cc: ovebryne@cisco.com, marbugge@cisco.com, matrandg@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/5] vb2: allow requeuing buffers while streaming
+Date: Wed, 13 May 2015 09:22:41 +0200
+Message-Id: <1431501764-44250-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1431501764-44250-1-git-send-email-hverkuil@xs4all.nl>
+References: <1431501764-44250-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bind a8293 SEC using I2C binding.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+vb2_buffer_done() already allows STATE_QUEUED, but currently only when not
+streaming. It is useful to allow it while streaming as well, as this makes
+it possible for drivers to requeue buffers while waiting for a stable
+video signal.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx23885/cx23885-dvb.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index ef1ebcb..9f377ad 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -864,10 +864,6 @@ static const struct tda10071_platform_data hauppauge_tda10071_pdata = {
- 	.tuner_i2c_addr = 0x54,
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 552d7e1..1a096a6 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -182,6 +182,7 @@ module_param(debug, int, 0644);
+ 				 V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_TIMECODE)
  
--static const struct a8293_config hauppauge_a8293_config = {
--	.i2c_addr = 0x0b,
--};
--
- static const struct si2165_config hauppauge_hvr4400_si2165_config = {
- 	.i2c_addr	= 0x64,
- 	.chip_mode	= SI2165_MODE_PLL_XTAL,
-@@ -2167,6 +2163,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
- 		switch (port->nr) {
- 		struct m88rs6000t_config m88rs6000t_config;
-+		struct a8293_platform_data a8293_pdata = {};
+ static void __vb2_queue_cancel(struct vb2_queue *q);
++static void __enqueue_in_driver(struct vb2_buffer *vb);
  
- 		/* port b - satellite */
- 		case 1:
-@@ -2178,10 +2175,20 @@ static int dvb_register(struct cx23885_tsport *port)
- 				break;
+ /**
+  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+@@ -1153,8 +1154,9 @@ EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+ /**
+  * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
+  * @vb:		vb2_buffer returned from the driver
+- * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully
+- *		or VB2_BUF_STATE_ERROR if the operation finished with an error.
++ * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully,
++ *		VB2_BUF_STATE_ERROR if the operation finished with an error or
++ *		VB2_BUF_STATE_QUEUED if the driver wants to requeue buffers.
+  *		If start_streaming fails then it should return buffers with state
+  *		VB2_BUF_STATE_QUEUED to put them back into the queue.
+  *
+@@ -1205,8 +1207,11 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
  
- 			/* attach SEC */
--			if (!dvb_attach(a8293_attach, fe0->dvb.frontend,
--					&dev->i2c_bus[0].i2c_adap,
--					&hauppauge_a8293_config))
-+			a8293_pdata.dvb_frontend = fe0->dvb.frontend;
-+			memset(&info, 0, sizeof(info));
-+			strlcpy(info.type, "a8293", I2C_NAME_SIZE);
-+			info.addr = 0x0b;
-+			info.platform_data = &a8293_pdata;
-+			request_module("a8293");
-+			client_sec = i2c_new_device(&dev->i2c_bus[0].i2c_adap, &info);
-+			if (!client_sec || !client_sec->dev.driver)
- 				goto frontend_detach;
-+			if (!try_module_get(client_sec->dev.driver->owner)) {
-+				i2c_unregister_device(client_sec);
-+				goto frontend_detach;
-+			}
-+			port->i2c_client_sec = client_sec;
+-	if (state == VB2_BUF_STATE_QUEUED)
++	if (state == VB2_BUF_STATE_QUEUED) {
++		if (q->start_streaming_called)
++			__enqueue_in_driver(vb);
+ 		return;
++	}
  
- 			/* attach tuner */
- 			memset(&m88rs6000t_config, 0, sizeof(m88rs6000t_config));
+ 	/* Inform any processes that may be waiting for buffers */
+ 	wake_up(&q->done_wq);
 -- 
-http://palosaari.fi/
+2.1.4
 
