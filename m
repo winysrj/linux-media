@@ -1,72 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:48937 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754764AbbEUMhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 08:37:16 -0400
-From: Florian Echtler <floe@butterbrot.org>
-To: hans.verkuil@cisco.com, mchehab@osg.samsung.com,
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:28865 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932133AbbEMTy7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 15:54:59 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org
-Cc: modin@yuri.at, Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 3/4] add extra debug output, remove noisy warning
-Date: Thu, 21 May 2015 14:29:41 +0200
-Message-Id: <1432211382-5155-4-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1432211382-5155-1-git-send-email-floe@butterbrot.org>
-References: <1432211382-5155-1-git-send-email-floe@butterbrot.org>
+Subject: Re: v4.1-rcX regression in v4l2 build
+References: <87d225mve4.fsf@belgarion.home>
+	<Pine.LNX.4.64.1505122221150.11250@axis700.grange>
+	<Pine.LNX.4.64.1505122302570.11250@axis700.grange>
+	<87pp64l1o4.fsf@belgarion.home>
+	<20150513194844.GS2067@n2100.arm.linux.org.uk>
+Date: Wed, 13 May 2015 21:54:06 +0200
+In-Reply-To: <20150513194844.GS2067@n2100.arm.linux.org.uk> (Russell King's
+	message of "Wed, 13 May 2015 20:48:44 +0100")
+Message-ID: <87h9rgl0dd.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index d860d05..8add986 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -342,7 +342,7 @@ static void sur40_poll(struct input_polled_dev *polldev)
- 		 * instead of at the end.
- 		 */
- 		if (packet_id != header->packet_id)
--			dev_warn(sur40->dev, "packet ID mismatch\n");
-+			dev_dbg(sur40->dev, "packet ID mismatch\n");
- 
- 		packet_blobs = result / sizeof(struct sur40_blob);
- 		dev_dbg(sur40->dev, "received %d blobs\n", packet_blobs);
-@@ -389,6 +389,8 @@ static void sur40_process_video(struct sur40_state *sur40)
- 	list_del(&new_buf->list);
- 	spin_unlock(&sur40->qlock);
- 
-+	dev_dbg(sur40->dev, "buffer acquired\n");
-+
- 	/* retrieve data via bulk read */
- 	result = usb_bulk_msg(sur40->usbdev,
- 			usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
-@@ -416,6 +418,8 @@ static void sur40_process_video(struct sur40_state *sur40)
- 		goto err_poll;
- 	}
- 
-+	dev_dbg(sur40->dev, "header acquired\n");
-+
- 	sgt = vb2_dma_sg_plane_desc(&new_buf->vb, 0);
- 
- 	result = usb_sg_init(&sgr, sur40->usbdev,
-@@ -432,11 +436,14 @@ static void sur40_process_video(struct sur40_state *sur40)
- 		goto err_poll;
- 	}
- 
-+	dev_dbg(sur40->dev, "image acquired\n");
-+
- 	/* mark as finished */
- 	v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
- 	new_buf->vb.v4l2_buf.sequence = sur40->sequence++;
- 	new_buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
- 	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_DONE);
-+	dev_dbg(sur40->dev, "buffer marked done\n");
- 	return;
- 
- err_poll:
+> On Wed, May 13, 2015 at 09:26:03PM +0200, Robert Jarzmik wrote:
+>> First, a question for Russell :
+>>   Given that the current PXA architecture is not implementing the
+>>   clk_round_rate() function, while implementing clk_get(), etc..., is it correct
+>>   to say that it is betraying the clk API by doing so ?
+>
+> Really, yes.  PXA used to be self-contained as far as clk API usage, and
+> so it only ever implemented what it needed from the API to support the
+> SoC.  Now that things are getting "more complicated" then the other
+> functions will probably be needed.
+So I thought, thanks.
+
+Cheers.
+
 -- 
-1.9.1
-
+Robert
