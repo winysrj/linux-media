@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53931 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754644AbbERTR5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2015 15:17:57 -0400
-Date: Mon, 18 May 2015 16:17:51 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] DocBook/media: fix querycap error code
-Message-ID: <20150518161751.57127058@recife.lan>
-In-Reply-To: <5549B63F.7020009@xs4all.nl>
-References: <5549B63F.7020009@xs4all.nl>
+Received: from aserp1040.oracle.com ([141.146.126.69]:50987 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933048AbbEMLLo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 07:11:44 -0400
+Date: Wed, 13 May 2015 14:11:27 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: crope@iki.fi
+Cc: linux-media@vger.kernel.org
+Subject: re: rtl2832_sdr: move from staging to media
+Message-ID: <20150513111127.GA29021@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 06 May 2015 08:35:43 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hello Antti Palosaari,
 
-> The most likely error you will get when calling VIDIOC_QUERYCAP for a
-> device node that does not support it is ENOTTY, not EINVAL.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/vidioc-querycap.xml | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> index 20fda75..131abca 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -54,7 +54,7 @@ kernel devices compatible with this specification and to obtain
->  information about driver and hardware capabilities. The ioctl takes a
->  pointer to a &v4l2-capability; which is filled by the driver. When the
->  driver is not compatible with this specification the ioctl returns an
-> -&EINVAL;.</para>
-> +error, most likely the &ENOTTY;.</para>
+The patch 77bbb2b049c1: "rtl2832_sdr: move from staging to media"
+from Jul 15, 2014, leads to the following static checker warning:
 
-Hmm... "likely"...
+	drivers/media/dvb-frontends/rtl2832_sdr.c:1265 rtl2832_sdr_s_ctrl()
+	warn: test_bit() bitwise op in bit number
 
-This is not nice... This is an specification. It should properly define
-the error code, and not let the user to guess.
+This is harmless but messy.
 
-This should be, instead:
-	"All V4L2 drivers should support VIDIOC_QUERYCAP."
+drivers/media/dvb-frontends/rtl2832_sdr.c
+   109  
+   110  struct rtl2832_sdr_dev {
+   111  #define POWER_ON           (1 << 1)
+   112  #define URB_BUF            (1 << 2)
 
-The Documentation already points to to the generic error codes, 
-with would actually happen only in the case something goes deadly wrong. 
-There are very few error codes that could actually happen on this point,
-like EFAULT, if, for some reason, the Kernel fails to copy data to 
-userspace, or ENODEV is a device got removed.
+We were supposed to use these to set ->flags on the next line.
 
-Of course, if onse sends this ioctl to a non-v4l2 device, an error
-code will be returned, but the actual error code will depend on the
-device where this is sent, as, except if one janitor did a huge
-changeset fixing this, I'm almost sure that not all devices will
-return ENOTTY when an ioctl is not implemented.
+   113          unsigned long flags;
+   114  
+   115          struct platform_device *pdev;
+   116  
+   117          struct video_device vdev;
+   118          struct v4l2_device v4l2_dev;
+   119  
 
-Yet, for userspace, it is safe to assume that, if VIDIOC_QUERYCAP
-fails, either the device is not V4L2 or the V4L2 device won't work
-anyway, as there's something really broken there.
+[ snip ]
 
-Regards,
-Mauro
+   389                  dev_dbg(&pdev->dev, "alloc buf=%d %p (dma %llu)\n",
+   390                          dev->buf_num, dev->buf_list[dev->buf_num],
+   391                          (long long)dev->dma_addr[dev->buf_num]);
+   392                  dev->flags |= USB_STATE_URB_BUF;
+                                      ^^^^^^^^^^^^^^^^^
+But we use USB_STATE_URB_BUF (0x1) instead of URB_BUF.
 
+   393          }
 
->  
->      <table pgwide="1" frame="none" id="v4l2-capability">
->        <title>struct <structname>v4l2_capability</structname></title>
+[ snip ]
+
+  1263                  c->bandwidth_hz = dev->bandwidth->val;
+  1264  
+  1265                  if (!test_bit(POWER_ON, &dev->flags))
+                                      ^^^^^^^^
+The original intent of the code was we test "if (dev->flags & POWER_ON)"
+but really what this is doing is "if (dev->flags & (1 << POWER_ON))"
+which is fine because we do it consistently, but it's not pretty and it
+causes static checkers to complain (and rightfully so).
+
+  1266                          return 0;
+  1267  
+  1268                  if (fe->ops.tuner_ops.set_params)
+  1269                          ret = fe->ops.tuner_ops.set_params(fe);
+  1270                  else
+  1271                          ret = 0;
+  1272                  break;
+  1273          default:
+
+regards,
+dan carpenter
