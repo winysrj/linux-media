@@ -1,93 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42848 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754667AbbE1V6I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:58:08 -0400
-Message-ID: <55678F64.6080801@xs4all.nl>
-Date: Thu, 28 May 2015 23:57:56 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/35] dvb: split enum from typedefs at frontend.h
-References: <cover.1432844837.git.mchehab@osg.samsung.com> <6576f479a6e2449132811f5681e35d3794110d25.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <6576f479a6e2449132811f5681e35d3794110d25.1432844837.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from cantor2.suse.de ([195.135.220.15]:49543 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933431AbbEMNIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2015 09:08:30 -0400
+From: Jan Kara <jack@suse.cz>
+To: linux-mm@kvack.org
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
+Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
+Date: Wed, 13 May 2015 15:08:07 +0200
+Message-Id: <1431522495-4692-2-git-send-email-jack@suse.cz>
+In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
+References: <1431522495-4692-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/28/2015 11:49 PM, Mauro Carvalho Chehab wrote:
-> Using typedefs is already bad enough, but doing it together
-> with enum declaration is even worse.
-> 
-> Also, it breaks the scripts at DocBook that would be generating
-> reference pointers for the enums.
-> 
-> Well, we can't get rid of typedef right now, but let's at least
-> declare it on a separate line, and let the scripts to generate
-> the cross-reference, as this is needed for the next DocBook
-> patches.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-> index 466f56997272..7aeeb5a69fdf 100644
-> --- a/include/uapi/linux/dvb/frontend.h
-> +++ b/include/uapi/linux/dvb/frontend.h
-> @@ -36,7 +36,7 @@ typedef enum fe_type {
->  } fe_type_t;
->  
->  
-> -typedef enum fe_caps {
-> +enum fe_caps {
->  	FE_IS_STUPID			= 0,
->  	FE_CAN_INVERSION_AUTO		= 0x1,
->  	FE_CAN_FEC_1_2			= 0x2,
-> @@ -68,7 +68,9 @@ typedef enum fe_caps {
->  	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
->  	FE_CAN_RECOVER			= 0x40000000, /* frontend can recover from a cable unplug automatically */
->  	FE_CAN_MUTE_TS			= 0x80000000  /* frontend can stop spurious TS data output */
-> -} fe_caps_t;
-> +};
-> +
-> +typedef enum fe_caps_t;
+Currently vb2 core acquires mmap_sem just around call to
+__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
+lockdep warning) it isn't necessary to acquire it so early as we no
+longer have to drop queue mutex before acquiring mmap_sem. So push
+acquisition of mmap_sem down into .get_userptr and .put_userptr memops
+so that the semaphore is acquired for a shorter time and it is clearer
+what it is needed for.
 
-This can't be right. This should be:
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 --
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 +++++++
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ++++++
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +++++-
+ 4 files changed, 18 insertions(+), 3 deletions(-)
 
-typedef enum fe_caps fe_caps_t;
-
-Does it even compile?
-
-Regards,
-
-	Hans
-
->  
->  
->  struct dvb_frontend_info {
-> @@ -134,7 +136,7 @@ typedef enum fe_sec_mini_cmd {
->   *			to reset DiSEqC, tone and parameters
->   */
->  
-> -typedef enum fe_status {
-> +enum fe_status {
->  	FE_HAS_SIGNAL		= 0x01,
->  	FE_HAS_CARRIER		= 0x02,
->  	FE_HAS_VITERBI		= 0x04,
-> @@ -142,7 +144,9 @@ typedef enum fe_status {
->  	FE_HAS_LOCK		= 0x10,
->  	FE_TIMEDOUT		= 0x20,
->  	FE_REINIT		= 0x40,
-> -} fe_status_t;
-> +};
-> +
-> +typedef enum fe_status fe_status_t;
->  
->  typedef enum fe_spectral_inversion {
->  	INVERSION_OFF,
-> 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 66ada01c796c..20cdbc0900ea 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1657,9 +1657,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = __qbuf_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+-		down_read(&current->mm->mmap_sem);
+ 		ret = __qbuf_userptr(vb, b);
+-		up_read(&current->mm->mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+ 		ret = __qbuf_dmabuf(vb, b);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 644dec73d220..620c4aa78881 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -532,7 +532,9 @@ static void vb2_dc_put_userptr(void *buf_priv)
+ 		sg_free_table(sgt);
+ 		kfree(sgt);
+ 	}
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+@@ -616,6 +618,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		goto fail_buf;
+ 	}
+ 
++	down_read(&current->mm->mmap_sem);
+ 	/* current->mm->mmap_sem is taken by videobuf2 core */
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+@@ -642,6 +645,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (ret) {
+ 		unsigned long pfn;
+ 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
++			up_read(&current->mm->mmap_sem);
+ 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
+ 			buf->size = size;
+ 			kfree(pages);
+@@ -651,6 +655,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		pr_err("failed to get user pages\n");
+ 		goto fail_vma;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 	if (!sgt) {
+@@ -713,10 +718,12 @@ fail_get_user_pages:
+ 		while (n_pages)
+ 			put_page(pages[--n_pages]);
+ 
++	down_read(&current->mm->mmap_sem);
+ fail_vma:
+ 	vb2_put_vma(buf->vma);
+ 
+ fail_pages:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(pages); /* kfree is NULL-proof */
+ 
+ fail_buf:
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 45c708e463b9..afd4b514affc 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_alloc_pages;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (!vma) {
+ 		dprintk(1, "no vma for address %lu\n", vaddr);
+@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					     1, /* force */
+ 					     buf->pages,
+ 					     NULL);
++	up_read(&current->mm->mmap_sem);
+ 
+ 	if (num_pages_from_user != buf->num_pages)
+ 		goto userptr_fail_get_user_pages;
+@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
+ 	if (!vma_is_io(buf->vma))
+ 		while (--num_pages_from_user >= 0)
+ 			put_page(buf->pages[num_pages_from_user]);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
+ userptr_fail_find_vma:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf->pages);
+ userptr_fail_alloc_pages:
+ 	kfree(buf);
+@@ -362,7 +366,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 			put_page(buf->pages[i]);
+ 	}
+ 	kfree(buf->pages);
++	down_read(&current->mm->mmap_sem);
+ 	vb2_put_vma(buf->vma);
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 657ab302a5cf..0ba40be21ebd 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-
++	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, vaddr);
+ 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+ 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 		if (!buf->vaddr)
+ 			goto fail_get_user_pages;
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 
+ 	buf->vaddr += offset;
+ 	return buf;
+@@ -133,6 +134,7 @@ fail_get_user_pages:
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -144,6 +146,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
+ 
++	down_read(&current->mm->mmap_sem);
+ 	if (buf->pages) {
+ 		if (vaddr)
+ 			vm_unmap_ram((void *)vaddr, buf->n_pages);
+@@ -157,6 +160,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
++	up_read(&current->mm->mmap_sem);
+ 	kfree(buf);
+ }
+ 
+-- 
+2.1.4
 
