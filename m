@@ -1,65 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56237 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752357AbbEUJCn (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:43677 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932133AbbEMTsv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:02:43 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 10/20] media: soc_camera: soc_scale_crop: Use correct pad when calling subdev try_fmt
-Date: Wed, 20 May 2015 17:39:30 +0100
-Message-Id: <1432139980-12619-11-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Wed, 13 May 2015 15:48:51 -0400
+Date: Wed, 13 May 2015 20:48:44 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: v4.1-rcX regression in v4l2 build
+Message-ID: <20150513194844.GS2067@n2100.arm.linux.org.uk>
+References: <87d225mve4.fsf@belgarion.home>
+ <Pine.LNX.4.64.1505122221150.11250@axis700.grange>
+ <Pine.LNX.4.64.1505122302570.11250@axis700.grange>
+ <87pp64l1o4.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87pp64l1o4.fsf@belgarion.home>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+On Wed, May 13, 2015 at 09:26:03PM +0200, Robert Jarzmik wrote:
+> First, a question for Russell :
+>   Given that the current PXA architecture is not implementing the
+>   clk_round_rate() function, while implementing clk_get(), etc..., is it correct
+>   to say that it is betraying the clk API by doing so ?
 
-Fix calls to subdev try_fmt to use correct pad. Fixes failures with
-subdevs that care about having the right pad number set.
+Really, yes.  PXA used to be self-contained as far as clk API usage, and
+so it only ever implemented what it needed from the API to support the
+SoC.  Now that things are getting "more complicated" then the other
+functions will probably be needed.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/soc_scale_crop.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index bda29bc..d8d32ea 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -224,6 +224,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	struct v4l2_cropcap cap;
- 	bool host_1to1;
- 	int ret;
-+	struct media_pad *remote_pad;
-+
-+	remote_pad = media_entity_remote_pad(&icd->vdev->entity.pads[0]);
-+	format->pad = remote_pad->index;
- 
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					 soc_camera_grp_id(icd), pad,
-@@ -261,10 +265,17 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
- 	while ((width > tmp_w || height > tmp_h) &&
- 	       tmp_w < max_width && tmp_h < max_height) {
-+		struct media_pad *remote_pad;
-+
- 		tmp_w = min(2 * tmp_w, max_width);
- 		tmp_h = min(2 * tmp_h, max_height);
- 		mf->width = tmp_w;
- 		mf->height = tmp_h;
-+
-+		remote_pad = media_entity_remote_pad(
-+			&icd->vdev->entity.pads[0]);
-+		format->pad = remote_pad->index;
-+
- 		ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					soc_camera_grp_id(icd), pad,
- 					set_fmt, NULL, format);
 -- 
-1.7.10.4
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
