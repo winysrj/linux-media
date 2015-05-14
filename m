@@ -1,142 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34177 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754594AbbE2B3C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 21:29:02 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:35582 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965087AbbENQKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2015 12:10:05 -0400
+Date: Thu, 14 May 2015 13:09:59 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: [PATCH 5/8] DocBook: move fe_bandwidth to the frontend legacy section
-Date: Thu, 28 May 2015 22:28:54 -0300
-Message-Id: <7a3d45f9e8c246b00208487b0794223873b949d4.1432862317.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
-References: <cover.1432862317.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
-References: <cover.1432862317.git.mchehab@osg.samsung.com>
+To: Benjamin Larsson <benjamin@southpole.se>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC][PATCH] rtl2832: PID filter support for slave demod
+Message-ID: <20150514130959.3772fe0a@recife.lan>
+In-Reply-To: <55076436.3000401@southpole.se>
+References: <55075559.50100@southpole.se>
+	<55075FDC.1030507@iki.fi>
+	<55076436.3000401@southpole.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fe_bandwidth/fe_bandwidth_t is used only on DVBv3 API. So, move
-it to the frontend legacy xml, and convert it into a table.
+Em Tue, 17 Mar 2015 00:16:06 +0100
+Benjamin Larsson <benjamin@southpole.se> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> On 03/16/2015 11:57 PM, Antti Palosaari wrote:
+> > On 03/17/2015 12:12 AM, Benjamin Larsson wrote:
+> >> Is this structure ok for the slave pid implementation? Or should there
+> >> be only one filters parameter? Will the overlaying pid filter framework
+> >> properly "flush" the set pid filters ?
+> >>
+> >> Note that this code currently is only compile tested.
+> >
+> > I am fine with it.
+> >
+> > byw. Have you tested if your QAM256 (DVB-C or DVB-T2) stream is valid
+> > even without a PID filtering? IIRC mine stream is correct and PID
+> > filtering is not required (but surely it could be implemented if you wish).
+> >
+> > regards
+> > Antti
+> >
+> 
+> DVB-C seems fine and one of my DVB-T2 muxes is fine also. But one other 
+> DVB-T2 mux completely fails. It could be the reception but it might be 
+> that it needs pid filtering. I do get small disturbances on my DVB-C 
+> muxes. Will report back if pid filtering makes things better or not.
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 3b6a169ac8f3..93d22486f20c 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -87,21 +87,6 @@ detection.
- <section>
- <title>More OFDM parameters</title>
- 
--<section id="fe-bandwidth-t">
--<title>frontend bandwidth</title>
--<programlisting>
--typedef enum fe_bandwidth {
--	BANDWIDTH_8_MHZ,
--	BANDWIDTH_7_MHZ,
--	BANDWIDTH_6_MHZ,
--	BANDWIDTH_AUTO,
--	BANDWIDTH_5_MHZ,
--	BANDWIDTH_10_MHZ,
--	BANDWIDTH_1_712_MHZ,
--} fe_bandwidth_t;
--</programlisting>
--</section>
--
- <section id="fe-guard-interval-t">
- <title>frontend guard inverval</title>
- <programlisting>
-diff --git a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-index fa0c6649abfd..ed393f22f7a7 100644
---- a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-+++ b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-@@ -60,6 +60,48 @@ supported via the new <link linkend="FE_GET_PROPERTY">FE_GET_PROPERTY/FE_GET_SET
-     using the &DTV-DELIVERY-SYSTEM; property.</para>
- </section>
- 
-+<section id="fe-bandwidth-t">
-+<title>Frontend bandwidth</title>
-+
-+<table pgwide="1" frame="none" id="fe-bandwidth">
-+    <title>enum fe_bandwidth</title>
-+    <tgroup cols="2">
-+	&cs-def;
-+	<thead>
-+	<row>
-+	    <entry>ID</entry>
-+	    <entry>Description</entry>
-+	</row>
-+	</thead>
-+	<tbody valign="top">
-+	<row>
-+	    <entry>BANDWIDTH_AUTO</entry>
-+	    <entry>Autodetect bandwidth (if supported)</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_1_712_MHZ</entry>
-+	    <entry>1.712 MHz</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_5_MHZ</entry>
-+	    <entry>5 MHz</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_6_MHZ</entry>
-+	    <entry>6 MHz</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_7_MHZ</entry>
-+	    <entry>7 MHz</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_8_MHZ</entry>
-+	    <entry>8 MHz</entry>
-+	</row><row>
-+	    <entry>BANDWIDTH_10_MHZ</entry>
-+	    <entry>10 MHz</entry>
-+	</row><row>
-+	</row>
-+        </tbody>
-+    </tgroup>
-+</table>
-+
-+</section>
- 
- <section id="dvb-frontend-parameters">
- <title>frontend parameters</title>
-@@ -135,7 +177,7 @@ struct dvb_vsb_parameters {
- <para>DVB-T frontends are supported by the <constant>dvb_ofdm_parameters</constant> structure:</para>
- <programlisting>
-  struct dvb_ofdm_parameters {
--	 fe_bandwidth_t      bandwidth;
-+	 &fe-bandwidth-t;      bandwidth;
- 	 fe_code_rate_t      code_rate_HP;  /&#x22C6; high priority stream code rate &#x22C6;/
- 	 fe_code_rate_t      code_rate_LP;  /&#x22C6; low priority stream code rate &#x22C6;/
- 	 &fe-modulation-t;     constellation; /&#x22C6; modulation type (see above) &#x22C6;/
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index c42e6d849f52..43e6faf91849 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -213,7 +213,7 @@ enum fe_transmit_mode {
- typedef enum fe_transmit_mode fe_transmit_mode_t;
- 
- #if defined(__DVB_CORE__) || !defined (__KERNEL__)
--typedef enum fe_bandwidth {
-+enum fe_bandwidth {
- 	BANDWIDTH_8_MHZ,
- 	BANDWIDTH_7_MHZ,
- 	BANDWIDTH_6_MHZ,
-@@ -221,7 +221,9 @@ typedef enum fe_bandwidth {
- 	BANDWIDTH_5_MHZ,
- 	BANDWIDTH_10_MHZ,
- 	BANDWIDTH_1_712_MHZ,
--} fe_bandwidth_t;
-+};
-+
-+typedef enum fe_bandwidth fe_bandwidth_t;
- #endif
- 
- typedef enum fe_guard_interval {
--- 
-2.4.1
+What's the status of this patch?
 
+Btw, checkpatch.pl complains about a few things there:
+
+WARNING: 'transfering' may be misspelled - perhaps 'transferring'?
+#31: capable of transfering.
+
+ERROR: "foo* bar" should be "foo *bar"
+#77: FILE: drivers/media/dvb-frontends/rtl2832.c:1162:
++	unsigned long* filters;
+
+WARNING: braces {} are not necessary for any arm of this statement
+#93: FILE: drivers/media/dvb-frontends/rtl2832.c:1176:
++	if (onoff) {
+[...]
++	} else {
+[...]
+
+total: 1 errors, 2 warnings, 87 lines checked
+
+For now, as it was sent as RFC, I'll tag as such at patchwork.
+
+If this is patch is pertinent, please re-send it (with the coding style
+issues pointed by checkpatch.pl fixed).
+
+Regards,
+Mauro
+
+> 
+> MvH
+> Benjamin Larsson
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
