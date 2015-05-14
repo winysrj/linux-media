@@ -1,45 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37752 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:35751 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178AbbELPn2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 11:43:28 -0400
-Message-ID: <55521F9C.20705@iki.fi>
-Date: Tue, 12 May 2015 18:43:24 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S932584AbbENRBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2015 13:01:00 -0400
+Date: Thu, 14 May 2015 14:00:55 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org,
+	David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Subject: Re: [RFC PATCH 2/6] [media] lirc: LIRC_[SG]ET_SEND_MODE should
+ return -ENOSYS
+Message-ID: <20150514140055.7f718d43@recife.lan>
+In-Reply-To: <f0607fde6ec1ad120f62a80c53b1d44c4d5f4d81.1426801061.git.sean@mess.org>
+References: <cover.1426801061.git.sean@mess.org>
+	<f0607fde6ec1ad120f62a80c53b1d44c4d5f4d81.1426801061.git.sean@mess.org>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: [GIT PULL 4.2] rtl28xxu error check fix
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Even it is clear bug, I think it is not worth to stable. So let it go to 
-4.2.
+Em Thu, 19 Mar 2015 21:50:13 +0000
+Sean Young <sean@mess.org> escreveu:
 
-regards
-Antti
+> If the device cannot transmit then -ENOSYS should be returned. Also clarify
+> that the ioctl should return modes, not features. The values happen to be
+> identical.
 
-The following changes since commit b2624ff4bf46869df66148b2e1e675981565742e:
+Makes sense to me. Yet, applying it (without patch 1) causes compilation to
+break.
 
-   [media] mantis: fix error handling (2015-05-12 08:12:18 -0300)
+I would put this at the top of the series, as this actually seems to be
+a bug fix that it could eventually make sense to backport.
 
-are available in the git repository at:
+So, better to keep this patch independent.
 
-   git://linuxtv.org/anttip/media_tree.git rtl28xxu
-
-for you to fetch changes up to 635eb191a7bd9cae0cbe69bcb2e9a69b8753d9bc:
-
-   rtl28xxu: fix return value check in rtl2832u_tuner_attach() 
-(2015-05-12 18:38:26 +0300)
-
-----------------------------------------------------------------
-Wei Yongjun (1):
-       rtl28xxu: fix return value check in rtl2832u_tuner_attach()
-
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
-  1 file changed, 1 insertion(+), 1 deletion(-)
-
--- 
-http://palosaari.fi/
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/ir-lirc-codec.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+> index 98893a8..17fd956 100644
+> --- a/drivers/media/rc/ir-lirc-codec.c
+> +++ b/drivers/media/rc/ir-lirc-codec.c
+> @@ -207,12 +207,19 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+>  
+>  	/* legacy support */
+>  	case LIRC_GET_SEND_MODE:
+> -		val = LIRC_CAN_SEND_PULSE & LIRC_CAN_SEND_MASK;
+> +		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
+> +			return -ENOSYS;
+> +
+> +		val = LIRC_MODE_PULSE;
+>  		break;
+>  
+>  	case LIRC_SET_SEND_MODE:
+> -		if (val != (LIRC_MODE_PULSE & LIRC_CAN_SEND_MASK))
+> +		if (!(dev->lirc->features & LIRC_CAN_SEND_MASK))
+> +			return -ENOSYS;
+> +
+> +		if (val != LIRC_MODE_PULSE)
+>  			return -EINVAL;
+> +
+>  		return 0;
+>  
+>  	/* TX settings */
