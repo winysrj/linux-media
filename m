@@ -1,71 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56186 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752328AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 13:08:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [ATTN 2/9] v4l2: add RF gain control
-Date: Tue, 26 May 2015 20:08:03 +0300
-Message-Id: <1432660090-19574-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
-References: <1432660090-19574-1-git-send-email-crope@iki.fi>
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.181]:41322 "EHLO
+	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422744AbbENV7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2015 17:59:22 -0400
+Date: Thu, 14 May 2015 23:59:16 +0200
+From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] rc-core: use an IDA rather than a bitmap
+Message-ID: <20150514235916.3d3fc1b3@mir>
+In-Reply-To: <20150514172929.07e09549@recife.lan>
+References: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
+	<20150514172929.07e09549@recife.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/NFlL0ZBDeu.iiDN20HSvgfe"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new RF tuner gain control named RF gain. That is aimed for
-external LNA (amplifier) chip just right after antenna connector.
+--Sig_/NFlL0ZBDeu.iiDN20HSvgfe
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
+Hi
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e3a3468..0fc34b8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
- 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
-+	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
-@@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
-@@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_RF_TUNER_RF_GAIN:
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
- 	case V4L2_CID_RF_TUNER_IF_GAIN:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 9f6e108..87539be 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -932,6 +932,8 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
- #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
-+#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
-+#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
- #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
- #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
- #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
--- 
-http://palosaari.fi/
+On 2015-05-14, Mauro Carvalho Chehab wrote:
+> Em Thu, 02 Apr 2015 12:18:55 +0200
+> David H=C3=A4rdeman <david@hardeman.nu> escreveu:
+>=20
+> > This patch changes rc-core to use the kernel facilities that are already
+> > available for handling unique numbers instead of rolling its own bitmap
+> > stuff.
+> >=20
+> > Stefan, this should apply cleanly to the media git tree...could you tes=
+t it?
+>=20
+> Patch looks good to me but...
+>=20
+> you forgot to add your SOB on it.
 
+Just to follow this up, with this patch applied, I've never (for the=20
+last 6 weeks already) seen sysfs file conflicts again. So now I'm=20
+pretty confident that it really fixes my original problem.
+
+Feel free to add the tested-by tag, if you like.
+
+Tested-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+
+Thanks a lot
+	Stefan Lippers-Hollmann
+
+--Sig_/NFlL0ZBDeu.iiDN20HSvgfe
+Content-Type: application/pgp-signature
+Content-Description: Digitale Signatur von OpenPGP
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVVRq0AAoJEL/gLWWx0ULtTkAP+QHaU/zuuye/MOqh5awegKon
+VlY0rGkSYATquVmH9p4KZFgPtmWVpJbr4ylbHAuG54unlHyWHfwGD5tNMYCKQlkd
+6QoI4bjUk6N+iJnLPhQgT/7OK9Lzb0ZdZSHQqRR3g4CTZEg4mTbYCXQ8dsb3mQhW
+jdxTg6LLxugkAJCygGD6iYMRO6r770hfkpEG8loDc73oy/8wxu5ud4c9rwAJbJmA
+JXl/NmqCVrm/CWsiLhBnr47v4+rCaDqT+EekKJxOWBSADCEMtKywMoXfP0bohLb/
+G5nTCh4KTVOXntXREM1DIXfRQapMW3kbNNc6P1kz1hyUkeb7gh1CodXTsUM+rmG4
+xIK3UzbgfkYH0iXdMzoW5bjYseeyMDWFQ18aECncORYzIgW88+HMA8YdWYDv20Fe
+btd4YPnH9LQyGjZiI0U3CdQYijE465u5q+2U5vdE3uiLqURZ37ZINuk25+r7CnCk
+JYDkrQeA3I4DSMg1I5Q0oOAhisfEFRJlz+WoUxTV0yfmU0CYhNsYvV5QdmlSwTVq
+BvlQbD50h1N8Xk97BqAQrUM9qYJzkzIM1u10Mlxot6yqDs8Fui+30IVuCNtdorda
+wq58MdHkJYlqUi+ORzzU01QTDxIBZbLPiIZAFuSHf2PMyhAkT6t0XYUkO38V8CnY
+Z/02Qa9kid0xtzWiBtwr
+=ljBj
+-----END PGP SIGNATURE-----
+
+--Sig_/NFlL0ZBDeu.iiDN20HSvgfe--
