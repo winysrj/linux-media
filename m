@@ -1,64 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.melag.de ([217.6.74.107]:37457 "EHLO mail.melag.de"
+Received: from mout.gmx.net ([212.227.15.18]:60376 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753637AbbE1LFB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 07:05:01 -0400
-Message-ID: <5566F652.9040208@melag.de>
-Date: Thu, 28 May 2015 13:04:50 +0200
-From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: <linux-media@vger.kernel.org>, <hverkuil@xs4all.nl>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Media controller entity information property API
-References: <20150527133933.GB25595@valkosipuli.retiisi.org.uk>	<20150527121513.18dca204@recife.lan> <20150528062701.1e4f5917@recife.lan>
-In-Reply-To: <20150528062701.1e4f5917@recife.lan>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8BIT
+	id S932308AbbENLzs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2015 07:55:48 -0400
+From: Juergen Gier <juergen.gier@gmx.de>
+To: mchehab@osg.samsung.com
+Cc: Juergen Gier <juergen.gier@gmx.de>, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] saa7134: switch tuner FMD1216ME_MK3 to analog
+Date: Thu, 14 May 2015 13:55:04 +0200
+Message-Id: <1431604504-6515-1-git-send-email-juergen.gier@gmx.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.05.2015 um 11:27 schrieb Mauro Carvalho Chehab:
+Committer: Juergen Gier <juergen.gier@gmx.de>
 
-Hi folks,
+Signed-off-by: Juergen Gier <juergen.gier@gmx.de>
 
-just subscribed to the list, so I might have missed something ....
+The CTX946 TV card doesn't detect a signal after cold boot, seems
+the tuner FMD1216ME_MK3 suffers the same problem as FMD1216MEX_MK3,
+as described in saa7134-cards.c (disabled IF, enabled DVB-T). The
+card does work under MS Windows, after soft reboot into Linux it
+continues to work, only then tda9887 is loaded as well.
+I copied the relevant code from the BEHOLD_H6 section to MD7134.
 
-<snip>
+---
 
->>> Constructing unique names that are human readable, stable, unique and fit to
->>> 31 characters reserved for the purpose is not thought to be possible: device
->>> bus string that would be in some cases enough to uniquely identify a device
->>> any be longer than that. On hot-pluggable busses e.g. a serial number is
->>> needed.
+ drivers/media/pci/saa7134/saa7134-cards.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-Dont we have any chance of lifting that restriction ?
- From a userland PoV, I'd really like to see them via path names
-(and actually access them directly via their own files)
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index 3ca0780..43d2dda 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -7797,10 +7797,11 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_MD7134:
+ 	{
+ 		u8 subaddr;
+-		u8 data[3];
++		u8 data[3], data1[] = { 0x09, 0x9f, 0x86, 0x11};
+ 		int ret, tuner_t;
+-		struct i2c_msg msg[] = {{.addr=0x50, .flags=0, .buf=&subaddr, .len = 1},
+-					{.addr=0x50, .flags=I2C_M_RD, .buf=data, .len = 3}};
++		struct i2c_msg msg[] = {{.addr = 0x50, .flags = 0, .buf = &subaddr, .len = 1},
++					{.addr = 0x50, .flags = I2C_M_RD, .buf = data, .len = 3}},
++				msg1 = {.addr = 0x61, .flags = 0, .buf = data1, .len = sizeof(data1)};
+ 
+ 		subaddr= 0x14;
+ 		tuner_t = 0;
+@@ -7852,6 +7853,16 @@ int saa7134_board_init2(struct saa7134_dev *dev)
+ 		}
+ 
+ 		printk(KERN_INFO "%s Tuner type is %d\n", dev->name, dev->tuner_type);
++
++		/* The tuner TUNER_PHILIPS_FMD1216ME_MK3 after hardware    */
++		/* start has disabled IF and enabled DVB-T. When saa7134   */
++		/* scan I2C devices it will not detect IF tda9887 and can`t*/
++		/* watch TV without software reboot. To solve this problem */
++		/* switch the tuner to analog TV mode manually.            */
++		if (dev->tuner_type == TUNER_PHILIPS_FMD1216ME_MK3) {
++			if (i2c_transfer(&dev->i2c_adap, &msg1, 1) != 1)
++				printk(KERN_WARNING "%s: Unable to enable IF of the tuner.\n", dev->name);
++		}
+ 		break;
+ 	}
+ 	case SAA7134_BOARD_PHILIPS_EUROPA:
+-- 
+2.1.0
 
->>> The structure of the properties tree can be non-trivial. This RFC defines a
->>> text representation format of the tree to facilitate discussing and
->>> documenting the tree structure separately from its binary representation
->>> used in IOCTL calls. The terms are used elsewhere in the document.
-
-Does it have to be an IOTCTL ?
-
-IOCTL have the unpleasant side effect, that they're hard to transport
-via network filesystems (in the end, would need special protocol
-extensions for each single one - assuming we can *safely* detect,
-which IOCTL really was called)
-
-Instead I'd prefer some pure filesystem-based approach - like @Plan9 or
-sysfs.
-
-
-cu
---
-Enrico Weigelt, metux IT consult
-+49-151-27565287
-MELAG Medizintechnik oHG Sitz Berlin Registergericht AG Charlottenburg HRA 21333 B
-
-Wichtiger Hinweis: Diese Nachricht kann vertrauliche oder nur für einen begrenzten Personenkreis bestimmte Informationen enthalten. Sie ist ausschließlich für denjenigen bestimmt, an den sie gerichtet worden ist. Wenn Sie nicht der Adressat dieser E-Mail sind, dürfen Sie diese nicht kopieren, weiterleiten, weitergeben oder sie ganz oder teilweise in irgendeiner Weise nutzen. Sollten Sie diese E-Mail irrtümlich erhalten haben, so benachrichtigen Sie bitte den Absender, indem Sie auf diese Nachricht antworten. Bitte löschen Sie in diesem Fall diese Nachricht und alle Anhänge, ohne eine Kopie zu behalten.
-Important Notice: This message may contain confidential or privileged information. It is intended only for the person it was addressed to. If you are not the intended recipient of this email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever. If you received this email in error please notify the sender by replying and delete this message and any attachments without retaining a copy.
