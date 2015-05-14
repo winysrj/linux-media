@@ -1,224 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [209.85.212.172] ([209.85.212.172]:37398 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752262AbbEZMkh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 08:40:37 -0400
-Received: by wifw1 with SMTP id w1so29033767wif.0
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2015 05:38:16 -0700 (PDT)
-Date: Tue, 26 May 2015 10:54:18 +0200
-From: "Piotr S. Staszewski" <p.staszewski@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH] staging: media: omap4iss: Reformat overly long lines
-Message-ID: <20150526085418.GA22775@swordfish>
+Received: from lists.s-osg.org ([54.187.51.154]:35134 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933275AbbENOFj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2015 10:05:39 -0400
+Date: Thu, 14 May 2015 11:05:33 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: serjk@netup.ru
+Cc: linux-media@vger.kernel.org, aospan1@gmail.com
+Subject: Re: [PATCH V2 3/5] [media] lnbh25: LNBH25 SEC controller driver
+Message-ID: <20150514110533.00d939a7@recife.lan>
+In-Reply-To: <1429092470-29697-4-git-send-email-serjk@netup.ru>
+References: <1429092470-29697-1-git-send-email-serjk@netup.ru>
+	<1429092470-29697-4-git-send-email-serjk@netup.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reformats lines that were previously above 80 characters long,
-improving readability and making checkpatch.pl happy.
+Em Wed, 15 Apr 2015 13:07:48 +0300
+serjk@netup.ru escreveu:
 
-Signed-off-by: Piotr S. Staszewski <p.staszewski@gmail.com>
----
- drivers/staging/media/omap4iss/iss_csi2.c    | 21 ++++++++++++-------
- drivers/staging/media/omap4iss/iss_ipipe.c   | 30 ++++++++++++++++++----------
- drivers/staging/media/omap4iss/iss_ipipeif.c | 10 ++++++----
- drivers/staging/media/omap4iss/iss_resizer.c |  8 +++++---
- 4 files changed, 44 insertions(+), 25 deletions(-)
+> From: Kozlov Sergey <serjk@netup.ru>
+> 
+> Add DVB SEC frontend driver for STM LNBH25PQR chip.
+> 
+> Changes in version 2:
+>     - rename MAINTAINERS entry
+>     - fix coding style
+>     - use dynamic debug instead of module-specifig debug parameter
+>     - fix I2C bus error handling
+> 
+> Signed-off-by: Kozlov Sergey <serjk@netup.ru>
+> ---
+>  MAINTAINERS                          |    9 ++
+>  drivers/media/dvb-frontends/Kconfig  |    8 ++
+>  drivers/media/dvb-frontends/Makefile |    1 +
+>  drivers/media/dvb-frontends/lnbh25.c |  192 ++++++++++++++++++++++++++++++++++
+>  drivers/media/dvb-frontends/lnbh25.h |   56 ++++++++++
+>  5 files changed, 266 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/lnbh25.c
+>  create mode 100644 drivers/media/dvb-frontends/lnbh25.h
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 9950fbe..4695cdc 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -6287,6 +6287,15 @@ T:	git git://linuxtv.org/media_tree.git
+>  S:	Supported
+>  F:	drivers/media/dvb-frontends/horus3a*
+>  
+> +MEDIA DRIVERS FOR LNBH25
+> +M:	Sergey Kozlov <serjk@netup.ru>
+> +L:	linux-media@vger.kernel.org
+> +W:	http://linuxtv.org/
+> +W:	http://netup.tv/
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Supported
+> +F:	drivers/media/dvb-frontends/lnbh25*
+> +
+>  MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
+>  M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>  P:	LinuxTV.org Project
+> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+> index d178aca..eec0405 100644
+> --- a/drivers/media/dvb-frontends/Kconfig
+> +++ b/drivers/media/dvb-frontends/Kconfig
+> @@ -695,6 +695,14 @@ comment "SEC control devices for DVB-S"
+>  
+>  source "drivers/media/dvb-frontends/drx39xyj/Kconfig"
+>  
+> +config DVB_LNBH25
+> +	tristate "LNBH25 SEC controller"
+> +	depends on DVB_CORE && I2C
+> +	default m if !MEDIA_SUBDRV_AUTOSELECT
+> +	help
+> +	  An SEC control chip.
+> +	  Say Y when you want to support this chip.
+> +
+>  config DVB_LNBP21
+>  	tristate "LNBP21/LNBH24 SEC controllers"
+>  	depends on DVB_CORE && I2C
+> diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+> index 0b19c10..06a0d21 100644
+> --- a/drivers/media/dvb-frontends/Makefile
+> +++ b/drivers/media/dvb-frontends/Makefile
+> @@ -56,6 +56,7 @@ obj-$(CONFIG_DVB_LGDT330X) += lgdt330x.o
+>  obj-$(CONFIG_DVB_LGDT3305) += lgdt3305.o
+>  obj-$(CONFIG_DVB_LG2160) += lg2160.o
+>  obj-$(CONFIG_DVB_CX24123) += cx24123.o
+> +obj-$(CONFIG_DVB_LNBH25) += lnbh25.o
+>  obj-$(CONFIG_DVB_LNBP21) += lnbp21.o
+>  obj-$(CONFIG_DVB_LNBP22) += lnbp22.o
+>  obj-$(CONFIG_DVB_ISL6405) += isl6405.o
+> diff --git a/drivers/media/dvb-frontends/lnbh25.c b/drivers/media/dvb-frontends/lnbh25.c
+> new file mode 100644
+> index 0000000..e44a088
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/lnbh25.c
+> @@ -0,0 +1,192 @@
+> +/*
+> + * lnbh25.c
+> + *
+> + * Driver for LNB supply and control IC LNBH25
+> + *
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/string.h>
+> +#include <linux/slab.h>
+> +
+> +#include "dvb_frontend.h"
+> +#include "lnbh25.h"
+> +
+> +/**
+> + * struct lnbh25_priv - LNBH25 driver private data
+> + * @i2c:		pointer to the I2C adapter structure
+> + * @i2c_address:	I2C address of LNBH25 SEC chip
+> + * @config:		Registers configuration:
+> + *			offset 0: 1st register address, always 0x02 (DATA1)
+> + *			offset 1: DATA1 register value
+> + *			offset 2: DATA2 register value
+> + */
+> +struct lnbh25_priv {
+> +	struct i2c_adapter	*i2c;
+> +	u8			i2c_address;
+> +	u8			config[3];
+> +};
+> +
+> +#define LNBH25_STATUS_OFL	0x1
+> +#define LNBH25_STATUS_VMON	0x4
+> +#define LNBH25_VSEL_13		0x03
+> +#define LNBH25_VSEL_18		0x0a
+> +
+> +static int lnbh25_read_vmon(struct lnbh25_priv *priv)
+> +{
+> +	int i, ret;
+> +	u8 addr = 0x00;
+> +	u8 status[6];
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = priv->i2c_address,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &addr
+> +		}, {
+> +			.addr = priv->i2c_address,
+> +			.flags = I2C_M_RD,
+> +			.len = sizeof(status),
+> +			.buf = status
+> +		}
+> +	};
+> +
+> +	for (i = 0; i < 2; i++) {
+> +		ret = i2c_transfer(priv->i2c, &msg[i], 1);
+> +		if (ret >= 0 && ret != 1)
+> +			ret = -EIO;
+> +		if (ret < 0) {
+> +			dev_dbg(&priv->i2c->dev,
+> +				"%s(): I2C transfer %d failed (%d)\n",
+> +				__func__, i, ret);
+> +			return ret;
+> +		}
+> +	}
+> +#if defined(CONFIG_DYNAMIC_DEBUG)
+> +	dynamic_hex_dump("lnbh25_read_vmon: ", DUMP_PREFIX_OFFSET,
+> +		16, 1, status, sizeof(status), false);
+> +#endif
 
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index d7ff769..a8714bb 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -224,7 +224,8 @@ static u16 csi2_ctx_map_format(struct iss_csi2_device *csi2)
- 		fmtidx = 3;
- 		break;
- 	default:
--		WARN(1, KERN_ERR "CSI2: pixel format %08x unsupported!\n",
-+		WARN(1,
-+		     KERN_ERR "CSI2: pixel format %08x unsupported!\n",
- 		     fmt->code);
- 		return 0;
- 	}
-@@ -828,8 +829,10 @@ static const struct iss_video_operations csi2_issvideo_ops = {
-  */
- 
- static struct v4l2_mbus_framefmt *
--__csi2_get_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which)
-+__csi2_get_format(struct iss_csi2_device *csi2,
-+		  struct v4l2_subdev_pad_config *cfg,
-+		  unsigned int pad,
-+		  enum v4l2_subdev_format_whence which)
- {
- 	if (which == V4L2_SUBDEV_FORMAT_TRY)
- 		return v4l2_subdev_get_try_format(&csi2->subdev, cfg, pad);
-@@ -838,8 +841,10 @@ __csi2_get_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *c
- }
- 
- static void
--csi2_try_format(struct iss_csi2_device *csi2, struct v4l2_subdev_pad_config *cfg,
--		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
-+csi2_try_format(struct iss_csi2_device *csi2,
-+		struct v4l2_subdev_pad_config *cfg,
-+		unsigned int pad,
-+		struct v4l2_mbus_framefmt *fmt,
- 		enum v4l2_subdev_format_whence which)
- {
- 	u32 pixelcode;
-@@ -967,7 +972,8 @@ static int csi2_enum_frame_size(struct v4l2_subdev *sd,
-  * @fmt: pointer to v4l2 subdev format structure
-  * return -EINVAL or zero on success
-  */
--static int csi2_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int csi2_get_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   struct v4l2_subdev_format *fmt)
- {
- 	struct iss_csi2_device *csi2 = v4l2_get_subdevdata(sd);
-@@ -988,7 +994,8 @@ static int csi2_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config
-  * @fmt: pointer to v4l2 subdev format structure
-  * return -EINVAL or zero on success
-  */
--static int csi2_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int csi2_set_format(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   struct v4l2_subdev_format *fmt)
- {
- 	struct iss_csi2_device *csi2 = v4l2_get_subdevdata(sd);
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index eaa82da..f94a592 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -24,8 +24,10 @@
- #include "iss_ipipe.h"
- 
- static struct v4l2_mbus_framefmt *
--__ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which);
-+__ipipe_get_format(struct iss_ipipe_device *ipipe,
-+		   struct v4l2_subdev_pad_config *cfg,
-+		   unsigned int pad,
-+		   enum v4l2_subdev_format_whence which);
- 
- static const unsigned int ipipe_fmts[] = {
- 	MEDIA_BUS_FMT_SGRBG10_1X10,
-@@ -176,8 +178,10 @@ static int ipipe_set_stream(struct v4l2_subdev *sd, int enable)
- }
- 
- static struct v4l2_mbus_framefmt *
--__ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		  unsigned int pad, enum v4l2_subdev_format_whence which)
-+__ipipe_get_format(struct iss_ipipe_device *ipipe,
-+		   struct v4l2_subdev_pad_config *cfg,
-+		   unsigned int pad,
-+		   enum v4l2_subdev_format_whence which)
- {
- 	if (which == V4L2_SUBDEV_FORMAT_TRY)
- 		return v4l2_subdev_get_try_format(&ipipe->subdev, cfg, pad);
-@@ -193,9 +197,11 @@ __ipipe_get_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config
-  * @fmt: Format
-  */
- static void
--ipipe_try_format(struct iss_ipipe_device *ipipe, struct v4l2_subdev_pad_config *cfg,
--		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
--		enum v4l2_subdev_format_whence which)
-+ipipe_try_format(struct iss_ipipe_device *ipipe,
-+		 struct v4l2_subdev_pad_config *cfg,
-+		 unsigned int pad,
-+		 struct v4l2_mbus_framefmt *fmt,
-+		 enum v4l2_subdev_format_whence which)
- {
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int width = fmt->width;
-@@ -306,8 +312,9 @@ static int ipipe_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipe_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -329,8 +336,9 @@ static int ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_confi
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipe_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipe_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 530ac84..c0da13d 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -518,8 +518,9 @@ static int ipipeif_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipeif_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipeif_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipeif_device *ipipeif = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -541,8 +542,9 @@ static int ipipeif_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_con
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int ipipeif_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int ipipeif_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_ipipeif_device *ipipeif = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index 5f69012..5030cf3 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -580,8 +580,9 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int resizer_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
-+static int resizer_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
-@@ -603,7 +604,8 @@ static int resizer_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_con
-  * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-  * to the format type.
-  */
--static int resizer_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-+static int resizer_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_format *fmt)
- {
- 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
--- 
-2.4.1
+This is OK as is, as this is just for debugging purposes, but why don't
+you use, instead, print_hex_dump()? (same applies to the other patches
+on this series)
 
+That would avoid the #if, and would work with both dynamic and
+non-dynamic cases, as it is declared on include/linux/printk.h as:
 
--- 
-Piotr S. Staszewski                              http://www.drbig.one.pl
-dRbiG at FreeNode, IRCNet
-                         But all's one level plain he hunts for flowers.
+#if defined(CONFIG_DYNAMIC_DEBUG)
+#define print_hex_dump_bytes(prefix_str, prefix_type, buf, len)	\
+	dynamic_hex_dump(prefix_str, prefix_type, 16, 1, buf, len, true)
+#else
+extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+				 const void *buf, size_t len);
+#endif /* defined(CONFIG_DYNAMIC_DEBUG) */
+
+> +
+> +	if ((status[0] & (LNBH25_STATUS_OFL | LNBH25_STATUS_VMON)) != 0) {
+> +		dev_err(&priv->i2c->dev,
+> +			"%s(): voltage in failure state, status reg 0x%x\n",
+> +			__func__, status[0]);
+> +		return -EIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int lnbh25_set_voltage(struct dvb_frontend *fe,
+> +			      fe_sec_voltage_t voltage)
+> +{
+> +	int ret;
+> +	u8 data1_reg;
+> +	const char *vsel;
+> +	struct lnbh25_priv *priv = fe->sec_priv;
+> +	struct i2c_msg msg = {
+> +		.addr = priv->i2c_address,
+> +		.flags = 0,
+> +		.len = sizeof(priv->config),
+> +		.buf = priv->config
+> +	};
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_OFF:
+> +		data1_reg = 0x00;
+> +		vsel = "Off";
+> +		break;
+> +	case SEC_VOLTAGE_13:
+> +		data1_reg = LNBH25_VSEL_13;
+> +		vsel = "13V";
+> +		break;
+> +	case SEC_VOLTAGE_18:
+> +		data1_reg = LNBH25_VSEL_18;
+> +		vsel = "18V";
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	priv->config[1] = data1_reg;
+> +	dev_dbg(&priv->i2c->dev,
+> +		"%s(): %s, I2C 0x%x write [ %02x %02x %02x ]\n",
+> +		__func__, vsel, priv->i2c_address,
+> +		priv->config[0], priv->config[1], priv->config[2]);
+> +	ret = i2c_transfer(priv->i2c, &msg, 1);
+> +	if (ret >= 0 && ret != 1)
+> +		ret = -EIO;
+> +	if (ret < 0) {
+> +		dev_err(&priv->i2c->dev, "%s(): I2C transfer error (%d)\n",
+> +			__func__, ret);
+> +		return ret;
+> +	}
+> +	if (voltage != SEC_VOLTAGE_OFF) {
+> +		msleep(120);
+> +		ret = lnbh25_read_vmon(priv);
+> +	} else {
+> +		msleep(20);
+> +		ret = 0;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static void lnbh25_release(struct dvb_frontend *fe)
+> +{
+> +	struct lnbh25_priv *priv = fe->sec_priv;
+> +
+> +	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
+> +	lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF);
+> +	kfree(fe->sec_priv);
+> +	fe->sec_priv = NULL;
+> +}
+> +
+> +struct dvb_frontend *lnbh25_attach(struct dvb_frontend *fe,
+> +				   struct lnbh25_config *cfg,
+> +				   struct i2c_adapter *i2c)
+> +{
+> +	struct lnbh25_priv *priv;
+> +
+> +	dev_dbg(&i2c->dev, "%s()\n", __func__);
+> +	priv = kzalloc(sizeof(struct lnbh25_priv), GFP_KERNEL);
+> +	if (!priv)
+> +		return NULL;
+> +	priv->i2c_address = (cfg->i2c_address >> 1);
+> +	priv->i2c = i2c;
+> +	priv->config[0] = 0x02;
+> +	priv->config[1] = 0x00;
+> +	priv->config[2] = cfg->data2_config;
+> +	fe->sec_priv = priv;
+> +	if (lnbh25_set_voltage(fe, SEC_VOLTAGE_OFF)) {
+> +		dev_err(&i2c->dev,
+> +			"%s(): no LNBH25 found at I2C addr 0x%02x\n",
+> +			__func__, priv->i2c_address);
+> +		kfree(priv);
+> +		fe->sec_priv = NULL;
+> +		return NULL;
+> +	}
+> +
+> +	fe->ops.release_sec = lnbh25_release;
+> +	fe->ops.set_voltage = lnbh25_set_voltage;
+> +
+> +	dev_err(&i2c->dev, "%s(): attached at I2C addr 0x%02x\n",
+> +		__func__, priv->i2c_address);
+> +	return fe;
+> +}
+> +EXPORT_SYMBOL(lnbh25_attach);
+> +
+> +MODULE_DESCRIPTION("ST LNBH25 driver");
+> +MODULE_AUTHOR("info@netup.ru");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/dvb-frontends/lnbh25.h b/drivers/media/dvb-frontends/lnbh25.h
+> new file mode 100644
+> index 0000000..7fc5123
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/lnbh25.h
+> @@ -0,0 +1,56 @@
+> +/*
+> + * lnbh25.c
+> + *
+> + * Driver for LNB supply and control IC LNBH25
+> + *
+> + * Copyright (C) 2014 NetUP Inc.
+> + * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
+> + * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef LNBH25_H
+> +#define LNBH25_H
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/kconfig.h>
+> +#include <linux/dvb/frontend.h>
+> +
+> +/* 22 kHz tone enabled. Tone output controlled by DSQIN pin */
+> +#define	LNBH25_TEN	0x01
+> +/* Low power mode activated (used only with 22 kHz tone output disabled) */
+> +#define LNBH25_LPM	0x02
+> +/* DSQIN input pin is set to receive external 22 kHz TTL signal source */
+> +#define LNBH25_EXTM	0x04
+> +
+> +struct lnbh25_config {
+> +	u8	i2c_address;
+> +	u8	data2_config;
+> +};
+> +
+> +#if IS_ENABLED(CONFIG_DVB_LNBH25)
+
+IS_REACHABLE()
+
+> +struct dvb_frontend *lnbh25_attach(
+> +	struct dvb_frontend *fe,
+> +	struct lnbh25_config *cfg,
+> +	struct i2c_adapter *i2c);
+> +#else
+> +static inline dvb_frontend *lnbh25_attach(
+> +	struct dvb_frontend *fe,
+> +	struct lnbh25_config *cfg,
+> +	struct i2c_adapter *i2c)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +#endif
+> +
+> +#endif
