@@ -1,82 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45618 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030236AbbE2OdF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 10:33:05 -0400
-Message-ID: <55687892.7050606@ti.com>
-Date: Fri, 29 May 2015 17:32:50 +0300
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39819 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753391AbbEOJ6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 05:58:19 -0400
+Message-ID: <5555C32D.4020006@xs4all.nl>
+Date: Fri, 15 May 2015 11:58:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Vinod Koul <vinod.koul@intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com> <20150529093317.GF3140@localhost> <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com> <20150529101846.GG3140@localhost>
-In-Reply-To: <20150529101846.GG3140@localhost>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 1/4] v4l2-dv-timings: Add interlace support in detect
+ cvt/gtf
+References: <1429779591-26134-1-git-send-email-prladdha@cisco.com> <1429779591-26134-2-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1429779591-26134-2-git-send-email-prladdha@cisco.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2015 01:18 PM, Vinod Koul wrote:
-> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
->> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
->>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
->>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
->>>> prevents drivers using the compat call to be able to do deferred probing.
->>>>
->>>> The new wrapper is identical in functionality but it will return with error
->>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
->>>> case dma_request_slave_channel_reason() returned with it.
->>> This is okay but am worried about one more warpper, how about fixing
->>> dma_request_slave_channel_compat()
->>
->> Then all callers of dma_request_slave_channel_compat() have to be
->> modified to handle ERR_PTR first.
->>
->> The same is true for (the existing) dma_request_slave_channel_reason()
->> vs. dma_request_slave_channel().
-> Good point, looking again, I think we should rather fix
-> dma_request_slave_channel_reason() as it was expected to return err code and
-> add new users. Anyway users of this API do expect the reason...
+Hi Prashant,
 
-Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
-drivers only working via DT or ACPI while
-dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
-DT/ACPI or legacy mode as well.
+Sorry for the very late review, I finally have time today to go through
+my pending patches.
 
-I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
-drivers are using this to request channels - they need to support DT and
-legacy mode.
+I have one question, see below:
 
-But it is doable to do this for both the non _compat and _compat version:
-1. change all users to check IS_ERR_OR_NULL(chan)
- return the PTR_ERR if not NULL, or do whatever the driver was doing in case
-of chan == NULL.
-2. change the non _compat and _compat versions to do the same as the _reason
-variants, #define the _reason ones to the non _reason names
-3. Rename the _reason use to non _reason function in drivers
-4. Remove the #defines for the _reason functions
-5. Change the IS_ERR_OR_NULL(chan) to IS_ERR(chan) in all drivers
-The result:
-Both dma_request_slave_channel() and dma_request_slave_channel_compat() will
-return ERR_PTR in case of failure or in success they will return the pinter to
-chan.
+On 04/23/2015 10:59 AM, Prashant Laddha wrote:
+> Extended detect_cvt/gtf API to indicate the format type (interlaced
+> or progressive). In case of interlaced, the vertical front and back
+> porch and vsync values for both (odd,even) fields are considered to
+> derive image height. Populated vsync, verical front, back porch
+> values in bt timing structure for even and odd fields and updated
+> the flags appropriately.
+> 
+> Also modified the functions calling the detect_cvt/gtf(). As of now
+> these functions are calling detect_cvt/gtf() with interlaced flag
+> set to false.
+> 
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Martin Bugge <marbugge@cisco.com>
+> Cc: Mats Randgaard <matrandg@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+> ---
+>  drivers/media/i2c/adv7604.c                  |  4 +--
+>  drivers/media/i2c/adv7842.c                  |  4 +--
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  5 ++--
+>  drivers/media/v4l2-core/v4l2-dv-timings.c    | 39 +++++++++++++++++++++++-----
+>  include/media/v4l2-dv-timings.h              |  6 +++--
+>  5 files changed, 44 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 60ffcf0..74abfd4 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1304,12 +1304,12 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+>  	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
+>  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+>  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+> -			timings))
+> +			false, timings))
+>  		return 0;
+>  	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
+>  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+>  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+> -			state->aspect_ratio, timings))
+> +			false, state->aspect_ratio, timings))
+>  		return 0;
+>  
+>  	v4l2_dbg(2, debug, sd,
+> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+> index b5a37fe..90cbead 100644
+> --- a/drivers/media/i2c/adv7842.c
+> +++ b/drivers/media/i2c/adv7842.c
+> @@ -1333,12 +1333,12 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+>  	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
+>  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+>  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+> -			    timings))
+> +			false, timings))
+>  		return 0;
+>  	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
+>  			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+>  			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+> -			    state->aspect_ratio, timings))
+> +			false, state->aspect_ratio, timings))
+>  		return 0;
+>  
+>  	v4l2_dbg(2, debug, sd,
+> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+> index be10b72..a3b19dc 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+> @@ -1623,7 +1623,7 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
+>  
+>  	if (bt->standards == 0 || (bt->standards & V4L2_DV_BT_STD_CVT)) {
+>  		if (v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
+> -				    bt->polarities, timings))
+> +				    bt->polarities, false, timings))
+>  			return true;
+>  	}
+>  
+> @@ -1634,7 +1634,8 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
+>  				  &aspect_ratio.numerator,
+>  				  &aspect_ratio.denominator);
+>  		if (v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
+> -				    bt->polarities, aspect_ratio, timings))
+> +				    bt->polarities, false,
+> +				    aspect_ratio, timings))
+>  			return true;
+>  	}
+>  	return false;
+> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> index 37f0d6f..86e11d1 100644
+> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> @@ -338,6 +338,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+>   * @vsync - the height of the vertical sync in lines.
+>   * @polarities - the horizontal and vertical polarities (same as struct
+>   *		v4l2_bt_timings polarities).
+> + * @interlaced - if this flag is true, it indicates interlaced format
+>   * @fmt - the resulting timings.
+>   *
+>   * This function will attempt to detect if the given values correspond to a
+> @@ -349,7 +350,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+>   * detection function.
+>   */
+>  bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+> -		u32 polarities, struct v4l2_dv_timings *fmt)
+> +		u32 polarities, bool interlaced, struct v4l2_dv_timings *fmt)
+>  {
+>  	int  v_fp, v_bp, h_fp, h_bp, hsync;
+>  	int  frame_width, image_height, image_width;
+> @@ -384,7 +385,11 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>  		if (v_bp < CVT_MIN_V_BPORCH)
+>  			v_bp = CVT_MIN_V_BPORCH;
+>  	}
+> -	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+> +
+> +	if (interlaced)
+> +		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp) & ~0x1;
+> +	else
+> +		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+>  
+>  	if (image_height < 0)
+>  		return false;
+> @@ -457,11 +462,20 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>  	fmt->bt.hsync = hsync;
+>  	fmt->bt.vsync = vsync;
+>  	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
+> -	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
+> +	fmt->bt.vbackporch = v_bp;
+>  	fmt->bt.pixelclock = pix_clk;
+>  	fmt->bt.standards = V4L2_DV_BT_STD_CVT;
+>  	if (reduced_blanking)
+>  		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
+> +	if (interlaced) {
+> +		fmt->bt.interlaced = V4L2_DV_INTERLACED;
+> +		fmt->bt.il_vfrontporch = v_fp;
+> +		fmt->bt.il_vsync = vsync;
+> +		fmt->bt.il_vbackporch = v_bp + 1;
+> +		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
+> +	} else {
+> +		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
+> +	}
+>  	return true;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
+> @@ -500,6 +514,7 @@ EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
+>   * @vsync - the height of the vertical sync in lines.
+>   * @polarities - the horizontal and vertical polarities (same as struct
+>   *		v4l2_bt_timings polarities).
+> + * @interlaced - if this flag is true, it indicates interlaced format
+>   * @aspect - preferred aspect ratio. GTF has no method of determining the
+>   *		aspect ratio in order to derive the image width from the
+>   *		image height, so it has to be passed explicitly. Usually
+> @@ -515,6 +530,7 @@ bool v4l2_detect_gtf(unsigned frame_height,
+>  		unsigned hfreq,
+>  		unsigned vsync,
+>  		u32 polarities,
+> +		bool interlaced,
+>  		struct v4l2_fract aspect,
+>  		struct v4l2_dv_timings *fmt)
+>  {
+> @@ -539,9 +555,11 @@ bool v4l2_detect_gtf(unsigned frame_height,
+>  
+>  	/* Vertical */
+>  	v_fp = GTF_V_FP;
+> -
+>  	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 500000) / 1000000 - vsync;
+> -	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+> +	if (interlaced)
+> +		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp) & ~0x1;
+> +	else
+> +		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+>  
+>  	if (image_height < 0)
+>  		return false;
+> @@ -586,11 +604,20 @@ bool v4l2_detect_gtf(unsigned frame_height,
+>  	fmt->bt.hsync = hsync;
+>  	fmt->bt.vsync = vsync;
+>  	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
+> -	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
+> +	fmt->bt.vbackporch = v_bp;
 
-Is this what you were asking?
-It is a bit broader than what this series was doing: taking care of
-OMAP/daVinci drivers for deferred probing regarding to dmaengine ;)
+Is this change correct? My main concern comes from the earlier image_height calculation
+in the chunk above. The image_height value is rounded to an even value, but if the value
+is actually changed due to rounding, then one of the v_fp, vsync or v_bp values must
+change by one as well. After all, the frame_height is fixed and image_height must be
+even. And frame_height can be even or odd, both are possible. So that one line of rounding
+difference must go somewhere in the blanking timings.
 
--- 
-Péter
+Regards,
+
+	Hans
+
+>  	fmt->bt.pixelclock = pix_clk;
+>  	fmt->bt.standards = V4L2_DV_BT_STD_GTF;
+>  	if (!default_gtf)
+>  		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
+> +	if (interlaced) {
+> +		fmt->bt.interlaced = V4L2_DV_INTERLACED;
+> +		fmt->bt.il_vfrontporch = v_fp;
+> +		fmt->bt.il_vsync = vsync;
+> +		fmt->bt.il_vbackporch = v_bp + 1;
+> +		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
+> +	} else {
+> +		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
+> +	}
+>  	return true;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_detect_gtf);
+> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+> index 4becc67..eecd310 100644
+> --- a/include/media/v4l2-dv-timings.h
+> +++ b/include/media/v4l2-dv-timings.h
+> @@ -117,6 +117,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+>   * @vsync - the height of the vertical sync in lines.
+>   * @polarities - the horizontal and vertical polarities (same as struct
+>   *		v4l2_bt_timings polarities).
+> + * @interlaced - if this flag is true, it indicates interlaced format
+>   * @fmt - the resulting timings.
+>   *
+>   * This function will attempt to detect if the given values correspond to a
+> @@ -124,7 +125,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+>   * in with the found CVT timings.
+>   */
+>  bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+> -		u32 polarities, struct v4l2_dv_timings *fmt);
+> +		u32 polarities, bool interlaced, struct v4l2_dv_timings *fmt);
+>  
+>  /** v4l2_detect_gtf - detect if the given timings follow the GTF standard
+>   * @frame_height - the total height of the frame (including blanking) in lines.
+> @@ -132,6 +133,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>   * @vsync - the height of the vertical sync in lines.
+>   * @polarities - the horizontal and vertical polarities (same as struct
+>   *		v4l2_bt_timings polarities).
+> + * @interlaced - if this flag is true, it indicates interlaced format
+>   * @aspect - preferred aspect ratio. GTF has no method of determining the
+>   *		aspect ratio in order to derive the image width from the
+>   *		image height, so it has to be passed explicitly. Usually
+> @@ -144,7 +146,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>   * in with the found GTF timings.
+>   */
+>  bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+> -		u32 polarities, struct v4l2_fract aspect,
+> +		u32 polarities, bool interlaced, struct v4l2_fract aspect,
+>  		struct v4l2_dv_timings *fmt);
+>  
+>  /** v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
+> 
+
