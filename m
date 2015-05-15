@@ -1,47 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.openmailbox.org ([62.4.1.38]:46005 "EHLO
-	smtp4.openmailbox.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbbEXXb7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2015 19:31:59 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail2.openmailbox.org (Postfix) with ESMTP id 17EB32027D0
-	for <linux-media@vger.kernel.org>; Mon, 25 May 2015 01:25:55 +0200 (CEST)
-Received: from mail2.openmailbox.org ([62.4.1.33])
-	by localhost (mail.openmailbox.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id hS_M1nyIlW6d for <linux-media@vger.kernel.org>;
-	Mon, 25 May 2015 01:25:50 +0200 (CEST)
-Received: from www.openmailbox.org (mail2.openmailbox.org [62.4.1.33])
-	by mail2.openmailbox.org (Postfix) with ESMTP id 3B57A200683
-	for <linux-media@vger.kernel.org>; Mon, 25 May 2015 01:25:50 +0200 (CEST)
+Received: from mail.kapsi.fi ([217.30.184.167]:55147 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934169AbbEOLUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 07:20:48 -0400
+Message-ID: <5555D68E.4090708@iki.fi>
+Date: Fri, 15 May 2015 14:20:46 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH RFCv1] v4l2: add support for SDR transmitter
+References: <1431625907-7562-1-git-send-email-crope@iki.fi> <5555BB9C.8070605@xs4all.nl>
+In-Reply-To: <5555BB9C.8070605@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Date: Mon, 25 May 2015 01:25:50 +0200
-From: tomsmith7899@openmailbox.org
-To: linux-media@vger.kernel.org
-Subject: Access to =?UTF-8?Q?MPEG-TS=3F?=
-Message-ID: <2b345f147f4d4bdbaf2ac15e1a78aff0@openmailbox.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Moikka!
 
-I'm working on an application that - among other things - should be able 
-to identify the programs in a MPEG transport stream broadcasted via 
-DVB-C. This is what I have figured out so far:
+On 05/15/2015 12:25 PM, Hans Verkuil wrote:
+> Hi Antti,
+>
+> Looks good, but the DocBook updates are missing. You probably planned to do that in
+> RFCv2 or similar.
 
-1. Open the DVB frontend.
-2. Fill struct dvb_frontend_parameters with transponder frequency etc.
-3. Apply struct dvb_frontend_parameters with FE_SET_FRONTEND ioctl call.
+Yep, first code then doc.
 
-After performing these steps, I call the FE_READ_STATUS ioctl and the 
-status is FE_HAS_LOCK.
+> Which device will have sdr_out? What's the cheapest device and where can I buy it? I'd
+> like to be able to test it (and add qv4l2 support),
 
-I should then parse the MPEG transport stream to identify the programs, 
-pids etc. but my problem is that I don't know how to access the 
-transport stream? I have tried to read the file descriptor returned from 
-opening the frontend, but no MPEG data is found there.
+I used HackRF One, it is likely 150-250e used one.
 
-Can anyone point me in the right direction?
+Currently I have implemented almost all radio features it has, only 
+option to enable antenna power supply is missing (and firmware upgrade, 
+but it is not radio feature).
+
+Device is half-duplex - only RX or TX could be used at the time. Driver 
+creates two device nodes, one for receiver and another for transmitter.
+
+There is:
+2 x struct video_device
+2 x struct v4l2_device
+2 x struct vb2_queue
+2 x struct v4l2_ctrl_handler
+
+Locking is still missing. I am not sure how it should be done, but 
+likely I try add lock to start/stop streaming. When start streaming is 
+called it sets some flag/lock and if another device node tries start 
+streaming at same time error is returned.
+
+Device uses Complex S8 format for both receiver and transmitter. I will 
+add that format to vivid and then it should be possible generate beep 
+using vivid and transmit it using HackRF (cat /dev/swradio0 > 
+/dev/swradio1), where swradio0 is vivid and swradio1 is HackRF.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
