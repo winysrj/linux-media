@@ -1,113 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48698 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751462AbbEUF6Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 01:58:25 -0400
-Message-ID: <555D73FA.3030208@xs4all.nl>
-Date: Thu, 21 May 2015 07:58:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:50251 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754002AbbEORvN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 13:51:13 -0400
+Message-ID: <55563209.3020808@redhat.com>
+Date: Fri, 15 May 2015 19:51:05 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 09/20] media: rcar_vin: Use correct pad number in try_fmt
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-10-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-10-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
+To: Vasily Khoruzhick <anarsoul@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v2 1/2] gspca: sn9c2028: Add support for Genius Videocam
+ Live v2
+References: <1429859044-18071-1-git-send-email-anarsoul@gmail.com> <CA+E=qVeZpVKqpnBJ2OCXwXEd=okLXcttMyRTPfwXAWY1twKDRw@mail.gmail.com>
+In-Reply-To: <CA+E=qVeZpVKqpnBJ2OCXwXEd=okLXcttMyRTPfwXAWY1twKDRw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2015 06:39 PM, William Towle wrote:
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
-> 
-> Fix rcar_vin_try_fmt to use the correct pad number when calling the
-> subdev set_fmt. Previously pad number 0 was always used, resulting in
-> EINVAL if the subdev cares about the pad number (e.g. ADV7612).
-> 
-> Signed-off-by: William Towle  Taylor <rob.taylor@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |   29 +++++++++++++++++---------
->  1 file changed, 19 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index b4e9b43..571ab20 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1707,12 +1707,13 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  	const struct soc_camera_format_xlate *xlate;
->  	struct v4l2_pix_format *pix = &f->fmt.pix;
->  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> -	struct v4l2_subdev_pad_config pad_cfg;
-> +	struct v4l2_subdev_pad_config pad_cfg[sd->entity.num_pads];
+Hi Vasily
 
-Same problem: this relies on the presence of CONFIG_MEDIA_CONTROLLER.
-This array can also get large which is bad when it is on the stack.
+On 15-05-15 17:55, Vasily Khoruzhick wrote:
+> Ping?
 
-Laurent, I remember that you had plans to add an op that would allocate
-and initialize this for you. Any progress on that?
+Sorry for being a bit slow on this one, v2 looks good. I'll queue it up for
+merging into 4.2 as soon as I find some time to work on this,
 
 Regards,
 
-	Hans
+Hans
 
->  	struct v4l2_subdev_format format = {
->  		.which = V4L2_SUBDEV_FORMAT_TRY,
->  	};
->  	struct v4l2_mbus_framefmt *mf = &format.format;
->  	__u32 pixfmt = pix->pixelformat;
-> +	struct media_pad *remote_pad;
->  	int width, height;
->  	int ret;
->  
-> @@ -1744,17 +1745,24 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  	mf->code = xlate->code;
->  	mf->colorspace = pix->colorspace;
->  
-> -	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
-> -					 pad, set_fmt, &pad_cfg, &format);
-> +	remote_pad = media_entity_remote_pad(
-> +				&icd->vdev->entity.pads[0]);
-> +	format.pad = remote_pad->index;
-> +
-> +	ret = v4l2_device_call_until_err(sd->v4l2_dev,
-> +					soc_camera_grp_id(icd), pad,
-> +					set_fmt, pad_cfg,
-> +					&format);
->  	if (ret < 0)
->  		return ret;
->  
-> -	/* Adjust only if VIN cannot scale */
-> -	if (pix->width > mf->width * 2)
-> -		pix->width = mf->width * 2;
-> -	if (pix->height > mf->height * 3)
-> -		pix->height = mf->height * 3;
-> -
-> +	/*  In case the driver has adjusted 'fmt' to match the
-> +	 *  resolution of the live stream, 'pix' needs to pass this
-> +	 *  change out so that the buffer userland creates for the
-> +	 *  captured image/video has these dimensions
-> +	 */
-> +	pix->width = mf->width;
-> +	pix->height = mf->height;
->  	pix->field = mf->field;
->  	pix->colorspace = mf->colorspace;
->  
-> @@ -1769,9 +1777,10 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  			 */
->  			mf->width = VIN_MAX_WIDTH;
->  			mf->height = VIN_MAX_HEIGHT;
-> +			format.pad = remote_pad->index;
->  			ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  							 soc_camera_grp_id(icd),
-> -							 pad, set_fmt, &pad_cfg,
-> +							 pad, set_fmt, pad_cfg,
->  							 &format);
->  			if (ret < 0) {
->  				dev_err(icd->parent,
-> 
-
+>
+> On Fri, Apr 24, 2015 at 10:04 AM, Vasily Khoruzhick <anarsoul@gmail.com> wrote:
+>> This cam seems to return different values on long commands, so make status check
+>> in sn9c2028_long_command() more tolerant. Anyway, read value isn't used anywhere
+>> later.
+>>
+>> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+>> ---
+>> v2: update commit message to explain change in sn9c2028_long_command()
+>>
+>>   drivers/media/usb/gspca/sn9c2028.c | 120 ++++++++++++++++++++++++++++++++++++-
+>>   1 file changed, 119 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
+>> index 39b6b2e..317b02c 100644
+>> --- a/drivers/media/usb/gspca/sn9c2028.c
+>> +++ b/drivers/media/usb/gspca/sn9c2028.c
+>> @@ -2,6 +2,7 @@
+>>    * SN9C2028 library
+>>    *
+>>    * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
+>> + * Copyright (C) 2015 Vasily Khoruzhick <anarsoul@gmail.com>
+>>    *
+>>    * This program is free software; you can redistribute it and/or modify
+>>    * it under the terms of the GNU General Public License as published by
+>> @@ -128,7 +129,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
+>>          status = -1;
+>>          for (i = 0; i < 256 && status < 2; i++)
+>>                  status = sn9c2028_read1(gspca_dev);
+>> -       if (status != 2) {
+>> +       if (status < 0) {
+>>                  pr_err("long command status read error %d\n", status);
+>>                  return (status < 0) ? status : -EIO;
+>>          }
+>> @@ -178,6 +179,9 @@ static int sd_config(struct gspca_dev *gspca_dev,
+>>          case 0x7005:
+>>                  PDEBUG(D_PROBE, "Genius Smart 300 camera");
+>>                  break;
+>> +       case 0x7003:
+>> +               PDEBUG(D_PROBE, "Genius Videocam Live v2");
+>> +               break;
+>>          case 0x8000:
+>>                  PDEBUG(D_PROBE, "DC31VC");
+>>                  break;
+>> @@ -530,6 +534,116 @@ static int start_genius_cam(struct gspca_dev *gspca_dev)
+>>                                    ARRAY_SIZE(genius_start_commands));
+>>   }
+>>
+>> +static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
+>> +{
+>> +       int r;
+>> +       struct sd *sd = (struct sd *) gspca_dev;
+>> +       struct init_command genius_vcam_live_start_commands[] = {
+>> +               {{0x0c, 0x01, 0x00, 0x00, 0x00, 0x00}, 0},
+>> +               {{0x16, 0x01, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x10, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
+>> +
+>> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x1c, 0x20, 0x00, 0x2d, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x20, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x21, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x22, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x23, 0x01, 0x01, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x24, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2a, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2b, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
+>> +               {{0x12, 0x34, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x34, 0x01, 0xa1, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x35, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x01, 0x04, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x02, 0x92, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x25, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x26, 0x02, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x27, 0x88, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x30, 0x38, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x31, 0x2a, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x32, 0x2a, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x33, 0x2a, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x34, 0x02, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x5b, 0x0a, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x25, 0x01, 0x28, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x26, 0x01, 0x1e, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x29, 0x01, 0x62, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2d, 0x01, 0x03, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2e, 0x01, 0x0f, 0x00, 0x00}, 4},
+>> +               {{0x13, 0x2f, 0x01, 0x0c, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x21, 0x2a, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x23, 0x28, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x11, 0x04, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x13, 0x03, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x15, 0xe0, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x16, 0x02, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x11, 0x17, 0x80, 0x00, 0x00, 0x00}, 4},
+>> +               {{0x1c, 0x20, 0x00, 0x2a, 0x00, 0x00}, 1},
+>> +               {{0x20, 0x34, 0xa1, 0x00, 0x00, 0x00}, 0},
+>> +               /* Camera should start to capture now. */
+>> +               {{0x12, 0x27, 0x01, 0x00, 0x00, 0x00}, 0},
+>> +               {{0x1b, 0x32, 0x26, 0x00, 0x00, 0x00}, 0},
+>> +               {{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
+>> +       };
+>> +
+>> +       r = run_start_commands(gspca_dev, genius_vcam_live_start_commands,
+>> +                                 ARRAY_SIZE(genius_vcam_live_start_commands));
+>> +       if (r < 0)
+>> +               return r;
+>> +
+>> +       return r;
+>> +}
+>> +
+>>   static int start_vivitar_cam(struct gspca_dev *gspca_dev)
+>>   {
+>>          struct init_command vivitar_start_commands[] = {
+>> @@ -623,6 +737,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>>          case 0x7005:
+>>                  err_code = start_genius_cam(gspca_dev);
+>>                  break;
+>> +       case 0x7003:
+>> +               err_code = start_genius_videocam_live(gspca_dev);
+>> +               break;
+>>          case 0x8001:
+>>                  err_code = start_spy_cam(gspca_dev);
+>>                  break;
+>> @@ -701,6 +818,7 @@ static const struct sd_desc sd_desc = {
+>>   /* -- module initialisation -- */
+>>   static const struct usb_device_id device_table[] = {
+>>          {USB_DEVICE(0x0458, 0x7005)}, /* Genius Smart 300, version 2 */
+>> +       {USB_DEVICE(0x0458, 0x7003)}, /* Genius Videocam Live v2  */
+>>          /* The Genius Smart is untested. I can't find an owner ! */
+>>          /* {USB_DEVICE(0x0c45, 0x8000)}, DC31VC, Don't know this camera */
+>>          {USB_DEVICE(0x0c45, 0x8001)}, /* Wild Planet digital spy cam */
+>> --
+>> 2.3.5
+>>
