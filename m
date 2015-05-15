@@ -1,61 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42185 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752277AbbEEV67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 17:58:59 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 08/21] af9035: fix device order in ID list
-Date: Wed,  6 May 2015 00:58:29 +0300
-Message-Id: <1430863122-9888-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
-References: <1430863122-9888-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:35272 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992576AbbEOVcl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 17:32:41 -0400
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	maxx <maxx@spaceboyz.net>,
+	=?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH] radio-bcm2048: Enable access to automute and ctrl registers
+Date: Fri, 15 May 2015 23:31:51 +0200
+Message-Id: <1431725511-7379-1-git-send-email-pali.rohar@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver supports multiple chipset versions. Devices are ordered to
-ID table per used chipset type. "ITE 9303 Generic" device uses IT9303
-chipset and was added mistakenly between IT9135 IDs.
+From: maxx <maxx@spaceboyz.net>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This enables access to automute function of the chip via sysfs and
+gives direct access to FM_AUDIO_CTRL0/1 registers, also via sysfs. I
+don't think this is so important but helps in developing radio scanner
+apps.
+
+Patch writen by maxx@spaceboyz.net
+
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+Cc: maxx@spaceboyz.net
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/staging/media/bcm2048/radio-bcm2048.c |   96 +++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 558166d..ae72357 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -2026,6 +2026,7 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "Asus U3100Mini Plus", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
- 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 1482d4b..8f9ba7b 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -826,6 +826,93 @@ static int bcm2048_get_mute(struct bcm2048_device *bdev)
+ 	return err;
+ }
+ 
++static int bcm2048_set_automute(struct bcm2048_device *bdev, u8 automute)
++{
++	int err;
 +
- 	/* IT9135 devices */
- 	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
- 		&af9035_props, "ITE 9135 Generic", RC_MAP_IT913X_V1) },
-@@ -2051,9 +2052,6 @@ static const struct usb_device_id af9035_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
- 		&af9035_props, "Digital Dual TV Receiver CTVDIGDUAL_V2",
- 							RC_MAP_IT913X_V1) },
--	/* IT930x devices */
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
--		&it930x_props, "ITE 9303 Generic", NULL) },
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
- 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)",
-@@ -2066,6 +2064,10 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "PCTV AndroiDTV (78e)", RC_MAP_IT913X_V1) },
- 	{ DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
- 		&af9035_props, "PCTV microStick (79e)", RC_MAP_IT913X_V2) },
++	mutex_lock(&bdev->mutex);
 +
-+	/* IT930x devices */
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
-+		&it930x_props, "ITE 9303 Generic", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
++	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_PAUSE, automute);
++
++	mutex_unlock(&bdev->mutex);
++	return err;
++}
++
++static int bcm2048_get_automute(struct bcm2048_device *bdev)
++{
++	int err;
++	u8 value;
++
++	mutex_lock(&bdev->mutex);
++
++	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_PAUSE, &value);
++
++	mutex_unlock(&bdev->mutex);
++
++	if (!err)
++		err = value;
++
++	return err;
++}
++
++static int bcm2048_set_ctrl0(struct bcm2048_device *bdev, u8 value)
++{
++	int err;
++
++	mutex_lock(&bdev->mutex);
++
++	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL0, value);
++
++	mutex_unlock(&bdev->mutex);
++	return err;
++}
++
++static int bcm2048_set_ctrl1(struct bcm2048_device *bdev, u8 value)
++{
++	int err;
++
++	mutex_lock(&bdev->mutex);
++
++	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL1, value);
++
++	mutex_unlock(&bdev->mutex);
++	return err;
++}
++
++static int bcm2048_get_ctrl0(struct bcm2048_device *bdev)
++{
++	int err;
++	u8 value;
++
++	mutex_lock(&bdev->mutex);
++
++	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL0, &value);
++
++	mutex_unlock(&bdev->mutex);
++
++	if (!err)
++		err = value;
++
++	return err;
++}
++
++static int bcm2048_get_ctrl1(struct bcm2048_device *bdev)
++{
++	int err;
++	u8 value;
++
++	mutex_lock(&bdev->mutex);
++
++	err = bcm2048_recv_command(bdev, BCM2048_I2C_FM_AUDIO_CTRL1, &value);
++
++	mutex_unlock(&bdev->mutex);
++
++	if (!err)
++		err = value;
++
++	return err;
++}
++
+ static int bcm2048_set_audio_route(struct bcm2048_device *bdev, u8 route)
+ {
+ 	int err;
+@@ -2058,6 +2145,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 
+ DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+ DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(automute, unsigned, int, "%x", 0)
++DEFINE_SYSFS_PROPERTY(ctrl0, unsigned, int, "%x", 0)
++DEFINE_SYSFS_PROPERTY(ctrl1, unsigned, int, "%x", 0)
+ DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+ DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+ 
+@@ -2095,6 +2185,12 @@ static struct device_attribute attrs[] = {
+ 		bcm2048_power_state_write),
+ 	__ATTR(mute, S_IRUGO | S_IWUSR, bcm2048_mute_read,
+ 		bcm2048_mute_write),
++	__ATTR(automute, S_IRUGO | S_IWUSR, bcm2048_automute_read,
++		bcm2048_automute_write),
++	__ATTR(ctrl0, S_IRUGO | S_IWUSR, bcm2048_ctrl0_read,
++		bcm2048_ctrl0_write),
++	__ATTR(ctrl1, S_IRUGO | S_IWUSR, bcm2048_ctrl1_read,
++		bcm2048_ctrl1_write),
+ 	__ATTR(audio_route, S_IRUGO | S_IWUSR, bcm2048_audio_route_read,
+ 		bcm2048_audio_route_write),
+ 	__ATTR(dac_output, S_IRUGO | S_IWUSR, bcm2048_dac_output_read,
 -- 
-http://palosaari.fi/
+1.7.9.5
 
