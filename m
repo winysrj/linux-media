@@ -1,62 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57925 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbEQTnh (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34440 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933275AbbEOM3c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2015 15:43:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alex Dowad <alexinbeijing@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
-	"open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] Clarify expression which uses both multiplication and pointer dereference
-Date: Sun, 17 May 2015 22:43:48 +0300
-Message-ID: <1845070.nZfaVzKiG7@avalon>
-In-Reply-To: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com>
-References: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 15 May 2015 08:29:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/6] videodev2.h: add COLORSPACE_RAW
+Date: Fri, 15 May 2015 14:29:07 +0200
+Message-Id: <1431692950-17453-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1431692950-17453-1-git-send-email-hverkuil@xs4all.nl>
+References: <1431692950-17453-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+V4L2_COLORSPACE_RAW is added for raw image formats where the picture
+is minimally processed and is in the internal colorspace of the sensor.
 
-On Sunday 17 May 2015 19:18:42 Alex Dowad wrote:
-> This fixes a checkpatch style error in vpfe_buffer_queue_setup.
-> 
-> Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
+This is typically used in digital cameras where the image processing is
+done later.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> ---
->  drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 06d48d5..04a687c
-> 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -1095,7 +1095,7 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq, const
-> struct v4l2_format *fmt, size = video->fmt.fmt.pix.sizeimage;
-> 
->  	if (vpfe_dev->video_limit) {
-> -		while (size * *nbuffers > vpfe_dev->video_limit)
-> +		while (size * (*nbuffers) > vpfe_dev->video_limit)
->  			(*nbuffers)--;
->  	}
->  	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 7810376..3837030 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -226,6 +226,9 @@ enum v4l2_colorspace {
+ 
+ 	/* BT.2020 colorspace, used for UHDTV. */
+ 	V4L2_COLORSPACE_BT2020        = 10,
++
++	/* Raw colorspace: for RAW unprocessed images */
++	V4L2_COLORSPACE_RAW           = 11,
+ };
+ 
+ enum v4l2_ycbcr_encoding {
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
