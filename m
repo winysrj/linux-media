@@ -1,465 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36698 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964934AbbENVYv convert rfc822-to-8bit (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:36750 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890AbbEOFEQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2015 17:24:51 -0400
-Date: Thu, 14 May 2015 18:24:46 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] ir-keytable: allow protocol for scancode-keycode
- mappings
-Message-ID: <20150514182446.4f21a594@recife.lan>
-In-Reply-To: <20150406112618.23289.95433.stgit@zeus.muc.hardeman.nu>
-References: <20150406112326.23289.28902.stgit@zeus.muc.hardeman.nu>
-	<20150406112618.23289.95433.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 15 May 2015 01:04:16 -0400
+Received: by iepk2 with SMTP id k2so90419558iep.3
+        for <linux-media@vger.kernel.org>; Thu, 14 May 2015 22:04:16 -0700 (PDT)
+Date: Fri, 15 May 2015 13:04:45 +0800
+From: "Nibble Max" <nibble.max@gmail.com>
+To: "Dirk Nehring" <dnehring@gmx.net>
+Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <1426201763-10397-1-git-send-email-dnehring@gmx.net>,
+ <20150514130627.1e420ff2@recife.lan>
+Subject: Re: Re: [PATCH 1/1] SMI PCIe driver for DVBSky cards
+Message-ID: <201505151304414375157@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 06 Apr 2015 13:26:18 +0200
-David Härdeman <david@hardeman.nu> escreveu:
+Hello,
 
-> Introduce a list of "kernel" ir protocols (e.g. "sony12" instead of "sony")
-> and extend the set-key command to ir-keytable to allow for a mapping of the
-> form "protocol:scancode=keycode" in addition to the old "scancode=keycode"
-> format. The code automatically falls back to the old behaviour if the
-> kernel doesn't support the new approach with protocols.
-> 
-> The read command is also updated to show the protocol information if the
-> kernel supports it.
+Just find a minor issue to do "smi_ir_exit".
 
+Best Regards,
+Max
 
-I applied patches 1 to 3 of this series, as they are not based on any
-new feature.
+On 2015-05-15 00:06:33, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+>Em Fri, 13 Mar 2015 00:09:23 +0100
+>Dirk Nehring <dnehring@gmx.net> escreveu:
+>
+>> ported from the manufacturer's source tree, available from
+>> http://dvbsky.net/download/linux/media_build-bst-150211.tar.gz
+>
+>The better would be if the author of the remote controller support
+>to send us the patch or to reply us with his SOB.
+>
+>Max,
+>
+>Could you please take care of it?
+>
+>Thanks!
+>Mauro
+>
+>> 
+>> Signed-off-by: Dirk Nehring <dnehring@gmx.net>
+>> ---
+>>  drivers/media/pci/smipcie/Kconfig                  |   1 +
+>>  drivers/media/pci/smipcie/Makefile                 |   3 +
+>>  drivers/media/pci/smipcie/smipcie-ir.c             | 233 +++++++++++++++++++++
+>>  .../pci/smipcie/{smipcie.c => smipcie-main.c}      |  14 +-
+>>  drivers/media/pci/smipcie/smipcie.h                |  19 ++
+>>  5 files changed, 269 insertions(+), 1 deletion(-)
+>>  create mode 100644 drivers/media/pci/smipcie/smipcie-ir.c
+>>  rename drivers/media/pci/smipcie/{smipcie.c => smipcie-main.c} (99%)
+>> 
+>> diff --git a/drivers/media/pci/smipcie/Kconfig b/drivers/media/pci/smipcie/Kconfig
+>> index c8de53f..c24641e 100644
+>> --- a/drivers/media/pci/smipcie/Kconfig
+>> +++ b/drivers/media/pci/smipcie/Kconfig
+>> @@ -7,6 +7,7 @@ config DVB_SMIPCIE
+>>  	select MEDIA_TUNER_M88TS2022 if MEDIA_SUBDRV_AUTOSELECT
+>>  	select MEDIA_TUNER_M88RS6000T if MEDIA_SUBDRV_AUTOSELECT
+>>  	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>> +	depends on RC_CORE
+>>  	help
+>>  	  Support for cards with SMI PCIe bridge:
+>>  	  - DVBSky S950 V3
+>> diff --git a/drivers/media/pci/smipcie/Makefile b/drivers/media/pci/smipcie/Makefile
+>> index be55481..013bc3f 100644
+>> --- a/drivers/media/pci/smipcie/Makefile
+>> +++ b/drivers/media/pci/smipcie/Makefile
+>> @@ -1,3 +1,6 @@
+>> +
+>> +smipcie-objs	:= smipcie-main.o smipcie-ir.o
+>> +
+>>  obj-$(CONFIG_DVB_SMIPCIE) += smipcie.o
+>>  
+>>  ccflags-y += -Idrivers/media/tuners
+>> diff --git a/drivers/media/pci/smipcie/smipcie-ir.c b/drivers/media/pci/smipcie/smipcie-ir.c
+>> new file mode 100644
+>> index 0000000..2a32746
+>> --- /dev/null
+>> +++ b/drivers/media/pci/smipcie/smipcie-ir.c
+>> @@ -0,0 +1,233 @@
+>> +/*
+>> + * SMI PCIe driver for DVBSky cards.
+>> + *
+>> + * Copyright (C) 2014 Max nibble <nibble.max@gmail.com>
+>> + *
+>> + *    This program is free software; you can redistribute it and/or modify
+>> + *    it under the terms of the GNU General Public License as published by
+>> + *    the Free Software Foundation; either version 2 of the License, or
+>> + *    (at your option) any later version.
+>> + *
+>> + *    This program is distributed in the hope that it will be useful,
+>> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + *    GNU General Public License for more details.
+>> + */
+>> +
+>> +#include "smipcie.h"
+>> +
+>> +static void smi_ir_enableInterrupt(struct smi_rc *ir)
+>> +{
+>> +	struct smi_dev *dev = ir->dev;
+>> +
+>> +	smi_write(MSI_INT_ENA_SET, IR_X_INT);
+>> +}
+>> +
+>> +static void smi_ir_disableInterrupt(struct smi_rc *ir)
+>> +{
+>> +	struct smi_dev *dev = ir->dev;
+>> +
+>> +	smi_write(MSI_INT_ENA_CLR, IR_X_INT);
+>> +}
+>> +
+>> +static void smi_ir_clearInterrupt(struct smi_rc *ir)
+>> +{
+>> +	struct smi_dev *dev = ir->dev;
+>> +
+>> +	smi_write(MSI_INT_STATUS_CLR, IR_X_INT);
+>> +}
+>> +
+>> +static void smi_ir_stop(struct smi_rc *ir)
+>> +{
+>> +	struct smi_dev *dev = ir->dev;
+>> +
+>> +	smi_ir_disableInterrupt(ir);
+>> +	smi_clear(IR_Init_Reg, 0x80);
+>> +}
+>> +
+>> +#define BITS_PER_COMMAND 14
+>> +#define GROUPS_PER_BIT	 2
+>> +#define IR_RC5_MIN_BIT	36
+>> +#define IR_RC5_MAX_BIT	52
+>> +static u32 smi_decode_rc5(u8 *pData, u8 size)
+>> +{
+>> +	u8 index, current_bit, bit_count;
+>> +	u8 group_array[BITS_PER_COMMAND * GROUPS_PER_BIT + 4];
+>> +	u8 group_index = 0;
+>> +	u32 command = 0xFFFFFFFF;
+>> +
+>> +	group_array[group_index++] = 1;
+>> +
+>> +	for (index = 0; index < size; index++) {
+>> +
+>> +		current_bit = (pData[index] & 0x80) ? 1 : 0;
+>> +		bit_count = pData[index] & 0x7f;
+>> +
+>> +		if ((current_bit == 1) && (bit_count >= 2*IR_RC5_MAX_BIT + 1)) {
+>> +			goto process_code;
+>> +		} else if ((bit_count >= IR_RC5_MIN_BIT) &&
+>> +			   (bit_count <= IR_RC5_MAX_BIT)) {
+>> +				group_array[group_index++] = current_bit;
+>> +		} else if ((bit_count > IR_RC5_MAX_BIT) &&
+>> +			   (bit_count <= 2*IR_RC5_MAX_BIT)) {
+>> +				group_array[group_index++] = current_bit;
+>> +				group_array[group_index++] = current_bit;
+>> +		} else {
+>> +			goto invalid_timing;
+>> +		}
+>> +		if (group_index >= BITS_PER_COMMAND*GROUPS_PER_BIT)
+>> +			goto process_code;
+>> +
+>> +		 if ((group_index == BITS_PER_COMMAND*GROUPS_PER_BIT - 1)
+>> +			&& (group_array[group_index-1] == 0)) {
+>> +			group_array[group_index++] = 1;
+>> +			goto process_code;
+>> +		}
+>> +	}
+>> +
+>> +process_code:
+>> +	if (group_index == (BITS_PER_COMMAND*GROUPS_PER_BIT-1))
+>> +		group_array[group_index++] = 1;
+>> +
+>> +	if (group_index == BITS_PER_COMMAND*GROUPS_PER_BIT) {
+>> +		command = 0;
+>> +		for (index = 0; index < (BITS_PER_COMMAND*GROUPS_PER_BIT);
+>> +		     index = index + 2) {
+>> +			if ((group_array[index] == 1) &&
+>> +			    (group_array[index+1] == 0)) {
+>> +				command |= (1 << (BITS_PER_COMMAND -
+>> +						   (index/2) - 1));
+>> +			} else if ((group_array[index] == 0) &&
+>> +				   (group_array[index+1] == 1)) {
+>> +				/* */
+>> +
+>> +			} else {
+>> +				command = 0xFFFFFFFF;
+>> +				goto invalid_timing;
+>> +			}
+>> +		}
+>> +	}
+>> +
+>> +invalid_timing:
+>> +	return command;
+>> +}
+>> +
+>> +static void smi_ir_decode(struct work_struct *work)
+>> +{
+>> +	struct smi_rc *ir = container_of(work, struct smi_rc, work);
+>> +	struct smi_dev *dev = ir->dev;
+>> +	struct rc_dev *rc_dev = ir->rc_dev;
+>> +	u32 dwIRControl, dwIRData, dwIRCode, scancode;
+>> +	u8 index, ucIRCount, readLoop, rc5_command, rc5_system, toggle;
+>> +
+>> +	dwIRControl = smi_read(IR_Init_Reg);
+>> +	if (dwIRControl & rbIRVld) {
+>> +		ucIRCount = (u8) smi_read(IR_Data_Cnt);
+>> +
+>> +		if (ucIRCount < 4)
+>> +			goto end_ir_decode;
+>> +
+>> +		readLoop = ucIRCount/4;
+>> +		if (ucIRCount % 4)
+>> +			readLoop += 1;
+>> +		for (index = 0; index < readLoop; index++) {
+>> +			dwIRData = smi_read(IR_DATA_BUFFER_BASE + (index*4));
+>> +
+>> +			ir->irData[index*4 + 0] = (u8)(dwIRData);
+>> +			ir->irData[index*4 + 1] = (u8)(dwIRData >> 8);
+>> +			ir->irData[index*4 + 2] = (u8)(dwIRData >> 16);
+>> +			ir->irData[index*4 + 3] = (u8)(dwIRData >> 24);
+>> +		}
+>> +		dwIRCode = smi_decode_rc5(ir->irData, ucIRCount);
+>> +
+>> +		if (dwIRCode != 0xFFFFFFFF) {
+>> +			rc5_command = dwIRCode & 0x3F;
+>> +			rc5_system = (dwIRCode & 0x7C0) >> 6;
+>> +			toggle = (dwIRCode & 0x800) ? 1 : 0;
+>> +			scancode = rc5_system << 8 | rc5_command;
+>> +			rc_keydown(rc_dev, RC_TYPE_RC5, scancode, toggle);
+>> +		}
+>> +	}
+>> +end_ir_decode:
+>> +	smi_set(IR_Init_Reg, 0x04);
+>> +	smi_ir_enableInterrupt(ir);
+>> +}
+>> +
+>> +/* ir functions call by main driver.*/
+>> +int smi_ir_irq(struct smi_rc *ir, u32 int_status)
+>> +{
+>> +	int handled = 0;
+>> +
+>> +	if (int_status & IR_X_INT) {
+>> +		smi_ir_disableInterrupt(ir);
+>> +		smi_ir_clearInterrupt(ir);
+>> +		schedule_work(&ir->work);
+>> +		handled = 1;
+>> +	}
+>> +	return handled;
+>> +}
+>> +
+>> +void smi_ir_start(struct smi_rc *ir)
+>> +{
+>> +	struct smi_dev *dev = ir->dev;
+>> +
+>> +	smi_write(IR_Idle_Cnt_Low, 0x00140070);
+>> +	msleep(20);
+>> +	smi_set(IR_Init_Reg, 0x90);
+>> +
+>> +	smi_ir_enableInterrupt(ir);
+>> +}
+>> +
+>> +int smi_ir_init(struct smi_dev *dev)
+>> +{
+>> +	int ret;
+>> +	struct rc_dev *rc_dev;
+>> +	struct smi_rc *ir = &dev->ir;
+>> +
+>> +	rc_dev = rc_allocate_device();
+>> +	if (!rc_dev)
+>> +		return -ENOMEM;
+>> +
+>> +	/* init input device */
+>> +	snprintf(ir->input_name, sizeof(ir->input_name), "IR (%s)",
+>> +		 dev->info->name);
+>> +	snprintf(ir->input_phys, sizeof(ir->input_phys), "pci-%s/ir0",
+>> +		 pci_name(dev->pci_dev));
+>> +
+>> +	rc_dev->driver_name = "SMI_PCIe";
+>> +	rc_dev->input_phys = ir->input_phys;
+>> +	rc_dev->input_name = ir->input_name;
+>> +	rc_dev->input_id.bustype = BUS_PCI;
+>> +	rc_dev->input_id.version = 1;
+>> +	rc_dev->input_id.vendor = dev->pci_dev->subsystem_vendor;
+>> +	rc_dev->input_id.product = dev->pci_dev->subsystem_device;
+>> +	rc_dev->dev.parent = &dev->pci_dev->dev;
+>> +
+>> +	rc_dev->driver_type = RC_DRIVER_SCANCODE;
+>> +	rc_dev->map_name = RC_MAP_DVBSKY;
+>> +
+>> +	ir->rc_dev = rc_dev;
+>> +	ir->dev = dev;
+>> +
+>> +	INIT_WORK(&ir->work, smi_ir_decode);
+>> +	smi_ir_disableInterrupt(ir);
+>> +
+>> +	ret = rc_register_device(rc_dev);
+>> +	if (ret)
+>> +		goto ir_err;
+>> +
+>> +	return 0;
+>> +ir_err:
+>> +	rc_free_device(rc_dev);
+>> +	return ret;
+>> +}
+>> +
+>> +void smi_ir_exit(struct smi_dev *dev)
+>> +{
+>> +	struct smi_rc *ir = &dev->ir;
+>> +	struct rc_dev *rc_dev = ir->rc_dev;
+>> +
+>> +	smi_ir_stop(ir);
+>> +	rc_unregister_device(rc_dev);
+>> +	ir->rc_dev = NULL;
+>> +}
+>> diff --git a/drivers/media/pci/smipcie/smipcie.c b/drivers/media/pci/smipcie/smipcie-main.c
+>> similarity index 99%
+>> rename from drivers/media/pci/smipcie/smipcie.c
+>> rename to drivers/media/pci/smipcie/smipcie-main.c
+>> index 36c8ed7..88f3268 100644
+>> --- a/drivers/media/pci/smipcie/smipcie.c
+>> +++ b/drivers/media/pci/smipcie/smipcie-main.c
+>> @@ -472,6 +472,7 @@ static irqreturn_t smi_irq_handler(int irq, void *dev_id)
+>>  
+>>  	u32 intr_status = smi_read(MSI_INT_STATUS);
+>>  
+>> +	struct smi_rc *ir = &dev->ir;
+>>  	/* ts0 interrupt.*/
+>>  	if (dev->info->ts_0)
+>>  		handled += smi_port_irq(port0, intr_status);
+>> @@ -484,6 +485,9 @@ static irqreturn_t smi_irq_handler(int irq, void *dev_id)
+>>  }
+>>  
+>>  static struct i2c_client *smi_add_i2c_client(struct i2c_adapter *adapter,
+>> +	/* ir interrupt.*/
+>> +	handled += smi_ir_irq(ir, intr_status);
+>> +
+>>  			struct i2c_board_info *info)
+>>  {
+>>  	struct i2c_client *client;
+>> @@ -994,6 +998,10 @@ static int smi_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>>  			goto err_del_port0_attach;
+>>  	}
+>>  
+>> +	ret = smi_ir_init(dev);
+>> +	if (ret < 0)
+>> +		goto err_del_port1_attach;
+>> +
+>>  #ifdef CONFIG_PCI_MSI /* to do msi interrupt.???*/
+>>  	if (pci_msi_enabled())
+>>  		ret = pci_enable_msi(dev->pci_dev);
+>> @@ -1004,10 +1012,13 @@ static int smi_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>>  	ret = request_irq(dev->pci_dev->irq, smi_irq_handler,
+>>  			   IRQF_SHARED, "SMI_PCIE", dev);
+>>  	if (ret < 0)
+>> -		goto err_del_port1_attach;
+>> +		goto err_del_ir;
+>>  
+>> +	smi_ir_start(&dev->ir);
+>>  	return 0;
+>>  
+>> +err_del_ir:
+>> +	smi_ir_exit(dev);
+>>  err_del_port1_attach:
+>>  	if (dev->info->ts_1)
+>>  		smi_port_detach(&dev->ts_port[1]);
+>> @@ -1016,6 +1027,7 @@ err_del_port0_attach:
+>>  		smi_port_detach(&dev->ts_port[0]);
+>>  err_del_i2c_adaptor:
+>>  	smi_i2c_exit(dev);
+>> +	smi_ir_exit(dev);
 
-This patch, however, needs to wait for the Kernel patch to be acked, and
-may be modified, depending on the review process.
+no need to do "smi_ir_exit" again.
+It should place in "static void smi_remove(struct pci_dev *pdev)" function.
 
-I'll mark it at patchwork as RFC. Please re-submit after we merge the
-Kernel changes.
+>>  err_pci_iounmap:
+>>  	iounmap(dev->lmmio);
+>>  err_kfree:
+>> diff --git a/drivers/media/pci/smipcie/smipcie.h b/drivers/media/pci/smipcie/smipcie.h
+>> index 10cdf20..68cdda2 100644
+>> --- a/drivers/media/pci/smipcie/smipcie.h
+>> +++ b/drivers/media/pci/smipcie/smipcie.h
+>> @@ -234,6 +234,17 @@ struct smi_cfg_info {
+>>  	int fe_1;
+>>  };
+>>  
+>> +struct smi_rc {
+>> +	struct smi_dev *dev;
+>> +	struct rc_dev *rc_dev;
+>> +	char input_phys[64];
+>> +	char input_name[64];
+>> +	struct work_struct work;
+>> +	u8 irData[256];
+>> +
+>> +	int users;
+>> +};
+>> +
+>>  struct smi_port {
+>>  	struct smi_dev *dev;
+>>  	int idx;
+>> @@ -284,6 +295,9 @@ struct smi_dev {
+>>  	/* i2c */
+>>  	struct i2c_adapter i2c_bus[2];
+>>  	struct i2c_algo_bit_data i2c_bit[2];
+>> +
+>> +	/* ir */
+>> +	struct smi_rc ir;
+>>  };
+>>  
+>>  #define smi_read(reg)             readl(dev->lmmio + ((reg)>>2))
+>> @@ -296,4 +310,9 @@ struct smi_dev {
+>>  #define smi_set(reg, bit)          smi_andor((reg), (bit), (bit))
+>>  #define smi_clear(reg, bit)        smi_andor((reg), (bit), 0)
+>>  
+>> +int smi_ir_irq(struct smi_rc *ir, u32 int_status);
+>> +void smi_ir_start(struct smi_rc *ir);
+>> +void smi_ir_exit(struct smi_dev *dev);
+>> +int smi_ir_init(struct smi_dev *dev);
+>> +
+>>  #endif /* #ifndef _SMI_PCIE_H_ */
 
-Thanks,
-Mauro
-
-> 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  utils/keytable/keytable.c |  288 ++++++++++++++++++++++++++++++++-------------
->  1 file changed, 202 insertions(+), 86 deletions(-)
-> 
-> diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-> index 63eea2e..fd50095 100644
-> --- a/utils/keytable/keytable.c
-> +++ b/utils/keytable/keytable.c
-> @@ -55,13 +55,22 @@ struct input_keymap_entry_v2 {
->  #define EVIOCSKEYCODE_V2	_IOW('E', 0x04, struct input_keymap_entry_v2)
->  #endif
->  
-> -struct keytable_entry {
-> -	u_int32_t scancode;
-> -	u_int32_t keycode;
-> -	struct keytable_entry *next;
-> +struct rc_scancode {
-> +	u_int16_t protocol;
-> +	u_int16_t reserved[3];
-> +	u_int64_t scancode;
->  };
->  
-> -struct keytable_entry *keytable = NULL;
-> +struct rc_keymap_entry {
-> +	u_int8_t  flags;
-> +	u_int8_t  len;
-> +	u_int16_t index;
-> +	u_int32_t keycode;
-> +	union {
-> +		struct rc_scancode rc;
-> +		u_int8_t raw[32];
-> +	};
-> +};
->  
->  struct uevents {
->  	char		*key;
-> @@ -109,41 +118,76 @@ enum sysfs_protocols {
->  	SYSFS_INVALID		= 0,
->  };
->  
-> +enum kernel_protocol {
-> +	KERN_UNKNOWN		= 0,    /* Protocol not known */
-> +	KERN_OTHER		= 1,    /* Protocol known but proprietary */
-> +	KERN_LIRC		= 2,    /* Pass raw IR to lirc userspace */
-> +	KERN_RC5		= 3,    /* Philips RC5 protocol */
-> +	KERN_RC5X		= 4,    /* Philips RC5x protocol */
-> +	KERN_RC5_SZ		= 5,    /* StreamZap variant of RC5 */
-> +	KERN_JVC		= 6,    /* JVC protocol */
-> +	KERN_SONY12		= 7,    /* Sony 12 bit protocol */
-> +	KERN_SONY15		= 8,    /* Sony 15 bit protocol */
-> +	KERN_SONY20		= 9,    /* Sony 20 bit protocol */
-> +	KERN_NEC		= 10,   /* NEC protocol */
-> +	KERN_SANYO		= 11,   /* Sanyo protocol */
-> +	KERN_MCE_KBD		= 12,   /* RC6-ish MCE keyboard/mouse */
-> +	KERN_RC6_0		= 13,   /* Philips RC6-0-16 protocol */
-> +	KERN_RC6_6A_20		= 14,   /* Philips RC6-6A-20 protocol */
-> +	KERN_RC6_6A_24		= 15,   /* Philips RC6-6A-24 protocol */
-> +	KERN_RC6_6A_32		= 16,   /* Philips RC6-6A-32 protocol */
-> +	KERN_RC6_MCE		= 17,   /* MCE (Philips RC6-6A-32 subtype) protocol */
-> +	KERN_SHARP		= 18,   /* Sharp protocol */
-> +	KERN_XMP		= 19,   /* XMP protocol */
-> +	KERN_INVALID		= 31,	/* internal, no real protocol number */
-> +};
-> +
->  struct protocol_map_entry {
->  	const char *name;
->  	const char *sysfs1_name;
->  	enum sysfs_protocols sysfs_protocol;
-> +	enum kernel_protocol kernel_protocol;
->  };
->  
->  const struct protocol_map_entry protocol_map[] = {
-> -	{ "unknown",	NULL,		SYSFS_UNKNOWN	},
-> -	{ "other",	NULL,		SYSFS_OTHER	},
-> -	{ "lirc",	NULL,		SYSFS_LIRC	},
-> -	{ "rc-5",	"/rc5_decoder",	SYSFS_RC5	},
-> -	{ "rc5",	NULL,		SYSFS_RC5	},
-> -	{ "rc-5x",	NULL,		SYSFS_INVALID	},
-> -	{ "rc5x",	NULL,		SYSFS_INVALID	},
-> -	{ "jvc",	"/jvc_decoder",	SYSFS_JVC	},
-> -	{ "sony",	"/sony_decoder",SYSFS_SONY	},
-> -	{ "sony12",	NULL,		SYSFS_INVALID	},
-> -	{ "sony15",	NULL,		SYSFS_INVALID	},
-> -	{ "sony20",	NULL,		SYSFS_INVALID	},
-> -	{ "nec",	"/nec_decoder",	SYSFS_NEC	},
-> -	{ "sanyo",	NULL,		SYSFS_SANYO	},
-> -	{ "mce-kbd",	NULL,		SYSFS_MCE_KBD	},
-> -	{ "mce_kbd",	NULL,		SYSFS_MCE_KBD	},
-> -	{ "rc-6",	"/rc6_decoder",	SYSFS_RC6	},
-> -	{ "rc6",	NULL,		SYSFS_RC6	},
-> -	{ "rc-6-0",	NULL,		SYSFS_INVALID	},
-> -	{ "rc-6-6a-20",	NULL,		SYSFS_INVALID	},
-> -	{ "rc-6-6a-24",	NULL,		SYSFS_INVALID	},
-> -	{ "rc-6-6a-32",	NULL,		SYSFS_INVALID	},
-> -	{ "rc-6-mce",	NULL,		SYSFS_INVALID	},
-> -	{ "sharp",	NULL,		SYSFS_SHARP	},
-> -	{ "xmp",	"/xmp_decoder",	SYSFS_XMP	},
-> -	{ NULL,		NULL,		SYSFS_INVALID	},
-> +	{ "unknown",	NULL,		SYSFS_UNKNOWN,	KERN_UNKNOWN	},
-> +	{ "other",	NULL,		SYSFS_OTHER,	KERN_OTHER	},
-> +	{ "lirc",	NULL,		SYSFS_LIRC,	KERN_LIRC	},
-> +	{ "rc-5",	"/rc5_decoder",	SYSFS_RC5,	KERN_RC5	},
-> +	{ "rc5",	NULL,		SYSFS_RC5,	KERN_RC5	},
-> +	{ "rc-5x",	NULL,		SYSFS_INVALID,	KERN_RC5X	},
-> +	{ "rc5x",	NULL,		SYSFS_INVALID,	KERN_RC5X	},
-> +	{ "jvc",	"/jvc_decoder",	SYSFS_JVC,	KERN_JVC	},
-> +	{ "sony",	"/sony_decoder",SYSFS_SONY,	KERN_INVALID	},
-> +	{ "sony12",	NULL,		SYSFS_INVALID,	KERN_SONY12	},
-> +	{ "sony15",	NULL,		SYSFS_INVALID,	KERN_SONY15	},
-> +	{ "sony20",	NULL,		SYSFS_INVALID,	KERN_SONY20	},
-> +	{ "nec",	"/nec_decoder",	SYSFS_NEC,	KERN_NEC	},
-> +	{ "sanyo",	NULL,		SYSFS_SANYO,	KERN_SANYO	},
-> +	{ "mce-kbd",	NULL,		SYSFS_MCE_KBD,	KERN_MCE_KBD	},
-> +	{ "mce_kbd",	NULL,		SYSFS_MCE_KBD,	KERN_MCE_KBD	},
-> +	{ "rc-6",	"/rc6_decoder",	SYSFS_RC6,	KERN_INVALID	},
-> +	{ "rc6",	NULL,		SYSFS_RC6,	KERN_INVALID 	},
-> +	{ "rc-6-0",	NULL,		SYSFS_INVALID,	KERN_RC6_0	},
-> +	{ "rc-6-6a-20",	NULL,		SYSFS_INVALID,	KERN_RC6_6A_20	},
-> +	{ "rc-6-6a-24",	NULL,		SYSFS_INVALID,	KERN_RC6_6A_24	},
-> +	{ "rc-6-6a-32",	NULL,		SYSFS_INVALID,	KERN_RC6_6A_32	},
-> +	{ "rc-6-mce",	NULL,		SYSFS_INVALID,	KERN_RC6_MCE	},
-> +	{ "sharp",	NULL,		SYSFS_SHARP,	KERN_SHARP	},
-> +	{ "xmp",	"/xmp_decoder",	SYSFS_XMP,	KERN_XMP	},
-> +	{ NULL,		NULL,		SYSFS_INVALID,	KERN_INVALID	},
-> +};
-> +
-> +struct keytable_entry {
-> +	u_int32_t scancode;
-> +	u_int32_t keycode;
-> +	enum kernel_protocol protocol;
-> +	struct keytable_entry *next;
->  };
->  
-> +struct keytable_entry *keytable = NULL;
-> +
-> +
->  static enum sysfs_protocols parse_sysfs_protocol(const char *name, bool all_allowed)
->  {
->  	const struct protocol_map_entry *pme;
-> @@ -162,6 +206,21 @@ static enum sysfs_protocols parse_sysfs_protocol(const char *name, bool all_allo
->  	return SYSFS_INVALID;
->  }
->  
-> +static enum kernel_protocol parse_kernel_protocol(const char *name)
-> +{
-> +	const struct protocol_map_entry *pme;
-> +
-> +	if (!name)
-> +		return KERN_INVALID;
-> +
-> +	for (pme = protocol_map; pme->name; pme++) {
-> +		if (!strcasecmp(name, pme->name))
-> +			return pme->kernel_protocol;
-> +	}
-> +
-> +	return KERN_INVALID;
-> +}
-> +
->  static void write_sysfs_protocols(enum sysfs_protocols protocols, FILE *fp, const char *fmt)
->  {
->  	const struct protocol_map_entry *pme;
-> @@ -197,6 +256,7 @@ static const char doc[] = N_(
->  	"  SYSDEV   - the ir class as found at /sys/class/rc\n"
->  	"  TABLE    - a file with a set of scancode=keycode value pairs\n"
->  	"  SCANKEY  - a set of scancode1=keycode1,scancode2=keycode2.. value pairs\n"
-> +	"             or (experimentally) a list of protocol1:scancode1=keycode1,protocol2:scancode2=keycode2...triplets\n"
->  	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc,\n"
->  	"                            sharp, mce_kbd, xmp, other, all) to be enabled\n"
->  	"  DELAY    - Delay before repeating a keystroke\n"
-> @@ -447,7 +507,6 @@ err_einval:
->  static error_t parse_opt(int k, char *arg, struct argp_state *state)
->  {
->  	char *p;
-> -	long key;
->  	int rc;
->  
->  	switch (k) {
-> @@ -492,51 +551,69 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
->  		break;
->  	}
->  	case 'k':
-> -		p = strtok(arg, ":=");
-> -		do {
-> +		for (p = strtok(arg, ",;"); p; p = strtok(NULL, ",;")) {
-> +			char *protocol_str;
-> +			enum kernel_protocol protocol = KERN_INVALID;
-> +			long long int scancode;
-> +			char *keycode_str;
-> +			long keycode;
->  			struct keytable_entry *ke;
->  
-> -			if (!p)
-> -				goto err_inval;
-> -
-> -			ke = calloc(1, sizeof(*ke));
-> -			if (!ke) {
-> -				perror(_("No memory!\n"));
-> -				return ENOMEM;
-> +			errno = 0;
-> +			/* New format - protocol:scancode=keycode */
-> +			if (sscanf(p, " %m[^:] : %lli = %ms", &protocol_str, &scancode, &keycode_str) != 3) {
-> +			       if (errno != 0) {
-> +				       fprintf(stderr, _("sscanf failed!\n"));
-> +				       return errno;
-> +			       }
-> +
-> +			       /* Old format - scancode=keycode */
-> +			       protocol_str = NULL;
-> +			       if (sscanf(p, " %lli = %ms", &scancode, &keycode_str) != 2) {
-> +				       if (errno != 0) {
-> +					       fprintf(stderr, _("sscanf failed!\n"));
-> +					       return errno;
-> +				       }
-> +				       goto err_inval;
-> +			       }
->  			}
->  
-> -			ke->scancode = strtoul(p, NULL, 0);
-> -			if (errno) {
-> -				free(ke);
-> -				goto err_inval;
-> +			keycode = parse_code(keycode_str);
-> +			if (keycode == -1) {
-> +				errno = 0;
-> +				keycode = strtoul(keycode_str, NULL, 0);
-> +				if (errno)
-> +					keycode = -1;
->  			}
-> +			free(keycode_str);
->  
-> -			p = strtok(NULL, ",;");
-> -			if (!p) {
-> -				free(ke);
-> -				goto err_inval;
-> -			}
-> +			if (protocol_str) {
-> +				protocol = parse_kernel_protocol(protocol_str);
-> +				free(protocol_str);
->  
-> -			key = parse_code(p);
-> -			if (key == -1) {
-> -				key = strtol(p, NULL, 0);
-> -				if (errno) {
-> -					free(ke);
-> +				if (protocol == KERN_INVALID)
->  					goto err_inval;
-> -				}
->  			}
->  
-> -			ke->keycode = key;
-> +			if (keycode == -1 || scancode < 0)
-> +				goto err_inval;
->  
-> -			if (debug)
-> -				fprintf(stderr, _("scancode 0x%04x=%u\n"),
-> -					ke->scancode, ke->keycode);
-> +			ke = calloc(1, sizeof(*ke));
-> +			if (!ke) {
-> +				perror(_("No memory!\n"));
-> +				return ENOMEM;
-> +			}
->  
-> +			ke->scancode = scancode;
-> +			ke->keycode = keycode;
-> +			ke->protocol = protocol;
->  			ke->next = keytable;
->  			keytable = ke;
->  
-> -			p = strtok(NULL, ":=");
-> -		} while (p);
-> +			if (debug)
-> +				fprintf(stderr, _("scancode %i:0x%04x=%u\n"),
-> +					ke->protocol, ke->scancode, ke->keycode);
-> +		}
->  		break;
->  	case 'p':
->  		for (p = strtok(arg, ",;"); p; p = strtok(NULL, ",;")) {
-> @@ -579,21 +656,24 @@ static struct argp argp = {
->  	.doc = doc,
->  };
->  
-> -static void prtcode(int *codes)
-> +static void print_mapping(enum kernel_protocol protocol, unsigned scancode, unsigned keycode)
->  {
->  	struct parse_event *p;
->  
-> +	if (protocol != KERN_INVALID)
-> +		printf(_("protocol 0x%04x, "), protocol);
-> +
->  	for (p = key_events; p->name != NULL; p++) {
-> -		if (p->value == (unsigned)codes[1]) {
-> -			printf(_("scancode 0x%04x = %s (0x%02x)\n"), codes[0], p->name, codes[1]);
-> +		if (p->value == keycode) {
-> +			printf(_("scancode 0x%04x = %s (0x%02x)\n"), scancode, p->name, keycode);
->  			return;
->  		}
->  	}
->  
-> -	if (isprint (codes[1]))
-> -		printf(_("scancode 0x%04x = '%c' (0x%02x)\n"), codes[0], codes[1], codes[1]);
-> +	if (isprint(keycode))
-> +		printf(_("scancode 0x%04x = '%c' (0x%02x)\n"), scancode, keycode, keycode);
->  	else
-> -		printf(_("scancode 0x%04x = 0x%02x\n"), codes[0], codes[1]);
-> +		printf(_("scancode 0x%04x = 0x%02x\n"), scancode, keycode);
->  }
->  
->  static void free_names(struct sysfs_names *names)
-> @@ -1201,12 +1281,30 @@ static int add_keys(int fd)
->  	int write_cnt = 0;
->  	struct keytable_entry *ke;
->  	unsigned codes[2];
-> +	struct rc_keymap_entry rke;
->  
->  	for (ke = keytable; ke; ke = ke->next) {
->  		write_cnt++;
->  		if (debug)
-> -			fprintf(stderr, "\t%04x=%04x\n",
-> -				ke->scancode, ke->keycode);
-> +			fprintf(stderr, "\t%u:%04x=%04x\n",
-> +				ke->protocol, ke->scancode, ke->keycode);
-> +
-> +		if (ke->protocol != KERN_INVALID) {
-> +			memset(&rke, '\0', sizeof(rke));
-> +			rke.len = sizeof(rke.rc);
-> +			rke.keycode = ke->keycode;
-> +			rke.rc.protocol = ke->protocol;
-> +			rke.rc.scancode = ke->scancode;
-> +
-> +			if (debug)
-> +				fprintf(stderr, _("Attempting new EVIOCSKEYCODE_V2 ioctl\n"));
-> +
-> +			if (ioctl(fd, EVIOCSKEYCODE_V2, &rke) == 0)
-> +				continue;
-> +
-> +			if (debug)
-> +				fprintf(stderr, _("New EVIOCSKEYCODE_V2 ioctl failed\n"));
-> +		}
->  
->  		codes[0] = ke->scancode;
->  		codes[1] = ke->keycode;
-> @@ -1329,7 +1427,7 @@ static void display_table_v1(struct rc_device *rc_dev, int fd)
->  			if (ioctl(fd, EVIOCGKEYCODE, codes) == -1)
->  				perror("EVIOCGKEYCODE");
->  			else if (codes[1] != KEY_RESERVED)
-> -				prtcode(codes);
-> +				print_mapping(KERN_INVALID, codes[0], codes[1]);
->  		}
->  	}
->  	display_proto(rc_dev);
-> @@ -1337,27 +1435,45 @@ static void display_table_v1(struct rc_device *rc_dev, int fd)
->  
->  static void display_table_v2(struct rc_device *rc_dev, int fd)
->  {
-> +	struct input_keymap_entry_v2 ike;
-> +	struct rc_keymap_entry rke;
-> +	bool first = true, rke_supported = true;
-> +	u_int32_t scancode;
->  	int i;
-> -	struct input_keymap_entry_v2 entry;
-> -	int codes[2];
->  
-> -	memset(&entry, '\0', sizeof(entry));
-> -	i = 0;
-> -	do {
-> -		entry.flags = KEYMAP_BY_INDEX;
-> -		entry.index = i;
-> -		entry.len = sizeof(u_int32_t);
-> +	for (i = 0; ; i++) {
-> +		if (first || rke_supported) {
-> +			memset(&rke, '\0', sizeof(rke));
-> +			rke.flags = KEYMAP_BY_INDEX;
-> +			rke.index = i;
-> +			rke.len = sizeof(rke.rc);
->  
-> -		if (ioctl(fd, EVIOCGKEYCODE_V2, &entry) == -1)
-> +			if (ioctl(fd, EVIOCGKEYCODE_V2, &rke) == -1) {
-> +				if (first)
-> +					rke_supported = false;
-> +				else
-> +					break;
-> +			}
-> +
-> +			first = false;
-> +			if (rke_supported) {
-> +				print_mapping(rke.rc.protocol, rke.rc.scancode, rke.keycode);
-> +				continue;
-> +			}
-> +		}
-> +
-> +		memset(&ike, '\0', sizeof(ike));
-> +		ike.flags = KEYMAP_BY_INDEX;
-> +		ike.index = i;
-> +		ike.len = sizeof(scancode);
-> +
-> +		if (ioctl(fd, EVIOCGKEYCODE_V2, &ike) == -1)
->  			break;
->  
->  		/* FIXME: Extend it to support scancodes > 32 bits */
-> -		memcpy(&codes[0], entry.scancode, sizeof(codes[0]));
-> -		codes[1] = entry.keycode;
-> -
-> -		prtcode(codes);
-> -		i++;
-> -	} while (1);
-> +		memcpy(&scancode, ike.scancode, sizeof(scancode));
-> +		print_mapping(KERN_INVALID, scancode, ike.keycode);
-> +	}
->  	display_proto(rc_dev);
->  }
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
