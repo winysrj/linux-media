@@ -1,139 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53262 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751097AbbEHM5U (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:35040 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934332AbbEOPk4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 08:57:20 -0400
-Message-ID: <554CB29E.7090509@xs4all.nl>
-Date: Fri, 08 May 2015 14:57:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Fri, 15 May 2015 11:40:56 -0400
+Date: Fri, 15 May 2015 17:40:48 +0200
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Stephen Boyd <sboyd@codeaurora.org>,
+	Mikko Perttunen <mikko.perttunen@kapsi.fi>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Jonathan Corbet <corbet@lwn.net>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?windows-1252?Q?S=F6ren_Brink?= =?windows-1252?Q?mann?=
-	<soren.brinkmann@xilinx.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Paul Walmsley <paul@pwsan.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
 	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 03/18] media controller: use MEDIA_ENT_T_AV_DMA for A/V
- DMA engines
-References: <cover.1431046915.git.mchehab@osg.samsung.com>	<afb84e3d80fc4f6f2465a123012f161b8c29f1c4.1431046915.git.mchehab@osg.samsung.com>	<554CA3DF.9030700@xs4all.nl> <20150508093239.28644ad4@recife.lan>
-In-Reply-To: <20150508093239.28644ad4@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Message-ID: <20150515174048.4a31af49@bbrezillon>
+In-Reply-To: <20150507093702.0b58753d@bbrezillon>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+	<20150507063953.GC32399@codeaurora.org>
+	<20150507093702.0b58753d@bbrezillon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Stephen,
 
-On 05/08/2015 02:32 PM, Mauro Carvalho Chehab wrote:
->>> and may also not be true on embedded devices
->>> that, due to DRM reasons, don't allow writing unencrypted
->>> data on a memory that could be seen by the CPU.
->>
->> This actually might still work by using opaque DMABUF handles. But that's
->> under discussion right now in the Secure Data Path thread.
-> 
-> Well, a DMABUF opaque handler like that actually refers to either a
-> buffer that is shared only between 2 devices or to a device-to-device
-> DMA transfer.
-> 
-> Such dataflow is different than the usual meaning of the video devnode,
-> where the devnode is used to do I/O transfers. So, it may actually 
-> be mapped as a different type of entity.
-> 
-> We'll need to discuss further when we start mapping this via MC.
+Adding Mikko in the loop (after all, he was the one complaining about
+this signed long limitation in the first place, and I forgot to add
+him in the Cc list :-/).
 
-Yes, this is quite theoretical at the moment.
+Mikko, are you okay with the approach proposed by Stephen (adding a
+new method) ?
 
->>> So, we'll eventually need to add another entity for such
->>> bridge chipsets that have a video/vbi/radio device node
->>> associated, but don't have DMA engines on (some) devnodes.
->>>
->>> As, currently, we don't have any such case,
->>
->> ??? Radio devices are exactly that.
-> 
-> I actually meant to say:
-> 
-> 	"As, currently, no driver uses Media Controller on such cases,"
+On Thu, 7 May 2015 09:37:02 +0200
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
 
-Ah, OK. That makes more sense :-)
+> Hi Stephen,
+> 
+> On Wed, 6 May 2015 23:39:53 -0700
+> Stephen Boyd <sboyd@codeaurora.org> wrote:
+> 
+> > On 04/30, Boris Brezillon wrote:
+> > > Clock rates are stored in an unsigned long field, but ->round_rate()
+> > > (which returns a rounded rate from a requested one) returns a long
+> > > value (errors are reported using negative error codes), which can lead
+> > > to long overflow if the clock rate exceed 2Ghz.
+> > > 
+> > > Change ->round_rate() prototype to return 0 or an error code, and pass the
+> > > requested rate as a pointer so that it can be adjusted depending on
+> > > hardware capabilities.
+> > > 
+> > > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > > Tested-by: Heiko Stuebner <heiko@sntech.de>
+> > > Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+> > > Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+> > 
+> > This patch is fairly invasive, and it probably doesn't even
+> > matter for most of these clock providers to be able to round a
+> > rate above 2GHz.
+> 
+> Fair enough.
+> 
+> > I've been trying to remove the .round_rate op
+> > from the framework by encouraging new features via the
+> > .determine_rate op.
+> 
+> Oh, I wasn't aware of that (BTW, that's a good thing).
+> Maybe this should be clearly stated (both in the struct clk_ops
+> kerneldoc header and in Documentation/clk.txt).
+> 
+> > Sadly, we still have to do a flag day and
+> > change all the .determine_rate ops when we want to add things.
+> 
+> Yes, but the number of clk drivers implementing ->determine_rate() is
+> still quite limited compared to those implementing ->round_rate().
+> 
+> > 
+> > What if we changed determine_rate ops to take a struct
+> > clk_determine_info (or some better named structure) instead of
+> > the current list of arguments that it currently takes? Then when
+> > we want to make these sorts of framework wide changes we can just
+> > throw a new member into that structure and be done.
+> 
+> I really like this idea, especially since I was wondering if we could
+> pass other 'clk rate requirements' like the rounding policy (down,
+> closest, up), or the maximum clk inaccuracy.
+> 
+> > 
+> > It doesn't solve the unsigned long to int return value problem
+> > though. We can solve that by gradually introducing a new op and
+> > handling another case in the rounding path. If we can come up
+> > with some good name for that new op like .decide_rate or
+> > something then it makes things nicer in the long run. I like the
+> > name .determine_rate though :/
+
+Okay, if you want a new method, how about this one:
+
+struct clk_adjust_rate_req {
+	/* fields filled by the caller */
+	unsigned long rate; /* rate is updated by the clk driver */
+	unsigned long min;
+	unsigned long max;
+
+	/* fields filled by the clk driver */
+	struct clk_hw *best_parent;
+	unsigned long best_parent_rate;
+
+	/*
+	 * new fields I'd like to add at some point:
+	 * unsigned long max_inaccuracy;
+	 * something about the power consumption constraints :-)
+	 */
+};
+
+int (*adjust_rate)(struct clk_hw *hw, struct clk_adjust_rate_req *req);
 
 > 
->>> let's for now
->>> just rename the device nodes that are associated with a
->>> DMA engine as MEDIA_ENT_T_AV_DMA.
->>>
->>> So,
->>> 	MEDIA_ENT_T_DEVNODE_V4L -> MEDIA_ENT_T_AV_DMA
->>>
->>> PS.: This is not actually true for USB devices, as the
->>> DMA engine is an internal component, as it is up to the
->>> Kernel to strip the stream payload from the URB packages.
->>
->> How about MEDIA_ENT_T_DATA_STREAMING? Or perhaps DATA_IO? Perhaps even just
->> "IO"?
+> Why not changing the ->determine_rate() prototype. As said above, the
+> number of clk drivers implementing this function is still quite
+> limited, and I guess we can have an ack for all of them.
 > 
-> Almost entities do I/O and data streaming (exceptions are flash controller,
-> SEC and similar control subdevices). So, DATA_STREAMING, DATA_IO or IO
-> are a way too generic.
+> > 
+> > The benefit of all this is that we don't have to worry about
+> > finding the random clk providers that get added into other
+> > subsystems and fixing them up. If drivers actually care about
+> > this problem then they'll be fixed to use the proper op. FYI,
+> > last time we updated the function signature of .determine_rate we
+> > broke a couple drivers along the way.
+> > 
+> 
+> Hm, IMHO, adding a new op is not a good thing. I agree that it eases
+> the transition, but ITOH you'll have to live with old/deprecated ops in
+> your clk_ops structure with people introducing new drivers still using
+> the old ops (see the number of clk drivers implementing ->round_rate()
+> instead of ->determine_rate()).
+> 
+> Best Regards,
+> 
+> Boris
+> 
 
-For some of our products we have lots of video nodes that just control the
-receiver or transmitter (and possibly other related blocks), but leave the
-streaming to vendor code where we are forced to use that. So this can be
-a lot more common than you might think, although you won't see that appearing
-in the kernel.
 
-> 
-> DMA is a little bit more restrictive than we wanted.
-> 
-> Actually, I originally named those as MEDIA_ENT_T_AV_BRIDGE, because
-> the hardware component that implements the device->CPU I/O is typically
-> a bridge. But then I went into the drivers, and I noticed that several
-> devices with just one bridge have several different entities for I/O.
-> 
-> So, I ran this script:
-> 	$ git filter-branch -f --msg-filter 'cat && sed s,MEDIA_ENT_T_AV_BRIDGE,MEDIA_ENT_T_AV_DMA,g' origin/patchwork..
-> 	$ git filter-branch -f --tree-filter 'for i in $(git grep -l MEDIA_ENT_T_AV_BRIDGE); do sed s,MEDIA_ENT_T_AV_BRIDGE,MEDIA_ENT_T_AV_DMA,g $i >a && mv a $i; done' origin/patchwork..
-> 
-> To replace the name everywere. Provided that we decide a better name,
-> this can be easily fixable by doing the above scripting.
-> 
-> Perhaps MEDIA_ENT_T_DEV_CPU_AV_IO would be a better name?
-> 
->> That would cover USB as well, and I dislike the use of "AV", since the
->> data might contain other things besides audio and/or video.
-> 
-> True, but how to distinguish such device from an ALSA DEV/CPU IO?
-> 
-> Answering myself, I see one alternative for that... we could use
-> MEDIA_ENT_T_DEV_CPU_IO for all device->CPU I/O devices, and use
-> properties to tell what APIs are valid on such entity. The bad thing
-> is that someone could add multiple "incompatible" APIs at the same
-> device (like ALSA, V4L and DVB - all on the dame sevnode).
-> 
-> I'm running out of ideas here ;)
-> 
-> In the lack of a better name, I would keep MEDIA_ENT_T_AV_DMA, as
-> it is the closest one to what's provided by such entities (or the
-> less wrong one).
 
-See my reply to patch 10/18: I see whether streaming is supported or not as a
-function (or feature) of the entity, just like a subdev entity can be both
-a tuner and a video decoder. I.e. these are properties.
-
-I think the naming issue here shows the problem with your approach. Whereas
-having a 'streaming' property simplifies this IMHO.
-
-Regards,
-
-	Hans
+-- 
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
