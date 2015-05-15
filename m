@@ -1,77 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:33092 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752019AbbEYME2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 08:04:28 -0400
-From: Florian Echtler <floe@butterbrot.org>
-To: hans.verkuil@cisco.com, mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, modin@yuri.at,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv2 3/4] add extra debug output, remove noisy warning
-Date: Mon, 25 May 2015 14:04:15 +0200
-Message-Id: <1432555456-20292-4-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
-References: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:34203 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422749AbbEOMPW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 08:15:22 -0400
+Received: by laat2 with SMTP id t2so116235463laa.1
+        for <linux-media@vger.kernel.org>; Fri, 15 May 2015 05:15:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5555E261.40604@xs4all.nl>
+References: <5555E261.40604@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 15 May 2015 14:15:00 +0200
+Message-ID: <CAPybu_0owo4T1h7_xj9SAtHwfwN=j=ymyyT4EOhyt9dVYD11Aw@mail.gmail.com>
+Subject: Re: [PATCHv2 2/2] DocBook/media: add missing entry for V4L2_PIX_FMT_Y16_BE
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add dev_dbg statements for easier future debugging; also change the warning
-about packet ID mismatches to debug output to avoid flooding the logs. This
-warning is only important in a very specific/rare use case when trying to
-correlate input events with video data.
+For this v2:
 
-Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Acked-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index d860d05..8add986 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -342,7 +342,7 @@ static void sur40_poll(struct input_polled_dev *polldev)
- 		 * instead of at the end.
- 		 */
- 		if (packet_id != header->packet_id)
--			dev_warn(sur40->dev, "packet ID mismatch\n");
-+			dev_dbg(sur40->dev, "packet ID mismatch\n");
- 
- 		packet_blobs = result / sizeof(struct sur40_blob);
- 		dev_dbg(sur40->dev, "received %d blobs\n", packet_blobs);
-@@ -389,6 +389,8 @@ static void sur40_process_video(struct sur40_state *sur40)
- 	list_del(&new_buf->list);
- 	spin_unlock(&sur40->qlock);
- 
-+	dev_dbg(sur40->dev, "buffer acquired\n");
-+
- 	/* retrieve data via bulk read */
- 	result = usb_bulk_msg(sur40->usbdev,
- 			usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
-@@ -416,6 +418,8 @@ static void sur40_process_video(struct sur40_state *sur40)
- 		goto err_poll;
- 	}
- 
-+	dev_dbg(sur40->dev, "header acquired\n");
-+
- 	sgt = vb2_dma_sg_plane_desc(&new_buf->vb, 0);
- 
- 	result = usb_sg_init(&sgr, sur40->usbdev,
-@@ -432,11 +436,14 @@ static void sur40_process_video(struct sur40_state *sur40)
- 		goto err_poll;
- 	}
- 
-+	dev_dbg(sur40->dev, "image acquired\n");
-+
- 	/* mark as finished */
- 	v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
- 	new_buf->vb.v4l2_buf.sequence = sur40->sequence++;
- 	new_buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
- 	vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_DONE);
-+	dev_dbg(sur40->dev, "buffer marked done\n");
- 	return;
- 
- err_poll:
--- 
-1.9.1
 
+Thanks a lot :)
