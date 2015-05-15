@@ -1,140 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:32793 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752288AbbECLHl (ORCPT
+Received: from mx16lb.world4you.com ([81.19.149.126]:56458 "EHLO
+	mx16lb.world4you.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934694AbbEOT4g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 07:07:41 -0400
-Message-ID: <55460172.1040400@xs4all.nl>
-Date: Sun, 03 May 2015 13:07:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Fabien Dessenne <fabien.dessenne@st.com>,
-	linux-media@vger.kernel.org
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 0/3] Add media bdisp driver for stihxxx platforms
-References: <1430150204-22944-1-git-send-email-fabien.dessenne@st.com> <553E630F.40001@xs4all.nl>
-In-Reply-To: <553E630F.40001@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+	Fri, 15 May 2015 15:56:36 -0400
+Message-ID: <1431719790.15566.5.camel@devbase.at>
+Subject: Re: [PATCH] [media] Fix more regressions in some dib0700 based
+ devices
+From: Thomas Reitmayr <treitmayr@devbase.at>
+To: Laura Abbott <labbott@fedoraproject.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Fri, 15 May 2015 21:56:30 +0200
+In-Reply-To: <1431711755-32265-1-git-send-email-labbott@fedoraproject.org>
+References: <1431711755-32265-1-git-send-email-labbott@fedoraproject.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/27/2015 06:25 PM, Hans Verkuil wrote:
-> Hi Fabien,
-> 
-> Thank you for this driver! Good to see V4L2 support for this SoC.
-> 
-> I did a quick initial scan over the driver and there are a few things that
-> need to be addressed:
-> 
-> - I think bdisp as the driver name is a bit generic, perhaps something like
->   stih4xx-bdisp might be more appropriate. Similar to the exynos-* drivers.
-> 
-> - Replace cropcap/g_crop/s_crop by the g/s_selection ioctls. The old ioctls
->   are no longer supported for new drivers (the v4l2 core will automatically
->   add support for those ioctls if g/s_selection is implemented in the driver).
->   Read careful how crop and compose rectangles are used in a m2m device. I
->   would expect that you implement cropping for the BUF_TYPE_VIDEO_OUTPUT side
->   (i.e. memory to hardware) and implement composing for the BUF_TYPE_VIDEO_CAPTURE
->   side (i.e. hardware to memory).
-> 
->   If the hardware also support composition for output or cropping for capture,
->   then let me know: in that case you will likely have to implement support for
->   V4L2_SEL_TGT_NATIVE_SIZE as well.
-> 
-> - Several ioctl and fop helpers were added to media/v4l2-mem2mem.h (e.g.
->   v4l2_m2m_ioctl_reqbufs, v4l2_m2m_fop_mmap, etc.). Use these instead of
->   rolling your own.
+Hi Laura,
+a similar patch (including one more missing initialization) was
+submitted days ago and already sent to linux-stable, see
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg87882.html
+and
+http://article.gmane.org/gmane.linux.kernel.stable/135755
+Best regards,
+-Thomas
 
-Two more comments:
 
-- You can drop the desc field from struct bdisp_format: a patch was merged in
-  media_tree.git that sets the VIDIOC_ENUM_FMT description in the v4l2 core,
-  so it can be dropped from drivers.
-
-- I noticed that you call video_device_release, but you shouldn't since struct
-  video_device is embedded in a larger struct. video_device_release attempts
-  to kfree the video_device, which obviously is wrong. Just remove that call.
-
-Regards,
-
-	Hans
-
+Am Freitag, den 15.05.2015, 10:42 -0700 schrieb Laura Abbott:
+> Several more devices need need to have size_of_priv set, otherwise
+> we oops:
 > 
-> - I would like to see the output of these v4l2-compliance commands:
+>  DVB: registering new adapter (Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity)
+>  BUG: unable to handle kernel NULL pointer dereference at 0000000000000080
+>  IP: [<ffffffffa0669141>] dib7000p_attach+0x11/0xa0 [dib7000p]
+>  PGD 0 
+>  Oops: 0002 [#1] SMP 
+>  Modules linked in: dib7000p dvb_usb_dib0700(+) dib7000m dib0090 dib0070
+>  dib3000mc dibx000_common dvb_usb dvb_core rc_core bnep bluetooth rfkill
+>  ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 xt_conntrack ebtable_nat
+>  ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat
+>  nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security
+>  ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4
+>  nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security
+>  iptable_raw snd_hda_codec_analog snd_hda_codec_generic joydev coretemp kvm
+>  snd_hda_intel iTCO_wdt gpio_ich iTCO_vendor_support ppdev snd_hda_controller
+>  dell_wmi sparse_keymap snd_hda_codec snd_hwdep snd_seq snd_seq_device dcdbas
+>  hid_logitech_hidpp snd_pcm serio_raw lpc_ich mfd_core i2c_i801
+>  snd_timer snd parport_pc soundcore mei_me tpm_tis parport tpm wmi mei shpchp
+>  acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc hid_logitech_dj i915
+>  e1000e i2c_algo_bit video drm_kms_helper drm ptp pps_core ata_generic
+>  pata_acpi
+>  CPU: 0 PID: 23460 Comm: systemd-udevd Not tainted 3.19.5-200.fc21.x86_64 #1
+>  Hardware name: Dell Inc. OptiPlex 760                 /0R230R, BIOS A05 08/17/2009
+>  task: ffff880026e29360 ti: ffff880030b64000 task.ti: ffff880030b64000
+>  RIP: 0010:[<ffffffffa0669141>]  [<ffffffffa0669141>] dib7000p_attach+0x11/0xa0 [dib7000p]
+>  RSP: 0018:ffff880030b679f8  EFLAGS: 00010202
+>  RAX: 0000000000000010 RBX: ffff880047b71278 RCX: 0000000000000001
+>  RDX: 0000000000000000 RSI: ffffffffa06707d8 RDI: 0000000000000010
+>  RBP: ffff880030b679f8 R08: ffffffff81119fe0 R09: 0000000000017840
+>  R10: ffffffff810b07e4 R11: 0000000000000246 R12: 0000000000000000
+>  R13: 0000000000000010 R14: ffff880047b71308 R15: ffff880047b71398
+>  FS:  00007f005f380880(0000) GS:ffff88007c800000(0000) knlGS:0000000000000000
+>  CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+>  CR2: 0000000000000080 CR3: 000000004e38d000 CR4: 00000000000407f0
+>  Stack:
+>  ffff880030b67a28 ffffffffa06430fb ffff880047b71278 ffff880047b71880
+>  ffff880047b71278 0000000000000000 ffff880030b67a68 ffffffffa0626872
+>  ffff880047b70000 0000000000000000 ffff880047b71280 ffff880047b70000
+>  Call Trace:
+>  [<ffffffffa06430fb>] stk7700d_frontend_attach+0x3b/0x200 [dvb_usb_dib0700]
+>  [<ffffffffa0626872>] dvb_usb_adapter_frontend_init+0xe2/0x1a0 [dvb_usb]
+>  [<ffffffffa0625ab7>] dvb_usb_device_init+0x517/0x6f0 [dvb_usb]
+>  [<ffffffffa063f40e>] dib0700_probe+0x6e/0x100 [dvb_usb_dib0700]
+>  [<ffffffff817731e6>] ? mutex_lock+0x16/0x40
+>  [<ffffffff815598fb>] usb_probe_interface+0x1bb/0x300
+>  [<ffffffff814c9e13>] driver_probe_device+0xa3/0x400
+>  [<ffffffff814ca24b>] __driver_attach+0x9b/0xa0
+>  [<ffffffff814ca1b0>] ? __device_attach+0x40/0x40
+>  [<ffffffff814c7ad3>] bus_for_each_dev+0x73/0xc0
+>  [<ffffffff814c987e>] driver_attach+0x1e/0x20
+>  [<ffffffff814c9430>] bus_add_driver+0x180/0x250
+>  [<ffffffff814caa44>] driver_register+0x64/0xf0
+>  [<ffffffff81557ff2>] usb_register_driver+0x82/0x160
+>  [<ffffffffa0663000>] ? 0xffffffffa0663000
+>  [<ffffffffa066301e>] dib0700_driver_init+0x1e/0x1000 [dvb_usb_dib0700]
+>  [<ffffffff81002148>] do_one_initcall+0xd8/0x210
+>  [<ffffffff811fbb59>] ? kmem_cache_alloc_trace+0x1a9/0x230
+>  [<ffffffff8111f053>] ? load_module+0x2203/0x2800
+>  [<ffffffff8111f08b>] load_module+0x223b/0x2800
+>  [<ffffffff8111a810>] ? store_uevent+0x70/0x70
+>  [<ffffffff8111f71d>] SyS_init_module+0xcd/0x120
+>  [<ffffffff817752c9>] system_call_fastpath+0x12/0x17
+>  Code: 8b 87 18 03 00 00 55 48 89 e5 48 05 68 16 00 00 5d c3 0f 1f 84 00 00 00 00 00 66 66 66 66 90 55 48 85 ff 48 89 f8 48 89 e5 74 7f <48> c7 47 70 b0 a9 66 a0 48 c7 47 68 40 9a 66 a0 48 c7 47 30 90 
+>  RIP  [<ffffffffa0669141>] dib7000p_attach+0x11/0xa0 [dib7000p]
+>  RSP <ffff880030b679f8>
+>  CR2: 0000000000000080
+>  ---[ end trace 288814f44b010d3e ]---
 > 
-> 	v4l2-compliance
-> 	v4l2-compliance -s
-> 	v4l2-compliance -f
+> Set it properly.
 > 
->   In all fairness: mem2mem devices are not often tested using v4l2-compliance
->   and there may be problems testing this (-f will likely fail), but I still
->   like to see the output so I know what works and what doesn't.
+> Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+> ---
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
->   Please use the latest v4l2-compliance code from the v4l-utils.git repository.
->   I won't accept the driver unless I see the results of these compliance tests:
->   running this is required for new drivers since it is a great way of verifying
->   the completeness of your driver.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 04/27/2015 05:56 PM, Fabien Dessenne wrote:
->> This series of patches adds the support of v4l2 2D blitter driver for
->> STMicroelectronics SOC.
->>
->> The following features are supported and tested:
->> - Color format conversion (RGB32, RGB24, RGB16, NV12, YUV420P)
->> - Copy
->> - Scale
->> - Flip
->> - Deinterlace
->> - Wide (4K) picture support
->> - Crop
->>
->> This driver uses the v4l2 mem2mem framework and its implementation was largely
->> inspired by the Exynos G-Scaler (exynos-gsc) driver.
->>
->> The driver is mainly implemented across two files:
->> - bdisp-v4l2.c
->> - bdisp-hw.c
->> bdisp-v4l2.c uses v4l2_m2m to manage the V4L2 interface with the userland. It
->> calls the HW services that are implemented in bdisp-hw.c.
->>
->> The additional bdisp-debug.c file manages some debugfs entries.
->>
->> Fabien Dessenne (3):
->>   [media] bdisp: add DT bindings documentation
->>   [media] bdisp: 2D blitter driver using v4l2 mem2mem framework
->>   [media] bdisp: add debug file system
->>
->>  .../devicetree/bindings/media/st,stih4xx.txt       |   32 +
->>  drivers/media/platform/Kconfig                     |   10 +
->>  drivers/media/platform/Makefile                    |    2 +
->>  drivers/media/platform/bdisp/Kconfig               |    9 +
->>  drivers/media/platform/bdisp/Makefile              |    3 +
->>  drivers/media/platform/bdisp/bdisp-debug.c         |  668 +++++++++
->>  drivers/media/platform/bdisp/bdisp-filter.h        |  346 +++++
->>  drivers/media/platform/bdisp/bdisp-hw.c            |  823 +++++++++++
->>  drivers/media/platform/bdisp/bdisp-reg.h           |  235 +++
->>  drivers/media/platform/bdisp/bdisp-v4l2.c          | 1492 ++++++++++++++++++++
->>  drivers/media/platform/bdisp/bdisp.h               |  220 +++
->>  11 files changed, 3840 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/st,stih4xx.txt
->>  create mode 100644 drivers/media/platform/bdisp/Kconfig
->>  create mode 100644 drivers/media/platform/bdisp/Makefile
->>  create mode 100644 drivers/media/platform/bdisp/bdisp-debug.c
->>  create mode 100644 drivers/media/platform/bdisp/bdisp-filter.h
->>  create mode 100644 drivers/media/platform/bdisp/bdisp-hw.c
->>  create mode 100644 drivers/media/platform/bdisp/bdisp-reg.h
->>  create mode 100644 drivers/media/platform/bdisp/bdisp-v4l2.c
->>  create mode 100644 drivers/media/platform/bdisp/bdisp.h
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index d7d55a2..8030670 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -3944,6 +3944,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>  
+>  				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+>  			}},
+> +				.size_of_priv     = sizeof(struct dib0700_adapter_state),
+>  			}, {
+>  			.num_frontends = 1,
+>  			.fe = {{
+> @@ -3956,6 +3957,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+>  
+>  				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
+>  			}},
+> +				.size_of_priv     = sizeof(struct dib0700_adapter_state),
+>  			}
+>  		},
+>  
 
