@@ -1,58 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53965 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752634AbbERT1E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2015 15:27:04 -0400
-Date: Mon, 18 May 2015 16:26:57 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 0/4] Add support for V4L2_PIX_FMT_Y16_BE
-Message-ID: <20150518162657.031a86fc@recife.lan>
-In-Reply-To: <1430726852-11715-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1430726852-11715-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:36789 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933562AbbEOMCn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2015 08:02:43 -0400
+Received: by lagv1 with SMTP id v1so115901825lag.3
+        for <linux-media@vger.kernel.org>; Fri, 15 May 2015 05:02:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1431685897-11153-2-git-send-email-hverkuil@xs4all.nl>
+References: <1431685897-11153-1-git-send-email-hverkuil@xs4all.nl> <1431685897-11153-2-git-send-email-hverkuil@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 15 May 2015 14:02:21 +0200
+Message-ID: <CAPybu_1G7kD-O_xNE=QcqVjftDFsPVmNh-uhnHazTPgnSv3FVg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] DocBook/media: add missing entry for V4L2_PIX_FMT_Y16_BE
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  4 May 2015 10:07:28 +0200
-Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> escreveu:
+Hello Hans
 
-> New pixel format type Y16_BE (16 bits greyscale big-endian).
-> 
-> Once I get the fist feedback on this patch I will send the patches for
-> v4lconvert and qv4l2.
+My bad sorry, I should have send this patch myself.
 
-Hmm...
+Shouldn't it be? :
 
-	Error: no ID for constraint linkend: V4L2-PIX-FMT-Y16-BE.
+00 high
+00 low
+01 high
+01 low
+02 high
+02 low
+03 high
+03 low
 
-Where's the documentation for this new format?
+10 high
+10 low
+11 high
+11 low
+12 high
+12 low
+13 high
+13 low
 
-Regards,
-Mauro
+20 high
+20 low
+21 high
+21 low
+22 high
+22 low
+23 high
+23 low
+
+30 high
+30 low
+31 high
+31 low
+32 high
+32 low
+33 high
+33 low
 
 
-> 
-> 
-> Thanks
-> 
-> Ricardo Ribalda Delgado (4):
->   media/vivid: Add support for Y16 format
->   media/v4l2-core: Add support for V4L2_PIX_FMT_Y16_BE
->   media/vivid: Add support for Y16_BE format
->   media/vivid: Code cleanout
-> 
->  drivers/media/platform/vivid/vivid-tpg.c        | 20 ++++++++++++++++----
->  drivers/media/platform/vivid/vivid-vid-common.c | 16 ++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c            |  1 +
->  include/uapi/linux/videodev2.h                  |  1 +
->  4 files changed, 34 insertions(+), 4 deletions(-)
-> 
+Thanks
+
+
+ps: I am sending the patch for libv4lconvert right away, and the patch
+for qv4l during next week (I havent dont gl before)
