@@ -1,102 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f182.google.com ([209.85.216.182]:33999 "EHLO
-	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbbE1HbU (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:34251 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992579AbbEOVdA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 03:31:20 -0400
-Received: by qcbhb1 with SMTP id hb1so14118626qcb.1
-        for <linux-media@vger.kernel.org>; Thu, 28 May 2015 00:31:19 -0700 (PDT)
+	Fri, 15 May 2015 17:33:00 -0400
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	maxx <maxx@spaceboyz.net>,
+	=?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH] radio-bcm2048: Fix region selection
+Date: Fri, 15 May 2015 23:32:51 +0200
+Message-Id: <1431725571-7417-1-git-send-email-pali.rohar@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1432646768-12532-8-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-	<1432646768-12532-8-git-send-email-peter.ujfalusi@ti.com>
-Date: Thu, 28 May 2015 09:31:19 +0200
-Message-ID: <CAPDyKFpiHz9nePG0D5HzMkuBGcyt7340hWjjn1emqAKZGWoUnA@mail.gmail.com>
-Subject: Re: [PATCH 07/13] mmc: davinci_mmc: Support for deferred probing when
- requesting DMA channels
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-omap <linux-omap@vger.kernel.org>,
-	linux-mmc <linux-mmc@vger.kernel.org>,
-	linux-crypto@vger.kernel.org,
-	"linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26 May 2015 at 15:26, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-> channels. Only fall back to pio mode if the error code returned is not
-> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Ulf Hansson <ulf.hansson@linaro.org>
+From: maxx <maxx@spaceboyz.net>
 
-Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+This actually fixes region selection for BCM2048 FM receiver. To select
+the japanese FM-band an additional bit in FM_CTRL register needs to be
+set. This might not sound so important but it enables at least me to
+listen to some 'very interesting' radio transmission below normal
+FM-band.
 
-Kind regards
-Uffe
+Patch writen by maxx@spaceboyz.net
 
-> ---
->  drivers/mmc/host/davinci_mmc.c | 26 +++++++++++++++-----------
->  1 file changed, 15 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/mmc/host/davinci_mmc.c b/drivers/mmc/host/davinci_mmc.c
-> index b2b3f8bbfd8c..df81e4e2f662 100644
-> --- a/drivers/mmc/host/davinci_mmc.c
-> +++ b/drivers/mmc/host/davinci_mmc.c
-> @@ -530,20 +530,20 @@ static int __init davinci_acquire_dma_channels(struct mmc_davinci_host *host)
->         dma_cap_zero(mask);
->         dma_cap_set(DMA_SLAVE, mask);
->
-> -       host->dma_tx =
-> -               dma_request_slave_channel_compat(mask, edma_filter_fn,
-> -                               &host->txdma, mmc_dev(host->mmc), "tx");
-> -       if (!host->dma_tx) {
-> +       host->dma_tx = dma_request_slave_channel_compat_reason(mask,
-> +                               edma_filter_fn, &host->txdma,
-> +                               mmc_dev(host->mmc), "tx");
-> +       if (IS_ERR(host->dma_tx)) {
->                 dev_err(mmc_dev(host->mmc), "Can't get dma_tx channel\n");
-> -               return -ENODEV;
-> +               return PTR_ERR(host->dma_tx);
->         }
->
-> -       host->dma_rx =
-> -               dma_request_slave_channel_compat(mask, edma_filter_fn,
-> -                               &host->rxdma, mmc_dev(host->mmc), "rx");
-> -       if (!host->dma_rx) {
-> +       host->dma_rx = dma_request_slave_channel_compat_reason(mask,
-> +                               edma_filter_fn, &host->rxdma,
-> +                               mmc_dev(host->mmc), "rx");
-> +       if (IS_ERR(host->dma_rx)) {
->                 dev_err(mmc_dev(host->mmc), "Can't get dma_rx channel\n");
-> -               r = -ENODEV;
-> +               r = PTR_ERR(host->dma_rx);
->                 goto free_master_write;
->         }
->
-> @@ -1307,8 +1307,12 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
->         host->mmc_irq = irq;
->         host->sdio_irq = platform_get_irq(pdev, 1);
->
-> -       if (host->use_dma && davinci_acquire_dma_channels(host) != 0)
-> +       if (host->use_dma) {
-> +               ret = davinci_acquire_dma_channels(host);
-> +               if (ret == -EPROBE_DEFER)
-> +                       goto out;
->                 host->use_dma = 0;
-> +       }
->
->         /* REVISIT:  someday, support IRQ-driven card detection.  */
->         mmc->caps |= MMC_CAP_NEEDS_POLL;
-> --
-> 2.3.5
->
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+Cc: maxx@spaceboyz.net
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index aeb6c3c..1482d4b 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -739,7 +739,20 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&bdev->mutex);
++
+ 	bdev->region_info = region_configs[region];
++
++	bdev->cache_fm_ctrl &= ~BCM2048_BAND_SELECT;
++	if (region > 2) {
++		bdev->cache_fm_ctrl |= BCM2048_BAND_SELECT;
++		err = bcm2048_send_command(bdev, BCM2048_I2C_FM_CTRL,
++					bdev->cache_fm_ctrl);
++		if (err) {
++			mutex_unlock(&bdev->mutex);
++			goto done;
++		}
++	}
++
+ 	mutex_unlock(&bdev->mutex);
+ 
+ 	if (bdev->frequency < region_configs[region].bottom_frequency ||
+-- 
+1.7.9.5
+
