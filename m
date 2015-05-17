@@ -1,88 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56632 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753370AbbEUJDV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57925 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbbEQTnh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:21 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 05/20] media: adv7604: ability to read default input port from DT
-Date: Wed, 20 May 2015 17:39:25 +0100
-Message-Id: <1432139980-12619-6-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Sun, 17 May 2015 15:43:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alex Dowad <alexinbeijing@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	"open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] Clarify expression which uses both multiplication and pointer dereference
+Date: Sun, 17 May 2015 22:43:48 +0300
+Message-ID: <1845070.nZfaVzKiG7@avalon>
+In-Reply-To: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com>
+References: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+Hi Alex,
 
-Adds support to the adv7604 driver for specifying the default input
-port in the Device tree. If no value is provided, the driver will be
-unable to select an input without help from userspace.
+Thank you for the patch.
 
-Tested-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
----
- Documentation/devicetree/bindings/media/i2c/adv7604.txt |    3 +++
- drivers/media/i2c/adv7604.c                             |    8 +++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+On Sunday 17 May 2015 19:18:42 Alex Dowad wrote:
+> This fixes a checkpatch style error in vpfe_buffer_queue_setup.
+> 
+> Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 7eafdbc..8337f75 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -47,6 +47,7 @@ Optional Endpoint Properties:
-   If none of hsync-active, vsync-active and pclk-sample is specified the
-   endpoint will use embedded BT.656 synchronization.
- 
-+  - default-input: Select which input is selected after reset.
- 
- Example:
- 
-@@ -60,6 +61,8 @@ Example:
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
-+		default-input = <0>;
-+
- 		port@0 {
- 			reg = <0>;
- 		};
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index a2abb04..4bde3e1 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2739,6 +2739,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
-+	u32 v;
- 
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
- 
-@@ -2748,6 +2749,12 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+
-+	if (!of_property_read_u32(endpoint, "default-input", &v))
-+		state->pdata.default_input = v;
-+	else
-+		state->pdata.default_input = -1;
-+
- 	of_node_put(endpoint);
- 
- 	flags = bus_cfg.bus.parallel.flags;
-@@ -2786,7 +2793,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	/* Hardcode the remaining platform data fields. */
- 	state->pdata.disable_pwrdnb = 0;
- 	state->pdata.disable_cable_det_rst = 0;
--	state->pdata.default_input = -1;
- 	state->pdata.blank_data = 1;
- 	state->pdata.alt_data_sat = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 06d48d5..04a687c
+> 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -1095,7 +1095,7 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq, const
+> struct v4l2_format *fmt, size = video->fmt.fmt.pix.sizeimage;
+> 
+>  	if (vpfe_dev->video_limit) {
+> -		while (size * *nbuffers > vpfe_dev->video_limit)
+> +		while (size * (*nbuffers) > vpfe_dev->video_limit)
+>  			(*nbuffers)--;
+>  	}
+>  	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
