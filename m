@@ -1,138 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55014 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755552AbbEUTXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 15:23:13 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 4/5] m88ds3103: use jiffies when polling DiSEqC TX ready
-Date: Thu, 21 May 2015 22:22:51 +0300
-Message-Id: <1432236172-13964-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1432236172-13964-1-git-send-email-crope@iki.fi>
-References: <1432236172-13964-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:36650 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992AbbEQRTC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 May 2015 13:19:02 -0400
+From: Alex Dowad <alexinbeijing@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...),
+	devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] Clarify expression which uses both multiplication and pointer dereference
+Date: Sun, 17 May 2015 19:18:42 +0200
+Message-Id: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use jiffies to set timeout for DiSEqC TX ready polling. Using jiffies
-is more elegant solution than looping N times with sleep.
+This fixes a checkpatch style error in vpfe_buffer_queue_setup.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
 ---
- drivers/media/dvb-frontends/m88ds3103.c | 53 +++++++++++++++++++++------------
- 1 file changed, 34 insertions(+), 19 deletions(-)
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 33d8c19..e45641f 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1195,7 +1195,8 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 		struct dvb_diseqc_master_cmd *diseqc_cmd)
- {
- 	struct m88ds3103_priv *priv = fe->demodulator_priv;
--	int ret, i;
-+	int ret;
-+	unsigned long timeout;
- 	u8 u8tmp;
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 06d48d5..04a687c 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1095,7 +1095,7 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 	size = video->fmt.fmt.pix.sizeimage;
  
- 	dev_dbg(&priv->i2c->dev, "%s: msg=%*ph\n", __func__,
-@@ -1226,21 +1227,24 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 	if (ret)
- 		goto err;
- 
--	/* DiSEqC message typical period is 54 ms */
--	usleep_range(40000, 60000);
--
- 	/* wait DiSEqC TX ready */
--	for (i = 20, u8tmp = 1; i && u8tmp; i--) {
--		usleep_range(5000, 10000);
-+	#define SEND_MASTER_CMD_TIMEOUT 120
-+	timeout = jiffies + msecs_to_jiffies(SEND_MASTER_CMD_TIMEOUT);
-+
-+	/* DiSEqC message typical period is 54 ms */
-+	usleep_range(50000, 54000);
- 
-+	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
- 		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
- 		if (ret)
- 			goto err;
+ 	if (vpfe_dev->video_limit) {
+-		while (size * *nbuffers > vpfe_dev->video_limit)
++		while (size * (*nbuffers) > vpfe_dev->video_limit)
+ 			(*nbuffers)--;
  	}
- 
--	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
--
--	if (i == 0) {
-+	if (u8tmp == 0) {
-+		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
-+			jiffies_to_msecs(jiffies) -
-+			(jiffies_to_msecs(timeout) - SEND_MASTER_CMD_TIMEOUT));
-+	} else {
- 		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
- 
- 		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
-@@ -1252,7 +1256,7 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 	if (ret)
- 		goto err;
- 
--	if (i == 0) {
-+	if (u8tmp == 1) {
- 		ret = -ETIMEDOUT;
- 		goto err;
- 	}
-@@ -1267,7 +1271,8 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	fe_sec_mini_cmd_t fe_sec_mini_cmd)
- {
- 	struct m88ds3103_priv *priv = fe->demodulator_priv;
--	int ret, i;
-+	int ret;
-+	unsigned long timeout;
- 	u8 u8tmp, burst;
- 
- 	dev_dbg(&priv->i2c->dev, "%s: fe_sec_mini_cmd=%d\n", __func__,
-@@ -1301,26 +1306,36 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	if (ret)
- 		goto err;
- 
--	/* DiSEqC ToneBurst period is 12.5 ms */
--	usleep_range(11000, 20000);
--
- 	/* wait DiSEqC TX ready */
--	for (i = 5, u8tmp = 1; i && u8tmp; i--) {
--		usleep_range(800, 2000);
-+	#define SEND_BURST_TIMEOUT 40
-+	timeout = jiffies + msecs_to_jiffies(SEND_BURST_TIMEOUT);
-+
-+	/* DiSEqC ToneBurst period is 12.5 ms */
-+	usleep_range(8500, 12500);
- 
-+	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
- 		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
- 		if (ret)
- 			goto err;
- 	}
- 
--	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
-+	if (u8tmp == 0) {
-+		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
-+			jiffies_to_msecs(jiffies) -
-+			(jiffies_to_msecs(timeout) - SEND_BURST_TIMEOUT));
-+	} else {
-+		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
-+
-+		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
-+		if (ret)
-+			goto err;
-+	}
- 
- 	ret = m88ds3103_wr_reg_mask(priv, 0xa2, 0x80, 0xc0);
- 	if (ret)
- 		goto err;
- 
--	if (i == 0) {
--		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
-+	if (u8tmp == 1) {
- 		ret = -ETIMEDOUT;
- 		goto err;
- 	}
+ 	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
 -- 
-http://palosaari.fi/
+2.0.0.GIT
 
