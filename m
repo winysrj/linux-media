@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33107 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbbECNAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2015 09:00:54 -0400
-Received: by lbbzk7 with SMTP id zk7so89637900lbb.0
-        for <linux-media@vger.kernel.org>; Sun, 03 May 2015 06:00:53 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:55997 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750709AbbEQCPU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 May 2015 22:15:20 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v3 5/6] si2168: add I2C error handling
-Date: Sun,  3 May 2015 16:00:22 +0300
-Message-Id: <1430658023-17579-3-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1430658023-17579-1-git-send-email-olli.salonen@iki.fi>
-References: <1430658023-17579-1-git-send-email-olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] DocBook: fix vidioc-qbuf.xml doc validation
+Date: Sun, 17 May 2015 05:14:34 +0300
+Message-Id: <1431828874-8108-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Return error from si2168_cmd_execute in case the demodulator returns an
-error.
+element varlistentry: validity error : Element varlistentry content
+does not follow the DTD, expecting (term+ , listitem), got (term
+listitem term listitem )
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+commit 8cee396bfa77ce3a2e5fe48f597206c1cd547f9c
+[media] DocBook media: document codec draining flow
+breaks document validation. Fix it.
+
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/si2168.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 29a5936..b68ab34 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -60,6 +60,12 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
- 				jiffies_to_msecs(jiffies) -
- 				(jiffies_to_msecs(timeout) - TIMEOUT));
- 
-+		/* error bit set? */
-+		if ((cmd->args[0] >> 6) & 0x01) {
-+			ret = -EREMOTEIO;
-+			goto err_mutex_unlock;
-+		}
-+
- 		if (!((cmd->args[0] >> 7) & 0x01)) {
- 			ret = -ETIMEDOUT;
- 			goto err_mutex_unlock;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+index 6cfc53b..f5cef97 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+@@ -186,6 +186,8 @@ In that case the application should be able to safely reuse the buffer and
+ continue streaming.
+ 	</para>
+ 	</listitem>
++      </varlistentry>
++      <varlistentry>
+ 	<term><errorcode>EPIPE</errorcode></term>
+ 	<listitem>
+ 	  <para><constant>VIDIOC_DQBUF</constant> returns this on an empty
 -- 
-1.9.1
+http://palosaari.fi/
 
