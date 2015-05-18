@@ -1,81 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52943 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754098AbbE2JcL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 05:32:11 -0400
-Date: Fri, 29 May 2015 15:03:17 +0530
-From: Vinod Koul <vinod.koul@intel.com>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dan.j.williams@intel.com,
-	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-Message-ID: <20150529093317.GF3140@localhost>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:33595 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532AbbERIR7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 May 2015 04:17:59 -0400
+Received: by pdbqa5 with SMTP id qa5so139526243pdb.0
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2015 01:17:57 -0700 (PDT)
+Message-ID: <5559A030.4030301@igel.co.jp>
+Date: Mon, 18 May 2015 17:17:52 +0900
+From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+CC: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH/RFC] v4l: vsp1: Align crop rectangle to even boundary
+ for YUV formats
+References: <1430327133-8461-1-git-send-email-ykaneko0929@gmail.com> <5542105A.1010601@cogentembedded.com> <2003077.85RPlhiJ1o@avalon>
+In-Reply-To: <2003077.85RPlhiJ1o@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
-> dma_request_slave_channel_compat() 'eats' up the returned error codes which
-> prevents drivers using the compat call to be able to do deferred probing.
+Hello Laurent,
+
+On 2015-05-04 7:13 AM, Laurent Pinchart wrote:
+> Hello,
 > 
-> The new wrapper is identical in functionality but it will return with error
-> code in case of failure and will pass the -EPROBE_DEFER to the caller in
-> case dma_request_slave_channel_reason() returned with it.
-This is okay but am worried about one more warpper, how about fixing
-dma_request_slave_channel_compat()
+> On Thursday 30 April 2015 14:22:02 Sergei Shtylyov wrote:
+>> On 4/29/2015 8:05 PM, Yoshihiro Kaneko wrote:
+>>> From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+>>>
+>>> Make sure that there are valid values in the crop rectangle to ensure
+>>> that the color plane doesn't get shifted when cropping.
+>>> Since there is no distintion between 12bit and 16bit YUV formats in
+>>
+>> Вistinсtion.
+>>
+>>> at the subdev level, use the more restrictive 12bit limits for all YUV
+>>> formats.
+> 
+> I would like to mention in the commit message that only the top coordinate 
+> constraints differ between the YUV formats, as the subsampling coefficient is 
+> always two in the horizontal direction.
+
+I believe that the height value has the same constraint as the top.
+
+> 
+> Do you foresee a use case for odd cropping top coordinates ?
+
+There might be a case when you're blending surfaces together and one
+extends beyond the boundary of the other and you want to clip away the
+non-overlapping portions.
 
 
--- 
-~Vinod
+>>>   	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
+>>> -		sel->r.left = min_t(unsigned int, sel->r.left, 255);
+>>> -		sel->r.top = min_t(unsigned int, sel->r.top, 255);
+>>> +		int maxcrop =
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  include/linux/dmaengine.h | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
+> I would declare maxcrop as an unsigned int.
 > 
-> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-> index abf63ceabef9..6c777394835c 100644
-> --- a/include/linux/dmaengine.h
-> +++ b/include/linux/dmaengine.h
-> @@ -1120,4 +1120,26 @@ static inline struct dma_chan
->  
->  	return __dma_request_channel(mask, fn, fn_param);
->  }
-> +
-> +#define dma_request_slave_channel_compat_reason(mask, x, y, dev, name) \
-> +	__dma_request_slave_channel_compat_reason(&(mask), x, y, dev, name)
-> +
-> +static inline struct dma_chan
-> +*__dma_request_slave_channel_compat_reason(const dma_cap_mask_t *mask,
-> +				  dma_filter_fn fn, void *fn_param,
-> +				  struct device *dev, char *name)
-> +{
-> +	struct dma_chan *chan;
-> +
-> +	chan = dma_request_slave_channel_reason(dev, name);
-> +	/* Try via legacy API if not requesting for deferred probing */
-> +	if (IS_ERR(chan) && PTR_ERR(chan) != -EPROBE_DEFER)
-> +		chan = __dma_request_channel(mask, fn, fn_param);
-> +
-> +	if (!chan)
-> +		chan = ERR_PTR(-ENODEV);
-> +
-> +	return chan;
-> +}
-> +
->  #endif /* DMAENGINE_H */
-> -- 
-> 2.3.5
+>>> +			format->code == MEDIA_BUS_FMT_AYUV8_1X32 ? 254 : 255;
+>>
+>> I think you need an empty line here.
+>>
+>>> +		sel->r.left = min_t(unsigned int, sel->r.left, maxcrop);
+>>> +		sel->r.top = min_t(unsigned int, sel->r.top, maxcrop);
+> 
+> Is this needed ? Based on what I understand from the datasheet the WPF crops 
+> the image before passing it to the DMA engine. At that point YUV data isn't 
+> subsampled, so it looks like we don't need to restrict the left and top to 
+> even values.
 > 
 
--- 
+I think that you're correct. There is no subsampling at this stage in
+the pipeline so the maxcrop setting should be fine at 255 regardless of
+the format.
+
+Thank you,
+Damian
