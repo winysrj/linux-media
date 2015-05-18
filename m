@@ -1,85 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44683 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757188AbbEVOGm (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60429 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751102AbbERGVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 10:06:42 -0400
-Message-ID: <555F37EB.6040404@xs4all.nl>
-Date: Fri, 22 May 2015 16:06:35 +0200
+	Mon, 18 May 2015 02:21:19 -0400
+Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id 089CB2A007E
+	for <linux-media@vger.kernel.org>; Mon, 18 May 2015 08:21:00 +0200 (CEST)
+Message-ID: <555984D9.1010300@xs4all.nl>
+Date: Mon, 18 May 2015 08:21:13 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 12/11] adv7604/cobalt: missing GPIOLIB dependency
-References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl> <1432303184-8594-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1432303184-8594-12-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Add cobalt driver
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The adv7604 driver depends on GPIOLIB, and therefore cobalt depends
-on it as well.
+Unchanged (except for rebasing) to:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig        | 2 +-
- drivers/media/pci/cobalt/Kconfig | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+http://www.spinics.net/lists/linux-media/msg89635.html
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 6f30ea7..36f5563 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -196,7 +196,7 @@ config VIDEO_ADV7183
- 
- config VIDEO_ADV7604
- 	tristate "Analog Devices ADV7604 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && GPIOLIB
- 	---help---
- 	  Support for the Analog Devices ADV7604 video decoder.
- 
-diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
-index e3c03e9..3be1b2c 100644
---- a/drivers/media/pci/cobalt/Kconfig
-+++ b/drivers/media/pci/cobalt/Kconfig
-@@ -1,7 +1,7 @@
- config VIDEO_COBALT
- 	tristate "Cisco Cobalt support"
- 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
--	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
-+	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS && GPIOLIB
- 	select I2C_ALGOBIT
- 	select VIDEO_ADV7604
- 	select VIDEO_ADV7511
--- 
-2.1.4
+See the same link for the background info for this driver.
 
+Regards,
 
+	Hans
 
-On 05/22/2015 03:59 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> drivers/media/pci/saa7164/saa7164-i2c.c:45:33: warning: Using plain integer as NULL pointer
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/pci/saa7164/saa7164-i2c.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/pci/saa7164/saa7164-i2c.c b/drivers/media/pci/saa7164/saa7164-i2c.c
-> index 6ea9d4f..0342d84 100644
-> --- a/drivers/media/pci/saa7164/saa7164-i2c.c
-> +++ b/drivers/media/pci/saa7164/saa7164-i2c.c
-> @@ -42,7 +42,7 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
->  			retval = saa7164_api_i2c_read(bus,
->  				msgs[i].addr,
->  				0 /* reglen */,
-> -				0 /* reg */, msgs[i].len, msgs[i].buf);
-> +				NULL /* reg */, msgs[i].len, msgs[i].buf);
->  		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
->  			   msgs[i].addr == msgs[i + 1].addr) {
->  			/* write then read from same address */
-> 
+The following changes since commit 0fae1997f09796aca8ada5edc028aef587f6716c:
 
+  [media] dib0700: avoid the risk of forgetting to add the adapter's size (2015-05-14 19:31:34 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cobalt
+
+for you to fetch changes up to 0bc0666d37eb69e1fbd4c38edac56b941776be9e:
+
+  cobalt: add new driver (2015-05-18 08:11:28 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      adv7842: Make output format configurable through pad format operations
+      vb2: allow requeuing buffers while streaming
+      adv7604/adv7842: replace FMT_CHANGED by V4L2_DEVICE_NOTIFY_EVENT
+      cobalt: add new driver
+
+jean-michel.hautbois@vodalys.com (1):
+      v4l2-subdev: allow subdev to send an event to the v4l2_device notify function
+
+ Documentation/video4linux/v4l2-framework.txt                        |    4 +
+ MAINTAINERS                                                         |    8 +
+ drivers/media/i2c/adv7604.c                                         |   12 +-
+ drivers/media/i2c/adv7842.c                                         |  280 ++++++-
+ drivers/media/pci/Kconfig                                           |    1 +
+ drivers/media/pci/Makefile                                          |    1 +
+ drivers/media/pci/cobalt/Kconfig                                    |   18 +
+ drivers/media/pci/cobalt/Makefile                                   |    5 +
+ drivers/media/pci/cobalt/cobalt-alsa-main.c                         |  162 ++++
+ drivers/media/pci/cobalt/cobalt-alsa-pcm.c                          |  603 +++++++++++++++
+ drivers/media/pci/cobalt/cobalt-alsa-pcm.h                          |   22 +
+ drivers/media/pci/cobalt/cobalt-alsa.h                              |   41 ++
+ drivers/media/pci/cobalt/cobalt-cpld.c                              |  341 +++++++++
+ drivers/media/pci/cobalt/cobalt-cpld.h                              |   29 +
+ drivers/media/pci/cobalt/cobalt-driver.c                            |  821 +++++++++++++++++++++
+ drivers/media/pci/cobalt/cobalt-driver.h                            |  377 ++++++++++
+ drivers/media/pci/cobalt/cobalt-flash.c                             |  132 ++++
+ drivers/media/pci/cobalt/cobalt-flash.h                             |   29 +
+ drivers/media/pci/cobalt/cobalt-i2c.c                               |  396 ++++++++++
+ drivers/media/pci/cobalt/cobalt-i2c.h                               |   25 +
+ drivers/media/pci/cobalt/cobalt-irq.c                               |  254 +++++++
+ drivers/media/pci/cobalt/cobalt-irq.h                               |   25 +
+ drivers/media/pci/cobalt/cobalt-omnitek.c                           |  341 +++++++++
+ drivers/media/pci/cobalt/cobalt-omnitek.h                           |   62 ++
+ drivers/media/pci/cobalt/cobalt-v4l2.c                              | 1260 ++++++++++++++++++++++++++++++++
+ drivers/media/pci/cobalt/cobalt-v4l2.h                              |   22 +
+ drivers/media/pci/cobalt/m00233_video_measure_memmap_package.h      |  115 +++
+ drivers/media/pci/cobalt/m00235_fdma_packer_memmap_package.h        |   44 ++
+ drivers/media/pci/cobalt/m00389_cvi_memmap_package.h                |   59 ++
+ drivers/media/pci/cobalt/m00460_evcnt_memmap_package.h              |   44 ++
+ drivers/media/pci/cobalt/m00473_freewheel_memmap_package.h          |   57 ++
+ drivers/media/pci/cobalt/m00479_clk_loss_detector_memmap_package.h  |   53 ++
+ drivers/media/pci/cobalt/m00514_syncgen_flow_evcnt_memmap_package.h |   88 +++
+ drivers/media/v4l2-core/videobuf2-core.c                            |   11 +-
+ include/media/adv7604.h                                             |    1 -
+ include/media/adv7842.h                                             |   92 +--
+ include/media/v4l2-subdev.h                                         |    2 +
+ 37 files changed, 5743 insertions(+), 94 deletions(-)
+ create mode 100644 drivers/media/pci/cobalt/Kconfig
+ create mode 100644 drivers/media/pci/cobalt/Makefile
+ create mode 100644 drivers/media/pci/cobalt/cobalt-alsa-main.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-alsa-pcm.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-alsa-pcm.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-alsa.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-cpld.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-cpld.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-driver.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-driver.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-flash.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-flash.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-i2c.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-i2c.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-irq.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-irq.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-omnitek.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-omnitek.h
+ create mode 100644 drivers/media/pci/cobalt/cobalt-v4l2.c
+ create mode 100644 drivers/media/pci/cobalt/cobalt-v4l2.h
+ create mode 100644 drivers/media/pci/cobalt/m00233_video_measure_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00235_fdma_packer_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00389_cvi_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00460_evcnt_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00473_freewheel_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00479_clk_loss_detector_memmap_package.h
+ create mode 100644 drivers/media/pci/cobalt/m00514_syncgen_flow_evcnt_memmap_package.h
