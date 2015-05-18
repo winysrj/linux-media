@@ -1,79 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40463 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753150AbbETWAz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 18:00:55 -0400
-Date: Thu, 21 May 2015 01:00:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
- samsung,flash-led property
-Message-ID: <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39968 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932393AbbERULN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 May 2015 16:11:13 -0400
+Received: from dyn3-82-128-184-18.psoas.suomi.net ([82.128.184.18] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1YuRNX-0005D8-ET
+	for linux-media@vger.kernel.org; Mon, 18 May 2015 23:11:11 +0300
+Message-ID: <555A475E.30203@iki.fi>
+Date: Mon, 18 May 2015 23:11:10 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 4.2] e4000 changes
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+The following changes since commit 9cae84b32dd52768cf2fd2fcb214c3f570676c4b:
 
-On Wed, May 20, 2015 at 04:10:15PM +0200, Jacek Anaszewski wrote:
-> This patch adds examples for samsung,flash-led property to the
-> samsung-fimc.txt.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: devicetree@vger.kernel.org
-> ---
->  .../devicetree/bindings/media/samsung-fimc.txt     |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> index 922d6f8..57edffa 100644
-> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> @@ -126,6 +126,8 @@ Example:
->  			clocks = <&camera 1>;
->  			clock-names = "mclk";
->  
-> +			samsung,flash-led = <&front_cam_flash>;
-> +
->  			port {
->  				s5k6aa_ep: endpoint {
->  					remote-endpoint = <&fimc0_ep>;
-> @@ -147,6 +149,8 @@ Example:
->  			clocks = <&camera 0>;
->  			clock-names = "mclk";
->  
-> +			samsung,flash-led = <&rear_cam_flash>;
-> +
->  			port {
->  				s5c73m3_1: endpoint {
->  					data-lanes = <1 2 3 4>;
+   [media] DocBook/media: fix syntax error (2015-05-18 16:27:31 -0300)
 
-Oops. I missed this property would have ended to the sensor's DT node. I
-don't think we should have properties here that are parsed by another
-driver --- let's discuss this tomorrow.
+are available in the git repository at:
 
-There are two main options that I can think of --- either put the property
-under the bridge (ISP) driver's device node as a temporary solution that
-works on a few ISP drivers, or think how sensor modules should be modelled,
-in which case we'd have some idea how lens device would be taken into
-account.
+   git://linuxtv.org/anttip/media_tree.git e4000_pull
 
-Cc Sebastian.
+for you to fetch changes up to 75cc72378f9ee9dcd9ecc99edd87e795438f0455:
+
+   e4000: implement V4L2 subdevice tuner and core ops (2015-05-18 
+23:07:31 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (3):
+       e4000: revise synthesizer calculation
+       e4000: various small changes
+       e4000: implement V4L2 subdevice tuner and core ops
+
+  drivers/media/tuners/e4000.c      | 592 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------
+  drivers/media/tuners/e4000.h      |   1 -
+  drivers/media/tuners/e4000_priv.h |  11 ++--
+  3 files changed, 380 insertions(+), 224 deletions(-)
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
