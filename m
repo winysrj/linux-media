@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:34073 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221AbbE1M7x (ORCPT
+Received: from mail-la0-f42.google.com ([209.85.215.42]:34520 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbbERIGy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 08:59:53 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v2] v4l: vsp1: Align crop rectangle to even boundary for YUV formats
-Date: Thu, 28 May 2015 21:59:39 +0900
-Message-Id: <1432817979-2929-1-git-send-email-ykaneko0929@gmail.com>
+	Mon, 18 May 2015 04:06:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <20150518065158.GA17391@unicorn.suse.cz>
+References: <1431883124-4937-1-git-send-email-alexinbeijing@gmail.com> <20150518065158.GA17391@unicorn.suse.cz>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Mon, 18 May 2015 09:06:22 +0100
+Message-ID: <CA+V-a8uejJk+-hWWH81whaBbkMJQ3EoeRmxKGDB3HJ5v__0qVw@mail.gmail.com>
+Subject: Re: [PATCH] Clarify expression which uses both multiplication and
+ pointer dereference
+To: Michal Kubecek <mkubecek@suse.cz>
+Cc: Alex Dowad <alexinbeijing@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	"open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+	open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+On Mon, May 18, 2015 at 7:51 AM, Michal Kubecek <mkubecek@suse.cz> wrote:
+> On Sun, May 17, 2015 at 07:18:42PM +0200, Alex Dowad wrote:
+>> This fixes a checkpatch style error in vpfe_buffer_queue_setup.
+>>
+>> Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
+>> ---
+>>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> index 06d48d5..04a687c 100644
+>> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+>> @@ -1095,7 +1095,7 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+>>       size = video->fmt.fmt.pix.sizeimage;
+>>
+>>       if (vpfe_dev->video_limit) {
+>> -             while (size * *nbuffers > vpfe_dev->video_limit)
+>> +             while (size * (*nbuffers) > vpfe_dev->video_limit)
+>>                       (*nbuffers)--;
+>>       }
+>>       if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
+>
+> Style issue aside, is there a reason not to use
+>
+>                 if (size * *nbuffers > vpfe_dev->video_limit)
+>                         *nbuffers = vpfe_dev->video_limit / size;
+>
+> instead?
+>
+I would prefer this.
 
-Make sure that there are valid values in the crop rectangle to ensure
-that the color plane doesn't get shifted when cropping.
-Since there is no distinction between 12bit and 16bit YUV formats in
-at the subdev level, use the more restrictive 12bit limits for all YUV
-formats.
-
-Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
-
-This patch is based on the master branch of linuxtv.org/media_tree.git.
-
-v2 [Yoshihiro Kaneko]
-* As suggested by Laurent Pinchart
-  - remove the change to add a restriction to the left and top
-  - use round_down() to align the width and height
-* As suggested by Sergei Shtylyov
-  - use ALIGN() to align the left and top
-  - correct a misspelling of the commit message
-* Compile tested only
-
- drivers/media/platform/vsp1/vsp1_rwpf.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index fa71f46..32687c7 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -197,6 +197,14 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 	 */
- 	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, RWPF_PAD_SINK,
- 					    sel->which);
-+
-+	if (format->code == MEDIA_BUS_FMT_AYUV8_1X32) {
-+		sel->r.left = ALIGN(sel->r.left, 2);
-+		sel->r.top = ALIGN(sel->r.top, 2);
-+		sel->r.width = round_down(sel->r.width, 2);
-+		sel->r.height = round_down(sel->r.height, 2);
-+	}
-+
- 	sel->r.left = min_t(unsigned int, sel->r.left, format->width - 2);
- 	sel->r.top = min_t(unsigned int, sel->r.top, format->height - 2);
- 	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
--- 
-1.9.1
-
+Cheers,
+--Prabhakar Lad
