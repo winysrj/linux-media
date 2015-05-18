@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44720 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751473AbbEIJbt (ORCPT
+Received: from mailrelay116.isp.belgacom.be ([195.238.20.143]:16934 "EHLO
+	mailrelay116.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751177AbbERRyp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 May 2015 05:31:49 -0400
-Message-ID: <554DD3FE.1070806@xs4all.nl>
-Date: Sat, 09 May 2015 11:31:42 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-References: <cover.1431046915.git.mchehab@osg.samsung.com>	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>	<554CA862.8070407@xs4all.nl>	<20150508095754.1c39a276@recife.lan>	<554CB863.1040006@xs4all.nl> <20150508110826.00e4e954@recife.lan> <554CC8E3.2030308@xs4all.nl>
-In-Reply-To: <554CC8E3.2030308@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 18 May 2015 13:54:45 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1 linux-next] omap_vout: use swap() in omapvid_init()
+Date: Mon, 18 May 2015 19:54:17 +0200
+Message-Id: <1431971658-20986-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>> Brainstorming:
->>>
->>> It might be better to map each device node to an entity and each hardware
->>> component (tuner, DMA engine) to an entity, and avoid this mixing of
->>> hw entity vs device node entity.
+Use kernel.h macro definition.
 
-There are two options here:
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/media/platform/omap/omap_vout.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-either make each device node an entity, or expose the device node information
-as properties of an entity.
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 17b189a..f09c5f1 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -445,7 +445,7 @@ static int omapvid_init(struct omap_vout_device *vout, u32 addr)
+ 	int ret = 0, i;
+ 	struct v4l2_window *win;
+ 	struct omap_overlay *ovl;
+-	int posx, posy, outw, outh, temp;
++	int posx, posy, outw, outh;
+ 	struct omap_video_timings *timing;
+ 	struct omapvideo_info *ovid = &vout->vid_info;
+ 
+@@ -468,9 +468,7 @@ static int omapvid_init(struct omap_vout_device *vout, u32 addr)
+ 			/* Invert the height and width for 90
+ 			 * and 270 degree rotation
+ 			 */
+-			temp = outw;
+-			outw = outh;
+-			outh = temp;
++			swap(outw, outh);
+ 			posy = (timing->y_res - win->w.width) - win->w.left;
+ 			posx = win->w.top;
+ 			break;
+@@ -481,9 +479,7 @@ static int omapvid_init(struct omap_vout_device *vout, u32 addr)
+ 			break;
+ 
+ 		case dss_rotation_270_degree:
+-			temp = outw;
+-			outw = outh;
+-			outh = temp;
++			swap(outw, outh);
+ 			posy = win->w.left;
+ 			posx = (timing->x_res - win->w.height) - win->w.top;
+ 			break;
+-- 
+2.4.0
 
-The latter would be backwards compatible with what we do today. I'm trying to
-think of reasons why you would want to make each device node an entity in its
-own right.
-
-The problem today is that a video_device representing a video/vbi/radio/swradio
-device node is an entity, but it is really representing the dma engine. Which
-is weird for radio devices since there is no dma engine there.
-
-Implementing device nodes as entities in their own right does solve this problem,
-but implementing it as properties would be weird since a radio device node would
-be a property of a radio tuner entity, which can be a subdevice driver which means
-that the bridge driver would have to add the radio device property to a subdev
-driver, which feels really wrong to me.
-
-With this in mind I do think representing device nodes as entities in their own
-right makes sense. But I would do this also for a v4l-subdev node. It's very
-inconsistent not to do that.
-
-Regards,
-
-	Hans
