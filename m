@@ -1,59 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:58785 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751649AbbEDKO4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 06:14:56 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: y2038@lists.linaro.org, Kamil Debski <k.debski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, mchehab@osg.samsung.com,
-	dmitry.torokhov@gmail.com, dri-devel@lists.freedesktop.org,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com
-Subject: Re: [Y2038] [PATCH v4 06/10] cec: add HDMI CEC framework: y2038 question
-Date: Mon, 04 May 2015 12:14:39 +0200
-Message-ID: <4726638.QZKcRc97FC@wuerfel>
-In-Reply-To: <554722EC.3060301@xs4all.nl>
-References: <1429794192-20541-1-git-send-email-k.debski@samsung.com> <553DE7EB.6090900@xs4all.nl> <554722EC.3060301@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43535 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751051AbbERCsV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 May 2015 22:48:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9D9C62A0003
+	for <linux-media@vger.kernel.org>; Mon, 18 May 2015 04:48:02 +0200 (CEST)
+Date: Mon, 18 May 2015 04:48:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150518024802.9D9C62A0003@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 04 May 2015 09:42:36 Hans Verkuil wrote:
-> Ping! (Added Arnd to the CC list)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi Hans,
+Results of the daily build of media_tree:
 
-sorry I missed this the first time
+date:		Mon May 18 04:00:14 CEST 2015
+git branch:	test
+git hash:	0fae1997f09796aca8ada5edc028aef587f6716c
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-1.slh.2-amd64
 
-> On 04/27/2015 09:40 AM, Hans Verkuil wrote:
-> > Added the y2038 mailinglist since I would like to get their input for
-> > this API.
-> > 
-> > Y2038 experts, can you take a look at my comment in the code below?
-> > 
-> > Thanks!
-> 
-> Arnd, I just saw your patch series adding struct __kernel_timespec to
-> uapi/linux/time.h. I get the feeling that it might take a few kernel
-> cycles before we have a timespec64 available in userspace. Based on that
-> I think this CEC API should drop the timestamps for now and wait until
-> timespec64 becomes available before adding it.
-> 
-> The timestamps are a nice-to-have, but not critical. So adding it later
-> shouldn't be a problem. What is your opinion?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-It will take a little while for the patches to make it in, I would guess
-4.3 at the earliest. Using your own struct works just as well and would
-be less ambiguous.
+Detailed results are available here:
 
-However, for timestamps, I would recommend not using timespec anyway.
-Instead, just use a single 64-bit nanosecond value from ktime_get_ns()
-(or ktime_get_boot_ns() if you need a time that keeps ticking across
-suspend). This is more efficient to get and simpler to use as long
-as you don't need to convert from nanosecond to timespec.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-	Arnd
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
