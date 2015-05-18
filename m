@@ -1,209 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [212.144.249.242] ([212.144.249.242]:36414 "EHLO
-	eusmtp01.atmel.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751760AbbEZH52 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 03:57:28 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 1/2] media: atmel-isi: add runtime pm support
-Date: Tue, 26 May 2015 16:00:09 +0800
-Message-ID: <1432627211-4338-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1432627211-4338-1-git-send-email-josh.wu@atmel.com>
-References: <1432627211-4338-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.kapsi.fi ([217.30.184.167]:47106 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138AbbERFJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 May 2015 01:09:30 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 6/8] m88ds3103: use jiffies when polling DiSEqC TX ready
+Date: Mon, 18 May 2015 08:08:49 +0300
+Message-Id: <1431925731-7499-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1431925731-7499-1-git-send-email-crope@iki.fi>
+References: <1431925731-7499-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
-clock).
-And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
-access ISI registers. In atmel_isi_probe(), remove the isi disable code
-as in the moment ISI peripheral clock is not enable yet.
+Use jiffies to set timeout for DiSEqC TX ready polling. Using jiffies
+is more elegant solution than looping N times with sleep.
 
-In the meantime, as clock_start()/clock_stop() is used to control the
-mclk not ISI peripheral clock. So move this to start[stop]_streaming()
-function.
-
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
+ drivers/media/dvb-frontends/m88ds3103.c | 53 +++++++++++++++++++++------------
+ 1 file changed, 34 insertions(+), 19 deletions(-)
 
-Changes in v4:
-- need to call pm_runtime_disable() in atmel_isi_remove().
-- merged the patch which remove isi disable code in atmel_isi_probe() as
-  isi peripherial clock is not enabled in this moment.
-- refine the commit log
-
-Changes in v3: None
-Changes in v2:
-- merged v1 two patch into one.
-- use runtime_pm_put() instead of runtime_pm_put_sync()
-- enable peripheral clock before access ISI registers.
-
- drivers/media/platform/soc_camera/atmel-isi.c | 54 +++++++++++++++++++++++----
- 1 file changed, 46 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 2879026..194e875 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -20,6 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/slab.h>
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 33d8c19..e45641f 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1195,7 +1195,8 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+ 		struct dvb_diseqc_master_cmd *diseqc_cmd)
+ {
+ 	struct m88ds3103_priv *priv = fe->demodulator_priv;
+-	int ret, i;
++	int ret;
++	unsigned long timeout;
+ 	u8 u8tmp;
  
- #include <media/atmel-isi.h>
-@@ -386,6 +387,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
+ 	dev_dbg(&priv->i2c->dev, "%s: msg=%*ph\n", __func__,
+@@ -1226,21 +1227,24 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+ 	if (ret)
+ 		goto err;
  
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
- 	/* Reset ISI */
- 	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
- 	if (ret < 0) {
-@@ -445,6 +448,8 @@ static void stop_streaming(struct vb2_queue *vq)
- 	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
- 	if (ret < 0)
- 		dev_err(icd->parent, "Disable ISI timed out\n");
-+
-+	pm_runtime_put(ici->v4l2_dev.dev);
- }
- 
- static struct vb2_ops isi_video_qops = {
-@@ -516,7 +521,13 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
- 
-+	/* Enable PM and peripheral clock before operate isi registers */
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
- 	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
-+
-+	pm_runtime_put(ici->v4l2_dev.dev);
-+
- 	if (ret < 0)
- 		return ret;
- 
-@@ -736,14 +747,9 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
--	ret = clk_prepare_enable(isi->pclk);
--	if (ret)
--		return ret;
+-	/* DiSEqC message typical period is 54 ms */
+-	usleep_range(40000, 60000);
 -
- 	if (!IS_ERR(isi->mck)) {
- 		ret = clk_prepare_enable(isi->mck);
- 		if (ret) {
--			clk_disable_unprepare(isi->pclk);
- 			return ret;
- 		}
+ 	/* wait DiSEqC TX ready */
+-	for (i = 20, u8tmp = 1; i && u8tmp; i--) {
+-		usleep_range(5000, 10000);
++	#define SEND_MASTER_CMD_TIMEOUT 120
++	timeout = jiffies + msecs_to_jiffies(SEND_MASTER_CMD_TIMEOUT);
++
++	/* DiSEqC message typical period is 54 ms */
++	usleep_range(50000, 54000);
+ 
++	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
+ 		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
+ 		if (ret)
+ 			goto err;
  	}
-@@ -758,7 +764,6 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
  
- 	if (!IS_ERR(isi->mck))
- 		clk_disable_unprepare(isi->mck);
--	clk_disable_unprepare(isi->pclk);
- }
- 
- static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
-@@ -855,9 +860,14 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 
- 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
- 
-+	/* Enable PM and peripheral clock before operate isi registers */
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
- 	isi_writel(isi, ISI_CFG1, cfg1);
- 
-+	pm_runtime_put(ici->v4l2_dev.dev);
-+
- 	return 0;
- }
- 
-@@ -889,6 +899,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 			sizeof(struct fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
-+	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
- }
-@@ -1027,8 +1038,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
- 		isi->width_flags |= 1 << 9;
- 
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+-	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
 -
- 	irq = platform_get_irq(pdev, 0);
- 	if (IS_ERR_VALUE(irq)) {
- 		ret = irq;
-@@ -1049,6 +1058,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	soc_host->v4l2_dev.dev	= &pdev->dev;
- 	soc_host->nr		= pdev->id;
+-	if (i == 0) {
++	if (u8tmp == 0) {
++		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
++			jiffies_to_msecs(jiffies) -
++			(jiffies_to_msecs(timeout) - SEND_MASTER_CMD_TIMEOUT));
++	} else {
+ 		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
  
-+	pm_suspend_ignore_children(&pdev->dev, true);
-+	pm_runtime_enable(&pdev->dev);
-+
- 	if (isi->pdata.asd_sizes) {
- 		soc_host->asd = isi->pdata.asd;
- 		soc_host->asd_sizes = isi->pdata.asd_sizes;
-@@ -1062,6 +1074,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	return 0;
+ 		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
+@@ -1252,7 +1256,7 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+ 	if (ret)
+ 		goto err;
  
- err_register_soc_camera_host:
-+	pm_runtime_disable(&pdev->dev);
- err_req_irq:
- err_ioremap:
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
-@@ -1074,6 +1087,30 @@ err_alloc_ctx:
- 	return ret;
- }
+-	if (i == 0) {
++	if (u8tmp == 1) {
+ 		ret = -ETIMEDOUT;
+ 		goto err;
+ 	}
+@@ -1267,7 +1271,8 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
+ 	fe_sec_mini_cmd_t fe_sec_mini_cmd)
+ {
+ 	struct m88ds3103_priv *priv = fe->demodulator_priv;
+-	int ret, i;
++	int ret;
++	unsigned long timeout;
+ 	u8 u8tmp, burst;
  
-+static int atmel_isi_runtime_suspend(struct device *dev)
-+{
-+	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-+	struct atmel_isi *isi = container_of(soc_host,
-+					struct atmel_isi, soc_host);
-+
-+	clk_disable_unprepare(isi->pclk);
-+
-+	return 0;
-+}
-+static int atmel_isi_runtime_resume(struct device *dev)
-+{
-+	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
-+	struct atmel_isi *isi = container_of(soc_host,
-+					struct atmel_isi, soc_host);
-+
-+	return clk_prepare_enable(isi->pclk);
-+}
-+
-+static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
-+	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
-+				atmel_isi_runtime_resume, NULL)
-+};
-+
- static const struct of_device_id atmel_isi_of_match[] = {
- 	{ .compatible = "atmel,at91sam9g45-isi" },
- 	{ }
-@@ -1085,6 +1122,7 @@ static struct platform_driver atmel_isi_driver = {
- 	.driver		= {
- 		.name = "atmel_isi",
- 		.of_match_table = of_match_ptr(atmel_isi_of_match),
-+		.pm	= &atmel_isi_dev_pm_ops,
- 	},
- };
+ 	dev_dbg(&priv->i2c->dev, "%s: fe_sec_mini_cmd=%d\n", __func__,
+@@ -1301,26 +1306,36 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
+ 	if (ret)
+ 		goto err;
  
+-	/* DiSEqC ToneBurst period is 12.5 ms */
+-	usleep_range(11000, 20000);
+-
+ 	/* wait DiSEqC TX ready */
+-	for (i = 5, u8tmp = 1; i && u8tmp; i--) {
+-		usleep_range(800, 2000);
++	#define SEND_BURST_TIMEOUT 40
++	timeout = jiffies + msecs_to_jiffies(SEND_BURST_TIMEOUT);
++
++	/* DiSEqC ToneBurst period is 12.5 ms */
++	usleep_range(8500, 12500);
+ 
++	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
+ 		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
+-	dev_dbg(&priv->i2c->dev, "%s: loop=%d\n", __func__, i);
++	if (u8tmp == 0) {
++		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
++			jiffies_to_msecs(jiffies) -
++			(jiffies_to_msecs(timeout) - SEND_BURST_TIMEOUT));
++	} else {
++		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
++
++		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
++		if (ret)
++			goto err;
++	}
+ 
+ 	ret = m88ds3103_wr_reg_mask(priv, 0xa2, 0x80, 0xc0);
+ 	if (ret)
+ 		goto err;
+ 
+-	if (i == 0) {
+-		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
++	if (u8tmp == 1) {
+ 		ret = -ETIMEDOUT;
+ 		goto err;
+ 	}
 -- 
-1.9.1
+http://palosaari.fi/
 
