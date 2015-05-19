@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:58508 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909AbbEDRdc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 13:33:32 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
-Subject: [PATCH v6 01/11] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-Date: Mon, 04 May 2015 19:32:54 +0200
-Message-id: <1430760785-1169-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
-References: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+Received: from mx02.posteo.de ([89.146.194.165]:56816 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754078AbbESMLN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2015 08:11:13 -0400
+Date: Tue, 19 May 2015 14:11:04 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jemma Denson <jdenson@gmail.com>
+Subject: Re: [PATCH 1/3] cx24120: don't initialize a var that won't be used
+Message-ID: <20150519141104.075816d6@dibcom294.coe.adi.dibcom.com>
+In-Reply-To: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
+References: <8bf9e159ce96223ad404207d94e8e3742f2474de.1432034614.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-Exynos4x12 SoCs. These are required by the HDMI CEC device.
+Hi Mauro, 
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
----
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi |    7 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi |    7 +++++++
- 2 files changed, 14 insertions(+)
+On Tue, 19 May 2015 08:23:36 -0300 Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
 
-diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-index a7c2128..9331c62 100644
---- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-@@ -820,6 +820,13 @@
- 			samsung,pin-pud = <1>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
- 
- 	pinctrl@03860000 {
-diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-index c141931..875464e 100644
---- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-@@ -885,6 +885,13 @@
- 			samsung,pin-pud = <0>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
- 
- 	pinctrl@03860000 {
--- 
-1.7.9.5
+> As reported by smatch:
+> drivers/media/dvb-frontends/cx24120.c: In function 'cx24120_message_send':
+> drivers/media/dvb-frontends/cx24120.c:368:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+>   int ret, ficus;
+>       ^
+> 
+> The values written by cx24120 are never checked. So, remove the
+> check here too. That's said, the best would be to do the reverse,
+> but globally: to properly handle the error codes.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+Woudl you mind me integrating your patches on my tree which I then
+will ask you to pull?
+
+--
+Patrick.
