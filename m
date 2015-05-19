@@ -1,73 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41859 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752657AbbEUGKu (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:36190 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636AbbESSre (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 02:10:50 -0400
-Message-ID: <555D76E3.1070809@xs4all.nl>
-Date: Thu, 21 May 2015 08:10:43 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-CC: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 19 May 2015 14:47:34 -0400
+Received: by wgbgq6 with SMTP id gq6so28200133wgb.3
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2015 11:47:33 -0700 (PDT)
+From: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
+To: y2038@lists.linaro.org
+Cc: linux-media@vger.kernel.org, arnd@arndb.de, john.stultz@linaro.org,
+	Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
+Subject: [PATCH v4] Staging: media: lirc: Replace timeval with ktime_t
+Date: Tue, 19 May 2015 20:47:22 +0200
+Message-Id: <1432061242-11227-1-git-send-email-ksenija.stanojevic@gmail.com>
+In-Reply-To: <n>
+References: <n>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2015 06:39 PM, William Towle wrote:
-> When hardware reports interlaced input, correctly set field to
-> V4L_FIELD_INTERLACED ini adv76xx_fill_format.
-> 
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Reviewed-by: William Towle <william.towle@codethink.co.uk>
-> ---
->  drivers/media/i2c/adv7604.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 4bde3e1..d77ee1f 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1791,7 +1791,12 @@ static void adv76xx_fill_format(struct adv76xx_state *state,
->  
->  	format->width = state->timings.bt.width;
->  	format->height = state->timings.bt.height;
-> -	format->field = V4L2_FIELD_NONE;
-> +
-> +	if (state->timings.bt.interlaced)
-> +		format->field= V4L2_FIELD_INTERLACED;
+'struct timeval last_tv' is used to get the time of last signal change
+and 'struct timeval last_intr_tv' is used to get the time of last UART
+interrupt.
+32-bit systems using 'struct timeval' will break in the year 2038, so we
+have to replace that code with more appropriate types.
+Here struct timeval is replaced with ktime_t.
 
-No, this should be FIELD_ALTERNATE. FIELD_INTERLACED means that the two fields
-are interlaced into a single frame buffer, with FIELD_ALTERNATE each buffer
-contains one field. And when capturing v4l2_buffer should return which field
-(TOP/BOTTOM) the buffer contains. It also complicates cropping/composing: the
-crop rectangle is in frame coordinates, composing uses field coordinates.
-The vivid driver handles this correctly and can be used as a reference.
+Signed-off-by: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
+---
 
-Also, no space before the '='. Please add.
+Changes in v4:
+	- add lirc in subject line.
+	- remove delta function.
+	- change variable names.
 
-You might be interested in this patch series as well:
+Changes in v3:
+        - delta function is changed to inline function.
+        - change variable names.
 
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/90578
+Changes in v2:
+        - change subject line
 
-I'm thinking of doing some interlaced tests myself, possibly this weekend,
-using the adv7604.
+ drivers/staging/media/lirc/lirc_sir.c | 75 ++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 45 deletions(-)
 
-Regards,
-
-	Hans
-
-> +	else
-> +		format->field= V4L2_FIELD_NONE;
-> +
->  	format->colorspace = V4L2_COLORSPACE_SRGB;
->  
->  	if (state->timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO)
-> 
+diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+index 29087f6..4f326e9 100644
+--- a/drivers/staging/media/lirc/lirc_sir.c
++++ b/drivers/staging/media/lirc/lirc_sir.c
+@@ -44,7 +44,7 @@
+ #include <linux/ioport.h>
+ #include <linux/kernel.h>
+ #include <linux/serial_reg.h>
+-#include <linux/time.h>
++#include <linux/ktime.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/wait.h>
+@@ -127,9 +127,9 @@ static int threshold = 3;
+ static DEFINE_SPINLOCK(timer_lock);
+ static struct timer_list timerlist;
+ /* time of last signal change detected */
+-static struct timeval last_tv = {0, 0};
++static ktime_t last;
+ /* time of last UART data ready interrupt */
+-static struct timeval last_intr_tv = {0, 0};
++static ktime_t last_intr_time;
+ static int last_value;
+ 
+ static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
+@@ -400,20 +400,6 @@ static void drop_chrdev(void)
+ }
+ 
+ /* SECTION: Hardware */
+-static long delta(struct timeval *tv1, struct timeval *tv2)
+-{
+-	unsigned long deltv;
+-
+-	deltv = tv2->tv_sec - tv1->tv_sec;
+-	if (deltv > 15)
+-		deltv = 0xFFFFFF;
+-	else
+-		deltv = deltv*1000000 +
+-			tv2->tv_usec -
+-			tv1->tv_usec;
+-	return deltv;
+-}
+-
+ static void sir_timeout(unsigned long data)
+ {
+ 	/*
+@@ -432,12 +418,14 @@ static void sir_timeout(unsigned long data)
+ 		/* clear unread bits in UART and restart */
+ 		outb(UART_FCR_CLEAR_RCVR, io + UART_FCR);
+ 		/* determine 'virtual' pulse end: */
+-		pulse_end = delta(&last_tv, &last_intr_tv);
++		pulse_end = min_t(unsigned long,
++				  ktime_us_delta(last, last_intr_time),
++				  PULSE_MASK);
+ 		dev_dbg(driver.dev, "timeout add %d for %lu usec\n",
+ 				    last_value, pulse_end);
+ 		add_read_queue(last_value, pulse_end);
+ 		last_value = 0;
+-		last_tv = last_intr_tv;
++		last = last_intr_time;
+ 	}
+ 	spin_unlock_irqrestore(&timer_lock, flags);
+ }
+@@ -445,9 +433,9 @@ static void sir_timeout(unsigned long data)
+ static irqreturn_t sir_interrupt(int irq, void *dev_id)
+ {
+ 	unsigned char data;
+-	struct timeval curr_tv;
+-	static unsigned long deltv;
+-	unsigned long deltintrtv;
++	ktime_t curr_time;
++	static unsigned long delt;
++	unsigned long deltintr;
+ 	unsigned long flags;
+ 	int iir, lsr;
+ 
+@@ -471,49 +459,46 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
+ 			do {
+ 				del_timer(&timerlist);
+ 				data = inb(io + UART_RX);
+-				do_gettimeofday(&curr_tv);
+-				deltv = delta(&last_tv, &curr_tv);
+-				deltintrtv = delta(&last_intr_tv, &curr_tv);
++				curr_time = ktime_get();
++				delt = min_t(unsigned long,
++					     ktime_us_delta(last, curr_time),
++					     PULSE_MASK);
++				deltintr = min_t(unsigned long,
++						 ktime_us_delta(last_intr_time,
++								curr_time),
++						 PULSE_MASK);
+ 				dev_dbg(driver.dev, "t %lu, d %d\n",
+-						    deltintrtv, (int)data);
++						    deltintr, (int)data);
+ 				/*
+ 				 * if nothing came in last X cycles,
+ 				 * it was gap
+ 				 */
+-				if (deltintrtv > TIME_CONST * threshold) {
++				if (deltintr > TIME_CONST * threshold) {
+ 					if (last_value) {
+ 						dev_dbg(driver.dev, "GAP\n");
+ 						/* simulate signal change */
+ 						add_read_queue(last_value,
+-							       deltv -
+-							       deltintrtv);
++							       delt -
++							       deltintr);
+ 						last_value = 0;
+-						last_tv.tv_sec =
+-							last_intr_tv.tv_sec;
+-						last_tv.tv_usec =
+-							last_intr_tv.tv_usec;
+-						deltv = deltintrtv;
++						last = last_intr_time;
++						delt = deltintr;
+ 					}
+ 				}
+ 				data = 1;
+ 				if (data ^ last_value) {
+ 					/*
+-					 * deltintrtv > 2*TIME_CONST, remember?
++					 * deltintr > 2*TIME_CONST, remember?
+ 					 * the other case is timeout
+ 					 */
+ 					add_read_queue(last_value,
+-						       deltv-TIME_CONST);
++						       delt-TIME_CONST);
+ 					last_value = data;
+-					last_tv = curr_tv;
+-					if (last_tv.tv_usec >= TIME_CONST) {
+-						last_tv.tv_usec -= TIME_CONST;
+-					} else {
+-						last_tv.tv_sec--;
+-						last_tv.tv_usec += 1000000 -
+-							TIME_CONST;
+-					}
++					last = curr_time;
++					last = ktime_sub_us(last,
++							    TIME_CONST);
+ 				}
+-				last_intr_tv = curr_tv;
++				last_intr_time = curr_time;
+ 				if (data) {
+ 					/*
+ 					 * start timer for end of
+-- 
+1.9.1
 
