@@ -1,58 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36550 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023AbbEHBMt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:49 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 08/18] media controller: add comments for the entity types
-Date: Thu,  7 May 2015 22:12:30 -0300
-Message-Id: <089802aaf4c9f80af162fe074b4d8a54d7f35a28.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:34875 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbbESEuk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2015 00:50:40 -0400
+Received: by pdea3 with SMTP id a3so7137133pde.2
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2015 21:50:40 -0700 (PDT)
+Message-ID: <555AC11A.1040203@linaro.org>
+Date: Tue, 19 May 2015 10:20:34 +0530
+From: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+MIME-Version: 1.0
+To: Fabian Frederick <fabf@skynet.be>, linux-kernel@vger.kernel.org
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/1 linux-next] omap_vout: use swap() in omapvid_init()
+References: <1431971658-20986-1-git-send-email-fabf@skynet.be> <555A2D88.7070808@linaro.org> <1601184049.17932.1431973900041.open-xchange@webmail.nmp.proximus.be>
+In-Reply-To: <1601184049.17932.1431973900041.open-xchange@webmail.nmp.proximus.be>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Better document the linux/media.h UAPI header, by adding
-comments to each entity subtype.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 6acc4be1378c..8d47b70b7ea8 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -44,19 +44,25 @@ struct media_device_info {
- 
- /* Used values for media_entity_desc::type */
- 
-+/* Audio/video streaming bridges */
- #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
-+
-+/* Digital TV entities */
- #define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
- #define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
- #define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
- #define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
- #define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
- 
-+/* Camera entities */
- #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
- #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
- #define MEDIA_ENT_T_CAM_LENS	(MEDIA_ENT_T_CAM_SENSOR + 2)
- 
-+/* Analog TV entities */
- #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
- 
-+/* Radio, Analog TV and/or Digital TV tuners */
- #define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
- 
- #if 1
--- 
-2.1.0
+On Tuesday 19 May 2015 12:01 AM, Fabian Frederick wrote:
+>
+>
+>> On 18 May 2015 at 20:20 Vaibhav Hiremath <vaibhav.hiremath@linaro.org> wrote:
+>>
+>>
+>>
+>>
+>> On Monday 18 May 2015 11:24 PM, Fabian Frederick wrote:
+>>> Use kernel.h macro definition.
+>>>
+>>> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+>>> ---
+>>>     drivers/media/platform/omap/omap_vout.c | 10 +++-------
+>>>     1 file changed, 3 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/media/platform/omap/omap_vout.c
+>>> b/drivers/media/platform/omap/omap_vout.c
+>>> index 17b189a..f09c5f1 100644
+>>> --- a/drivers/media/platform/omap/omap_vout.c
+>>> +++ b/drivers/media/platform/omap/omap_vout.c
+>>> @@ -445,7 +445,7 @@ static int omapvid_init(struct omap_vout_device *vout,
+>>> u32 addr)
+>>>       int ret = 0, i;
+>>>       struct v4l2_window *win;
+>>>       struct omap_overlay *ovl;
+>>> -   int posx, posy, outw, outh, temp;
+>>> +   int posx, posy, outw, outh;
+>>>       struct omap_video_timings *timing;
+>>>       struct omapvideo_info *ovid = &vout->vid_info;
+>>>
+>>> @@ -468,9 +468,7 @@ static int omapvid_init(struct omap_vout_device *vout,
+>>> u32 addr)
+>>>                       /* Invert the height and width for 90
+>>>                        * and 270 degree rotation
+>>>                        */
+>>> -                   temp = outw;
+>>> -                   outw = outh;
+>>> -                   outh = temp;
+>>> +                   swap(outw, outh);
+>>>                       posy = (timing->y_res - win->w.width) - win->w.left;
+>>>                       posx = win->w.top;
+>>>                       break;
+>>> @@ -481,9 +479,7 @@ static int omapvid_init(struct omap_vout_device *vout,
+>>> u32 addr)
+>>>                       break;
+>>>
+>>>               case dss_rotation_270_degree:
+>>> -                   temp = outw;
+>>> -                   outw = outh;
+>>> -                   outh = temp;
+>>> +                   swap(outw, outh);
+>>>                       posy = win->w.left;
+>>>                       posx = (timing->x_res - win->w.height) - win->w.top;
+>>>                       break;
+>>>
+>>
+>>
+>> Curious to know,
+>> How do you test this? Do you have any OMAP2/3 or AM335x board?
+>> Does this driver still works?
+>
+> Hello Vaibhav,
+>
+>     Unfortunately I can't test it.
+>
 
+Thats what I expected.
+
+I am doubtful that anyone still uses this driver.
+With DRM framework support, I see very little use of this driver.
+
+Also there are some hacks regarding buffer management, that need to be
+fixed if at all we want to support it.
+
+I would really want to slowly kill this driver, if no one uses it.
+
+Thanks,
+Vaibhav
