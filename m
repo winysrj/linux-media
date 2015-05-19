@@ -1,153 +1,423 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:36526 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745AbbETOUz (ORCPT
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:35103 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883AbbESCRC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:20:55 -0400
-Message-id: <555C9843.3020409@samsung.com>
-Date: Wed, 20 May 2015 16:20:51 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Subject: Re: [PATCH 1/5] v4l: async: Add a pointer to of_node to struct
- v4l2_subdev, match it
-References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
- <1432076645-4799-2-git-send-email-sakari.ailus@iki.fi>
-In-reply-to: <1432076645-4799-2-git-send-email-sakari.ailus@iki.fi>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 18 May 2015 22:17:02 -0400
+Received: by qcbgu10 with SMTP id gu10so658870qcb.2
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2015 19:17:01 -0700 (PDT)
+From: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH v2] au0828: Add support for media controller
+Date: Mon, 18 May 2015 23:16:44 -0300
+Message-Id: <1432001804-4903-1-git-send-email-chehabrafael@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2015 01:04 AM, Sakari Ailus wrote:
-> V4L2 async sub-devices are currently matched (OF case) based on the struct
-> device_node pointer in struct device. LED devices may have more than one
-> LED, and in that case the OF node to match is not directly the device's
-> node, but a LED's node.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->   drivers/media/v4l2-core/v4l2-async.c  |   34 +++++++++++++++++++++------------
->   drivers/media/v4l2-core/v4l2-device.c |    3 +++
->   include/media/v4l2-subdev.h           |    2 ++
->   3 files changed, 27 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 85a6a34..bcdd140 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -22,10 +22,10 @@
->   #include <media/v4l2-device.h>
->   #include <media/v4l2-subdev.h>
->
-> -static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
-> +static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->   {
->   #if IS_ENABLED(CONFIG_I2C)
-> -	struct i2c_client *client = i2c_verify_client(dev);
-> +	struct i2c_client *client = i2c_verify_client(sd->dev);
->   	return client &&
->   		asd->match.i2c.adapter_id == client->adapter->nr &&
->   		asd->match.i2c.address == client->addr;
-> @@ -34,14 +34,27 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
->   #endif
->   }
->
-> -static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
-> +static bool match_devname(struct v4l2_subdev *sd,
-> +			  struct v4l2_async_subdev *asd)
->   {
-> -	return !strcmp(asd->match.device_name.name, dev_name(dev));
-> +	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
->   }
->
-> -static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-> +static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->   {
-> -	return dev->of_node == asd->match.of.node;
-> +	struct device_node *of_node =
-> +		sd->of_node ? sd->of_node : sd->dev->of_node;
-> +
-> +	return of_node == asd->match.of.node;
-> +}
-> +
-> +static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> +{
-> +	if (!asd->match.custom.match)
-> +		/* Match always */
-> +		return true;
-> +
-> +	return asd->match.custom.match(sd->dev, asd);
->   }
->
->   static LIST_HEAD(subdev_list);
-> @@ -51,17 +64,14 @@ static DEFINE_MUTEX(list_lock);
->   static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
->   						    struct v4l2_subdev *sd)
->   {
-> +	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
->   	struct v4l2_async_subdev *asd;
-> -	bool (*match)(struct device *, struct v4l2_async_subdev *);
->
->   	list_for_each_entry(asd, &notifier->waiting, list) {
->   		/* bus_type has been verified valid before */
->   		switch (asd->match_type) {
->   		case V4L2_ASYNC_MATCH_CUSTOM:
-> -			match = asd->match.custom.match;
-> -			if (!match)
-> -				/* Match always */
-> -				return asd;
-> +			match = match_custom;
->   			break;
->   		case V4L2_ASYNC_MATCH_DEVNAME:
->   			match = match_devname;
-> @@ -79,7 +89,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
->   		}
->
->   		/* match cannot be NULL here */
-> -		if (match(sd->dev, asd))
-> +		if (match(sd, asd))
->   			return asd;
->   	}
->
-> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-> index 5b0a30b..a741c6c 100644
-> --- a/drivers/media/v4l2-core/v4l2-device.c
-> +++ b/drivers/media/v4l2-core/v4l2-device.c
-> @@ -157,6 +157,9 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
->   	/* Warn if we apparently re-register a subdev */
->   	WARN_ON(sd->v4l2_dev != NULL);
->
-> +	if (!sd->of_node && sd->dev)
-> +		sd->of_node = sd->dev->of_node;
-> +
->   	/*
->   	 * The reason to acquire the module here is to avoid unloading
->   	 * a module of sub-device which is registered to a media
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 8f5da73..5c51987 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -603,6 +603,8 @@ struct v4l2_subdev {
->   	struct video_device *devnode;
->   	/* pointer to the physical device, if any */
->   	struct device *dev;
-> +	/* A device_node of the sub-device, iff not dev->of_node. */
-> +	struct device_node *of_node;
->   	/* Links this subdev to a global subdev_list or @notifier->done list. */
->   	struct list_head async_list;
->   	/* Pointer to respective struct v4l2_async_subdev. */
->
+Add support for analog and dvb tv using media controller
 
-I've tested it with V4L2_ASYNC_MATCH_OF matching type.
-For this you can add my:
+Signed-off-by: Rafael Lourenço de Lima Chehab <chehabrafael@gmail.com>
+---
+v2:cleanups
+ drivers/media/dvb-frontends/au8522_decoder.c |  17 +++++
+ drivers/media/dvb-frontends/au8522_priv.h    |  12 ++++
+ drivers/media/usb/au0828/au0828-cards.c      |   2 -
+ drivers/media/usb/au0828/au0828-core.c       | 100 +++++++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828-dvb.c        |  10 +++
+ drivers/media/usb/au0828/au0828-video.c      |  83 ++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828.h            |   6 ++
+ 7 files changed, 228 insertions(+), 2 deletions(-)
 
-Tested-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 33aa9410b624..24990db7ba38 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -731,6 +731,9 @@ static int au8522_probe(struct i2c_client *client,
+ 	struct v4l2_subdev *sd;
+ 	int instance;
+ 	struct au8522_config *demod_config;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int ret;
++#endif
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter,
+@@ -767,6 +770,20 @@ static int au8522_probe(struct i2c_client *client,
+ 
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &au8522_ops);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++
++	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
++				state->pads, 0);
++	if (ret < 0) {
++		v4l_info(client, "failed to initialize media entity!\n");
++		return ret;
++	}
++#endif
+ 
+ 	hdl = &state->hdl;
+ 	v4l2_ctrl_handler_init(hdl, 4);
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index b8aca1c84786..ed6eb2675508 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -39,6 +39,14 @@
+ #define AU8522_DIGITAL_MODE 1
+ #define AU8522_SUSPEND_MODE 2
+ 
++enum au8522_media_pads {
++	AU8522_PAD_INPUT,
++	AU8522_PAD_VID_OUT,
++	AU8522_PAD_VBI_OUT,
++
++	AU8522_NUM_PADS
++};
++
+ struct au8522_state {
+ 	struct i2c_client *c;
+ 	struct i2c_adapter *i2c;
+@@ -68,6 +76,10 @@ struct au8522_state {
+ 	u32 id;
+ 	u32 rev;
+ 	struct v4l2_ctrl_handler hdl;
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pads[AU8522_NUM_PADS];
++#endif
+ };
+ 
+ /* These are routines shared by both the VSB/QAM demodulator and the analog
+diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+index edc27355f271..6b469e8c4c6e 100644
+--- a/drivers/media/usb/au0828/au0828-cards.c
++++ b/drivers/media/usb/au0828/au0828-cards.c
+@@ -195,8 +195,6 @@ void au0828_card_setup(struct au0828_dev *dev)
+ 
+ 	dprintk(1, "%s()\n", __func__);
+ 
+-	dev->board = au0828_boards[dev->boardnr];
+-
+ 	if (dev->i2c_rc == 0) {
+ 		dev->i2c_client.addr = 0xa0 >> 1;
+ 		tveeprom_read(&dev->i2c_client, eeprom, sizeof(eeprom));
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 082ae6ba492f..0378a2c99ebb 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -127,8 +127,22 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
+ 	return status;
+ }
+ 
++static void au0828_unregister_media_device(struct au0828_dev *dev)
++{
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (dev->media_dev) {
++		media_device_unregister(dev->media_dev);
++		kfree(dev->media_dev);
++		dev->media_dev = NULL;
++	}
++#endif
++}
++
+ static void au0828_usb_release(struct au0828_dev *dev)
+ {
++	au0828_unregister_media_device(dev);
++
+ 	/* I2C */
+ 	au0828_i2c_unregister(dev);
+ 
+@@ -161,6 +175,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	*/
+ 	dev->dev_state = DEV_DISCONNECTED;
+ 
++	au0828_unregister_media_device(dev);
++
+ 	au0828_rc_unregister(dev);
+ 	/* Digital TV */
+ 	au0828_dvb_unregister(dev);
+@@ -180,6 +196,81 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	au0828_usb_release(dev);
+ }
+ 
++static void au0828_media_device_register(struct au0828_dev *dev,
++					  struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev;
++	int ret;
++
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return;
++
++	mdev->dev = &udev->dev;
++
++	if (!dev->board.name)
++		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
++	else
++		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	ret = media_device_register(mdev);
++	if (ret) {
++		pr_err(
++			"Couldn't create a media device. Error: %d\n",
++			ret);
++		kfree(mdev);
++		return;
++	}
++
++	dev->media_dev = mdev;
++#endif
++}
++
++
++static void au0828_create_media_graph(struct au0828_dev *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity *entity;
++	struct media_entity *tuner = NULL, *decoder = NULL;
++
++	if (!mdev)
++		return;
++
++	media_device_for_each_entity(entity, mdev) {
++		switch (entity->type) {
++		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++			decoder = entity;
++			break;
++		}
++	}
++
++	/* Analog setup, using tuner as a link */
++
++	if (!decoder)
++		return;
++
++	if (tuner)
++		media_entity_create_link(tuner, 0, decoder, 0,
++					 MEDIA_LNK_FL_ENABLED);
++	if (dev->vdev.entity.links)
++		media_entity_create_link(decoder, 1, &dev->vdev.entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++	if (dev->vbi_dev.entity.links)
++		media_entity_create_link(decoder, 2, &dev->vbi_dev.entity, 0,
++				 MEDIA_LNK_FL_ENABLED);
++#endif
++}
++
+ static int au0828_usb_probe(struct usb_interface *interface,
+ 	const struct usb_device_id *id)
+ {
+@@ -222,11 +313,18 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	mutex_init(&dev->dvb.lock);
+ 	dev->usbdev = usbdev;
+ 	dev->boardnr = id->driver_info;
++	dev->board = au0828_boards[dev->boardnr];
++
++	/* Register the media controller */
++	au0828_media_device_register(dev, usbdev);
+ 
+ #ifdef CONFIG_VIDEO_AU0828_V4L2
+ 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
+ 
+ 	/* Create the v4l2_device */
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->v4l2_dev.mdev = dev->media_dev;
++#endif
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		pr_err("%s() v4l2_device_register failed\n",
+@@ -285,6 +383,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 
+ 	mutex_unlock(&dev->lock);
+ 
++	au0828_create_media_graph(dev);
++
+ 	return retval;
+ }
+ 
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index c267d76f5b3c..c01772c4f9f0 100644
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -415,6 +415,11 @@ static int dvb_register(struct au0828_dev *dev)
+ 		       result);
+ 		goto fail_adapter;
+ 	}
++
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	dvb->adapter.mdev = dev->media_dev;
++#endif
++
+ 	dvb->adapter.priv = dev;
+ 
+ 	/* register frontend */
+@@ -480,6 +485,11 @@ static int dvb_register(struct au0828_dev *dev)
+ 
+ 	dvb->start_count = 0;
+ 	dvb->stop_count = 0;
++
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	dvb_create_media_graph(&dvb->adapter);
++#endif
++
+ 	return 0;
+ 
+ fail_fe_conn:
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 1a362a041ab3..4ebe13673adf 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -637,6 +637,75 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
+ 	return rc;
+ }
+ 
++static int au0828_enable_analog_tuner(struct au0828_dev *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity  *entity, *decoder = NULL, *source;
++	struct media_link *link, *found_link = NULL;
++	int i, ret, active_links = 0;
++
++	if (!mdev)
++		return 0;
++
++	/*
++	 * This will find the tuner that is connected into the decoder.
++	 * Technically, this is not 100% correct, as the device may be
++	 * using an analog input instead of the tuner. However, as we can't
++	 * do DVB streaming while the DMA engine is being used for V4L2,
++	 * this should be enough for the actual needs.
++	 */
++	media_device_for_each_entity(entity, mdev) {
++		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
++			decoder = entity;
++			break;
++		}
++	}
++	if (!decoder)
++		return 0;
++
++	for (i = 0; i < decoder->num_links; i++) {
++		link = &decoder->links[i];
++		if (link->sink->entity == decoder) {
++			found_link = link;
++			if (link->flags & MEDIA_LNK_FL_ENABLED)
++				active_links++;
++			break;
++		}
++	}
++
++	if (active_links == 1 || !found_link)
++		return 0;
++
++	source = found_link->source->entity;
++	for (i = 0; i < source->num_links; i++) {
++		struct media_entity *sink;
++		int flags = 0;
++
++		link = &source->links[i];
++		sink = link->sink->entity;
++
++		if (sink == entity)
++			flags = MEDIA_LNK_FL_ENABLED;
++
++		ret = media_entity_setup_link(link, flags);
++		if (ret) {
++			pr_err(
++				"Couldn't change link %s->%s to %s. Error %d\n",
++				source->name, sink->name,
++				flags ? "enabled" : "disabled",
++				ret);
++			return ret;
++		} else
++			au0828_isocdbg(
++				"link %s->%s was %s\n",
++				source->name, sink->name,
++				flags ? "ENABLED" : "disabled");
++	}
++#endif
++	return 0;
++}
++
+ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
+@@ -652,6 +721,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+ 
++	au0828_enable_analog_tuner(dev);
++
+ 	return 0;
+ }
+ 
+@@ -1821,6 +1892,18 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
+ 	strcpy(dev->vbi_dev.name, "au0828a vbi");
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad, 0);
++	if (ret < 0)
++		pr_err("failed to initialize video media entity!\n");
++
++	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad, 0);
++	if (ret < 0)
++		pr_err("failed to initialize vbi media entity!\n");
++#endif
++
+ 	/* initialize videobuf2 stuff */
+ 	retval = au0828_vb2_setup(dev);
+ 	if (retval != 0) {
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 3b480005ce3b..7e6a3bbc68ab 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -32,6 +32,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
++#include <media/media-device.h>
+ 
+ /* DVB */
+ #include "demux.h"
+@@ -275,6 +276,11 @@ struct au0828_dev {
+ 	/* Preallocated transfer digital transfer buffers */
+ 
+ 	char *dig_transfer_buffer[URB_COUNT];
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *media_dev;
++	struct media_pad video_pad, vbi_pad;
++#endif
+ };
+ 
+ 
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.0
+
