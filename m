@@ -1,63 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40532 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751344AbbEDK0Q (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:61279 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039AbbESVfY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 06:26:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 19 May 2015 17:35:24 -0400
+From: Arnd Bergmann <arnd@arndb.de>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/8] mt9v022: avoid calling mt9v022_find_datafmt() twice
-Date: Mon,  4 May 2015 12:25:50 +0200
-Message-Id: <1430735155-24110-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+Cc: mchehab@osg.samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH] [media] coda: remove extraneous TRACE_SYSTEM_STRING
+Date: Tue, 19 May 2015 23:34:33 +0200
+Message-ID: <4790110.OLqddgPxAn@wuerfel>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The coda tracing code causes lots of warnings like
 
-Simplify mt9v022_s_fmt and mt9v022_set_fmt.
+In file included from /git/arm-soc/include/trace/define_trace.h:90:0,
+                 from /git/arm-soc/drivers/media/platform/coda/trace.h:203,
+                 from /git/arm-soc/drivers/media/platform/coda/coda-bit.c:34:
+/git/arm-soc/include/trace/ftrace.h:28:0: warning: "TRACE_SYSTEM_STRING" redefined
+ #define TRACE_SYSTEM_STRING __app(TRACE_SYSTEM_VAR,__trace_system_name)
+ ^
+In file included from /git/arm-soc/include/trace/define_trace.h:83:0,
+                 from /git/arm-soc/drivers/media/platform/coda/trace.h:203,
+                 from /git/arm-soc/drivers/media/platform/coda/coda-bit.c:34:
+/git/arm-soc/drivers/media/platform/coda/./trace.h:12:0: note: this is the location of the previous definition
+ #define TRACE_SYSTEM_STRING __stringify(TRACE_SYSTEM)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/mt9v022.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+>From what I can tell, this is just the result of a bogus TRACE_SYSTEM_STRING
+definition, and removing that one makes the warnings go away.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index f313774..00516bf 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -396,6 +396,7 @@ static int mt9v022_get_fmt(struct v4l2_subdev *sd,
- }
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 9a1a8f9953f ("[media] coda: Add tracing support")
+
+diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
+index d1d06cbd1f6a..781bf7286d53 100644
+--- a/drivers/media/platform/coda/trace.h
++++ b/drivers/media/platform/coda/trace.h
+@@ -9,8 +9,6 @@
  
- static int mt9v022_s_fmt(struct v4l2_subdev *sd,
-+			 const struct mt9v022_datafmt *fmt,
- 			 struct v4l2_mbus_framefmt *mf)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -434,9 +435,8 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
- 	if (!ret) {
- 		mf->width	= mt9v022->rect.width;
- 		mf->height	= mt9v022->rect.height;
--		mt9v022->fmt	= mt9v022_find_datafmt(mf->code,
--					mt9v022->fmts, mt9v022->num_fmts);
--		mf->colorspace	= mt9v022->fmt->colorspace;
-+		mt9v022->fmt	= fmt;
-+		mf->colorspace	= fmt->colorspace;
- 	}
+ #include "coda.h"
  
- 	return ret;
-@@ -471,7 +471,7 @@ static int mt9v022_set_fmt(struct v4l2_subdev *sd,
- 	mf->colorspace	= fmt->colorspace;
+-#define TRACE_SYSTEM_STRING __stringify(TRACE_SYSTEM)
+-
+ TRACE_EVENT(coda_bit_run,
+ 	TP_PROTO(struct coda_ctx *ctx, int cmd),
  
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--		return mt9v022_s_fmt(sd, mf);
-+		return mt9v022_s_fmt(sd, fmt, mf);
- 	cfg->try_fmt = *mf;
- 	return 0;
- }
--- 
-2.1.4
 
