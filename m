@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33785 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933868AbbELWmR (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:36807 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbbESQnm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2015 18:42:17 -0400
-Date: Tue, 12 May 2015 15:42:16 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org, rmk+kernel@arm.linux.org.uk,
-	airlied@linux.ie, kgene@kernel.org, thierry.reding@gmail.com,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	mchehab@osg.samsung.com, linaro-kernel@lists.linaro.org,
-	robdclark@gmail.com, daniel@ffwll.ch
-Subject: Re: [PATCH v3] dma-buf: add ref counting for module as exporter
-Message-ID: <20150512224216.GA16712@kroah.com>
-References: <1431092563-19799-1-git-send-email-sumit.semwal@linaro.org>
+	Tue, 19 May 2015 12:43:42 -0400
+Received: by lagv1 with SMTP id v1so33743207lag.3
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2015 09:43:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1431092563-19799-1-git-send-email-sumit.semwal@linaro.org>
+In-Reply-To: <da8b930d38345df38bac8971f570f6ffdff3b8b6.1431642235.git.mchehab@osg.samsung.com>
+References: <554A00F2.5000007@bmw-carit.de> <da8b930d38345df38bac8971f570f6ffdff3b8b6.1431642235.git.mchehab@osg.samsung.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 19 May 2015 17:43:09 +0100
+Message-ID: <CA+V-a8v6j+b0XKAiB-Vy6Yy9An1Q-D-pcBh-cFhMo5hDxTm7=w@mail.gmail.com>
+Subject: Re: [PATCH] ov2659: Don't depend on subdev API
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 08, 2015 at 07:12:43PM +0530, Sumit Semwal wrote:
-> Add reference counting on a kernel module that exports dma-buf and
-> implements its operations. This prevents the module from being unloaded
-> while DMABUF file is in use.
-> 
-> The original patch [1] was submitted by Tomasz Stanislawski, but this
-> is a simpler way to do it.
-> 
-> v3: call module_put() as late as possible, per gregkh's comment.
-> v2: move owner to struct dma_buf, and use DEFINE_DMA_BUF_EXPORT_INFO
->     macro to simplify the change.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-> 
-> [1]: https://lkml.org/lkml/2012/8/8/163
-> ---
->  drivers/dma-buf/dma-buf.c | 10 +++++++++-
->  include/linux/dma-buf.h   | 10 ++++++++--
->  2 files changed, 17 insertions(+), 3 deletions(-)
+Hi Mauro,
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Thanks for the patch.
+
+On Thu, May 14, 2015 at 11:27 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> The subdev API is optional. No driver should depend on it.
+>
+> Avoid compilation breakages if subdev API is not selected:
+>
+> drivers/media/i2c/ov2659.c: In function ‘ov2659_get_fmt’:
+> drivers/media/i2c/ov2659.c:1054:3: error: implicit declaration of function ‘v4l2_subdev_get_try_format’ [-Werror=implicit-function-declaration]
+>    mf = v4l2_subdev_get_try_format(sd, cfg, 0);
+>    ^
+> drivers/media/i2c/ov2659.c:1054:6: warning: assignment makes pointer from integer without a cast
+>    mf = v4l2_subdev_get_try_format(sd, cfg, 0);
+>       ^
+> drivers/media/i2c/ov2659.c: In function ‘ov2659_set_fmt’:
+> drivers/media/i2c/ov2659.c:1129:6: warning: assignment makes pointer from integer without a cast
+>    mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
+>       ^
+> drivers/media/i2c/ov2659.c: In function ‘ov2659_open’:
+> drivers/media/i2c/ov2659.c:1264:38: error: ‘struct v4l2_subdev_fh’ has no member named ‘pad’
+>      v4l2_subdev_get_try_format(sd, fh->pad, 0);
+>                                       ^
+>
+> Compile-tested only.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
