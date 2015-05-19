@@ -1,105 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35878 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751378AbbEHKqK (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:49674 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842AbbESRiP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 06:46:10 -0400
-Message-ID: <554C93DE.2010205@xs4all.nl>
-Date: Fri, 08 May 2015 12:45:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 19 May 2015 13:38:15 -0400
+Date: Tue, 19 May 2015 20:36:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Michael =?iso-8859-1?Q?B=FCsch?= <m@bues.ch>,
+	Federico Simoncelli <fsimonce@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Amber Thrall <amber.rose.thrall@gmail.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/2] drivers: Simplify the return code
+Message-ID: <20150519173644.GP22558@mwanda>
+References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+ <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+ <a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+ <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+ <20150519141731.78744f2f@wiggum>
+ <555B5E32.9060301@iki.fi>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v6 07/11] DocBook/media: add CEC documentation
-References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-8-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1430760785-1169-8-git-send-email-k.debski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <555B5E32.9060301@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On Tue, May 19, 2015 at 07:00:50PM +0300, Antti Palosaari wrote:
+> I am also against that kind of simplifications. Even it reduces line
+> or two, it makes code more inconsistent, which means you have to
+> make extra thinking when reading that code. I prefer similar
+> repeating patterns as much as possible.
+> 
+> This is how I do it usually, even there is that extra last goto.
+> 
+> 	ret = write_reg();
+> 	if (ret)
+> 		goto err;
+> 
+> 	ret = write_reg();
+> 	if (ret)
+> 		goto err;
+> err:
+> 	return ret;
+> };
+> 
 
-A few more comments about the documentation:
+I don't care too much about the original patch one way or the other.
+The new code is more fashionable and fewer lines.
 
-First of all you should add some documentation about what the passthrough mode
-actually is. Right now all this says is that you can enable or disable it, but
-not what it actually does.
+But these sorts of do-nothing returns are a blight.
 
-And next I have a few small comments about the timestamp documentation:
+They are misleading.  You expect goto err to do something.  You wander
+what it is.  The name tells you nothing.  So you have to scroll down.
+Oh crap, it's just a @#$@$@#$ waste of time do-nothing goto.  It's the
+travel through a door problem, you have completely forgotten what you
+are doing.
 
-> diff --git a/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml b/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
-> new file mode 100644
-> index 0000000..cbde320
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
-> @@ -0,0 +1,125 @@
+http://www.scientificamerican.com/article/why-walking-through-doorway-makes-you-forget/
 
-...
 
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>CEC devices can send asynchronous events. These can be retrieved by calling
-> +    the <constant>CEC_G_EVENT</constant> ioctl. If the file descriptor is in non-blocking
-> +    mode and no event is pending, then it will return -1 and set errno to the &EAGAIN;.</para>
-> +
-> +    <para>There can be up to 40 events queued up. If more events are added, then the oldest event will be discarded.</para>
-> +
-> +    <table pgwide="1" frame="none" id="cec-event">
-> +      <title>struct <structname>cec_event</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>ts</structfield></entry>
-> +	    <entry>Timestamp of the event in ns.</entry>
+And also they are a total waste of time if you care about preventing
+bugs.
 
-"Timestamp of the event in ns. This is based on the monotonic clock. Applications
-can access this clock using <function>clock_gettime(2)</function> with clock ID
-<constant>CLOCK_MONOTONIC</constant>. To turn this into a <structname>struct timespec</structname>
-use:
+Some people complain about "hidden return statements" but that is only
+an issue if you don't have syntax highlighting.  If you look through the
+git logs it is full of places like 95f38411df055a0e ('netns: use a
+spin_lock to protect nsid management') where the other coder had gotos
+highlighted in the same color as regular code.  If you actually measure
+how common return with lock held bugs are the goto err and the direct
+return style code have equal amount of bugs.  (I have looked at this but
+only briefly, so it would be interesting to see a thourough scientific
+paper on it).
 
-<programlisting>
-	struct timespec tmspec;
+Also the goto err style code introduces a new class of "forgot to set
+the error code" bugs which are not there in direct return code.
 
-	tmspec.tv_sec = ts / 1000000000;
-	tmspec.tv_nsec = ts % 1000000000;
-<programlisting>"
+regards,
+dan carpenter
 
-(I hope the docbook syntax for programlisting is correct)
-
-<snip>
-
-> diff --git a/Documentation/DocBook/media/v4l/cec-ioc-receive.xml b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
-> new file mode 100644
-> index 0000000..dbec20a
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/cec-ioc-receive.xml
-> @@ -0,0 +1,185 @@
-
-...
-
-> +    <table pgwide="1" frame="none" id="cec-msg">
-> +      <title>struct <structname>cec_msg</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>ts</structfield></entry>
-> +	    <entry>Timestamp of when the message was transmitted in ns in the case
-> +	    of <constant>CEC_TRANSMIT</constant> with <structfield>reply</structfield>
-> +	    set to 0, or the timestamp of the received message in all other cases.</entry>
-
-The same timestamp explanation should be given here.
-
-Regards,
-
-	Hans
