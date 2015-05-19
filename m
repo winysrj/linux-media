@@ -1,59 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55984 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757206AbbEVOAF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35147 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbbESLBL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 10:00:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/11] cobalt: fix sparse warnings
-Date: Fri, 22 May 2015 15:59:39 +0200
-Message-Id: <1432303184-8594-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
-References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 19 May 2015 07:01:11 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antoine Jacquet <royale@zerezo.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-usb@vger.kernel.org
+Subject: [PATCH 1/2] usb drivers: use BUG_ON() instead of if () BUG
+Date: Tue, 19 May 2015 08:00:56 -0300
+Message-Id: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some USB drivers have a logic at the VB buffer handling like:
+	if (in_interrupt())
+		BUG();
+Use, instead:
+	BUG_ON(in_interrupt());
 
-drivers/media/pci/cobalt/cobalt-flash.c:101:5: warning: symbol 'cobalt_flash_probe' was not declared. Should it be static?
-drivers/media/pci/cobalt/cobalt-flash.c:126:6: warning: symbol 'cobalt_flash_remove' was not declared. Should it be static?
-drivers/media/pci/cobalt/cobalt-cpld.c:101:6: warning: symbol 'cobalt_cpld_status' was not declared. Should it be static?
-drivers/media/pci/cobalt/cobalt-cpld.c:240:6: warning: symbol 'cobalt_cpld_set_freq' was not declared. Should it be static?
+Btw, this logic looks weird on my eyes. We should convert them
+to use VB2, in order to avoid those crappy things.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cobalt/cobalt-cpld.c  | 2 +-
- drivers/media/pci/cobalt/cobalt-flash.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/pci/cobalt/cobalt-cpld.c b/drivers/media/pci/cobalt/cobalt-cpld.c
-index 05df458..5a28d9b2 100644
---- a/drivers/media/pci/cobalt/cobalt-cpld.c
-+++ b/drivers/media/pci/cobalt/cobalt-cpld.c
-@@ -20,7 +20,7 @@
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 855a708387c6..47a98a2014a5 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1249,8 +1249,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+ 	struct cx231xx *dev = fh->dev;
+ 	unsigned long flags = 0;
  
- #include <linux/delay.h>
+-	if (in_interrupt())
+-		BUG();
++	BUG_ON(in_interrupt());
  
--#include "cobalt-driver.h"
-+#include "cobalt-cpld.h"
+ 	spin_lock_irqsave(&dev->video_mode.slock, flags);
+ 	if (dev->USE_ISO) {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index 80261ac40208..a08014d20a5c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -192,8 +192,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+ 	struct cx231xx_fh *fh = vq->priv_data;
+ 	struct cx231xx *dev = fh->dev;
+ 	unsigned long flags = 0;
+-	if (in_interrupt())
+-		BUG();
++	BUG_ON(in_interrupt());
  
- #define ADRS(offset) (COBALT_BUS_CPLD_BASE + offset)
+ 	/* We used to wait for the buffer to finish here, but this didn't work
+ 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index af44f2d1c0a1..c6ff8968286a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -749,8 +749,7 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
+ 	struct cx231xx *dev = fh->dev;
+ 	unsigned long flags = 0;
  
-diff --git a/drivers/media/pci/cobalt/cobalt-flash.c b/drivers/media/pci/cobalt/cobalt-flash.c
-index 89fd667..04dcaf9 100644
---- a/drivers/media/pci/cobalt/cobalt-flash.c
-+++ b/drivers/media/pci/cobalt/cobalt-flash.c
-@@ -23,7 +23,7 @@
- #include <linux/mtd/cfi.h>
- #include <linux/time.h>
+-	if (in_interrupt())
+-		BUG();
++	BUG_ON(in_interrupt());
  
--#include "cobalt-driver.h"
-+#include "cobalt-flash.h"
+ 	/* We used to wait for the buffer to finish here, but this didn't work
+ 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 77ce9efe1f24..26b6ae8d04da 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -714,8 +714,7 @@ static void free_buffer(struct videobuf_queue *vq, struct tm6000_buffer *buf)
+ 	struct tm6000_core   *dev = fh->dev;
+ 	unsigned long flags;
  
- #define ADRS(offset) (COBALT_BUS_FLASH_BASE + offset)
+-	if (in_interrupt())
+-		BUG();
++	BUG_ON(in_interrupt());
  
+ 	/* We used to wait for the buffer to finish here, but this didn't work
+ 	   because, as we were keeping the state as VIDEOBUF_QUEUED,
+diff --git a/drivers/media/usb/zr364xx/zr364xx.c b/drivers/media/usb/zr364xx/zr364xx.c
+index ca850316d379..7433ba5c4bad 100644
+--- a/drivers/media/usb/zr364xx/zr364xx.c
++++ b/drivers/media/usb/zr364xx/zr364xx.c
+@@ -377,8 +377,7 @@ static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer *buf)
+ {
+ 	_DBG("%s\n", __func__);
+ 
+-	if (in_interrupt())
+-		BUG();
++	BUG_ON(in_interrupt());
+ 
+ 	videobuf_vmalloc_free(&buf->vb);
+ 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
 -- 
-2.1.4
+2.1.0
 
