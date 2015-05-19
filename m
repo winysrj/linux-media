@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56258 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752357AbbEUJCr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56194 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752311AbbESXFb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:02:47 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 15/20] media: rcar_vin: Don't advertise support for USERPTR
-Date: Wed, 20 May 2015 17:39:35 +0100
-Message-Id: <1432139980-12619-16-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Tue, 19 May 2015 19:05:31 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, j.anaszewski@samsung.com,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: [PATCH 2/5] v4l: flash: Make v4l2_flash_init() and v4l2_flash_release() functions always
+Date: Wed, 20 May 2015 02:04:02 +0300
+Message-Id: <1432076645-4799-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
+References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rcar_vin requires physically contiguous buffer, so shouldn't advertise
-support for USERPTR.
+If CONFIG_V4L2_FLASH_LED_CLASS wasn't defined, v4l2_flash_init() and
+v4l2_flash_release() were empty macros. This will lead to compiler warnings
+in form of unused variables if the variables are not used for other
+purposes.
 
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Reviewed-by: William Towle <william.towle@codethink.co.uk>
+Instead, implement v4l2_flash_init() and v4l2_flash_release() as static
+inline functions.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/v4l2-flash.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 222002a..b530503 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1824,7 +1824,7 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
+index 945fa08..67a2cbf 100644
+--- a/include/media/v4l2-flash.h
++++ b/include/media/v4l2-flash.h
+@@ -138,8 +138,16 @@ struct v4l2_flash *v4l2_flash_init(struct led_classdev_flash *fled_cdev,
+ void v4l2_flash_release(struct v4l2_flash *v4l2_flash);
  
- 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	vq->io_modes = VB2_MMAP | VB2_USERPTR;
-+	vq->io_modes = VB2_MMAP;
- 	vq->drv_priv = icd;
- 	vq->ops = &rcar_vin_vb2_ops;
- 	vq->mem_ops = &vb2_dma_contig_memops;
+ #else
+-#define v4l2_flash_init(fled_cdev, ops, config) (NULL)
+-#define v4l2_flash_release(v4l2_flash)
++static inline struct v4l2_flash *v4l2_flash_init(
++	struct led_classdev_flash *fled_cdev, const struct v4l2_flash_ops *ops,
++	struct v4l2_flash_config *config)
++{
++	return NULL;
++}
++
++static inline void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
++{
++}
+ #endif /* CONFIG_V4L2_FLASH_LED_CLASS */
+ 
+ #endif /* _V4L2_FLASH_H */
 -- 
 1.7.10.4
 
