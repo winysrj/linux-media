@@ -1,143 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55662 "EHLO mail.kapsi.fi"
+Received: from bues.ch ([80.190.117.144]:33599 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752304AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 13:08:36 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [ATTN 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-Date: Tue, 26 May 2015 20:08:02 +0300
-Message-Id: <1432660090-19574-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
-References: <1432660090-19574-1-git-send-email-crope@iki.fi>
+	id S1755332AbbESMug (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2015 08:50:36 -0400
+Date: Tue, 19 May 2015 14:17:31 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Federico Simoncelli <fsimonce@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Amber Thrall <amber.rose.thrall@gmail.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/2] drivers: Simplify the return code
+Message-ID: <20150519141731.78744f2f@wiggum>
+In-Reply-To: <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+	<577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/1UWiG9fIb9onu/+zYSE6EV4"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
-has DAC (Digital-to-Analog Converter) . Originally I though it could
-be good idea to have own type for receiver and transmitter, but now I
-feel one common type for SDR is enough. So lets rename it.
+--Sig_/1UWiG9fIb9onu/+zYSE6EV4
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
- Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
- Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
- drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
- include/uapi/linux/videodev2.h              |  5 ++++-
- 5 files changed, 29 insertions(+), 7 deletions(-)
+On Tue, 19 May 2015 08:05:56 -0400 (EDT)
+Federico Simoncelli <fsimonce@redhat.com> wrote:
+> > diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
+> > b/drivers/media/dvb-frontends/lgs8gxx.c
+> > index 3c92f36ea5c7..9b0166cdc7c2 100644
+> > --- a/drivers/media/dvb-frontends/lgs8gxx.c
+> > +++ b/drivers/media/dvb-frontends/lgs8gxx.c
+> > @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_st=
+ate
+> > *priv,
+> >  	t |=3D clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
+> >  	t |=3D clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
+> > =20
+> > -	ret =3D lgs8gxx_write_reg(priv, reg_addr, t);
+> > -	if (ret !=3D 0)
+> > -		return ret;
+> > -
+> > -	return 0;
+> > +	return lgs8gxx_write_reg(priv, reg_addr, t);
+> >  }
+>=20
+> Personally I prefer the current style because it's more consistent with a=
+ll
+> the other calls in the same function (return ret when ret !=3D 0).
+>=20
+> It also allows you to easily add/remove calls without having to deal with
+> the last special case return my_last_fun_call(...).
+>=20
+> Anyway it's not a big deal, I think it's your call.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index a0aef85..f56faf5 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 4.2</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
-+<constant>V4L2_TUNER_SDR</constant>. The use of
-+<constant>V4L2_TUNER_ADC</constant> is deprecated now.
-+	  </para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index f890356..3344921 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -44,10 +44,10 @@ frequency.
-     </para>
- 
-     <para>
--The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-+The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
- the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
--tuner index of the RF tuner (if any) must always follow the ADC tuner index.
--Normally the ADC tuner is #0 and the RF tuner is #1.
-+tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-+Normally the SDR tuner is #0 and the RF tuner is #1.
-     </para>
- 
-     <para>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e98caa1..c9eedc1 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
- structs, ioctls) must be noted in more detail in the history chapter
- (compat.xml), along with the possible impact on existing drivers and
- applications. -->
-+      <revision>
-+	<revnumber>4.2</revnumber>
-+	<date>2015-05-26</date>
-+	<authorinitials>ap</authorinitials>
-+	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-+	</revremark>
-+      </revision>
- 
-       <revision>
- 	<revnumber>3.21</revnumber>
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 1476602..03b9daf 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1634,7 +1634,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_frequency *p = arg;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
--		p->type = V4L2_TUNER_ADC;
-+		p->type = V4L2_TUNER_SDR;
- 	else
- 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-@@ -1649,7 +1649,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	enum v4l2_tuner_type type;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 	} else {
- 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-@@ -2272,7 +2272,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	int err;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 		type = p->type;
- 	} else {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 0f5a467..2ec0b55 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
--	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_SDR               = 4,
- 	V4L2_TUNER_RF                = 5,
- };
- 
-+/* Deprecated, do not use */
-+#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
-+
- enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
--- 
-http://palosaari.fi/
 
+I agree. I also prefer the current style for these reasons. The compiler wi=
+ll also generate the same code in both cases.
+I don't think it really simplifies the code.
+But if you really insist on doing this change, go for it. You get my ack fo=
+r fc0011
+
+--=20
+Michael
+
+--Sig_/1UWiG9fIb9onu/+zYSE6EV4
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVWyndAAoJEPUyvh2QjYsO0eMP/AwLdMuQfRJ6pFxFWeO22g9D
+0whjaAdSP1H9v0V3J3gFzM5F9JodtgSkNY2jWPubLSSKs8YLEz9nFTULUY206vRs
+EhuBNI1Mpthj5SNFbQBC29omwe0h/YBnjJRN8i/abNCa3uGbiZWAP2Sx85+xcjk0
+oAhg11G73wqS+skCE8+wiSTycqZFR3FOhk3G8VWH36h1klKm+vWYyThzWi5Y/UNe
+NrpMO8n7Xvjtc8X2ViCJjhITXc1RmWreJjzZ09lhpVioWpcQYD2ZYiK2E6Pyzi+l
+ABx9p1tL3F/on1SXK8rCVFOtbtgSm4ich/b1OREAxbSMrZ8zmXSCxEOTCKrI6Zy/
+lfTxhdLsAVbctcomtClfAJIjDgaQd16Ti1iRX0NPCD+olGXtAJzACEexkAYDQPBa
+2yGdlvu2HT709+hh/+dWV3x+d6TO/UEsDwpyb68AzjzMYIYcKOTEibKWwnmv7opn
+noXRF/vVdW4fjfEea6iGCnwFTjIBDLyXYdcyQ5QSkkVxHHv43ca7NshPUig06/Yb
+txOm39iEj6MNnMJ1syBhDCoK70vdq9qLFBqCm5MvbLV+ifNHvEtq2hYy+p8JgLL1
+Xo7uagjXna9QZXYjaKVClEqpqEo0MgLymfRxCXnAbQ0SCDb41NjjaasHj6nrDePi
+r90kCpvMHwp5M+V6NSZT
+=Qi3f
+-----END PGP SIGNATURE-----
+
+--Sig_/1UWiG9fIb9onu/+zYSE6EV4--
