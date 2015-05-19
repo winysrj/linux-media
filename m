@@ -1,58 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:33060 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbbESRLq (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:34785 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755253AbbESJDB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 13:11:46 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: lkml <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] media: v4l2-core/v4l2-of.c: determine bus_type only on hsync/vsync flags
-Date: Tue, 19 May 2015 18:11:23 +0100
-Message-Id: <1432055483-23563-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 19 May 2015 05:03:01 -0400
+Received: by laat2 with SMTP id t2so13095378laa.1
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2015 02:02:59 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Peter Seiderer <ps.report@gmx.net>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/2] qv4l2: gl: Add support for V4L2_PIX_FMT_Y16
+Date: Tue, 19 May 2015 11:03:04 +0200
+Message-Id: <1432026185-12284-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Add support for a 16 bit wide greyscale format.
 
-the bus_type needs to be determined only on the hsync/vsync flags,
-this patch fixes the above by moving the check just after hsync/vsync
-flags are being set.
-
-Reported-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-of.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+This is the first time that I do something with OpenGL, please take a
+good review of this patch before merging.
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index c52fb96..7f89c70 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -93,6 +93,11 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
- 			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+It has been tested with vivid and an nvidia-glx driver (propietary)
+ utils/qv4l2/capture-win-gl.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
+index c691bfe0c3b9..ee51089b5775 100644
+--- a/utils/qv4l2/capture-win-gl.cpp
++++ b/utils/qv4l2/capture-win-gl.cpp
+@@ -412,6 +412,7 @@ bool CaptureWinGLEngine::hasNativeFormat(__u32 format)
+ 		V4L2_PIX_FMT_YUV565,
+ 		V4L2_PIX_FMT_YUV32,
+ 		V4L2_PIX_FMT_GREY,
++		V4L2_PIX_FMT_Y16,
+ 		0
+ 	};
  
-+	if (flags)
-+		endpoint->bus_type = V4L2_MBUS_PARALLEL;
-+	else
-+		endpoint->bus_type = V4L2_MBUS_BT656;
+@@ -507,6 +508,7 @@ void CaptureWinGLEngine::changeShader()
+ 	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_ABGR32:
+ 	case V4L2_PIX_FMT_GREY:
++	case V4L2_PIX_FMT_Y16:
+ 	default:
+ 		shader_RGB(m_frameFormat);
+ 		break;
+@@ -614,6 +616,7 @@ void CaptureWinGLEngine::paintGL()
+ 		break;
+ 
+ 	case V4L2_PIX_FMT_GREY:
++	case V4L2_PIX_FMT_Y16:
+ 	case V4L2_PIX_FMT_RGB332:
+ 	case V4L2_PIX_FMT_BGR666:
+ 	case V4L2_PIX_FMT_RGB555:
+@@ -1545,6 +1548,10 @@ void CaptureWinGLEngine::shader_RGB(__u32 format)
+ 		glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, m_frameWidth, m_frameHeight, 0,
+ 			     GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+ 		break;
++	case V4L2_PIX_FMT_Y16:
++		internalFmt = manualTransform ? GL_LUMINANCE : GL_SLUMINANCE;
++		glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, m_frameWidth, m_frameHeight, 0,
++			     GL_LUMINANCE, GL_UNSIGNED_SHORT, NULL);
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+ 	default:
+@@ -1643,6 +1650,11 @@ void CaptureWinGLEngine::render_RGB(__u32 format)
+ 				GL_LUMINANCE, GL_UNSIGNED_BYTE, m_frameData);
+ 		break;
+ 
++	case V4L2_PIX_FMT_Y16:
++		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth, m_frameHeight,
++				GL_LUMINANCE, GL_UNSIGNED_SHORT, m_frameData);
++		break;
 +
- 	if (!of_property_read_u32(node, "pclk-sample", &v))
- 		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
- 			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-@@ -100,10 +105,6 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "field-even-active", &v))
- 		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
- 			V4L2_MBUS_FIELD_EVEN_LOW;
--	if (flags)
--		endpoint->bus_type = V4L2_MBUS_PARALLEL;
--	else
--		endpoint->bus_type = V4L2_MBUS_BT656;
- 
- 	if (!of_property_read_u32(node, "data-active", &v))
- 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+ 	case V4L2_PIX_FMT_RGB555X:
+ 	case V4L2_PIX_FMT_XRGB555X:
+ 	case V4L2_PIX_FMT_ARGB555X:
 -- 
-2.1.0
+2.1.4
 
