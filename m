@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59308 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524AbbE0RsZ (ORCPT
+Received: from mx4-phx2.redhat.com ([209.132.183.25]:51912 "EHLO
+	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753886AbbESMIW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 13:48:25 -0400
-Date: Wed, 27 May 2015 18:48:14 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dan.j.williams@intel.com,
-	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Message-ID: <20150527174814.GJ21577@sirena.org.uk>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-12-git-send-email-peter.ujfalusi@ti.com>
- <20150526152730.GT21577@sirena.org.uk>
- <5565A740.2020707@ti.com>
+	Tue, 19 May 2015 08:08:22 -0400
+Date: Tue, 19 May 2015 08:05:56 -0400 (EDT)
+From: Federico Simoncelli <fsimonce@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Michael Buesch <m@bues.ch>, Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Amber Thrall <amber.rose.thrall@gmail.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Message-ID: <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+In-Reply-To: <a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com> <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com> <a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+Subject: Re: [PATCH 2/2] drivers: Simplify the return code
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="9BaSWpvdCbxAh9tt"
-Content-Disposition: inline
-In-Reply-To: <5565A740.2020707@ti.com>
-Subject: Re: [PATCH 11/13] spi: omap2-mcspi: Support for deferred probing
- when requesting DMA channels
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+----- Original Message -----
+> From: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
+> To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+> Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>, "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Lars-Peter
+> Clausen" <lars@metafoo.de>, "Michael Buesch" <m@bues.ch>, "Antti Palosaari" <crope@iki.fi>, "Hans Verkuil"
+> <hverkuil@xs4all.nl>, "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Ondrej Zary" <linux@rainbow-software.org>,
+> "Ramakrishnan Muthukrishnan" <ramakrmu@cisco.com>, "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>, "Takashi
+> Iwai" <tiwai@suse.de>, "Amber Thrall" <amber.rose.thrall@gmail.com>, "Federico Simoncelli" <fsimonce@redhat.com>,
+> "James Harper" <james.harper@ejbdigital.com.au>, "Dan Carpenter" <dan.carpenter@oracle.com>, "Konrad Rzeszutek Wilk"
+> <konrad.wilk@oracle.com>
+> Sent: Tuesday, May 19, 2015 1:00:57 PM
+> Subject: [PATCH 2/2] drivers: Simplify the return code
+> 
+> If the last thing we do in a function is to call another
+> function and then return its value, we don't need to store
+> the returned code into some ancillary var.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
+> b/drivers/media/dvb-frontends/lgs8gxx.c
+> index 3c92f36ea5c7..9b0166cdc7c2 100644
+> --- a/drivers/media/dvb-frontends/lgs8gxx.c
+> +++ b/drivers/media/dvb-frontends/lgs8gxx.c
+> @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
+> *priv,
+>  	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
+>  	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
+>  
+> -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
+> -	if (ret != 0)
+> -		return ret;
+> -
+> -	return 0;
+> +	return lgs8gxx_write_reg(priv, reg_addr, t);
+>  }
 
---9BaSWpvdCbxAh9tt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Personally I prefer the current style because it's more consistent with all
+the other calls in the same function (return ret when ret != 0).
 
-On Wed, May 27, 2015 at 02:15:12PM +0300, Peter Ujfalusi wrote:
+It also allows you to easily add/remove calls without having to deal with
+the last special case return my_last_fun_call(...).
 
-> I have put the maintainers of the relevant subsystems as CC in the commit
-> message and sent the series to all of the mailing lists. This series was
-> touching 7 subsystems and I thought not spamming every maintainer with all the
-> mails might be better.
-
-You need to at least include people on the cover letter, otherwise
-they'll have no idea what's going on.
-
---9BaSWpvdCbxAh9tt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVZgNeAAoJECTWi3JdVIfQ+fQH/3RUAsyi76DjZZ0jvTPJTYNb
-dEmuvdMbEj9fTeutH/6xnbGT95c8tLNOZ8Pmn436SwZJ08AHG+e4SqJ1Xl7Uu58q
-DLb6ZCxjGRaLfMqXf6XxWsX4KF3kb5ZBNIK2QH6dqTWb3qptSxGvBhP4hzGEb0fV
-FJzPl7QByw+m8e5LQK2mUW0on4ZWOT5/oNPSkWmGcTlTkpQeS1i1ZELcpd0zdsF1
-jTQJwoGgvL5lNkuTfw807uB8v/mciRSDv9phV353E4ea6API0YP26k8jftTb2ex3
-48E1xb2nzLGb/bt6D3wNO0GzidwQ4heN8J/1zmlLWMbX03UxtT6Pt2BYKGxF11M=
-=UYw3
------END PGP SIGNATURE-----
-
---9BaSWpvdCbxAh9tt--
+Anyway it's not a big deal, I think it's your call.
+-- 
+Federico
