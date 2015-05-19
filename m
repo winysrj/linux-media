@@ -1,156 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51368 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754886AbbE1Vtq (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43250 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752863AbbESLDn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:46 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 19/35] DocBook: Fix false positive undefined ioctl references
-Date: Thu, 28 May 2015 18:49:22 -0300
-Message-Id: <38cdfa7a55aabcecd69b7e6d79021f014be2576a.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	Tue, 19 May 2015 07:03:43 -0400
+Message-ID: <555B1876.3040702@xs4all.nl>
+Date: Tue, 19 May 2015 13:03:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sean Young <sean@mess.org>, Kamil Debski <k.debski@samsung.com>
+CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH v6 06/11] cec: add HDMI CEC framework
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-7-git-send-email-k.debski@samsung.com> <20150513111017.GA2191@gofer.mess.org>
+In-Reply-To: <20150513111017.GA2191@gofer.mess.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new code that detects undocumented ioctls hits some false
-positives:
+Hi Sean,
 
-This one is not documented, nor it should, as this is
-there just to reserve namespace:
+I'm taking over this patch series from Kamil for the time being with his
+permission (he's switching jobs and moving house so he can't spend any time
+on this for a while).
 
-	Warning: can't find reference for VIDIOC_RESERVED ioctl
+On 05/13/15 13:10, Sean Young wrote:
+> On Mon, May 04, 2015 at 07:32:59PM +0200, Kamil Debski wrote:
+>> From: Hans Verkuil <hansverk@cisco.com>
+>>
+>> The added HDMI CEC framework provides a generic kernel interface for
+>> HDMI CEC devices.
+>>
+>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> 
+> -snip-
+> 
+>> +int cec_create_adapter(struct cec_adapter *adap, const char *name, u32 caps)
+>> +{
+>> +	int res = 0;
+>> +
+>> +	adap->state = CEC_ADAP_STATE_DISABLED;
+>> +	adap->name = name;
+>> +	adap->phys_addr = 0xffff;
+>> +	adap->capabilities = caps;
+>> +	adap->version = CEC_VERSION_1_4;
+>> +	adap->sequence = 0;
+>> +	mutex_init(&adap->lock);
+>> +	adap->kthread = kthread_run(cec_thread_func, adap, name);
+>> +	init_waitqueue_head(&adap->kthread_waitq);
+>> +	init_waitqueue_head(&adap->waitq);
+>> +	if (IS_ERR(adap->kthread)) {
+>> +		pr_err("cec-%s: kernel_thread() failed\n", name);
+>> +		return PTR_ERR(adap->kthread);
+>> +	}
+>> +	if (caps) {
+>> +		res = cec_devnode_register(&adap->devnode, adap->owner);
+>> +		if (res)
+>> +			kthread_stop(adap->kthread);
+>> +	}
+>> +	adap->recv_notifier = cec_receive_notify;
+>> +
+>> +	/* Prepare the RC input device */
+>> +	adap->rc = rc_allocate_device();
+>> +	if (!adap->rc) {
+>> +		pr_err("cec-%s: failed to allocate memory for rc_dev\n", name);
+>> +		cec_devnode_unregister(&adap->devnode);
+>> +		kthread_stop(adap->kthread);
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	snprintf(adap->input_name, sizeof(adap->input_name), "RC for %s", name);
+>> +	snprintf(adap->input_phys, sizeof(adap->input_phys), "%s/input0", name);
+>> +	strncpy(adap->input_drv, name, sizeof(adap->input_drv));
+>> +
+>> +	adap->rc->input_name = adap->input_name;
+>> +	adap->rc->input_phys = adap->input_phys;
+>> +	adap->rc->dev.parent = &adap->devnode.dev;
+>> +	adap->rc->driver_name = adap->input_drv;
+>> +	adap->rc->driver_type = RC_DRIVER_CEC;
+>> +	adap->rc->allowed_protocols = RC_BIT_CEC;
+>> +	adap->rc->priv = adap;
+>> +	adap->rc->map_name = RC_MAP_CEC;
+>> +	adap->rc->timeout = MS_TO_NS(100);
+>> +
+> 
+> rc->input_id is not populated. It would be nice if input_phys has some 
+> resemblance to a physical path (like the output of usb_make_path() if it
+> is a usb device).
 
-But those are already documented together with other ioctls:
+I've added a BUS_CEC type, the version field can probably get the CEC version
+used, but the vendor/product IDs are difficult: there isn't a product ID in
+the CEC protocol, but there is a 24-bit vendor ID. I'm wondering whether I
+should just put the top 8 bits of the vendor ID in the vendor field and the
+remaining 16 in the product field. That way the combination of the two will be
+unique.
 
-	Warning: can't find reference for VIDIOC_UNSUBSCRIBE_EVENT ioctl
-	Warning: can't find reference for FE_GET_PROPERTY ioctl
-	Warning: can't find reference for VIDIOC_SUBDEV_G_EDID ioctl
-	Warning: can't find reference for VIDIOC_SUBDEV_S_EDID ioctl
-	Warning: can't find reference for VIDIOC_SUBDEV_S_DV_TIMINGS ioctl
-	Warning: can't find reference for VIDIOC_SUBDEV_G_DV_TIMINGS ioctl
-	Warning: can't find reference for VIDIOC_SUBDEV_QUERY_DV_TIMINGS ioctl
+What do you think?
 
-So, we need to just be sure to point to the right documentation.
+>> +	res = rc_register_device(adap->rc);
+>> +
+>> +	if (res) {
+>> +		pr_err("cec-%s: failed to prepare input device\n", name);
+>> +		cec_devnode_unregister(&adap->devnode);
+>> +		rc_free_device(adap->rc);
+>> +		kthread_stop(adap->kthread);
+>> +	}
+>> +
+>> +	return res;
+>> +}
+>> +EXPORT_SYMBOL_GPL(cec_create_adapter);
+>> +
+>> +void cec_delete_adapter(struct cec_adapter *adap)
+>> +{
+>> +	if (adap->kthread == NULL)
+>> +		return;
+>> +	kthread_stop(adap->kthread);
+>> +	if (adap->kthread_config)
+>> +		kthread_stop(adap->kthread_config);
+>> +	adap->state = CEC_ADAP_STATE_DISABLED;
+>> +	if (cec_devnode_is_registered(&adap->devnode))
+>> +		cec_devnode_unregister(&adap->devnode);
+> 
+> I think you're missing a rc_unregister_device() here.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Yes indeed. Added.
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index c82e051f2821..e07e8844efde 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -296,7 +296,7 @@ $(MEDIA_OBJ_DIR)/media-entities.tmpl: $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@(								\
- 	echo -e "\n<!-- Ioctls -->") >>$@
- 	@(								\
--	for ident in $(IOCTLS) ; do					\
-+	for ident in `echo $(IOCTLS) | sed -e "s,VIDIOC_RESERVED,,"`; do\
- 	  entity=`echo $$ident | tr _ -` ;				\
- 	  id=`grep -e "<refname>$$ident" -e "<section id=\"$$ident\"" $$(find $(MEDIA_SRC_DIR) -name *.xml -type f)| sed -r s,"^.*/(.*).xml.*","\1",` ; \
- 	  if [ "$$id" != "" ]; then echo "<!ENTITY $$entity \"<link"	\
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index bb86a74ed7fe..48faf5089675 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -1255,7 +1255,8 @@ enum fe_interleaving {
-   </refmeta>
- 
-   <refnamediv>
--    <refname>FE_SET_PROPERTY and FE_GET_PROPERTY</refname>
-+      <refname>FE_SET_PROPERTY</refname>
-+      <refname>FE_GET_PROPERTY</refname>
-     <refpurpose>FE_SET_PROPERTY sets one or more frontend properties.
- 	FE_GET_PROPERTY returns one or more frontend properties.</refpurpose>
-   </refnamediv>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-index 764b635ed4cf..06952d7cc770 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-@@ -7,6 +7,8 @@
-   <refnamediv>
-     <refname>VIDIOC_G_DV_TIMINGS</refname>
-     <refname>VIDIOC_S_DV_TIMINGS</refname>
-+    <refname>VIDIOC_SUBDEV_G_DV_TIMINGS</refname>
-+    <refname>VIDIOC_SUBDEV_S_DV_TIMINGS</refname>
-     <refpurpose>Get or set DV timings for input or output</refpurpose>
-   </refnamediv>
- 
-@@ -34,7 +36,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_G_DV_TIMINGS, VIDIOC_S_DV_TIMINGS</para>
-+	  <para>VIDIOC_G_DV_TIMINGS, VIDIOC_S_DV_TIMINGS, VIDIOC_SUBDEV_G_DV_TIMINGS, VIDIOC_SUBDEV_S_DV_TIMINGS</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-index e44340c1f9f7..2702536bbc7c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-@@ -7,6 +7,8 @@
-   <refnamediv>
-     <refname>VIDIOC_G_EDID</refname>
-     <refname>VIDIOC_S_EDID</refname>
-+    <refname>VIDIOC_SUBDEV_G_EDID</refname>
-+    <refname>VIDIOC_SUBDEV_S_EDID</refname>
-     <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
-   </refnamediv>
- 
-@@ -42,7 +44,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_G_EDID, VIDIOC_S_EDID</para>
-+	  <para>VIDIOC_G_EDID, VIDIOC_S_EDID, VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-index e185f149e0a1..e9c70a8f3476 100644
---- a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-@@ -6,6 +6,7 @@
- 
-   <refnamediv>
-     <refname>VIDIOC_QUERY_DV_TIMINGS</refname>
-+    <refname>VIDIOC_SUBDEV_QUERY_DV_TIMINGS</refname>
-     <refpurpose>Sense the DV preset received by the current
- input</refpurpose>
-   </refnamediv>
-@@ -34,7 +35,7 @@ input</refpurpose>
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_QUERY_DV_TIMINGS</para>
-+	  <para>VIDIOC_QUERY_DV_TIMINGS, VIDIOC_SUBDEV_QUERY_DV_TIMINGS</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index d0332f610929..5fd0ee78f880 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -5,7 +5,8 @@
-   </refmeta>
- 
-   <refnamediv>
--    <refname>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refname>
-+      <refname>VIDIOC_SUBSCRIBE_EVENT</refname>
-+      <refname>VIDIOC_UNSUBSCRIBE_EVENT</refname>
-     <refpurpose>Subscribe or unsubscribe event</refpurpose>
-   </refnamediv>
- 
--- 
-2.4.1
+Regards,
 
+	Hans
+
+> 
+>> +}
+>> +EXPORT_SYMBOL_GPL(cec_delete_adapter);
+> 
+> 
+> Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
