@@ -1,190 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51373 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754935AbbE1Vtq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:46 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 28/35] DocBook: better document FE_DISEQC_SEND_MASTER_CMD
-Date: Thu, 28 May 2015 18:49:31 -0300
-Message-Id: <3f697f011b97508de8b53f8d56fc44f6f726834c.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:50813 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752281AbbESWLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2015 18:11:44 -0400
+Subject: [PATCH 3/4] rc-core: remove the LIRC "protocol"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Wed, 20 May 2015 00:03:22 +0200
+Message-ID: <20150519220322.3467.51293.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150519220101.3467.16288.stgit@zeus.muc.hardeman.nu>
+References: <20150519220101.3467.16288.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the new format for the ioctl documentation and put the
-struct dvb_diseqc_slave_reply together with the ioctl.
+The LIRC protocol was always a bad fit and if we're ever going to expose
+protocol numbers in a user-space API, it'd be better to get rid of the
+LIRC "protocol" first.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The sysfs API is kept backwards compatible by always listing the lirc
+protocol as present and enabled.
 
- create mode 100644 Documentation/DocBook/media/dvb/fe-diseqc-send-master-cmd.xml
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-lirc-codec.c   |    5 +----
+ drivers/media/rc/keymaps/rc-lirc.c |    2 +-
+ drivers/media/rc/rc-main.c         |   14 +++++++++----
+ include/media/rc-map.h             |   38 +++++++++++++++++-------------------
+ 4 files changed, 29 insertions(+), 30 deletions(-)
 
-diff --git a/Documentation/DocBook/media/dvb/fe-diseqc-send-master-cmd.xml b/Documentation/DocBook/media/dvb/fe-diseqc-send-master-cmd.xml
-new file mode 100644
-index 000000000000..d4d6cd8dfc6c
---- /dev/null
-+++ b/Documentation/DocBook/media/dvb/fe-diseqc-send-master-cmd.xml
-@@ -0,0 +1,72 @@
-+<refentry id="FE_DISEQC_SEND_MASTER_CMD">
-+  <refmeta>
-+    <refentrytitle>ioctl FE_DISEQC_SEND_MASTER_CMD</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>FE_DISEQC_SEND_MASTER_CMD</refname>
-+    <refpurpose>Sends a DiSEqC command</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>&dvb-diseqc-master-cmd; *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+        <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fe_fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>FE_DISEQC_SEND_MASTER_CMD</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	    <para>pointer to &dvb-diseqc-master-cmd;</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>Sends a DiSEqC command to the antenna subsystem.</para>
-+&return-value-dvb;
-+
-+<table pgwide="1" frame="none" id="dvb-diseqc-master-cmd">
-+    <title>struct <structname>dvb_diseqc_master_cmd</structname></title>
-+    <tgroup cols="3">
-+    &cs-str;
-+    <tbody valign="top">
-+	<row>
-+	<entry>uint8_t</entry>
-+	<entry>msg[6]</entry>
-+	<entry>DiSEqC message (framing, address, command, data[3])</entry>
-+	</row><row>
-+	<entry>uint8_t</entry>
-+	<entry>msg_len</entry>
-+	<entry>Length of the DiSEqC message. Valid values are 3 to 6</entry>
-+	</row>
-+    </tbody>
-+    </tgroup>
-+</table>
-+
-+</refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index cba6c355637c..f7bb2db07c23 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -50,18 +50,6 @@ specification is available at
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 98893a8..a32659f 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -35,9 +35,6 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	struct lirc_codec *lirc = &dev->raw->lirc;
+ 	int sample;
  
- &sub-dvbproperty;
+-	if (!(dev->enabled_protocols & RC_BIT_LIRC))
+-		return 0;
+-
+ 	if (!dev->raw->lirc.drv || !dev->raw->lirc.drv->rbuf)
+ 		return -EINVAL;
  
--<section id="dvb-diseqc-master-cmd">
--<title>diseqc master command</title>
--
--<para>A message sent from the frontend to DiSEqC capable equipment.</para>
--<programlisting>
--	struct dvb_diseqc_master_cmd {
--	uint8_t msg [6]; /&#x22C6;  { framing, address, command, data[3] } &#x22C6;/
--	uint8_t msg_len; /&#x22C6;  valid values are 3...6  &#x22C6;/
--	};
--</programlisting>
--</section>
--
- <section id="fe-spectral-inversion-t">
- <title>frontend spectral inversion</title>
- <para>The Inversion field can take one of these values:
-@@ -389,56 +377,7 @@ typedef enum fe_hierarchy {
- &return-value-dvb;
- </section>
+@@ -424,7 +421,7 @@ static int ir_lirc_unregister(struct rc_dev *dev)
+ }
  
--<section id="FE_DISEQC_SEND_MASTER_CMD">
--<title>FE_DISEQC_SEND_MASTER_CMD</title>
--<para>DESCRIPTION
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>This ioctl call is used to send a a DiSEqC command.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--<para>SYNOPSIS
--</para>
--<informaltable><tgroup cols="1"><tbody><row><entry
-- align="char">
--<para>int ioctl(int fd, int request =
-- <link linkend="FE_DISEQC_SEND_MASTER_CMD">FE_DISEQC_SEND_MASTER_CMD</link>, struct
-- dvb_diseqc_master_cmd &#x22C6;cmd);</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--<para>PARAMETERS
--</para>
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>int fd</para>
--</entry><entry
-- align="char">
--<para>File descriptor returned by a previous call to open().</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>int request</para>
--</entry><entry
-- align="char">
--<para>Equals <link linkend="FE_DISEQC_SEND_MASTER_CMD">FE_DISEQC_SEND_MASTER_CMD</link> for this
-- command.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>struct
-- dvb_diseqc_master_cmd
-- *cmd</para>
--</entry><entry
-- align="char">
--<para>Pointer to the command to be transmitted.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
--
--&return-value-dvb;
--</section>
--
-+&sub-fe-diseqc-send-master-cmd;
- &sub-fe-diseqc-recv-slave-reply;
- &sub-fe-diseqc-send-burst;
- &sub-fe-set-tone;
--- 
-2.4.1
+ static struct ir_raw_handler lirc_handler = {
+-	.protocols	= RC_BIT_LIRC,
++	.protocols	= 0,
+ 	.decode		= ir_lirc_decode,
+ 	.raw_register	= ir_lirc_register,
+ 	.raw_unregister	= ir_lirc_unregister,
+diff --git a/drivers/media/rc/keymaps/rc-lirc.c b/drivers/media/rc/keymaps/rc-lirc.c
+index fbf08fa..e172f5d 100644
+--- a/drivers/media/rc/keymaps/rc-lirc.c
++++ b/drivers/media/rc/keymaps/rc-lirc.c
+@@ -20,7 +20,7 @@ static struct rc_map_list lirc_map = {
+ 	.map = {
+ 		.scan    = lirc,
+ 		.size    = ARRAY_SIZE(lirc),
+-		.rc_type = RC_TYPE_LIRC,
++		.rc_type = RC_TYPE_OTHER,
+ 		.name    = RC_MAP_LIRC,
+ 	}
+ };
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 20914ed..c808165 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -800,7 +800,6 @@ static struct {
+ 	{ RC_BIT_SANYO,		"sanyo"		},
+ 	{ RC_BIT_SHARP,		"sharp"		},
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
+-	{ RC_BIT_LIRC,		"lirc"		},
+ 	{ RC_BIT_XMP,		"xmp"		},
+ };
+ 
+@@ -885,6 +884,9 @@ static ssize_t show_protocols(struct device *device,
+ 			allowed &= ~proto_names[i].type;
+ 	}
+ 
++	if (dev->driver_type == RC_DRIVER_IR_RAW)
++		tmp += sprintf(tmp, "[lirc] ");
++
+ 	if (tmp != buf)
+ 		tmp--;
+ 	*tmp = '\n';
+@@ -936,8 +938,12 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+ 		}
+ 
+ 		if (i == ARRAY_SIZE(proto_names)) {
+-			IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
+-			return -EINVAL;
++			if (!strcasecmp(tmp, "lirc"))
++				mask = 0;
++			else {
++				IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
++				return -EINVAL;
++			}
+ 		}
+ 
+ 		count++;
+@@ -1425,8 +1431,6 @@ int rc_register_device(struct rc_dev *dev)
+ 
+ 	if (dev->change_protocol) {
+ 		u64 rc_type = (1ll << rc_map->rc_type);
+-		if (dev->driver_type == RC_DRIVER_IR_RAW)
+-			rc_type |= RC_BIT_LIRC;
+ 		rc = dev->change_protocol(dev, &rc_type);
+ 		if (rc < 0)
+ 			goto out_raw;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index e7a1514..9133363 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -14,30 +14,28 @@
+ enum rc_type {
+ 	RC_TYPE_UNKNOWN		= 0,	/* Protocol not known */
+ 	RC_TYPE_OTHER		= 1,	/* Protocol known but proprietary */
+-	RC_TYPE_LIRC		= 2,	/* Pass raw IR to lirc userspace */
+-	RC_TYPE_RC5		= 3,	/* Philips RC5 protocol */
+-	RC_TYPE_RC5X		= 4,	/* Philips RC5x protocol */
+-	RC_TYPE_RC5_SZ		= 5,	/* StreamZap variant of RC5 */
+-	RC_TYPE_JVC		= 6,	/* JVC protocol */
+-	RC_TYPE_SONY12		= 7,	/* Sony 12 bit protocol */
+-	RC_TYPE_SONY15		= 8,	/* Sony 15 bit protocol */
+-	RC_TYPE_SONY20		= 9,	/* Sony 20 bit protocol */
+-	RC_TYPE_NEC		= 10,	/* NEC protocol */
+-	RC_TYPE_SANYO		= 11,	/* Sanyo protocol */
+-	RC_TYPE_MCE_KBD		= 12,	/* RC6-ish MCE keyboard/mouse */
+-	RC_TYPE_RC6_0		= 13,	/* Philips RC6-0-16 protocol */
+-	RC_TYPE_RC6_6A_20	= 14,	/* Philips RC6-6A-20 protocol */
+-	RC_TYPE_RC6_6A_24	= 15,	/* Philips RC6-6A-24 protocol */
+-	RC_TYPE_RC6_6A_32	= 16,	/* Philips RC6-6A-32 protocol */
+-	RC_TYPE_RC6_MCE		= 17,	/* MCE (Philips RC6-6A-32 subtype) protocol */
+-	RC_TYPE_SHARP		= 18,	/* Sharp protocol */
+-	RC_TYPE_XMP		= 19,	/* XMP protocol */
++	RC_TYPE_RC5		= 2,	/* Philips RC5 protocol */
++	RC_TYPE_RC5X		= 3,	/* Philips RC5x protocol */
++	RC_TYPE_RC5_SZ		= 4,	/* StreamZap variant of RC5 */
++	RC_TYPE_JVC		= 5,	/* JVC protocol */
++	RC_TYPE_SONY12		= 6,	/* Sony 12 bit protocol */
++	RC_TYPE_SONY15		= 7,	/* Sony 15 bit protocol */
++	RC_TYPE_SONY20		= 8,	/* Sony 20 bit protocol */
++	RC_TYPE_NEC		= 9,	/* NEC protocol */
++	RC_TYPE_SANYO		= 10,	/* Sanyo protocol */
++	RC_TYPE_MCE_KBD		= 11,	/* RC6-ish MCE keyboard/mouse */
++	RC_TYPE_RC6_0		= 12,	/* Philips RC6-0-16 protocol */
++	RC_TYPE_RC6_6A_20	= 13,	/* Philips RC6-6A-20 protocol */
++	RC_TYPE_RC6_6A_24	= 14,	/* Philips RC6-6A-24 protocol */
++	RC_TYPE_RC6_6A_32	= 15,	/* Philips RC6-6A-32 protocol */
++	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
++	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
++	RC_TYPE_XMP		= 18,	/* XMP protocol */
+ };
+ 
+ #define RC_BIT_NONE		0
+ #define RC_BIT_UNKNOWN		(1 << RC_TYPE_UNKNOWN)
+ #define RC_BIT_OTHER		(1 << RC_TYPE_OTHER)
+-#define RC_BIT_LIRC		(1 << RC_TYPE_LIRC)
+ #define RC_BIT_RC5		(1 << RC_TYPE_RC5)
+ #define RC_BIT_RC5X		(1 << RC_TYPE_RC5X)
+ #define RC_BIT_RC5_SZ		(1 << RC_TYPE_RC5_SZ)
+@@ -56,7 +54,7 @@ enum rc_type {
+ #define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1 << RC_TYPE_XMP)
+ 
+-#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | RC_BIT_LIRC | \
++#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+ 			 RC_BIT_JVC | \
+ 			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
 
