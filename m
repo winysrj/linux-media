@@ -1,132 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60127 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:32818 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933957AbbEMVKg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 17:10:36 -0400
-Date: Wed, 13 May 2015 18:10:26 -0300
+	id S1751822AbbETJBk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 05:01:40 -0400
+Date: Wed, 20 May 2015 06:01:33 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: y2038@lists.linaro.org, John Stultz <john.stultz@linaro.org>,
-	Ksenija Stanojevic <ksenija.stanojevic@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [Y2038] [PATCH v3] Staging: media: Replace timeval with ktime_t
-Message-ID: <20150513181026.5b52b458@recife.lan>
-In-Reply-To: <5274992.1I7KfpY9Ml@wuerfel>
-References: <1431536238-12738-1-git-send-email-ksenija.stanojevic@gmail.com>
-	<CALAqxLWjo3+h5QqVnJGe2vda9SbUGg1L8wZjuQWSVaX5di1MzA@mail.gmail.com>
-	<5274992.1I7KfpY9Ml@wuerfel>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 4/6] [media] rc: lirc is not a protocol or a keymap
+Message-ID: <20150520060133.5b2846ae@recife.lan>
+In-Reply-To: <5b14c3fee1ee0a553db5dac7b01fbf0a@hardeman.nu>
+References: <cover.1426801061.git.sean@mess.org>
+	<2a2f4281ba60988242c11bdf2fda3243e2dc4467.1426801061.git.sean@mess.org>
+	<20150514135123.4ba85dc7@recife.lan>
+	<20150519203442.GB18036@hardeman.nu>
+	<20150520051923.7cefe112@recife.lan>
+	<5b14c3fee1ee0a553db5dac7b01fbf0a@hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 13 May 2015 21:53:07 +0200
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Em Wed, 20 May 2015 10:49:34 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-> On Wednesday 13 May 2015 10:04:48 John Stultz wrote:
-> > On Wed, May 13, 2015 at 9:57 AM, Ksenija Stanojevic
-> > <ksenija.stanojevic@gmail.com> wrote:
-> > > 'struct timeval last_tv' is used to get the time of last signal change
-> > > and 'struct timeval last_intr_tv' is used to get the time of last UART
-> > > interrupt.
-> > > 32-bit systems using 'struct timeval' will break in the year 2038, so we
-> > > have to replace that code with more appropriate types.
-> > > Here struct timeval is replaced with ktime_t.
-> > >
-> > > Signed-off-by: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
-> 
-> An additional comment: as drivers/staging/media refers to a whole subsystem
-> with mutually independent drivers, the subject line should mention 'lirc',
-> either in addition to, or instead of 'media'.
-> 
-> > > -static long delta(struct timeval *tv1, struct timeval *tv2)
-> > > +static inline long delta(ktime_t t1, ktime_t t2)
-> > >  {
-> > > -       unsigned long deltv;
-> > > -
-> > > -       deltv = tv2->tv_sec - tv1->tv_sec;
-> > > -       if (deltv > 15)
-> > > -               deltv = 0xFFFFFF;
-> > > -       else
-> > > -               deltv = deltv*1000000 +
-> > > -                       tv2->tv_usec -
-> > > -                       tv1->tv_usec;
-> > > -       return deltv;
-> > > +       /* return the delta in 32bit usecs, but cap to UINTMAX in case the
-> > > +        * delta is greater then 32bits */
-> > > +       return (long) min((unsigned int) ktime_us_delta(t1, t2), UINT_MAX);
-> > >  }
+> On 2015-05-20 10:19, Mauro Carvalho Chehab wrote:
+> > Em Tue, 19 May 2015 22:34:42 +0200
+> > David Härdeman <david@hardeman.nu> escreveu:
 > > 
-> > This probably needs some close review from the media folks. Thinking
-> > about it more, I'm really not certain the 15sec cap was to avoid a
-> > 32bit overflow or if there's some other subtle undocumented reason.
+> >> On Thu, May 14, 2015 at 01:51:23PM -0300, Mauro Carvalho Chehab wrote:
+> >> >Em Thu, 19 Mar 2015 21:50:15 +0000
+> >> >Sean Young <sean@mess.org> escreveu:
+> >> >
+> >> >> Since the lirc bridge is not a decoder we can remove its protocol. The
+> >> >> keymap existed only to select the protocol.
+> >> >
+> >> >This changes the userspace interface, as now it is possible to enable/disable
+> >> >LIRC handling from a given IR via /proc interface.
+> > 
+> > I guess I meant to say: "as now it is not possible"
+> > 
+> >> I still like the general idea though.
+> > 
+> > Yeah, LIRC is not actually a decoder, so it makes sense to have it
+> > handled differently.
+> > 
+> >> If we expose the protocol in the
+> >> set/get keymap ioctls, then we need to expose the protocol enum to
+> >> userspace (in which point it will be set in stone)...removing lirc 
+> >> from
+> >> that list before we do that is a worthwhile cleanup IMHO (I have a
+> >> similar patch in my queue).
+> >> 
+> >> I think we should be able to at least not break userspace by still
+> >> accepting (and ignoring) commands to enable/disable lirc.
+> > 
+> > Well, ignoring is not a good idea, as it still breaks userspace, but
+> > on a more evil way. If one is using this feature, we'll be receiving
+> > bug reports and fixes for it.
 > 
-> The new code is clearly wrong, as the cast to 'unsigned int' already truncates
-> the value to at most UINT_MAX, and the min() does not have any effect.
+> I disagree it's more "evil" (or at least I fail to see how it would be). 
+
+Because the Kernel would be lying to userspace. If one tells the Kernel to
+disable something, it should do it, or otherwise return an error explaining
+why disabling was not possible.
+
+> Accepting but ignoring "lirc" means that the same commands as before 
+> will still be accepted (so pre-existing userspace scripts won't have to 
+> change which they would if we made "lirc" an invalid protocol to echo to 
+> the sysfs file).
+
+Yes, but, if someone is trying to disable lirc, it is doing for some
+reason. The script won't fail, but his application will.
+
+> And saying that the change will "break" userspace is still something of 
+> a misnomer. You'd basically expect userspace to open /sys/blabla, write 
+> "-lirc" (which would disable the lirc output but the device node is 
+> still in /dev), then later open /dev/lircX and be surprised that it's 
+> still receiving lirc events on the lirc device it just opened? I think 
+> that's a rather artificial scenario...
+
+Well, lircd is a daemon. I can easily an usecase where some application
+would like to prevent it to be running because such application would
+read the RC codes directly from input/dev.
+
+I'm not arguing that this is the best way of doing that (nor I have
+myself any such usecases), but if some app relies on such behavior, then
+this is an userspace breakage.
+
+> >> That lirc won't actually be disabled/enabled is (imho) a lesser
+> >> problem...is there any genuine use case for disabling lirc on a
+> >> per-device basis?
+> > 
+> > People do weird things sometimes. I won't doubt that someone would
+> > be doing that.
+> > 
+> > In any case, keep supporting disabling LIRC is likely
+> > simple, even if we don't map it internally as a protocol anymore.
 > 
-> The correct way to write what was intended here is
+> I could write a different patch that removes the protocol enum but still 
+> allows lirc to be disabled/enabled. I doubt it'll be that simple though 
+> (ugly hack rather), and I still don't see the benefits of doing so (or 
+> downsides or "breakage" of not doing it).
 > 
-> 	return min_t(long long, ktime_us_delta(t1, t2), UINT_MAX);
-> 
-> which will truncate delta to an unsigned integer. The return type of the
-> delta() function would need to be changed to 'unsigned long' as well to
-> make this work.
-> 
-> However, I think you are right that we should probably not change the
-> behavior, unless someone who understands the purpose better can say
-> what it really should be. 
+> Another option would be to commit the change a see if anyone screams (I 
+> very much doubt it).
 
-Inside the remote controller code, we have measurements for pulse/space
-encodings on a IR transmission. The duration of a pulse or space is
-generally in the other of microseconds. On the standard protocols, the
-maximum duration is on NEC protocol, where a pulse of 9 ms is sent at
-the beginning:
-	http://www.sbprojects.com/knowledge/ir/nec.php
-
-It should be noticed that bigger time intervals can be used to indicate
-key repeat. Again, in the NEC protocol, the space between key repeats
-are 110 ms.
-
-So, everything above 110 ms is actually an infinite time.
-
-As the Kernel implementation was built to be generic enough, we consider
-(u32)-1 (e. g. about 4 seconds) as the maximum possible time.
-
-This is due to the fact that some IR protocols use u32 for the pulse/space
-time shifts. So, any duration bigger than that could actually be
-rounded to (u32)-1.
-
-That's said, I really don't see the need of "fixing" it on the y2038
-patchset. All that it is needed is to warrant that the time difference
-will be positive.
-
-I would, instead, remove the delta function, and replace:
-
-	do_gettimeofday(&curr_tv);
-	deltv = delta(&last_tv, &curr_tv);
-
-(and other equivalent parts)
-
-By an equivalent logic that would be reading the timestamp from a
-high precision clock.
-
-That's said, I suspect that this driver is broken, as I doubt that
-do_gettimeofday() gets enough precision needed for IR decoding. Also,
-as this returns a non-monotonic timestamp, it will break if one adjusts
-the clock while IR keys are being pressed.
+It may take months for people to discover, as it will only reach userspace
+after distros merge the patch on their Kernel. Not nice. We should avoid
+doing things like that.
 
 Regards,
 Mauro
-
-
-> I'd probably change teh above to
-> 
-> 	long delta_us = ktime_us_delta(t1, t2);
-> 	return min(delta_us, PULSE_MASK);
-> 
-> 	Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
