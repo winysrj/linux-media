@@ -1,143 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36632 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751986AbbEHBM4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:56 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:60959 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752785AbbETIjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 04:39:42 -0400
+Date: Wed, 20 May 2015 05:39:29 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+To: Federico Simoncelli <fsimonce@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Michael Buesch <m@bues.ch>, Antti Palosaari <crope@iki.fi>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
 	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-api@vger.kernel.org
-Subject: [PATCH 03/18] media controller: use MEDIA_ENT_T_AV_DMA for A/V DMA engines
-Date: Thu,  7 May 2015 22:12:25 -0300
-Message-Id: <afb84e3d80fc4f6f2465a123012f161b8c29f1c4.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Amber Thrall <amber.rose.thrall@gmail.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/2] drivers: Simplify the return code
+Message-ID: <20150520053929.4c151fae@recife.lan>
+In-Reply-To: <577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+	<577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At the Video4Linux API, the /dev/video?, /dev/vbi? and
-/dev/radio? device nodes are used for the chipset that
-provides the bridge between video/radio streams and the
-USB, PCI or CPU buses.
+Em Tue, 19 May 2015 08:05:56 -0400 (EDT)
+Federico Simoncelli <fsimonce@redhat.com> escreveu:
 
-Such bridge is also typically used to control the V4L2 device
-as a hole.
+> ----- Original Message -----
+> > From: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
+> > To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+> > Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>, "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Lars-Peter
+> > Clausen" <lars@metafoo.de>, "Michael Buesch" <m@bues.ch>, "Antti Palosaari" <crope@iki.fi>, "Hans Verkuil"
+> > <hverkuil@xs4all.nl>, "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Ondrej Zary" <linux@rainbow-software.org>,
+> > "Ramakrishnan Muthukrishnan" <ramakrmu@cisco.com>, "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>, "Takashi
+> > Iwai" <tiwai@suse.de>, "Amber Thrall" <amber.rose.thrall@gmail.com>, "Federico Simoncelli" <fsimonce@redhat.com>,
+> > "James Harper" <james.harper@ejbdigital.com.au>, "Dan Carpenter" <dan.carpenter@oracle.com>, "Konrad Rzeszutek Wilk"
+> > <konrad.wilk@oracle.com>
+> > Sent: Tuesday, May 19, 2015 1:00:57 PM
+> > Subject: [PATCH 2/2] drivers: Simplify the return code
+> > 
+> > If the last thing we do in a function is to call another
+> > function and then return its value, we don't need to store
+> > the returned code into some ancillary var.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
+> > b/drivers/media/dvb-frontends/lgs8gxx.c
+> > index 3c92f36ea5c7..9b0166cdc7c2 100644
+> > --- a/drivers/media/dvb-frontends/lgs8gxx.c
+> > +++ b/drivers/media/dvb-frontends/lgs8gxx.c
+> > @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
+> > *priv,
+> >  	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
+> >  	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
+> >  
+> > -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
+> > -	if (ret != 0)
+> > -		return ret;
+> > -
+> > -	return 0;
+> > +	return lgs8gxx_write_reg(priv, reg_addr, t);
+> >  }
+> 
+> Personally I prefer the current style because it's more consistent with all
+> the other calls in the same function (return ret when ret != 0).
+> 
+> It also allows you to easily add/remove calls without having to deal with
+> the last special case return my_last_fun_call(...).
+> 
+> Anyway it's not a big deal, I think it's your call.
 
-For video streaming devices and SDR radio devices, they're
-also associated with the DMA engines that transfer the
-video stream (or SDR stream) to the CPU's memory.
+First of all, I wrote this patch to test coccinelle (with was broken
+in Fedora 21 due to a dependency issue[1]). Once done, why not submit?
+So, it is not that I'm really wanting to do that.
 
-It should be noticed, however, this is not true on non-SDR
-radio devices, and may also not be true on embedded devices
-that, due to DRM reasons, don't allow writing unencrypted
-data on a memory that could be seen by the CPU.
+[1] https://bugzilla.redhat.com/show_bug.cgi?id=1218987
 
-So, we'll eventually need to add another entity for such
-bridge chipsets that have a video/vbi/radio device node
-associated, but don't have DMA engines on (some) devnodes.
+Yet, as someone that review a lot of code, the above is a way better,
+as I can instantly check that the data returned by lgs8gxx_write_reg()
+will also be returned to the caller function. Ok, this optimizes a few
+milliseconds of my brain's processing, but it still means a faster
+review to me, with is a gain, as I spend big periods of time reviewing
+code. So, the simpler, the merrier.
 
-As, currently, we don't have any such case, let's for now
-just rename the device nodes that are associated with a
-DMA engine as MEDIA_ENT_T_AV_DMA.
+Also, I don't trust too much on compiler optimization. I mean: I don't
+expect that gcc will always do the right thing and remove the useless
+if. Writing software for so long time, I know that software has bugs.
+So, if I see something that can be easily optimized like the above
+code, I do. It is one less thing to trust that the compiler will do
+right.
 
-So,
-	MEDIA_ENT_T_DEVNODE_V4L -> MEDIA_ENT_T_AV_DMA
-
-PS.: This is not actually true for USB devices, as the
-DMA engine is an internal component, as it is up to the
-Kernel to strip the stream payload from the URB packages.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 5872f8bbf774..5b8147629159 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -183,7 +183,7 @@
- 	    <entry>Unknown device node</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_AV_DMA</constant></entry>
- 	    <entry>V4L video, radio or vbi device node</entry>
- 	  </row>
- 	  <row>
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index efde88adf624..7fa0cc0f08f0 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		struct xvip_dma *dma;
- 
--		if (entity->type != MEDIA_ENT_T_DEVNODE_V4L)
-+		if (entity->type != MEDIA_ENT_T_AV_DMA)
- 			continue;
- 
- 		dma = to_xvip_dma(media_entity_to_video_device(entity));
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 71a1b93b0790..9ef920221b5a 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -912,7 +912,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	/* Part 5: Register the entity. */
- 	if (vdev->v4l2_dev->mdev &&
- 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
--		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
-+		vdev->entity.type = MEDIA_ENT_T_AV_DMA;
- 		vdev->entity.name = vdev->name;
- 		vdev->entity.info.dev.major = VIDEO_MAJOR;
- 		vdev->entity.info.dev.minor = vdev->minor;
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 63596063b213..9f8fc8330b3e 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -535,7 +535,7 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
- 		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
- 	}
- 
--	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
-+	WARN(pad->entity->type != MEDIA_ENT_T_AV_DMA,
- 	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
- 	     pad->entity->type, pad->entity->name);
- 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 775c11c6b173..a7aa2aac9c23 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -44,12 +44,12 @@ struct media_device_info {
- 
- /* Used values for media_entity_desc::type */
- 
--#define MEDIA_ENT_T_DEVNODE_V4L		(((1 << 16)) + 1)
--#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE_V4L + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE_V4L + 4)
--#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE_V4L + 5)
--#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE_V4L + 6)
--#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE_V4L + 7)
-+#define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
-+#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
-+#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
-+#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
- 
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
- #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
--- 
-2.1.0
+Regards,
+Mauro
 
