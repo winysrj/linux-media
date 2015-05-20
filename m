@@ -1,41 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.melag.de ([217.6.74.107]:42394 "EHLO mail.melag.de"
+Received: from vader.hardeman.nu ([95.142.160.32]:51165 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074AbbETNFq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 09:05:46 -0400
-Message-ID: <555C86A5.2030007@melag.de>
-Date: Wed, 20 May 2015 15:05:41 +0200
-From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
+	id S1751628AbbETItg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 04:49:36 -0400
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [RFC PATCH 4/6] [media] rc: lirc is not a protocol or a keymap
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: imx53 IPU support on 4.0.4
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Wed, 20 May 2015 10:49:34 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+In-Reply-To: <20150520051923.7cefe112@recife.lan>
+References: <cover.1426801061.git.sean@mess.org>
+ <2a2f4281ba60988242c11bdf2fda3243e2dc4467.1426801061.git.sean@mess.org>
+ <20150514135123.4ba85dc7@recife.lan> <20150519203442.GB18036@hardeman.nu>
+ <20150520051923.7cefe112@recife.lan>
+Message-ID: <5b14c3fee1ee0a553db5dac7b01fbf0a@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2015-05-20 10:19, Mauro Carvalho Chehab wrote:
+> Em Tue, 19 May 2015 22:34:42 +0200
+> David Härdeman <david@hardeman.nu> escreveu:
+> 
+>> On Thu, May 14, 2015 at 01:51:23PM -0300, Mauro Carvalho Chehab wrote:
+>> >Em Thu, 19 Mar 2015 21:50:15 +0000
+>> >Sean Young <sean@mess.org> escreveu:
+>> >
+>> >> Since the lirc bridge is not a decoder we can remove its protocol. The
+>> >> keymap existed only to select the protocol.
+>> >
+>> >This changes the userspace interface, as now it is possible to enable/disable
+>> >LIRC handling from a given IR via /proc interface.
+> 
+> I guess I meant to say: "as now it is not possible"
+> 
+>> I still like the general idea though.
+> 
+> Yeah, LIRC is not actually a decoder, so it makes sense to have it
+> handled differently.
+> 
+>> If we expose the protocol in the
+>> set/get keymap ioctls, then we need to expose the protocol enum to
+>> userspace (in which point it will be set in stone)...removing lirc 
+>> from
+>> that list before we do that is a worthwhile cleanup IMHO (I have a
+>> similar patch in my queue).
+>> 
+>> I think we should be able to at least not break userspace by still
+>> accepting (and ignoring) commands to enable/disable lirc.
+> 
+> Well, ignoring is not a good idea, as it still breaks userspace, but
+> on a more evil way. If one is using this feature, we'll be receiving
+> bug reports and fixes for it.
 
-Hi folks,
+I disagree it's more "evil" (or at least I fail to see how it would be). 
+Accepting but ignoring "lirc" means that the same commands as before 
+will still be accepted (so pre-existing userspace scripts won't have to 
+change which they would if we made "lirc" an invalid protocol to echo to 
+the sysfs file).
+
+And saying that the change will "break" userspace is still something of 
+a misnomer. You'd basically expect userspace to open /sys/blabla, write 
+"-lirc" (which would disable the lirc output but the device node is 
+still in /dev), then later open /dev/lircX and be surprised that it's 
+still receiving lirc events on the lirc device it just opened? I think 
+that's a rather artificial scenario...
+
+>> That lirc won't actually be disabled/enabled is (imho) a lesser
+>> problem...is there any genuine use case for disabling lirc on a
+>> per-device basis?
+> 
+> People do weird things sometimes. I won't doubt that someone would
+> be doing that.
+> 
+> In any case, keep supporting disabling LIRC is likely
+> simple, even if we don't map it internally as a protocol anymore.
+
+I could write a different patch that removes the protocol enum but still 
+allows lirc to be disabled/enabled. I doubt it'll be that simple though 
+(ugly hack rather), and I still don't see the benefits of doing so (or 
+downsides or "breakage" of not doing it).
+
+Another option would be to commit the change a see if anyone screams (I 
+very much doubt it).
 
 
-I've rebased the IPUv3 patches from ptx folks onto 4.0.4,
-working good for me. (now gst plays h264 @25fps on imx53)
-
-https://github.com/metux/linux/commits/submit-4.0-imx53-ipuv3
-
-(Haven't 4.1rc* yet, as it broke some other things for me.)
-
-
-
-cu
---
-Enrico Weigelt, metux IT consult
-+49-151-27565287
-MELAG Medizintechnik oHG Sitz Berlin Registergericht AG Charlottenburg HRA 21333 B
-
-Wichtiger Hinweis: Diese Nachricht kann vertrauliche oder nur für einen begrenzten Personenkreis bestimmte Informationen enthalten. Sie ist ausschließlich für denjenigen bestimmt, an den sie gerichtet worden ist. Wenn Sie nicht der Adressat dieser E-Mail sind, dürfen Sie diese nicht kopieren, weiterleiten, weitergeben oder sie ganz oder teilweise in irgendeiner Weise nutzen. Sollten Sie diese E-Mail irrtümlich erhalten haben, so benachrichtigen Sie bitte den Absender, indem Sie auf diese Nachricht antworten. Bitte löschen Sie in diesem Fall diese Nachricht und alle Anhänge, ohne eine Kopie zu behalten.
-Important Notice: This message may contain confidential or privileged information. It is intended only for the person it was addressed to. If you are not the intended recipient of this email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever. If you received this email in error please notify the sender by replying and delete this message and any attachments without retaining a copy.
