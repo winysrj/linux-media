@@ -1,75 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33661 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751452AbbEaM7X (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:34873 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752766AbbETNr3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 08:59:23 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DFDA22A0003
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2015 14:59:13 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] DocBook media: xmllint/typo fixes
-Date: Sun, 31 May 2015 14:59:09 +0200
-Message-Id: <1433077152-18200-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 20 May 2015 09:47:29 -0400
+Message-id: <555C906D.4030902@samsung.com>
+Date: Wed, 20 May 2015 15:47:25 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
+ v4l2_flash_init()
+References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
+ <1432076645-4799-5-git-send-email-sakari.ailus@iki.fi>
+ <555C582E.8000807@samsung.com> <555C63CF.2020304@samsung.com>
+ <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 05/20/2015 02:27 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Wed, May 20, 2015 at 12:37:03PM +0200, Jacek Anaszewski wrote:
+>> On 05/20/2015 11:47 AM, Jacek Anaszewski wrote:
+>>> Hi Sakari,
+>>>
+>>> On 05/20/2015 01:04 AM, Sakari Ailus wrote:
+>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>>> ---
+>>>>   drivers/leds/leds-aat1290.c |    5 ++---
+>>>>   1 file changed, 2 insertions(+), 3 deletions(-)
+>>>>
+>>>> diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+>>>> index c656a2d..71bf6bb 100644
+>>>> --- a/drivers/leds/leds-aat1290.c
+>>>> +++ b/drivers/leds/leds-aat1290.c
+>>>> @@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
+>>>> platform_device *pdev)
+>>>>       led_cdev->dev->of_node = sub_node;
+>>>>
+>>>>       /* Create V4L2 Flash subdev. */
+>>>> -    led->v4l2_flash = v4l2_flash_init(fled_cdev,
+>>>> -                      &v4l2_flash_ops,
+>>>> -                      &v4l2_sd_cfg);
+>>>> +    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
+>>>> +                      &v4l2_flash_ops, &v4l2_sd_cfg);
+>>>
+>>> Here the first argument should be led_cdev->dev, not dev, which is
+>>> &pdev->dev, whereas led_cdev->dev is returned by
+>>> device_create_with_groups (it takes dev as a parent) called from
+>>> led_classdev_register.
+>>
+>> The reason for this is the fact that pdev->dev has its of_node
+>> field initialized, which makes v4l2_async trying to match
+>> subdev by parent node of a LED device, not by sub-LED related
+>> DT node.
+>
+> If v4l2_subdev->of_node is set, then it won't be replaced with one from
+> struct device. I.e. you need to provide of_node pointer only if it's
+> different from dev->of_node.
+>
 
-Hi Mauro,
-
-Here are three patches that fix typos and xmllint errors.
-
-The first patch fixes typos, the second a large number of xmllint
-errors and the last fixes a final xmllint error, but it does that by
-copying most of the v4l2 open/close text and you should check whether
-I didn't remove anything that is relevant for DVB.
-
-Note that I use the following 'gitdocs.sh' script to build the documentation:
-
---------------------------------
-#!/bin/sh
-
-make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID .* already defined"
-xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
-xmllint --noent --postvalid --noout /tmp/x.xml
-xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
-
-echo file://$PWD/Documentation/DocBook/media/media_api.html
---------------------------------
-
-This does a pretty thorough xmllint check. It also creates a /tmp/x.xml file that can be used
-to relate xmllint line numbers to that file.
-
-Finally it creates a single big html file which has the whole spec. I prefer that
-over all the little html pages you otherwise get. Also, by building one large file
-it is easier to find clashing IDs etc. since the whole spec is analyzed.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (3):
-  DocBook media: fix typos
-  DocBook media: xmllint fixes
-  DocBook media: rewrite frontend open/close
-
- Documentation/DocBook/media/dvb/dvbproperty.xml    |  28 +-
- .../media/dvb/fe-diseqc-recv-slave-reply.xml       |   2 +-
- .../DocBook/media/dvb/fe-diseqc-send-burst.xml     |   8 +-
- .../media/dvb/fe-diseqc-send-master-cmd.xml        |   2 +-
- .../media/dvb/fe-enable-high-lnb-voltage.xml       |   6 +-
- Documentation/DocBook/media/dvb/fe-get-info.xml    |   8 +-
- .../DocBook/media/dvb/fe-get-property.xml          |  26 +-
- Documentation/DocBook/media/dvb/fe-read-status.xml |   4 +-
- .../media/dvb/fe-set-frontend-tune-mode.xml        |   6 +-
- Documentation/DocBook/media/dvb/fe-set-tone.xml    |  10 +-
- Documentation/DocBook/media/dvb/fe-set-voltage.xml |   8 +-
- Documentation/DocBook/media/dvb/frontend.xml       | 299 ++++++++++++---------
- .../DocBook/media/dvb/frontend_legacy_api.xml      |   3 +-
- 13 files changed, 222 insertions(+), 188 deletions(-)
+It will always be different since dev->of_node pointer is related
+to the main DT node of LED device, whereas each LED connected to it
+must be expressed in the form of sub-node, as
+Documentation/devicetree/bindings/leds/common.txt DT states.
 
 -- 
-2.1.4
-
+Best Regards,
+Jacek Anaszewski
