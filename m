@@ -1,78 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:35879 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761069AbbEEQyf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:54:35 -0400
-Received: by lbbqq2 with SMTP id qq2so133480332lbb.3
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:54:34 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH v4 1/6] si2168: add support for gapped clock
-Date: Tue,  5 May 2015 19:54:14 +0300
-Message-Id: <1430844859-24947-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1430844859-24947-1-git-send-email-olli.salonen@iki.fi>
-References: <1430844859-24947-1-git-send-email-olli.salonen@iki.fi>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38207 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901AbbETBBr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2015 21:01:47 -0400
+Date: Tue, 19 May 2015 18:01:44 -0700
+From: Stephen Boyd <sboyd@codeaurora.org>
+To: Mikko Perttunen <mikko.perttunen@kapsi.fi>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Paul Walmsley <paul@pwsan.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	Emilio L?pez <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Message-ID: <20150520010144.GA31054@codeaurora.org>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+ <20150507063953.GC32399@codeaurora.org>
+ <20150507093702.0b58753d@bbrezillon>
+ <20150515174048.4a31af49@bbrezillon>
+ <5557267D.7080209@kapsi.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5557267D.7080209@kapsi.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a parameter in si2168_config to support gapped clock. This might be 
-necessary on some devices with higher bitrates.
+On 05/16, Mikko Perttunen wrote:
+> On 05/15/2015 06:40 PM, Boris Brezillon wrote:
+> >Hi Stephen,
+> >
+> >Adding Mikko in the loop (after all, he was the one complaining about
+> >this signed long limitation in the first place, and I forgot to add
+> >him in the Cc list :-/).
+> 
+> I think I got it through linux-tegra anyway, but thanks :)
+> 
+> >
+> >Mikko, are you okay with the approach proposed by Stephen (adding a
+> >new method) ?
+> 
+> Yes, sounds good to me. If a driver uses the existing methods with
+> too large frequencies, the issue is pretty discoverable anyway. I
+> think "adjust_rate" sounds a bit too much like it sets the clock's
+> rate, though; perhaps "adjust_rate_request" or something like that?
+> 
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c      | 3 +++
- drivers/media/dvb-frontends/si2168.h      | 3 +++
- drivers/media/dvb-frontends/si2168_priv.h | 1 +
- 3 files changed, 7 insertions(+)
+Well I'm also OK with changing the determine_rate API one more
+time, but we'll have to be careful. Invariably someone will push
+a new clock driver through some non-clk tree path and we'll get
+build breakage. They shouldn't be doing that, so either we do the
+change now and push it to -next and see what breaks, or we do
+this after -rc1 comes out and make sure everyone has lots of
+warning.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 5db588e..29a5936 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -508,6 +508,8 @@ static int si2168_init(struct dvb_frontend *fe)
- 	/* set ts mode */
- 	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
- 	cmd.args[4] |= dev->ts_mode;
-+	if (dev->ts_clock_gapped)
-+		cmd.args[4] |= 0x40;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -688,6 +690,7 @@ static int si2168_probe(struct i2c_client *client,
- 	*config->fe = &dev->fe;
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
-+	dev->ts_clock_gapped = config->ts_clock_gapped;
- 	dev->fw_loaded = false;
- 
- 	i2c_set_clientdata(client, dev);
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index 70d702a..3225d0c 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -42,6 +42,9 @@ struct si2168_config {
- 
- 	/* TS clock inverted */
- 	bool ts_clock_inv;
-+
-+	/* TS clock gapped */
-+	bool ts_clock_gapped;
- };
- 
- #endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index d7efce8..d2589e3 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -38,6 +38,7 @@ struct si2168_dev {
- 	bool fw_loaded;
- 	u8 ts_mode;
- 	bool ts_clock_inv;
-+	bool ts_clock_gapped;
- };
- 
- /* firmware command struct */
 -- 
-1.9.1
-
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
