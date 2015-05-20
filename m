@@ -1,121 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51083 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752290AbbEKCsz (ORCPT
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:38347 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752177AbbETO67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 May 2015 22:48:55 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 28A342A00C8
-	for <linux-media@vger.kernel.org>; Mon, 11 May 2015 04:48:48 +0200 (CEST)
-Date: Mon, 11 May 2015 04:48:48 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 20 May 2015 10:58:59 -0400
+Received: by wichy4 with SMTP id hy4so63330216wic.1
+        for <linux-media@vger.kernel.org>; Wed, 20 May 2015 07:58:58 -0700 (PDT)
+From: Jemma Denson <jdenson@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150511024848.28A342A00C8@tschai.lan>
+Cc: mchehab@osg.samsung.com, patrick.boettcher@posteo.de,
+	Jemma Denson <jdenson@gmail.com>
+Subject: [PATCH] cx24120: Assume ucb registers is a counter
+Date: Wed, 20 May 2015 15:57:49 +0100
+Message-Id: <1432133869-28215-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The ucblocks register is probably a counter and not a rate; assume
+it is so and change the calculations as required.
 
-Results of the daily build of media_tree:
+Signed-off-by: Jemma Denson <jdenson@gmail.com>
+---
+ drivers/media/dvb-frontends/cx24120.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-date:		Mon May 11 04:00:16 CEST 2015
-git branch:	test
-git hash:	c3f22501b52de17c6087b6fe6f2236e4183ac07c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-1.slh.2-amd64
+diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
+index a14d0f1..10a948e 100644
+--- a/drivers/media/dvb-frontends/cx24120.c
++++ b/drivers/media/dvb-frontends/cx24120.c
+@@ -154,7 +154,7 @@ struct cx24120_state {
+ 	u32 bitrate;
+ 	u32 berw_usecs;
+ 	u32 ber_prev;
+-	u32 per_prev;
++	u32 ucb_offset;
+ 	unsigned long ber_jiffies_stats;
+ 	unsigned long per_jiffies_stats;
+ };
+@@ -698,8 +698,12 @@ static void cx24120_get_stats(struct cx24120_state *state)
+ 		ucb |= cx24120_readreg(state, CX24120_REG_UCB_L);
+ 		dev_dbg(&state->i2c->dev, "ucblocks = %d\n", ucb);
+ 
++		/* handle reset */
++		if (ucb < state->ucb_offset)
++			state->ucb_offset = c->block_error.stat[0].uvalue;
++
+ 		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
+-		c->block_error.stat[0].uvalue += ucb;
++		c->block_error.stat[0].uvalue = ucb + state->ucb_offset;
+ 
+ 		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 		c->block_count.stat[0].uvalue += state->bitrate / 8 / 208;
+@@ -1541,8 +1545,7 @@ static int cx24120_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 		return 0;
+ 	}
+ 
+-	*ucblocks = c->block_error.stat[0].uvalue - state->per_prev;
+-	state->per_prev = c->block_error.stat[0].uvalue;
++	*ucblocks = c->block_error.stat[0].uvalue - state->ucb_offset;
+ 
+ 	return 0;
+ }
+-- 
+2.1.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
