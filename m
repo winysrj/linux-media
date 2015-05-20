@@ -1,74 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:56305 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751284AbbEJKxf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 May 2015 06:53:35 -0400
-Date: Sun, 10 May 2015 12:53:21 +0200
-From: Felix Janda <felix.janda@posteo.de>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 1/4] Use off_t and off64_t instead of __off_t and
- __off64_t
-Message-ID: <20150510105321.GA28886@euler>
-References: <20150125203557.GA11999@euler>
- <20150505093657.43acf519@recife.lan>
- <20150505190223.GA4948@euler>
- <554E7360.9060301@googlemail.com>
+Received: from mout.kundenserver.de ([212.227.17.24]:56500 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184AbbETMUZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 08:20:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
+Cc: y2038@lists.linaro.org, linux-media@vger.kernel.org,
+	john.stultz@linaro.org
+Subject: Re: [PATCH v4] Staging: media: lirc: Replace timeval with ktime_t
+Date: Wed, 20 May 2015 14:20:19 +0200
+Message-ID: <7681913.NKVEKRNDrL@wuerfel>
+In-Reply-To: <1432061242-11227-1-git-send-email-ksenija.stanojevic@gmail.com>
+References: <1432061242-11227-1-git-send-email-ksenija.stanojevic@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <554E7360.9060301@googlemail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-Gregor Jasny wrote:
-> Hello,
+On Tuesday 19 May 2015 20:47:22 Ksenija Stanojevic wrote:
+> 'struct timeval last_tv' is used to get the time of last signal change
+> and 'struct timeval last_intr_tv' is used to get the time of last UART
+> interrupt.
+> 32-bit systems using 'struct timeval' will break in the year 2038, so we
+> have to replace that code with more appropriate types.
+> Here struct timeval is replaced with ktime_t.
 > 
-> Due to complete lack of unit / integration tests I feel uncomfortable
-> merging this patch without the ACK of Hans de Goede.
+> Signed-off-by: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
 
-Thanks for merging the other patches. Sorry for them having been
-dependent on this patch.
+Looks good to me now,
 
-> On 05/05/15 21:02, Felix Janda wrote:
-> > Since _LARGEFILE64_SOURCE is 1, these types coincide if defined.
-> 
-> This statement is only partially true:
-> 
-> $ git grep _LARGEFILE64_SOURCE
-> lib/libv4l1/v4l1compat.c:#define _LARGEFILE64_SOURCE 1
-> lib/libv4l2/v4l2convert.c:#define _LARGEFILE64_SOURCE 1
-> 
-> So LARGEFILE64_SOURCE will be only defined within the wrappers.
-> But libv4lsyscall-priv.h / SYS_MMAP is also used elsewhere.
-
-Actually, I think _LARGEFILE64_SOURCE does not influence whether _off_t
-is off_t (on 32bit) or not. What is rather needed is that
-_FILE_OFFSET_BITS is not 64. See e.g.
-
-http://www.freecode.com/articles/largefile-support-problems
-
-On the hand, I think that it would actually be benificial to have
-_FILE_OFFSET_BITS=64 globally so that on 32bit (glibc) systems all of
-v4l2-utils can deal with files >2GB. In the LD_PRELOAD libraries the
-special casing for glibc on linux would need to be changed. I'm
-preparing a patch for discussion.
-
-> But I wonder why SYS_MMAP is there in the first place? Maybe because in
-> the LD_PRELOAD case the default mmap symbol resolves to our wrapper?
-
-Exactly. First, syscall was used directly and later SYS_MMAP was
-introduced to compile on FreeBSD.
-
-> But in that case can't we gently ask the loader to give us the next
-> symbol in the chain via dlsym(RTLD_NEXT, "mmap")?
-
-This seems preferable to having to deal with the differences between
-Linux/FreeBSD and mmap/mmap2. For glibc on linux we should make sure
-that "mmap64" is used instead. We could use in the mmap wrapper a
-static variables to detect whether we should call v4l*_mmap or the
-mmap from libc.
-
-Felix
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
