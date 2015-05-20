@@ -1,247 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49776 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750798AbbEDH6k (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:22576 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213AbbETKhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 03:58:40 -0400
-Message-ID: <554726A6.804@xs4all.nl>
-Date: Mon, 04 May 2015 09:58:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 2/3] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-3-git-send-email-hverkuil@xs4all.nl> <2025720.hkQNlttbI3@avalon>
-In-Reply-To: <2025720.hkQNlttbI3@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 20 May 2015 06:37:07 -0400
+Message-id: <555C63CF.2020304@samsung.com>
+Date: Wed, 20 May 2015 12:37:03 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
+ v4l2_flash_init()
+References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
+ <1432076645-4799-5-git-send-email-sakari.ailus@iki.fi>
+ <555C582E.8000807@samsung.com>
+In-reply-to: <555C582E.8000807@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/04/2015 12:29 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Friday 01 May 2015 13:33:49 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 05/20/2015 11:47 AM, Jacek Anaszewski wrote:
+> Hi Sakari,
+>
+> On 05/20/2015 01:04 AM, Sakari Ailus wrote:
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 >> ---
->>  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->>  .../DocBook/media/v4l/vidioc-querycap.xml          |   2 +-
->>  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 ++++++++++++++++++
->>  3 files changed, 142 insertions(+), 1 deletion(-)
->>  create mode 100644
->> Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+>>   drivers/leds/leds-aat1290.c |    5 ++---
+>>   1 file changed, 2 insertions(+), 3 deletions(-)
 >>
->> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml
->> b/Documentation/DocBook/media/v4l/v4l2.xml index e98caa1..23607bc 100644
->> --- a/Documentation/DocBook/media/v4l/v4l2.xml
->> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
->> @@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
->>      &sub-subdev-g-fmt;
->>      &sub-subdev-g-frame-interval;
->>      &sub-subdev-g-selection;
->> +    &sub-subdev-querycap;
->>      &sub-subscribe-event;
->>      <!-- End of ioctls. -->
->>      &sub-mmap;
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
->> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
->> 20fda75..c1ed844 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
->> @@ -54,7 +54,7 @@ kernel devices compatible with this specification and to
->> obtain information about driver and hardware capabilities. The ioctl takes
->> a pointer to a &v4l2-capability; which is filled by the driver. When the
->> driver is not compatible with this specification the ioctl returns an
->> -&EINVAL;.</para>
->> +&ENOTTY;.</para>
-> 
-> I'd split this change to a separate patch as it's unrelated to 
-> VIDIOC_SUBDEV_QUERYCAP.
+>> diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+>> index c656a2d..71bf6bb 100644
+>> --- a/drivers/leds/leds-aat1290.c
+>> +++ b/drivers/leds/leds-aat1290.c
+>> @@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
+>> platform_device *pdev)
+>>       led_cdev->dev->of_node = sub_node;
+>>
+>>       /* Create V4L2 Flash subdev. */
+>> -    led->v4l2_flash = v4l2_flash_init(fled_cdev,
+>> -                      &v4l2_flash_ops,
+>> -                      &v4l2_sd_cfg);
+>> +    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
+>> +                      &v4l2_flash_ops, &v4l2_sd_cfg);
+>
+> Here the first argument should be led_cdev->dev, not dev, which is
+> &pdev->dev, whereas led_cdev->dev is returned by
+> device_create_with_groups (it takes dev as a parent) called from
+> led_classdev_register.
 
-You are right. I just happened to come across this while adding the subdev-querycap
-text.
+The reason for this is the fact that pdev->dev has its of_node
+field initialized, which makes v4l2_async trying to match
+subdev by parent node of a LED device, not by sub-LED related
+DT node.
 
-> We can't really guarantee that non-V4L2 drivers will return -ENOTTY, they 
-> might be buggy and return a different error code. That's slightly nitpicking 
-> though.
+ From your patches it looks like you want to guarantee that
+v4l2_subdev's dev field will point to the struct device
+related to the LED controller, not to the sub-LED.
 
-Well, ENOTTY is much more likely than EINVAL :-) But I can replace it with:
+If so, then the second argument of v4l2_flash_init mustn't
+be NULL.
 
-"...returns an error, most likely &ENOTTY;." and use the same phrase for
-subdev-querycap.
+I am however wondering if in case of LEDs the struct v4l2_subdev's dev
+field couldn't be made pointing to sub-LEDs related struct device,
+which would allow for avoiding the modifications in v4l2-async.
 
-> 
->>      <table pgwide="1" frame="none" id="v4l2-capability">
->>        <title>struct <structname>v4l2_capability</structname></title>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
->> b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml new file mode
->> 100644
->> index 0000000..a1cbb36
->> --- /dev/null
->> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
->> @@ -0,0 +1,140 @@
->> +<refentry id="vidioc-subdev-querycap">
->> +  <refmeta>
->> +    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
->> +    &manvol;
->> +  </refmeta>
->> +
->> +  <refnamediv>
->> +    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
->> +    <refpurpose>Query sub-device capabilities</refpurpose>
->> +  </refnamediv>
->> +
->> +  <refsynopsisdiv>
->> +    <funcsynopsis>
->> +      <funcprototype>
->> +	<funcdef>int <function>ioctl</function></funcdef>
->> +	<paramdef>int <parameter>fd</parameter></paramdef>
->> +	<paramdef>int <parameter>request</parameter></paramdef>
->> +	<paramdef>struct v4l2_subdev_capability
->> *<parameter>argp</parameter></paramdef>
->> +      </funcprototype>
->> +    </funcsynopsis>
->> +  </refsynopsisdiv>
->> +
->> +  <refsect1>
->> +    <title>Arguments</title>
->> +
->> +    <variablelist>
->> +      <varlistentry>
->> +	<term><parameter>fd</parameter></term>
->> +	<listitem>
->> +	  <para>&fd;</para>
->> +	</listitem>
->> +      </varlistentry>
->> +      <varlistentry>
->> +	<term><parameter>request</parameter></term>
->> +	<listitem>
->> +	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
->> +	</listitem>
->> +      </varlistentry>
->> +      <varlistentry>
->> +	<term><parameter>argp</parameter></term>
->> +	<listitem>
->> +	  <para></para>
->> +	</listitem>
->> +      </varlistentry>
->> +    </variablelist>
->> +  </refsect1>
->> +
->> +  <refsect1>
->> +    <title>Description</title>
->> +
->> +    <para>All V4L2 sub-devices support the
->> +<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
->> +kernel devices compatible with this specification and to obtain
->> +information about driver and hardware capabilities. The ioctl takes a
->> +pointer to a &v4l2-subdev-capability; which is filled by the driver. When
->> the
->> +driver is not compatible with this specification the ioctl returns an
->> +&ENOTTY;.</para>
->> +
->> +    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
->> +      <title>struct <structname>v4l2_subdev_capability</structname></title>
->> +      <tgroup cols="3">
->> +	&cs-str;
->> +	<tbody valign="top">
->> +	  <row>
->> +	    <entry>__u32</entry>
->> +	    <entry><structfield>version</structfield></entry>
->> +	    <entry><para>Version number of the driver.</para>
->> +<para>The version reported is provided by the
->> +V4L2 subsystem following the kernel numbering scheme. However, it
->> +may not always return the same version as the kernel if, for example,
->> +a stable or distribution-modified kernel uses the V4L2 stack from a
->> +newer kernel.</para>
->> +<para>The version number is formatted using the
->> +<constant>KERNEL_VERSION()</constant> macro:</para></entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry spanname="hspan"><para>
->> +<programlisting>
->> +#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
->> +
->> +__u32 version = KERNEL_VERSION(0, 8, 1);
->> +
->> +printf ("Version: %u.%u.%u\n",
->> +	(version &gt;&gt; 16) &amp; 0xFF,
->> +	(version &gt;&gt; 8) &amp; 0xFF,
->> +	 version &amp; 0xFF);
->> +</programlisting></para></entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry>__u32</entry>
->> +	    <entry><structfield>device_caps</structfield></entry>
->> +	    <entry>Sub-device capabilities of the opened device, see <xref
->> +		linkend="subdevice-capabilities" />.
->> +	    </entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry>__u32</entry>
->> +	    <entry><structfield>pads</structfield></entry>
->> +	    <entry>The number of pads of this sub-device. May be 0 if there are 
-> no
->> +	    pads.
-> 
-> Should we mention explicitly that the pads field is only valid if 
-> V4L2_SUBDEV_CAP_ENTITY is set ?
+of_node field of struct device returned by device_create_with_groups
+is NULL, and basically the remaining fields are copied from the parent.
+In my approach I was just assigning to it the sub-LED related of_node.
 
-Yes, we can do that. I checked that all subdev drivers that create a v4l-subdev
-node are also a media entity. I wasn't sure about that before.
+>>       if (IS_ERR(led->v4l2_flash)) {
+>>           ret = PTR_ERR(led->v4l2_flash);
+>>           goto error_v4l2_flash_init;
+>>
+>
+>
 
-Regards,
 
-	Hans
-
-> 
->> +	    </entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry>__u32</entry>
->> +	    <entry><structfield>entity_id</structfield></entry>
->> +	    <entry>The media controller entity ID of the sub-device. This is only
->> valid if
->> +	    the <constant>V4L2_SUBDEV_CAP_ENTITY</constant> capability is set.
->> +	    </entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry>__u32</entry>
->> +	    <entry><structfield>reserved</structfield>[48]</entry>
->> +	    <entry>Reserved for future extensions. Drivers must set
->> +this array to zero.</entry>
->> +	  </row>
->> +	</tbody>
->> +      </tgroup>
->> +    </table>
->> +
->> +    <table pgwide="1" frame="none" id="subdevice-capabilities">
->> +      <title>Sub-Device Capabilities Flags</title>
->> +      <tgroup cols="3">
->> +	&cs-def;
->> +	<tbody valign="top">
->> +	  <row>
->> +	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
->> +	    <entry>0x00000001</entry>
->> +	    <entry>The sub-device is a media controller entity and
->> +	    the <structfield>entity_id</structfield> field of
->> &v4l2-subdev-capability;
->> +	    is valid.</entry>
->> +	  </row>
->> +	</tbody>
->> +      </tgroup>
->> +    </table>
->> +  </refsect1>
->> +
->> +  <refsect1>
->> +    &return-value;
->> +  </refsect1>
->> +</refentry>
-> 
-
+-- 
+Best Regards,
+Jacek Anaszewski
