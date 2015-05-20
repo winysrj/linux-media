@@ -1,138 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49545 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934187AbbEMNIa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 09:08:30 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
-Date: Wed, 13 May 2015 15:08:09 +0200
-Message-Id: <1431522495-4692-4-git-send-email-jack@suse.cz>
-In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:34945 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819AbbETHwD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 03:52:03 -0400
+From: Tommi Rantala <tt.rantala@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Tommi Rantala <tt.rantala@gmail.com>
+Subject: [PATCH] [media] cx231xx: Add support for Terratec Grabby
+Date: Wed, 20 May 2015 10:51:29 +0300
+Message-Id: <1432108289-15072-1-git-send-email-tt.rantala@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
-hand made mapping of virtual address to physical address. Also the
-function leaked page reference from get_user_pages() so fix that by
-properly release the reference when omap_vout_buffer_release() is
-called.
+Add support for the Terratec Grabby with USB ID 0ccd:00a6.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
 ---
- drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
- 1 file changed, 31 insertions(+), 36 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 28 ++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 2 files changed, 29 insertions(+)
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 17b189a81ec5..0e4b3cfacc5d 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
- }
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index fe00da1..404e17c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -815,6 +815,32 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_TERRATEC_GRABBY] = {
++		.name = "Terratec Grabby",
++		.tuner_type = TUNER_ABSENT,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.demod_xfer_mode = 0,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c,
++		.gpio_pin_status_mask = 0x4001000,
++		.norm = V4L2_STD_PAL,
++		.no_alt_vanc = 1,
++		.external_av = 1,
++		.input = {{
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_2_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_1_1 |
++				(CX231XX_VIN_1_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
  
- /*
-- * omap_vout_uservirt_to_phys: This inline function is used to convert user
-- * space virtual address to physical address.
-+ * omap_vout_get_userptr: Convert user space virtual address to physical
-+ * address.
-  */
--static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
-+static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
-+				 u32 *physp)
- {
--	unsigned long physp = 0;
--	struct vm_area_struct *vma;
--	struct mm_struct *mm = current->mm;
-+	struct frame_vector *vec;
-+	int ret;
+@@ -880,6 +906,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
+ 	{USB_DEVICE(0x1f4d, 0x0102),
+ 	 .driver_info = CX231XX_BOARD_OTG102},
++	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
++	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
+ 	{},
+ };
  
- 	/* For kernel direct-mapped memory, take the easy way */
--	if (virtp >= PAGE_OFFSET)
--		return virt_to_phys((void *) virtp);
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(mm, virtp);
--	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
--		/* this will catch, kernel-allocated, mmaped-to-usermode
--		   addresses */
--		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
--		up_read(&current->mm->mmap_sem);
--	} else {
--		/* otherwise, use get_user_pages() for general userland pages */
--		int res, nr_pages = 1;
--		struct page *pages;
-+	if (virtp >= PAGE_OFFSET) {
-+		*physp = virt_to_phys((void *)virtp);
-+		return 0;
-+	}
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 00d3bce..54790fb 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -77,6 +77,7 @@
+ #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx 19
+ #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+ #define CX231XX_BOARD_HAUPPAUGE_955Q 21
++#define CX231XX_BOARD_TERRATEC_GRABBY 22
  
--		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
--				0, &pages, NULL);
--		up_read(&current->mm->mmap_sem);
-+	vec = frame_vector_create(1);
-+	if (!vec)
-+		return -ENOMEM;
- 
--		if (res == nr_pages) {
--			physp =  __pa(page_address(&pages[0]) +
--					(virtp & ~PAGE_MASK));
--		} else {
--			printk(KERN_WARNING VOUT_NAME
--					"get_user_pages failed\n");
--			return 0;
--		}
-+	ret = get_vaddr_frames(virtp, 1, true, false, vec);
-+	if (ret != 1) {
-+		frame_vector_destroy(vec);
-+		return -EINVAL;
- 	}
-+	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
-+	vb->priv = vec;
- 
--	return physp;
-+	return 0;
- }
- 
- /*
-@@ -788,11 +776,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
- 	 * address of the buffer
- 	 */
- 	if (V4L2_MEMORY_USERPTR == vb->memory) {
-+		int ret;
-+
- 		if (0 == vb->baddr)
- 			return -EINVAL;
- 		/* Physical address */
--		vout->queued_buf_addr[vb->i] = (u8 *)
--			omap_vout_uservirt_to_phys(vb->baddr);
-+		ret = omap_vout_get_userptr(vb, vb->baddr,
-+				(u32 *)&vout->queued_buf_addr[vb->i]);
-+		if (ret < 0)
-+			return ret;
- 	} else {
- 		unsigned long addr, dma_addr;
- 		unsigned long size;
-@@ -841,9 +833,12 @@ static void omap_vout_buffer_release(struct videobuf_queue *q,
- 	struct omap_vout_device *vout = q->priv_data;
- 
- 	vb->state = VIDEOBUF_NEEDS_INIT;
-+	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
-+		struct frame_vector *vec = vb->priv;
- 
--	if (V4L2_MEMORY_MMAP != vout->memory)
--		return;
-+		put_vaddr_frames(vec);
-+		frame_vector_destroy(vec);
-+	}
- }
- 
- /*
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
 -- 
-2.1.4
+1.9.3
 
