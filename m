@@ -1,61 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:35756 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbbEHKU4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 06:20:56 -0400
-Received: by widdi4 with SMTP id di4so23996838wid.0
-        for <linux-media@vger.kernel.org>; Fri, 08 May 2015 03:20:55 -0700 (PDT)
-Message-ID: <554C8E04.5090007@gmail.com>
-Date: Fri, 08 May 2015 12:20:52 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:32776 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751628AbbETItm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 04:49:42 -0400
+Date: Wed, 20 May 2015 05:49:28 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>,
+	Federico Simoncelli <fsimonce@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Amber Thrall <amber.rose.thrall@gmail.com>,
+	James Harper <james.harper@ejbdigital.com.au>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/2] drivers: Simplify the return code
+Message-ID: <20150520054928.3eb9f431@recife.lan>
+In-Reply-To: <555B5E32.9060301@iki.fi>
+References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
+	<a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
+	<577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
+	<20150519141731.78744f2f@wiggum>
+	<555B5E32.9060301@iki.fi>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Antti Palosaari <crope@iki.fi>
-Subject: dvb_usb_af9015: command failed=1 - stable: 4.0.2
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue, 19 May 2015 19:00:50 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-[    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
+> On 05/19/2015 03:17 PM, Michael Büsch wrote:
+> > On Tue, 19 May 2015 08:05:56 -0400 (EDT)
+> > Federico Simoncelli <fsimonce@redhat.com> wrote:
+> >>> diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
+> >>> b/drivers/media/dvb-frontends/lgs8gxx.c
+> >>> index 3c92f36ea5c7..9b0166cdc7c2 100644
+> >>> --- a/drivers/media/dvb-frontends/lgs8gxx.c
+> >>> +++ b/drivers/media/dvb-frontends/lgs8gxx.c
+> >>> @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
+> >>> *priv,
+> >>>   	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
+> >>>   	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
+> >>>
+> >>> -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
+> >>> -	if (ret != 0)
+> >>> -		return ret;
+> >>> -
+> >>> -	return 0;
+> >>> +	return lgs8gxx_write_reg(priv, reg_addr, t);
+> >>>   }
+> >>
+> >> Personally I prefer the current style because it's more consistent with all
+> >> the other calls in the same function (return ret when ret != 0).
+> >>
+> >> It also allows you to easily add/remove calls without having to deal with
+> >> the last special case return my_last_fun_call(...).
+> >>
+> >> Anyway it's not a big deal, I think it's your call.
+> >
+> >
+> > I agree. I also prefer the current style for these reasons. The compiler will also generate the same code in both cases.
+> > I don't think it really simplifies the code.
+> > But if you really insist on doing this change, go for it. You get my ack for fc0011
+> 
+> 
+> I am also against that kind of simplifications. Even it reduces line or 
+> two, it makes code more inconsistent, which means you have to make extra 
+> thinking when reading that code.
 
-[    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
-[    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
-[    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[    0.994859] usb 1-2: Product: DVB-T 2
+Actually, it simplifies the thinking: less lines to read and the function
+return code is clearly defined.
 
-[    1.001398] usb 1-2: Manufacturer: Afatech
-[    1.003555] usb 1-2: SerialNumber: 010101010600001
-[    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
-[    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
-[    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
+> I prefer similar repeating patterns as 
+> much as possible.
+> 
+> This is how I do it usually, even there is that extra last goto.
+> 
+> 	ret = write_reg();
+> 	if (ret)
+> 		goto err;
+> 
+> 	ret = write_reg();
+> 	if (ret)
+> 		goto err;
+> err:
+> 	return ret;
+> };
 
-[   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
-[   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-[   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
+Nah, the above sucks: it is just hiding the return if error. Having to
+go until the end of a function to see what "err" would do is not good.
+Ok, if you have to deallocate things, do mutex unlock, etc, it is
+justifiable.
 
-[   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
-[   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
-[   12.343650] mxl5007t 13-00c0: creating new instance
-[   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
-[   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
-[   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-[   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
-[   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
-[   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
-[   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
-[   12.564554] mxl5007t 13-00c0: attaching existing instance
-[   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
-[   12.567555] mxl5007t_soft_reset: 521: failed!
-[   12.569745] mxl5007t_attach: error -121 on line 907
-[   12.571231] usbcore: registered new interface driver dvb_usb_af9015
+However, in this case, it is quite a deception to discover that,
+after going all the way down the code, "err" is just 
+do-nothing-but-return.
 
+The above code is exactly why several academic professors forbid the
+usage of goto: the code can easily become hard to read if you use lots
+of goto, instead of using structured loops and returns.
 
-$ lsdvb
-
-		lsdvb: Simple utility to list PCI/PCIe DVB devices
-		Version: 0.0.4
-		Copyright (C) Manu Abraham
-$ 
-
+Regards,
+Mauro
