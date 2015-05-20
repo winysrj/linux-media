@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56737 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932194AbbEUJDd (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:32847 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751502AbbETJJE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:33 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: HDMI and Composite capture on Lager, for kernel 4.1
-Date: Wed, 20 May 2015 17:39:20 +0100
-Message-Id: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Wed, 20 May 2015 05:09:04 -0400
+Date: Wed, 20 May 2015 06:08:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 6/6] [media] rc: teach lirc how to send scancodes
+Message-ID: <20150520060853.5d3a5e0d@recife.lan>
+In-Reply-To: <d83477bae9a733323fd072def6384a3b@hardeman.nu>
+References: <cover.1426801061.git.sean@mess.org>
+	<985a9b11e5e02eb43e16d27db23086528434be24.1426801061.git.sean@mess.org>
+	<d83477bae9a733323fd072def6384a3b@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This is our latest test branch for video support on Lager, ported
-to kernel 4.1 as per commit 9cae84b32dd52768cf2fd2fcb214c3f570676c4b
-("[media] DocBook/media: fix syntax error") on the media-tree master
-branch last week.
+Em Wed, 20 May 2015 10:53:59 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-  Single frame and video capture is working with appropriate test
-cases for gstreamer, some (minor) quirks notwithstanding.
-Functionally, this is in more or less the state we need it to be; for
-the rest of the world we hope we have enhanced the ability to do any
-necessary debugging on it. The intention is to upstream this version
-as soon as possible, subject to feedback.
+> On 2015-03-19 22:50, Sean Young wrote:
+> > The send mode has to be switched to LIRC_MODE_SCANCODE and then you can
+> > send one scancode with a write. The encoding is the same as for 
+> > receiving
+> > scancodes.
+> 
+> Why do the encoding in-kernel when it can be done in userspace?
+> 
+> I'd understand if it was hardware that accepted a scancode as input, but 
+> that doesn't seem to be the case?
 
-  NB: for single frame capture, images of appropriate resolutions are
-created from both composite and HDMI inputs. For best quality video
-capture we have found that gst-launch-1.0 needs a pipeline specifying
-width, height, format ("=YUY2" in particular has an appropriate
-turnaround time for smooth results), and framerate.
+IMO, that makes the interface clearer. Also, the encoding code is needed
+anyway, as it is needed to setup the wake up keycode on some hardware.
+So, we already added encoder capabilities at some decoders:
 
-  Enclosed are:
-	[PATCH 01/20] ARM: shmobile: lager dts: Add entries for VIN HDMI
-	[PATCH 02/20] media: adv7180: add of match table
-	[PATCH 03/20] media: adv7604: chip info and formats for ADV7612
-	[PATCH 04/20] media: adv7604: document support for ADV7612 dual HDMI
-	[PATCH 05/20] media: adv7604: ability to read default input port
-	[PATCH 06/20] ARM: shmobile: lager dts: specify default-input for
-	[PATCH 07/20] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
-	[PATCH 08/20] media: soc_camera pad-aware driver initialisation
-	[PATCH 09/20] media: rcar_vin: Use correct pad number in try_fmt
-	[PATCH 10/20] media: soc_camera: soc_scale_crop: Use correct pad
-	[PATCH 11/20] media: soc_camera: Fill std field in enum_input
-	[PATCH 12/20] media: soc_camera: Fix error reporting in expbuf
-	[PATCH 13/20] media: soc_camera: v4l2-compliance fixes for querycap
-	[PATCH 14/20] media: rcar_vin: Reject videobufs that are too small
-	[PATCH 15/20] media: rcar_vin: Don't advertise support for USERPTR
-	[PATCH 16/20] media: adv7180: Fix set_pad_format() passing wrong
-	[PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
-	[PATCH 18/20] media: adv7604: Always query_dv_timings in
-	[PATCH 19/20] media: rcar_vin: Clean up format debugging statements
-	[PATCH 20/20] media: soc_camera: Add debugging for get_formats
+0d830b2d1295 [media] rc: rc-core: Add support for encode_wakeup drivers
+cf257e288ad3 [media] rc: ir-rc6-decoder: Add encode capability
+a0466f15b465 [media] rc: ir-rc5-decoder: Add encode capability
+1d971d927efa [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
+9869da5bacc5 [media] rc: rc-ir-raw: Add scancode encoder callback
 
-"Phew!"
-Cheers,
-  Wills.
+> 
+> > FIXME: Currently only the nec encoder can encode IR.
+
+We actually need to be sure that the NEC encoder is doing the same
+way as the RC5/RC6 encoders.
+
+Regards,
+Mauro
