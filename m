@@ -1,107 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39384 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422659AbbE2TWQ (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56598 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753988AbbEUJDT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 15:22:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
-Subject: [PATCH 1/5] DocBook: improve documentation of the properties structs
-Date: Fri, 29 May 2015 16:22:04 -0300
-Message-Id: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+	Thu, 21 May 2015 05:03:19 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: [PATCH 08/20] media: soc_camera pad-aware driver initialisation
+Date: Wed, 20 May 2015 17:39:28 +0100
+Message-Id: <1432139980-12619-9-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the tytle of the struct documentation to reflect
-the name of the structures, and use links to do cross-ref.
+Add detection of source pad number for drivers aware of the media
+controller API, so that soc_camera/rcar_vin can create device nodes
+to support a driver such as adv7604.c (for HDMI on Lager) underneath.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c   |    4 ++++
+ drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++++++++++++++-
+ include/media/soc_camera.h                     |    1 +
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index ae9bc1e089cc..b91210d646cf 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -36,7 +36,7 @@ API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
- struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 0f67646..b4e9b43 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1364,8 +1364,12 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 		struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 		struct v4l2_rect rect;
+ 		struct device *dev = icd->parent;
++		struct media_pad *remote_pad;
+ 		int shift;
  
- <section id="dtv-stats">
--<title>DTV stats type</title>
-+<title>struct <structname>dtv_stats</structname></title>
- <programlisting>
- struct dtv_stats {
- 	__u8 scale;	/* enum fecap_scale_params type */
-@@ -48,19 +48,19 @@ struct dtv_stats {
- </programlisting>
- </section>
- <section id="dtv-fe-stats">
--<title>DTV stats type</title>
-+<title>struct <structname>dtv_fe_stats</structname></title>
- <programlisting>
- #define MAX_DTV_STATS   4
++		remote_pad = media_entity_remote_pad(
++					&icd->vdev->entity.pads[0]);
++		fmt.pad = remote_pad->index;
+ 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index d708df4..126d645 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1293,6 +1293,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
++	int src_pad_idx = -1;
+ 	int ret;
  
- struct dtv_fe_stats {
- 	__u8 len;
--	struct dtv_stats stat[MAX_DTV_STATS];
-+	&dtv-stats; stat[MAX_DTV_STATS];
- } __packed;
- </programlisting>
- </section>
+ 	sd->grp_id = soc_camera_grp_id(icd);
+@@ -1311,7 +1312,25 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 	}
  
- <section id="dtv-property">
--<title>DTV property type</title>
-+<title>struct <structname>dtv_property</structname></title>
- <programlisting>
- /* Reserved fields should be set to 0 */
+ 	/* At this point client .probe() should have run already */
+-	ret = soc_camera_init_user_formats(icd);
++	ret = media_entity_init(&icd->vdev->entity, 1, &icd->pad, 0);
++	if (!ret) {
++		for (src_pad_idx = 0; src_pad_idx < sd->entity.num_pads;
++				src_pad_idx++)
++			if (sd->entity.pads[src_pad_idx].flags
++						== MEDIA_PAD_FL_SOURCE)
++				break;
++
++		if (src_pad_idx < sd->entity.num_pads) {
++			if (!media_entity_create_link(
++				&icd->vdev->entity, 0,
++				&sd->entity, src_pad_idx,
++				MEDIA_LNK_FL_IMMUTABLE |
++				MEDIA_LNK_FL_ENABLED)) {
++				ret = soc_camera_init_user_formats(icd);
++			}
++		}
++	}
++
+ 	if (ret < 0)
+ 		goto eusrfmt;
  
-@@ -69,7 +69,7 @@ struct dtv_property {
- 	__u32 reserved[3];
- 	union {
- 		__u32 data;
--		struct dtv_fe_stats st;
-+		&dtv-fe-stats; st;
- 		struct {
- 			__u8 data[32];
- 			__u32 len;
-@@ -85,11 +85,11 @@ struct dtv_property {
- </programlisting>
- </section>
- <section id="dtv-properties">
--<title>DTV properties type</title>
-+<title>struct <structname>dtv_properties</structname></title>
- <programlisting>
- struct dtv_properties {
- 	__u32 num;
--	struct dtv_property *props;
-+	&dtv-property; *props;
- };
- </programlisting>
- </section>
-diff --git a/Documentation/DocBook/media/dvb/fe-get-property.xml b/Documentation/DocBook/media/dvb/fe-get-property.xml
-index b121fe5380ca..456ed92133f1 100644
---- a/Documentation/DocBook/media/dvb/fe-get-property.xml
-+++ b/Documentation/DocBook/media/dvb/fe-get-property.xml
-@@ -17,7 +17,7 @@
- 	<funcdef>int <function>ioctl</function></funcdef>
- 	<paramdef>int <parameter>fd</parameter></paramdef>
- 	<paramdef>int <parameter>request</parameter></paramdef>
--	<paramdef>&dtv-property; *<parameter>argp</parameter></paramdef>
-+	<paramdef>&dtv-properties; *<parameter>argp</parameter></paramdef>
-       </funcprototype>
-     </funcsynopsis>
-   </refsynopsisdiv>
-@@ -40,7 +40,7 @@
-       <varlistentry>
- 	<term><parameter>argp</parameter></term>
- 	<listitem>
--	    <para>pointer to &dtv-property;</para>
-+	    <para>pointer to &dtv-properties;</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
+@@ -1322,6 +1341,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		goto evidstart;
+ 
+ 	/* Try to improve our guess of a reasonable window format */
++	fmt.pad = src_pad_idx;
+ 	if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt)) {
+ 		icd->user_width		= mf->width;
+ 		icd->user_height	= mf->height;
+@@ -1335,6 +1355,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ evidstart:
+ 	soc_camera_free_user_formats(icd);
+ eusrfmt:
++	media_entity_cleanup(&icd->vdev->entity);
+ 	soc_camera_remove_device(icd);
+ 
+ 	return ret;
+@@ -1856,6 +1877,10 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ 	if (icd->num_user_formats)
+ 		soc_camera_free_user_formats(icd);
+ 
++	if (icd->vdev->entity.num_pads) {
++		media_entity_cleanup(&icd->vdev->entity);
++	}
++
+ 	if (icd->clk) {
+ 		/* For the synchronous case */
+ 		v4l2_clk_unregister(icd->clk);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..f0c5238 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -42,6 +42,7 @@ struct soc_camera_device {
+ 	unsigned char devnum;		/* Device number per host */
+ 	struct soc_camera_sense *sense;	/* See comment in struct definition */
+ 	struct video_device *vdev;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	const struct soc_camera_format_xlate *current_fmt;
+ 	struct soc_camera_format_xlate *user_formats;
 -- 
-2.4.1
+1.7.10.4
 
