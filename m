@@ -1,103 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57696 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753455AbbEHLab (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56737 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932194AbbEUJDd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 07:30:31 -0400
-Message-ID: <554C9E45.7090800@xs4all.nl>
-Date: Fri, 08 May 2015 13:30:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH v6 06/11] cec: add HDMI CEC framework
-References: <1430760785-1169-1-git-send-email-k.debski@samsung.com> <1430760785-1169-7-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1430760785-1169-7-git-send-email-k.debski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 21 May 2015 05:03:33 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: HDMI and Composite capture on Lager, for kernel 4.1
+Date: Wed, 20 May 2015 17:39:20 +0100
+Message-Id: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+  This is our latest test branch for video support on Lager, ported
+to kernel 4.1 as per commit 9cae84b32dd52768cf2fd2fcb214c3f570676c4b
+("[media] DocBook/media: fix syntax error") on the media-tree master
+branch last week.
 
-Just two tiny issues, and after that you can add my:
+  Single frame and video capture is working with appropriate test
+cases for gstreamer, some (minor) quirks notwithstanding.
+Functionally, this is in more or less the state we need it to be; for
+the rest of the world we hope we have enhanced the ability to do any
+necessary debugging on it. The intention is to upstream this version
+as soon as possible, subject to feedback.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@ciso.com>
+  NB: for single frame capture, images of appropriate resolutions are
+created from both composite and HDMI inputs. For best quality video
+capture we have found that gst-launch-1.0 needs a pipeline specifying
+width, height, format ("=YUY2" in particular has an appropriate
+turnaround time for smooth results), and framerate.
 
-to this.
+  Enclosed are:
+	[PATCH 01/20] ARM: shmobile: lager dts: Add entries for VIN HDMI
+	[PATCH 02/20] media: adv7180: add of match table
+	[PATCH 03/20] media: adv7604: chip info and formats for ADV7612
+	[PATCH 04/20] media: adv7604: document support for ADV7612 dual HDMI
+	[PATCH 05/20] media: adv7604: ability to read default input port
+	[PATCH 06/20] ARM: shmobile: lager dts: specify default-input for
+	[PATCH 07/20] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
+	[PATCH 08/20] media: soc_camera pad-aware driver initialisation
+	[PATCH 09/20] media: rcar_vin: Use correct pad number in try_fmt
+	[PATCH 10/20] media: soc_camera: soc_scale_crop: Use correct pad
+	[PATCH 11/20] media: soc_camera: Fill std field in enum_input
+	[PATCH 12/20] media: soc_camera: Fix error reporting in expbuf
+	[PATCH 13/20] media: soc_camera: v4l2-compliance fixes for querycap
+	[PATCH 14/20] media: rcar_vin: Reject videobufs that are too small
+	[PATCH 15/20] media: rcar_vin: Don't advertise support for USERPTR
+	[PATCH 16/20] media: adv7180: Fix set_pad_format() passing wrong
+	[PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
+	[PATCH 18/20] media: adv7604: Always query_dv_timings in
+	[PATCH 19/20] media: rcar_vin: Clean up format debugging statements
+	[PATCH 20/20] media: soc_camera: Add debugging for get_formats
 
-On 05/04/2015 07:32 PM, Kamil Debski wrote:
-> diff --git a/include/uapi/linux/cec.h b/include/uapi/linux/cec.h
-> new file mode 100644
-> index 0000000..67b0049
-> --- /dev/null
-> +++ b/include/uapi/linux/cec.h
-> @@ -0,0 +1,332 @@
-> +#ifndef _CEC_H
-> +#define _CEC_H
-> +
-> +#include <linux/types.h>
-> +
-> +struct cec_msg {
-> +	__u64 ts;
-> +	__u32 len;
-> +	__u32 status;
-> +	__u32 timeout;
-> +	/* timeout (in ms) is used to timeout CEC_RECEIVE.
-> +	   Set to 0 if you want to wait forever. */
-> +	__u8  msg[16];
-> +	__u8  reply;
-> +	/* If non-zero, then wait for a reply with this opcode.
-> +	   If there was an error when sending the msg or FeatureAbort
-> +	   was returned, then reply is set to 0.
-> +	   If reply is non-zero upon return, then len/msg are set to
-> +	   the received message.
-> +	   If reply is zero upon return and status has the
-> +	   CEC_TX_STATUS_FEATURE_ABORT bit set, then len/msg are set to the
-> +	   received feature abort message.
-> +	   If reply is zero upon return and status has the
-> +	   CEC_TX_STATUS_REPLY_TIMEOUT
-> +	   bit set, then no reply was seen at all.
-> +	   This field is ignored with CEC_RECEIVE.
-> +	   If reply is non-zero for CEC_TRANSMIT and the message is a broadcast,
-> +	   then -EINVAL is returned.
-> +	   if reply is non-zero, then timeout is set to 1000 (the required
-> +	   maximum response time).
-> +	 */
-> +	__u32 sequence;
-> +	/* The framework assigns a sequence number to messages that are sent.
-> +	 * This can be used to track replies to previously sent messages.
-> +	 */
-> +	__u8 reserved[35];
-> +};
-
-It is confusing in struct cec_msg that the comments come *after* the field
-they belong to instead of just before. Can you change this?
-
-> +
-> +#define CEC_G_EVENT		_IOWR('a', 9, struct cec_event)
-
-This can be __IOR since we never write anything.
-
-> +/*
-> +   Read and set the vendor ID of the CEC adapter.
-> + */
-> +#define CEC_G_VENDOR_ID		_IOR('a', 10, __u32)
-> +#define CEC_S_VENDOR_ID		_IOW('a', 11, __u32)
-> +/*
-> +   Enable/disable the passthrough mode
-> + */
-> +#define CEC_G_PASSTHROUGH	_IOR('a', 12, __u32)
-> +#define CEC_S_PASSTHROUGH	_IOW('a', 13, __u32)
-> +
-> +#endif
-> 
-
-Regards,
-
-	Hans
+"Phew!"
+Cheers,
+  Wills.
