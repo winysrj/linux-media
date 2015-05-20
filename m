@@ -1,85 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45226 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459AbbEZN0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:26:48 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <vinod.koul@intel.com>, <tony@atomide.com>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 07/13] mmc: davinci_mmc: Support for deferred probing when requesting DMA channels
-Date: Tue, 26 May 2015 16:26:02 +0300
-Message-ID: <1432646768-12532-8-git-send-email-peter.ujfalusi@ti.com>
-In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56249 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753677AbbEUJCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 05:02:45 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: [PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
+Date: Wed, 20 May 2015 17:39:37 +0100
+Message-Id: <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-channels. Only fall back to pio mode if the error code returned is not
--EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
+When hardware reports interlaced input, correctly set field to
+V4L_FIELD_INTERLACED ini adv76xx_fill_format.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
 ---
- drivers/mmc/host/davinci_mmc.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/media/i2c/adv7604.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/mmc/host/davinci_mmc.c b/drivers/mmc/host/davinci_mmc.c
-index b2b3f8bbfd8c..df81e4e2f662 100644
---- a/drivers/mmc/host/davinci_mmc.c
-+++ b/drivers/mmc/host/davinci_mmc.c
-@@ -530,20 +530,20 @@ static int __init davinci_acquire_dma_channels(struct mmc_davinci_host *host)
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4bde3e1..d77ee1f 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1791,7 +1791,12 @@ static void adv76xx_fill_format(struct adv76xx_state *state,
  
--	host->dma_tx =
--		dma_request_slave_channel_compat(mask, edma_filter_fn,
--				&host->txdma, mmc_dev(host->mmc), "tx");
--	if (!host->dma_tx) {
-+	host->dma_tx = dma_request_slave_channel_compat_reason(mask,
-+				edma_filter_fn, &host->txdma,
-+				mmc_dev(host->mmc), "tx");
-+	if (IS_ERR(host->dma_tx)) {
- 		dev_err(mmc_dev(host->mmc), "Can't get dma_tx channel\n");
--		return -ENODEV;
-+		return PTR_ERR(host->dma_tx);
- 	}
+ 	format->width = state->timings.bt.width;
+ 	format->height = state->timings.bt.height;
+-	format->field = V4L2_FIELD_NONE;
++
++	if (state->timings.bt.interlaced)
++		format->field= V4L2_FIELD_INTERLACED;
++	else
++		format->field= V4L2_FIELD_NONE;
++
+ 	format->colorspace = V4L2_COLORSPACE_SRGB;
  
--	host->dma_rx =
--		dma_request_slave_channel_compat(mask, edma_filter_fn,
--				&host->rxdma, mmc_dev(host->mmc), "rx");
--	if (!host->dma_rx) {
-+	host->dma_rx = dma_request_slave_channel_compat_reason(mask,
-+				edma_filter_fn, &host->rxdma,
-+				mmc_dev(host->mmc), "rx");
-+	if (IS_ERR(host->dma_rx)) {
- 		dev_err(mmc_dev(host->mmc), "Can't get dma_rx channel\n");
--		r = -ENODEV;
-+		r = PTR_ERR(host->dma_rx);
- 		goto free_master_write;
- 	}
- 
-@@ -1307,8 +1307,12 @@ static int __init davinci_mmcsd_probe(struct platform_device *pdev)
- 	host->mmc_irq = irq;
- 	host->sdio_irq = platform_get_irq(pdev, 1);
- 
--	if (host->use_dma && davinci_acquire_dma_channels(host) != 0)
-+	if (host->use_dma) {
-+		ret = davinci_acquire_dma_channels(host);
-+		if (ret == -EPROBE_DEFER)
-+			goto out;
- 		host->use_dma = 0;
-+	}
- 
- 	/* REVISIT:  someday, support IRQ-driven card detection.  */
- 	mmc->caps |= MMC_CAP_NEEDS_POLL;
+ 	if (state->timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO)
 -- 
-2.3.5
+1.7.10.4
 
