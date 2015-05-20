@@ -1,160 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:35383 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933947AbbEMQ51 (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:34783 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625AbbETN5g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 12:57:27 -0400
-Received: by widdi4 with SMTP id di4so207254946wid.0
-        for <linux-media@vger.kernel.org>; Wed, 13 May 2015 09:57:26 -0700 (PDT)
-From: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
-To: y2038@lists.linaro.org
-Cc: linux-media@vger.kernel.org, arnd@arndb.de, john.stultz@linaro.org,
-	Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
-Subject: [PATCH v3] Staging: media: Replace timeval with ktime_t
-Date: Wed, 13 May 2015 18:57:18 +0200
-Message-Id: <1431536238-12738-1-git-send-email-ksenija.stanojevic@gmail.com>
+	Wed, 20 May 2015 09:57:36 -0400
+Received: by pdbnk13 with SMTP id nk13so69960005pdb.1
+        for <linux-media@vger.kernel.org>; Wed, 20 May 2015 06:57:35 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 20 May 2015 15:57:34 +0200
+Message-ID: <CAG_g8w4Q2bQFLV757rz5zU0OXNd3UMn-hxsdH0q-n6n+WSiGqQ@mail.gmail.com>
+Subject: ir-keytable: coredump
+From: crow <crow@linux.org.ba>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'struct timeval last_tv' is used to get the time of last signal change
-and 'struct timeval last_intr_tv' is used to get the time of last UART
-interrupt.
-32-bit systems using 'struct timeval' will break in the year 2038, so we
-have to replace that code with more appropriate types.
-Here struct timeval is replaced with ktime_t.
+Hello,
 
-Signed-off-by: Ksenija Stanojevic <ksenija.stanojevic@gmail.com>
----
-Changes in v3:
-	- as John suggested delta function is changed to inline function,
-	checkpatch signals a warning to change min to min_t. Is it a false 
-	positive?
-	- change variable names.
+I am facing oft the ir-keytable crash with an coredump and mostly I
+need to reboot whole device to have remote working again.
+Note that here it creates coredump on an device which i actually not
+use. On the Tevii USB S650 IR (IR-receiver inside an USB DVB re) which
+is recognised as the rc1.
 
-Changes in v2:
-	- change subject line
+Here is the coredump and also on an paste page [1] for better reading.
+Someone have any suggestion to solve this issue?
 
- drivers/staging/media/lirc/lirc_sir.c | 51 +++++++++++++----------------------
- 1 file changed, 18 insertions(+), 33 deletions(-)
+$ sudo ir-keytable -v
+Found device /sys/class/rc/rc0/
+Found device /sys/class/rc/rc1/
+Input sysfs node is /sys/class/rc/rc0/input7/
+Event sysfs node is /sys/class/rc/rc0/input7/event4/
+Parsing uevent /sys/class/rc/rc0/input7/event4/uevent
+/sys/class/rc/rc0/input7/event4/uevent uevent MAJOR=13
+/sys/class/rc/rc0/input7/event4/uevent uevent MINOR=68
+/sys/class/rc/rc0/input7/event4/uevent uevent DEVNAME=input/event4
+Parsing uevent /sys/class/rc/rc0/uevent
+/sys/class/rc/rc0/uevent uevent NAME=rc-medion-x10
+/sys/class/rc/rc0/uevent uevent DRV_NAME=ati_remote
+input device is /dev/input/event4
+/sys/class/rc/rc0/protocols protocol other (disabled)
+Found /sys/class/rc/rc0/ (/dev/input/event4) with:
+        Driver ati_remote, table rc-medion-x10
+        Supported protocols: other
+        Enabled protocols:
+        Name: X10 Wireless Technology Inc USB
+        bus: 3, vendor/product: 0bc7:0006, version: 0x0100
+        Repeat delay = 500 ms, repeat period = 125 ms
+Input sysfs node is /sys/class/rc/rc1/input9/
+Event sysfs node is /sys/class/rc/rc1/input9/event6/
+Parsing uevent /sys/class/rc/rc1/input9/event6/uevent
+/sys/class/rc/rc1/input9/event6/uevent uevent MAJOR=13
+/sys/class/rc/rc1/input9/event6/uevent uevent MINOR=70
+/sys/class/rc/rc1/input9/event6/uevent uevent DEVNAME=input/event6
+Parsing uevent /sys/class/rc/rc1/uevent
+/sys/class/rc/rc1/uevent uevent NAME=rc-tevii-nec
+/sys/class/rc/rc1/uevent uevent DRV_NAME=dw2102
+input device is /dev/input/event6
+/sys/class/rc/rc1/protocols protocol nec (disabled)
+Found /sys/class/rc/rc1/ (/dev/input/event6) with:
+        Driver dw2102, table rc-tevii-nec
+        Supported protocols: NEC
+        Enabled protocols:
+        Name: IR-receiver inside an USB DVB re
+        bus: 3, vendor/product: 9022:d650, version: 0x0000
+        Repeat delay = 500 ms, repeat period = 125 ms
+$
 
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index 29087f6..c98c486 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -44,7 +44,7 @@
- #include <linux/ioport.h>
- #include <linux/kernel.h>
- #include <linux/serial_reg.h>
--#include <linux/time.h>
-+#include <linux/ktime.h>
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/wait.h>
-@@ -127,9 +127,9 @@ static int threshold = 3;
- static DEFINE_SPINLOCK(timer_lock);
- static struct timer_list timerlist;
- /* time of last signal change detected */
--static struct timeval last_tv = {0, 0};
-+static ktime_t last;
- /* time of last UART data ready interrupt */
--static struct timeval last_intr_tv = {0, 0};
-+static ktime_t last_intr_time;
- static int last_value;
- 
- static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
-@@ -400,18 +400,11 @@ static void drop_chrdev(void)
- }
- 
- /* SECTION: Hardware */
--static long delta(struct timeval *tv1, struct timeval *tv2)
-+static inline long delta(ktime_t t1, ktime_t t2)
- {
--	unsigned long deltv;
--
--	deltv = tv2->tv_sec - tv1->tv_sec;
--	if (deltv > 15)
--		deltv = 0xFFFFFF;
--	else
--		deltv = deltv*1000000 +
--			tv2->tv_usec -
--			tv1->tv_usec;
--	return deltv;
-+	/* return the delta in 32bit usecs, but cap to UINTMAX in case the
-+	 * delta is greater then 32bits */
-+	return (long) min((unsigned int) ktime_us_delta(t1, t2), UINT_MAX);
- }
- 
- static void sir_timeout(unsigned long data)
-@@ -432,12 +425,12 @@ static void sir_timeout(unsigned long data)
- 		/* clear unread bits in UART and restart */
- 		outb(UART_FCR_CLEAR_RCVR, io + UART_FCR);
- 		/* determine 'virtual' pulse end: */
--		pulse_end = delta(&last_tv, &last_intr_tv);
-+		pulse_end = delta(last, last_intr_time);
- 		dev_dbg(driver.dev, "timeout add %d for %lu usec\n",
- 				    last_value, pulse_end);
- 		add_read_queue(last_value, pulse_end);
- 		last_value = 0;
--		last_tv = last_intr_tv;
-+		last = last_intr_time;
- 	}
- 	spin_unlock_irqrestore(&timer_lock, flags);
- }
-@@ -445,7 +438,7 @@ static void sir_timeout(unsigned long data)
- static irqreturn_t sir_interrupt(int irq, void *dev_id)
- {
- 	unsigned char data;
--	struct timeval curr_tv;
-+	ktime_t curr_time;
- 	static unsigned long deltv;
- 	unsigned long deltintrtv;
- 	unsigned long flags;
-@@ -471,9 +464,9 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
- 			do {
- 				del_timer(&timerlist);
- 				data = inb(io + UART_RX);
--				do_gettimeofday(&curr_tv);
--				deltv = delta(&last_tv, &curr_tv);
--				deltintrtv = delta(&last_intr_tv, &curr_tv);
-+				curr_time = ktime_get();
-+				deltv = delta(last, curr_time);
-+				deltintrtv = delta(last_intr_time, curr_time);
- 				dev_dbg(driver.dev, "t %lu, d %d\n",
- 						    deltintrtv, (int)data);
- 				/*
-@@ -488,10 +481,7 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
- 							       deltv -
- 							       deltintrtv);
- 						last_value = 0;
--						last_tv.tv_sec =
--							last_intr_tv.tv_sec;
--						last_tv.tv_usec =
--							last_intr_tv.tv_usec;
-+						last = last_intr_time;
- 						deltv = deltintrtv;
- 					}
- 				}
-@@ -504,16 +494,11 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
- 					add_read_queue(last_value,
- 						       deltv-TIME_CONST);
- 					last_value = data;
--					last_tv = curr_tv;
--					if (last_tv.tv_usec >= TIME_CONST) {
--						last_tv.tv_usec -= TIME_CONST;
--					} else {
--						last_tv.tv_sec--;
--						last_tv.tv_usec += 1000000 -
--							TIME_CONST;
--					}
-+					last = curr_time;
-+					last = ktime_sub_us(last,
-+							    TIME_CONST);
- 				}
--				last_intr_tv = curr_tv;
-+				last_intr_time = curr_time;
- 				if (data) {
- 					/*
- 					 * start timer for end of
--- 
-1.9.1
+$ sudo coredumpctl
+TIME                            PID   UID   GID SIG PRESENT EXE
+Mon 2015-05-18 11:55:13 CEST    233     0     0  11 * /usr/bin/ir-keytable
+Mon 2015-05-18 21:13:02 CEST    271     0     0  11 * /usr/bin/ir-keytable
+Tue 2015-05-19 15:07:00 CEST    289     0     0  11 * /usr/bin/ir-keytable
 
+$ sudo coredumpctl dump 289 -o core
+           PID: 289 (ir-keytable)
+           UID: 0 (root)
+           GID: 0 (root)
+        Signal: 11 (SEGV)
+     Timestamp: Tue 2015-05-19 15:07:00 CEST (17h ago)
+  Command Line: /usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc1
+    Executable: /usr/bin/ir-keytable
+ Control Group: /system.slice/systemd-udevd.service
+          Unit: systemd-udevd.service
+         Slice: system.slice
+       Boot ID: fde764562af24d44ac635df240384c8e
+    Machine ID: df40478810164b36a96f528b0ec05287
+      Hostname: vdrvdpau
+      Coredump:
+/var/lib/systemd/coredump/core.ir-keytable.0.fde764562af24d44ac635df240384c8e.289.1432040820000000.lz4
+       Message: Process 289 (ir-keytable) of user 0 dumped core.
+More than one entry matches, ignoring rest.
+
+$ sudo coredumpctl gdb 289
+           PID: 289 (ir-keytable)
+           UID: 0 (root)
+           GID: 0 (root)
+        Signal: 11 (SEGV)
+     Timestamp: Tue 2015-05-19 15:07:00 CEST (17h ago)
+  Command Line: /usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc1
+    Executable: /usr/bin/ir-keytable
+ Control Group: /system.slice/systemd-udevd.service
+          Unit: systemd-udevd.service
+         Slice: system.slice
+       Boot ID: fde764562af24d44ac635df240384c8e
+    Machine ID: df40478810164b36a96f528b0ec05287
+      Hostname: vdrvdpau
+      Coredump:
+/var/lib/systemd/coredump/core.ir-keytable.0.fde764562af24d44ac635df240384c8e.289.1432040820000000.lz4
+       Message: Process 289 (ir-keytable) of user 0 dumped core.
+
+GNU gdb (GDB) 7.9.1
+Copyright (C) 2015 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-unknown-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /usr/bin/ir-keytable...Reading symbols from
+/usr/lib/debug/usr/bin/ir-keytable.debug...done.
+done.
+[New LWP 289]
+
+warning: Could not load shared library symbols for linux-vdso.so.1.
+Do you need "set solib-search-path" or "set sysroot"?
+Core was generated by `/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc1'.
+Program terminated with signal SIGSEGV, Segmentation fault.
+#0  free_names (names=names@entry=0x0) at keytable.c:538
+538                     if (old->name)
+(gdb) bt
+#0  free_names (names=names@entry=0x0) at keytable.c:538
+#1  0x00000000004046fa in get_attribs (rc_dev=0x7ffc6632a180,
+sysfs_name=<optimized out>) at keytable.c:1093
+#2  0x000000000040115a in main (argc=<optimized out>, argv=<optimized
+out>) at keytable.c:1577
+(gdb) bt full
+#0  free_names (names=names@entry=0x0) at keytable.c:538
+        old = 0x0
+#1  0x00000000004046fa in get_attribs (rc_dev=0x7ffc6632a180,
+sysfs_name=<optimized out>) at keytable.c:1093
+        input_names = 0x1c62090
+        event_names = 0x0
+        attribs = 0x0
+        uevent = <optimized out>
+        cur = 0x0
+        sysfs_name = <optimized out>
+        rc_dev = 0x7ffc6632a180
+        input = 0x404f89 "input"
+        event = 0x404e03 "event"
+        DEV = <synthetic pointer>
+        input_names = 0x1c62090
+        event_names = 0x0
+        attribs = 0x0
+        cur = 0x0
+#2  0x000000000040115a in main (argc=<optimized out>, argv=<optimized
+out>) at keytable.c:1577
+        dev_from_class = 0
+        write_cnt = 0
+        names = 0x1c620b0
+        rc_dev = {sysfs_name = 0x1c62070 "/sys/class/rc/rc1/",
+input_name = 0x0, drv_name = 0x0, keytable_name = 0x0, version =
+VERSION_1, type = UNKNOWN_TYPE, supported = 0,
+          current = 0}
+(gdb) info threads
+  Id   Target Id         Frame
+* 1    LWP 289           free_names (names=names@entry=0x0) at keytable.c:538
+(gdb) thread apply all bt
+
+Thread 1 (LWP 289):
+#0  free_names (names=names@entry=0x0) at keytable.c:538
+#1  0x00000000004046fa in get_attribs (rc_dev=0x7ffc6632a180,
+sysfs_name=<optimized out>) at keytable.c:1093
+#2  0x000000000040115a in main (argc=<optimized out>, argv=<optimized
+out>) at keytable.c:1577
+(gdb) thread apply all bt full
+
+Thread 1 (LWP 289):
+#0  free_names (names=names@entry=0x0) at keytable.c:538
+        old = 0x0
+#1  0x00000000004046fa in get_attribs (rc_dev=0x7ffc6632a180,
+sysfs_name=<optimized out>) at keytable.c:1093
+        input_names = 0x1c62090
+        event_names = 0x0
+        attribs = 0x0
+        uevent = <optimized out>
+        cur = 0x0
+        sysfs_name = <optimized out>
+        rc_dev = 0x7ffc6632a180
+        input = 0x404f89 "input"
+        event = 0x404e03 "event"
+        DEV = <synthetic pointer>
+        input_names = 0x1c62090
+        event_names = 0x0
+        attribs = 0x0
+        cur = 0x0
+#2  0x000000000040115a in main (argc=<optimized out>, argv=<optimized
+out>) at keytable.c:1577
+        dev_from_class = 0
+        write_cnt = 0
+        names = 0x1c620b0
+        rc_dev = {sysfs_name = 0x1c62070 "/sys/class/rc/rc1/",
+input_name = 0x0, drv_name = 0x0, keytable_name = 0x0, version =
+VERSION_1, type = UNKNOWN_TYPE, supported = 0,
+          current = 0}
+(gdb) l
+533     {
+534             struct sysfs_names *old;
+535             do {
+536                     old = names;
+537                     names = names->next;
+538                     if (old->name)
+539                             free(old->name);
+540                     free(old);
+541             } while (names);
+542     }
+(gdb) q
+$
+
+$ sudo pacman -Qi v4l-utils
+Name           : v4l-utils
+Version        : 1.6.2-1
+Description    : Userspace tools and conversion library for Video 4 Linux
+Architecture   : x86_64
+URL            : http://linuxtv.org/
+Licenses       : LGPL
+Groups         : None
+Provides       : libv4l=1.6.2
+Depends On     : glibc  gcc-libs  sysfsutils  libjpeg-turbo
+Optional Deps  : qt4 [installed]
+Required By    : ffmpeg  v4l-utils-debug
+Optional For   : None
+Conflicts With : libv4l
+Replaces       : libv4l
+Installed Size :   2.22 MiB
+Packager       : Unknown Packager
+Build Date     : Thu 07 May 2015 09:00:03 PM CEST
+Install Date   : Thu 07 May 2015 09:07:18 PM CEST
+Install Reason : Installed as a dependency for another package
+Install Script : No
+Validated By   : None
+
+
+[1] http://sprunge.us/IIED
