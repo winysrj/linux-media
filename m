@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59812 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752680AbbEQLMi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2015 07:12:38 -0400
-Received: from [192.168.1.106] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 8C0422A0003
-	for <linux-media@vger.kernel.org>; Sun, 17 May 2015 13:12:21 +0200 (CEST)
-Message-ID: <555877A0.60808@xs4all.nl>
-Date: Sun, 17 May 2015 13:12:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:33369 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751159AbbETMHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 08:07:34 -0400
+Date: Wed, 20 May 2015 09:07:27 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jemma Denson <jdenson@gmail.com>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PULL v3] for 4.2: add support for cx24120/Technisat SkyStar S2
+Message-ID: <20150520090727.1519d0c8@recife.lan>
+In-Reply-To: <555C7425.9040101@gmail.com>
+References: <20150420092720.3cb092ba@dibcom294.coe.adi.dibcom.com>
+	<20150427171628.5ba22752@recife.lan>
+	<20150518121115.07d37b78@dibcom294.coe.adi.dibcom.com>
+	<20150520100506.10a46054@dibcom294.coe.adi.dibcom.com>
+	<555C7425.9040101@gmail.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] Various fixes
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 0fae1997f09796aca8ada5edc028aef587f6716c:
+Hi Patrick/Jemma,
 
-  [media] dib0700: avoid the risk of forgetting to add the adapter's size (2015-05-14 19:31:34 -0300)
+Em Wed, 20 May 2015 12:46:45 +0100
+Jemma Denson <jdenson@gmail.com> escreveu:
 
-are available in the git repository at:
+> On 20/05/15 09:05, Patrick Boettcher wrote:
+> > Hi Mauro,
+> >
+> > This is an updated version (v3) of the pull-request for integrating the
+> > cx24120-driver.
+> >
+> > Jemma (and partially me) addressed all strict-conding-style-issues and
+> > fixed several things regarding signal-stats and demod-issues + some code
+> > cleaning in general.
+> >
+> > Yesterday night Jemma implemented everything related to the UNC and
+> > BER-stuff. I also integrated your smatch-patches on my branch.
+> >
+> > In this mail you'll also find the complete patch, please feel free to
+> > review it.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2h
+Thank you! It is now in good shape on my eyes. Patches merged. 
+The only minor issue is that I had to fold two patches to avoid
+compilation breakage in the middle of the patch series, but I
+solved this myself.
 
-for you to fetch changes up to 695911ea07f2d6d97b0220ef41dcf3d728bec7e3:
+> >
+> >
+> 
+> Mauro, I have realised I might have made a mistake in how UCB is 
+> calculated - I have a patch for this already, should I just send this 
+> through to the list on it's own?
 
-  DocBook/media: fix syntax error (2015-05-15 12:28:02 +0200)
+Yes, please. I just merged the pull request. So, no need to re-send the
+entire patch series again.
 
-----------------------------------------------------------------
-Hans Verkuil (6):
-      DocBook/media: fix querycap error code
-      sta2x11: use monotonic timestamp
-      rcar-vin: use monotonic timestamps
-      DocBook/media: remove spurious space.
-      DocBook/media: improve timestamp documentation
-      DocBook/media: fix syntax error
-
-Prashant Laddha (1):
-      v4l2-dv-timings: fix overflow in gtf timings calculation
-
-Ricardo Ribalda Delgado (4):
-      media/vivid: Add support for Y16 format
-      media/v4l2-core: Add support for V4L2_PIX_FMT_Y16_BE
-      media/vivid: Add support for Y16_BE format
-      media/vivid: Code cleanout
-
- Documentation/DocBook/media/v4l/io.xml              |  2 +-
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml  |  5 ++++-
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml     |  4 +++-
- Documentation/DocBook/media/v4l/vidioc-querycap.xml |  2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c             |  3 ++-
- drivers/media/platform/soc_camera/rcar_vin.c        |  2 +-
- drivers/media/platform/vivid/vivid-tpg.c            | 20 ++++++++++++++++----
- drivers/media/platform/vivid/vivid-vid-common.c     | 16 ++++++++++++++++
- drivers/media/v4l2-core/v4l2-dv-timings.c           | 28 ++++++++++++++++++----------
- drivers/media/v4l2-core/v4l2-ioctl.c                |  1 +
- include/uapi/linux/videodev2.h                      |  1 +
- 11 files changed, 64 insertions(+), 20 deletions(-)
+Regards,
+Mauro
