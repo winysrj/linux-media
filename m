@@ -1,123 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45334 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752778AbbEHMNj (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56325 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754442AbbEUJCu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 08:13:39 -0400
-Message-ID: <554CA862.8070407@xs4all.nl>
-Date: Fri, 08 May 2015 14:13:22 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-References: <cover.1431046915.git.mchehab@osg.samsung.com> <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 21 May 2015 05:02:50 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: [PATCH 11/20] media: soc_camera: Fill std field in enum_input
+Date: Wed, 20 May 2015 17:39:31 +0100
+Message-Id: <1432139980-12619-12-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
-> Finally, let's rename the tuner entity. inside the media subsystem,
-> a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
-> It could even be used on other subsystems, like network, for wireless
-> devices.
-> 
-> So, it is not constricted to V4L2 API, or to a subdev.
-> 
-> Let's then rename it as:
-> 	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-See patch 04/18.
+Fill in the std field from the video_device tvnorms field in
+enum_input.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> index 9b3861058f0d..5c7f366bb1f4 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> @@ -241,7 +241,7 @@
->  	    signals.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_TUNER</constant></entry>
->  	    <entry>TV and/or radio tuner</entry>
->  	  </row>
->  	</tbody>
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 39846077045e..d6a096495035 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -393,7 +393,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  
->  	media_device_for_each_entity(entity, mdev) {
->  		switch (entity->type) {
-> -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-> +		case MEDIA_ENT_T_TUNER:
->  			tuner = entity;
->  			break;
->  		case MEDIA_ENT_T_DTV_DEMOD:
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index a756f74f0adc..2a7331e3c4a0 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1213,7 +1213,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
->  
->  	media_device_for_each_entity(entity, mdev) {
->  		switch (entity->type) {
-> -		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-> +		case MEDIA_ENT_T_TUNER:
->  			tuner = entity;
->  			break;
->  		case MEDIA_ENT_T_ATV_DECODER:
-> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-> index abdcffabcb59..ecf4e8a543b3 100644
-> --- a/drivers/media/v4l2-core/tuner-core.c
-> +++ b/drivers/media/v4l2-core/tuner-core.c
-> @@ -696,7 +696,7 @@ static int tuner_probe(struct i2c_client *client,
->  register_client:
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-> -	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-> +	t->sd.entity.type = MEDIA_ENT_T_TUNER;
->  	t->sd.entity.name = t->name;
->  
->  	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 9b3d80e765f0..6acc4be1378c 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -57,7 +57,7 @@ struct media_device_info {
->  
->  #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
->  
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
-> +#define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
->  
->  #if 1
->  /*
-> @@ -88,6 +88,8 @@ struct media_device_info {
->  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
->  
->  #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
-> +
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_T_TUNER
->  #endif
->  
->  /* Used bitmasks for media_entity_desc::flags */
-> 
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 126d645..5afbf65 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -309,11 +309,14 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+ static int soc_camera_enum_input(struct file *file, void *priv,
+ 				 struct v4l2_input *inp)
+ {
++	struct soc_camera_device *icd = file->private_data;
++
+ 	if (inp->index != 0)
+ 		return -EINVAL;
+ 
+ 	/* default is camera */
+ 	inp->type = V4L2_INPUT_TYPE_CAMERA;
++	inp->std = icd->vdev->tvnorms;
+ 	strcpy(inp->name, "Camera");
+ 
+ 	return 0;
+-- 
+1.7.10.4
 
