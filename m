@@ -1,40 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:26338 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754356AbbEUKSI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 06:18:08 -0400
-Date: Thu, 21 May 2015 18:16:36 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Jemma Denson <jdenson@gmail.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Patrick Boettcher <patrick.boettcher@posteo.de>
-Subject: [linuxtv-media:master 1013/1029]
- drivers/media/dvb-frontends/cx24120.c:806:6: sparse: symbol
- 'cx24120_calculate_ber_window' was not declared. Should it be static?
-Message-ID: <201505211815.u8Tcv6qa%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56641 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751667AbbEUJDX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 05:03:23 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: [PATCH 06/20] ARM: shmobile: lager dts: specify default-input for ADV7612
+Date: Wed, 20 May 2015 17:39:26 +0100
+Message-Id: <1432139980-12619-7-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   2a80f296422a01178d0a993479369e94f5830127
-commit: ddcb252e41c15b360c0e9a172fbd29d3f0ed18cd [1013/1029] [media] cx24120: Add in dvbv5 stats for bit error rate
-reproduce:
-  # apt-get install sparse
-  git checkout ddcb252e41c15b360c0e9a172fbd29d3f0ed18cd
-  make ARCH=x86_64 allmodconfig
-  make C=1 CF=-D__CHECK_ENDIAN__
+Set 'default-input' property for ADV7612. Enables image/video capture
+without the need to have userspace specifying routing.
 
-
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/media/dvb-frontends/cx24120.c:806:6: sparse: symbol 'cx24120_calculate_ber_window' was not declared. Should it be static?
-
-Please review and possibly fold the followup patch.
-
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Tested-by: William Towle <william.towle@codethink.co.uk>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ arch/arm/boot/dts/r8a7790-lager.dts |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 90c4531..6946e9a 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -544,6 +544,7 @@
+ 		port {
+ 			hdmi_in_ep: endpoint {
+ 				remote-endpoint = <&vin0ep0>;
++				default-input = <0>;
+ 			};
+ 		};
+ 	};
+-- 
+1.7.10.4
+
