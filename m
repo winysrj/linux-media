@@ -1,82 +1,47 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-MIME-Version: 1.0
-Date: Fri, 17 Apr 2015 19:29:05 +0530
-Message-ID: <CAPAqnGp0poptvEiMOk3oxs7=H8C5DOx-g0qpKZVQGQ_fa20-3Q@mail.gmail.com>
-From: Mahesh Dl <dl.mahesh@gmail.com>
-To: linux-dvb@linuxtv.org, mass@linuxtv.org
-Subject: [linux-dvb] DSMCC-MHP-TOOLS incremental carousel updates
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0585239395=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56409 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932126AbbEUJC7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 05:02:59 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
+Subject: [PATCH 18/20] media: adv7604: Always query_dv_timings in adv76xx_fill_format
+Date: Wed, 20 May 2015 17:39:38 +0100
+Message-Id: <1432139980-12619-19-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============0585239395==
-Content-Type: multipart/alternative; boundary=001a1147f248c7c1cc0513ebfb98
+Make sure we're always reporting the current format of the input.
+Fixes start of day bugs.
 
---001a1147f248c7c1cc0513ebfb98
-Content-Type: text/plain; charset=UTF-8
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/i2c/adv7604.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Hello Marek Pikarski,
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d77ee1f..526fa4e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1787,8 +1787,12 @@ static int adv76xx_enum_mbus_code(struct v4l2_subdev *sd,
+ static void adv76xx_fill_format(struct adv76xx_state *state,
+ 				struct v4l2_mbus_framefmt *format)
+ {
++	struct v4l2_subdev *sd = &state->sd;
++
+ 	memset(format, 0, sizeof(*format));
+ 
++	v4l2_subdev_call(sd, video, query_dv_timings, &state->timings);
++
+ 	format->width = state->timings.bt.width;
+ 	format->height = state->timings.bt.height;
+ 
+-- 
+1.7.10.4
 
-First of all thank you for the dsmcc-mhp-tools, it made my test setup easy
-for carousel's. It works flawless so far, i use tscbrmuxer from opencaster
-for muxing with AV.
-
-As of now, i  am confused on "updating of version number for the module,
-once i update some files or folders in the carousel directory", i guess its
-already included in the package as it is mentioned in the README that
-incremental updates are supported. Please provide an example of command
-usage to achieve this.
-
-I use the inotify-tools to monitor the directory for carousel and can
-generate the new m2t file when ever there is a change in the directory. The
-command used to generate the m2t is  - dsmcc-oc --in=/home/root/dsmcc
---out=test4.m2t --pid=0x07d3 -cid 0x00000001 --tag=0xb -ns -v .
-
-Please help.
-
-Thanks & Regards,
-Mahesh
-
---001a1147f248c7c1cc0513ebfb98
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr">Hello=C2=A0Marek Pikarski,<div><br></div><div>First of all=
- thank you for the dsmcc-mhp-tools, it made my test setup easy for carousel=
-&#39;s. It works flawless so far, i use tscbrmuxer from opencaster for muxi=
-ng with AV.</div><div><br></div><div>As of now, i =C2=A0am confused on &quo=
-t;updating of version number for the module, once i update some files or fo=
-lders in the carousel directory&quot;, i guess its already included in the =
-package as it is mentioned in the README that incremental updates are suppo=
-rted. Please provide an example of command usage to achieve this.</div><div=
-><br></div><div>I use the inotify-tools to monitor the directory for carous=
-el and can generate the new m2t file when ever there is a change in the dir=
-ectory. The command used to generate the m2t is =C2=A0- dsmcc-oc --in=3D/ho=
-me/root/dsmcc --out=3Dtest4.m2t --pid=3D0x07d3 -cid 0x00000001 --tag=3D0xb =
--ns -v .</div><div><br></div><div>Please help.</div><div><br></div><div>Tha=
-nks &amp; Regards,</div><div>Mahesh</div></div>
-
---001a1147f248c7c1cc0513ebfb98--
-
-
---===============0585239395==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0585239395==--
