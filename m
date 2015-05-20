@@ -1,85 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59523 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854AbbE0K6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 06:58:36 -0400
-Message-ID: <5565A351.7020409@ti.com>
-Date: Wed, 27 May 2015 13:58:25 +0300
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:35626 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755299AbbETVV2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 17:21:28 -0400
+Received: by wicmx19 with SMTP id mx19so169146071wic.0
+        for <linux-media@vger.kernel.org>; Wed, 20 May 2015 14:21:27 -0700 (PDT)
+Message-ID: <555CECEE.90100@cogentembedded.com>
+Date: Wed, 20 May 2015 23:22:06 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-To: Tony Lindgren <tony@atomide.com>
-CC: <vinod.koul@intel.com>, <devicetree@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>, <linux-serial@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>, <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>, <linux-spi@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <alsa-devel@alsa-project.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 03/13] serial: 8250_dma: Support for deferred probing
- when requesting DMA channels
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-4-git-send-email-peter.ujfalusi@ti.com> <20150526150852.GC16525@atomide.com>
-In-Reply-To: <20150526150852.GC16525@atomide.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+To: William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+CC: g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	rob.taylor@codethink.co.uk
+Subject: Re: [PATCH 08/20] media: soc_camera pad-aware driver initialisation
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-9-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-9-git-send-email-william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/26/2015 06:08 PM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [150526 06:28]:
->> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
->> channels. In case of error, return the error code we received including
->> -EPROBE_DEFER
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> ---
->>  drivers/tty/serial/8250/8250_dma.c | 18 ++++++++----------
->>  1 file changed, 8 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
->> index 21d01a491405..a617eca4e97d 100644
->> --- a/drivers/tty/serial/8250/8250_dma.c
->> +++ b/drivers/tty/serial/8250/8250_dma.c
->> @@ -182,21 +182,19 @@ int serial8250_request_dma(struct uart_8250_port *p)
->>  	dma_cap_set(DMA_SLAVE, mask);
->>  
->>  	/* Get a channel for RX */
->> -	dma->rxchan = dma_request_slave_channel_compat(mask,
->> -						       dma->fn, dma->rx_param,
->> -						       p->port.dev, "rx");
->> -	if (!dma->rxchan)
->> -		return -ENODEV;
->> +	dma->rxchan = dma_request_slave_channel_compat_reason(mask, dma->fn,
->> +					dma->rx_param, p->port.dev, "rx");
->> +	if (IS_ERR(dma->rxchan))
->> +		return PTR_ERR(dma->rxchan);
->>  
->>  	dmaengine_slave_config(dma->rxchan, &dma->rxconf);
->>  
->>  	/* Get a channel for TX */
->> -	dma->txchan = dma_request_slave_channel_compat(mask,
->> -						       dma->fn, dma->tx_param,
->> -						       p->port.dev, "tx");
->> -	if (!dma->txchan) {
->> +	dma->txchan = dma_request_slave_channel_compat_reason(mask, dma->fn,
->> +					dma->tx_param, p->port.dev, "tx");
->> +	if (IS_ERR(dma->txchan)) {
->>  		dma_release_channel(dma->rxchan);
->> -		return -ENODEV;
->> +		return PTR_ERR(dma->txchan);
->>  	}
->>  
->>  	dmaengine_slave_config(dma->txchan, &dma->txconf);
-> 
-> In general the drivers need to work just fine also without DMA.
-> 
-> Does this handle the case properly where no DMA channel is configured
-> for the driver in the dts file?
+Hello.
 
-The 8250 core will fall back to PIO mode if the DMA can not be requested.
-At the morning I was looking at the 8250 stack and realized that
-serial8250_request_dma() will not be called at driver probe time so this patch
-can be ignored and will be dropped from the v2 series.
+On 05/20/2015 07:39 PM, William Towle wrote:
 
--- 
-Péter
+> Add detection of source pad number for drivers aware of the media
+> controller API, so that soc_camera/rcar_vin can create device nodes
+> to support a driver such as adv7604.c (for HDMI on Lager) underneath.
+
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> ---
+>   drivers/media/platform/soc_camera/rcar_vin.c   |    4 ++++
+>   drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++++++++++++++-
+>   include/media/soc_camera.h                     |    1 +
+>   3 files changed, 31 insertions(+), 1 deletion(-)
+
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 0f67646..b4e9b43 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index d708df4..126d645 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+[...]
+> @@ -1311,7 +1312,25 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+>   	}
+>
+>   	/* At this point client .probe() should have run already */
+> -	ret = soc_camera_init_user_formats(icd);
+> +	ret = media_entity_init(&icd->vdev->entity, 1, &icd->pad, 0);
+> +	if (!ret) {
+> +		for (src_pad_idx = 0; src_pad_idx < sd->entity.num_pads;
+> +				src_pad_idx++)
+> +			if (sd->entity.pads[src_pad_idx].flags
+> +						== MEDIA_PAD_FL_SOURCE)
+> +				break;
+> +
+> +		if (src_pad_idx < sd->entity.num_pads) {
+> +			if (!media_entity_create_link(
+> +				&icd->vdev->entity, 0,
+> +				&sd->entity, src_pad_idx,
+> +				MEDIA_LNK_FL_IMMUTABLE |
+> +				MEDIA_LNK_FL_ENABLED)) {
+
+    Please either start the continuation lines under ! on the first line or 
+indent them more to the right, so that's easier on the eyes.
+
+> +				ret = soc_camera_init_user_formats(icd);
+> +			}
+> +		}
+> +	}
+> +
+>   	if (ret < 0)
+>   		goto eusrfmt;
+>
+> @@ -1322,6 +1341,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+>   		goto evidstart;
+>
+>   	/* Try to improve our guess of a reasonable window format */
+> +	fmt.pad = src_pad_idx;
+>   	if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt)) {
+>   		icd->user_width		= mf->width;
+>   		icd->user_height	= mf->height;
+> @@ -1335,6 +1355,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+>   evidstart:
+>   	soc_camera_free_user_formats(icd);
+>   eusrfmt:
+> +	media_entity_cleanup(&icd->vdev->entity);
+>   	soc_camera_remove_device(icd);
+>
+>   	return ret;
+> @@ -1856,6 +1877,10 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+>   	if (icd->num_user_formats)
+>   		soc_camera_free_user_formats(icd);
+>
+> +	if (icd->vdev->entity.num_pads) {
+> +		media_entity_cleanup(&icd->vdev->entity);
+> +	}
+> +
+
+    Brackets not needed here, and checkpatch.pl should have complained about that.
+
+WBR, Sergei
+
