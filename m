@@ -1,179 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:23673 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909AbbEDRdY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 13:33:24 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, k.debski@samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
-Subject: [PATCH v6 00/11]
-Date: Mon, 04 May 2015 19:32:53 +0200
-Message-id: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35884 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753613AbbETOov (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2015 10:44:51 -0400
+Date: Wed, 20 May 2015 17:44:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v8 1/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+Message-ID: <20150520144447.GB8601@valkosipuli.retiisi.org.uk>
+References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+ <1432131015-22397-2-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1432131015-22397-2-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Jacek,
 
-The sixth version of this patchset addresses recent comments on the mailing
-list. Please see the changelog below for details.
+On Wed, May 20, 2015 at 04:10:08PM +0200, Jacek Anaszewski wrote:
+...
+> +struct v4l2_flash *v4l2_flash_init(
+> +	struct device *dev, struct device_node *of_node,
+> +	struct led_classdev_flash *fled_cdev, const struct v4l2_flash_ops *ops,
+> +	struct v4l2_flash_config *config)
+> +{
+> +	struct v4l2_flash *v4l2_flash;
+> +	struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+> +	struct v4l2_subdev *sd;
+> +	int ret;
+> +
+> +	if (!fled_cdev || !ops || !config)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	v4l2_flash = devm_kzalloc(led_cdev->dev, sizeof(*v4l2_flash),
+> +					GFP_KERNEL);
+> +	if (!v4l2_flash)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	sd = &v4l2_flash->sd;
+> +	v4l2_flash->fled_cdev = fled_cdev;
+> +	v4l2_flash->ops = ops;
+> +	sd->dev = dev;
+> +	sd->of_node = of_node;
+> +	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
+> +	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	strlcpy(sd->name, config->dev_name, sizeof(sd->name));
+> +
+> +	ret = media_entity_init(&sd->entity, 0, NULL, 0);
+> +	if (ret < 0)
+> +		return ERR_PTR(ret);
+> +
+> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +
+> +	ret = v4l2_flash_init_controls(v4l2_flash, config);
+> +	if (ret < 0)
+> +		goto err_init_controls;
+> +
+> +	of_node_get(led_cdev->dev->of_node);
+> +
+> +	ret = v4l2_async_register_subdev(sd);
+> +	if (ret < 0)
+> +		goto err_async_register_sd;
+> +
+> +	return v4l2_flash;
+> +
+> +err_async_register_sd:
+> +	of_node_put(led_cdev->dev->of_node);
+> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> +err_init_controls:
+> +	media_entity_cleanup(&sd->entity);
+> +
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_flash_init);
+> +
+> +void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
+> +{
+> +	struct v4l2_subdev *sd;
+> +	struct led_classdev *led_cdev;
+> +
+> +	if (IS_ERR(v4l2_flash))
 
-Best wishes,
-Kamil Debski
+I propose to use IS_ERR_OR_NULL() instead. Then this can be safely called
+without calling v4l2_flash_init() first, making error handling easier.
 
-Changes since v5
-================
-- drop struct cec_timeval in favour of a __u64 that keeps the timestamp in ns
-- remove userspace documentation from Documentation/cec.txt as userspace API
-  is described in the DocBook
-- add missing documentation for the passthrough mode to the DocBook
-- add information about the number of events that can be queued
-- fix misspelling of reply
-- fix behaviour of posting an event in cec_received_msg, such that the behaviour
-  is consistent with the documentation
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Changes since v4
-================
-- add sequence numbering to transmitted messages
-- add sequence number handling to event hanlding
-- add passthrough mode
-- change reserved field sizes
-- fixed CEC version defines and addec CEC 2.0 commands
-- add DocBook documentation
+> +		return;
+> +
+> +	sd = &v4l2_flash->sd;
+> +	led_cdev = &v4l2_flash->fled_cdev->led_cdev;
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	of_node_put(led_cdev->dev->of_node);
+> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
+> +	media_entity_cleanup(&sd->entity);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_flash_release);
 
-Changes since v3
-================
-- remove the promiscuous mode
-- rewrite the devicetree patches
-- fixes, expansion and partial rewrite of the documentation
-- reorder of API structures and addition of reserved fields
-- use own struct to report time (32/64 bit safe)
-- fix of handling events
-- add cec.h to include/uapi/linux/Kbuild
-- fixes in the adv76xx driver (add missing methods, change adv7604 to adv76xx)
-- cleanup of debug messages in s5p-cec driver
-- remove non necessary claiming of a gpio in the s5p-cec driver
-- cleanup headers of the s5p-cec driver
-
-Changes since v2
-===============-
-- added promiscuous mode
-- added new key codes to the input framework
-- add vendor ID reporting
-- add the possibility to clear assigned logical addresses
-- cleanup of the rc cec map
-
-Changes since v1
-================
-- documentation edited and moved to the Documentation folder
-- added key up/down message handling
-- add missing CEC commands to the cec.h file
-
-Background
-==========
-
-The work on a common CEC framework was started over three years ago by Hans
-Verkuil. Unfortunately the work has stalled. As I have received the task of
-creating a driver for the CEC interface module present on the Exynos range of
-SoCs, I got in touch with Hans. He replied that the work stalled due to his
-lack of time.
-
-Original RFC by Hans Verkuil/Martin Bugge
-=========================================
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
-
-
-Hans Verkuil (5):
-  cec: add HDMI CEC framework
-  DocBook/media: add CEC documentation
-  v4l2-subdev: add HDMI CEC ops
-  cec: adv7604: add cec support.
-  cec: adv7511: add cec support.
-
-Kamil Debski (6):
-  dts: exynos4*: add HDMI CEC pin definition to pinctrl
-  dts: exynos4: add node for the HDMI CEC device
-  dts: exynos4412-odroid*: enable the HDMI CEC device
-  HID: add HDMI CEC specific keycodes
-  rc: Add HDMI CEC protoctol handling
-  cec: s5p-cec: Add s5p-cec driver
-
- Documentation/DocBook/media/Makefile               |    4 +-
- Documentation/DocBook/media/v4l/biblio.xml         |   10 +
- Documentation/DocBook/media/v4l/cec-api.xml        |   74 ++
- Documentation/DocBook/media/v4l/cec-func-close.xml |   59 +
- Documentation/DocBook/media/v4l/cec-func-ioctl.xml |   73 ++
- Documentation/DocBook/media/v4l/cec-func-open.xml  |   94 ++
- Documentation/DocBook/media/v4l/cec-func-poll.xml  |   89 ++
- .../DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml |  275 +++++
- .../DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml |   78 ++
- .../DocBook/media/v4l/cec-ioc-g-adap-state.xml     |   87 ++
- Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml |  173 +++
- .../DocBook/media/v4l/cec-ioc-g-event.xml          |  125 ++
- .../DocBook/media/v4l/cec-ioc-g-passthrough.xml    |   88 ++
- .../DocBook/media/v4l/cec-ioc-g-vendor-id.xml      |   70 ++
- .../DocBook/media/v4l/cec-ioc-receive.xml          |  185 +++
- Documentation/DocBook/media_api.tmpl               |    6 +-
- Documentation/cec.txt                              |  165 +++
- .../devicetree/bindings/media/s5p-cec.txt          |   33 +
- arch/arm/boot/dts/exynos4.dtsi                     |   12 +
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi          |    7 +
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |    4 +
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |    7 +
- drivers/media/Kconfig                              |    6 +
- drivers/media/Makefile                             |    2 +
- drivers/media/cec.c                                | 1191 ++++++++++++++++++++
- drivers/media/i2c/adv7511.c                        |  347 +++++-
- drivers/media/i2c/adv7604.c                        |  207 +++-
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/s5p-cec/Makefile            |    4 +
- drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |   37 +
- .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   |  208 ++++
- drivers/media/platform/s5p-cec/regs-cec.h          |   96 ++
- drivers/media/platform/s5p-cec/s5p_cec.c           |  283 +++++
- drivers/media/platform/s5p-cec/s5p_cec.h           |   76 ++
- drivers/media/rc/keymaps/Makefile                  |    1 +
- drivers/media/rc/keymaps/rc-cec.c                  |  144 +++
- drivers/media/rc/rc-main.c                         |    1 +
- include/media/adv7511.h                            |    6 +-
- include/media/cec.h                                |  142 +++
- include/media/rc-core.h                            |    1 +
- include/media/rc-map.h                             |    5 +-
- include/media/v4l2-subdev.h                        |    8 +
- include/uapi/linux/Kbuild                          |    1 +
- include/uapi/linux/cec.h                           |  332 ++++++
- include/uapi/linux/input.h                         |   12 +
- 46 files changed, 4824 insertions(+), 15 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-state.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-passthrough.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-vendor-id.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
- create mode 100644 Documentation/cec.txt
- create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
- create mode 100644 drivers/media/cec.c
- create mode 100644 drivers/media/platform/s5p-cec/Makefile
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
- create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
- create mode 100644 include/media/cec.h
- create mode 100644 include/uapi/linux/cec.h
+...
 
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
