@@ -1,128 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39380 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422673AbbE2TWQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60408 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751341AbbETI7y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 15:22:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 5/5] DocBook: Update DocBook version and fix a few legacy things
-Date: Fri, 29 May 2015 16:22:08 -0300
-Message-Id: <2410e2d42ade96b2ef77109b0b47bc6f39225706.1432927303.git.mchehab@osg.samsung.com>
-In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
-References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
-In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
-References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+	Wed, 20 May 2015 04:59:54 -0400
+Date: Wed, 20 May 2015 11:59:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sebastian Reichel <sre@kernel.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] omap3isp: Fix async notifier registration order
+Message-ID: <20150520085950.GA8365@valkosipuli.retiisi.org.uk>
+References: <1432076885-5107-1-git-send-email-sakari.ailus@iki.fi>
+ <20150519234143.GA20959@earth>
+ <17465326.j5hDPLALfu@avalon>
+ <3563083.vlSqH6VOBV@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3563083.vlSqH6VOBV@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVB part of the media API documentation has several
-legacy things on it:
-	- Examples that don't work;
-	- APIs unused and deprecated;
-	- places mentioning the wrong API version.
+Hi Laurent,
 
-Fix them and bump the documentation version, in order to
-reflect the cleanup efforts to make it more consistent with
-the current status of the API.
+On Wed, May 20, 2015 at 10:14:53AM +0300, Laurent Pinchart wrote:
+> On Wednesday 20 May 2015 09:57:33 Laurent Pinchart wrote:
+> > On Wednesday 20 May 2015 01:41:43 Sebastian Reichel wrote:
+> > > On Wed, May 20, 2015 at 02:08:05AM +0300, Sakari Ailus wrote:
+> > > > The async notifier was registered before the v4l2_device was registered
+> > > > and before the notifier callbacks were set. This could lead to missing
+> > > > the bound() and complete() callbacks and to attempting to spin_lock()
+> > > > and uninitialised spin lock.
+> > > > 
+> > > > Also fix unregistering the async notifier in the case of an error ---
+> > > > the function may not fail anymore after the notifier is registered.
+> > > > 
+> > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > 
+> > > I already noticed this during my Camera for N900 work and solved it
+> > > the same way, so:
+> > > 
+> > > Reviewed-By: Sebastian Reichel <sre@kernel.org>
+> > > 
+> > > You may want to add a Fixes Tag against the patch implementing the
+> > > async notifier support in omap3isp, since its quite easy to run into
+> > > the callback problems (at least I did) and the missing resource
+> > > freeing (due to EPROBE_AGAIN).
+> > 
+> > Applied to my tree with the Reviewed-by and Fixes tags.
+> 
+> I spoke too soon. I think you forgot to remove the 
+> v4l2_async_notifier_unregister() call from isp_register_entities(). I can fix 
+> while applying if you agree with the change.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Please do. Thanks!
 
-diff --git a/Documentation/DocBook/media/dvb/dvbapi.xml b/Documentation/DocBook/media/dvb/dvbapi.xml
-index 4c15396c67e5..dc8cb558f9fd 100644
---- a/Documentation/DocBook/media/dvb/dvbapi.xml
-+++ b/Documentation/DocBook/media/dvb/dvbapi.xml
-@@ -28,13 +28,23 @@
- 	<holder>Convergence GmbH</holder>
- </copyright>
- <copyright>
--	<year>2009-2014</year>
-+	<year>2009-2015</year>
- 	<holder>Mauro Carvalho Chehab</holder>
- </copyright>
- 
- <revhistory>
- <!-- Put document revisions here, newest first. -->
- <revision>
-+	<revnumber>2.1.0</revnumber>
-+	<date>2015-05-29</date>
-+	<authorinitials>mcc</authorinitials>
-+	<revremark>
-+		DocBook improvements and cleanups, in order to document the
-+		system calls on a more standard way and provide more description
-+		about the current DVB API.
-+	</revremark>
-+</revision>
-+<revision>
- 	<revnumber>2.0.4</revnumber>
- 	<date>2011-05-06</date>
- 	<authorinitials>mcc</authorinitials>
-@@ -95,18 +105,26 @@ Added ISDB-T test originally written by Patrick Boettcher
-   <chapter id="dvb_demux">
-     &sub-demux;
-   </chapter>
--  <chapter id="dvb_video">
--    &sub-video;
--  </chapter>
--  <chapter id="dvb_audio">
--    &sub-audio;
--  </chapter>
-   <chapter id="dvb_ca">
-     &sub-ca;
-   </chapter>
-   <chapter id="dvb_net">
-     &sub-net;
-   </chapter>
-+  <chapter id="legacy_dvb_apis">
-+  <title>DVB Deprecated APIs</title>
-+  <para>The APIs described here are kept only for historical reasons. There's
-+      just one driver for a very legacy hardware that uses this API. No
-+      modern drivers should use it. Instead, audio and video should be using
-+      the V4L2 and ALSA APIs, and the pipelines should be set using the
-+      Media Controller API</para>
-+    <section id="dvb_video">
-+	&sub-video;
-+    </section>
-+    <section id="dvb_audio">
-+	&sub-audio;
-+    </section>
-+  </chapter>
-   <chapter id="dvb_kdapi">
-     &sub-kdapi;
-   </chapter>
-diff --git a/Documentation/DocBook/media/dvb/examples.xml b/Documentation/DocBook/media/dvb/examples.xml
-index f037e568eb6e..c9f68c7183cc 100644
---- a/Documentation/DocBook/media/dvb/examples.xml
-+++ b/Documentation/DocBook/media/dvb/examples.xml
-@@ -1,8 +1,10 @@
- <title>Examples</title>
- <para>In this section we would like to present some examples for using the DVB API.
- </para>
--<para>Maintainer note: This section is out of date. Please refer to the sample programs packaged
--with the driver distribution from <ulink url="http://linuxtv.org/hg/dvb-apps" />.
-+<para>NOTE: This section is out of date, and the code below won't even
-+    compile. Please refer to the
-+    <ulink url="http://linuxtv.org/docs/libdvbv5/index.html">libdvbv5</ulink>
-+    for updated/recommended examples.
- </para>
- 
- <section id="tuning">
-diff --git a/Documentation/DocBook/media/dvb/intro.xml b/Documentation/DocBook/media/dvb/intro.xml
-index 4a34ef4783a4..1f7a35a2b365 100644
---- a/Documentation/DocBook/media/dvb/intro.xml
-+++ b/Documentation/DocBook/media/dvb/intro.xml
-@@ -205,7 +205,7 @@ a partial path like:</para>
- additional include file <emphasis
- role="bold">linux/dvb/version.h</emphasis> exists, which defines the
- constant <emphasis role="bold">DVB_API_VERSION</emphasis>. This document
--describes <emphasis role="bold">DVB_API_VERSION 5.8</emphasis>.
-+describes <emphasis role="bold">DVB_API_VERSION 5.10</emphasis>.
- </para>
- 
- </section>
 -- 
-2.4.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
