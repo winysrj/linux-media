@@ -1,127 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:52260 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251AbbETS3F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 14:29:05 -0400
-Date: Wed, 20 May 2015 20:29:01 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	James Hogan <james@albanarts.com>
-Subject: Re: [PATCH v3 1/7] rc: rc-ir-raw: Add scancode encoder callback
-Message-ID: <20150520182901.GB13624@hardeman.nu>
-References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
- <1427824092-23163-2-git-send-email-a.seppala@gmail.com>
- <20150519203851.GC18036@hardeman.nu>
- <CAKv9HNb=qK18mGj9dOdyqEPvABU8b8aAEmGa1s2NULC4g0KX-Q@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47177 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755453AbbEUNOJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 09:14:09 -0400
+Date: Thu, 21 May 2015 16:14:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
+ v4l2_flash_init()
+Message-ID: <20150521131405.GJ8601@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAKv9HNb=qK18mGj9dOdyqEPvABU8b8aAEmGa1s2NULC4g0KX-Q@mail.gmail.com>
+In-Reply-To: <555DCBD8.8040507@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 20, 2015 at 07:46:21PM +0300, Antti Seppälä wrote:
->On 19 May 2015 at 23:38, David Härdeman <david@hardeman.nu> wrote:
->> On Tue, Mar 31, 2015 at 08:48:06PM +0300, Antti Seppälä wrote:
->>>From: James Hogan <james@albanarts.com>
->>>
->>>Add a callback to raw ir handlers for encoding and modulating a scancode
->>>to a set of raw events. This could be used for transmit, or for
->>>converting a wakeup scancode filter to a form that is more suitable for
->>>raw hardware wake up filters.
->>>
->>>Signed-off-by: James Hogan <james@albanarts.com>
->>>Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
->>>Cc: David Härdeman <david@hardeman.nu>
->>>---
->>>
->>>Notes:
->>>    Changes in v3:
->>>     - Ported to apply against latest media-tree
->>>
->>>    Changes in v2:
->>>     - Alter encode API to return -ENOBUFS when there isn't enough buffer
->>>       space. When this occurs all buffer contents must have been written
->>>       with the partial encoding of the scancode. This is to allow drivers
->>>       such as nuvoton-cir to provide a shorter buffer and still get a
->>>       useful partial encoding for the wakeup pattern.
->>>
->>> drivers/media/rc/rc-core-priv.h |  2 ++
->>> drivers/media/rc/rc-ir-raw.c    | 37 +++++++++++++++++++++++++++++++++++++
->>> include/media/rc-core.h         |  3 +++
->>> 3 files changed, 42 insertions(+)
->>>
->>>diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
->>>index b68d4f76..122c25f 100644
->>>--- a/drivers/media/rc/rc-core-priv.h
->>>+++ b/drivers/media/rc/rc-core-priv.h
->>>@@ -25,6 +25,8 @@ struct ir_raw_handler {
->>>
->>>       u64 protocols; /* which are handled by this handler */
->>>       int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
->>>+      int (*encode)(u64 protocols, const struct rc_scancode_filter *scancode,
->>>+                    struct ir_raw_event *events, unsigned int max);
->>>
->>>       /* These two should only be used by the lirc decoder */
->>>       int (*raw_register)(struct rc_dev *dev);
->>>diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
->>>index b732ac6..dd47fe5 100644
->>>--- a/drivers/media/rc/rc-ir-raw.c
->>>+++ b/drivers/media/rc/rc-ir-raw.c
->>>@@ -246,6 +246,43 @@ static int change_protocol(struct rc_dev *dev, u64 *rc_type)
->>>       return 0;
->>> }
->>>
->>>+/**
->>>+ * ir_raw_encode_scancode() - Encode a scancode as raw events
->>>+ *
->>>+ * @protocols:                permitted protocols
->>>+ * @scancode:         scancode filter describing a single scancode
->>>+ * @events:           array of raw events to write into
->>>+ * @max:              max number of raw events
->>>+ *
->>>+ * Attempts to encode the scancode as raw events.
->>>+ *
->>>+ * Returns:   The number of events written.
->>>+ *            -ENOBUFS if there isn't enough space in the array to fit the
->>>+ *            encoding. In this case all @max events will have been written.
->>>+ *            -EINVAL if the scancode is ambiguous or invalid, or if no
->>>+ *            compatible encoder was found.
->>>+ */
->>>+int ir_raw_encode_scancode(u64 protocols,
->>
->> Why a bitmask of protocols and not a single protocol enum? What's the
->> use case for encoding a given scancode according to one out of a number
->> of protocols (and not even knowing which one)??
->>
->
->I think bitmask was used simply for consistency reasons. Most of the
->rc-core handles protocols in a bitmask (u64 protocols or some variant
->of it).
+On Thu, May 21, 2015 at 02:13:12PM +0200, Jacek Anaszewski wrote:
+> Hi Sakari
+> 
+> On 05/21/2015 12:06 PM, Sakari Ailus wrote:
+> [...]
+> >>>On Wed, May 20, 2015 at 03:47:25PM +0200, Jacek Anaszewski wrote:
+> >>>...
+> >>>>>>>>--- a/drivers/leds/leds-aat1290.c
+> >>>>>>>>+++ b/drivers/leds/leds-aat1290.c
+> >>>>>>>>@@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
+> >>>>>>>>platform_device *pdev)
+> >>>>>>>>      led_cdev->dev->of_node = sub_node;
+> >>>>>>>>
+> >>>>>>>>      /* Create V4L2 Flash subdev. */
+> >>>>>>>>-    led->v4l2_flash = v4l2_flash_init(fled_cdev,
+> >>>>>>>>-                      &v4l2_flash_ops,
+> >>>>>>>>-                      &v4l2_sd_cfg);
+> >>>>>>>>+    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
+> >>>>>>>>+                      &v4l2_flash_ops, &v4l2_sd_cfg);
+> >>>>>>>
+> >>>>>>>Here the first argument should be led_cdev->dev, not dev, which is
+> >>>>>>>&pdev->dev, whereas led_cdev->dev is returned by
+> >>>>>>>device_create_with_groups (it takes dev as a parent) called from
+> >>>>>>>led_classdev_register.
+> >>>>>>
+> >>>>>>The reason for this is the fact that pdev->dev has its of_node
+> >>>>>>field initialized, which makes v4l2_async trying to match
+> >>>>>>subdev by parent node of a LED device, not by sub-LED related
+> >>>>>>DT node.
+> >>>>>
+> >>>>>If v4l2_subdev->of_node is set, then it won't be replaced with one from
+> >>>>>struct device. I.e. you need to provide of_node pointer only if it's
+> >>>>>different from dev->of_node.
+> >>>>>
+> >>>>
+> >>>>It will always be different since dev->of_node pointer is related
+> >>>>to the main DT node of LED device, whereas each LED connected to it
+> >>>>must be expressed in the form of sub-node, as
+> >>>>Documentation/devicetree/bindings/leds/common.txt DT states.
+> >>>
+> >>>You can still refer to the device's root device_node using a phandle.
+> >>
+> >>Why should I need to refer to the device's root node?
+> >>
+> >>What I meant here was that DT documentation enforces that even if
+> >>there is a single LED connected to the device it has to be expressed
+> >>as a sub-node anyway. Each LED will have to be matched by the phandle
+> >>to the sub-node representing it. This implies that v4l2_subdev->of_node
+> >>(related to sub-LED DT node) will be always different from dev->of_node
+> >>(related to LED controller DT node).
+> >
+> >>From driver point of view this makes no difference; it's just easier to
+> >parse if you don't refer to the LEDs separately. I think this is a bit
+> >special case; nowadays many LED flash controllers drive two LEDs.
+> 
+> As I understand, your stance is as follows:
+> - second argument to v4l2_flash_init needn't always be initialized
+>   because some LEDs could be referred to by the phandle to the parent
+>   node (e.g. flash LED and indicator under common sub-device)
+> 
+> If this is true, than how we would handle the situation where
+> there is a flash LED controller with two separate flash LEDs
+> and one of them is associated with indicator LED?
 
-Yes, all the parts where multiple protocols make sense use a bitmap of
-protocols. If there's any part which uses a bitmap where only one
-protocol makes sense that'd be a bug...
+I referred to cases where there's exactly one flash LED and one indicator
+LED. 
 
->Especially in the decoders the dev->enabled_protocols is used
->to mean "decode any of these protocols but I don't care which one" and
->the encoders were written to follow that logic.
+The as3645a driver already does expose them through the same sub-device, as
+does the adp1653 driver. I wouldn't attempt to change this, and I think it
+makes sense for other drivers that have one of each LEDs.
 
-The fact that you might want to be able to receive and decode more than
-one protocol has no bearing on encoding when you're supposed to know
-what it is you want to encode....
+> >>>Say, if you have a LED flash controller with an indicator. It's intended to
+> >>>be used together with the flash LED, and the existing as3645a driver exposes
+> >>>it through the same sub-device. I think that'd make sense with LED class
+> >>>driver as well (i.e. you'd have two LED class devices but a single
+> >>>sub-device). Small changes to the wrapper would be needed.
+> >>>
+> >>
+> >>How the sub-device name should look like then? We would have to
+> >>concatenate somehow both LED class device names?
+> >
+> >It'd be different, i.e. there would be no flash or indicator in the name.
+> >
+> 
+> Currently there is no such a requirement too. As we discussed it few
+> months ago v4l2-flash sub-device name should be composed:
+> - for I2C devices "<LED class dev name> <i2c_adapter_id>-<i2c_addr>"
+> - for GPIO driven devices: <LED class dev name>
 
->From ir driver point of view it was also kind of nice to use the u64
->enabled_wakeup_protocols from struct rc_dev which already exists and
->is manipulated with the same sysfs code as the enabled_protocols
->bitmask.
-
-But it makes no sense? "here's a scancode...I have no idea what it means
-since only knowing the protocol allows you to make any sense of the
-scancode...but please encode it to something...anything...."
+The indicator and the flash may not have the same name, so it wouldn't be a
+bad idea to include that to the name of the LED device. I2C devices the
+names are always different anyway due to the bus address. It's up to the
+driver to set the name correctly.
 
 -- 
-David Härdeman
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
