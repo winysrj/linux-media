@@ -1,80 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57172 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbbEEV67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 17:58:59 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/21] af9035: bind fc2580 using I2C binding
-Date: Wed,  6 May 2015 00:58:24 +0300
-Message-Id: <1430863122-9888-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
-References: <1430863122-9888-1-git-send-email-crope@iki.fi>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50567 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751518AbbEUGDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 02:03:18 -0400
+Message-ID: <555D751D.60907@xs4all.nl>
+Date: Thu, 21 May 2015 08:03:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+CC: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
+	rob.taylor@codethink.co.uk
+Subject: Re: [PATCH 15/20] media: rcar_vin: Don't advertise support for USERPTR
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-16-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432139980-12619-16-git-send-email-william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change fc2580 driver from media binding to I2C client binding.
+On 05/20/2015 06:39 PM, William Towle wrote:
+> rcar_vin requires physically contiguous buffer, so shouldn't advertise
+> support for USERPTR.
+> 
+> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> Reviewed-by: William Towle <william.towle@codethink.co.uk>
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 222002a..b530503 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -1824,7 +1824,7 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+>  	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	vq->io_modes = VB2_MMAP | VB2_USERPTR;
+> +	vq->io_modes = VB2_MMAP;
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+NACK.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 80a29f5..558166d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1265,11 +1265,6 @@ static struct tda18218_config af9035_tda18218_config = {
- 	.i2c_wr_max = 21,
- };
- 
--static const struct fc2580_config af9035_fc2580_config = {
--	.i2c_addr = 0x56,
--	.clock = 16384000,
--};
--
- static const struct fc0012_config af9035_fc0012_config[] = {
- 	{
- 		.i2c_address = 0x63,
-@@ -1390,7 +1385,11 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 		fe = dvb_attach(tda18218_attach, adap->fe[0],
- 				&d->i2c_adap, &af9035_tda18218_config);
- 		break;
--	case AF9033_TUNER_FC2580:
-+	case AF9033_TUNER_FC2580: {
-+		struct fc2580_platform_data fc2580_pdata = {
-+			.dvb_frontend = adap->fe[0],
-+		};
-+
- 		/* Tuner enable using gpiot2_o, gpiot2_en and gpiot2_on  */
- 		ret = af9035_wr_reg_mask(d, 0xd8eb, 0x01, 0x01);
- 		if (ret < 0)
-@@ -1406,9 +1405,14 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 
- 		usleep_range(10000, 50000);
- 		/* attach tuner */
--		fe = dvb_attach(fc2580_attach, adap->fe[0],
--				&d->i2c_adap, &af9035_fc2580_config);
-+		ret = af9035_add_i2c_dev(d, "fc2580", 0x56, &fc2580_pdata,
-+					 &d->i2c_adap);
-+		if (ret)
-+			goto err;
-+
-+		fe = adap->fe[0];
- 		break;
-+	}
- 	case AF9033_TUNER_FC0012:
- 		/*
- 		 * AF9035 gpiot2 = FC0012 enable
-@@ -1611,6 +1615,7 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
- 	dev_dbg(&d->udev->dev, "%s: adap->id=%d\n", __func__, adap->id);
- 
- 	switch (state->af9033_config[adap->id].tuner) {
-+	case AF9033_TUNER_FC2580:
- 	case AF9033_TUNER_IT9135_38:
- 	case AF9033_TUNER_IT9135_51:
- 	case AF9033_TUNER_IT9135_52:
--- 
-http://palosaari.fi/
+USERPTR can be used, but the user pointer must point to physically contig
+memory (and this is checked). There are cases where the system will carve out
+phys. contig. memory and userspace has pointers to that. I'm pretty sure some of
+this is used by systems where soc-camera is run.
+
+Unfortunately, userspace has currently no way of knowing such userptr restrictions.
+That's a failing of the API. It's ugly as hell, but it is in use today and can't
+be dropped.
+
+Regards,
+
+	Hans
+
+>  	vq->drv_priv = icd;
+>  	vq->ops = &rcar_vin_vb2_ops;
+>  	vq->mem_ops = &vb2_dma_contig_memops;
+> 
 
