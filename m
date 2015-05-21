@@ -1,121 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46538 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750866AbbECCtQ (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:46206 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753275AbbEUKkN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 May 2015 22:49:16 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 603122A008E
-	for <linux-media@vger.kernel.org>; Sun,  3 May 2015 04:49:07 +0200 (CEST)
-Date: Sun, 03 May 2015 04:49:07 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150503024907.603122A008E@tschai.lan>
+	Thu, 21 May 2015 06:40:13 -0400
+Message-ID: <555DB608.6010505@codethink.co.uk>
+Date: Thu, 21 May 2015 11:40:08 +0100
+From: Rob Taylor <rob.taylor@codethink.co.uk>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
+CC: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk> <555D76E3.1070809@xs4all.nl>
+In-Reply-To: <555D76E3.1070809@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 21/05/15 07:10, Hans Verkuil wrote:
+> On 05/20/2015 06:39 PM, William Towle wrote:
+>> When hardware reports interlaced input, correctly set field to
+>> V4L_FIELD_INTERLACED ini adv76xx_fill_format.
+>>
+>> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+>> Reviewed-by: William Towle <william.towle@codethink.co.uk>
+>> ---
+>>  drivers/media/i2c/adv7604.c |    7 ++++++-
+>>  1 file changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+>> index 4bde3e1..d77ee1f 100644
+>> --- a/drivers/media/i2c/adv7604.c
+>> +++ b/drivers/media/i2c/adv7604.c
+>> @@ -1791,7 +1791,12 @@ static void adv76xx_fill_format(struct adv76xx_state *state,
+>>  
+>>  	format->width = state->timings.bt.width;
+>>  	format->height = state->timings.bt.height;
+>> -	format->field = V4L2_FIELD_NONE;
+>> +
+>> +	if (state->timings.bt.interlaced)
+>> +		format->field= V4L2_FIELD_INTERLACED;
+> 
+> No, this should be FIELD_ALTERNATE. FIELD_INTERLACED means that the two fields
+> are interlaced into a single frame buffer, with FIELD_ALTERNATE each buffer
+> contains one field. And when capturing v4l2_buffer should return which field
+> (TOP/BOTTOM) the buffer contains. It also complicates cropping/composing: the
+> crop rectangle is in frame coordinates, composing uses field coordinates.
+> The vivid driver handles this correctly and can be used as a reference.
+>
+>
 
-Results of the daily build of media_tree:
+OK, that makes sense. I think for now we'll just drop this patch from
+the series until we can test this properly - its a bit undercooked..
 
-date:		Sun May  3 04:00:19 CEST 2015
-git branch:	test
-git hash:	ebf984bb151e9952cccd060d3aba0b4d30a87e81
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-0.slh.3-amd64
+> Also, no space before the '='. Please add.
+> 
+> You might be interested in this patch series as well:
+> 
+> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/90578
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Ah yes, this does look useful.
 
-Detailed results are available here:
+> I'm thinking of doing some interlaced tests myself, possibly this weekend,
+> using the adv7604.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
+That would be great, happy to test anything on our side.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Thanks
+Rob
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Regards,
+> 
+> 	Hans
+> 
+>> +	else
+>> +		format->field= V4L2_FIELD_NONE;
+>> +
+>>  	format->colorspace = V4L2_COLORSPACE_SRGB;
+>>  
+>>  	if (state->timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO)
+>>
+> 
+
