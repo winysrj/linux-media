@@ -1,54 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36062 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:44794 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754454AbbETRuM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 13:50:12 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id t4KHoCZU011844
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 20 May 2015 13:50:12 -0400
-Received: from shalem.localdomain (vpn1-5-76.ams2.redhat.com [10.36.5.76])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id t4KHoANh015812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 20 May 2015 13:50:12 -0400
-Message-ID: <555CC952.6010609@redhat.com>
-Date: Wed, 20 May 2015 19:50:10 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PULL patches for 4.2]: New camera support for gspca sn9c2028 driver
- (v2)
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1161088AbbEUVYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 17:24:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 7/8] cx23885: Hauppauge WinTV-HVR4400/HVR5500 bind I2C demod and SEC
+Date: Fri, 22 May 2015 00:23:57 +0300
+Message-Id: <1432243438-12225-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1432243438-12225-1-git-send-email-crope@iki.fi>
+References: <1432243438-12225-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Bind tda10071 demod and a8293 SEC using I2C binding.
 
-Here is a new pull-req for the new camera support for the gspca sn9c2028 driver, now with
-my S-o-b added and the copyright change dropped.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 54 +++++++++++++++++++++------------
+ 1 file changed, 35 insertions(+), 19 deletions(-)
 
-The following changes since commit 2a80f296422a01178d0a993479369e94f5830127:
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 4c41e11..ef1ebcb 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -856,16 +856,6 @@ static struct mt2063_config terratec_mt2063_config[] = {
+ 	},
+ };
+ 
+-static const struct tda10071_config hauppauge_tda10071_config = {
+-	.demod_i2c_addr = 0x05,
+-	.tuner_i2c_addr = 0x54,
+-	.i2c_wr_max = 64,
+-	.ts_mode = TDA10071_TS_SERIAL,
+-	.spec_inv = 0,
+-	.xtal = 40444000, /* 40.444 MHz */
+-	.pll_multiplier = 20,
+-};
+-
+ static const struct tda10071_platform_data hauppauge_tda10071_pdata = {
+ 	.clk = 40444000, /* 40.444 MHz */
+ 	.i2c_wr_max = 64,
+@@ -1806,21 +1796,46 @@ static int dvb_register(struct cx23885_tsport *port)
+ 
+ 		fe0->dvb.frontend->ops.set_voltage = p8000_set_voltage;
+ 		break;
+-	case CX23885_BOARD_HAUPPAUGE_HVR4400:
++	case CX23885_BOARD_HAUPPAUGE_HVR4400: {
++		struct tda10071_platform_data tda10071_pdata = hauppauge_tda10071_pdata;
++		struct a8293_platform_data a8293_pdata = {};
++
+ 		i2c_bus = &dev->i2c_bus[0];
+ 		i2c_bus2 = &dev->i2c_bus[1];
+ 		switch (port->nr) {
+ 		/* port b */
+ 		case 1:
+-			fe0->dvb.frontend = dvb_attach(tda10071_attach,
+-						&hauppauge_tda10071_config,
+-						&i2c_bus->i2c_adap);
+-			if (fe0->dvb.frontend == NULL)
+-				break;
+-			if (!dvb_attach(a8293_attach, fe0->dvb.frontend,
+-					&i2c_bus->i2c_adap,
+-					&hauppauge_a8293_config))
++			/* attach demod + tuner combo */
++			memset(&info, 0, sizeof(info));
++			strlcpy(info.type, "tda10071_cx24118", I2C_NAME_SIZE);
++			info.addr = 0x05;
++			info.platform_data = &tda10071_pdata;
++			request_module("tda10071");
++			client_demod = i2c_new_device(&i2c_bus->i2c_adap, &info);
++			if (!client_demod || !client_demod->dev.driver)
++				goto frontend_detach;
++			if (!try_module_get(client_demod->dev.driver->owner)) {
++				i2c_unregister_device(client_demod);
++				goto frontend_detach;
++			}
++			fe0->dvb.frontend = tda10071_pdata.get_dvb_frontend(client_demod);
++			port->i2c_client_demod = client_demod;
++
++			/* attach SEC */
++			a8293_pdata.dvb_frontend = fe0->dvb.frontend;
++			memset(&info, 0, sizeof(info));
++			strlcpy(info.type, "a8293", I2C_NAME_SIZE);
++			info.addr = 0x0b;
++			info.platform_data = &a8293_pdata;
++			request_module("a8293");
++			client_sec = i2c_new_device(&i2c_bus->i2c_adap, &info);
++			if (!client_sec || !client_sec->dev.driver)
+ 				goto frontend_detach;
++			if (!try_module_get(client_sec->dev.driver->owner)) {
++				i2c_unregister_device(client_sec);
++				goto frontend_detach;
++			}
++			port->i2c_client_sec = client_sec;
+ 			break;
+ 		/* port c */
+ 		case 2:
+@@ -1838,6 +1853,7 @@ static int dvb_register(struct cx23885_tsport *port)
+ 			break;
+ 		}
+ 		break;
++	}
+ 	case CX23885_BOARD_HAUPPAUGE_STARBURST: {
+ 		struct tda10071_platform_data tda10071_pdata = hauppauge_tda10071_pdata;
+ 		struct a8293_platform_data a8293_pdata = {};
+-- 
+http://palosaari.fi/
 
-   [media] dvb-core: fix 32-bit overflow during bandwidth calculation (2015-05-20 14:01:46 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v4.2
-
-for you to fetch changes up to b4ede115fd1a37714e05e1180c399169e0e8d680:
-
-   gspca: sn9c2028: Add gain and autogain controls Genius Videocam Live v2 (2015-05-20 19:47:11 +0200)
-
-----------------------------------------------------------------
-Vasily Khoruzhick (2):
-       gspca: sn9c2028: Add support for Genius Videocam Live v2
-       gspca: sn9c2028: Add gain and autogain controls Genius Videocam Live v2
-
-  drivers/media/usb/gspca/sn9c2028.c | 241 ++++++++++++++++++++++++++++++++++++-
-  drivers/media/usb/gspca/sn9c2028.h |  18 ++-
-  2 files changed, 255 insertions(+), 4 deletions(-)
-
-Thanks & Regards,
-
-Hans
