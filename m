@@ -1,95 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63371 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:39871 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755066AbbEKUQI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2015 16:16:08 -0400
-Date: Mon, 11 May 2015 22:16:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 1/3] media: atmel-isi: remove the useless code which
- disable isi
-In-Reply-To: <1428570108-4961-2-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1505112147540.12198@axis700.grange>
-References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com>
- <1428570108-4961-2-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1161082AbbEUVYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 17:24:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/8] em28xx: add support for DVB SEC I2C client
+Date: Fri, 22 May 2015 00:23:53 +0300
+Message-Id: <1432243438-12225-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1432243438-12225-1-git-send-email-crope@iki.fi>
+References: <1432243438-12225-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Add support for DVB SEC (satellite equipment controller) I2C client.
 
-Thanks for the patch. I'm afraid I don't quite understand why it is 
-needed, could you maybe explain a bit more? Is it because
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-(1) during ISI configuration the pixel clock from the sensor is (usually) 
-anyway disabled, so, we don't have to additionally disable the ISI, 
-without the pixel clock the ISI is anyway already disabled.
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 5b7c7c88..ef1bfa2 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -96,6 +96,7 @@ struct em28xx_dvb {
+ 	int			lna_gpio;
+ 	struct i2c_client	*i2c_client_demod;
+ 	struct i2c_client	*i2c_client_tuner;
++	struct i2c_client	*i2c_client_sec;
+ };
+ 
+ static inline void print_err_status(struct em28xx *dev,
+@@ -1729,7 +1730,6 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 	em28xx_info("Closing DVB extension\n");
+ 
+ 	dvb = dev->dvb;
+-	client = dvb->i2c_client_tuner;
+ 
+ 	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+ 
+@@ -1746,7 +1746,15 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 		}
+ 	}
+ 
++	/* remove I2C SEC */
++	client = dvb->i2c_client_sec;
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
++	}
++
+ 	/* remove I2C tuner */
++	client = dvb->i2c_client_tuner;
+ 	if (client) {
+ 		module_put(client->dev.driver->owner);
+ 		i2c_unregister_device(client);
+-- 
+http://palosaari.fi/
 
-or
-
-(2) disabling the ISI at those locations below breaks something, because 
-when the ISI is disabled, the functionality, that's later used isn't 
-available.
-
-I assume it's (1), but if that's the case, then this patch is just 
-cosmetic, right? The ISI is anyway disabled, so, that operation simply has 
-no effect, but also doesn't hurt. OTOH, if some sensor keeps its master 
-clock running all the time, then switching the ISI off as in the current 
-version helps save some power, unless it breaks anything?
-
-Thanks
-Guennadi
-
-On Thu, 9 Apr 2015, Josh Wu wrote:
-
-> To program ISI control register, the pixel clock should be enabled.
-> So without pixel clock (from sensor) enabled, disable ISI controller is
-> not make sense. So this patch remove those code.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
-> Changes in v2:
-> - this file is new added.
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index c125b1d..31254b4 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -131,8 +131,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
->  		return -EINVAL;
->  	}
->  
-> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> -
->  	cfg2 = isi_readl(isi, ISI_CFG2);
->  	/* Set YCC swap mode */
->  	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
-> @@ -843,7 +841,6 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
->  
->  	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
->  
-> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->  	isi_writel(isi, ISI_CFG1, cfg1);
->  
->  	return 0;
-> @@ -1022,8 +1019,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
->  	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
->  		isi->width_flags |= 1 << 9;
->  
-> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> -
->  	irq = platform_get_irq(pdev, 0);
->  	if (IS_ERR_VALUE(irq)) {
->  		ret = irq;
-> -- 
-> 1.9.1
-> 
