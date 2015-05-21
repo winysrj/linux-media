@@ -1,181 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:50812 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752270AbbESWLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 18:11:44 -0400
-Subject: [PATCH 2/4] rc-core: use an IDA rather than a bitmap
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Wed, 20 May 2015 00:03:17 +0200
-Message-ID: <20150519220317.3467.27195.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20150519220101.3467.16288.stgit@zeus.muc.hardeman.nu>
-References: <20150519220101.3467.16288.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17281 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755218AbbEUMNQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 08:13:16 -0400
+Message-id: <555DCBD8.8040507@samsung.com>
+Date: Thu, 21 May 2015 14:13:12 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
+ v4l2_flash_init()
+References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
+ <1432076645-4799-5-git-send-email-sakari.ailus@iki.fi>
+ <555C582E.8000807@samsung.com> <555C63CF.2020304@samsung.com>
+ <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
+ <555C906D.4030902@samsung.com>
+ <20150520143143.GA8601@valkosipuli.retiisi.org.uk>
+ <555D9D2F.9020500@samsung.com>
+ <20150521100604.GG8601@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150521100604.GG8601@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch changes rc-core to use the kernel facilities that are already
-available for handling unique numbers instead of rolling its own bitmap
-stuff.
+Hi Sakari
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
-Tested-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
----
- drivers/media/rc/rc-ir-raw.c |    2 +-
- drivers/media/rc/rc-main.c   |   40 ++++++++++++++++++++--------------------
- include/media/rc-core.h      |    4 ++--
- 3 files changed, 23 insertions(+), 23 deletions(-)
+On 05/21/2015 12:06 PM, Sakari Ailus wrote:
+[...]
+>>> On Wed, May 20, 2015 at 03:47:25PM +0200, Jacek Anaszewski wrote:
+>>> ...
+>>>>>>>> --- a/drivers/leds/leds-aat1290.c
+>>>>>>>> +++ b/drivers/leds/leds-aat1290.c
+>>>>>>>> @@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
+>>>>>>>> platform_device *pdev)
+>>>>>>>>       led_cdev->dev->of_node = sub_node;
+>>>>>>>>
+>>>>>>>>       /* Create V4L2 Flash subdev. */
+>>>>>>>> -    led->v4l2_flash = v4l2_flash_init(fled_cdev,
+>>>>>>>> -                      &v4l2_flash_ops,
+>>>>>>>> -                      &v4l2_sd_cfg);
+>>>>>>>> +    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
+>>>>>>>> +                      &v4l2_flash_ops, &v4l2_sd_cfg);
+>>>>>>>
+>>>>>>> Here the first argument should be led_cdev->dev, not dev, which is
+>>>>>>> &pdev->dev, whereas led_cdev->dev is returned by
+>>>>>>> device_create_with_groups (it takes dev as a parent) called from
+>>>>>>> led_classdev_register.
+>>>>>>
+>>>>>> The reason for this is the fact that pdev->dev has its of_node
+>>>>>> field initialized, which makes v4l2_async trying to match
+>>>>>> subdev by parent node of a LED device, not by sub-LED related
+>>>>>> DT node.
+>>>>>
+>>>>> If v4l2_subdev->of_node is set, then it won't be replaced with one from
+>>>>> struct device. I.e. you need to provide of_node pointer only if it's
+>>>>> different from dev->of_node.
+>>>>>
+>>>>
+>>>> It will always be different since dev->of_node pointer is related
+>>>> to the main DT node of LED device, whereas each LED connected to it
+>>>> must be expressed in the form of sub-node, as
+>>>> Documentation/devicetree/bindings/leds/common.txt DT states.
+>>>
+>>> You can still refer to the device's root device_node using a phandle.
+>>
+>> Why should I need to refer to the device's root node?
+>>
+>> What I meant here was that DT documentation enforces that even if
+>> there is a single LED connected to the device it has to be expressed
+>> as a sub-node anyway. Each LED will have to be matched by the phandle
+>> to the sub-node representing it. This implies that v4l2_subdev->of_node
+>> (related to sub-LED DT node) will be always different from dev->of_node
+>> (related to LED controller DT node).
+>
+>>From driver point of view this makes no difference; it's just easier to
+> parse if you don't refer to the LEDs separately. I think this is a bit
+> special case; nowadays many LED flash controllers drive two LEDs.
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index b9e4645..1068f2b 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -406,7 +406,7 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	spin_lock_init(&dev->raw->lock);
- 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
--				       "rc%ld", dev->devno);
-+				       "rc%u", dev->minor);
- 
- 	if (IS_ERR(dev->raw->thread)) {
- 		rc = PTR_ERR(dev->raw->thread);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 84d142b..20914ed 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -18,17 +18,15 @@
- #include <linux/input.h>
- #include <linux/leds.h>
- #include <linux/slab.h>
-+#include <linux/idr.h>
- #include <linux/device.h>
- #include <linux/module.h>
- #include "rc-core-priv.h"
- 
--/* Bitmap to store allocated device numbers from 0 to IRRCV_NUM_DEVICES - 1 */
--#define IRRCV_NUM_DEVICES      256
--static DECLARE_BITMAP(ir_core_dev_number, IRRCV_NUM_DEVICES);
--
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
- #define IR_TAB_MIN_SIZE	256
- #define IR_TAB_MAX_SIZE	8192
-+#define RC_DEV_MAX	256
- 
- /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
- #define IR_KEYPRESS_TIMEOUT 250
-@@ -38,6 +36,9 @@ static LIST_HEAD(rc_map_list);
- static DEFINE_SPINLOCK(rc_map_lock);
- static struct led_trigger *led_feedback;
- 
-+/* Used to keep track of rc devices */
-+static DEFINE_IDA(rc_ida);
-+
- static struct rc_map_list *seek_rc_map(const char *name)
- {
- 	struct rc_map_list *map = NULL;
-@@ -1311,7 +1312,9 @@ int rc_register_device(struct rc_dev *dev)
- 	static bool raw_init = false; /* raw decoders loaded? */
- 	struct rc_map *rc_map;
- 	const char *path;
--	int rc, devno, attr = 0;
-+	int attr = 0;
-+	int minor;
-+	int rc;
- 
- 	if (!dev || !dev->map_name)
- 		return -EINVAL;
-@@ -1331,13 +1334,13 @@ int rc_register_device(struct rc_dev *dev)
- 	if (dev->close)
- 		dev->input_dev->close = ir_close;
- 
--	do {
--		devno = find_first_zero_bit(ir_core_dev_number,
--					    IRRCV_NUM_DEVICES);
--		/* No free device slots */
--		if (devno >= IRRCV_NUM_DEVICES)
--			return -ENOMEM;
--	} while (test_and_set_bit(devno, ir_core_dev_number));
-+	minor = ida_simple_get(&rc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
-+	if (minor < 0)
-+		return minor;
-+
-+	dev->minor = minor;
-+	dev_set_name(&dev->dev, "rc%u", dev->minor);
-+	dev_set_drvdata(&dev->dev, dev);
- 
- 	dev->dev.groups = dev->sysfs_groups;
- 	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-@@ -1357,9 +1360,6 @@ int rc_register_device(struct rc_dev *dev)
- 	 */
- 	mutex_lock(&dev->lock);
- 
--	dev->devno = devno;
--	dev_set_name(&dev->dev, "rc%ld", dev->devno);
--	dev_set_drvdata(&dev->dev, dev);
- 	rc = device_add(&dev->dev);
- 	if (rc)
- 		goto out_unlock;
-@@ -1435,8 +1435,8 @@ int rc_register_device(struct rc_dev *dev)
- 
- 	mutex_unlock(&dev->lock);
- 
--	IR_dprintk(1, "Registered rc%ld (driver: %s, remote: %s, mode %s)\n",
--		   dev->devno,
-+	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
-+		   dev->minor,
- 		   dev->driver_name ? dev->driver_name : "unknown",
- 		   rc_map->name ? rc_map->name : "unknown",
- 		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
-@@ -1455,7 +1455,7 @@ out_dev:
- 	device_del(&dev->dev);
- out_unlock:
- 	mutex_unlock(&dev->lock);
--	clear_bit(dev->devno, ir_core_dev_number);
-+	ida_simple_remove(&rc_ida, minor);
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(rc_register_device);
-@@ -1467,8 +1467,6 @@ void rc_unregister_device(struct rc_dev *dev)
- 
- 	del_timer_sync(&dev->timer_keyup);
- 
--	clear_bit(dev->devno, ir_core_dev_number);
--
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
- 		ir_raw_event_unregister(dev);
- 
-@@ -1481,6 +1479,8 @@ void rc_unregister_device(struct rc_dev *dev)
- 
- 	device_del(&dev->dev);
- 
-+	ida_simple_remove(&rc_ida, dev->minor);
-+
- 	rc_free_device(dev);
- }
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f1cb9da..cbca9ca 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -69,7 +69,7 @@ enum rc_filter_type {
-  * @rc_map: current scan/key table
-  * @lock: used to ensure we've filled in all protocol details before
-  *	anyone can call show_protocols or store_protocols
-- * @devno: unique remote control device number
-+ * @minor: unique minor remote control device number
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-@@ -131,7 +131,7 @@ struct rc_dev {
- 	const char			*map_name;
- 	struct rc_map			rc_map;
- 	struct mutex			lock;
--	unsigned long			devno;
-+	unsigned int			minor;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
+As I understand, your stance is as follows:
+- second argument to v4l2_flash_init needn't always be initialized
+   because some LEDs could be referred to by the phandle to the parent
+   node (e.g. flash LED and indicator under common sub-device)
 
+If this is true, than how we would handle the situation where
+there is a flash LED controller with two separate flash LEDs
+and one of them is associated with indicator LED?
+
+>>
+>>> Say, if you have a LED flash controller with an indicator. It's intended to
+>>> be used together with the flash LED, and the existing as3645a driver exposes
+>>> it through the same sub-device. I think that'd make sense with LED class
+>>> driver as well (i.e. you'd have two LED class devices but a single
+>>> sub-device). Small changes to the wrapper would be needed.
+>>>
+>>
+>> How the sub-device name should look like then? We would have to
+>> concatenate somehow both LED class device names?
+>
+> It'd be different, i.e. there would be no flash or indicator in the name.
+>
+
+Currently there is no such a requirement too. As we discussed it few
+months ago v4l2-flash sub-device name should be composed:
+- for I2C devices "<LED class dev name> <i2c_adapter_id>-<i2c_addr>"
+- for GPIO driven devices: <LED class dev name>
+
+-- 
+Best Regards,
+Jacek Anaszewski
