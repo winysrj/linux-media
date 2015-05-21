@@ -1,101 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:35432 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752888AbbEGGj5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 02:39:57 -0400
-Date: Wed, 6 May 2015 23:39:53 -0700
-From: Stephen Boyd <sboyd@codeaurora.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-clk@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	ascha Hauer <kernel@pengutronix.de>,
-	David Brown <davidb@codeaurora.org>,
-	Daniel Walker <dwalker@fifo99.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Paul Walmsley <paul@pwsan.com>,
-	Liviu Dudau <liviu.dudau@arm.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Ralf Baechle <ralf@linux-mips.org>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Barry Song <baohua@kernel.org>,
-	Viresh Kumar <viresh.linux@gmail.com>,
-	Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Peter De Schrijver <pdeschrijver@nvidia.com>,
-	Prashant Gaikwad <pgaikwad@nvidia.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Alexandre Courbot <gnurou@gmail.com>,
-	Tero Kristo <t-kristo@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
-	linux-rockchip@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
-	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
-Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
-Message-ID: <20150507063953.GC32399@codeaurora.org>
-References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
- <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+Received: from adm51.rev.netart.pl ([77.55.90.51]:33187 "EHLO
+	adm51.rev.netart.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755957AbbEVAAL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2015 20:00:11 -0400
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Re:
+To: Recipients <kontakt@odkrywcytalentow.pl>
+From: kontakt@odkrywcytalentow.pl
+Date: Fri, 22 May 2015 00:51:31 +0100
+Reply-To: fwfshelpdesk@gmail.com
+Message-Id: <20150521235138.653962DB68A@odkrywcyt.nazwa.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30, Boris Brezillon wrote:
-> Clock rates are stored in an unsigned long field, but ->round_rate()
-> (which returns a rounded rate from a requested one) returns a long
-> value (errors are reported using negative error codes), which can lead
-> to long overflow if the clock rate exceed 2Ghz.
-> 
-> Change ->round_rate() prototype to return 0 or an error code, and pass the
-> requested rate as a pointer so that it can be adjusted depending on
-> hardware capabilities.
-> 
-> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
-> Tested-by: Heiko Stuebner <heiko@sntech.de>
-> Tested-by: Mikko Perttunen <mikko.perttunen@kapsi.fi>
-> Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Teraz mozesz uzyskac kredyt w wysokosci 2% za uniewaznic i dostac do 40 lat lub wiecej, aby splacic. Nie naleza do kredytów krótkoterminowych, które sprawiaja, ze zwróci sie w kilka tygodni lub miesiecy. Nasza oferta obejmuje; * Refinansowanie * Home Improvement * Kredyty samochodowe * Konsolidacja zadluzenia * Linia kredytowa * Druga hipoteczny * Biznes Pozyczki * Pozyczki Personal
 
-This patch is fairly invasive, and it probably doesn't even
-matter for most of these clock providers to be able to round a
-rate above 2GHz. I've been trying to remove the .round_rate op
-from the framework by encouraging new features via the
-.determine_rate op. Sadly, we still have to do a flag day and
-change all the .determine_rate ops when we want to add things.
+  Zdobadz pieniadze potrzebne dzis z duza iloscia czasu, aby dokonac platnosci powrotem. Aby zastosowac, aby wyslac wszystkie pytania lub zaproszenia fwfshelpdesk@gmail.com: + 1- 435-241-5945
 
-What if we changed determine_rate ops to take a struct
-clk_determine_info (or some better named structure) instead of
-the current list of arguments that it currently takes? Then when
-we want to make these sorts of framework wide changes we can just
-throw a new member into that structure and be done.
+************************************************************
+Now you can get a loan at 2% per annul and get up to 40 years or more to pay it back. Don't fall for the short term loans that make you pay back in weeks or months. Our offer include; *Refinance *Home Improvement *Auto Loans *Debt Consolidation*Line of Credit *Second Mortgage *Business Loans*Personal Loans
 
-It doesn't solve the unsigned long to int return value problem
-though. We can solve that by gradually introducing a new op and
-handling another case in the rounding path. If we can come up
-with some good name for that new op like .decide_rate or
-something then it makes things nicer in the long run. I like the
-name .determine_rate though :/
+ Get the money you need today with plenty of time to make the payments back. To apply, send all inquiries to fwfshelpdesk@gmail.com or call : + 1- 435-241-5945
 
-The benefit of all this is that we don't have to worry about
-finding the random clk providers that get added into other
-subsystems and fixing them up. If drivers actually care about
-this problem then they'll be fixed to use the proper op. FYI,
-last time we updated the function signature of .determine_rate we
-broke a couple drivers along the way.
+---
+This email is free from viruses and malware because avast! Antivirus protection is active.
+http://www.avast.com
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
