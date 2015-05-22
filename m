@@ -1,50 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33944 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755162AbbE1XYE (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55984 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757123AbbEVOAB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 19:24:04 -0400
-Date: Thu, 28 May 2015 16:24:02 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
-Message-Id: <20150528162402.19a0a26a5b9eae36aa8050e5@linux-foundation.org>
-In-Reply-To: <1431522495-4692-3-git-send-email-jack@suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
-	<1431522495-4692-3-git-send-email-jack@suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 22 May 2015 10:00:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 04/11] e4000: fix compiler warning
+Date: Fri, 22 May 2015 15:59:37 +0200
+Message-Id: <1432303184-8594-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 13 May 2015 15:08:08 +0200 Jan Kara <jack@suse.cz> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Provide new function get_vaddr_frames().  This function maps virtual
-> addresses from given start and fills given array with page frame numbers of
-> the corresponding pages. If given start belongs to a normal vma, the function
-> grabs reference to each of the pages to pin them in memory. If start
-> belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
-> must make sure pfns aren't reused for anything else while he is using
-> them.
-> 
-> This function is created for various drivers to simplify handling of
-> their buffers.
-> 
-> Acked-by: Mel Gorman <mgorman@suse.de>
-> Acked-by: Vlastimil Babka <vbabka@suse.cz>
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->  include/linux/mm.h |  44 +++++++++++
->  mm/gup.c           | 226 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+drivers/media/tuners/e4000.c:287:3: warning: this decimal constant is unsigned only in ISO C90
+   .rangehigh  =  2208000000L,
+   ^
 
-That's a lump of new code which many kernels won't be needing.  Can we
-put all this in a new .c file and select it within drivers/media
-Kconfig?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/tuners/e4000.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index fdf07ce..03538f8 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -284,7 +284,7 @@ static const struct v4l2_frequency_band bands[] = {
+ 		.index = 1,
+ 		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
+ 		.rangelow   =  1249000000,
+-		.rangehigh  =  2208000000L,
++		.rangehigh  =  2208000000UL,
+ 	},
+ };
+ 
+-- 
+2.1.4
 
