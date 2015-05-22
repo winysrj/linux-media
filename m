@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36539 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbbEHBMt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:49 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH 13/18] s5k5baf: fix subdev type
-Date: Thu,  7 May 2015 22:12:35 -0300
-Message-Id: <d37f5695458429869abaae3f7974d296c3fa8349.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:53391 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756276AbbEVF1h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 01:27:37 -0400
+Received: from pla-VB.cisco.com ([10.142.60.254])
+	by bgl-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id t4M5RYRu017726
+	for <linux-media@vger.kernel.org>; Fri, 22 May 2015 05:27:34 GMT
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH v2 0/4]  Support for interlaced in cvt/gtf timings
+Date: Fri, 22 May 2015 10:57:33 +0530
+Message-Id: <1432272457-709-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
-some subdevs with a non-existing type.
+Please find version 2 of patches adding interlaced support in cvt/gtf
+timing.
 
-As this is a sensor driver, the proper type is likely
-MEDIA_ENT_T_CAM_SENSOR.
+Changes compared to v1:
+Incorporated the comments from review of first RFC. It was about the 
+error calculation of vertical back porch due to rounding. (Thanks to
+Hans for spoting this error).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Prashant Laddha (4):
+  v4l2-dv-timings: add interlace support in detect cvt/gtf
+  vivid: Use interlaced info for cvt/gtf timing detection
+  adv7604: Use interlaced info for cvt/gtf timing detection
+  adv7842: Use interlaced info for cvt/gtf timing detection
 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index fadd48d35a55..8373552847ab 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
- 
- 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-+	sd->entity.type = MEDIA_ENT_T_CAM_SENSOR;
- 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads, 0);
- 
- 	if (!ret)
+ drivers/media/i2c/adv7604.c                  |  4 +--
+ drivers/media/i2c/adv7842.c                  |  4 +--
+ drivers/media/platform/vivid/vivid-vid-cap.c |  5 +--
+ drivers/media/v4l2-core/v4l2-dv-timings.c    | 53 ++++++++++++++++++++++++----
+ include/media/v4l2-dv-timings.h              |  6 ++--
+ 5 files changed, 58 insertions(+), 14 deletions(-)
+
 -- 
-2.1.0
+1.9.1
 
