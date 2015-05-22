@@ -1,67 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40297 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752733AbbEEV7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 17:59:00 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49249 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756782AbbEVOAA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 10:00:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/21] tua9001: use div_u64() for frequency calculation
-Date: Wed,  6 May 2015 00:58:36 +0300
-Message-Id: <1430863122-9888-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1430863122-9888-1-git-send-email-crope@iki.fi>
-References: <1430863122-9888-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/11] cobalt: fix compiler warnings on 32 bit OSes
+Date: Fri, 22 May 2015 15:59:36 +0200
+Message-Id: <1432303184-8594-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use div_u64() to simplify and remove home made divides.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Fixes these warnings:
+
+drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'omni_sg_dma_start':
+drivers/media/pci/cobalt/cobalt-omnitek.c:112:28: warning: right shift count >= width of type [-Wshift-count-overflow]
+  iowrite32((u32)(desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
+                            ^
+drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_create':
+drivers/media/pci/cobalt/cobalt-omnitek.c:222:28: warning: right shift count >= width of type [-Wshift-count-overflow]
+     d->next_h = (u32)(next >> 32);
+                            ^
+drivers/media/pci/cobalt/cobalt-omnitek.c:268:32: warning: right shift count >= width of type [-Wshift-count-overflow]
+    d->next_h = (u32)(desc->bus >> 32);
+                                ^
+drivers/media/pci/cobalt/cobalt-omnitek.c:275:27: warning: right shift count >= width of type [-Wshift-count-overflow]
+    d->next_h = (u32)(next >> 32);
+                           ^
+drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_chain':
+drivers/media/pci/cobalt/cobalt-omnitek.c:293:31: warning: right shift count >= width of type [-Wshift-count-overflow]
+   d->next_h = (u32)(next->bus >> 32);
+                               ^
+drivers/media/pci/cobalt/cobalt-omnitek.c: In function 'descriptor_list_loopback':
+drivers/media/pci/cobalt/cobalt-omnitek.c:332:30: warning: right shift count >= width of type [-Wshift-count-overflow]
+  d->next_h = (u32)(desc->bus >> 32);
+                              ^
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/tua9001.c      | 9 +--------
- drivers/media/tuners/tua9001_priv.h | 1 +
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/media/pci/cobalt/cobalt-omnitek.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
-index 09a1034..d4f6ca0 100644
---- a/drivers/media/tuners/tua9001.c
-+++ b/drivers/media/tuners/tua9001.c
-@@ -88,7 +88,6 @@ static int tua9001_set_params(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i;
- 	u16 val;
--	u32 frequency;
- 	struct tua9001_reg_val data[2];
+diff --git a/drivers/media/pci/cobalt/cobalt-omnitek.c b/drivers/media/pci/cobalt/cobalt-omnitek.c
+index 5604458..a28a848 100644
+--- a/drivers/media/pci/cobalt/cobalt-omnitek.c
++++ b/drivers/media/pci/cobalt/cobalt-omnitek.c
+@@ -109,7 +109,7 @@ void omni_sg_dma_start(struct cobalt_stream *s, struct sg_dma_desc_info *desc)
+ {
+ 	struct cobalt *cobalt = s->cobalt;
  
- 	dev_dbg(&client->dev,
-@@ -122,14 +121,8 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+-	iowrite32((u32)(desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
++	iowrite32((u32)((u64)desc->bus >> 32), DESCRIPTOR(s->dma_channel) + 4);
+ 	iowrite32((u32)desc->bus & NEXT_ADRS_MSK, DESCRIPTOR(s->dma_channel));
+ 	iowrite32(ENABLE | SCATTER_GATHER_MODE | START, CS_REG(s->dma_channel));
+ }
+@@ -219,7 +219,7 @@ int descriptor_list_create(struct cobalt *cobalt,
+ 				offset += d->bytes;
+ 				addr += d->bytes;
+ 				next += sizeof(struct sg_dma_descriptor);
+-				d->next_h = (u32)(next >> 32);
++				d->next_h = (u32)((u64)next >> 32);
+ 				d->next_l = (u32)next |
+ 					(to_pci ? WRITE_TO_PCI : 0);
+ 				bytes -= d->bytes;
+@@ -265,14 +265,14 @@ int descriptor_list_create(struct cobalt *cobalt,
+ 		next += sizeof(struct sg_dma_descriptor);
+ 		if (size == 0) {
+ 			/* Loopback to the first descriptor */
+-			d->next_h = (u32)(desc->bus >> 32);
++			d->next_h = (u32)((u64)desc->bus >> 32);
+ 			d->next_l = (u32)desc->bus |
+ 				(to_pci ? WRITE_TO_PCI : 0) | INTERRUPT_ENABLE;
+ 			if (!to_pci)
+ 				d->local = 0x22222222;
+ 			desc->last_desc_virt = d;
+ 		} else {
+-			d->next_h = (u32)(next >> 32);
++			d->next_h = (u32)((u64)next >> 32);
+ 			d->next_l = (u32)next | (to_pci ? WRITE_TO_PCI : 0);
+ 		}
+ 		d++;
+@@ -290,7 +290,7 @@ void descriptor_list_chain(struct sg_dma_desc_info *this,
+ 		d->next_h = 0;
+ 		d->next_l = direction | INTERRUPT_ENABLE | END_OF_CHAIN;
+ 	} else {
+-		d->next_h = (u32)(next->bus >> 32);
++		d->next_h = (u32)((u64)next->bus >> 32);
+ 		d->next_l = (u32)next->bus | direction | INTERRUPT_ENABLE;
+ 	}
+ }
+@@ -329,7 +329,7 @@ void descriptor_list_loopback(struct sg_dma_desc_info *desc)
+ {
+ 	struct sg_dma_descriptor *d = desc->last_desc_virt;
  
- 	data[0].reg = 0x04;
- 	data[0].val = val;
--
--	frequency = (c->frequency - 150000000);
--	frequency /= 100;
--	frequency *= 48;
--	frequency /= 10000;
--
- 	data[1].reg = 0x1f;
--	data[1].val = frequency;
-+	data[1].val = div_u64((u64) (c->frequency - 150000000) * 48, 1000000);
+-	d->next_h = (u32)(desc->bus >> 32);
++	d->next_h = (u32)((u64)desc->bus >> 32);
+ 	d->next_l = (u32)desc->bus | (d->next_l & DESCRIPTOR_FLAG_MSK);
+ }
  
- 	if (fe->callback) {
- 		ret = fe->callback(client->adapter,
-diff --git a/drivers/media/tuners/tua9001_priv.h b/drivers/media/tuners/tua9001_priv.h
-index 327ead9..bc406c5 100644
---- a/drivers/media/tuners/tua9001_priv.h
-+++ b/drivers/media/tuners/tua9001_priv.h
-@@ -18,6 +18,7 @@
- #define TUA9001_PRIV_H
- 
- #include "tua9001.h"
-+#include <linux/math64.h>
- #include <linux/regmap.h>
- 
- struct tua9001_reg_val {
 -- 
-http://palosaari.fi/
+2.1.4
 
