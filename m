@@ -1,184 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36557 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbbEHBMu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:50 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-doc@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: [PATCH 05/18] media controller: rename MEDIA_ENT_T_DEVNODE_DVB entities
-Date: Thu,  7 May 2015 22:12:27 -0300
-Message-Id: <f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59184 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756782AbbEVN74 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 09:59:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/11] cobalt: fix irqs used for the adv7511 transmitter
+Date: Fri, 22 May 2015 15:59:34 +0200
+Message-Id: <1432303184-8594-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
+References: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to reflect that the entities are actually the hardware
-(or firmware, or in-kernel software), and are not associated
-with the DVB API, let's remove DEVNODE_ from the entity names
-and use DTV (Digital TV) for the entities.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The frontend is an special case: the frontend devnode actually
-talks directly with the DTV demodulator. It may or may not also
-talk with the SEC (Satellite Equipment Control) and with the
-tuner. For the sake of unifying the nomenclature, let's call it
-as MEDIA_ENT_T_DTV_DEMOD, because this component is always
-there.
+The interrupt bit assignments use for the adv7511 were off by one.
+This means that the current scheme (bit << (4 * stream_index)) can
+no longer be used.
 
-So:
+Fix this by precalculating and storing the correct masks in the
+cobalt_stream struct.
 
-	MEDIA_ENT_T_DEVNODE_DVB_FE    -> MEDIA_ENT_T_DTV_DEMOD
-	MEDIA_ENT_T_DEVNODE_DVB_DEMUX -> MEDIA_ENT_T_DTV_DEMUX
-	MEDIA_ENT_T_DEVNODE_DVB_DVR   -> MEDIA_ENT_T_DTV_DVR
-	MEDIA_ENT_T_DEVNODE_DVB_CA    -> MEDIA_ENT_T_DTV_CA
-	MEDIA_ENT_T_DEVNODE_DVB_NET   -> MEDIA_ENT_T_DTV_NET
+This wasn't noticed before because the adv7511 interrupts are very
+rare. But for CEC support these interrupts are essential, so this made
+me realize that it wasn't working correctly.
 
-PS.: we could actually not keep this define:
-	#define MEDIA_ENT_T_DEVNODE_DVB_FE MEDIA_ENT_T_DTV_DEMOD
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cobalt/cobalt-driver.c | 14 ++++++++++++--
+ drivers/media/pci/cobalt/cobalt-driver.h |  8 +++++---
+ drivers/media/pci/cobalt/cobalt-irq.c    |  7 +++----
+ 3 files changed, 20 insertions(+), 9 deletions(-)
 
-As MEDIA_ENT_T_DEVNODE_DVB_FE symbol will not arrive any Kernel
-version (being present only at the 4.1-rc kernels), but keeping
-it helps to show that the DVB frontend node is actually associated
-with the DTV demodulator. So, keeping it for now helps to better
-document. Also, it avoids to break experimental versions of v4l-utils.
-So, better to remove this only when we remove the remaining legacy
-stuff.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 759604e3529f..27082b07f4c2 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -195,23 +195,23 @@
- 	    <entry>ALSA card</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_FE</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_DTV_DEMOD</constant></entry>
- 	    <entry>DVB frontend devnode</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DEMUX</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_DTV_DEMUX</constant></entry>
- 	    <entry>DVB demux devnode</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DVR</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_DTV_DVR</constant></entry>
- 	    <entry>DVB DVR devnode</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_CA</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_DTV_CA</constant></entry>
- 	    <entry>DVB CAM devnode</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_NET</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_DTV_NET</constant></entry>
- 	    <entry>DVB network devnode</entry>
- 	  </row>
- 	  <row>
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 13bb57f0457f..39846077045e 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -221,26 +221,26 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
- 
- 	switch (type) {
- 	case DVB_DEVICE_FRONTEND:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMOD;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMUX;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DVR:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-+		dvbdev->entity->type = MEDIA_ENT_T_DTV_DVR;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		break;
- 	case DVB_DEVICE_CA:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		dvbdev->entity->type = MEDIA_ENT_T_DTV_CA;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_NET:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-+		dvbdev->entity->type = MEDIA_ENT_T_DTV_NET;
- 		break;
- 	default:
- 		kfree(dvbdev->entity);
-@@ -396,16 +396,16 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_FE:
-+		case MEDIA_ENT_T_DTV_DEMOD:
- 			fe = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
-+		case MEDIA_ENT_T_DTV_DEMUX:
- 			demux = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
-+		case MEDIA_ENT_T_DTV_DVR:
- 			dvr = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_CA:
-+		case MEDIA_ENT_T_DTV_CA:
- 			ca = entity;
- 			break;
- 		}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 2e465ba087ba..0de9912411c5 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -45,11 +45,11 @@ struct media_device_info {
- /* Used values for media_entity_desc::type */
- 
- #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
--#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
--#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
--#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
--#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
-+#define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
-+#define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
-+#define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
-+#define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
-+#define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
- 
- #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
- #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
-@@ -76,7 +76,13 @@ struct media_device_info {
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
- 
--#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
-+#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DTV_DEMOD
-+#define MEDIA_ENT_T_DEVNODE_DVB_FE	MEDIA_ENT_T_DTV_DEMOD
-+#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	MEDIA_ENT_T_DTV_DEMUX
-+#define MEDIA_ENT_T_DEVNODE_DVB_DVR	MEDIA_ENT_T_DTV_DVR
-+#define MEDIA_ENT_T_DEVNODE_DVB_CA	MEDIA_ENT_T_DTV_CA
-+#define MEDIA_ENT_T_DEVNODE_DVB_NET	MEDIA_ENT_T_DTV_NET
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index 0f2549a..0534d71 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -451,20 +451,30 @@ static void cobalt_stream_struct_init(struct cobalt *cobalt)
+ 		if (i <= COBALT_HSMA_IN_NODE) {
+ 			s->dma_channel = i + cobalt->first_fifo_channel;
+ 			s->video_channel = i;
++			s->dma_fifo_mask =
++				COBALT_SYSSTAT_VI0_LOST_DATA_MSK << (4 * i);
++			s->adv_irq_mask =
++				COBALT_SYSSTAT_VI0_INT1_MSK << (4 * i);
+ 		} else if (i >= COBALT_AUDIO_IN_STREAM &&
+ 			   i <= COBALT_AUDIO_IN_STREAM + 4) {
+-			s->dma_channel = 6 + i - COBALT_AUDIO_IN_STREAM;
++			unsigned idx = i - COBALT_AUDIO_IN_STREAM;
 +
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
- #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
- #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
++			s->dma_channel = 6 + idx;
+ 			s->is_audio = true;
+-			s->video_channel = i - COBALT_AUDIO_IN_STREAM;
++			s->video_channel = idx;
++			s->dma_fifo_mask = COBALT_SYSSTAT_AUD_IN_LOST_DATA_MSK;
+ 		} else if (i == COBALT_HSMA_OUT_NODE) {
+ 			s->dma_channel = 11;
+ 			s->is_output = true;
+ 			s->video_channel = 5;
++			s->dma_fifo_mask = COBALT_SYSSTAT_VOHSMA_LOST_DATA_MSK;
++			s->adv_irq_mask = COBALT_SYSSTAT_VOHSMA_INT1_MSK;
+ 		} else if (i == COBALT_AUDIO_OUT_STREAM) {
+ 			s->dma_channel = 12;
+ 			s->is_audio = true;
+ 			s->is_output = true;
+ 			s->video_channel = 5;
++			s->dma_fifo_mask = COBALT_SYSSTAT_AUD_OUT_LOST_DATA_MSK;
+ 		} else {
+ 			/* FIXME: Memory DMA for debug purpose */
+ 			s->dma_channel = i - COBALT_NUM_NODES;
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.h b/drivers/media/pci/cobalt/cobalt-driver.h
+index 082bf82..bb062ff 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.h
++++ b/drivers/media/pci/cobalt/cobalt-driver.h
+@@ -96,9 +96,9 @@
+ #define COBALT_SYSSTAT_VIHSMA_INT1_MSK		(1 << 21)
+ #define COBALT_SYSSTAT_VIHSMA_INT2_MSK		(1 << 22)
+ #define COBALT_SYSSTAT_VIHSMA_LOST_DATA_MSK	(1 << 23)
+-#define COBALT_SYSSTAT_VOHSMA_INT1_MSK		(1 << 25)
+-#define COBALT_SYSSTAT_VOHSMA_PLL_LOCKED_MSK	(1 << 26)
+-#define COBALT_SYSSTAT_VOHSMA_LOST_DATA_MSK	(1 << 27)
++#define COBALT_SYSSTAT_VOHSMA_INT1_MSK		(1 << 24)
++#define COBALT_SYSSTAT_VOHSMA_PLL_LOCKED_MSK	(1 << 25)
++#define COBALT_SYSSTAT_VOHSMA_LOST_DATA_MSK	(1 << 26)
+ #define COBALT_SYSSTAT_AUD_PLL_LOCKED_MSK	(1 << 28)
+ #define COBALT_SYSSTAT_AUD_IN_LOST_DATA_MSK	(1 << 29)
+ #define COBALT_SYSSTAT_AUD_OUT_LOST_DATA_MSK	(1 << 30)
+@@ -236,6 +236,8 @@ struct cobalt_stream {
+ 
+ 	u8 dma_channel;
+ 	int video_channel;
++	unsigned dma_fifo_mask;
++	unsigned adv_irq_mask;
+ 	struct sg_dma_desc_info dma_desc_info[NR_BUFS];
+ 	unsigned long flags;
+ 	bool unstable_frame;
+diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+index e18f49e..a133dfc 100644
+--- a/drivers/media/pci/cobalt/cobalt-irq.c
++++ b/drivers/media/pci/cobalt/cobalt-irq.c
+@@ -153,8 +153,7 @@ irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+ 
+ 	for (i = 0; i < COBALT_NUM_STREAMS; i++) {
+ 		struct cobalt_stream *s = &cobalt->streams[i];
+-		unsigned dma_fifo_mask =
+-		    COBALT_SYSSTAT_VI0_LOST_DATA_MSK << (4 * s->video_channel);
++		unsigned dma_fifo_mask = s->dma_fifo_mask;
+ 
+ 		if (dma_interrupt & (1 << s->dma_channel)) {
+ 			cobalt->irq_dma[i]++;
+@@ -169,7 +168,7 @@ irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+ 		}
+ 		if (s->is_audio)
+ 			continue;
+-		if (edge & (0x20 << (4 * s->video_channel)))
++		if (edge & s->adv_irq_mask)
+ 			set_bit(COBALT_STREAM_FL_ADV_IRQ, &s->flags);
+ 		if ((edge & mask & dma_fifo_mask) && vb2_is_streaming(&s->q)) {
+ 			cobalt_info("full rx FIFO %d\n", i);
+@@ -219,7 +218,7 @@ void cobalt_irq_work_handler(struct work_struct *work)
+ 					interrupt_service_routine, 0, NULL);
+ 			mask = cobalt_read_bar1(cobalt, COBALT_SYS_STAT_MASK);
+ 			cobalt_write_bar1(cobalt, COBALT_SYS_STAT_MASK,
+-				mask | (0x20 << (4 * s->video_channel)));
++				mask | s->adv_irq_mask);
+ 		}
+ 	}
+ }
 -- 
-2.1.0
+2.1.4
 
