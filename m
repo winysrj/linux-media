@@ -1,127 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:49388 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756872AbbEETCi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 15:02:38 -0400
-Date: Tue, 5 May 2015 21:02:28 +0200
-From: Felix Janda <felix.janda@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Petter Selasky <hselasky@freebsd.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCHv2 3/4] Wrap LFS64 functions only if linux && __GLIBC__
-Message-ID: <20150505190228.GA17585@euler>
-References: <20150125203636.GC11999@euler>
- <20150505093402.4c29d565@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150505093402.4c29d565@recife.lan>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38137 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756757AbbEVU24 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 16:28:56 -0400
+Received: by wichy4 with SMTP id hy4so58181157wic.1
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2015 13:28:55 -0700 (PDT)
+From: Jemma Denson <jdenson@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, patrick.boettcher@posteo.de,
+	Jemma Denson <jdenson@gmail.com>
+Subject: [PATCH 0/4] SkystarS2 pid filtering fix and stream control.
+Date: Fri, 22 May 2015 21:28:24 +0100
+Message-Id: <1432326508-6825-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For musl libc, open64 is #define'd to open. Therefore we should not try
-to wrap both open and open64.
+This patch series finishes off the addition of the SkyStarS2 card -
+the patches here aren't strictly required for running the card so
+haven't previously been included.
 
-Signed-off-by: Felix Janda <felix.janda@posteo.de>
----
-v2: Test for linux as well
+The first patch fixes a bug present in the current flexcop driver -
+I've seen it with this card, and it has also been noticed in some
+other cards. Those cards will need identifying and patches created to
+use this fix as it is not enabled by default.
 
-Mauro Carvalho Chehab wrote:
-[..]
-> Hmm... linux was added here to avoid breaking on FreeBSD, on this
-> changeset:
-> 
-> commit 9026d3cc277e9211a89345846dea95af7208383c
-> Author: hans@rhel5-devel.localdomain <hans@rhel5-devel.localdomain>
-> Date:   Tue Jun 2 15:34:34 2009 +0200
-> 
->     libv4l: initial support for compiling on FreeBSD
->     
->     From: Hans Petter Selasky <hselasky@freebsd.org>
-> 
-> I'm afraid that removing the above would break for FreeBSD, as I think
-> it also uses glibc, but not 100% sure.
+The other three patches add in a feature that was half complete in the
+original binary blob for this card, and allows the demod chip to
+control the receive stream on the b2c2 when it turns off it's output
+during tuning. I'm not sure it actually needs to turn it's output
+stream off, and the patches also make it easy to disable this.
 
-Usually FreeBSD has its own libc (which does not define __GLIBC__).
-However (as I've didn't know at the time) there is also kFreeBSD, which
-has a FreeBSD kernel but still uses glibc.
+Jemma Denson (4):
+  b2c2: Add option to skip the first 6 pid filters
+  b2c2: Allow external stream control
+  cx24120: Take control of b2c2 receive stream
+  b2c2: Always turn off receive stream
 
-> So, either we should get an ack from Hans Peter, or you should
-> change the tests to:
-> 
-> 	#if linux && __GLIBC__
+ drivers/media/common/b2c2/flexcop-common.h    |  3 +++
+ drivers/media/common/b2c2/flexcop-fe-tuner.c  | 13 ++++++++++++
+ drivers/media/common/b2c2/flexcop-hw-filter.c | 22 ++++++++++++++++----
+ drivers/media/dvb-frontends/cx24120.c         | 29 ++++++++++++++++++---------
+ drivers/media/dvb-frontends/cx24120.h         |  1 +
+ 5 files changed, 55 insertions(+), 13 deletions(-)
 
-I've changed them to
-
-#if defined(linux) && defined(__GLIBC__)
-
-Thanks for the review!
-
----
- lib/libv4l1/v4l1compat.c  | 4 ++--
- lib/libv4l2/v4l2convert.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
-index 282173b..0d433c6 100644
---- a/lib/libv4l1/v4l1compat.c
-+++ b/lib/libv4l1/v4l1compat.c
-@@ -61,7 +61,7 @@ LIBV4L_PUBLIC int open(const char *file, int oflag, ...)
- 	return fd;
- }
- 
--#ifdef linux
-+#if defined(linux) && defined(__GLIBC__)
- LIBV4L_PUBLIC int open64(const char *file, int oflag, ...)
- {
- 	int fd;
-@@ -120,7 +120,7 @@ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd
- 	return v4l1_mmap(start, length, prot, flags, fd, offset);
- }
- 
--#ifdef linux
-+#if defined(linux) && defined(__GLIBC__)
- LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
- 		off64_t offset)
- {
-diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
-index 2c2f12a..6abccbf 100644
---- a/lib/libv4l2/v4l2convert.c
-+++ b/lib/libv4l2/v4l2convert.c
-@@ -89,7 +89,7 @@ LIBV4L_PUBLIC int open(const char *file, int oflag, ...)
- 	return fd;
- }
- 
--#ifdef linux
-+#if defined(linux) && defined(__GLIBC__)
- LIBV4L_PUBLIC int open64(const char *file, int oflag, ...)
- {
- 	int fd;
-@@ -152,7 +152,7 @@ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd
- 	return v4l2_mmap(start, length, prot, flags, fd, offset);
- }
- 
--#ifdef linux
-+#if defined(linux) && defined(__GLIBC__)
- LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
- 		off64_t offset)
- {
 -- 
-2.3.6
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+2.1.0
 
