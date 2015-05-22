@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45461 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751702AbbEUTYx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 15:24:53 -0400
-Received: from 85-23-164-23.bb.dnainternet.fi ([85.23.164.23] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1YvW5L-0006NL-Vh
-	for linux-media@vger.kernel.org; Thu, 21 May 2015 22:24:52 +0300
-Message-ID: <555E3103.6000605@iki.fi>
-Date: Thu, 21 May 2015 22:24:51 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL 4.2] m88ds3103 enhancements
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51875 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756782AbbEVN7v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 09:59:51 -0400
+Received: from tschai.cisco.com (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 78DC42A0085
+	for <linux-media@vger.kernel.org>; Fri, 22 May 2015 15:59:45 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 00/11] cobalt bug fixes, fixes for compiler/sparse warnings
+Date: Fri, 22 May 2015 15:59:33 +0200
+Message-Id: <1432303184-8594-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 2a80f296422a01178d0a993479369e94f5830127:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-   [media] dvb-core: fix 32-bit overflow during bandwidth calculation 
-(2015-05-20 14:01:46 -0300)
+This patch series fixes two bugs in the cobalt driver and a pile of
+compiler and sparse fixes (mostly in cobalt as well).
 
-are available in the git repository at:
+Regards,
 
-   git://linuxtv.org/anttip/media_tree.git m88ds3103_pull
+	Hans
 
-for you to fetch changes up to bfdb54de213477ec9f5d45d43c91bdaa54382cda:
+Hans Verkuil (11):
+  cobalt: fix irqs used for the adv7511 transmitter
+  cobalt: fix 64-bit division link error
+  cobalt: fix compiler warnings on 32 bit OSes
+  e4000: fix compiler warning
+  cobalt: fix sparse warnings
+  cobalt: fix sparse warnings
+  cobalt: fix sparse warnings
+  cobalt: fix sparse warnings
+  cobalt: fix sparse warnings
+  cx24120: fix sparse warning
+  saa7164: fix sparse warning
 
-   m88ds3103: add I2C client binding (2015-05-21 22:17:10 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (5):
-       m88ds3103: do not return error from get_frontend() when not ready
-       m88ds3103: implement DVBv5 CNR statistics
-       m88ds3103: implement DVBv5 BER
-       m88ds3103: use jiffies when polling DiSEqC TX ready
-       m88ds3103: add I2C client binding
-
-  drivers/media/dvb-frontends/m88ds3103.c      | 642 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------
-  drivers/media/dvb-frontends/m88ds3103.h      |  63 ++++++++++++++--
-  drivers/media/dvb-frontends/m88ds3103_priv.h |   6 +-
-  3 files changed, 456 insertions(+), 255 deletions(-)
+ drivers/media/dvb-frontends/cx24120.c     |   2 +-
+ drivers/media/pci/cobalt/cobalt-cpld.c    |   6 +-
+ drivers/media/pci/cobalt/cobalt-driver.c  |  18 ++-
+ drivers/media/pci/cobalt/cobalt-driver.h  |  22 +--
+ drivers/media/pci/cobalt/cobalt-flash.c   |  18 +--
+ drivers/media/pci/cobalt/cobalt-i2c.c     |  56 +++----
+ drivers/media/pci/cobalt/cobalt-irq.c     |  58 ++++----
+ drivers/media/pci/cobalt/cobalt-omnitek.c |  12 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c    | 235 ++++++++++++++++--------------
+ drivers/media/pci/saa7164/saa7164-i2c.c   |   2 +-
+ drivers/media/tuners/e4000.c              |   2 +-
+ 11 files changed, 229 insertions(+), 202 deletions(-)
 
 -- 
-http://palosaari.fi/
+2.1.4
+
