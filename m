@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45129 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752542AbbEDK00 (ORCPT
+Received: from bgl-iport-4.cisco.com ([72.163.197.28]:49353 "EHLO
+	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756267AbbEVF1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 06:26:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 22 May 2015 01:27:37 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 8/8] ov9740: avoid calling ov9740_res_roundup() twice
-Date: Mon,  4 May 2015 12:25:55 +0200
-Message-Id: <1430735155-24110-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [RFC PATCH v2 3/4] adv7604: Use interlaced info for cvt/gtf timing detection
+Date: Fri, 22 May 2015 10:57:36 +0530
+Message-Id: <1432272457-709-4-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1432272457-709-1-git-send-email-prladdha@cisco.com>
+References: <1432272457-709-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The interlaced information from stdi is passed to detect_cvt/gtf().
+These functions now supports timing calculations for interlaced
+format.
 
-Simplify ov9740_s_fmt.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/i2c/soc_camera/ov9740.c | 18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+ drivers/media/i2c/adv7604.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-index 03a7fc7..61a8e18 100644
---- a/drivers/media/i2c/soc_camera/ov9740.c
-+++ b/drivers/media/i2c/soc_camera/ov9740.c
-@@ -673,20 +673,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov9740_priv *priv = to_ov9740(sd);
--	enum v4l2_colorspace cspace;
--	u32 code = mf->code;
- 	int ret;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index f4ecb73..d290f7a 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1323,12 +1323,12 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+ 	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
+ 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+ 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+-			false, timings))
++			stdi->interlaced, timings))
+ 		return 0;
+ 	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
+ 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
+ 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
+-			false, state->aspect_ratio, timings))
++			stdi->interlaced, state->aspect_ratio, timings))
+ 		return 0;
  
--	ov9740_res_roundup(&mf->width, &mf->height);
--
--	switch (code) {
--	case MEDIA_BUS_FMT_YUYV8_2X8:
--		cspace = V4L2_COLORSPACE_SRGB;
--		break;
--	default:
--		return -EINVAL;
--	}
--
- 	ret = ov9740_reg_write_array(client, ov9740_defaults,
- 				     ARRAY_SIZE(ov9740_defaults));
- 	if (ret < 0)
-@@ -696,11 +684,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- 	if (ret < 0)
- 		return ret;
- 
--	mf->code	= code;
--	mf->colorspace	= cspace;
--
--	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
--
-+	priv->current_mf = *mf;
- 	return ret;
- }
- 
+ 	v4l2_dbg(2, debug, sd,
 -- 
-2.1.4
+1.9.1
 
