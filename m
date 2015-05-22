@@ -1,86 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46252 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753805AbbEULcX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 07:32:23 -0400
-Date: Thu, 21 May 2015 14:32:13 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, s.nawrocki@samsung.com,
-	devicetree@vger.kernel.org, sre@kernel.org
-Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
- samsung,flash-led property
-Message-ID: <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
- <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
- <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
- <555DA119.9030904@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58393 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756771AbbEVUe1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2015 16:34:27 -0400
+Message-ID: <555F92CD.1010504@osg.samsung.com>
+Date: Fri, 22 May 2015 14:34:21 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <555DA119.9030904@samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
+	damien@zamaudio.com, chris.j.arges@canonical.com,
+	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
+	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
+	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
+CC: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH 0/2] Update ALSA driver to use media controller API
+References: <cover.1431110739.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1431110739.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
-
-On Thu, May 21, 2015 at 11:10:49AM +0200, Jacek Anaszewski wrote:
-> Hi Sakari,
+On 05/08/2015 01:31 PM, Shuah Khan wrote:
+> This patch series updates ALSA driver to use media controller
+> API to share tuner with DVB and V4L2 drivers that control AU0828
+> media device. Two new interfaces are added to media controller
+> API to enable creating media device as a device resource. This
+> allows creating media device as a device resource on the main
+> struct device that is common to all drivers that control a single
+> media hardware and share resources on it. Drivers then can find
+> the common media device to register entities and manage links,
+> and pipelines.
 > 
-> On 05/21/2015 12:00 AM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Wed, May 20, 2015 at 04:10:15PM +0200, Jacek Anaszewski wrote:
-> >>This patch adds examples for samsung,flash-led property to the
-> >>samsung-fimc.txt.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >>Cc: devicetree@vger.kernel.org
-> >>---
-> >>  .../devicetree/bindings/media/samsung-fimc.txt     |    4 ++++
-> >>  1 file changed, 4 insertions(+)
-> >>
-> >>diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>index 922d6f8..57edffa 100644
-> >>--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >>@@ -126,6 +126,8 @@ Example:
-> >>  			clocks = <&camera 1>;
-> >>  			clock-names = "mclk";
-> >>
-> >>+			samsung,flash-led = <&front_cam_flash>;
-> >>+
-> >>  			port {
-> >>  				s5k6aa_ep: endpoint {
-> >>  					remote-endpoint = <&fimc0_ep>;
-> >>@@ -147,6 +149,8 @@ Example:
-> >>  			clocks = <&camera 0>;
-> >>  			clock-names = "mclk";
-> >>
-> >>+			samsung,flash-led = <&rear_cam_flash>;
-> >>+
-> >>  			port {
-> >>  				s5c73m3_1: endpoint {
-> >>  					data-lanes = <1 2 3 4>;
-> >
-> >Oops. I missed this property would have ended to the sensor's DT node. I
-> >don't think we should have properties here that are parsed by another
-> >driver --- let's discuss this tomorrow.
+> Tested with and without CONFIG_MEDIA_CONTROLLER enabled.
+> Tested tuner entity doesn't exist case as au0828 v4l2
+> driver is the one that will create the tuner when it gets
+> updated to use media controller API.
 > 
-> exynos4-is driver already parses sensor nodes (at least their 'port'
-> sub-nodes).
+> Please note that au0828 updates media controller are necessary
+> before the resource sharing can work across ALSA and au0828
+> dvb and v4l2 drivers. This work is in progress and another
+> developer is working on it.
+> 
+> Shuah Khan (2):
+>   media: new media controller API for device resource support
+>   sound/usb: Update ALSA driver to use media controller API
+> 
+>  drivers/media/media-device.c | 33 +++++++++++++++++++++++++
+>  include/media/media-device.h |  2 ++
+>  sound/usb/card.c             |  5 ++++
+>  sound/usb/card.h             | 12 +++++++++
+>  sound/usb/pcm.c              | 23 +++++++++++++++++-
+>  sound/usb/quirks-table.h     |  1 +
+>  sound/usb/quirks.c           | 58 +++++++++++++++++++++++++++++++++++++++++++-
+>  sound/usb/quirks.h           |  6 +++++
+>  sound/usb/stream.c           | 40 ++++++++++++++++++++++++++++++
+>  sound/usb/usbaudio.h         |  1 +
+>  10 files changed, 179 insertions(+), 2 deletions(-)
+> 
 
-If you read the code and the comment, it looks like something that should be
-done better but hasn't been done yet. :-) That's something we should avoid.
-Also, flash devices are by far more common than external ISPs I presume.
+Hi Mauro, Hans, Pinchart, and Takashi,
+
+Any feedback on this series?
+
+thanks,
+-- Shuah
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
