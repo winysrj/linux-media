@@ -1,203 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53374 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166AbbEHMLI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37993 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbbEWV7n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 08:11:08 -0400
-Message-ID: <554CA7C8.20505@xs4all.nl>
-Date: Fri, 08 May 2015 14:10:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 23 May 2015 17:59:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	j.anaszewski@samsung.com, cooloney@gmail.com,
+	g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
+Date: Sat, 23 May 2015 21:47:28 +0300
+Message-ID: <4071589.mUaJIGvIJX@avalon>
+In-Reply-To: <1432076645-4799-2-git-send-email-sakari.ailus@iki.fi>
+References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi> <1432076645-4799-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 05/18] media controller: rename MEDIA_ENT_T_DEVNODE_DVB
- entities
-References: <cover.1431046915.git.mchehab@osg.samsung.com> <f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <f448ae9a612a6ceb05e0fd669bf252fa90aa278a.1431046915.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
-> In order to reflect that the entities are actually the hardware
-> (or firmware, or in-kernel software), and are not associated
-> with the DVB API, let's remove DEVNODE_ from the entity names
-> and use DTV (Digital TV) for the entities.
-> 
-> The frontend is an special case: the frontend devnode actually
-> talks directly with the DTV demodulator. It may or may not also
-> talk with the SEC (Satellite Equipment Control) and with the
-> tuner. For the sake of unifying the nomenclature, let's call it
-> as MEDIA_ENT_T_DTV_DEMOD, because this component is always
-> there.
-> 
-> So:
-> 
-> 	MEDIA_ENT_T_DEVNODE_DVB_FE    -> MEDIA_ENT_T_DTV_DEMOD
-> 	MEDIA_ENT_T_DEVNODE_DVB_DEMUX -> MEDIA_ENT_T_DTV_DEMUX
-> 	MEDIA_ENT_T_DEVNODE_DVB_DVR   -> MEDIA_ENT_T_DTV_DVR
-> 	MEDIA_ENT_T_DEVNODE_DVB_CA    -> MEDIA_ENT_T_DTV_CA
-> 	MEDIA_ENT_T_DEVNODE_DVB_NET   -> MEDIA_ENT_T_DTV_NET
+Hi Sakari,
 
-I'm happy with the new names.
+Thank you for the patch.
 
+On Wednesday 20 May 2015 02:04:01 Sakari Ailus wrote:
+> V4L2 async sub-devices are currently matched (OF case) based on the struct
+> device_node pointer in struct device. LED devices may have more than one
+> LED, and in that case the OF node to match is not directly the device's
+> node, but a LED's node.
 > 
-> PS.: we could actually not keep this define:
-> 	#define MEDIA_ENT_T_DEVNODE_DVB_FE MEDIA_ENT_T_DTV_DEMOD
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c  |   34 +++++++++++++++++++-----------
+>  drivers/media/v4l2-core/v4l2-device.c |    3 +++
+>  include/media/v4l2-subdev.h           |    2 ++
+>  3 files changed, 27 insertions(+), 12 deletions(-)
 > 
-> As MEDIA_ENT_T_DEVNODE_DVB_FE symbol will not arrive any Kernel
-> version (being present only at the 4.1-rc kernels), but keeping
-> it helps to show that the DVB frontend node is actually associated
-> with the DTV demodulator. So, keeping it for now helps to better
-> document. Also, it avoids to break experimental versions of v4l-utils.
-> So, better to remove this only when we remove the remaining legacy
-> stuff.
-
-I disagree with that. Let's not introduce defines that are not going to
-be used. And v4l-utils is easily fixed.
-
-Instead of keeping an unused define, why not...
-
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 85a6a34..bcdd140 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -22,10 +22,10 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> -static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
+> +static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) {
+>  #if IS_ENABLED(CONFIG_I2C)
+> -	struct i2c_client *client = i2c_verify_client(dev);
+> +	struct i2c_client *client = i2c_verify_client(sd->dev);
+>  	return client &&
+>  		asd->match.i2c.adapter_id == client->adapter->nr &&
+>  		asd->match.i2c.address == client->addr;
+> @@ -34,14 +34,27 @@ static bool match_i2c(struct device *dev, struct
+> v4l2_async_subdev *asd) #endif
+>  }
 > 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> index 759604e3529f..27082b07f4c2 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> @@ -195,23 +195,23 @@
->  	    <entry>ALSA card</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_FE</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_DTV_DEMOD</constant></entry>
->  	    <entry>DVB frontend devnode</entry>
+> -static bool match_devname(struct device *dev, struct v4l2_async_subdev
+> *asd) +static bool match_devname(struct v4l2_subdev *sd,
+> +			  struct v4l2_async_subdev *asd)
+>  {
+> -	return !strcmp(asd->match.device_name.name, dev_name(dev));
+> +	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>  }
+> 
+> -static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
+> +static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> {
+> -	return dev->of_node == asd->match.of.node;
+> +	struct device_node *of_node =
+> +		sd->of_node ? sd->of_node : sd->dev->of_node;
+> +
+> +	return of_node == asd->match.of.node;
+> +}
+> +
+> +static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) +{
+> +	if (!asd->match.custom.match)
+> +		/* Match always */
+> +		return true;
+> +
+> +	return asd->match.custom.match(sd->dev, asd);
+>  }
+> 
+>  static LIST_HEAD(subdev_list);
+> @@ -51,17 +64,14 @@ static DEFINE_MUTEX(list_lock);
+>  static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+> +	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> -	bool (*match)(struct device *, struct v4l2_async_subdev *);
+> 
+>  	list_for_each_entry(asd, &notifier->waiting, list) {
+>  		/* bus_type has been verified valid before */
+>  		switch (asd->match_type) {
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+> -			match = asd->match.custom.match;
+> -			if (!match)
+> -				/* Match always */
+> -				return asd;
+> +			match = match_custom;
+>  			break;
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  			match = match_devname;
+> @@ -79,7 +89,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier * }
+> 
+>  		/* match cannot be NULL here */
+> -		if (match(sd->dev, asd))
+> +		if (match(sd, asd))
+>  			return asd;
+>  	}
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c
+> b/drivers/media/v4l2-core/v4l2-device.c index 5b0a30b..a741c6c 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -157,6 +157,9 @@ int v4l2_device_register_subdev(struct v4l2_device
+> *v4l2_dev, /* Warn if we apparently re-register a subdev */
+>  	WARN_ON(sd->v4l2_dev != NULL);
+> 
+> +	if (!sd->of_node && sd->dev)
+> +		sd->of_node = sd->dev->of_node;
+> +
+>  	/*
+>  	 * The reason to acquire the module here is to avoid unloading
+>  	 * a module of sub-device which is registered to a media
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 8f5da73..5c51987 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -603,6 +603,8 @@ struct v4l2_subdev {
+>  	struct video_device *devnode;
+>  	/* pointer to the physical device, if any */
+>  	struct device *dev;
+> +	/* A device_node of the sub-device, iff not dev->of_node. */
 
-... explain what is going on here? I.e. that this frontend always controls a demod
-and optionally also a tuner and/or SEC.
+"iff" ?
 
+I think we need to define usage of this field more precisely. If the subdev 
+driver doesn't initialize it it will be set in v4l2_device_register_subdev(), 
+meaning that there's part of the lifetime of the subdev during which the field 
+will be NULL even though the subdev's device has a DT node. Could that be a 
+problem, aren't there cases when we would need to access sd->of_node before 
+v4l2_device_register_subdev(), in particular when using V4l2-async ?
+
+> +	struct device_node *of_node;
+>  	/* Links this subdev to a global subdev_list or @notifier->done list. */
+>  	struct list_head async_list;
+>  	/* Pointer to respective struct v4l2_async_subdev. */
+
+-- 
 Regards,
 
-	Hans
-
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DEMUX</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_DTV_DEMUX</constant></entry>
->  	    <entry>DVB demux devnode</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_DVR</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_DTV_DVR</constant></entry>
->  	    <entry>DVB DVR devnode</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_CA</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_DTV_CA</constant></entry>
->  	    <entry>DVB CAM devnode</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_DVB_NET</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_DTV_NET</constant></entry>
->  	    <entry>DVB network devnode</entry>
->  	  </row>
->  	  <row>
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 13bb57f0457f..39846077045e 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -221,26 +221,26 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  
->  	switch (type) {
->  	case DVB_DEVICE_FRONTEND:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMOD;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
->  	case DVB_DEVICE_DEMUX:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DEMUX;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
->  	case DVB_DEVICE_DVR:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_DVR;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		break;
->  	case DVB_DEVICE_CA:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_CA;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
->  	case DVB_DEVICE_NET:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DTV_NET;
->  		break;
->  	default:
->  		kfree(dvbdev->entity);
-> @@ -396,16 +396,16 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
->  			tuner = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_FE:
-> +		case MEDIA_ENT_T_DTV_DEMOD:
->  			fe = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
-> +		case MEDIA_ENT_T_DTV_DEMUX:
->  			demux = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
-> +		case MEDIA_ENT_T_DTV_DVR:
->  			dvr = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_CA:
-> +		case MEDIA_ENT_T_DTV_CA:
->  			ca = entity;
->  			break;
->  		}
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 2e465ba087ba..0de9912411c5 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -45,11 +45,11 @@ struct media_device_info {
->  /* Used values for media_entity_desc::type */
->  
->  #define MEDIA_ENT_T_AV_DMA		(((1 << 16)) + 1)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_AV_DMA + 3)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_AV_DMA + 5)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_AV_DMA + 6)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_AV_DMA + 7)
-> +#define MEDIA_ENT_T_DTV_DEMOD	(MEDIA_ENT_T_AV_DMA + 3)
-> +#define MEDIA_ENT_T_DTV_DEMUX	(MEDIA_ENT_T_AV_DMA + 4)
-> +#define MEDIA_ENT_T_DTV_DVR	(MEDIA_ENT_T_AV_DMA + 5)
-> +#define MEDIA_ENT_T_DTV_CA	(MEDIA_ENT_T_AV_DMA + 6)
-> +#define MEDIA_ENT_T_DTV_NET	(MEDIA_ENT_T_AV_DMA + 7)
->  
->  #define MEDIA_ENT_T_CAM_SENSOR	((2 << 16) + 1)
->  #define MEDIA_ENT_T_CAM_FLASH	(MEDIA_ENT_T_CAM_SENSOR + 1)
-> @@ -76,7 +76,13 @@ struct media_device_info {
->  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
->  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
->  
-> -#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
-> +#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DTV_DEMOD
-> +#define MEDIA_ENT_T_DEVNODE_DVB_FE	MEDIA_ENT_T_DTV_DEMOD
-> +#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	MEDIA_ENT_T_DTV_DEMUX
-> +#define MEDIA_ENT_T_DEVNODE_DVB_DVR	MEDIA_ENT_T_DTV_DVR
-> +#define MEDIA_ENT_T_DEVNODE_DVB_CA	MEDIA_ENT_T_DTV_CA
-> +#define MEDIA_ENT_T_DEVNODE_DVB_NET	MEDIA_ENT_T_DTV_NET
-> +
->  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_T_CAM_SENSOR
->  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_T_CAM_FLASH
->  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
-> 
+Laurent Pinchart
 
