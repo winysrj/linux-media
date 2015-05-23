@@ -1,175 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753469AbbEFG5p (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34486 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756883AbbEWMEY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 02:57:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 2/8] DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-Date: Wed,  6 May 2015 08:57:17 +0200
-Message-Id: <1430895443-41839-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 23 May 2015 08:04:24 -0400
+Date: Sat, 23 May 2015 15:03:48 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, devicetree@vger.kernel.org, sre@kernel.org
+Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
+ samsung,flash-led property
+Message-ID: <20150523120348.GA3170@valkosipuli.retiisi.org.uk>
+References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+ <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
+ <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
+ <555DA119.9030904@samsung.com>
+ <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
+ <555DDD88.8080601@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <555DDD88.8080601@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester and Jacek,
 
-Add documentation for the new VIDIOC_SUBDEV_QUERYCAP ioctl.
+On Thu, May 21, 2015 at 03:28:40PM +0200, Sylwester Nawrocki wrote:
+> flash-leds = <&flash_xx &image_sensor_x>, <...>;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 125 +++++++++++++++++++++
- 2 files changed, 126 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+One more matter to consider: xenon flash devices.
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e98caa1..23607bc 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -669,6 +669,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subdev-g-selection;
-+    &sub-subdev-querycap;
-     &sub-subscribe-event;
-     <!-- End of ioctls. -->
-     &sub-mmap;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-new file mode 100644
-index 0000000..7c4fceb
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-@@ -0,0 +1,125 @@
-+<refentry id="vidioc-subdev-querycap">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_QUERYCAP</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_QUERYCAP</refname>
-+    <refpurpose>Query sub-device capabilities</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_capability *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_QUERYCAP</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>All V4L2 sub-devices support the
-+<constant>VIDIOC_SUBDEV_QUERYCAP</constant> ioctl. It is used to identify
-+kernel devices compatible with this specification and to obtain
-+information about driver and hardware capabilities. The ioctl takes a
-+pointer to a &v4l2-subdev-capability; which is filled by the driver. When the
-+driver is not compatible with this specification the ioctl returns an
-+error, most likely the &ENOTTY;.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-capability">
-+      <title>struct <structname>v4l2_subdev_capability</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>version</structfield></entry>
-+	    <entry><para>Version number of the driver.</para>
-+<para>The version reported is provided by the
-+V4L2 subsystem following the kernel numbering scheme. However, it
-+may not always return the same version as the kernel if, for example,
-+a stable or distribution-modified kernel uses the V4L2 stack from a
-+newer kernel.</para>
-+<para>The version number is formatted using the
-+<constant>KERNEL_VERSION()</constant> macro:</para></entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="hspan"><para>
-+<programlisting>
-+#define KERNEL_VERSION(a,b,c) (((a) &lt;&lt; 16) + ((b) &lt;&lt; 8) + (c))
-+
-+__u32 version = KERNEL_VERSION(0, 8, 1);
-+
-+printf ("Version: %u.%u.%u\n",
-+	(version &gt;&gt; 16) &amp; 0xFF,
-+	(version &gt;&gt; 8) &amp; 0xFF,
-+	 version &amp; 0xFF);
-+</programlisting></para></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>device_caps</structfield></entry>
-+	    <entry>Sub-device capabilities of the opened device, see <xref
-+		linkend="subdevice-capabilities" />.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[50]</entry>
-+	    <entry>Reserved for future extensions. Drivers must set
-+this array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="subdevice-capabilities">
-+      <title>Sub-Device Capabilities Flags</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_CAP_ENTITY</constant></entry>
-+	    <entry>0x00000001</entry>
-+	    <entry>The sub-device is a media controller entity. If this
-+capability is set, then you can call &MEDIA-IOC-DEVICE-INFO;.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
+How about samsung,camera-flashes (and ti,camera-flashes)? After pondering
+this awhile, I'm ok with removing the vendor prefix as well.
+
+Let me know what you think.
+
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
