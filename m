@@ -1,63 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.melag.de ([217.6.74.107]:40494 "EHLO mail.melag.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbbE1Q3B convert rfc822-to-8bit (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38013 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174AbbEWV7p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 12:29:01 -0400
-Message-ID: <55674242.5040102@melag.de>
-Date: Thu, 28 May 2015 18:28:50 +0200
-From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
+	Sat, 23 May 2015 17:59:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l: subdev: Add pad config allocator and init
+Date: Sat, 23 May 2015 21:24:41 +0300
+Message-ID: <12906805.RcB5KU0kGN@avalon>
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: imx53 IPU support on 4.0.4
-References: <555C86A5.2030007@melag.de> <20150520205554.GY2067@n2100.arm.linux.org.uk>
-In-Reply-To: <20150520205554.GY2067@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.05.2015 um 22:55 schrieb Russell King - ARM Linux:
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
-Hi,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           |  3 +++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
 
- > The way kernel development works is that patches are sent to mailing
-> lists for review.  Kernel developers review the patches and provide
-> comments back.  The comments are discussed and actioned, and a new
-> set of patches posted for further review.  This cycle repeats.
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 63596063b213..d594fe566be2 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	v4l2_subdev_call(sd, pad, init_cfg, cfg);
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 8f5da73dacff..7860d67574f5 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -483,6 +483,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	void (*init_cfg)(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -675,6 +677,7 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+-- 
+Regards,
 
-Okay. I just wanted to prevent too much traffic.
-But I'll use git-send-email, if you prefer.
+Laurent Pinchart
 
-> When everyone is happy, the patches can be applied, or pulled from
-> a non-github git tree.  (Kernel people generally don't like github.)
-
-Why so ?
-
-> This is so that upstream kernel developers don't get too overloaded
-> with work that really should be done by downstream folk (imagine if
-> they had to rewrite every patch that came their way...)
-
-Of course. I wasn't aware of the separate linux-media maillist at that
-time.
-
-By the way: I've now moved to Phillip's recent ipuv3 patches, but still
-have lots of others (about 30) for my tqma53-based board, which might
-be generic enough for going into mainline someday (many of them by
-ptx folks).
-
-Should I post them to lkml or somewhere else ?
-
-
-cu
---
-Enrico Weigelt, metux IT consult
-+49-151-27565287
-MELAG Medizintechnik oHG Sitz Berlin Registergericht AG Charlottenburg HRA 21333 B
-
-Wichtiger Hinweis: Diese Nachricht kann vertrauliche oder nur für einen begrenzten Personenkreis bestimmte Informationen enthalten. Sie ist ausschließlich für denjenigen bestimmt, an den sie gerichtet worden ist. Wenn Sie nicht der Adressat dieser E-Mail sind, dürfen Sie diese nicht kopieren, weiterleiten, weitergeben oder sie ganz oder teilweise in irgendeiner Weise nutzen. Sollten Sie diese E-Mail irrtümlich erhalten haben, so benachrichtigen Sie bitte den Absender, indem Sie auf diese Nachricht antworten. Bitte löschen Sie in diesem Fall diese Nachricht und alle Anhänge, ohne eine Kopie zu behalten.
-Important Notice: This message may contain confidential or privileged information. It is intended only for the person it was addressed to. If you are not the intended recipient of this email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever. If you received this email in error please notify the sender by replying and delete this message and any attachments without retaining a copy.
