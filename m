@@ -1,170 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw.shic.co.uk ([94.23.159.123]:33446 "EHLO gw.shic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752445AbbEFQuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 12:50:32 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by gw.shic.co.uk (Postfix) with ESMTP id BC63416C1502
-	for <linux-media@vger.kernel.org>; Wed,  6 May 2015 17:50:30 +0100 (BST)
-Received: from gw.shic.co.uk ([IPv6:::ffff:192.168.42.2])
-	by localhost (localhost [::ffff:127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 9HCSyzdjGohA for <linux-media@vger.kernel.org>;
-	Wed,  6 May 2015 17:50:27 +0100 (BST)
-Received: from [192.168.0.135] (unknown [192.168.0.135])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by gw.shic.co.uk (Postfix) with ESMTPSA id 893AE16C1124
-	for <linux-media@vger.kernel.org>; Wed,  6 May 2015 17:50:27 +0100 (BST)
-Message-ID: <554A4653.7070503@shic.co.uk>
-Date: Wed, 06 May 2015 17:50:27 +0100
-From: Steve <sjh_lmml@shic.co.uk>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60681 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751080AbbEXWna (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2015 18:43:30 -0400
+Message-ID: <5562540D.5090106@xs4all.nl>
+Date: Mon, 25 May 2015 00:43:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Mystique SaTiX-S2 Sky V2 USB (DVBSKY S960 clone) - Linux driver.
-References: <55439450.1080206@shic.co.uk>	<55442943.2070304@gmx.net> <CAAZRmGz=KVkKf6+z9r2yoZ+8nTenUN-2briAFtV0ogcfW0iAEQ@mail.gmail.com>
-In-Reply-To: <CAAZRmGz=KVkKf6+z9r2yoZ+8nTenUN-2briAFtV0ogcfW0iAEQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	sergei.shtylyov@cogentembedded.com, rob.taylor@codethink.co.uk
+Subject: Re: [PATCH 08/20] media: soc_camera pad-aware driver initialisation
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk> <2679646.jJocfX2rY2@avalon> <556186EF.9010306@xs4all.nl> <1930195.jDtoRqGTcH@avalon>
+In-Reply-To: <1930195.jDtoRqGTcH@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, thanks for your help so far...
-
-It's taken a few days - but I've now tried a variety of things without 
-arriving at any resolution.
-
-Prior to posting, I had not downloaded any firmware.
-
-I placed the firmware from 
-http://www.dvbsky.net/download/linux/dvbsky-firmware.tar.gz into 
-/lib/firmware... I rebooted - the only difference I discovered is that, 
-this time, my keyboard and mouse stopped working when the SaTiX device 
-was plugged in.  Investigating syslog (after a reboot) suggested the 
-error messages (previously posted) remained.
-
-I downloaded and built the latest v4l-dvb sources.  The upshot was that 
-the device returned to failing as in my original post (i.e. without 
-stopping my keyboard/mouse from working.)
-
-I tried several USB cables - no improvement.
-
-I hooked the SaTiX device up to a modern, Dell, Windows 8.1 laptop. 
-Windows recognised the device as an S960, but was not able to 
-(automatically) determine any drivers for it.  (I have no windows 
-software for this device.)
-
-I installed Ubuntu onto a VirtualBox instance, and configured it to use 
-the SaTiX.  At first, I thought I'd made progress as lsusb worked... 
-however I quickly discovered an error message:
-
-         dvb_usb_v2: this USB2.0 device cannot be run on a USB1.1 port 
-(it lacks a hardware PID filter)
-
-Having installed the extension pack for VirtualBox (to support virtual 
-USB 2.0) the SaTiX device behaved identically to on the original (Ubuntu 
-native) PC - i.e. the same errors in dmesg and lsusb fails to work after 
-the device has been attached.
-
-The only new information that I have are the device diagnostics from 
-Windows - the device reports:
-
-        Bestunar S960                            <--  I was surprised
-        not to see "SaTiX" here.
-        Vendor ID : 0572
-        Product ID : 6831
-        Version : 0000
-        Revision : 20130511
-
-The green light, on the front of the device, only comes on once Linux 
-has recognised the device...
-
-Can anyone offer any other advice?  Have I been sent a different 
-Sky-S960 clone to the one I ordered?
-
-On 03/05/15 08:44, Olli Salonen wrote:
-> Hi Steve,
->
-> I've got the device in question and can confirm that it works ok.
->
-> lsusb definitely should work ok - maybe there's indeed something wrong
-> with your device. As suggested by P. van Gaans, maybe you can try your
-> device on another computer or even on Windows and see if it works
-> there.
->
-> Cheers,
-> -olli
->
->
-> On 2 May 2015 at 03:32, P. van Gaans<w3ird_n3rd@gmx.net>  wrote:
->> On 05/01/2015 04:57 PM, Steve wrote:
->>> Hi,
+On 05/24/2015 11:50 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Sunday 24 May 2015 10:08:15 Hans Verkuil wrote:
+>> On 05/23/2015 08:32 PM, Laurent Pinchart wrote:
+>>> On Thursday 21 May 2015 07:55:10 Hans Verkuil wrote:
+>>>> On 05/20/2015 06:39 PM, William Towle wrote:
+>>>>> Add detection of source pad number for drivers aware of the media
+>>>>> controller API, so that soc_camera/rcar_vin can create device nodes
+>>>>> to support a driver such as adv7604.c (for HDMI on Lager) underneath.
+>>>>>
+>>>>> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+>>>>> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+>>>>> ---
+>>>>>
+>>>>>  drivers/media/platform/soc_camera/rcar_vin.c   |    4 ++++
+>>>>>  drivers/media/platform/soc_camera/soc_camera.c |   27 ++++++++++++++++-
+>>>>>  include/media/soc_camera.h                     |    1 +
+>>>>>  3 files changed, 31 insertions(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>>>>> b/drivers/media/platform/soc_camera/rcar_vin.c index 0f67646..b4e9b43
+>>>>> 100644
+>>>>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>>>>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>>>>> @@ -1364,8 +1364,12 @@ static int rcar_vin_get_formats(struct
+>>>>> soc_camera_device *icd, unsigned int idx,
+>>>>>  		struct v4l2_mbus_framefmt *mf = &fmt.format;
+>>>>>  		struct v4l2_rect rect;
+>>>>>  		struct device *dev = icd->parent;
+>>>>> +		struct media_pad *remote_pad;
+>>>>>  		int shift;
+>>>>>
+>>>>> +		remote_pad = media_entity_remote_pad(
+>>>>> +					&icd->vdev->entity.pads[0]);
+>>>>> +		fmt.pad = remote_pad->index;
+>>>>
+>>>> This won't work if CONFIG_MEDIA_CONTROLLER isn't defined. All these media
+>>>> calls would all have to be under #ifdef CONFIG_MEDIA_CONTROLLER.
+>>>>
+>>>> Unfortunately, if it is not defined, then you still have no way of
+>>>> finding the source pad.
+>>>>
+>>>> Laurent, do you think if it would make sense to add a new subdev core op
+>>>> that will return the default source pad (I'm saying 'default' in case
+>>>> there are more) of a subdev? That way it can be used in non-MC drivers.
+>>>> We never needed the source pad before, but now we do, and this op only
+>>>> needs to be implemented if the default source pad != 0.
 >>>
->>> I'm trying a direct mail to you as you are associated with this page:
->>>
->>>       http://linuxtv.org/wiki/index.php/DVB-S2_USB_Devices
->>>
->>> I have bought a Mystique SaTiX-S2 Sky V2 USB (DVBSKY S960 clone) - but
->>> it doesn't work with my 3.19 kernel, which I'd assumed it would from the
->>> above page.
->>>
->>> I've tried asking about the problem in various ways - first to
->>> "AskUbuntu":
->>>
->>>
->>> http://askubuntu.com/questions/613406/absent-frontend0-with-usb-dvbsky-s960-s860-driver-bug
->>>
->>>
->>> ... and, more recently, on the Linux-Media mailing list.  Without
->>> convincing myself that I've contacted the right person/people to give
->>> constructive feedback.
->>>
->>> By any chance can you offer me some advice about who it is best to
->>> approach?  (Obviously I'd also be grateful if you can shed any light on
->>> this problem.)
->>>
->>> Steve
->>>
->>>
->> Hi Steve,
+>>> I'm not too fond of that. Is there something wrong with the method
+>>> implemented in this patch ? Is the dependency on CONFIG_MEDIA_CONTROLLER
+>>> an issue ?
 >>
->> The page actually states "Support in-kernel is expected in Linux kernel
->> 3.18.". Devil's advocate, but it doesn't say it's actually there or
->> guarantees it ever will. At the time it was written, 3.18 wasn't out yet.
->> Looking at your dmesg output however it seems your kernel is aware of the
->> device. (so the patch made it) As for me, I was offered a bargain for
->> another device so I have no S960.
+>> 1) it's a heck of a lot of code just to get a simple source pad that the
+>> subdev knows anyway,
+> 
+> I don't think the subdev knows. If a subdev has multiple source pads there's 
+> no concept of a default source. It all depends on how the subdevs are 
+> connected, and media_entity_remote_pad() is the right way to find out.
+
+Note that with 'source pad' I am referring to the output pad of a subdev
+(ADV7604_PAD_SOURCE in the case of the adv7604). There may be some confusion
+here.
+
+In my experience subdevs in a capture path have usually multiple input (sink)
+pads, but only one output (source) pad. Subdevs in a video output path tend to
+have one input (sink) pad and multiple output (source) pads.
+
+The multiple inputs/outputs are things like composite, S-Video, HDMI, VGA, etc.
+and the single input/output pad is where the device is hooked up to the mediabus
+which in turn connects to a DMA engine.
+
+>> 2) soc-camera doesn't use the media controller today, so this would add a
+>> dependency on the mc just for this,
+> 
+> I agree that we shouldn't pull the whole MC userspace API in just for this, 
+> but the kernel side of the API should be available as pad-level operations 
+> depend on MC. We could split the CONFIG_MEDIA_CONTROLLER option in two.
+
+The way it is now is pretty OK. We just miss the information about the pad
+that feeds the dma capture path and for output we miss the the pad that is fed
+by the dma output path.
+
+Bridge drivers currently just assume pad 0 in all cases, but that's obviously
+not always right as the adv7604 illustrates.
+
+The alternative would be to just hardcode it in platform data or card information.
+What this patch does is just enumerating pads until it finds the first one that
+fits the criteria, which fails as well if there are multiple pads that would
+match and is a lot more code than just have the subdev provide the information.
+
+Regards,
+
+	Hans
+
+>> 3) it doesn't actually make a media device, it is just fakes enough to make
+>> the subdev think it there is an MC.
 >>
->> Linux-media mailing list is the right place. (and here we are) A few quick
->> suggestions:
+>> It doesn't actually have to be a new op, it could be a new field in
+>> v4l2_subdev as well. For those bridge drivers that do not use the MC but do
+>> need to know the source pad this is important information.
 >>
->> Did you really, really, really get the right firmware and are you absolutely
->> positive it's in the right location and has the right filename? Does dmesg
->> mention the firmware being loaded?
+>> It might even simplify the device tree if the default source pad is implied
+>> unless stated otherwise (but that might be a step too far).
 >>
->> Get/compile the latest v4l-dvb sources.
->> (http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers)
->> Maybe it's just a bug that has already been fixed.
->>
->> Try another program to access the device. But if even lsusb hangs, this is
->> pretty much moot.
->>
->> Make sure the power supply/device is functioning properly. Try it on another
->> OS to make sure it's not defective.
->>
->> Try another computer, preferably with another chipset. If your RAM is faulty
->> or you have a funky USB-controller, you can experience strange problems.
->>
->> Good luck!
->>
->> Best regards,
->>
->> P. van Gaans
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message tomajordomo@vger.kernel.org
->> More majordomo info athttp://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message tomajordomo@vger.kernel.org
-> More majordomo info athttp://vger.kernel.org/majordomo-info.html
+>> I wonder if a default input pad might also be useful to expose. I suspect
+>> this might become important if we want to add MC support to all existing
+>> v4l2 drivers.
+> 
+> The concept of a default sink pad makes more sense, but I'm not sure I like it 
+> too much either. I'd have to think about it.
+> 
 
