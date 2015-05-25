@@ -1,89 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36776 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752955AbbEKJj7 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:19377 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220AbbEYPOP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2015 05:39:59 -0400
-Message-ID: <5550789F.60304@xs4all.nl>
-Date: Mon, 11 May 2015 11:38:39 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-References: <cover.1431046915.git.mchehab@osg.samsung.com>	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>	<554CA862.8070407@xs4all.nl>	<20150508095754.1c39a276@recife.lan>	<554CB863.1040006@xs4all.nl>	<20150508110826.00e4e954@recife.lan>	<554CC8E3.2030308@xs4all.nl>	<554DD3FE.1070806@xs4all.nl> <20150511063138.1ea10ccf@recife.lan>
-In-Reply-To: <20150511063138.1ea10ccf@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 25 May 2015 11:14:15 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v9 0/8] LED / flash API integration
+Date: Mon, 25 May 2015 17:13:55 +0200
+Message-id: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/11/2015 11:31 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 09 May 2015 11:31:42 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->>>>> Brainstorming:
->>>>>
->>>>> It might be better to map each device node to an entity and each hardware
->>>>> component (tuner, DMA engine) to an entity, and avoid this mixing of
->>>>> hw entity vs device node entity.
->>
->> There are two options here:
->>
->> either make each device node an entity, or expose the device node information
->> as properties of an entity.
->>
->> The latter would be backwards compatible with what we do today. I'm trying to
->> think of reasons why you would want to make each device node an entity in its
->> own right.
->>
->> The problem today is that a video_device representing a video/vbi/radio/swradio
->> device node is an entity, but it is really representing the dma engine. Which
->> is weird for radio devices since there is no dma engine there.
->>
->> Implementing device nodes as entities in their own right does solve this problem,
->> but implementing it as properties would be weird since a radio device node would
->> be a property of a radio tuner entity, which can be a subdevice driver which means
->> that the bridge driver would have to add the radio device property to a subdev
->> driver, which feels really wrong to me.
->>
->> With this in mind I do think representing device nodes as entities in their own
->> right makes sense.
-> 
-> I agree with that: devnodes should be entities, as they're the points to control
-> the hardware, and need to be known by the Kernel, no matter if they have DMA
-> engines associated with it or not. The better seems to map the DMA engine
-> as a property on those entities.
-> 
->> But I would do this also for a v4l-subdev node. It's very
->> inconsistent not to do that.
-> 
-> It should be easy to create an entity for each v4l-subdev node. I just
-> don't see much usage on it, and this will almost double the number of
-> entities.
+This is ninth non-RFC version of LED / flash API integration
+series [1]. It is based on linux_next-20150519 with patch [2].
 
-The memory is already allocated for that since it is part of struct video_device,
-which v4l-subdev uses. So I don't see this as a problem.
+================
+Changes since v8
+================
+- switched from samsung,flash-leds to samsun,camera-flashes DT property
+- improved async sub-devices matching for exynos4-is media device
+- modified v4l2-flash-led-class wrapper to incorporate indicator
+  LED class deviecs
 
-> Also, in order to keep it backward-compatible, both the subdev
-> devnode and the subdev no-devnode entity should accept the same set of
-> ioctls.
+================
+Changes since v7
+================
 
-The ioctls always go through the video_device, that will not be changed by
-this.
+- Merged patches from Sakari for v4l2-flash-led-class and V4L2 related
+  patches for leds-max77693 and leds-aat1290 drivers
+- applied minor modifications to the both led drivers related patches
+- modified exynos4-is media device to parse new samsung,flash-led
+  property, instead of 'flashes' array
+- added DT documentation for samsung,flash-led property
 
-But I agree that there are other backward-compat issues. Unfortunately I cannot
-dedicate much time on this at the moment.
+================
+Changes since v5
+================
+- renamed v4l2-flash module to v4l2-flash-led-class and applied
+  other related modifications spotted by Sakari
+- fixed not released of_node reference in max77693-led driver
 
-Regards,
+================
+Changes since v4
+================
+- adapted leds-max77693 and leds-aat1290 drivers to the recent
+  modifications in leds/common.txt bindings documentation and
+  changed the behaviour when properties are missing
+- modified DT bindings documenation for the aforementioned
+  drivers
+- removed unjustified use of goto in the leds-aat1290 driver
+- fixed lack of of_node_put in leds-aat1290 driver, after parsing
+  DT child node 
+- removed patch adding 'skyworks' vendor prefix, as the entry
+  has been recently added
 
-	Hans
+================
+Changes since v2
+================
+- improved leds/common DT bindings documentation
+- improved max77693-led DT documentation
+- fixed validation of DT confguration for leds-max77693 by
+  minimal values in joint iouts case
+- removed trigger-type property from leds-max77693 bindings
+  and adjusted the driver accordingly
+- improved LED Flash class documentation related to v4l2-flash sub-device
+  initialization
+- excluded from leds-aat1290 DT bindings documentation the part
+  related to handling external strobe sources
+
+================
+Changes since v1
+================
+
+- excluded exynos4-is media device related patches, as there is
+  consenus required related to flash devices handling in media device
+  DT bindings
+- modifications around LED Flash class settings and v4l2 flash config
+  initialization in LED Flash class drivers and v4l2-flash wrapper
+- switched to using DT node name as a device name for leds-max77693
+  and leds-aat1290 drivers, in case DT 'label' property is absent
+- dropped OF dependecy for v4l2-flash wrapper
+- moved LED_FAULTS definitions from led-class-flash.h to uapi/linux/leds.h
+- allowed for multiple clients of v4l2-flash sub-device
+
+======================
+Changes since RFC v13:
+======================
+
+- reduced number of patches - some of them have been merged
+- slightly modified max77693-led device naming
+- fixed issues in v4l2-flash helpers detected with yavta
+- cleaned up AAT1290 device tree documentation
+- added GPIOLIB dependecy to AAT1290 related entry in Kconfig
+
+Thanks,
+Jacek Anaszewski
+
+[1] http://www.spinics.net/lists/kernel/msg1944538.html
+[2] http://www.spinics.net/lists/linux-media/msg89839.html
+
+Jacek Anaszewski (8):
+  Documentation: leds: Add description of v4l2-flash sub-device
+  media: Add registration helpers for V4L2 flash sub-devices
+  leds: max77693: add support for V4L2 Flash sub-device
+  DT: aat1290: Document handling external strobe sources
+  leds: aat1290: add support for V4L2 Flash sub-device
+  exynos4-is: Improve the mechanism of async subdevs verification
+  DT: Add documentation for exynos4-is 'flashes' property
+  exynos4-is: Add support for v4l2-flash subdevs
+
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   36 +-
+ .../devicetree/bindings/media/samsung-fimc.txt     |   10 +
+ Documentation/leds/leds-class-flash.txt            |   50 ++
+ drivers/leds/Kconfig                               |    1 +
+ drivers/leds/leds-aat1290.c                        |  137 +++-
+ drivers/leds/leds-max77693.c                       |  129 +++-
+ drivers/media/platform/exynos4-is/media-dev.c      |   94 ++-
+ drivers/media/platform/exynos4-is/media-dev.h      |   12 +-
+ drivers/media/v4l2-core/Kconfig                    |   11 +
+ drivers/media/v4l2-core/Makefile                   |    2 +
+ drivers/media/v4l2-core/v4l2-flash-led-class.c     |  671 ++++++++++++++++++++
+ include/media/v4l2-flash-led-class.h               |  148 +++++
+ 12 files changed, 1277 insertions(+), 24 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
+ create mode 100644 include/media/v4l2-flash-led-class.h
+
+-- 
+1.7.9.5
+
