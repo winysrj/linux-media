@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33369 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.17.20]:56316 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159AbbETMHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 08:07:34 -0400
-Date: Wed, 20 May 2015 09:07:27 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jemma Denson <jdenson@gmail.com>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PULL v3] for 4.2: add support for cx24120/Technisat SkyStar S2
-Message-ID: <20150520090727.1519d0c8@recife.lan>
-In-Reply-To: <555C7425.9040101@gmail.com>
-References: <20150420092720.3cb092ba@dibcom294.coe.adi.dibcom.com>
-	<20150427171628.5ba22752@recife.lan>
-	<20150518121115.07d37b78@dibcom294.coe.adi.dibcom.com>
-	<20150520100506.10a46054@dibcom294.coe.adi.dibcom.com>
-	<555C7425.9040101@gmail.com>
+	id S1750965AbbEYPP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 11:15:26 -0400
+Date: Mon, 25 May 2015 17:15:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
+	rob.taylor@codethink.co.uk
+Subject: Re: [PATCH 17/20] media: adv7604: Support V4L_FIELD_INTERLACED
+In-Reply-To: <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1505251714420.26358@axis700.grange>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+ <1432139980-12619-18-git-send-email-william.towle@codethink.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick/Jemma,
+On Wed, 20 May 2015, William Towle wrote:
 
-Em Wed, 20 May 2015 12:46:45 +0100
-Jemma Denson <jdenson@gmail.com> escreveu:
-
-> On 20/05/15 09:05, Patrick Boettcher wrote:
-> > Hi Mauro,
-> >
-> > This is an updated version (v3) of the pull-request for integrating the
-> > cx24120-driver.
-> >
-> > Jemma (and partially me) addressed all strict-conding-style-issues and
-> > fixed several things regarding signal-stats and demod-issues + some code
-> > cleaning in general.
-> >
-> > Yesterday night Jemma implemented everything related to the UNC and
-> > BER-stuff. I also integrated your smatch-patches on my branch.
-> >
-> > In this mail you'll also find the complete patch, please feel free to
-> > review it.
-
-Thank you! It is now in good shape on my eyes. Patches merged. 
-The only minor issue is that I had to fold two patches to avoid
-compilation breakage in the middle of the patch series, but I
-solved this myself.
-
-> >
-> >
+> When hardware reports interlaced input, correctly set field to
+> V4L_FIELD_INTERLACED ini adv76xx_fill_format.
 > 
-> Mauro, I have realised I might have made a mistake in how UCB is 
-> calculated - I have a patch for this already, should I just send this 
-> through to the list on it's own?
+> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> Reviewed-by: William Towle <william.towle@codethink.co.uk>
+> ---
+>  drivers/media/i2c/adv7604.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 4bde3e1..d77ee1f 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1791,7 +1791,12 @@ static void adv76xx_fill_format(struct adv76xx_state *state,
+>  
+>  	format->width = state->timings.bt.width;
+>  	format->height = state->timings.bt.height;
+> -	format->field = V4L2_FIELD_NONE;
+> +
+> +	if (state->timings.bt.interlaced)
+> +		format->field= V4L2_FIELD_INTERLACED;
+> +	else
+> +		format->field= V4L2_FIELD_NONE;
+> +
 
-Yes, please. I just merged the pull request. So, no need to re-send the
-entire patch series again.
+A space before "=" please.
 
-Regards,
-Mauro
+Thanks
+Guennadi
+
+>  	format->colorspace = V4L2_COLORSPACE_SRGB;
+>  
+>  	if (state->timings.bt.flags & V4L2_DV_FL_IS_CE_VIDEO)
+> -- 
+> 1.7.10.4
+> 
