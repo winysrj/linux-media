@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24543 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753794AbbEAPi5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 11:38:57 -0400
-Date: Fri, 1 May 2015 23:38:49 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [linuxtv-media:master 834/883]
- drivers/media/pci/saa7164/saa7164-i2c.c:45:33: sparse: Using plain integer
- as NULL pointer
-Message-ID: <201505012348.QEB7o0DP%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37980 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757AbbEYMu5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 08:50:57 -0400
+Message-id: <55631AAC.6080507@samsung.com>
+Date: Mon, 25 May 2015 14:50:52 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-leds@vger.kernel.org,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	devicetree@vger.kernel.org, sre@kernel.org
+Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
+ samsung,flash-led property
+References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+ <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
+ <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
+ <555DA119.9030904@samsung.com>
+ <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
+ <555DDD88.8080601@samsung.com>
+ <20150523120348.GA3170@valkosipuli.retiisi.org.uk> <55630EE1.90307@samsung.com>
+In-reply-to: <55630EE1.90307@samsung.com>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   ebf984bb151e9952cccd060d3aba0b4d30a87e81
-commit: 5f954b5be4bf42e85e0a204518499bda8ee2f419 [834/883] [media] saa7164: I2C improvements for upcoming HVR2255/2205 boards
-reproduce:
-  # apt-get install sparse
-  git checkout 5f954b5be4bf42e85e0a204518499bda8ee2f419
-  make ARCH=x86_64 allmodconfig
-  make C=1 CF=-D__CHECK_ENDIAN__
+Hi,
+
+On 05/25/2015 02:00 PM, Sylwester Nawrocki wrote:
+> Hi,
+>
+> On 23/05/15 14:03, Sakari Ailus wrote:
+>> On Thu, May 21, 2015 at 03:28:40PM +0200, Sylwester Nawrocki wrote:
+>>> flash-leds = <&flash_xx &image_sensor_x>, <...>;
+>>
+>> One more matter to consider: xenon flash devices.
+>>
+>> How about samsung,camera-flashes (and ti,camera-flashes)? After pondering
+>> this awhile, I'm ok with removing the vendor prefix as well.
+>>
+>> Let me know what you think.
+>
+> I thought about it a bit more and I have some doubts about semantics
+> as above. I'm fine with 'camera-flashes' as far as name is concerned.
+>
+> Perhaps we should put only phandles to leds or xenon flash devices
+> in the 'camera-flashes' property. I think it would be more future
+> proof in case there is more nodes needed to describe the camera flash
+> (or a camera module) than the above two. And phandles to corresponding
+> image sensor device nodes would be put in a separate property.
+
+Could you give examples of the cases you are thinking of?
+
+> camera-flashes = <&flash_xx>, ...
+> camera-flash-masters = <&image_sensor_x>, ...
+>
+> Then pairs at same index would describe a single flash, 0 would indicate
+> a null entry if needed.
+
+When it should be needed?
+
+> Similarly we could create properties for other sub-devices of a camera
+> module, like lenses, etc.
 
 
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/media/pci/saa7164/saa7164-i2c.c:45:33: sparse: Using plain integer as NULL pointer
-
-vim +45 drivers/media/pci/saa7164/saa7164-i2c.c
-
-    29	
-    30	static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
-    31	{
-    32		struct saa7164_i2c *bus = i2c_adap->algo_data;
-    33		struct saa7164_dev *dev = bus->dev;
-    34		int i, retval = 0;
-    35	
-    36		dprintk(DBGLVL_I2C, "%s(num = %d)\n", __func__, num);
-    37	
-    38		for (i = 0 ; i < num; i++) {
-    39			dprintk(DBGLVL_I2C, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
-    40				__func__, num, msgs[i].addr, msgs[i].len);
-    41			if (msgs[i].flags & I2C_M_RD) {
-    42				retval = saa7164_api_i2c_read(bus,
-    43					msgs[i].addr,
-    44					0 /* reglen */,
-  > 45					0 /* reg */, msgs[i].len, msgs[i].buf);
-    46			} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
-    47				   msgs[i].addr == msgs[i + 1].addr) {
-    48				/* write then read from same address */
-    49	
-    50				retval = saa7164_api_i2c_read(bus, msgs[i].addr,
-    51					msgs[i].len, msgs[i].buf,
-    52					msgs[i+1].len, msgs[i+1].buf
-    53					);
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+-- 
+Best Regards,
+Jacek Anaszewski
