@@ -1,69 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:34475 "EHLO
-	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbbE1HUT (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:23372 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846AbbEYPOa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 03:20:19 -0400
-Received: by qkoo18 with SMTP id o18so19976569qko.1
-        for <linux-media@vger.kernel.org>; Thu, 28 May 2015 00:20:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1432646768-12532-5-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-	<1432646768-12532-5-git-send-email-peter.ujfalusi@ti.com>
-Date: Thu, 28 May 2015 09:20:18 +0200
-Message-ID: <CAPDyKFrOUOuctSMpx+RFixB_ub=d66YqXEsa7D78gyFeiGiNkQ@mail.gmail.com>
-Subject: Re: [PATCH 04/13] mmc: omap_hsmmc: No need to check DMA channel
- validity at module remove
-From: Ulf Hansson <ulf.hansson@linaro.org>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-omap <linux-omap@vger.kernel.org>,
-	linux-mmc <linux-mmc@vger.kernel.org>,
-	linux-crypto@vger.kernel.org,
-	"linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Content-Type: text/plain; charset=UTF-8
+	Mon, 25 May 2015 11:14:30 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v9 4/8] DT: aat1290: Document handling external strobe sources
+Date: Mon, 25 May 2015 17:13:59 +0200
+Message-id: <1432566843-6391-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
+References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26 May 2015 at 15:25, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> The driver will not probe without valid DMA channels so no need to check
-> if they are valid when the module is removed.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Ulf Hansson <ulf.hansson@linaro.org>
+This patch adds documentation for a pinctrl-names property.
+The property, when present, is used for switching the source
+of the strobe signal for the device.
 
-Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: devicetree@vger.kernel.org
+---
+ .../devicetree/bindings/leds/leds-aat1290.txt      |   36 ++++++++++++++++++--
+ 1 file changed, 34 insertions(+), 2 deletions(-)
 
-Kind regards
-Uffe
+diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+index ef88b9c..c05ed91 100644
+--- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
++++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+@@ -2,7 +2,9 @@
+ 
+ The device is controlled through two pins: FL_EN and EN_SET. The pins when,
+ asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
+-respectively.
++respectively. In order to add a capability of selecting the strobe signal source
++(e.g. CPU or camera sensor) there is an additional switch required, independent
++of the flash chip. The switch is controlled with pin control.
+ 
+ Required properties:
+ 
+@@ -10,6 +12,13 @@ Required properties:
+ - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
+ - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+ 
++Optional properties:
++- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
++		"default" and "host" must refer to the same pin configuration
++		node, which sets the host as a strobe signal provider. Entry
++		"isp" must refer to the pin configuration node, which sets the
++		ISP as a strobe signal provider.
++
+ A discrete LED element connected to the device must be represented by a child
+ node - see Documentation/devicetree/bindings/leds/common.txt.
+ 
+@@ -25,13 +34,22 @@ Required properties of the LED child node:
+ Optional properties of the LED child node:
+ - label : see Documentation/devicetree/bindings/leds/common.txt
+ 
+-Example (by Ct = 220nF, Rset = 160kohm):
++Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
++a switch that allows for routing strobe signal either from the host or from
++the camera sensor):
++
++#include "exynos4412.dtsi"
+ 
+ aat1290 {
+ 	compatible = "skyworks,aat1290";
+ 	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
+ 	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
+ 
++	pinctrl-names = "default", "host", "isp";
++	pinctrl-0 = <&camera_flash_host>;
++	pinctrl-1 = <&camera_flash_host>;
++	pinctrl-2 = <&camera_flash_isp>;
++
+ 	camera_flash: flash-led {
+ 		label = "aat1290-flash";
+ 		led-max-microamp = <520833>;
+@@ -39,3 +57,17 @@ aat1290 {
+ 		flash-timeout-us = <1940000>;
+ 	};
+ };
++
++&pinctrl_0 {
++	camera_flash_host: camera-flash-host {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <0>;
++	};
++
++	camera_flash_isp: camera-flash-isp {
++		samsung,pins = "gpj1-0";
++		samsung,pin-function = <1>;
++		samsung,pin-val = <1>;
++	};
++};
+-- 
+1.7.9.5
 
-> ---
->  drivers/mmc/host/omap_hsmmc.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 2cd828f42151..57bb85930f81 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2190,10 +2190,8 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
->         if (host->use_reg)
->                 omap_hsmmc_reg_put(host);
->
-> -       if (host->tx_chan)
-> -               dma_release_channel(host->tx_chan);
-> -       if (host->rx_chan)
-> -               dma_release_channel(host->rx_chan);
-> +       dma_release_channel(host->tx_chan);
-> +       dma_release_channel(host->rx_chan);
->
->         pm_runtime_put_sync(host->dev);
->         pm_runtime_disable(host->dev);
-> --
-> 2.3.5
->
