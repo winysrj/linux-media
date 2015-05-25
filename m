@@ -1,93 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from benson.vm.bytemark.co.uk ([212.110.190.137]:46553 "EHLO
-	benson.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbbE1Hlu (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43371 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751816AbbEYCri (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 03:41:50 -0400
-Message-ID: <1432798906.5748.183.camel@hellion.org.uk>
-Subject: Re: DVB-T2 PCIe vs DVB-S2
-From: Ian Campbell <ijc@hellion.org.uk>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Jemma Denson <jdenson@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Thu, 28 May 2015 08:41:46 +0100
-In-Reply-To: <CAAZRmGzcU0sGjzvim+ap2HXDp=ZxTkn8h+ZbNEA8DQn3P0jVag@mail.gmail.com>
-References: <1432626810.5748.173.camel@hellion.org.uk>
-	 <556494F9.1020406@gmail.com>
-	 <CAAZRmGzcU0sGjzvim+ap2HXDp=ZxTkn8h+ZbNEA8DQn3P0jVag@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 24 May 2015 22:47:38 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B17D72A00C8
+	for <linux-media@vger.kernel.org>; Mon, 25 May 2015 04:47:32 +0200 (CEST)
+Date: Mon, 25 May 2015 04:47:32 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150525024732.B17D72A00C8@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks guys, it hadn't occurred to me that I'd need to check the mythtv
-side as well! (It's obvious though now it's been pointed out...)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Since one of my two Nova-T-500 died recently I may just replace it with
-an HD capable DVB-T2 card but only use it for DVD-T for now while the
-PVR side catches up.
+Results of the daily build of media_tree:
 
-Thanks for the advice and the pointers to the available h/w!
+date:		Mon May 25 04:00:18 CEST 2015
+git branch:	test
+git hash:	2a80f296422a01178d0a993479369e94f5830127
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Ian.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-On Tue, 2015-05-26 at 21:10 +0200, Olli Salonen wrote:
-> There are indeed a few DVB-T2 PCIe cards that are supported (DVBSky
-> T9580, T980C, T982C, TechnoTrend CT2-4500 CI, Hauppauge HVR-2205,
-> Hauppauge HVR-5525 at least come to my mind). PCTV 290e is a USB
-> device, not PCIe. In the wiki there's currently some issue with the
-> filtering when it comes to the tables - that's why every PCIe device
-> is printed instead of just the DVB-T2 supporting ones.
-> 
-> As Jemma points out, the application should be clever enough to tell
-> the driver that DVB-T2 delivery system is wanted. For the cxd2820r
-> driver (PCTV 290e) Antti made the "fudge", but has decided not to
-> implement it in the Si2168 driver (reasoning, to which I
-> wholeheartedly agree, is here:
-> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html ).
-> 
-> When it comes to PVR backends, at least tvheadend supports DVBv5 fully
-> - I don't have a clear picture of other backends.
-> 
-> Cheers,
-> -olli
-> 
-> On 26 May 2015 at 17:44, Jemma Denson <jdenson@gmail.com> wrote:
-> > On 26/05/15 08:53, Ian Campbell wrote:
-> >>
-> >> Hello,
-> >>
-> >> I'm looking to get a DVB-T2 tuner card to add UK Freeview HD to my
-> >> mythtv box.
-> >>
-> >> Looking at http://linuxtv.org/wiki/index.php/DVB-T2_PCIe_Cards is seems
-> >> that many (the majority even) of the cards there are actually DVB-S2.
-> >>
-> >> Is this a mistake or is there something I don't know (like maybe S2 is
-> >> compatible with T2)?
-> >>
-> >> Thanks,
-> >> Ian.
-> >
-> >
-> > That's a mistake - I don't recall that table looking like that when I was
-> > looking for one, and S2 is quite definitely not compatible with T2!
-> >
-> > I can confirm that the 290e works out of the box with myth with very few
-> > problems, however it's well out of production now and you might not be after
-> > a USB device. I'm not sure anything else would work without some hacking
-> > because last I heard myth doesn't do T2 the proper way using DVBv5 yet, and
-> > afaik only the 290e driver has a fudge to allow T2 on v3.
-> > (http://lists.mythtv.org/pipermail/mythtv-users/2014-November/374441.html
-> > and https://code.mythtv.org/trac/ticket/12342)
-> >
-> >
-> > Jemma.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
