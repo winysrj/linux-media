@@ -1,98 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45819 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751257AbbEALeU (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:34604 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088AbbEYPef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 07:34:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
+	Mon, 25 May 2015 11:34:35 -0400
+Received: by wicmc15 with SMTP id mc15so43239178wic.1
+        for <linux-media@vger.kernel.org>; Mon, 25 May 2015 08:34:34 -0700 (PDT)
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/3] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-Date: Fri,  1 May 2015 13:33:48 +0200
-Message-Id: <1430480030-29136-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 2/3] media: davinci_vpfe: set minimum required buffers to three
+Date: Mon, 25 May 2015 16:34:28 +0100
+Message-Id: <1432568069-11349-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1432568069-11349-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1432568069-11349-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
-that apps can call to determine that it is indeed a V4L2 device, there
-is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
-solve that, and it will allow utilities like v4l2-compliance to be used
-with these devices as well.
+this patch sets nbuffers to three or more and drops the
+unset member video_limit which just a copy paste from
+earlier driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-subdev.c | 19 +++++++++++++++++++
- include/uapi/linux/v4l2-subdev.h      | 12 ++++++++++++
- 2 files changed, 31 insertions(+)
+ drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h |  2 --
+ drivers/staging/media/davinci_vpfe/vpfe_video.c      | 15 +++------------
+ 2 files changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 6359606..2ab1f7d 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -25,6 +25,7 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- #include <linux/export.h>
-+#include <linux/version.h>
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
+index 2632a80..8ad8d74 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
+@@ -67,8 +67,6 @@ struct vpfe_device {
+ 	/* CCDC IRQs used when CCDC/ISIF output to SDRAM */
+ 	unsigned int			ccdc_irq0;
+ 	unsigned int			ccdc_irq1;
+-	/* maximum video memory that is available*/
+-	unsigned int			video_limit;
+ 	/* media device */
+ 	struct media_device		media_dev;
+ 	/* ccdc subdevice */
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 06d48d5..6744192 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -27,9 +27,6 @@
+ #include "vpfe.h"
+ #include "vpfe_mc_capture.h"
  
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-@@ -187,6 +188,24 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- #endif
+-/* minimum number of buffers needed in cont-mode */
+-#define MIN_NUM_BUFFERS			3
+-
+ static int debug;
  
- 	switch (cmd) {
-+	case VIDIOC_SUBDEV_QUERYCAP: {
-+		struct v4l2_subdev_capability *cap = arg;
+ /* get v4l2 subdev pointer to external subdev which is active */
+@@ -1088,20 +1085,14 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 	struct vpfe_fh *fh = vb2_get_drv_priv(vq);
+ 	struct vpfe_video_device *video = fh->video;
+ 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+-	struct vpfe_pipeline *pipe = &video->pipe;
+ 	unsigned long size;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_queue_setup\n");
+ 	size = video->fmt.fmt.pix.sizeimage;
+ 
+-	if (vpfe_dev->video_limit) {
+-		while (size * *nbuffers > vpfe_dev->video_limit)
+-			(*nbuffers)--;
+-	}
+-	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
+-		if (*nbuffers < MIN_NUM_BUFFERS)
+-			*nbuffers = MIN_NUM_BUFFERS;
+-	}
++	if (vq->num_buffers + *nbuffers < 3)
++		*nbuffers = 3 - vq->num_buffers;
 +
-+		cap->version = LINUX_VERSION_CODE;
-+		cap->device_caps = 0;
-+		cap->pads = 0;
-+		cap->entity_id = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		if (sd->entity.parent) {
-+			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
-+			cap->pads = sd->entity.num_pads;
-+			cap->entity_id = sd->entity.id;
-+		}
-+#endif
-+		memset(cap->reserved, 0, sizeof(cap->reserved));
-+		break;
-+	}
-+
- 	case VIDIOC_QUERYCTRL:
- 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
- 
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index dbce2b5..e48b9fd 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -154,9 +154,21 @@ struct v4l2_subdev_selection {
- 	__u32 reserved[8];
- };
- 
-+struct v4l2_subdev_capability {
-+	__u32 version;
-+	__u32 device_caps;
-+	__u32 pads;
-+	__u32 entity_id;
-+	__u32 reserved[48];
-+};
-+
-+/* This v4l2_subdev is also a media entity and the entity_id field is valid */
-+#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
-+
- /* Backwards compatibility define --- to be removed */
- #define v4l2_subdev_edid v4l2_edid
- 
-+#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
- #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+ 	alloc_ctxs[0] = video->alloc_ctx;
 -- 
 2.1.4
 
