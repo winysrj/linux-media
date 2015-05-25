@@ -1,77 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.181]:41322 "EHLO
-	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422744AbbENV7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2015 17:59:22 -0400
-Date: Thu, 14 May 2015 23:59:16 +0200
-From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] rc-core: use an IDA rather than a bitmap
-Message-ID: <20150514235916.3d3fc1b3@mir>
-In-Reply-To: <20150514172929.07e09549@recife.lan>
-References: <20150402101855.5223.5158.stgit@zeus.muc.hardeman.nu>
-	<20150514172929.07e09549@recife.lan>
+Received: from mout.gmx.net ([212.227.15.19]:58193 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750908AbbEYOS1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 10:18:27 -0400
+Date: Mon, 25 May 2015 16:18:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
+	rob.taylor@codethink.co.uk
+Subject: Re: [PATCH 07/20] media: soc_camera: rcar_vin: Add BT.709 24-bit
+ RGB888 input support
+In-Reply-To: <1432139980-12619-8-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1505251615220.26358@axis700.grange>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+ <1432139980-12619-8-git-send-email-william.towle@codethink.co.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/NFlL0ZBDeu.iiDN20HSvgfe"; protocol="application/pgp-signature"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/NFlL0ZBDeu.iiDN20HSvgfe
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi William,
 
-Hi
+How about this version of this patch:
 
-On 2015-05-14, Mauro Carvalho Chehab wrote:
-> Em Thu, 02 Apr 2015 12:18:55 +0200
-> David H=C3=A4rdeman <david@hardeman.nu> escreveu:
->=20
-> > This patch changes rc-core to use the kernel facilities that are already
-> > available for handling unique numbers instead of rolling its own bitmap
-> > stuff.
-> >=20
-> > Stefan, this should apply cleanly to the media git tree...could you tes=
-t it?
->=20
-> Patch looks good to me but...
->=20
-> you forgot to add your SOB on it.
+https://patchwork.linuxtv.org/patch/28098/
 
-Just to follow this up, with this patch applied, I've never (for the=20
-last 6 weeks already) seen sysfs file conflicts again. So now I'm=20
-pretty confident that it really fixes my original problem.
+? I personally like that one better, it seems clearer to me. This one 
+first sets a bit to vnmp, then make another check and inverts it, whereas 
+that version clearly sets it just for equal colour-spaces. I just never 
+got with proper Sob and (maybe?) authorship.
 
-Feel free to add the tested-by tag, if you like.
+Thanks
+Guennadi
 
-Tested-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+On Wed, 20 May 2015, William Towle wrote:
 
-Thanks a lot
-	Stefan Lippers-Hollmann
-
---Sig_/NFlL0ZBDeu.iiDN20HSvgfe
-Content-Type: application/pgp-signature
-Content-Description: Digitale Signatur von OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVVRq0AAoJEL/gLWWx0ULtTkAP+QHaU/zuuye/MOqh5awegKon
-VlY0rGkSYATquVmH9p4KZFgPtmWVpJbr4ylbHAuG54unlHyWHfwGD5tNMYCKQlkd
-6QoI4bjUk6N+iJnLPhQgT/7OK9Lzb0ZdZSHQqRR3g4CTZEg4mTbYCXQ8dsb3mQhW
-jdxTg6LLxugkAJCygGD6iYMRO6r770hfkpEG8loDc73oy/8wxu5ud4c9rwAJbJmA
-JXl/NmqCVrm/CWsiLhBnr47v4+rCaDqT+EekKJxOWBSADCEMtKywMoXfP0bohLb/
-G5nTCh4KTVOXntXREM1DIXfRQapMW3kbNNc6P1kz1hyUkeb7gh1CodXTsUM+rmG4
-xIK3UzbgfkYH0iXdMzoW5bjYseeyMDWFQ18aECncORYzIgW88+HMA8YdWYDv20Fe
-btd4YPnH9LQyGjZiI0U3CdQYijE465u5q+2U5vdE3uiLqURZ37ZINuk25+r7CnCk
-JYDkrQeA3I4DSMg1I5Q0oOAhisfEFRJlz+WoUxTV0yfmU0CYhNsYvV5QdmlSwTVq
-BvlQbD50h1N8Xk97BqAQrUM9qYJzkzIM1u10Mlxot6yqDs8Fui+30IVuCNtdorda
-wq58MdHkJYlqUi+ORzzU01QTDxIBZbLPiIZAFuSHf2PMyhAkT6t0XYUkO38V8CnY
-Z/02Qa9kid0xtzWiBtwr
-=ljBj
------END PGP SIGNATURE-----
-
---Sig_/NFlL0ZBDeu.iiDN20HSvgfe--
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> 
+> Modified to use MEDIA_BUS_FMT_* constants
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index db7700b..0f67646 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -98,6 +98,7 @@
+>  #define VNMC_INF_YUV10_BT656	(2 << 16)
+>  #define VNMC_INF_YUV10_BT601	(3 << 16)
+>  #define VNMC_INF_YUV16		(5 << 16)
+> +#define VNMC_INF_RGB888		(6 << 16)
+>  #define VNMC_VUP		(1 << 10)
+>  #define VNMC_IM_ODD		(0 << 3)
+>  #define VNMC_IM_ODD_EVEN	(1 << 3)
+> @@ -620,6 +621,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  
+>  	/* input interface */
+>  	switch (icd->current_fmt->code) {
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+> +		/* BT.601/BT.709 24-bit RGB-888 */
+> +		vnmc |= VNMC_INF_RGB888;
+> +		break;
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  		/* BT.601/BT.1358 16bit YCbCr422 */
+>  		vnmc |= VNMC_INF_YUV16;
+> @@ -679,6 +684,15 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	if (output_is_yuv)
+>  		vnmc |= VNMC_BPS;
+>  
+> +	/*
+> +	 * The above assumes YUV input, toggle BPS for RGB input.
+> +	 * RGB inputs can be detected by checking that the most-significant
+> +	 * two bits of INF are set. This corresponds to the bits
+> +	 * set in VNMC_INF_RGB888.
+> +	 */
+> +	if ((vnmc & VNMC_INF_RGB888) == VNMC_INF_RGB888)
+> +		vnmc ^= VNMC_BPS;
+> +
+>  	/* progressive or interlaced mode */
+>  	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+>  
+> @@ -1423,6 +1437,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>  	case MEDIA_BUS_FMT_YUYV10_2X10:
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+>  		if (cam->extra_fmt)
+>  			break;
+>  
+> -- 
+> 1.7.10.4
+> 
