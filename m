@@ -1,113 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:35120 "EHLO
-	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388AbbETQqV convert rfc822-to-8bit (ORCPT
+Received: from mail-gw3-out.broadcom.com ([216.31.210.64]:23402 "EHLO
+	mail-gw3-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791AbbEYVRs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 12:46:21 -0400
-Received: by qkdn188 with SMTP id n188so30779867qkd.2
-        for <linux-media@vger.kernel.org>; Wed, 20 May 2015 09:46:21 -0700 (PDT)
+	Mon, 25 May 2015 17:17:48 -0400
+Message-ID: <556391FE.1020503@broadcom.com>
+Date: Mon, 25 May 2015 14:19:58 -0700
+From: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
 MIME-Version: 1.0
-In-Reply-To: <20150519203851.GC18036@hardeman.nu>
-References: <1427824092-23163-1-git-send-email-a.seppala@gmail.com>
-	<1427824092-23163-2-git-send-email-a.seppala@gmail.com>
-	<20150519203851.GC18036@hardeman.nu>
-Date: Wed, 20 May 2015 19:46:21 +0300
-Message-ID: <CAKv9HNb=qK18mGj9dOdyqEPvABU8b8aAEmGa1s2NULC4g0KX-Q@mail.gmail.com>
-Subject: Re: [PATCH v3 1/7] rc: rc-ir-raw: Add scancode encoder callback
-From: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
-To: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org,
+To: <balbi@ti.com>
+CC: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	James Hogan <james@albanarts.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Kukjin Kim <kgene@kernel.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mathias Nyman <mathias.nyman@linux.intel.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	"Thomas Pugliese" <thomas.pugliese@gmail.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	David Mosberger <davidm@egauge.net>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Gregory CLEMENT <gregory.clement@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kevin Hao <haokexin@gmail.com>,
+	"Jean Delvare" <jdelvare@suse.de>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-ide@vger.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
+	"Anatol Pomazau" <anatol@google.com>,
+	Jonathan Richardson <jonathar@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>,
+	<bcm-kernel-feedback-list@broadcom.com>
+Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com> <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com> <20150515005210.GA31534@saruman.tx.rr.com>
+In-Reply-To: <20150515005210.GA31534@saruman.tx.rr.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 May 2015 at 23:38, David Härdeman <david@hardeman.nu> wrote:
-> On Tue, Mar 31, 2015 at 08:48:06PM +0300, Antti Seppälä wrote:
->>From: James Hogan <james@albanarts.com>
->>
->>Add a callback to raw ir handlers for encoding and modulating a scancode
->>to a set of raw events. This could be used for transmit, or for
->>converting a wakeup scancode filter to a form that is more suitable for
->>raw hardware wake up filters.
->>
->>Signed-off-by: James Hogan <james@albanarts.com>
->>Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
->>Cc: David Härdeman <david@hardeman.nu>
->>---
->>
->>Notes:
->>    Changes in v3:
->>     - Ported to apply against latest media-tree
->>
->>    Changes in v2:
->>     - Alter encode API to return -ENOBUFS when there isn't enough buffer
->>       space. When this occurs all buffer contents must have been written
->>       with the partial encoding of the scancode. This is to allow drivers
->>       such as nuvoton-cir to provide a shorter buffer and still get a
->>       useful partial encoding for the wakeup pattern.
->>
->> drivers/media/rc/rc-core-priv.h |  2 ++
->> drivers/media/rc/rc-ir-raw.c    | 37 +++++++++++++++++++++++++++++++++++++
->> include/media/rc-core.h         |  3 +++
->> 3 files changed, 42 insertions(+)
->>
->>diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
->>index b68d4f76..122c25f 100644
->>--- a/drivers/media/rc/rc-core-priv.h
->>+++ b/drivers/media/rc/rc-core-priv.h
->>@@ -25,6 +25,8 @@ struct ir_raw_handler {
->>
->>       u64 protocols; /* which are handled by this handler */
->>       int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
->>+      int (*encode)(u64 protocols, const struct rc_scancode_filter *scancode,
->>+                    struct ir_raw_event *events, unsigned int max);
->>
->>       /* These two should only be used by the lirc decoder */
->>       int (*raw_register)(struct rc_dev *dev);
->>diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
->>index b732ac6..dd47fe5 100644
->>--- a/drivers/media/rc/rc-ir-raw.c
->>+++ b/drivers/media/rc/rc-ir-raw.c
->>@@ -246,6 +246,43 @@ static int change_protocol(struct rc_dev *dev, u64 *rc_type)
->>       return 0;
->> }
->>
->>+/**
->>+ * ir_raw_encode_scancode() - Encode a scancode as raw events
->>+ *
->>+ * @protocols:                permitted protocols
->>+ * @scancode:         scancode filter describing a single scancode
->>+ * @events:           array of raw events to write into
->>+ * @max:              max number of raw events
->>+ *
->>+ * Attempts to encode the scancode as raw events.
->>+ *
->>+ * Returns:   The number of events written.
->>+ *            -ENOBUFS if there isn't enough space in the array to fit the
->>+ *            encoding. In this case all @max events will have been written.
->>+ *            -EINVAL if the scancode is ambiguous or invalid, or if no
->>+ *            compatible encoder was found.
->>+ */
->>+int ir_raw_encode_scancode(u64 protocols,
+
+
+On 15-05-14 05:52 PM, Felipe Balbi wrote:
+> Hi,
 >
-> Why a bitmask of protocols and not a single protocol enum? What's the
-> use case for encoding a given scancode according to one out of a number
-> of protocols (and not even knowing which one)??
+> On Wed, Apr 22, 2015 at 04:04:10PM -0700, Arun Ramamurthy wrote:
+>> Most of the phy providers use "select" to enable GENERIC_PHY. Since select
+>> is only recommended when the config is not visible, GENERIC_PHY is changed
+>> an invisible option. To maintain consistency, all phy providers are changed
+>> to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
+>> phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
+>> dependency, so it is left as "select".
+>>
+>> Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+>> ---
+>>   drivers/ata/Kconfig                       | 1 -
+>>   drivers/media/platform/exynos4-is/Kconfig | 2 +-
+>>   drivers/phy/Kconfig                       | 4 ++--
+>>   drivers/usb/host/Kconfig                  | 4 ++--
+>>   drivers/video/fbdev/exynos/Kconfig        | 2 +-
+>>   5 files changed, 6 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+>> index 5f60155..6d2e881 100644
+>> --- a/drivers/ata/Kconfig
+>> +++ b/drivers/ata/Kconfig
+>> @@ -301,7 +301,6 @@ config SATA_MV
+>>   	tristate "Marvell SATA support"
+>>   	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
+>>   		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
+>> -	select GENERIC_PHY
+>>   	help
+>>   	  This option enables support for the Marvell Serial ATA family.
+>>   	  Currently supports 88SX[56]0[48][01] PCI(-X) chips,
+>> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+>> index b7b2e47..b6f3eaa 100644
+>> --- a/drivers/media/platform/exynos4-is/Kconfig
+>> +++ b/drivers/media/platform/exynos4-is/Kconfig
+>> @@ -31,7 +31,7 @@ config VIDEO_S5P_FIMC
+>>   config VIDEO_S5P_MIPI_CSIS
+>>   	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
+>>   	depends on REGULATOR
+>> -	select GENERIC_PHY
+>> +	depends on GENERIC_PHY
+>>   	help
+>>   	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
+>>   	  receiver (MIPI-CSIS) devices.
+>> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+>> index 2962de2..edecdb1 100644
+>> --- a/drivers/phy/Kconfig
+>> +++ b/drivers/phy/Kconfig
+>> @@ -5,7 +5,7 @@
+>>   menu "PHY Subsystem"
+>>
+>>   config GENERIC_PHY
+>> -	bool "PHY Core"
+>> +	bool
+>>   	help
+>>   	  Generic PHY support.
+>>
+>> @@ -72,7 +72,7 @@ config PHY_MIPHY365X
+>>   config PHY_RCAR_GEN2
+>>   	tristate "Renesas R-Car generation 2 USB PHY driver"
+>>   	depends on ARCH_SHMOBILE
+>> -	depends on GENERIC_PHY
+>> +	select GENERIC_PHY
 >
-
-I think bitmask was used simply for consistency reasons. Most of the
-rc-core handles protocols in a bitmask (u64 protocols or some variant
-of it). Especially in the decoders the dev->enabled_protocols is used
-to mean "decode any of these protocols but I don't care which one" and
-the encoders were written to follow that logic.
-
->From ir driver point of view it was also kind of nice to use the u64
-enabled_wakeup_protocols from struct rc_dev which already exists and
-is manipulated with the same sysfs code as the enabled_protocols
-bitmask.
-
--- 
-Antti
+> so some you changed from depends to select...
+>
+>>   	help
+>>   	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
+>>
+>> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+>> index 5ad60e4..e2197e2 100644
+>> --- a/drivers/usb/host/Kconfig
+>> +++ b/drivers/usb/host/Kconfig
+>> @@ -182,7 +182,7 @@ config USB_EHCI_HCD_SPEAR
+>>   config USB_EHCI_HCD_STI
+>>   	tristate "Support for ST STiHxxx on-chip EHCI USB controller"
+>>   	depends on ARCH_STI && OF
+>> -	select GENERIC_PHY
+>> +	depends on GENERIC_PHY
+>
+> while others you changed from select to depends.
+>
+> NAK.
+>
+Felipe, I dont understand your concern, could you please explain it more 
+detail?  The logic behind the changes is that in cases where there was 
+an explicit dependency, I changed it to "depends on" and in other cases 
+I changed it to "selects". Thanks
