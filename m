@@ -1,86 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:32909 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965444AbbEEQeT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:34:19 -0400
-Received: by lbbzk7 with SMTP id zk7so133166089lbb.0
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 09:34:17 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 4/4] dw2102: resync fifo when demod locks
-Date: Tue,  5 May 2015 19:33:55 +0300
-Message-Id: <1430843635-24002-4-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
-References: <1430843635-24002-1-git-send-email-olli.salonen@iki.fi>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48905 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750859AbbEYLjh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 07:39:37 -0400
+Message-ID: <556309F3.6050609@xs4all.nl>
+Date: Mon, 25 May 2015 13:39:31 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Florian Echtler <floe@butterbrot.org>, hans.verkuil@cisco.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+CC: modin@yuri.at
+Subject: Re: [PATCH 0/4] [sur40] minor fixes & performance improvements
+References: <1432211382-5155-1-git-send-email-floe@butterbrot.org> <55630606.8020104@xs4all.nl> <556309C9.90503@butterbrot.org>
+In-Reply-To: <556309C9.90503@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the streaming_ctrl is called to enable TS before demod has locked
-the TS will be empty. Copied the solution from the dvbsky driver for the
-TechnoTrend S2-4600 device: when the state changes from unlock to
-lock, call su3000_streaming_ctrl again.
+On 05/25/2015 01:38 PM, Florian Echtler wrote:
+> On 25.05.2015 13:22, Hans Verkuil wrote:
+>> On 05/21/2015 02:29 PM, Florian Echtler wrote:
+>>> This patch series adds several small fixes, features & performance
+>>> improvements. Many thanks to Martin Kaltenbrunner for testing the
+>>> original driver & submitting the patches. 
+>>
+>> The patches look good, but can you repost with better commit logs (i.e. not
+>> just a subject line). Maintainers have become picky about that and without logs
+>> Mauro most likely will not accept it. Actually, I'm not even going to try :-)
+> 
+> OK, will do that later today. Should I just send it as a new patch
+> series, or in reply to the first one? What's the "best practice" here?
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/dw2102.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+New patch series, just prefixed with '[PATCHv2 x/4]'.
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 7552521..f9ad57f 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -117,8 +117,13 @@
- 
- struct dw2102_state {
- 	u8 initialized;
-+	u8 last_lock;
- 	struct i2c_client *i2c_client_tuner;
-+
-+	/* fe hook functions*/
- 	int (*old_set_voltage)(struct dvb_frontend *f, fe_sec_voltage_t v);
-+	int (*fe_read_status)(struct dvb_frontend *fe,
-+		fe_status_t *status);
- };
- 
- /* debug */
-@@ -1001,6 +1006,23 @@ static void dw210x_led_ctrl(struct dvb_frontend *fe, int offon)
- 	i2c_transfer(&udev_adap->dev->i2c_adap, &msg, 1);
- }
- 
-+static int tt_s2_4600_read_status(struct dvb_frontend *fe, fe_status_t *status)
-+{
-+	struct dvb_usb_adapter *d =
-+		(struct dvb_usb_adapter *)(fe->dvb->priv);
-+	struct dw2102_state *st = (struct dw2102_state *)d->dev->priv;
-+	int ret;
-+
-+	ret = st->fe_read_status(fe, status);
-+
-+	/* resync slave fifo when signal change from unlock to lock */
-+	if ((*status & FE_HAS_LOCK) && (!st->last_lock))
-+		su3000_streaming_ctrl(d, 1);
-+
-+	st->last_lock = (*status & FE_HAS_LOCK) ? 1 : 0;
-+	return ret;
-+}
-+
- static struct stv0299_config sharp_z0194a_config = {
- 	.demod_address = 0x68,
- 	.inittab = sharp_z0194a_inittab,
-@@ -1553,6 +1575,12 @@ static int tt_s2_4600_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	state->i2c_client_tuner = client;
- 
-+	/* hook fe: need to resync the slave fifo when signal locks */
-+	state->fe_read_status = adap->fe_adap[0].fe->ops.read_status;
-+	adap->fe_adap[0].fe->ops.read_status = tt_s2_4600_read_status;
-+
-+	state->last_lock = 0;
-+
- 	return 0;
- }
- 
--- 
-1.9.1
+Thanks!
+
+	Hans
 
