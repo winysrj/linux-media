@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:64705 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434AbbEYPEH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 11:04:07 -0400
-Date: Mon, 25 May 2015 17:03:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
-	sergei.shtylyov@cogentembedded.com, hverkuil@xs4all.nl,
-	rob.taylor@codethink.co.uk
-Subject: Re: [PATCH 14/20] media: rcar_vin: Reject videobufs that are too
- small for current format
-In-Reply-To: <1432139980-12619-15-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1505251703021.26358@axis700.grange>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
- <1432139980-12619-15-git-send-email-william.towle@codethink.co.uk>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39452 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751430AbbEYLU6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 07:20:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Subject: Re: [PATCH v2] v4l: subdev: Add pad config allocator and init
+Date: Mon, 25 May 2015 14:21:17 +0300
+Message-ID: <1537709.Z57HprXWZ6@avalon>
+In-Reply-To: <55624FE0.1040307@xs4all.nl>
+References: <1432501800-3411-1-git-send-email-laurent.pinchart@ideasonboard.com> <55624FE0.1040307@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 20 May 2015, William Towle wrote:
+Hi Hans,
 
-> In videobuf_setup reject buffers that are too small for the configured
-> format. Fixes v4l2-complience issue.
+On Monday 25 May 2015 00:25:36 Hans Verkuil wrote:
+> On 05/24/2015 11:10 PM, Laurent Pinchart wrote:
+> > From: Laurent Pinchart <laurent.pinchart@linaro.org>
+> > 
+> > Add a new subdev operation to initialize a subdev pad config array, and
+> > a helper function to allocate and initialize the array. This can be used
+> > by bridge drivers to implement try format based on subdev pad
+> > operations.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+> > Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
 > 
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Reviewed-by: William Towle <william.towle@codethink.co.uk>
-
-Ditto: why Rob's Sob if you're the author?
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |    3 +++
->  1 file changed, 3 insertions(+)
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 571ab20..222002a 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -541,6 +541,9 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
->  		unsigned int bytes_per_line;
->  		int ret;
->  
-> +		if (fmt->fmt.pix.sizeimage < icd->sizeimage)
-> +			return -EINVAL;
-> +
->  		xlate = soc_camera_xlate_by_fourcc(icd,
->  						   fmt->fmt.pix.pixelformat);
->  		if (!xlate)
-> -- 
-> 1.7.10.4
-> 
+> Note that before this goes in there should be at least one subdev driver
+> that implements init_cfg(). Perhaps adv7604?
+
+I fully agree, this needs to be used by at least one subdev driver.
+
+I'd go even further, I'd like to see v4l2_subdev_alloc_pad_config() used by a 
+bridge driver, to implement VIDIOC_TRY_FMT. I've originally written the patch 
+to implement VIDIOC_TRY_FMT (and VIDIOC_ENUM_FRAMESIZES) in a driver I'm 
+developing, but it's not ready for submission to mainline yet.
+
+Do you think a subdev driver is enough, or do we need a bridge too in order to 
+merge this patch ?
+
+> > ---
+> > 
+> >  drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+> >  include/media/v4l2-subdev.h           | 10 ++++++++++
+> >  2 files changed, 28 insertions(+), 1 deletion(-)
+> > 
+> > Changes since v1:
+> > 
+> > - Added v4l2_subdev_free_pad_config
+
+-- 
+Regards,
+
+Laurent Pinchart
+
