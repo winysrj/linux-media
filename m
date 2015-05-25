@@ -1,41 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-2.cisco.com ([72.163.197.26]:53391 "EHLO
-	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756276AbbEVF1h (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:38708 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520AbbEYMAp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 01:27:37 -0400
-Received: from pla-VB.cisco.com ([10.142.60.254])
-	by bgl-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id t4M5RYRu017726
-	for <linux-media@vger.kernel.org>; Fri, 22 May 2015 05:27:34 GMT
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH v2 0/4]  Support for interlaced in cvt/gtf timings
-Date: Fri, 22 May 2015 10:57:33 +0530
-Message-Id: <1432272457-709-1-git-send-email-prladdha@cisco.com>
+	Mon, 25 May 2015 08:00:45 -0400
+Message-id: <55630EE1.90307@samsung.com>
+Date: Mon, 25 May 2015 14:00:33 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, devicetree@vger.kernel.org, sre@kernel.org
+Subject: Re: [PATCH v8 8/8] DT: samsung-fimc: Add examples for
+ samsung,flash-led property
+References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+ <1432131015-22397-9-git-send-email-j.anaszewski@samsung.com>
+ <20150520220018.GE8601@valkosipuli.retiisi.org.uk>
+ <555DA119.9030904@samsung.com>
+ <20150521113213.GI8601@valkosipuli.retiisi.org.uk>
+ <555DDD88.8080601@samsung.com>
+ <20150523120348.GA3170@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150523120348.GA3170@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please find version 2 of patches adding interlaced support in cvt/gtf
-timing.
+Hi,
 
-Changes compared to v1:
-Incorporated the comments from review of first RFC. It was about the 
-error calculation of vertical back porch due to rounding. (Thanks to
-Hans for spoting this error).
+On 23/05/15 14:03, Sakari Ailus wrote:
+> On Thu, May 21, 2015 at 03:28:40PM +0200, Sylwester Nawrocki wrote:
+>> flash-leds = <&flash_xx &image_sensor_x>, <...>;
+> 
+> One more matter to consider: xenon flash devices.
+> 
+> How about samsung,camera-flashes (and ti,camera-flashes)? After pondering
+> this awhile, I'm ok with removing the vendor prefix as well.
+> 
+> Let me know what you think.
 
-Prashant Laddha (4):
-  v4l2-dv-timings: add interlace support in detect cvt/gtf
-  vivid: Use interlaced info for cvt/gtf timing detection
-  adv7604: Use interlaced info for cvt/gtf timing detection
-  adv7842: Use interlaced info for cvt/gtf timing detection
+I thought about it a bit more and I have some doubts about semantics
+as above. I'm fine with 'camera-flashes' as far as name is concerned.
 
- drivers/media/i2c/adv7604.c                  |  4 +--
- drivers/media/i2c/adv7842.c                  |  4 +--
- drivers/media/platform/vivid/vivid-vid-cap.c |  5 +--
- drivers/media/v4l2-core/v4l2-dv-timings.c    | 53 ++++++++++++++++++++++++----
- include/media/v4l2-dv-timings.h              |  6 ++--
- 5 files changed, 58 insertions(+), 14 deletions(-)
+Perhaps we should put only phandles to leds or xenon flash devices
+in the 'camera-flashes' property. I think it would be more future
+proof in case there is more nodes needed to describe the camera flash
+(or a camera module) than the above two. And phandles to corresponding
+image sensor device nodes would be put in a separate property.
 
--- 
-1.9.1
+camera-flashes = <&flash_xx>, ...
+camera-flash-masters = <&image_sensor_x>, ...
 
+Then pairs at same index would describe a single flash, 0 would indicate
+a null entry if needed.
+Similarly we could create properties for other sub-devices of a camera
+module, like lenses, etc.
+
+--
+Thanks,
+Sylwester
