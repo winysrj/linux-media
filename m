@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-4.cisco.com ([72.163.197.28]:48470 "EHLO
-	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542AbbEDLSB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 07:18:01 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH 2/2] v4l2-utils: fix overflow in cvt, gtf calculations
-Date: Mon,  4 May 2015 16:18:59 +0530
-Message-Id: <1430736539-28469-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1430736539-28469-1-git-send-email-prladdha@cisco.com>
-References: <1430736539-28469-1-git-send-email-prladdha@cisco.com>
+Received: from butterbrot.org ([176.9.106.16]:33098 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752548AbbEYME3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 08:04:29 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: hans.verkuil@cisco.com, mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org, modin@yuri.at,
+	Florian Echtler <floe@butterbrot.org>
+Subject: [PATCHv2 4/4] return BUF_STATE_ERROR if streaming stopped during acquisition
+Date: Mon, 25 May 2015 14:04:16 +0200
+Message-Id: <1432555456-20292-5-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
+References: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some of the intermediate calculations can exceed 32 bit signed range,
-especially for higher resolutions and refresh rates. Type casting the
-intermediate values to higher precision to avoid overflow.
+When stop_streaming is called while a frame is currently being retrieved, the
+buffer being filled will still be returned with BUF_STATE_DONE. By resetting
+the sequence number and checking before returning the buffer, it can now
+correctly be returned with BUF_STATE_ERROR.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- utils/v4l2-ctl/v4l2-ctl-modes.cpp | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/input/touchscreen/sur40.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-index 4689006..072763a 100644
---- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-@@ -216,7 +216,7 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 		if (ideal_blank_duty_cycle < 20 * HV_FACTOR)
- 			ideal_blank_duty_cycle = 20 * HV_FACTOR;
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 8add986..8be7b9b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -438,6 +438,10 @@ static void sur40_process_video(struct sur40_state *sur40)
  
--		h_blank = active_h_pixel * ideal_blank_duty_cycle /
-+		h_blank = active_h_pixel * (long long)ideal_blank_duty_cycle /
- 			 (100 * HV_FACTOR - ideal_blank_duty_cycle);
- 		h_blank -= h_blank % (2 * CVT_CELL_GRAN);
+ 	dev_dbg(sur40->dev, "image acquired\n");
  
-@@ -430,7 +430,6 @@ bool calc_gtf_modeline(int image_width, int image_height,
- 	tmp2 = active_v_lines + GTF_MIN_PORCH + interlace;
++	/* return error if streaming was stopped in the meantime */
++	if (sur40->sequence == -1)
++		goto err_poll;
++
+ 	/* mark as finished */
+ 	v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
+ 	new_buf->vb.v4l2_buf.sequence = sur40->sequence++;
+@@ -723,6 +727,7 @@ static int sur40_start_streaming(struct vb2_queue *vq, unsigned int count)
+ static void sur40_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct sur40_state *sur40 = vb2_get_drv_priv(vq);
++	sur40->sequence = -1;
  
- 	h_period_est = tmp1 / (tmp2 * v_refresh);
--
- 	v_sync_bp = GTF_MIN_VSYNC_BP * HV_FACTOR * 100 / h_period_est;
- 	v_sync_bp = (v_sync_bp + 50) / 100;
- 
-@@ -444,7 +443,7 @@ bool calc_gtf_modeline(int image_width, int image_height,
- 	v_refresh_est = (HV_FACTOR * (long long)1000000) /
- 			(h_period_est * total_v_lines / HV_FACTOR);
- 
--	h_period = (h_period_est * v_refresh_est) /
-+	h_period = ((long long)h_period_est * v_refresh_est) /
- 		   (v_refresh * HV_FACTOR);
- 
- 	if (!reduced_blanking)
-@@ -455,7 +454,7 @@ bool calc_gtf_modeline(int image_width, int image_height,
- 				      GTF_S_M_PRIME * h_period / 1000;
- 
- 
--	h_blank = active_h_pixel * ideal_blank_duty_cycle /
-+	h_blank = active_h_pixel * (long long)ideal_blank_duty_cycle /
- 			 (100 * HV_FACTOR - ideal_blank_duty_cycle);
- 	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN))
- 			  * (2 * GTF_CELL_GRAN);
-@@ -467,7 +466,6 @@ bool calc_gtf_modeline(int image_width, int image_height,
- 
- 	h_fp = h_blank / 2 - h_sync;
- 	h_bp = h_fp + h_sync;
--
- 	pixel_clock = ((long long)total_h_pixel * HV_FACTOR * 1000000)
- 					/ h_period;
- 	/* Not sure if clock value needs to be truncated to multiple
+ 	/* Release all active buffers */
+ 	return_all_buffers(sur40, VB2_BUF_STATE_ERROR);
 -- 
 1.9.1
 
