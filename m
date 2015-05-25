@@ -1,121 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43535 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751051AbbERCsV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2015 22:48:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 9D9C62A0003
-	for <linux-media@vger.kernel.org>; Mon, 18 May 2015 04:48:02 +0200 (CEST)
-Date: Mon, 18 May 2015 04:48:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150518024802.9D9C62A0003@tschai.lan>
+Received: from mout.gmx.net ([212.227.17.22]:60313 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791AbbEYRFv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 13:05:51 -0400
+Date: Mon, 25 May 2015 19:05:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 1/3] media: atmel-isi: remove the useless code which
+ disable isi
+In-Reply-To: <55516CB5.5020601@atmel.com>
+Message-ID: <Pine.LNX.4.64.1505251904450.26358@axis700.grange>
+References: <1428570108-4961-1-git-send-email-josh.wu@atmel.com>
+ <1428570108-4961-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1505112147540.12198@axis700.grange> <55516CB5.5020601@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Josh,
 
-Results of the daily build of media_tree:
+On Tue, 12 May 2015, Josh Wu wrote:
 
-date:		Mon May 18 04:00:14 CEST 2015
-git branch:	test
-git hash:	0fae1997f09796aca8ada5edc028aef587f6716c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-1.slh.2-amd64
+> Hi, Guennadi
+> 
+> On 5/12/2015 4:16 AM, Guennadi Liakhovetski wrote:
+> > Hi Josh,
+> > 
+> > Thanks for the patch. I'm afraid I don't quite understand why it is
+> > needed, could you maybe explain a bit more? Is it because
+> > 
+> > (1) during ISI configuration the pixel clock from the sensor is (usually)
+> > anyway disabled, so, we don't have to additionally disable the ISI,
+> > without the pixel clock the ISI is anyway already disabled.
+> > 
+> > or
+> > 
+> > (2) disabling the ISI at those locations below breaks something, because
+> > when the ISI is disabled, the functionality, that's later used isn't
+> > available.
+> > 
+> > I assume it's (1), but if that's the case, then this patch is just
+> > cosmetic, right?
+> Right, it is (1). This patch doesn't impact the function of isi.
+> 
+> The point is when we disable the ISI, we need make sure ISI peripheral clock
+> and pixel clock is enabled. And also need to check the status register or irq
+> to know whether the disable operation is successful. So best way to disable
+> ISI is to call atmel_isi_wait_status(isi, WAIT_ISI_DISABLE).
+> 
+> From this point, the isi_write(isi, ISI_CTRL, ISI_CTRL_DIS) in
+> atmel_isi_probe() is not useful as ISI peripheral clock is not enable yet.
+> but the other two in configure_geometry(), isi_camera_set_bus_param() can work
+> and may protect the case the ISI is not in off state.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Ok, thanks for the explanation.
 
-Detailed results are available here:
+> 
+> > The ISI is anyway disabled, so, that operation simply has
+> > no effect, but also doesn't hurt. OTOH, if some sensor keeps its master
+> > clock running all the time, then switching the ISI off as in the current
+> > version helps save some power, unless it breaks anything?
+> So what about to keep the isi_write(isi, ISI_CTRL, ISI_CTRL_DIS) in
+> configure_geometry() and isi_camera_set_bus_param().
+> Only remove it from atmel_isi_probe()?
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Good, let's do that.
 
-Full logs are available here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> Best Regards,
+> Josh Wu
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > On Thu, 9 Apr 2015, Josh Wu wrote:
+> > 
+> > > To program ISI control register, the pixel clock should be enabled.
+> > > So without pixel clock (from sensor) enabled, disable ISI controller is
+> > > not make sense. So this patch remove those code.
+> > > 
+> > > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > > ---
+> > > 
+> > > Changes in v2:
+> > > - this file is new added.
+> > > 
+> > >   drivers/media/platform/soc_camera/atmel-isi.c | 5 -----
+> > >   1 file changed, 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> > > b/drivers/media/platform/soc_camera/atmel-isi.c
+> > > index c125b1d..31254b4 100644
+> > > --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> > > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> > > @@ -131,8 +131,6 @@ static int configure_geometry(struct atmel_isi *isi,
+> > > u32 width,
+> > >   		return -EINVAL;
+> > >   	}
+> > >   -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> > > -
+> > >   	cfg2 = isi_readl(isi, ISI_CFG2);
+> > >   	/* Set YCC swap mode */
+> > >   	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
+> > > @@ -843,7 +841,6 @@ static int isi_camera_set_bus_param(struct
+> > > soc_camera_device *icd)
+> > >     	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+> > >   -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> > >   	isi_writel(isi, ISI_CFG1, cfg1);
+> > >     	return 0;
+> > > @@ -1022,8 +1019,6 @@ static int atmel_isi_probe(struct platform_device
+> > > *pdev)
+> > >   	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+> > >   		isi->width_flags |= 1 << 9;
+> > >   -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> > > -
+> > >   	irq = platform_get_irq(pdev, 0);
+> > >   	if (IS_ERR_VALUE(irq)) {
+> > >   		ret = irq;
+> > > -- 
+> > > 1.9.1
+> > > 
+> 
