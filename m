@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38644 "EHLO arroyo.ext.ti.com"
+Received: from butterbrot.org ([176.9.106.16]:60442 "EHLO butterbrot.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756606AbbESQUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 12:20:36 -0400
-Date: Tue, 19 May 2015 11:20:03 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Arnd Bergmann <arnd@arndb.de>
-CC: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Prabhakar <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH] [media] ov2659: add v4l2_subdev dependency
-Message-ID: <20150519162002.GE8123@ti.com>
-References: <6092911.yr0lA5IaG4@wuerfel>
+	id S1750859AbbEYLiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2015 07:38:51 -0400
+Message-ID: <556309C9.90503@butterbrot.org>
+Date: Mon, 25 May 2015 13:38:49 +0200
+From: Florian Echtler <floe@butterbrot.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <6092911.yr0lA5IaG4@wuerfel>
+To: Hans Verkuil <hverkuil@xs4all.nl>, hans.verkuil@cisco.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+CC: modin@yuri.at
+Subject: Re: [PATCH 0/4] [sur40] minor fixes & performance improvements
+References: <1432211382-5155-1-git-send-email-floe@butterbrot.org> <55630606.8020104@xs4all.nl>
+In-Reply-To: <55630606.8020104@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="joML8dIWSdI41OMA40uvdDvx1JCHxnoPm"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, for the patch.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--joML8dIWSdI41OMA40uvdDvx1JCHxnoPm
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Benoit Parrot <bparrot@ti.com>
+On 25.05.2015 13:22, Hans Verkuil wrote:
+> On 05/21/2015 02:29 PM, Florian Echtler wrote:
+>> This patch series adds several small fixes, features & performance
+>> improvements. Many thanks to Martin Kaltenbrunner for testing the
+>> original driver & submitting the patches.=20
+>=20
+> The patches look good, but can you repost with better commit logs (i.e.=
+ not
+> just a subject line). Maintainers have become picky about that and with=
+out logs
+> Mauro most likely will not accept it. Actually, I'm not even going to t=
+ry :-)
 
-Arnd Bergmann <arnd@arndb.de> wrote on Tue [2015-May-19 14:39:12 +0200]:
-> The newly added ov2659 driver uses the v4l2 subdev API, but
-> can be enabled even when that API is not part of the kernel,
-> resulting in this build error:
-> 
-> media/i2c/ov2659.c: In function 'ov2659_get_fmt':
-> media/i2c/ov2659.c:1054:8: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-> media/i2c/ov2659.c:1054:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-> media/i2c/ov2659.c: In function 'ov2659_set_fmt':
-> media/i2c/ov2659.c:1129:6: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-> media/i2c/ov2659.c: In function 'ov2659_open':
-> media/i2c/ov2659.c:1264:38: error: 'struct v4l2_subdev_fh' has no member named 'pad'
-> 
-> This adds an explicit dependency, like all the other drivers have.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: c4c0283ab3c ("[media] media: i2c: add support for omnivision's ov2659 sensor")
-> 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 6f30ea76151a..db01ed84918f 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -469,7 +469,7 @@ config VIDEO_SMIAPP_PLL
->  config VIDEO_OV2659
->  	tristate "OmniVision OV2659 sensor support"
->  	depends on VIDEO_V4L2 && I2C
-> -	depends on MEDIA_CAMERA_SUPPORT
-> +	depends on MEDIA_CAMERA_SUPPORT && VIDEO_V4L2_SUBDEV_API
->  	---help---
->  	  This is a Video4Linux2 sensor-level driver for the OmniVision
->  	  OV2659 camera.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK, will do that later today. Should I just send it as a new patch
+series, or in reply to the first one? What's the "best practice" here?
+
+Best, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
+
+
+--joML8dIWSdI41OMA40uvdDvx1JCHxnoPm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlVjCckACgkQ7CzyshGvathaEwCZAY7YRIRbiWBxcvlFaQ7Kz01t
+98YAoNrHlB+tBXdfTxXleiEeT5YmjuYz
+=Z5qE
+-----END PGP SIGNATURE-----
+
+--joML8dIWSdI41OMA40uvdDvx1JCHxnoPm--
