@@ -1,91 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38125 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753469AbbEFG5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 02:57:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:56195 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752404AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:36 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 1/8] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-Date: Wed,  6 May 2015 08:57:16 +0200
-Message-Id: <1430895443-41839-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [ATTN 9/9] hackrf: do not set human readable name for formats
+Date: Tue, 26 May 2015 20:08:10 +0300
+Message-Id: <1432660090-19574-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Format names are set by core nowadays. Remove name from driver.
 
-While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
-that apps can call to determine that it is indeed a V4L2 device, there
-is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
-solve that, and it will allow utilities like v4l2-compliance to be used
-with these devices as well.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-subdev.c | 14 ++++++++++++++
- include/uapi/linux/v4l2-subdev.h      | 10 ++++++++++
- 2 files changed, 24 insertions(+)
+ drivers/media/usb/hackrf/hackrf.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 6359606..50ada27 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -25,6 +25,7 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- #include <linux/export.h>
-+#include <linux/version.h>
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 6ad6937..1f9483d 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -69,7 +69,6 @@ static const struct v4l2_frequency_band bands_rx_tx[] = {
  
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-@@ -187,6 +188,19 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- #endif
- 
- 	switch (cmd) {
-+	case VIDIOC_SUBDEV_QUERYCAP: {
-+		struct v4l2_subdev_capability *cap = arg;
-+
-+		cap->version = LINUX_VERSION_CODE;
-+		cap->device_caps = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		if (sd->entity.parent)
-+			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
-+#endif
-+		memset(cap->reserved, 0, sizeof(cap->reserved));
-+		break;
-+	}
-+
- 	case VIDIOC_QUERYCTRL:
- 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
- 
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index dbce2b5..1848b74 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -154,9 +154,19 @@ struct v4l2_subdev_selection {
- 	__u32 reserved[8];
+ /* stream formats */
+ struct hackrf_format {
+-	char	*name;
+ 	u32	pixelformat;
+ 	u32	buffersize;
  };
+@@ -77,7 +76,6 @@ struct hackrf_format {
+ /* format descriptions for capture and preview */
+ static struct hackrf_format formats[] = {
+ 	{
+-		.name		= "Complex S8",
+ 		.pixelformat	= V4L2_SDR_FMT_CS8,
+ 		.buffersize	= BULK_BUFFER_SIZE,
+ 	},
+@@ -977,7 +975,6 @@ static int hackrf_enum_fmt_sdr_cap(struct file *file, void *priv,
+ 	if (f->index >= NUM_FORMATS)
+ 		return -EINVAL;
  
-+struct v4l2_subdev_capability {
-+	__u32 version;
-+	__u32 device_caps;
-+	__u32 reserved[50];
-+};
-+
-+/* This v4l2_subdev is also a media entity and the entity_id field is valid */
-+#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
-+
- /* Backwards compatibility define --- to be removed */
- #define v4l2_subdev_edid v4l2_edid
+-	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
+ 	f->pixelformat = formats[f->index].pixelformat;
  
-+#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
- #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
+ 	return 0;
 -- 
-2.1.4
+http://palosaari.fi/
 
