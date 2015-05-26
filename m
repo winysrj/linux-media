@@ -1,53 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41182 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752719AbbEHLeF (ORCPT
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:35830 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753302AbbEZMca (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 07:34:05 -0400
-Message-ID: <554C9F1A.6000502@xs4all.nl>
-Date: Fri, 08 May 2015 13:33:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 26 May 2015 08:32:30 -0400
+Received: by wgme6 with SMTP id e6so27185824wgm.2
+        for <linux-media@vger.kernel.org>; Tue, 26 May 2015 05:30:52 -0700 (PDT)
+Message-ID: <556465E1.8000009@gmail.com>
+Date: Tue, 26 May 2015 14:24:01 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 01/18] media controller: add EXPERIMENTAL to Kconfig option
- for DVB support
-References: <cover.1431046915.git.mchehab@osg.samsung.com> <35cb86bc03b693fd5ef6133c22c78aacfd63a0e2.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <35cb86bc03b693fd5ef6133c22c78aacfd63a0e2.1431046915.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+To: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >=  4.1.x
+References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com> <554F352F.10301@gmail.com> <554FDAE7.4010906@gmail.com> <5550F842.3050604@gmail.com> <55520A08.1010605@iki.fi> <5552CB67.8070106@gmail.com> <5557CDBE.2030806@iki.fi> <555A3A48.2010002@gmail.com> <555E4CEF.4000901@gmail.com>
+In-Reply-To: <555E4CEF.4000901@gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
-> The Media Controller DVB support is still an experimental feature,
-> as it is under heavy development. It is already said that it is
-> an experimental feature at the help, but let make it even clearer
-> and louder, as we may need to adjust some bits when we start using it
-> on embedded drivers.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+If it is not taken into account the already known problem of unreliable operation of the first tuner of the two,
+the device works reliably within kernel 4.0.4 with mxl5007t.ko reverted to
+http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/drivers/media/tuners/mxl5007t.c?id=ccae7af
+that is in the same state as is in the longterm kernel - 3.18.14,
+which is in correspondence with the aforementioned results.
 
-Thanks!
-
-	Hans
-
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 3ef0f90b128f..8af89b084267 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -95,7 +95,7 @@ config MEDIA_CONTROLLER
->  	  This API is mostly used by camera interfaces in embedded platforms.
->  
->  config MEDIA_CONTROLLER_DVB
-> -	bool "Enable Media controller for DVB"
-> +	bool "Enable Media controller for DVB (EXPERIMENTAL)"
->  	depends on MEDIA_CONTROLLER
->  	---help---
->  	  Enable the media controller API support for DVB.
-> 
 
