@@ -1,66 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:38347 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbbETO67 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:58:59 -0400
-Received: by wichy4 with SMTP id hy4so63330216wic.1
-        for <linux-media@vger.kernel.org>; Wed, 20 May 2015 07:58:58 -0700 (PDT)
-From: Jemma Denson <jdenson@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, patrick.boettcher@posteo.de,
-	Jemma Denson <jdenson@gmail.com>
-Subject: [PATCH] cx24120: Assume ucb registers is a counter
-Date: Wed, 20 May 2015 15:57:49 +0100
-Message-Id: <1432133869-28215-1-git-send-email-jdenson@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36871 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754512AbbEZN1V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 09:27:21 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 08/13] crypto: omap-aes - Support for deferred probing when requesting DMA channels
+Date: Tue, 26 May 2015 16:26:03 +0300
+Message-ID: <1432646768-12532-9-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ucblocks register is probably a counter and not a rate; assume
-it is so and change the calculations as required.
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channels. Only fall back to pio mode if the error code returned is not
+-EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 
-Signed-off-by: Jemma Denson <jdenson@gmail.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Herbert Xu <herbert@gondor.apana.org.au>
+CC: David S. Miller <davem@davemloft.net>
+CC: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- drivers/media/dvb-frontends/cx24120.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/crypto/omap-aes.c | 38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
-index a14d0f1..10a948e 100644
---- a/drivers/media/dvb-frontends/cx24120.c
-+++ b/drivers/media/dvb-frontends/cx24120.c
-@@ -154,7 +154,7 @@ struct cx24120_state {
- 	u32 bitrate;
- 	u32 berw_usecs;
- 	u32 ber_prev;
--	u32 per_prev;
-+	u32 ucb_offset;
- 	unsigned long ber_jiffies_stats;
- 	unsigned long per_jiffies_stats;
- };
-@@ -698,8 +698,12 @@ static void cx24120_get_stats(struct cx24120_state *state)
- 		ucb |= cx24120_readreg(state, CX24120_REG_UCB_L);
- 		dev_dbg(&state->i2c->dev, "ucblocks = %d\n", ucb);
+diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+index 9a28b7e07c71..699a14509adb 100644
+--- a/drivers/crypto/omap-aes.c
++++ b/drivers/crypto/omap-aes.c
+@@ -356,7 +356,7 @@ static void omap_aes_dma_out_callback(void *data)
  
-+		/* handle reset */
-+		if (ucb < state->ucb_offset)
-+			state->ucb_offset = c->block_error.stat[0].uvalue;
-+
- 		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
--		c->block_error.stat[0].uvalue += ucb;
-+		c->block_error.stat[0].uvalue = ucb + state->ucb_offset;
+ static int omap_aes_dma_init(struct omap_aes_dev *dd)
+ {
+-	int err = -ENOMEM;
++	int err;
+ 	dma_cap_mask_t mask;
  
- 		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
- 		c->block_count.stat[0].uvalue += state->bitrate / 8 / 208;
-@@ -1541,8 +1545,7 @@ static int cx24120_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 		return 0;
+ 	dd->dma_lch_out = NULL;
+@@ -365,21 +365,20 @@ static int omap_aes_dma_init(struct omap_aes_dev *dd)
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 
+-	dd->dma_lch_in = dma_request_slave_channel_compat(mask,
+-							  omap_dma_filter_fn,
+-							  &dd->dma_in,
+-							  dd->dev, "rx");
+-	if (!dd->dma_lch_in) {
++	dd->dma_lch_in = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &dd->dma_in,
++					dd->dev, "rx");
++	if (IS_ERR(dd->dma_lch_in)) {
+ 		dev_err(dd->dev, "Unable to request in DMA channel\n");
+-		goto err_dma_in;
++		return PTR_ERR(dd->dma_lch_in);
  	}
  
--	*ucblocks = c->block_error.stat[0].uvalue - state->per_prev;
--	state->per_prev = c->block_error.stat[0].uvalue;
-+	*ucblocks = c->block_error.stat[0].uvalue - state->ucb_offset;
+-	dd->dma_lch_out = dma_request_slave_channel_compat(mask,
+-							   omap_dma_filter_fn,
+-							   &dd->dma_out,
+-							   dd->dev, "tx");
+-	if (!dd->dma_lch_out) {
++	dd->dma_lch_out = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &dd->dma_out,
++					dd->dev, "tx");
++	if (IS_ERR(dd->dma_lch_out)) {
+ 		dev_err(dd->dev, "Unable to request out DMA channel\n");
++		err = PTR_ERR(dd->dma_lch_out);
+ 		goto err_dma_out;
+ 	}
  
- 	return 0;
+@@ -387,14 +386,15 @@ static int omap_aes_dma_init(struct omap_aes_dev *dd)
+ 
+ err_dma_out:
+ 	dma_release_channel(dd->dma_lch_in);
+-err_dma_in:
+-	if (err)
+-		pr_err("error: %d\n", err);
++
+ 	return err;
  }
+ 
+ static void omap_aes_dma_cleanup(struct omap_aes_dev *dd)
+ {
++	if (dd->pio_only)
++		return;
++
+ 	dma_release_channel(dd->dma_lch_out);
+ 	dma_release_channel(dd->dma_lch_in);
+ }
+@@ -1218,7 +1218,9 @@ static int omap_aes_probe(struct platform_device *pdev)
+ 	tasklet_init(&dd->queue_task, omap_aes_queue_task, (unsigned long)dd);
+ 
+ 	err = omap_aes_dma_init(dd);
+-	if (err && AES_REG_IRQ_STATUS(dd) && AES_REG_IRQ_ENABLE(dd)) {
++	if (err == -EPROBE_DEFER) {
++		goto err_irq;
++	} else if (err && AES_REG_IRQ_STATUS(dd) && AES_REG_IRQ_ENABLE(dd)) {
+ 		dd->pio_only = 1;
+ 
+ 		irq = platform_get_irq(pdev, 0);
+@@ -1262,8 +1264,8 @@ err_algs:
+ 		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
+ 			crypto_unregister_alg(
+ 					&dd->pdata->algs_info[i].algs_list[j]);
+-	if (!dd->pio_only)
+-		omap_aes_dma_cleanup(dd);
++
++	omap_aes_dma_cleanup(dd);
+ err_irq:
+ 	tasklet_kill(&dd->done_task);
+ 	tasklet_kill(&dd->queue_task);
 -- 
-2.1.0
+2.3.5
 
