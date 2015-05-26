@@ -1,176 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56182 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751117AbbEHOcW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 10:32:22 -0400
-Message-ID: <554CC8E3.2030308@xs4all.nl>
-Date: Fri, 08 May 2015 16:32:03 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-References: <cover.1431046915.git.mchehab@osg.samsung.com>	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>	<554CA862.8070407@xs4all.nl>	<20150508095754.1c39a276@recife.lan>	<554CB863.1040006@xs4all.nl> <20150508110826.00e4e954@recife.lan>
-In-Reply-To: <20150508110826.00e4e954@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:59726 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752296AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [ATTN 5/9] DocBook: document SDR transmitter
+Date: Tue, 26 May 2015 20:08:06 +0300
+Message-Id: <1432660090-19574-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2015 04:08 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 08 May 2015 15:21:39 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 05/08/2015 02:57 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 08 May 2015 14:13:22 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> On 05/08/2015 03:12 AM, Mauro Carvalho Chehab wrote:
->>>>> Finally, let's rename the tuner entity. inside the media subsystem,
->>>>> a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
->>>>> It could even be used on other subsystems, like network, for wireless
->>>>> devices.
->>>>>
->>>>> So, it is not constricted to V4L2 API, or to a subdev.
->>>>>
->>>>> Let's then rename it as:
->>>>> 	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
->>>>
->>>> See patch 04/18.
->>>
->>> Mapping the tuner as a V4L2_SUBDEV is plain wrong. We can't assume
->>> that a tuner will always be mapped via V4L2 subdev API.
->>
->> True. Today we have subdevs that have no device node to control them, so
->> in that case it would just be a SUBDEV entity. There are subdevs that make
->> a v4l-subdev device node, so those can be V4L(2)_SUBDEV entities.
->>
->> The question is: what are your ideas for e.g. DVB-only tuners? Would they
->> get a DVB-like device node? (so DTV_SUBDEV)
-> 
-> I guess we may need DVB subdevs in the future. For now, I don't see
-> much usage.
-> 
->> Would hybrid tuners have two
->> device nodes? One v4l-subdev, one dvb/dtv-subdev?
-> 
-> No. A tuner is a tuner. The very same device can be used for analog or
-> digital TV. Ok, there are tuners that only work for digital TV (satellite
-> tuners, typically), because satellite requires a different tuning range,
-> and require an extra hardware to power up the satellite antena. So, on
-> most devices, the tuner is integrated with SEC.
-> 
-> In any case, I don't see any reason why artificially one piece of hardware
-> component (tuner) into one subdevice entity per API.
-> 
-> What it might make sense in the future is to have some DVB-specific ioctls
-> for a hybrid tuner,  in order to allow adjusting its internal filters to
-> an specific digital TV standard.
-> 
->> Just curious what your thoughts are.
->>
->> Brainstorming:
->>
->> It might be better to map each device node to an entity and each hardware
->> component (tuner, DMA engine) to an entity, and avoid this mixing of
->> hw entity vs device node entity.
-> 
-> Ok, but then we need to properly define the namespaces for HW and for
-> Linux API components.
-> 
-> So, we would have a namespace like:
->  
-> 	- ENT_T_DEVNODE_DVB_(FE|CA|NET|DEMUX|DVR) for the DVB API device nodes;
-> 	- ENT_T_DEVNODE_V4L for the radio/swradio/video/vbi devnodes, or,
-> alternatively, use ENT_T_DEVNODE_V4L_(RADIO|SWRADIO|VIDEO|VBI);
-> 	- ENT_T_HW_(TUNER|CAM_SENSOR|ATV_DEMOD|DTV_DEMOD|...) for the
-> hardware components.
-> 
-> In other words, the namespace would actually define two subtypes:
-> 	- devnodes;
-> 	- hardware components
-> 
-> There's one advantage on this strategy: it is easier to keep backward
-> compatibility, IMHO, as we'll be preserving 1 << 16 for device nodes
+Add documentation for V4L SDR transmitter (output) devices.
 
-Right, that will work.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |  4 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
+ 7 files changed, 42 insertions(+), 13 deletions(-)
 
-> and 2 << 16 for hardware components.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index e8f28bf..a237e36 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
+ 	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
+ <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
+ 	</listitem>
++	<listitem>
++	  <para>Added transmitter support for Software Defined Radio (SDR)
++Interface.</para>
++	</listitem>
+       </orderedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index 3344921..a659771 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
+ <structfield>capabilities</structfield> field of &v4l2-capability;
+ returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
+ Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
++    </para>
++    <para>
++Devices supporting the SDR transmitter interface set the
++<constant>V4L2_CAP_SDR_OUTPUT</constant> and
++<constant>V4L2_CAP_MODULATOR</constant> flag in the
++<structfield>capabilities</structfield> field of &v4l2-capability;
++returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
++Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
++    </para>
++    <para>
+ At least one of the read/write, streaming or asynchronous I/O methods must
+ be supported.
+     </para>
+@@ -39,14 +49,15 @@ be supported.
+     <para>
+ SDR devices can support <link linkend="control">controls</link>, and must
+ support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
+-for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
+-frequency.
++for setting the ADC/DAC sampling rate (sampling frequency) and the possible
++radio frequency (RF).
+     </para>
+ 
+     <para>
+-The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+-the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
++device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
++tuner type is used for setting radio frequency.
++The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+ Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
+ 
+@@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
+     <title>Data Format Negotiation</title>
+ 
+     <para>
+-The SDR capture device uses the <link linkend="format">format</link> ioctls to
+-select the capture format. Both the sampling resolution and the data streaming
+-format are bound to that selectable format. In addition to the basic
++The SDR device uses the <link linkend="format">format</link> ioctls to
++select the capture and output format. Both the sampling resolution and the data
++streaming format are bound to that selectable format. In addition to the basic
+ <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
+ must be supported as well.
+     </para>
+@@ -69,7 +80,8 @@ must be supported as well.
+     <para>
+ To use the <link linkend="format">format</link> ioctls applications set the
+ <structfield>type</structfield> field of a &v4l2-format; to
+-<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
++<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
++<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
+ <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
+ union as needed per the desired operation.
+ Currently there is two fields, <structfield>pixelformat</structfield> and
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index bfe6662..5f8d96e 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1006,8 +1006,14 @@ should set this to 0.</entry>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
+ 	    <entry>11</entry>
+-	    <entry>Buffer for Software Defined Radio (SDR), see <xref
+-		linkend="sdr" />.</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
++		<xref linkend="sdr" />.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
++	    <entry>12</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
++		<xref linkend="sdr" />.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index fcde4e2..987bd7d 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1541,7 +1541,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+   <section id="sdr-formats">
+     <title>SDR Formats</title>
+ 
+-    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
++    <para>These formats are used for <link linkend="sdr">SDR</link>
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index b94d381..6a658ac 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -157,6 +157,7 @@ applications. -->
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+ Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
++Added transmitter support for Software Defined Radio (SDR) Interface.
+ 	</revremark>
+       </revision>
+ 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index 4fe19a7a..ffcb448 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -175,7 +175,7 @@ capture and output devices.</entry>
+ 	    <entry>&v4l2-sdr-format;</entry>
+ 	    <entry><structfield>sdr</structfield></entry>
+ 	    <entry>Definition of a data format, see
+-<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
++<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index 20fda75..cd82148 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -308,6 +308,12 @@ modulator programming see
+ fields.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
++	    <entry>0x00400000</entry>
++	    <entry>The device supports the
++<link linkend="sdr">SDR Output</link> interface.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
+ 	    <entry>0x01000000</entry>
+ 	    <entry>The device supports the <link
+-- 
+http://palosaari.fi/
 
-This remains problematic since I believe this should be done as a list
-of properties. Instead the entity type would be ENT_T_HW (if it represents
-actual hardware), ENT_T_SW (if it is a software implementation, for example
-for the DVB demux if there is no HW demux), and perhaps ENT_T_IP for
-representing IP blocks (not sure about this one).
-
-And the properties will tell what functions it supports.
-
-The existing 2 << 16 defines would only be used if the property list matches
-the original meaning of the define to keep it backwards compatible.
-
-> 
-> Yet, we'll need to add an entity for the V4L2 hardware DMA (with makes
-> sense to me), and this might break backward compatibility if not done
-> well.
-
-I see this as a property as well, but otherwise I agree with this.
-
-> 
-> It should be said that, in such case, hardware components will then
-> mean not only V4L2-specific hardware (V4L2_SUBDEV_foo), but also DVB,
-> ALSA, ... components.
-> 
-> So, we'll still need a way to identify what of those components are
-> V4L2 subdevs, probably using the properties API.
-
-Why? A hardware component that can be controlled via a v4l-subdev node
-would be linked to an entity for that v4l-subdev node. That's an API
-entity. The whole 'is this a v4l-subdev' question disappears, since that
-is now no longer relevant. Instead you will have an ENT_T_DEVNODE_V4L_SUBDEV
-entity linked to the hw entity.
-
-Even a radio device would fit cleanly into this: the tuner entity simply
-has a link to a radio device node entity.
-
-Hmm, does this also solve the control vs DMA issue? If a DEVNODE entity
-is hooked up to an entity with the DMA functionality, then you can stream,
-otherwise it is just for control.
-
-I'm not sure if this is always true, though. Of course, we can also just
-add the streaming/dma property to the DEVNODE entity as well.
-
-> If you all agree with that, I'll respin the patch series to map the
-> entities like that.
-
-We can interpret the existing ENT_T_HW_TUNER etc. as shorthand for a
-property while the property API isn't there yet (we need that anyway
-for backwards compat).
-
-So we would need to add a ENT_T_HW_DMA as well (to be replaced by a
-property later).
-
-Basically I see the 1 << 16 range as device node types, the 2 << 16 range
-as shorthands for what should be properties (this really defined functions
-and entities can combine multiple functions), and we would need to have a
-new range (4 << 16) for non-DEVNODE entity types. Although we could keep
-it in range 1 << 16 as well, but I think it might make sense to keep it
-separate.
-
-And there you would get ENT_T_HW/SW/IP (not sure about the last one). And
-perhaps FPGA.
-
-Again, just brainstorming here.
-
-Regards,
-
-	Hans
