@@ -1,71 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52261 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753983AbbETSe1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 14:34:27 -0400
-Message-ID: <555CD3AB.7010103@xs4all.nl>
-Date: Wed, 20 May 2015 20:34:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Patrice Levesque <video4linux.wayne@ptaff.ca>
-Subject: Re: ATI TV Wonder regression since at least 3.19.6
-References: <20150511161203.GG3206@ptaff.ca> <55519647.5010007@xs4all.nl> <20150514125607.GA3303@ptaff.ca> <5554C7BB.3070300@xs4all.nl> <20150515151218.GA5466@ptaff.ca>
-In-Reply-To: <20150515151218.GA5466@ptaff.ca>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55662 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752304AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [ATTN 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+Date: Tue, 26 May 2015 20:08:02 +0300
+Message-Id: <1432660090-19574-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/15/2015 05:12 PM, Patrice Levesque wrote:
-> 
-> Hi Hans,
-> 
-> 
->>> Function isn't used; when compiling I get:
->> That makes no sense. This function is most definitely used.
-> 
-> Idiot guy here did not follow simple instructions and didn't patch the
-> right kernel source.  He just did, and function is used.
-> 
-> 
->> Did you start a capturing video first before running dmesg? I want to
->> see if capturing video will generate messages in dmesg.
-> 
-> Sending you again my (truncated) dmesg, but here's the annotated salient bit:
-> 
-> Starting video capture first time:
-> [Fri May 15 11:01:43 2015] restart_video_queue
-> [Fri May 15 11:01:44 2015] restart_video_queue
-> [Fri May 15 11:01:55 2015] restart_video_queue
-> [Fri May 15 11:01:56 2015] restart_video_queue
-> [Fri May 15 11:01:56 2015] restart_video_queue
-> [Fri May 15 11:02:00 2015] restart_video_queue
-> [Fri May 15 11:02:05 2015] restart_video_queue
-> [Fri May 15 11:02:06 2015] restart_video_queue
-> [Fri May 15 11:02:06 2015] restart_video_queue
-> [Fri May 15 11:02:06 2015] restart_video_queue
-> [Fri May 15 11:02:07 2015] restart_video_queue
-> [Fri May 15 11:02:07 2015] restart_video_queue
-> [Fri May 15 11:02:07 2015] restart_video_queue
-> [Fri May 15 11:02:09 2015] restart_video_queue
-> Stopping video capture:
-> [Fri May 15 11:03:26 2015] restart_video_queue
-> Re-Starting video capture:
-> [Fri May 15 11:03:40 2015] restart_video_queue
-> Stopping video capture:
-> [Fri May 15 11:04:18 2015] restart_video_queue
-> 
-> Changing channels didn't provoke restart_video_queue events.
+SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+has DAC (Digital-to-Analog Converter) . Originally I though it could
+be good idea to have own type for receiver and transmitter, but now I
+feel one common type for SDR is enough. So lets rename it.
 
-FYI: I've bought this card on ebay and I am waiting for it to arrive.
-Hopefully I can reproduce it and then I'll fix it. It's a fair bit of
-work, unfortunately.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+ Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+ include/uapi/linux/videodev2.h              |  5 ++++-
+ 5 files changed, 29 insertions(+), 7 deletions(-)
 
-The fact that this function is called means that the DMA stalls every
-so often, and I'd like to know why that happens.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index a0aef85..f56faf5 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 4.2</title>
++      <orderedlist>
++	<listitem>
++	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
++<constant>V4L2_TUNER_SDR</constant>. The use of
++<constant>V4L2_TUNER_ADC</constant> is deprecated now.
++	  </para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index f890356..3344921 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -44,10 +44,10 @@ frequency.
+     </para>
+ 
+     <para>
+-The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+ the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+-Normally the ADC tuner is #0 and the RF tuner is #1.
++tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
+ 
+     <para>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1..c9eedc1 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+ structs, ioctls) must be noted in more detail in the history chapter
+ (compat.xml), along with the possible impact on existing drivers and
+ applications. -->
++      <revision>
++	<revnumber>4.2</revnumber>
++	<date>2015-05-26</date>
++	<authorinitials>ap</authorinitials>
++	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++	</revremark>
++      </revision>
+ 
+       <revision>
+ 	<revnumber>3.21</revnumber>
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 1476602..03b9daf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1634,7 +1634,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_frequency *p = arg;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR)
+-		p->type = V4L2_TUNER_ADC;
++		p->type = V4L2_TUNER_SDR;
+ 	else
+ 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+@@ -1649,7 +1649,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 	} else {
+ 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+@@ -2272,7 +2272,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	int err;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 		type = p->type;
+ 	} else {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 0f5a467..2ec0b55 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
+-	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_SDR               = 4,
+ 	V4L2_TUNER_RF                = 5,
+ };
+ 
++/* Deprecated, do not use */
++#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
++
+ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+-- 
+http://palosaari.fi/
 
-Regards,
-
-	Hans
