@@ -1,82 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:65477 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927AbbETOGp (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:51018 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752886AbbEZN1F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:06:45 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: y2038@lists.linaro.org
-Cc: Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Akihiro Tsukada <tskd08@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [Y2038] [PATCH v2] [media] dvb-frontend: Replace timeval with ktime_t
-Date: Wed, 20 May 2015 16:06:39 +0200
-Message-ID: <287053272.pKmVI1JmAO@wuerfel>
-In-Reply-To: <20150519082210.GA2998@tinar>
-References: <20150519082210.GA2998@tinar>
+	Tue, 26 May 2015 09:27:05 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>, Mark Brown <broonie@kernel.org>
+Subject: [PATCH 11/13] spi: omap2-mcspi: Support for deferred probing when requesting DMA channels
+Date: Tue, 26 May 2015 16:26:06 +0300
+Message-ID: <1432646768-12532-12-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 19 May 2015 13:52:10 Tina Ruchandani wrote:
-> struct timeval uses a 32-bit seconds representation which will
-> overflow in the year 2038 and beyond. This patch replaces
-> the usage of struct timeval with ktime_t which is a 64-bit
-> timestamp and is year 2038 safe.
-> This patch is part of a larger attempt to remove all instances
-> of 32-bit timekeeping variables (timeval, timespec, time_t)
-> which are not year 2038 safe, from the kernel.
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channels. Only fall back to pio mode if the error code returned is not
+-EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 
-Ok.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-> The patch is a work-in-progress - correctness of the following
-> changes is unclear:
-> (a) Usage of timeval_usec_diff - The function seems to subtract
-> usec values without caring about the difference of the seconds field.
-> There may be an implicit assumption in the original code that the
-> time delta is always of the order of microseconds.
-> The patch replaces the usage of timeval_usec_diff with
-> ktime_to_us(ktime_sub()) which computes the real timestamp difference,
-> not just the difference in the usec field.
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index a7d85c5ab2fa..e6ff937688ff 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -948,6 +948,7 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+ 	struct omap2_mcspi_dma	*mcspi_dma;
+ 	dma_cap_mask_t mask;
+ 	unsigned sig;
++	int ret = 0;
+ 
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
+@@ -959,30 +960,35 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 	sig = mcspi_dma->dma_rx_sync_dev;
+ 
+-	mcspi_dma->dma_rx =
+-		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
+-						 &sig, &master->dev,
+-						 mcspi_dma->dma_rx_ch_name);
+-	if (!mcspi_dma->dma_rx)
++	mcspi_dma->dma_rx = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &sig, &master->dev,
++					mcspi_dma->dma_rx_ch_name);
++	if (IS_ERR(mcspi_dma->dma_rx)) {
++		ret = PTR_ERR(mcspi_dma->dma_rx);
++		mcspi_dma->dma_rx = NULL;
++		if (ret != -EPROBE_DEFER)
++			ret = -EAGAIN;
+ 		goto no_dma;
++	}
+ 
+ 	sig = mcspi_dma->dma_tx_sync_dev;
+-	mcspi_dma->dma_tx =
+-		dma_request_slave_channel_compat(mask, omap_dma_filter_fn,
+-						 &sig, &master->dev,
+-						 mcspi_dma->dma_tx_ch_name);
++	mcspi_dma->dma_tx = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &sig, &master->dev,
++					mcspi_dma->dma_tx_ch_name);
+ 
+-	if (!mcspi_dma->dma_tx) {
++	if (IS_ERR(mcspi_dma->dma_tx)) {
++		ret = PTR_ERR(mcspi_dma->dma_tx);
++		mcspi_dma->dma_tx = NULL;
+ 		dma_release_channel(mcspi_dma->dma_rx);
+ 		mcspi_dma->dma_rx = NULL;
+-		goto no_dma;
++		if (ret != -EPROBE_DEFER)
++			ret = -EAGAIN;
+ 	}
+ 
+-	return 0;
+-
+ no_dma:
+-	dev_warn(&spi->dev, "not using DMA for McSPI\n");
+-	return -EAGAIN;
++	if (ret && ret != -EPROBE_DEFER)
++		dev_warn(&spi->dev, "not using DMA for McSPI\n");
++	return ret;
+ }
+ 
+ static int omap2_mcspi_setup(struct spi_device *spi)
+-- 
+2.3.5
 
-Yes, I'm sure this is a safe assumption.
-
-When you change the code to ktime_us_delta, please also update the
-comment here.
-
-> (b) printk diffing the tv[i] and tv[i-1] values. The original
-> printk statement seems to get the order wrong. This patch preserves
-> that order.
-
-I also think that's ok, but it would be nice to split this out
-as a separate patch that gets applied first, so just swap out the
-arguments in the timeval_usec_diff() definition as preparation
-and add an explanation why you think it was wrong.
-
-> @@ -2489,7 +2469,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->  				printk("%s(%d): switch delay (should be 32k followed by all 8k\n",
->  					__func__, fe->dvb->num);
->  				for (i = 1; i < 10; i++)
-> -					printk("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
-> +					printk("%d: %d\n", i, (int) ktime_to_us(ktime_sub(tv[i-1], tv[i])));
-
-This can still be simplified using ktime_us_delta().
-
->  			stv0299_writeregI (state, 0x0c, reg0x0c | (last ? lv_mask : 0x50));
-> @@ -443,7 +444,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
->  		printk ("%s(%d): switch delay (should be 32k followed by all 8k\n",
->  			__func__, fe->dvb->num);
->  		for (i = 1; i < 10; i++)
-> -			printk ("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
-> +			printk("%d: %d\n", i, (int) ktime_to_us(ktime_sub(tv[i-1], tv[i])));
->  	}
-
-This, too.
-
-The patch looks correct to me now, so just do the cosmetic changes I
-suggested above and submit a version 3.
-
-	Arnd
