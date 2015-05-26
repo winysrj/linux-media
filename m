@@ -1,170 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56657 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932194AbbEUJD1 (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:33826 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747AbbEZS6y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:27 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 03/20] media: adv7604: chip info and formats for ADV7612
-Date: Wed, 20 May 2015 17:39:23 +0100
-Message-Id: <1432139980-12619-4-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Tue, 26 May 2015 14:58:54 -0400
+Message-ID: <5564C269.2000003@gmail.com>
+Date: Tue, 26 May 2015 19:58:49 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
+MIME-Version: 1.0
+To: David Howells <dhowells@redhat.com>
+CC: crope@iki.fi, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+References: <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20150526150407.10241.89123.stgit@warthog.procyon.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the ADV7612 chip as implemented on Renesas' Lager
-board to adv7604.c, including lists for formats/colourspace/timing
-selection and an IRQ handler.
+On 26/05/15 16:04, David Howells wrote:
+> Provide a DVBv5 API signal strength.  This is in units of 0.001 dBm rather
+> than a percentage.
+>
+>>From Antti Palosaari's testing with a signal generator, it appears that the
+> gain calculated according to Montage's specification if negated is a
+> reasonable representation of the signal strength of the generator.
+>
+> To this end:
+>
+>   (1) Polled statistic gathering needed to be implemented in the TS2020 driver.
+>       This is done in the ts2020_stat_work() function.
+>
+>   (2) The calculated gain is placed as the signal strength in the
+>       dtv_property_cache associated with the front end with the scale set to
+>       FE_SCALE_DECIBEL.
+>
+>   (3) The DVBv3 format signal strength then needed to be calculated from the
+>       signal strength stored in the dtv_property_cache rather than accessing
+>       the value when ts2020_read_signal_strength() is called.
+>
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> ---
+>
+>   drivers/media/dvb-frontends/ts2020.c |   62 +++++++++++++++++++++++++++++-----
+>   1 file changed, 53 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+> index 277e1cf..80ae039 100644
+> --- a/drivers/media/dvb-frontends/ts2020.c
+> +++ b/drivers/media/dvb-frontends/ts2020.c
+> @@ -32,10 +32,11 @@ struct ts2020_priv {
+>   	struct regmap_config regmap_config;
+>   	struct regmap *regmap;
+>   	struct dvb_frontend *fe;
+> +	struct delayed_work stat_work;
+>   	int (*get_agc_pwm)(struct dvb_frontend *fe, u8 *_agc_pwm);
+>   	/* i2c details */
+> -	int i2c_address;
+>   	struct i2c_adapter *i2c;
+> +	int i2c_address;
+>   	u8 clk_out:2;
+>   	u8 clk_out_div:5;
+>   	u32 frequency_div; /* LO output divider switch frequency */
+> @@ -65,6 +66,7 @@ static int ts2020_release(struct dvb_frontend *fe)
+>   static int ts2020_sleep(struct dvb_frontend *fe)
+>   {
+>   	struct ts2020_priv *priv = fe->tuner_priv;
+> +	int ret;
+>   	u8 u8tmp;
+>
+>   	if (priv->tuner == TS2020_M88TS2020)
+> @@ -72,11 +74,18 @@ static int ts2020_sleep(struct dvb_frontend *fe)
+>   	else
+>   		u8tmp = 0x00;
+>
+> -	return regmap_write(priv->regmap, u8tmp, 0x00);
+> +	ret = regmap_write(priv->regmap, u8tmp, 0x00);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* stop statistics polling */
+> +	cancel_delayed_work_sync(&priv->stat_work);
+> +	return 0;
+>   }
+>
+>   static int ts2020_init(struct dvb_frontend *fe)
+>   {
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>   	struct ts2020_priv *priv = fe->tuner_priv;
+>   	int i;
+>   	u8 u8tmp;
+> @@ -138,6 +147,13 @@ static int ts2020_init(struct dvb_frontend *fe)
+>   				     reg_vals[i].val);
+>   	}
+>
+> +	/* Initialise v5 stats here */
+> +	c->strength.len = 1;
+> +	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
+> +	c->strength.stat[0].uvalue = 0;
+> +
+> +	/* Start statistics polling */
+> +	schedule_delayed_work(&priv->stat_work, 0);
+>   	return 0;
+>   }
+>
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/i2c/adv7604.c |   83 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 81 insertions(+), 2 deletions(-)
+Hi David
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index be3f866..a2abb04 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -80,6 +80,7 @@ MODULE_LICENSE("GPL");
- enum adv76xx_type {
- 	ADV7604,
- 	ADV7611,
-+	ADV7612,
- };
- 
- struct adv76xx_reg_seq {
-@@ -753,6 +754,23 @@ static const struct adv76xx_format_info adv7611_formats[] = {
- 	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_12BIT },
- };
- 
-+static const struct adv76xx_format_info adv7612_formats[] = {
-+	{ MEDIA_BUS_FMT_RGB888_1X24, ADV76XX_OP_CH_SEL_RGB, true, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_444 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_2X8, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_UYVY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_VYUY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_1X16, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_1X16, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+};
-+
- static const struct adv76xx_format_info *
- adv76xx_format_info(struct adv76xx_state *state, u32 code)
- {
-@@ -2465,6 +2483,11 @@ static void adv7611_setup_irqs(struct v4l2_subdev *sd)
- 	io_write(sd, 0x41, 0xd0); /* STDI irq for any change, disable INT2 */
- }
- 
-+static void adv7612_setup_irqs(struct v4l2_subdev *sd)
-+{
-+	io_write(sd, 0x41, 0xd0); /* disable INT2 */
-+}
-+
- static void adv76xx_unregister_clients(struct adv76xx_state *state)
- {
- 	unsigned int i;
-@@ -2552,6 +2575,19 @@ static const struct adv76xx_reg_seq adv7611_recommended_settings_hdmi[] = {
- 	{ ADV76XX_REG_SEQ_TERM, 0 },
- };
- 
-+static const struct adv76xx_reg_seq adv7612_recommended_settings_hdmi[] = {
-+	{ ADV76XX_REG(ADV76XX_PAGE_CP, 0x6c), 0x00 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x9b), 0x03 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x6f), 0x08 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x85), 0x1f },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x87), 0x70 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x57), 0xda },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x58), 0x01 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x03), 0x98 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x4c), 0x44 },
-+	{ ADV76XX_REG_SEQ_TERM, 0 },
-+};
-+
- static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 	[ADV7604] = {
- 		.type = ADV7604,
-@@ -2640,17 +2676,59 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 		.field1_vsync_mask = 0x3fff,
- 		.field1_vbackporch_mask = 0x3fff,
- 	},
-+	[ADV7612] = {
-+		.type = ADV7612,
-+		.has_afe = false,
-+		.max_port = ADV7604_PAD_HDMI_PORT_B,
-+		.num_dv_ports = 2,
-+		.edid_enable_reg = 0x74,
-+		.edid_status_reg = 0x76,
-+		.lcf_reg = 0xa3,
-+		.tdms_lock_mask = 0x43,
-+		.cable_det_mask = 0x01,
-+		.fmt_change_digital_mask = 0x03,
-+		.formats = adv7612_formats,
-+		.nformats = ARRAY_SIZE(adv7612_formats),
-+		.set_termination = adv7611_set_termination,
-+		.setup_irqs = adv7612_setup_irqs,
-+		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
-+		.read_cable_det = adv7611_read_cable_det,
-+		.recommended_settings = {
-+		    [1] = adv7612_recommended_settings_hdmi,
-+		},
-+		.num_recommended_settings = {
-+		    [1] = ARRAY_SIZE(adv7612_recommended_settings_hdmi),
-+		},
-+		.page_mask = BIT(ADV76XX_PAGE_IO) | BIT(ADV76XX_PAGE_CEC) |
-+			BIT(ADV76XX_PAGE_INFOFRAME) | BIT(ADV76XX_PAGE_AFE) |
-+			BIT(ADV76XX_PAGE_REP) |  BIT(ADV76XX_PAGE_EDID) |
-+			BIT(ADV76XX_PAGE_HDMI) | BIT(ADV76XX_PAGE_CP),
-+		.linewidth_mask = 0x1fff,
-+		.field0_height_mask = 0x1fff,
-+		.field1_height_mask = 0x1fff,
-+		.hfrontporch_mask = 0x1fff,
-+		.hsync_mask = 0x1fff,
-+		.hbackporch_mask = 0x1fff,
-+		.field0_vfrontporch_mask = 0x3fff,
-+		.field0_vsync_mask = 0x3fff,
-+		.field0_vbackporch_mask = 0x3fff,
-+		.field1_vfrontporch_mask = 0x3fff,
-+		.field1_vsync_mask = 0x3fff,
-+		.field1_vbackporch_mask = 0x3fff,
-+	},
- };
- 
- static const struct i2c_device_id adv76xx_i2c_id[] = {
- 	{ "adv7604", (kernel_ulong_t)&adv76xx_chip_info[ADV7604] },
- 	{ "adv7611", (kernel_ulong_t)&adv76xx_chip_info[ADV7611] },
-+	{ "adv7612", (kernel_ulong_t)&adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, adv76xx_i2c_id);
- 
- static const struct of_device_id adv76xx_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv76xx_chip_info[ADV7611] },
-+	{ .compatible = "adi,adv7612", .data = &adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, adv76xx_of_id);
-@@ -2805,8 +2883,9 @@ static int adv76xx_probe(struct i2c_client *client,
- 	} else {
- 		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
- 		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
--		if (val != 0x2051) {
--			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
-+		if ((state->info->type == ADV7611 && val != 0x2051) ||
-+			(state->info->type == ADV7612 && val != 0x2041)) {
-+			v4l2_info(sd, "not an adv761x on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
--- 
-1.7.10.4
+Statistics polling can not be done by lmedm04 driver's implementation of 
+M88RS2000/TS2020 because I2C messages stop the devices demuxer.
+
+So any polling must be a config option for this driver.
+
+Regards
+
+Malcolm
+
+
+
+
 
