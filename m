@@ -1,154 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34165 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566AbbE2B3C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 21:29:02 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org,
-	linux-api@vger.kernel.org
-Subject: [PATCH 3/8] DocBook: improve documentation for DVB spectral inversion
-Date: Thu, 28 May 2015 22:28:52 -0300
-Message-Id: <52d67c92016544f4489e8ad8ae6d175b5d22dfc4.1432862317.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
-References: <cover.1432862317.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
-References: <cover.1432862317.git.mchehab@osg.samsung.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37621 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754486AbbEZN0x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 09:26:53 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: [PATCH 06/13] mmc: omap: Support for deferred probing when requesting DMA channels
+Date: Tue, 26 May 2015 16:26:01 +0300
+Message-ID: <1432646768-12532-7-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format it as a table and provide more details.
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channels. Only fall back to pio mode if the error code returned is not
+-EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Ulf Hansson <ulf.hansson@linaro.org>
+CC: Jarkko Nikula <jarkko.nikula@bitmer.com>
+---
+ drivers/mmc/host/omap.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index d9861b54f8c8..41085537acfc 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -238,19 +238,45 @@ get/set up to 64 properties. The actual meaning of each property is described on
- 	</section>
- 	<section id="DTV-INVERSION">
- 	<title><constant>DTV_INVERSION</constant></title>
--	<para>The Inversion field can take one of these values:
--	</para>
--	<programlisting>
--	typedef enum fe_spectral_inversion {
--		INVERSION_OFF,
--		INVERSION_ON,
--		INVERSION_AUTO
--	} fe_spectral_inversion_t;
--	</programlisting>
--	<para>It indicates if spectral inversion should be presumed or not. In the automatic setting
--	(<constant>INVERSION_AUTO</constant>) the hardware will try to figure out the correct setting by
--	itself.
--	</para>
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 68dd6c79c378..29238d0fbc24 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1390,20 +1390,32 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+ 	if (res)
+ 		sig = res->start;
+-	host->dma_tx = dma_request_slave_channel_compat(mask,
++	host->dma_tx = dma_request_slave_channel_compat_reason(mask,
+ 				omap_dma_filter_fn, &sig, &pdev->dev, "tx");
+-	if (!host->dma_tx)
++	if (IS_ERR(host->dma_tx)) {
++		ret = PTR_ERR(host->dma_tx);
++		if (ret == -EPROBE_DEFER)
++			goto err_free_dma;
 +
-+	<para>Specifies if the frontend should do spectral inversion or not.</para>
++		host->dma_tx = NULL;
+ 		dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
+ 			sig);
++	}
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (res)
+ 		sig = res->start;
+-	host->dma_rx = dma_request_slave_channel_compat(mask,
++	host->dma_rx = dma_request_slave_channel_compat_reason(mask,
+ 				omap_dma_filter_fn, &sig, &pdev->dev, "rx");
+-	if (!host->dma_rx)
++	if (IS_ERR(host->dma_rx)) {
++		ret = PTR_ERR(host->dma_rx);
++		if (ret == -EPROBE_DEFER)
++			goto err_free_dma;
 +
-+<section id="fe-spectral-inversion-t">
-+<title>enum fe_modulation: Frontend spectral inversion</title>
-+
-+<para>This parameter indicates if spectral inversion should be presumed or not.
-+    In the automatic setting (<constant>INVERSION_AUTO</constant>) the hardware
-+    will try to figure out the correct setting by itself. If the hardware
-+    doesn't support, the DVB core will try to lock at the carrier first with
-+    inversion off. If it fails, it will try to enable inversion.
-+</para>
-+
-+<table pgwide="1" frame="none" id="fe-spectral-inversion">
-+    <title>enum fe_modulation</title>
-+    <tgroup cols="2">
-+	&cs-def;
-+	<thead>
-+	<row>
-+	    <entry>ID</entry>
-+	    <entry>Description</entry>
-+	</row>
-+	</thead>
-+	<tbody valign="top">
-+	<row>
-+	    <entry>INVERSION_OFF</entry>
-+	    <entry>Don't do spectral band inversion.</entry>
-+	</row><row>
-+	    <entry>INVERSION_ON</entry>
-+	    <entry>Do spectral band inversion.</entry>
-+	</row><row>
-+	    <entry>INVERSION_AUTO</entry>
-+	    <entry>Autodetect spectral band inversion.</entry>
-+	</row>
-+        </tbody>
-+    </tgroup>
-+</table>
-+</section>
-+
- 	</section>
- 	<section id="DTV-DISEQC-MASTER">
- 	<title><constant>DTV_DISEQC_MASTER</constant></title>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 07c1284e88c8..77dd88ceeedd 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -56,23 +56,6 @@ specification is available at
++		host->dma_rx = NULL;
+ 		dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
+ 			sig);
++	}
  
- &sub-dvbproperty;
- 
--<section id="fe-spectral-inversion-t">
--<title>frontend spectral inversion</title>
--<para>The Inversion field can take one of these values:
--</para>
--<programlisting>
--typedef enum fe_spectral_inversion {
--	INVERSION_OFF,
--	INVERSION_ON,
--	INVERSION_AUTO
--} fe_spectral_inversion_t;
--</programlisting>
--<para>It indicates if spectral inversion should be presumed or not. In the automatic setting
--(<constant>INVERSION_AUTO</constant>) the hardware will try to figure out the correct setting by
--itself.
--</para>
--</section>
--
- <section id="fe-code-rate-t">
- <title>frontend code rate</title>
- <para>The possible values for the <constant>fec_inner</constant> field used on
-diff --git a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-index 7d5823858df0..fe1117e91f51 100644
---- a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-+++ b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-@@ -82,7 +82,7 @@ DVB-C2, ISDB, etc.</para>
- struct dvb_frontend_parameters {
- 	uint32_t frequency;     /&#x22C6; (absolute) frequency in Hz for QAM/OFDM &#x22C6;/
- 				/&#x22C6; intermediate frequency in kHz for QPSK &#x22C6;/
--	fe_spectral_inversion_t inversion;
-+	&fe-spectral-inversion-t; inversion;
- 	union {
- 		struct dvb_qpsk_parameters qpsk;
- 		struct dvb_qam_parameters  qam;
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index d4b1718046ae..223905563676 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -154,12 +154,13 @@ enum fe_status {
- 
- typedef enum fe_status fe_status_t;
- 
--typedef enum fe_spectral_inversion {
-+enum fe_spectral_inversion {
- 	INVERSION_OFF,
- 	INVERSION_ON,
- 	INVERSION_AUTO
--} fe_spectral_inversion_t;
-+};
- 
-+typedef enum fe_spectral_inversion fe_spectral_inversion_t;
- 
- typedef enum fe_code_rate {
- 	FEC_NONE = 0,
+ 	ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
+ 	if (ret)
 -- 
-2.4.1
+2.3.5
 
