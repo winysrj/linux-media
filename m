@@ -1,127 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45235 "EHLO arroyo.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:51389 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754424AbbEZN07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:26:59 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <vinod.koul@intel.com>, <tony@atomide.com>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 09/13] crypto: omap-des - Support for deferred probing when requesting DMA channels
-Date: Tue, 26 May 2015 16:26:04 +0300
-Message-ID: <1432646768-12532-10-git-send-email-peter.ujfalusi@ti.com>
-In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1752287AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:36 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [ATTN 4/9] v4l2: add support for SDR transmitter
+Date: Tue, 26 May 2015 20:08:05 +0300
+Message-Id: <1432660090-19574-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to use ma_request_slave_channel_compat_reason() to request the DMA
-channels. Only fall back to pio mode if the error code returned is not
--EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
+New IOCTL ops:
+vidioc_enum_fmt_sdr_out
+vidioc_g_fmt_sdr_out
+vidioc_s_fmt_sdr_out
+vidioc_try_fmt_sdr_out
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Herbert Xu <herbert@gondor.apana.org.au>
-CC: David S. Miller <davem@davemloft.net>
-CC: Lokesh Vutla <lokeshvutla@ti.com>
+New vb2 buffertype:
+V4L2_BUF_TYPE_SDR_OUTPUT
+
+New v4l2 capability:
+V4L2_CAP_SDR_OUTPUT
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/crypto/omap-des.c | 38 ++++++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c      | 14 ++++++++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c    | 25 +++++++++++++++++++++++++
+ drivers/media/v4l2-core/videobuf-core.c |  4 +++-
+ include/media/v4l2-ioctl.h              |  8 ++++++++
+ include/trace/events/v4l2.h             |  1 +
+ include/uapi/linux/videodev2.h          |  5 ++++-
+ 6 files changed, 53 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
-index 46307098f8ba..06be02f520da 100644
---- a/drivers/crypto/omap-des.c
-+++ b/drivers/crypto/omap-des.c
-@@ -340,7 +340,7 @@ static void omap_des_dma_out_callback(void *data)
- 
- static int omap_des_dma_init(struct omap_des_dev *dd)
- {
--	int err = -ENOMEM;
-+	int err;
- 	dma_cap_mask_t mask;
- 
- 	dd->dma_lch_out = NULL;
-@@ -349,21 +349,20 @@ static int omap_des_dma_init(struct omap_des_dev *dd)
- 	dma_cap_zero(mask);
- 	dma_cap_set(DMA_SLAVE, mask);
- 
--	dd->dma_lch_in = dma_request_slave_channel_compat(mask,
--							  omap_dma_filter_fn,
--							  &dd->dma_in,
--							  dd->dev, "rx");
--	if (!dd->dma_lch_in) {
-+	dd->dma_lch_in = dma_request_slave_channel_compat_reason(mask,
-+					omap_dma_filter_fn, &dd->dma_in,
-+					dd->dev, "rx");
-+	if (IS_ERR(dd->dma_lch_in)) {
- 		dev_err(dd->dev, "Unable to request in DMA channel\n");
--		goto err_dma_in;
-+		return PTR_ERR(dd->dma_lch_in);
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 71a1b93..6b1eaed 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -637,8 +637,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			       ops->vidioc_try_fmt_sliced_vbi_out)))
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+-	} else if (is_sdr) {
+-		/* SDR specific ioctls */
++	} else if (is_sdr && is_rx) {
++		/* SDR receiver specific ioctls */
+ 		if (ops->vidioc_enum_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+ 		if (ops->vidioc_g_fmt_sdr_cap)
+@@ -647,6 +647,16 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+ 		if (ops->vidioc_try_fmt_sdr_cap)
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
++	} else if (is_sdr && is_tx) {
++		/* SDR transmitter specific ioctls */
++		if (ops->vidioc_enum_fmt_sdr_out)
++			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
++		if (ops->vidioc_g_fmt_sdr_out)
++			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
++		if (ops->vidioc_s_fmt_sdr_out)
++			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
++		if (ops->vidioc_try_fmt_sdr_out)
++			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
  	}
  
--	dd->dma_lch_out = dma_request_slave_channel_compat(mask,
--							   omap_dma_filter_fn,
--							   &dd->dma_out,
--							   dd->dev, "tx");
--	if (!dd->dma_lch_out) {
-+	dd->dma_lch_out = dma_request_slave_channel_compat_reason(mask,
-+					omap_dma_filter_fn, &dd->dma_out,
-+					dd->dev, "tx");
-+	if (IS_ERR(dd->dma_lch_out)) {
- 		dev_err(dd->dev, "Unable to request out DMA channel\n");
-+		err = PTR_ERR(dd->dma_lch_out);
- 		goto err_dma_out;
+ 	if (is_vid || is_vbi || is_sdr) {
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 03b9daf..5d2501b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -153,6 +153,7 @@ const char *v4l2_type_names[] = {
+ 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
+ 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
+ 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
++	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
+ };
+ EXPORT_SYMBOL(v4l2_type_names);
+ 
+@@ -325,6 +326,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 				sliced->service_lines[1][i]);
+ 		break;
+ 	case V4L2_BUF_TYPE_SDR_CAPTURE:
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 		sdr = &p->fmt.sdr;
+ 		pr_cont(", pixelformat=%c%c%c%c\n",
+ 			(sdr->pixelformat >>  0) & 0xff,
+@@ -973,6 +975,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
+ 			return 0;
+ 		break;
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
++		if (is_sdr && is_tx && ops->vidioc_g_fmt_sdr_out)
++			return 0;
++		break;
+ 	default:
+ 		break;
  	}
- 
-@@ -371,14 +370,15 @@ static int omap_des_dma_init(struct omap_des_dev *dd)
- 
- err_dma_out:
- 	dma_release_channel(dd->dma_lch_in);
--err_dma_in:
--	if (err)
--		pr_err("error: %d\n", err);
-+
- 	return err;
+@@ -1321,6 +1327,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
++		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_enum_fmt_sdr_out))
++			break;
++		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, arg);
++		break;
+ 	}
+ 	if (ret == 0)
+ 		v4l_fill_fmtdesc(p);
+@@ -1415,6 +1426,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
+ 			break;
+ 		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
++		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_g_fmt_sdr_out))
++			break;
++		return ops->vidioc_g_fmt_sdr_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
  }
- 
- static void omap_des_dma_cleanup(struct omap_des_dev *dd)
- {
-+	if (dd->pio_only)
-+		return;
-+
- 	dma_release_channel(dd->dma_lch_out);
- 	dma_release_channel(dd->dma_lch_in);
+@@ -1494,6 +1509,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sdr);
+ 		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
++		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_s_fmt_sdr_out))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
  }
-@@ -1110,7 +1110,9 @@ static int omap_des_probe(struct platform_device *pdev)
- 	tasklet_init(&dd->queue_task, omap_des_queue_task, (unsigned long)dd);
+@@ -1573,6 +1593,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sdr);
+ 		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_OUTPUT:
++		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_try_fmt_sdr_out))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_try_fmt_sdr_out(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+index 926836d..6c02989 100644
+--- a/drivers/media/v4l2-core/videobuf-core.c
++++ b/drivers/media/v4l2-core/videobuf-core.c
+@@ -576,7 +576,8 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
+ 		}
+ 		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
+ 		    || q->type == V4L2_BUF_TYPE_VBI_OUTPUT
+-		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
++		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT
++		    || q->type == V4L2_BUF_TYPE_SDR_OUTPUT) {
+ 			buf->size = b->bytesused;
+ 			buf->field = b->field;
+ 			buf->ts = b->timestamp;
+@@ -1154,6 +1155,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 			case V4L2_BUF_TYPE_VBI_OUTPUT:
+ 			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
++			case V4L2_BUF_TYPE_SDR_OUTPUT:
+ 				rc = POLLOUT | POLLWRNORM;
+ 				break;
+ 			default:
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 8fbbd76..017ffb2 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -36,6 +36,8 @@ struct v4l2_ioctl_ops {
+ 					      struct v4l2_fmtdesc *f);
+ 	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
+ 					    struct v4l2_fmtdesc *f);
++	int (*vidioc_enum_fmt_sdr_out)     (struct file *file, void *fh,
++					    struct v4l2_fmtdesc *f);
  
- 	err = omap_des_dma_init(dd);
--	if (err && DES_REG_IRQ_STATUS(dd) && DES_REG_IRQ_ENABLE(dd)) {
-+	if (err == -EPROBE_DEFER) {
-+		goto err_irq;
-+	} else if (err && DES_REG_IRQ_STATUS(dd) && DES_REG_IRQ_ENABLE(dd)) {
- 		dd->pio_only = 1;
+ 	/* VIDIOC_G_FMT handlers */
+ 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -60,6 +62,8 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
+ 					struct v4l2_format *f);
++	int (*vidioc_g_fmt_sdr_out)    (struct file *file, void *fh,
++					struct v4l2_format *f);
  
- 		irq = platform_get_irq(pdev, 0);
-@@ -1154,8 +1156,8 @@ err_algs:
- 		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
- 			crypto_unregister_alg(
- 					&dd->pdata->algs_info[i].algs_list[j]);
--	if (!dd->pio_only)
--		omap_des_dma_cleanup(dd);
-+
-+	omap_des_dma_cleanup(dd);
- err_irq:
- 	tasklet_kill(&dd->done_task);
- 	tasklet_kill(&dd->queue_task);
+ 	/* VIDIOC_S_FMT handlers */
+ 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_format *f);
+ 	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
+ 					struct v4l2_format *f);
++	int (*vidioc_s_fmt_sdr_out)    (struct file *file, void *fh,
++					struct v4l2_format *f);
+ 
+ 	/* VIDIOC_TRY_FMT handlers */
+ 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
+@@ -108,6 +114,8 @@ struct v4l2_ioctl_ops {
+ 					     struct v4l2_format *f);
+ 	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
+ 					  struct v4l2_format *f);
++	int (*vidioc_try_fmt_sdr_out)    (struct file *file, void *fh,
++					  struct v4l2_format *f);
+ 
+ 	/* Buffer handlers */
+ 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index 89d0497..29d64e4 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -27,6 +27,7 @@
+ 	EM( V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" ) \
+ 	EM( V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" )	\
+ 	EM( V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" )		\
++	EM( V4L2_BUF_TYPE_SDR_OUTPUT,           "SDR_OUTPUT" )		\
+ 	EMe(V4L2_BUF_TYPE_PRIVATE,		"PRIVATE" )
+ 
+ SHOW_TYPE
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2ec0b55..bf152f6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -145,6 +145,7 @@ enum v4l2_buf_type {
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+ 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
++	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -159,7 +160,8 @@ enum v4l2_buf_type {
+ 	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
+ 	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
+ 	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
+-	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
++	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT		\
++	 || (type) == V4L2_BUF_TYPE_SDR_OUTPUT)
+ 
+ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+@@ -351,6 +353,7 @@ struct v4l2_capability {
+ 
+ #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
+ #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
++#define V4L2_CAP_SDR_OUTPUT		0x00400000  /* Is a SDR output device */
+ 
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
 -- 
-2.3.5
+http://palosaari.fi/
 
