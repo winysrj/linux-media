@@ -1,82 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47694 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752535AbbEKJbq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2015 05:31:46 -0400
-Date: Mon, 11 May 2015 06:31:38 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: Re: [PATCH 07/18] media controller: rename the tuner entity
-Message-ID: <20150511063138.1ea10ccf@recife.lan>
-In-Reply-To: <554DD3FE.1070806@xs4all.nl>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-	<6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
-	<554CA862.8070407@xs4all.nl>
-	<20150508095754.1c39a276@recife.lan>
-	<554CB863.1040006@xs4all.nl>
-	<20150508110826.00e4e954@recife.lan>
-	<554CC8E3.2030308@xs4all.nl>
-	<554DD3FE.1070806@xs4all.nl>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33896 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070AbbEZOsO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 10:48:14 -0400
+Received: by wicmc15 with SMTP id mc15so67284997wic.1
+        for <linux-media@vger.kernel.org>; Tue, 26 May 2015 07:48:13 -0700 (PDT)
+From: Piotr Staszewski <p.staszewski@gmail.com>
+Date: Tue, 26 May 2015 16:48:09 +0200
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: media: omap4iss: Reformat overly long lines
+Message-ID: <20150526144809.GA23560@swordfish>
+References: <20150526085418.GA22775@swordfish>
+ <20150526141524.GD21573@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150526141524.GD21573@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 09 May 2015 11:31:42 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, May 26, 2015 at 07:15:24AM -0700, Greg Kroah-Hartman wrote:
+> > -		WARN(1, KERN_ERR "CSI2: pixel format %08x unsupported!\n",
+> > +		WARN(1,
+> > +		     KERN_ERR "CSI2: pixel format %08x unsupported!\n",
+> 
+> That line wasn't over 80 characters long, why change it?
 
-> >>> Brainstorming:
-> >>>
-> >>> It might be better to map each device node to an entity and each hardware
-> >>> component (tuner, DMA engine) to an entity, and avoid this mixing of
-> >>> hw entity vs device node entity.
-> 
-> There are two options here:
-> 
-> either make each device node an entity, or expose the device node information
-> as properties of an entity.
-> 
-> The latter would be backwards compatible with what we do today. I'm trying to
-> think of reasons why you would want to make each device node an entity in its
-> own right.
-> 
-> The problem today is that a video_device representing a video/vbi/radio/swradio
-> device node is an entity, but it is really representing the dma engine. Which
-> is weird for radio devices since there is no dma engine there.
-> 
-> Implementing device nodes as entities in their own right does solve this problem,
-> but implementing it as properties would be weird since a radio device node would
-> be a property of a radio tuner entity, which can be a subdevice driver which means
-> that the bridge driver would have to add the radio device property to a subdev
-> driver, which feels really wrong to me.
-> 
-> With this in mind I do think representing device nodes as entities in their own
-> right makes sense.
+Indeed my bad. Checkpatch complains there about something else.
+I'll resubmit corrected version promptly.
 
-I agree with that: devnodes should be entities, as they're the points to control
-the hardware, and need to be known by the Kernel, no matter if they have DMA
-engines associated with it or not. The better seems to map the DMA engine
-as a property on those entities.
+Best regards,
+Piotr
 
-> But I would do this also for a v4l-subdev node. It's very
-> inconsistent not to do that.
-
-It should be easy to create an entity for each v4l-subdev node. I just
-don't see much usage on it, and this will almost double the number of
-entities. Also, in order to keep it backward-compatible, both the subdev
-devnode and the subdev no-devnode entity should accept the same set of
-ioctls.
-
-Regards,
-Mauro
+-- 
+Piotr S. Staszewski                              http://www.drbig.one.pl
+dRbiG at FreeNode, IRCNet
+                         But all's one level plain he hunts for flowers.
