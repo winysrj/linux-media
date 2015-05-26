@@ -1,104 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:44006 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932157AbbEHTjt (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:3923 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbbEZNK1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2015 15:39:49 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
-	damien@zamaudio.com, chris.j.arges@canonical.com,
-	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
-	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
-	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 1/2] media: new media controller API for device resource support
-Date: Fri,  8 May 2015 13:31:30 -0600
-Message-Id: <c7f3e48e130dd397046f59383921960a43f6eed8.1431110739.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1431110739.git.shuahkh@osg.samsung.com>
-References: <cover.1431110739.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1431110739.git.shuahkh@osg.samsung.com>
-References: <cover.1431110739.git.shuahkh@osg.samsung.com>
+	Tue, 26 May 2015 09:10:27 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v5 3/3] media: atmel-isi: remove mck back compatiable code as it's not need
+Date: Tue, 26 May 2015 17:54:47 +0800
+Message-ID: <1432634087-3356-4-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
+References: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new media controller API to allocate media device as a
-device resource. When a media device is created on the main
-struct device which is the parent device for the interface
-device, it will be available to all drivers associated with
-that interface. For example, if a usb media device driver
-creates the media device on the main struct device which is
-common for all the drivers that control the media device,
-including the non-media ALSA driver, media controller API
-can be used to share access to the resources on the media
-device. This new interface provides the above described
-feature. A second interface that finds and returns the media
-device is added to allow drivers to find the media device
-created by any of the drivers associated with the device.
+The master clock should handled by sensor itself.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/media-device.c | 33 +++++++++++++++++++++++++++++++++
- include/media/media-device.h |  2 ++
- 2 files changed, 35 insertions(+)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7b39440..1c32752 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -462,3 +462,36 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	entity->parent = NULL;
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity);
-+
-+static void media_device_release_dr(struct device *dev, void *res)
-+{
-+}
-+
-+/*
-+ * media_device_get_dr() - get media device as device resource
-+ *			creates if one doesn't exist
-+*/
-+struct media_device *media_device_get_dr(struct device *dev)
-+{
-+	struct media_device *mdev;
-+
-+	mdev = devres_find(dev, media_device_release_dr, NULL, NULL);
-+	if (mdev)
-+		return mdev;
-+
-+	mdev = devres_alloc(media_device_release_dr,
-+				sizeof(struct media_device), GFP_KERNEL);
-+	if (!mdev)
-+		return NULL;
-+	return devres_get(dev, mdev, NULL, NULL);
-+}
-+EXPORT_SYMBOL_GPL(media_device_get_dr);
-+
-+/*
-+ * media_device_find_dr() - find media device as device resource
-+*/
-+struct media_device *media_device_find_dr(struct device *dev)
-+{
-+	return devres_find(dev, media_device_release_dr, NULL, NULL);
-+}
-+EXPORT_SYMBOL_GPL(media_device_find_dr);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6e6db78..53d0fc3 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -95,6 +95,8 @@ void media_device_unregister(struct media_device *mdev);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity);
- void media_device_unregister_entity(struct media_entity *entity);
-+struct media_device *media_device_get_dr(struct device *dev);
-+struct media_device *media_device_find_dr(struct device *dev);
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+- remove useless definition: ISI_DEFAULT_MCLK_FREQ
+
+Changes in v2:
+- totally remove clock_start()/clock_stop() as they are optional.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 46 ---------------------------
+ 1 file changed, 46 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 0ea360a..9070172 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -35,7 +35,6 @@
+ #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
+ #define MIN_FRAME_RATE			15
+ #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
+-#define ISI_DEFAULT_MCLK_FREQ		25000000
  
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
+ /* Frame buffer descriptor */
+ struct fbd {
+@@ -83,8 +82,6 @@ struct atmel_isi {
+ 	struct completion		complete;
+ 	/* ISI peripherial clock */
+ 	struct clk			*pclk;
+-	/* ISI_MCK, feed to camera sensor to generate pixel clock */
+-	struct clk			*mck;
+ 	unsigned int			irq;
+ 
+ 	struct isi_platform_data	pdata;
+@@ -740,31 +737,6 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
+ 		 icd->devnum);
+ }
+ 
+-/* Called with .host_lock held */
+-static int isi_camera_clock_start(struct soc_camera_host *ici)
+-{
+-	struct atmel_isi *isi = ici->priv;
+-	int ret;
+-
+-	if (!IS_ERR(isi->mck)) {
+-		ret = clk_prepare_enable(isi->mck);
+-		if (ret) {
+-			return ret;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-/* Called with .host_lock held */
+-static void isi_camera_clock_stop(struct soc_camera_host *ici)
+-{
+-	struct atmel_isi *isi = ici->priv;
+-
+-	if (!IS_ERR(isi->mck))
+-		clk_disable_unprepare(isi->mck);
+-}
+-
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+@@ -874,8 +846,6 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= isi_camera_add_device,
+ 	.remove		= isi_camera_remove_device,
+-	.clock_start	= isi_camera_clock_start,
+-	.clock_stop	= isi_camera_clock_stop,
+ 	.set_fmt	= isi_camera_set_fmt,
+ 	.try_fmt	= isi_camera_try_fmt,
+ 	.get_formats	= isi_camera_get_formats,
+@@ -912,7 +882,6 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
+ 
+ 	/* Default settings for ISI */
+ 	isi->pdata.full_mode = 1;
+-	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
+ 	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
+ 
+ 	np = of_graph_get_next_endpoint(np, NULL);
+@@ -988,21 +957,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+ 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ 
+-	/* ISI_MCK is the sensor master clock. It should be handled by the
+-	 * sensor driver directly, as the ISI has no use for that clock. Make
+-	 * the clock optional here while platforms transition to the correct
+-	 * model.
+-	 */
+-	isi->mck = devm_clk_get(dev, "isi_mck");
+-	if (!IS_ERR(isi->mck)) {
+-		/* Set ISI_MCK's frequency, it should be faster than pixel
+-		 * clock.
+-		 */
+-		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 				&isi->fb_descriptors_phys,
 -- 
-2.1.4
+1.9.1
 
