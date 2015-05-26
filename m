@@ -1,115 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:32776 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628AbbETItm convert rfc822-to-8bit (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:3819 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753565AbbEZNKQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 04:49:42 -0400
-Date: Wed, 20 May 2015 05:49:28 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>,
-	Federico Simoncelli <fsimonce@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Takashi Iwai <tiwai@suse.de>,
-	Amber Thrall <amber.rose.thrall@gmail.com>,
-	James Harper <james.harper@ejbdigital.com.au>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 2/2] drivers: Simplify the return code
-Message-ID: <20150520054928.3eb9f431@recife.lan>
-In-Reply-To: <555B5E32.9060301@iki.fi>
-References: <0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
-	<0fee1624f3df1827cb6d0154253f9c45793bf3e1.1432033220.git.mchehab@osg.samsung.com>
-	<a24b23db60ffee5cb32403d7c8cacd25b13f4510.1432033220.git.mchehab@osg.samsung.com>
-	<577085828.1080862.1432037155994.JavaMail.zimbra@redhat.com>
-	<20150519141731.78744f2f@wiggum>
-	<555B5E32.9060301@iki.fi>
+	Tue, 26 May 2015 09:10:16 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v5 2/3] media: atmel-isi: add runtime pm support
+Date: Tue, 26 May 2015 17:54:46 +0800
+Message-ID: <1432634087-3356-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
+References: <1432634087-3356-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 May 2015 19:00:50 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
+clock).
+And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
+access ISI registers. In atmel_isi_probe(), remove the isi disable code
+as in the moment ISI peripheral clock is not enable yet.
 
-> On 05/19/2015 03:17 PM, Michael Büsch wrote:
-> > On Tue, 19 May 2015 08:05:56 -0400 (EDT)
-> > Federico Simoncelli <fsimonce@redhat.com> wrote:
-> >>> diff --git a/drivers/media/dvb-frontends/lgs8gxx.c
-> >>> b/drivers/media/dvb-frontends/lgs8gxx.c
-> >>> index 3c92f36ea5c7..9b0166cdc7c2 100644
-> >>> --- a/drivers/media/dvb-frontends/lgs8gxx.c
-> >>> +++ b/drivers/media/dvb-frontends/lgs8gxx.c
-> >>> @@ -544,11 +544,7 @@ static int lgs8gxx_set_mpeg_mode(struct lgs8gxx_state
-> >>> *priv,
-> >>>   	t |= clk_pol ? TS_CLK_INVERTED : TS_CLK_NORMAL;
-> >>>   	t |= clk_gated ? TS_CLK_GATED : TS_CLK_FREERUN;
-> >>>
-> >>> -	ret = lgs8gxx_write_reg(priv, reg_addr, t);
-> >>> -	if (ret != 0)
-> >>> -		return ret;
-> >>> -
-> >>> -	return 0;
-> >>> +	return lgs8gxx_write_reg(priv, reg_addr, t);
-> >>>   }
-> >>
-> >> Personally I prefer the current style because it's more consistent with all
-> >> the other calls in the same function (return ret when ret != 0).
-> >>
-> >> It also allows you to easily add/remove calls without having to deal with
-> >> the last special case return my_last_fun_call(...).
-> >>
-> >> Anyway it's not a big deal, I think it's your call.
-> >
-> >
-> > I agree. I also prefer the current style for these reasons. The compiler will also generate the same code in both cases.
-> > I don't think it really simplifies the code.
-> > But if you really insist on doing this change, go for it. You get my ack for fc0011
-> 
-> 
-> I am also against that kind of simplifications. Even it reduces line or 
-> two, it makes code more inconsistent, which means you have to make extra 
-> thinking when reading that code.
+In the meantime, as clock_start()/clock_stop() is used to control the
+mclk not ISI peripheral clock. So move this to start[stop]_streaming()
+function.
 
-Actually, it simplifies the thinking: less lines to read and the function
-return code is clearly defined.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
-> I prefer similar repeating patterns as 
-> much as possible.
-> 
-> This is how I do it usually, even there is that extra last goto.
-> 
-> 	ret = write_reg();
-> 	if (ret)
-> 		goto err;
-> 
-> 	ret = write_reg();
-> 	if (ret)
-> 		goto err;
-> err:
-> 	return ret;
-> };
+Changes in v5:
+- fix the error path in start_streaming() thanks to Laurent.
 
-Nah, the above sucks: it is just hiding the return if error. Having to
-go until the end of a function to see what "err" would do is not good.
-Ok, if you have to deallocate things, do mutex unlock, etc, it is
-justifiable.
+Changes in v4:
+- need to call pm_runtime_disable() in atmel_isi_remove().
+- merged the patch which remove isi disable code in atmel_isi_probe() as
+  isi peripherial clock is not enabled in this moment.
+- refine the commit log
 
-However, in this case, it is quite a deception to discover that,
-after going all the way down the code, "err" is just 
-do-nothing-but-return.
+Changes in v3: None
+Changes in v2:
+- merged v1 two patch into one.
+- use runtime_pm_put() instead of runtime_pm_put_sync()
+- enable peripheral clock before access ISI registers.
 
-The above code is exactly why several academic professors forbid the
-usage of goto: the code can easily become hard to read if you use lots
-of goto, instead of using structured loops and returns.
+ drivers/media/platform/soc_camera/atmel-isi.c | 55 +++++++++++++++++++++++----
+ 1 file changed, 47 insertions(+), 8 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 2227022..0ea360a 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+ 
+ #include <media/atmel-isi.h>
+@@ -386,10 +387,13 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	/* Reset ISI */
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+ 	if (ret < 0) {
+ 		dev_err(icd->parent, "Reset ISI timed out\n");
++		pm_runtime_put(ici->v4l2_dev.dev);
+ 		return ret;
+ 	}
+ 	/* Disable all interrupts */
+@@ -443,6 +447,8 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
+ 	if (ret < 0)
+ 		dev_err(icd->parent, "Disable ISI timed out\n");
++
++	pm_runtime_put(ici->v4l2_dev.dev);
+ }
+ 
+ static struct vb2_ops isi_video_qops = {
+@@ -514,7 +520,13 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
++
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -734,14 +746,9 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+-	ret = clk_prepare_enable(isi->pclk);
+-	if (ret)
+-		return ret;
+-
+ 	if (!IS_ERR(isi->mck)) {
+ 		ret = clk_prepare_enable(isi->mck);
+ 		if (ret) {
+-			clk_disable_unprepare(isi->pclk);
+ 			return ret;
+ 		}
+ 	}
+@@ -756,7 +763,6 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ 
+ 	if (!IS_ERR(isi->mck))
+ 		clk_disable_unprepare(isi->mck);
+-	clk_disable_unprepare(isi->pclk);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -853,9 +859,14 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+ 	isi_writel(isi, ISI_CFG1, cfg1);
+ 
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	return 0;
+ }
+ 
+@@ -887,6 +898,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 			sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
++	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+ }
+@@ -1025,8 +1037,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+ 		isi->width_flags |= 1 << 9;
+ 
+-	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+-
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (IS_ERR_VALUE(irq)) {
+ 		ret = irq;
+@@ -1047,6 +1057,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	soc_host->v4l2_dev.dev	= &pdev->dev;
+ 	soc_host->nr		= pdev->id;
+ 
++	pm_suspend_ignore_children(&pdev->dev, true);
++	pm_runtime_enable(&pdev->dev);
++
+ 	if (isi->pdata.asd_sizes) {
+ 		soc_host->asd = isi->pdata.asd;
+ 		soc_host->asd_sizes = isi->pdata.asd_sizes;
+@@ -1060,6 +1073,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_register_soc_camera_host:
++	pm_runtime_disable(&pdev->dev);
+ err_req_irq:
+ err_ioremap:
+ 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+@@ -1072,6 +1086,30 @@ err_alloc_ctx:
+ 	return ret;
+ }
+ 
++static int atmel_isi_runtime_suspend(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	clk_disable_unprepare(isi->pclk);
++
++	return 0;
++}
++static int atmel_isi_runtime_resume(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	return clk_prepare_enable(isi->pclk);
++}
++
++static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
++	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
++				atmel_isi_runtime_resume, NULL)
++};
++
+ static const struct of_device_id atmel_isi_of_match[] = {
+ 	{ .compatible = "atmel,at91sam9g45-isi" },
+ 	{ }
+@@ -1083,6 +1121,7 @@ static struct platform_driver atmel_isi_driver = {
+ 	.driver		= {
+ 		.name = "atmel_isi",
+ 		.of_match_table = of_match_ptr(atmel_isi_of_match),
++		.pm	= &atmel_isi_dev_pm_ops,
+ 	},
+ };
+ 
+-- 
+1.9.1
+
