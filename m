@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:36069 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222AbbEAPvS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2015 11:51:18 -0400
-From: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
-Subject: [PATCH 2/4] media: platform: exynos4-is: Constify platform_device_id
-Date: Sat,  2 May 2015 00:51:01 +0900
-Message-Id: <1430495463-31633-2-git-send-email-k.kozlowski.k@gmail.com>
-In-Reply-To: <1430495463-31633-1-git-send-email-k.kozlowski.k@gmail.com>
-References: <1430495463-31633-1-git-send-email-k.kozlowski.k@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37659 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754519AbbEZN1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 09:27:11 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 12/13] [media] omap3isp: Support for deferred probing when requesting DMA channel
+Date: Tue, 26 May 2015 16:26:07 +0300
+Message-ID: <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The platform_device_id is not modified by the driver and core uses it as
-const.
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channel. Only fall back to pio mode if the error code returned is not
+-EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/exynos4-is/media-dev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/omap3isp/isphist.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f315ef946cd4..4f5586a4cbff 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1451,7 +1451,7 @@ static int fimc_md_remove(struct platform_device *pdev)
- 	return 0;
- }
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index 7138b043a4aa..e690ca13af0e 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -499,14 +499,20 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 		if (res)
+ 			sig = res->start;
  
--static struct platform_device_id fimc_driver_ids[] __always_unused = {
-+static const struct platform_device_id fimc_driver_ids[] __always_unused = {
- 	{ .name = "s5p-fimc-md" },
- 	{ },
- };
+-		hist->dma_ch = dma_request_slave_channel_compat(mask,
++		hist->dma_ch = dma_request_slave_channel_compat_reason(mask,
+ 				omap_dma_filter_fn, &sig, isp->dev, "hist");
+-		if (!hist->dma_ch)
++		if (IS_ERR(hist->dma_ch)) {
++			ret = PTR_ERR(hist->dma_ch);
++			if (ret == -EPROBE_DEFER)
++				return ret;
++
++			hist->dma_ch = NULL;
+ 			dev_warn(isp->dev,
+ 				 "hist: DMA channel request failed, using PIO\n");
+-		else
++		} else {
+ 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+ 				dma_chan_name(hist->dma_ch));
++		}
+ 	}
+ 
+ 	hist->ops = &hist_ops;
 -- 
-2.1.4
+2.3.5
 
