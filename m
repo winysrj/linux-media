@@ -1,74 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51430 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105AbbE1Vtt (ORCPT
+Received: from [185.26.127.97] ([185.26.127.97]:40992 "EHLO
+	galahad.ideasonboard.com" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753623AbbEZNRX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:49 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
-Subject: [PATCH 15/35] DocBook: Improve the description of the properties API
-Date: Thu, 28 May 2015 18:49:18 -0300
-Message-Id: <a3f0fbdc4f04c0e8fde70b866fd203912c1e858b.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	Tue, 26 May 2015 09:17:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v5 2/3] media: atmel-isi: add runtime pm support
+Date: Tue, 26 May 2015 14:23:54 +0300
+Message-ID: <3253104.Ha4pNGPI2E@avalon>
+In-Reply-To: <1432634087-3356-3-git-send-email-josh.wu@atmel.com>
+References: <1432634087-3356-1-git-send-email-josh.wu@atmel.com> <1432634087-3356-3-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the text clearer about what the properties API does.
+Hi Josh,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thank you for the patch.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 28ea62067af6..c10ed0636d02 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -1,8 +1,35 @@
--<section id="FE_GET_SET_PROPERTY">
--<title><constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></title>
--<para>This section describes the DVB version 5 extension of the DVB-API, also
--called "S2API", as this API were added to provide support for DVB-S2. It was
--designed to be able to replace the old frontend API. Yet, the DISEQC and
-+<section id="frontend-properties">
-+<title>DVB Frontend properties</title>
-+<para>Tuning into a Digital TV physical channel and starting decoding it
-+    requires to change a set of parameters, in order to control the
-+    tuner, the demodulator, the Linear Low-noise Amplifier (LNA) and to set the
-+    antena subsystem via Satellite Equipment Control (SEC), on satellital
-+    systems. The actual parameters are specific to each particular digital
-+    TV standards, and may change as the digital TV specs evolutes.</para>
-+<para>In the past, the strategy used were to have an union with the parameters
-+    needed to tune for DVB-S, DVB-C, DVB-T and ATSC delivery systems grouped
-+    there. The problem is that, as the second generation standards appeared,
-+    those structs were not big enough to contain the additional parameters.
-+    Also, the union didn't have any space left to be expanded without breaking
-+    userspace. So, the decision was to deprecate the legacy union/struct based
-+    approach, in favor of a properties set approach.</para>
-+<para>By using a properties set, it is now possible to extend and support any
-+    digital TV without needing to redesign the API</para>
-+<para>Example: with the properties based approach, in order to set the tuner
-+    to a DVB-C channel at 651 kHz, modulated with 256-QAM, FEC 3/4 and symbol
-+    rate of 5.217 Mbauds, those properties should be sent to
-+    <link linkend="FE_GET_PROPERTY"><constant>FE_SET_PROPERTY</constant></link> ioctl:</para>
-+    <itemizedlist>
-+	<listitem>DTV_FREQUENCY = 651000000</listitem>
-+	<listitem>DTV_MODULATION = QAM_256</listitem>
-+	<listitem>DTV_INVERSION = INVERSION_AUTO</listitem>
-+	<listitem>DTV_SYMBOL_RATE = 5217000</listitem>
-+	<listitem>DTV_INNER_FEC = FEC_3_4</listitem>
-+	<listitem>DTV_TUNE</listitem>
-+    </itemizedlist>
-+<para>NOTE: This section describes the DVB version 5 extension of the DVB-API,
-+also called "S2API", as this API were added to provide support for DVB-S2. It
-+was designed to be able to replace the old frontend API. Yet, the DISEQC and
- the capability ioctls weren't implemented yet via the new way.</para>
- <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
- API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+On Tuesday 26 May 2015 17:54:46 Josh Wu wrote:
+> The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
+> clock).
+> And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
+> access ISI registers. In atmel_isi_probe(), remove the isi disable code
+> as in the moment ISI peripheral clock is not enable yet.
+> 
+> In the meantime, as clock_start()/clock_stop() is used to control the
+> mclk not ISI peripheral clock. So move this to start[stop]_streaming()
+> function.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> 
+> Changes in v5:
+> - fix the error path in start_streaming() thanks to Laurent.
+> 
+> Changes in v4:
+> - need to call pm_runtime_disable() in atmel_isi_remove().
+> - merged the patch which remove isi disable code in atmel_isi_probe() as
+>   isi peripherial clock is not enabled in this moment.
+> - refine the commit log
+> 
+> Changes in v3: None
+> Changes in v2:
+> - merged v1 two patch into one.
+> - use runtime_pm_put() instead of runtime_pm_put_sync()
+> - enable peripheral clock before access ISI registers.
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 55 ++++++++++++++++++++----
+>  1 file changed, 47 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> b/drivers/media/platform/soc_camera/atmel-isi.c index 2227022..0ea360a
+> 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/slab.h>
+> 
+>  #include <media/atmel-isi.h>
+> @@ -386,10 +387,13 @@ static int start_streaming(struct vb2_queue *vq,
+> unsigned int count) struct atmel_isi *isi = ici->priv;
+>  	int ret;
+> 
+> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
+> +
+>  	/* Reset ISI */
+>  	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+>  	if (ret < 0) {
+>  		dev_err(icd->parent, "Reset ISI timed out\n");
+> +		pm_runtime_put(ici->v4l2_dev.dev);
+>  		return ret;
+>  	}
+>  	/* Disable all interrupts */
+> @@ -443,6 +447,8 @@ static void stop_streaming(struct vb2_queue *vq)
+>  	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
+>  	if (ret < 0)
+>  		dev_err(icd->parent, "Disable ISI timed out\n");
+> +
+> +	pm_runtime_put(ici->v4l2_dev.dev);
+>  }
+> 
+>  static struct vb2_ops isi_video_qops = {
+> @@ -514,7 +520,13 @@ static int isi_camera_set_fmt(struct soc_camera_device
+> *icd, if (mf->code != xlate->code)
+>  		return -EINVAL;
+> 
+> +	/* Enable PM and peripheral clock before operate isi registers */
+> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
+> +
+>  	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
+> +
+> +	pm_runtime_put(ici->v4l2_dev.dev);
+> +
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -734,14 +746,9 @@ static int isi_camera_clock_start(struct
+> soc_camera_host *ici) struct atmel_isi *isi = ici->priv;
+>  	int ret;
+> 
+> -	ret = clk_prepare_enable(isi->pclk);
+> -	if (ret)
+> -		return ret;
+> -
+>  	if (!IS_ERR(isi->mck)) {
+>  		ret = clk_prepare_enable(isi->mck);
+>  		if (ret) {
+> -			clk_disable_unprepare(isi->pclk);
+>  			return ret;
+>  		}
+>  	}
+> @@ -756,7 +763,6 @@ static void isi_camera_clock_stop(struct soc_camera_host
+> *ici)
+> 
+>  	if (!IS_ERR(isi->mck))
+>  		clk_disable_unprepare(isi->mck);
+> -	clk_disable_unprepare(isi->pclk);
+>  }
+> 
+>  static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+> @@ -853,9 +859,14 @@ static int isi_camera_set_bus_param(struct
+> soc_camera_device *icd)
+> 
+>  	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+> 
+> +	/* Enable PM and peripheral clock before operate isi registers */
+> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
+> +
+>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>  	isi_writel(isi, ISI_CFG1, cfg1);
+> 
+> +	pm_runtime_put(ici->v4l2_dev.dev);
+> +
+>  	return 0;
+>  }
+> 
+> @@ -887,6 +898,7 @@ static int atmel_isi_remove(struct platform_device
+> *pdev) sizeof(struct fbd) * MAX_BUFFER_NUM,
+>  			isi->p_fb_descriptors,
+>  			isi->fb_descriptors_phys);
+> +	pm_runtime_disable(&pdev->dev);
+> 
+>  	return 0;
+>  }
+> @@ -1025,8 +1037,6 @@ static int atmel_isi_probe(struct platform_device
+> *pdev) if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+>  		isi->width_flags |= 1 << 9;
+> 
+> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> -
+>  	irq = platform_get_irq(pdev, 0);
+>  	if (IS_ERR_VALUE(irq)) {
+>  		ret = irq;
+> @@ -1047,6 +1057,9 @@ static int atmel_isi_probe(struct platform_device
+> *pdev) soc_host->v4l2_dev.dev	= &pdev->dev;
+>  	soc_host->nr		= pdev->id;
+> 
+> +	pm_suspend_ignore_children(&pdev->dev, true);
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	if (isi->pdata.asd_sizes) {
+>  		soc_host->asd = isi->pdata.asd;
+>  		soc_host->asd_sizes = isi->pdata.asd_sizes;
+> @@ -1060,6 +1073,7 @@ static int atmel_isi_probe(struct platform_device
+> *pdev) return 0;
+> 
+>  err_register_soc_camera_host:
+> +	pm_runtime_disable(&pdev->dev);
+>  err_req_irq:
+>  err_ioremap:
+>  	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+> @@ -1072,6 +1086,30 @@ err_alloc_ctx:
+>  	return ret;
+>  }
+> 
+> +static int atmel_isi_runtime_suspend(struct device *dev)
+> +{
+> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
+> +	struct atmel_isi *isi = container_of(soc_host,
+> +					struct atmel_isi, soc_host);
+> +
+> +	clk_disable_unprepare(isi->pclk);
+> +
+> +	return 0;
+> +}
+> +static int atmel_isi_runtime_resume(struct device *dev)
+> +{
+> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
+> +	struct atmel_isi *isi = container_of(soc_host,
+> +					struct atmel_isi, soc_host);
+> +
+> +	return clk_prepare_enable(isi->pclk);
+> +}
+> +
+> +static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
+> +	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
+> +				atmel_isi_runtime_resume, NULL)
+> +};
+> +
+>  static const struct of_device_id atmel_isi_of_match[] = {
+>  	{ .compatible = "atmel,at91sam9g45-isi" },
+>  	{ }
+> @@ -1083,6 +1121,7 @@ static struct platform_driver atmel_isi_driver = {
+>  	.driver		= {
+>  		.name = "atmel_isi",
+>  		.of_match_table = of_match_ptr(atmel_isi_of_match),
+> +		.pm	= &atmel_isi_dev_pm_ops,
+>  	},
+>  };
+
 -- 
-2.4.1
+Regards,
+
+Laurent Pinchart
 
