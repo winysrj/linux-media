@@ -1,269 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-2.cisco.com ([72.163.197.26]:53391 "EHLO
-	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756287AbbEVF1j (ORCPT
+Received: from [212.144.249.242] ([212.144.249.242]:36414 "EHLO
+	eusmtp01.atmel.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751760AbbEZH52 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2015 01:27:39 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC PATCH v2 1/4] v4l2-dv-timings: add interlace support in detect cvt/gtf
-Date: Fri, 22 May 2015 10:57:34 +0530
-Message-Id: <1432272457-709-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1432272457-709-1-git-send-email-prladdha@cisco.com>
-References: <1432272457-709-1-git-send-email-prladdha@cisco.com>
+	Tue, 26 May 2015 03:57:28 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 1/2] media: atmel-isi: add runtime pm support
+Date: Tue, 26 May 2015 16:00:09 +0800
+Message-ID: <1432627211-4338-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1432627211-4338-1-git-send-email-josh.wu@atmel.com>
+References: <1432627211-4338-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extended detect_cvt/gtf API to indicate the format type (interlaced
-or progressive). In case of interlaced, the vertical front and back
-porch and vsync values for both (odd,even) fields are considered to
-derive image height. Populated vsync, verical front, back porch
-values in bt timing structure for even and odd fields and updated
-the flags appropriately.
+The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
+clock).
+And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
+access ISI registers. In atmel_isi_probe(), remove the isi disable code
+as in the moment ISI peripheral clock is not enable yet.
 
-Also modified the functions calling the detect_cvt/gtf(). As of now
-these functions are calling detect_cvt/gtf() with interlaced flag
-set to false.
+In the meantime, as clock_start()/clock_stop() is used to control the
+mclk not ISI peripheral clock. So move this to start[stop]_streaming()
+function.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Martin Bugge <marbugge@cisco.com>
-Cc: Mats Randgaard <matrandg@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/i2c/adv7604.c                  |  4 +--
- drivers/media/i2c/adv7842.c                  |  4 +--
- drivers/media/platform/vivid/vivid-vid-cap.c |  5 +--
- drivers/media/v4l2-core/v4l2-dv-timings.c    | 53 ++++++++++++++++++++++++----
- include/media/v4l2-dv-timings.h              |  6 ++--
- 5 files changed, 58 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index aaa37b0..f4ecb73 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1323,12 +1323,12 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
- 	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
- 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
- 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
--			timings))
-+			false, timings))
- 		return 0;
- 	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
- 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
- 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
--			state->aspect_ratio, timings))
-+			false, state->aspect_ratio, timings))
- 		return 0;
+Changes in v4:
+- need to call pm_runtime_disable() in atmel_isi_remove().
+- merged the patch which remove isi disable code in atmel_isi_probe() as
+  isi peripherial clock is not enabled in this moment.
+- refine the commit log
+
+Changes in v3: None
+Changes in v2:
+- merged v1 two patch into one.
+- use runtime_pm_put() instead of runtime_pm_put_sync()
+- enable peripheral clock before access ISI registers.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 54 +++++++++++++++++++++++----
+ 1 file changed, 46 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 2879026..194e875 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -20,6 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/slab.h>
  
- 	v4l2_dbg(2, debug, sd,
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index f5248ba..b9264f7 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1445,12 +1445,12 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
- 	if (v4l2_detect_cvt(stdi->lcf + 1, hfreq, stdi->lcvs,
- 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
- 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
--			    timings))
-+			false, timings))
- 		return 0;
- 	if (v4l2_detect_gtf(stdi->lcf + 1, hfreq, stdi->lcvs,
- 			(stdi->hs_pol == '+' ? V4L2_DV_HSYNC_POS_POL : 0) |
- 			(stdi->vs_pol == '+' ? V4L2_DV_VSYNC_POS_POL : 0),
--			    state->aspect_ratio, timings))
-+			false, state->aspect_ratio, timings))
- 		return 0;
+ #include <media/atmel-isi.h>
+@@ -386,6 +387,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
  
- 	v4l2_dbg(2, debug, sd,
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index fd7adc4..a99362d 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -1619,7 +1619,7 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
- 
- 	if (bt->standards == 0 || (bt->standards & V4L2_DV_BT_STD_CVT)) {
- 		if (v4l2_detect_cvt(total_v_lines, h_freq, bt->vsync,
--				    bt->polarities, timings))
-+				    bt->polarities, false, timings))
- 			return true;
- 	}
- 
-@@ -1630,7 +1630,8 @@ static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
- 				  &aspect_ratio.numerator,
- 				  &aspect_ratio.denominator);
- 		if (v4l2_detect_gtf(total_v_lines, h_freq, bt->vsync,
--				    bt->polarities, aspect_ratio, timings))
-+				    bt->polarities, false,
-+				    aspect_ratio, timings))
- 			return true;
- 	}
- 	return false;
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 5792192..7e15749 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -339,6 +339,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
-  * @vsync - the height of the vertical sync in lines.
-  * @polarities - the horizontal and vertical polarities (same as struct
-  *		v4l2_bt_timings polarities).
-+ * @interlaced - if this flag is true, it indicates interlaced format
-  * @fmt - the resulting timings.
-  *
-  * This function will attempt to detect if the given values correspond to a
-@@ -350,7 +351,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
-  * detection function.
-  */
- bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
--		u32 polarities, struct v4l2_dv_timings *fmt)
-+		u32 polarities, bool interlaced, struct v4l2_dv_timings *fmt)
- {
- 	int  v_fp, v_bp, h_fp, h_bp, hsync;
- 	int  frame_width, image_height, image_width;
-@@ -385,7 +386,11 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 		if (v_bp < CVT_MIN_V_BPORCH)
- 			v_bp = CVT_MIN_V_BPORCH;
- 	}
--	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
 +
-+	if (interlaced)
-+		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp) & ~0x1;
-+	else
-+		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
- 
- 	if (image_height < 0)
- 		return false;
-@@ -458,11 +463,27 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 	fmt->bt.hsync = hsync;
- 	fmt->bt.vsync = vsync;
- 	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
--	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
+ 	/* Reset ISI */
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
+ 	if (ret < 0) {
+@@ -445,6 +448,8 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
+ 	if (ret < 0)
+ 		dev_err(icd->parent, "Disable ISI timed out\n");
 +
-+	if (!interlaced) {
-+		fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-+		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
-+	} else {
-+		fmt->bt.vbackporch = (frame_height - image_height - 2 * v_fp -
-+				      2 * vsync) / 2;
-+		fmt->bt.il_vbackporch = frame_height - image_height - 2 * v_fp -
-+					2 * vsync - fmt->bt.vbackporch;
-+		fmt->bt.il_vfrontporch = v_fp;
-+		fmt->bt.il_vsync = vsync;
-+		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
-+		fmt->bt.interlaced = V4L2_DV_INTERLACED;
-+	}
-+
- 	fmt->bt.pixelclock = pix_clk;
- 	fmt->bt.standards = V4L2_DV_BT_STD_CVT;
-+
- 	if (reduced_blanking)
- 		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-+
- 	return true;
++	pm_runtime_put(ici->v4l2_dev.dev);
  }
- EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
-@@ -501,6 +522,7 @@ EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
-  * @vsync - the height of the vertical sync in lines.
-  * @polarities - the horizontal and vertical polarities (same as struct
-  *		v4l2_bt_timings polarities).
-+ * @interlaced - if this flag is true, it indicates interlaced format
-  * @aspect - preferred aspect ratio. GTF has no method of determining the
-  *		aspect ratio in order to derive the image width from the
-  *		image height, so it has to be passed explicitly. Usually
-@@ -516,6 +538,7 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 		unsigned hfreq,
- 		unsigned vsync,
- 		u32 polarities,
-+		bool interlaced,
- 		struct v4l2_fract aspect,
- 		struct v4l2_dv_timings *fmt)
- {
-@@ -540,9 +563,11 @@ bool v4l2_detect_gtf(unsigned frame_height,
  
- 	/* Vertical */
- 	v_fp = GTF_V_FP;
+ static struct vb2_ops isi_video_qops = {
+@@ -516,7 +521,13 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
++
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -736,14 +747,9 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+-	ret = clk_prepare_enable(isi->pclk);
+-	if (ret)
+-		return ret;
 -
- 	v_bp = (GTF_MIN_VSYNC_BP * hfreq + 500000) / 1000000 - vsync;
--	image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
-+	if (interlaced)
-+		image_height = (frame_height - 2 * v_fp - 2 * vsync - 2 * v_bp) & ~0x1;
-+	else
-+		image_height = (frame_height - v_fp - vsync - v_bp + 1) & ~0x1;
+ 	if (!IS_ERR(isi->mck)) {
+ 		ret = clk_prepare_enable(isi->mck);
+ 		if (ret) {
+-			clk_disable_unprepare(isi->pclk);
+ 			return ret;
+ 		}
+ 	}
+@@ -758,7 +764,6 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
  
- 	if (image_height < 0)
- 		return false;
-@@ -594,11 +619,27 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 	fmt->bt.hsync = hsync;
- 	fmt->bt.vsync = vsync;
- 	fmt->bt.hbackporch = frame_width - image_width - h_fp - hsync;
--	fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-+
-+	if (!interlaced) {
-+		fmt->bt.vbackporch = frame_height - image_height - v_fp - vsync;
-+		fmt->bt.interlaced = V4L2_DV_PROGRESSIVE;
-+	} else {
-+		fmt->bt.vbackporch = (frame_height - image_height - 2 * v_fp -
-+				      2 * vsync) / 2;
-+		fmt->bt.il_vbackporch = frame_height - image_height - 2 * v_fp -
-+					2 * vsync - fmt->bt.vbackporch;
-+		fmt->bt.il_vfrontporch = v_fp;
-+		fmt->bt.il_vsync = vsync;
-+		fmt->bt.flags |= V4L2_DV_FL_HALF_LINE;
-+		fmt->bt.interlaced = V4L2_DV_INTERLACED;
-+	}
-+
- 	fmt->bt.pixelclock = pix_clk;
- 	fmt->bt.standards = V4L2_DV_BT_STD_GTF;
-+
- 	if (!default_gtf)
- 		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
-+
- 	return true;
+ 	if (!IS_ERR(isi->mck))
+ 		clk_disable_unprepare(isi->mck);
+-	clk_disable_unprepare(isi->pclk);
  }
- EXPORT_SYMBOL_GPL(v4l2_detect_gtf);
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 4becc67..eecd310 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -117,6 +117,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-  * @vsync - the height of the vertical sync in lines.
-  * @polarities - the horizontal and vertical polarities (same as struct
-  *		v4l2_bt_timings polarities).
-+ * @interlaced - if this flag is true, it indicates interlaced format
-  * @fmt - the resulting timings.
-  *
-  * This function will attempt to detect if the given values correspond to a
-@@ -124,7 +125,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-  * in with the found CVT timings.
-  */
- bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
--		u32 polarities, struct v4l2_dv_timings *fmt);
-+		u32 polarities, bool interlaced, struct v4l2_dv_timings *fmt);
  
- /** v4l2_detect_gtf - detect if the given timings follow the GTF standard
-  * @frame_height - the total height of the frame (including blanking) in lines.
-@@ -132,6 +133,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-  * @vsync - the height of the vertical sync in lines.
-  * @polarities - the horizontal and vertical polarities (same as struct
-  *		v4l2_bt_timings polarities).
-+ * @interlaced - if this flag is true, it indicates interlaced format
-  * @aspect - preferred aspect ratio. GTF has no method of determining the
-  *		aspect ratio in order to derive the image width from the
-  *		image height, so it has to be passed explicitly. Usually
-@@ -144,7 +146,7 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-  * in with the found GTF timings.
-  */
- bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
--		u32 polarities, struct v4l2_fract aspect,
-+		u32 polarities, bool interlaced, struct v4l2_fract aspect,
- 		struct v4l2_dv_timings *fmt);
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -855,9 +860,14 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
  
- /** v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
+ 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+ 
++	/* Enable PM and peripheral clock before operate isi registers */
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+ 	isi_writel(isi, ISI_CFG1, cfg1);
+ 
++	pm_runtime_put(ici->v4l2_dev.dev);
++
+ 	return 0;
+ }
+ 
+@@ -889,6 +899,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
+ 			sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
++	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+ }
+@@ -1027,8 +1038,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
+ 		isi->width_flags |= 1 << 9;
+ 
+-	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+-
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (IS_ERR_VALUE(irq)) {
+ 		ret = irq;
+@@ -1049,6 +1058,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	soc_host->v4l2_dev.dev	= &pdev->dev;
+ 	soc_host->nr		= pdev->id;
+ 
++	pm_suspend_ignore_children(&pdev->dev, true);
++	pm_runtime_enable(&pdev->dev);
++
+ 	if (isi->pdata.asd_sizes) {
+ 		soc_host->asd = isi->pdata.asd;
+ 		soc_host->asd_sizes = isi->pdata.asd_sizes;
+@@ -1062,6 +1074,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_register_soc_camera_host:
++	pm_runtime_disable(&pdev->dev);
+ err_req_irq:
+ err_ioremap:
+ 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+@@ -1074,6 +1087,30 @@ err_alloc_ctx:
+ 	return ret;
+ }
+ 
++static int atmel_isi_runtime_suspend(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	clk_disable_unprepare(isi->pclk);
++
++	return 0;
++}
++static int atmel_isi_runtime_resume(struct device *dev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	return clk_prepare_enable(isi->pclk);
++}
++
++static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
++	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
++				atmel_isi_runtime_resume, NULL)
++};
++
+ static const struct of_device_id atmel_isi_of_match[] = {
+ 	{ .compatible = "atmel,at91sam9g45-isi" },
+ 	{ }
+@@ -1085,6 +1122,7 @@ static struct platform_driver atmel_isi_driver = {
+ 	.driver		= {
+ 		.name = "atmel_isi",
+ 		.of_match_table = of_match_ptr(atmel_isi_of_match),
++		.pm	= &atmel_isi_dev_pm_ops,
+ 	},
+ };
+ 
 -- 
 1.9.1
 
