@@ -1,108 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:36984 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655AbbETOKy (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:50979 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754375AbbEZN0l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 10:10:54 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v8 3/8] DT: aat1290: Document handling external strobe sources
-Date: Wed, 20 May 2015 16:10:10 +0200
-Message-id: <1432131015-22397-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
-References: <1432131015-22397-1-git-send-email-j.anaszewski@samsung.com>
+	Tue, 26 May 2015 09:26:41 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 03/13] serial: 8250_dma: Support for deferred probing when requesting DMA channels
+Date: Tue, 26 May 2015 16:25:58 +0300
+Message-ID: <1432646768-12532-4-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for a pinctrl-names property.
-The property, when present, is used for switching the source
-of the strobe signal for the device.
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channels. In case of error, return the error code we received including
+-EPROBE_DEFER
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: devicetree@vger.kernel.org
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- .../devicetree/bindings/leds/leds-aat1290.txt      |   36 ++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ drivers/tty/serial/8250/8250_dma.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-index ef88b9c..c05ed91 100644
---- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -2,7 +2,9 @@
+diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
+index 21d01a491405..a617eca4e97d 100644
+--- a/drivers/tty/serial/8250/8250_dma.c
++++ b/drivers/tty/serial/8250/8250_dma.c
+@@ -182,21 +182,19 @@ int serial8250_request_dma(struct uart_8250_port *p)
+ 	dma_cap_set(DMA_SLAVE, mask);
  
- The device is controlled through two pins: FL_EN and EN_SET. The pins when,
- asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
--respectively.
-+respectively. In order to add a capability of selecting the strobe signal source
-+(e.g. CPU or camera sensor) there is an additional switch required, independent
-+of the flash chip. The switch is controlled with pin control.
+ 	/* Get a channel for RX */
+-	dma->rxchan = dma_request_slave_channel_compat(mask,
+-						       dma->fn, dma->rx_param,
+-						       p->port.dev, "rx");
+-	if (!dma->rxchan)
+-		return -ENODEV;
++	dma->rxchan = dma_request_slave_channel_compat_reason(mask, dma->fn,
++					dma->rx_param, p->port.dev, "rx");
++	if (IS_ERR(dma->rxchan))
++		return PTR_ERR(dma->rxchan);
  
- Required properties:
+ 	dmaengine_slave_config(dma->rxchan, &dma->rxconf);
  
-@@ -10,6 +12,13 @@ Required properties:
- - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
- - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+ 	/* Get a channel for TX */
+-	dma->txchan = dma_request_slave_channel_compat(mask,
+-						       dma->fn, dma->tx_param,
+-						       p->port.dev, "tx");
+-	if (!dma->txchan) {
++	dma->txchan = dma_request_slave_channel_compat_reason(mask, dma->fn,
++					dma->tx_param, p->port.dev, "tx");
++	if (IS_ERR(dma->txchan)) {
+ 		dma_release_channel(dma->rxchan);
+-		return -ENODEV;
++		return PTR_ERR(dma->txchan);
+ 	}
  
-+Optional properties:
-+- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
-+		"default" and "host" must refer to the same pin configuration
-+		node, which sets the host as a strobe signal provider. Entry
-+		"isp" must refer to the pin configuration node, which sets the
-+		ISP as a strobe signal provider.
-+
- A discrete LED element connected to the device must be represented by a child
- node - see Documentation/devicetree/bindings/leds/common.txt.
- 
-@@ -25,13 +34,22 @@ Required properties of the LED child node:
- Optional properties of the LED child node:
- - label : see Documentation/devicetree/bindings/leds/common.txt
- 
--Example (by Ct = 220nF, Rset = 160kohm):
-+Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
-+a switch that allows for routing strobe signal either from the host or from
-+the camera sensor):
-+
-+#include "exynos4412.dtsi"
- 
- aat1290 {
- 	compatible = "skyworks,aat1290";
- 	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
- 	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
- 
-+	pinctrl-names = "default", "host", "isp";
-+	pinctrl-0 = <&camera_flash_host>;
-+	pinctrl-1 = <&camera_flash_host>;
-+	pinctrl-2 = <&camera_flash_isp>;
-+
- 	camera_flash: flash-led {
- 		label = "aat1290-flash";
- 		led-max-microamp = <520833>;
-@@ -39,3 +57,17 @@ aat1290 {
- 		flash-timeout-us = <1940000>;
- 	};
- };
-+
-+&pinctrl_0 {
-+	camera_flash_host: camera-flash-host {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <0>;
-+	};
-+
-+	camera_flash_isp: camera-flash-isp {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <1>;
-+	};
-+};
+ 	dmaengine_slave_config(dma->txchan, &dma->txconf);
 -- 
-1.7.9.5
+2.3.5
 
