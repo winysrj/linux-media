@@ -1,65 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40874 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbbEDHoY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:44:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/3] Add VIDIOC_SUBDEV_QUERYCAP
-Date: Mon, 04 May 2015 01:33:02 +0300
-Message-ID: <5300971.JLUFHG4Si2@avalon>
-In-Reply-To: <5543664F.3090803@xs4all.nl>
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <5543664F.3090803@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45235 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754424AbbEZN07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 09:26:59 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <vinod.koul@intel.com>, <tony@atomide.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 09/13] crypto: omap-des - Support for deferred probing when requesting DMA channels
+Date: Tue, 26 May 2015 16:26:04 +0300
+Message-ID: <1432646768-12532-10-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+channels. Only fall back to pio mode if the error code returned is not
+-EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 
-On Friday 01 May 2015 13:41:03 Hans Verkuil wrote:
-> On 05/01/2015 01:33 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev
-> > devices as discussed during the ELC in San Jose and as discussed here:
-> > 
-> > http://www.spinics.net/lists/linux-media/msg88009.html
-> > 
-> > It also adds the entity_id to v4l2_capability.
-> 
-> Question: why do we have CONFIG_VIDEO_V4L2_SUBDEV_API? I don't really see
-> the point of this and I would propose to remove this config option and
-> instead use CONFIG_MEDIA_CONTROLLER.
-> 
-> I don't see the use-case of having MEDIA_CONTROLLER defined but not
-> VIDEO_V4L2_SUBDEV_API.
-> 
-> Comments?
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Herbert Xu <herbert@gondor.apana.org.au>
+CC: David S. Miller <davem@davemloft.net>
+CC: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ drivers/crypto/omap-des.c | 38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-The idea is to compile the subdev userspace API code out when not needed. Not 
-all media controller drivers need that API.
-
-> > Hans Verkuil (3):
-> >   v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-> >   DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-> >   videodev2.h: add entity_id to struct v4l2_capability
-> >  
-> >  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
-> >  .../DocBook/media/v4l/vidioc-querycap.xml          |  18 ++-
-> >  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 ++++++++++++++++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   7 ++
-> >  drivers/media/v4l2-core/v4l2-subdev.c              |  19 +++
-> >  include/uapi/linux/v4l2-subdev.h                   |  12 ++
-> >  include/uapi/linux/videodev2.h                     |   5 +-
-> >  7 files changed, 199 insertions(+), 3 deletions(-)
-> >  create mode 100644
-> >  Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-
+diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
+index 46307098f8ba..06be02f520da 100644
+--- a/drivers/crypto/omap-des.c
++++ b/drivers/crypto/omap-des.c
+@@ -340,7 +340,7 @@ static void omap_des_dma_out_callback(void *data)
+ 
+ static int omap_des_dma_init(struct omap_des_dev *dd)
+ {
+-	int err = -ENOMEM;
++	int err;
+ 	dma_cap_mask_t mask;
+ 
+ 	dd->dma_lch_out = NULL;
+@@ -349,21 +349,20 @@ static int omap_des_dma_init(struct omap_des_dev *dd)
+ 	dma_cap_zero(mask);
+ 	dma_cap_set(DMA_SLAVE, mask);
+ 
+-	dd->dma_lch_in = dma_request_slave_channel_compat(mask,
+-							  omap_dma_filter_fn,
+-							  &dd->dma_in,
+-							  dd->dev, "rx");
+-	if (!dd->dma_lch_in) {
++	dd->dma_lch_in = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &dd->dma_in,
++					dd->dev, "rx");
++	if (IS_ERR(dd->dma_lch_in)) {
+ 		dev_err(dd->dev, "Unable to request in DMA channel\n");
+-		goto err_dma_in;
++		return PTR_ERR(dd->dma_lch_in);
+ 	}
+ 
+-	dd->dma_lch_out = dma_request_slave_channel_compat(mask,
+-							   omap_dma_filter_fn,
+-							   &dd->dma_out,
+-							   dd->dev, "tx");
+-	if (!dd->dma_lch_out) {
++	dd->dma_lch_out = dma_request_slave_channel_compat_reason(mask,
++					omap_dma_filter_fn, &dd->dma_out,
++					dd->dev, "tx");
++	if (IS_ERR(dd->dma_lch_out)) {
+ 		dev_err(dd->dev, "Unable to request out DMA channel\n");
++		err = PTR_ERR(dd->dma_lch_out);
+ 		goto err_dma_out;
+ 	}
+ 
+@@ -371,14 +370,15 @@ static int omap_des_dma_init(struct omap_des_dev *dd)
+ 
+ err_dma_out:
+ 	dma_release_channel(dd->dma_lch_in);
+-err_dma_in:
+-	if (err)
+-		pr_err("error: %d\n", err);
++
+ 	return err;
+ }
+ 
+ static void omap_des_dma_cleanup(struct omap_des_dev *dd)
+ {
++	if (dd->pio_only)
++		return;
++
+ 	dma_release_channel(dd->dma_lch_out);
+ 	dma_release_channel(dd->dma_lch_in);
+ }
+@@ -1110,7 +1110,9 @@ static int omap_des_probe(struct platform_device *pdev)
+ 	tasklet_init(&dd->queue_task, omap_des_queue_task, (unsigned long)dd);
+ 
+ 	err = omap_des_dma_init(dd);
+-	if (err && DES_REG_IRQ_STATUS(dd) && DES_REG_IRQ_ENABLE(dd)) {
++	if (err == -EPROBE_DEFER) {
++		goto err_irq;
++	} else if (err && DES_REG_IRQ_STATUS(dd) && DES_REG_IRQ_ENABLE(dd)) {
+ 		dd->pio_only = 1;
+ 
+ 		irq = platform_get_irq(pdev, 0);
+@@ -1154,8 +1156,8 @@ err_algs:
+ 		for (j = dd->pdata->algs_info[i].registered - 1; j >= 0; j--)
+ 			crypto_unregister_alg(
+ 					&dd->pdata->algs_info[i].algs_list[j]);
+-	if (!dd->pio_only)
+-		omap_des_dma_cleanup(dd);
++
++	omap_des_dma_cleanup(dd);
+ err_irq:
+ 	tasklet_kill(&dd->done_task);
+ 	tasklet_kill(&dd->queue_task);
 -- 
-Regards,
-
-Laurent Pinchart
+2.3.5
 
