@@ -1,113 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:33740 "EHLO mx02.posteo.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:56186 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbbEJK6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 May 2015 06:58:32 -0400
-Received: from dovecot03.posteo.de (unknown [185.67.36.28])
-	by mx02.posteo.de (Postfix) with ESMTPS id 1ED4325A3DC9
-	for <linux-media@vger.kernel.org>; Sun, 10 May 2015 12:58:31 +0200 (CEST)
-Received: from mail.posteo.de (localhost [127.0.0.1])
-	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3ll2SQ6hPbz5vND
-	for <linux-media@vger.kernel.org>; Sun, 10 May 2015 12:58:30 +0200 (CEST)
-Date: Sun, 10 May 2015 12:58:19 +0200
-From: Felix Janda <felix.janda@posteo.de>
+	id S1752328AbbEZRIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:36 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] Compile without ENABLE_NLS
-Message-ID: <20150510105819.GD27779@euler>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [ATTN 2/9] v4l2: add RF gain control
+Date: Tue, 26 May 2015 20:08:03 +0300
+Message-Id: <1432660090-19574-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Felix Janda <felix.janda@posteo.de>
----
- utils/dvb/dvb-fe-tool.c        | 2 ++
- utils/dvb/dvb-format-convert.c | 2 ++
- utils/dvb/dvbv5-scan.c         | 2 ++
- utils/dvb/dvbv5-zap.c          | 2 ++
- utils/keytable/keytable.c      | 2 ++
- 5 files changed, 10 insertions(+)
+Add new RF tuner gain control named RF gain. That is aimed for
+external LNA (amplifier) chip just right after antenna connector.
 
-diff --git a/utils/dvb/dvb-fe-tool.c b/utils/dvb/dvb-fe-tool.c
-index d4c7778..151fdef 100644
---- a/utils/dvb/dvb-fe-tool.c
-+++ b/utils/dvb/dvb-fe-tool.c
-@@ -276,9 +276,11 @@ int main(int argc, char *argv[])
- 	struct dvb_v5_fe_parms *parms;
- 	int fe_flags = O_RDWR;
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ include/uapi/linux/v4l2-controls.h   | 2 ++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e3a3468..0fc34b8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+ 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
++	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
++	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
+@@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 	case V4L2_CID_RDS_RECEPTION:
++	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
+@@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_FREQUENCY:
+ 	case V4L2_CID_TUNE_POWER_LEVEL:
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
++	case V4L2_CID_RF_TUNER_RF_GAIN:
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN:
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
+ 	case V4L2_CID_RF_TUNER_IF_GAIN:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 9f6e108..87539be 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -932,6 +932,8 @@ enum v4l2_deemphasis {
  
-+#ifdef ENABLE_NLS
- 	setlocale (LC_ALL, "");
- 	bindtextdomain (PACKAGE, LOCALEDIR);
- 	textdomain (PACKAGE);
-+#endif
- 
- 	argp_parse(&argp, argc, argv, ARGP_NO_HELP | ARGP_NO_EXIT, 0, 0);
- 
-diff --git a/utils/dvb/dvb-format-convert.c b/utils/dvb/dvb-format-convert.c
-index e39df03..09451d4 100644
---- a/utils/dvb/dvb-format-convert.c
-+++ b/utils/dvb/dvb-format-convert.c
-@@ -132,9 +132,11 @@ int main(int argc, char **argv)
- 		.args_doc = N_("<input file> <output file>"),
- 	};
- 
-+#ifdef ENABLE_NLS
- 	setlocale (LC_ALL, "");
- 	bindtextdomain (PACKAGE, LOCALEDIR);
- 	textdomain (PACKAGE);
-+#endif
- 
- 	memset(&args, 0, sizeof(args));
- 	argp_parse(&argp, argc, argv, ARGP_NO_HELP | ARGP_NO_EXIT, &idx, &args);
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 1bd1bcf..9858070 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -461,9 +461,11 @@ int main(int argc, char **argv)
- 		.args_doc = N_("<initial file>"),
- 	};
- 
-+#ifdef ENABLE_NLS
- 	setlocale (LC_ALL, "");
- 	bindtextdomain (PACKAGE, LOCALEDIR);
- 	textdomain (PACKAGE);
-+#endif
- 
- 	memset(&args, 0, sizeof(args));
- 	args.sat_number = -1;
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index 9fd0798..387aacc 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -754,9 +754,11 @@ int main(int argc, char **argv)
- 		.args_doc = N_("<channel name> [or <frequency> if in monitor mode]"),
- 	};
- 
-+#ifdef ENABLE_NLS
- 	setlocale (LC_ALL, "");
- 	bindtextdomain (PACKAGE, LOCALEDIR);
- 	textdomain (PACKAGE);
-+#endif
- 
- 	memset(&args, 0, sizeof(args));
- 	args.sat_number = -1;
-diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-index dcbfd83..501fd7a 100644
---- a/utils/keytable/keytable.c
-+++ b/utils/keytable/keytable.c
-@@ -1571,9 +1571,11 @@ int main(int argc, char *argv[])
- 	static struct sysfs_names *names;
- 	struct rc_device	  rc_dev;
- 
-+#ifdef ENABLE_NLS
- 	setlocale (LC_ALL, "");
- 	bindtextdomain (PACKAGE, LOCALEDIR);
- 	textdomain (PACKAGE);
-+#endif
- 
- 	argp_parse(&argp, argc, argv, ARGP_NO_HELP | ARGP_NO_EXIT, 0, 0);
- 
+ #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
+ #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
++#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
++#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
+ #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
+ #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
+ #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
 -- 
-2.3.6
+http://palosaari.fi/
+
