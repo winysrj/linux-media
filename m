@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42665 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751257AbbEALeP (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52413 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752374AbbE0QLA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 07:34:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [RFC PATCH 0/3] Add VIDIOC_SUBDEV_QUERYCAP
-Date: Fri,  1 May 2015 13:33:47 +0200
-Message-Id: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 27 May 2015 12:11:00 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 12/15] media: soc_camera: Fill std field in enum_input
+Date: Wed, 27 May 2015 17:10:50 +0100
+Message-Id: <1432743053-13479-13-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev devices
-as discussed during the ELC in San Jose and as discussed here:
+Fill in the std field from the video_device tvnorms field in
+enum_input.
 
-http://www.spinics.net/lists/linux-media/msg88009.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-It also adds the entity_id to v4l2_capability.
-
-
-Hans Verkuil (3):
-  v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-  DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
-  videodev2.h: add entity_id to struct v4l2_capability
-
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- .../DocBook/media/v4l/vidioc-querycap.xml          |  18 ++-
- .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 140 +++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   7 ++
- drivers/media/v4l2-core/v4l2-subdev.c              |  19 +++
- include/uapi/linux/v4l2-subdev.h                   |  12 ++
- include/uapi/linux/videodev2.h                     |   5 +-
- 7 files changed, 199 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index b054f46..f6c05c6 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -309,11 +309,14 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+ static int soc_camera_enum_input(struct file *file, void *priv,
+ 				 struct v4l2_input *inp)
+ {
++	struct soc_camera_device *icd = file->private_data;
++
+ 	if (inp->index != 0)
+ 		return -EINVAL;
+ 
+ 	/* default is camera */
+ 	inp->type = V4L2_INPUT_TYPE_CAMERA;
++	inp->std = icd->vdev->tvnorms;
+ 	strcpy(inp->name, "Camera");
+ 
+ 	return 0;
 -- 
-2.1.4
+1.7.10.4
 
