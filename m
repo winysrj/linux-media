@@ -1,73 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56514 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753677AbbEUJDI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:08 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 04/20] media: adv7604: document support for ADV7612 dual HDMI input decoder
-Date: Wed, 20 May 2015 17:39:24 +0100
-Message-Id: <1432139980-12619-5-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:60501 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751566AbbE0KlN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2015 06:41:13 -0400
+Message-ID: <55659F3F.5080503@ti.com>
+Date: Wed, 27 May 2015 13:41:03 +0300
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: <vinod.koul@intel.com>, <tony@atomide.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
+	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 03/13] serial: 8250_dma: Support for deferred probing
+ when requesting DMA channels
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-4-git-send-email-peter.ujfalusi@ti.com> <20150526144432.GA23156@kroah.com>
+In-Reply-To: <20150526144432.GA23156@kroah.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+On 05/26/2015 05:44 PM, Greg Kroah-Hartman wrote:
+> On Tue, May 26, 2015 at 04:25:58PM +0300, Peter Ujfalusi wrote:
+>> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+>> channels. In case of error, return the error code we received including
+>> -EPROBE_DEFER
+> 
+> I think you typed the function name wrong here :(
 
-This documentation accompanies the patch adding support for the ADV7612
-dual HDMI decoder / repeater chip.
+Oops. Also in other drivers :(
+I will fix up the messages for the v2 series, which will not going to include
+the patch against 8250_dma.
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Reviewed-by: William Towle <william.towle@codethink.co.uk>
----
- .../devicetree/bindings/media/i2c/adv7604.txt        |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+If I understand things right around the 8250_* is that the
+serial8250_request_dma() which is called from serial8250_do_startup() is not
+called at module probe time, so it can not be used to handle deferred probing.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index c27cede..7eafdbc 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -1,15 +1,17 @@
--* Analog Devices ADV7604/11 video decoder with HDMI receiver
-+* Analog Devices ADV7604/11/12 video decoder with HDMI receiver
- 
--The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
--receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
--and the ADV7611 has one HDMI input and no analog input.
-+The ADV7604 and ADV7611/12 are multiformat video decoders with an integrated
-+HDMI receiver. The ADV7604 has four multiplexed HDMI inputs and one analog
-+input, and the ADV7611 has one HDMI input and no analog input. The 7612 is
-+similar to the 7611 but has 2 HDMI inputs.
- 
--These device tree bindings support the ADV7611 only at the moment.
-+These device tree bindings support the ADV7611/12 only at the moment.
- 
- Required Properties:
- 
-   - compatible: Must contain one of the following
-     - "adi,adv7611" for the ADV7611
-+    - "adi,adv7612" for the ADV7612
- 
-   - reg: I2C slave address
- 
-@@ -22,10 +24,10 @@ port, in accordance with the video interface bindings defined in
- Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
- are numbered as follows.
- 
--  Port			ADV7611
-+  Port			ADV7611    ADV7612
- ------------------------------------------------------------
--  HDMI			0
--  Digital output	1
-+  HDMI			0             0, 1
-+  Digital output	1                2
- 
- The digital output port node must contain at least one endpoint.
- 
+Thus this patch can be dropped IMO.
+
 -- 
-1.7.10.4
-
+Péter
