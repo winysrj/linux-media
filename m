@@ -1,77 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:34873 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752766AbbETNr3 (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52401 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752302AbbE0QLA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 09:47:29 -0400
-Message-id: <555C906D.4030902@samsung.com>
-Date: Wed, 20 May 2015 15:47:25 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
-Subject: Re: [PATCH 4/5] leds: aat1290: Pass dev and dev->of_node to
- v4l2_flash_init()
-References: <1432076645-4799-1-git-send-email-sakari.ailus@iki.fi>
- <1432076645-4799-5-git-send-email-sakari.ailus@iki.fi>
- <555C582E.8000807@samsung.com> <555C63CF.2020304@samsung.com>
- <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150520122714.GC8365@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Wed, 27 May 2015 12:11:00 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 08/15] v4l: subdev: Add pad config allocator and init
+Date: Wed, 27 May 2015 17:10:46 +0100
+Message-Id: <1432743053-13479-9-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2015 02:27 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Wed, May 20, 2015 at 12:37:03PM +0200, Jacek Anaszewski wrote:
->> On 05/20/2015 11:47 AM, Jacek Anaszewski wrote:
->>> Hi Sakari,
->>>
->>> On 05/20/2015 01:04 AM, Sakari Ailus wrote:
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->>>> ---
->>>>   drivers/leds/leds-aat1290.c |    5 ++---
->>>>   1 file changed, 2 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
->>>> index c656a2d..71bf6bb 100644
->>>> --- a/drivers/leds/leds-aat1290.c
->>>> +++ b/drivers/leds/leds-aat1290.c
->>>> @@ -524,9 +524,8 @@ static int aat1290_led_probe(struct
->>>> platform_device *pdev)
->>>>       led_cdev->dev->of_node = sub_node;
->>>>
->>>>       /* Create V4L2 Flash subdev. */
->>>> -    led->v4l2_flash = v4l2_flash_init(fled_cdev,
->>>> -                      &v4l2_flash_ops,
->>>> -                      &v4l2_sd_cfg);
->>>> +    led->v4l2_flash = v4l2_flash_init(dev, NULL, fled_cdev,
->>>> +                      &v4l2_flash_ops, &v4l2_sd_cfg);
->>>
->>> Here the first argument should be led_cdev->dev, not dev, which is
->>> &pdev->dev, whereas led_cdev->dev is returned by
->>> device_create_with_groups (it takes dev as a parent) called from
->>> led_classdev_register.
->>
->> The reason for this is the fact that pdev->dev has its of_node
->> field initialized, which makes v4l2_async trying to match
->> subdev by parent node of a LED device, not by sub-LED related
->> DT node.
->
-> If v4l2_subdev->of_node is set, then it won't be replaced with one from
-> struct device. I.e. you need to provide of_node pointer only if it's
-> different from dev->of_node.
->
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-It will always be different since dev->of_node pointer is related
-to the main DT node of LED device, whereas each LED connected to it
-must be expressed in the form of sub-node, as
-Documentation/devicetree/bindings/leds/common.txt DT states.
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           | 10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
+
+Changes since v1:
+
+- Added v4l2_subdev_free_pad_config
+---
+ drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           |   10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6359606..d594fe5 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	v4l2_subdev_call(sd, pad, init_cfg, cfg);
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index dc20102..4a609f6 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -485,6 +485,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	void (*init_cfg)(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -677,7 +679,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++
++static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
 -- 
-Best Regards,
-Jacek Anaszewski
+1.7.10.4
+
