@@ -1,93 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51422 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754964AbbE1Vtt (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52386 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752259AbbE0QK7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 17:49:49 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
-Subject: [PATCH 30/35] DocBook: better organize the function descriptions for frontend
-Date: Thu, 28 May 2015 18:49:33 -0300
-Message-Id: <3462ce7ca1acea2b618187de16cf202e01f557d4.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 27 May 2015 12:10:59 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 01/15] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
+Date: Wed, 27 May 2015 17:10:39 +0100
+Message-Id: <1432743053-13479-2-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the function ioctl definitions to the end of the chapter,
-at their importance. That makes the document better organized,
-as the DVB frontend system call index will look like:
+Add DT entries for vin0, vin0_pins, and adv7612
 
-	open()
-	close()
-	ioctl FE_GET_INFO — Query DVB frontend capabilities and returns information about the front-end. This call only requires read-only access to the device
-	ioctl FE_READ_STATUS — Returns status information about the front-end. This call only requires read-only access to the device
-	ioctl FE_SET_PROPERTY, FE_GET_PROPERTY — FE_SET_PROPERTY sets one or more frontend properties. FE_GET_PROPERTY returns one or more frontend properties.
-	ioctl FE_DISEQC_RESET_OVERLOAD — Restores the power to the antenna subsystem, if it was powered off due to power overload.
-	ioctl FE_DISEQC_SEND_MASTER_CMD — Sends a DiSEqC command
-	ioctl FE_DISEQC_RECV_SLAVE_REPLY — Receives reply from a DiSEqC 2.0 command
-	ioctl FE_DISEQC_SEND_BURST — Sends a 22KHz tone burst for 2x1 mini DiSEqC satellite selection.
-	ioctl FE_SET_TONE — Sets/resets the generation of the continuous 22kHz tone.
-	ioctl FE_SET_VOLTAGE — Allow setting the DC level sent to the antenna subsystem.
-	ioctl FE_ENABLE_HIGH_LNB_VOLTAGE — Select output DC level between normal LNBf voltages or higher LNBf voltages.
-	ioctl FE_SET_FRONTEND_TUNE_MODE — Allow setting tuner mode flags to the frontend.
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 12a31e628d34..0fa4ccfd406d 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -35,8 +35,6 @@ the capability ioctls weren't implemented yet via the new way.</para>
- API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
- struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index aaa4f25..90c4531 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -370,7 +370,12 @@
+ 		renesas,function = "usb2";
+ 	};
  
--&sub-fe-get-property;
--
- <section id="dtv-stats">
- <title>DTV stats type</title>
- <programlisting>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 86bd9ed9d7f8..bcee1d9fc73d 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -37,8 +37,6 @@ specification is available at
- 	<link linkend="FE_GET_INFO">FE_GET_INFO</link>.</para>
- </section>
+-	vin1_pins: vin {
++	vin0_pins: vin0 {
++		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
++		renesas,function = "vin0";
++	};
++
++	vin1_pins: vin1 {
+ 		renesas,groups = "vin1_data8", "vin1_clk";
+ 		renesas,function = "vin1";
+ 	};
+@@ -531,6 +536,18 @@
+ 		reg = <0x12>;
+ 	};
  
--&sub-fe-get-info;
--
- <section id="dvb-fe-read-status">
- <title>Querying frontend status</title>
++	hdmi-in@4c {
++		compatible = "adi,adv7612";
++		reg = <0x4c>;
++		remote = <&vin0>;
++
++		port {
++			hdmi_in_ep: endpoint {
++				remote-endpoint = <&vin0ep0>;
++			};
++		};
++	};
++
+ 	composite-in@20 {
+ 		compatible = "adi,adv7180";
+ 		reg = <0x20>;
+@@ -646,6 +663,28 @@
+ 	status = "okay";
+ };
  
-@@ -46,8 +44,6 @@ specification is available at
- 	<link linkend="FE_READ_STATUS">FE_READ_STATUS</link>.</para>
- </section>
- 
--&sub-fe-read-status;
--
- &sub-dvbproperty;
- 
- <section id="fe-spectral-inversion-t">
-@@ -333,6 +329,9 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- </section>
- 
-+&sub-fe-get-info;
-+&sub-fe-read-status;
-+&sub-fe-get-property;
- &sub-fe-diseqc-reset-overload;
- &sub-fe-diseqc-send-master-cmd;
- &sub-fe-diseqc-recv-slave-reply;
++/* HDMI video input */
++&vin0 {
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	status = "ok";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin0ep0: endpoint {
++			remote-endpoint = <&hdmi_in_ep>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
++
+ /* composite video input */
+ &vin1 {
+ 	pinctrl-0 = <&vin1_pins>;
 -- 
-2.4.1
+1.7.10.4
 
