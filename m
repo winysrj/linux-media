@@ -1,38 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:33637 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835AbbEYPed (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52388 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752258AbbE0QK7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 11:34:33 -0400
-Received: by wicmx19 with SMTP id mx19so43250497wic.0
-        for <linux-media@vger.kernel.org>; Mon, 25 May 2015 08:34:32 -0700 (PDT)
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/3] davinci_vpfe: minor cleanups
-Date: Mon, 25 May 2015 16:34:26 +0100
-Message-Id: <1432568069-11349-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 27 May 2015 12:10:59 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 05/15] media: adv7604: document support for ADV7612 dual HDMI input decoder
+Date: Wed, 27 May 2015 17:10:43 +0100
+Message-Id: <1432743053-13479-6-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Hi Hans,
+This documentation accompanies the patch adding support for the ADV7612
+dual HDMI decoder / repeater chip.
 
-These patch series includes minor cleanups for davinci vpfe
-driver.
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
+---
+ .../devicetree/bindings/media/i2c/adv7604.txt        |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-Lad, Prabhakar (3):
-  media: davinci_vpfe: clear the output_specs
-  media: davinci_vpfe: set minimum required buffers to three
-  media: davinci_vpfe: use monotonic timestamp
-
- drivers/staging/media/davinci_vpfe/dm365_resizer.c   |  1 +
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h |  2 --
- drivers/staging/media/davinci_vpfe/vpfe_video.c      | 18 +++++-------------
- 3 files changed, 6 insertions(+), 15 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index c27cede..7eafdbc 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -1,15 +1,17 @@
+-* Analog Devices ADV7604/11 video decoder with HDMI receiver
++* Analog Devices ADV7604/11/12 video decoder with HDMI receiver
+ 
+-The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
+-receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
+-and the ADV7611 has one HDMI input and no analog input.
++The ADV7604 and ADV7611/12 are multiformat video decoders with an integrated
++HDMI receiver. The ADV7604 has four multiplexed HDMI inputs and one analog
++input, and the ADV7611 has one HDMI input and no analog input. The 7612 is
++similar to the 7611 but has 2 HDMI inputs.
+ 
+-These device tree bindings support the ADV7611 only at the moment.
++These device tree bindings support the ADV7611/12 only at the moment.
+ 
+ Required Properties:
+ 
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7612" for the ADV7612
+ 
+   - reg: I2C slave address
+ 
+@@ -22,10 +24,10 @@ port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+ are numbered as follows.
+ 
+-  Port			ADV7611
++  Port			ADV7611    ADV7612
+ ------------------------------------------------------------
+-  HDMI			0
+-  Digital output	1
++  HDMI			0             0, 1
++  Digital output	1                2
+ 
+ The digital output port node must contain at least one endpoint.
+ 
 -- 
-2.1.4
+1.7.10.4
 
