@@ -1,78 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37131 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbbEHK7V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 06:59:21 -0400
-Received: by widdi4 with SMTP id di4so23095446wid.0
-        for <linux-media@vger.kernel.org>; Fri, 08 May 2015 03:59:20 -0700 (PDT)
-Message-ID: <554C9704.2040503@gmail.com>
-Date: Fri, 08 May 2015 12:59:16 +0200
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Antti Palosaari <crope@iki.fi>
-Subject: Re: dvb_usb_af9015: command failed=1 - stable: 4.0.2
-References: <554C8E04.5090007@gmail.com>
-In-Reply-To: <554C8E04.5090007@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52414 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752378AbbE0QLA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2015 12:11:00 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 13/15] media: soc_camera: Fix error reporting in expbuf
+Date: Wed, 27 May 2015 17:10:51 +0100
+Message-Id: <1432743053-13479-14-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08.05.2015 12:20, poma wrote:
-> 
-> [    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
-> 
-> [    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
-> [    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
-> [    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [    0.994859] usb 1-2: Product: DVB-T 2
-> 
-> [    1.001398] usb 1-2: Manufacturer: Afatech
-> [    1.003555] usb 1-2: SerialNumber: 010101010600001
-> [    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
-> [    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
-> [    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
-> 
-> [   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
-> [   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-> [   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
-> 
-> [   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
-> [   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
-> [   12.343650] mxl5007t 13-00c0: creating new instance
-> [   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
-> [   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
-> [   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-> [   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
-> [   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
-> [   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
-> [   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
-> [   12.564554] mxl5007t 13-00c0: attaching existing instance
-> [   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
-> [   12.567555] mxl5007t_soft_reset: 521: failed!
-> [   12.569745] mxl5007t_attach: error -121 on line 907
-> [   12.571231] usbcore: registered new interface driver dvb_usb_af9015
-> 
-> 
-> $ lsdvb
-> 
-> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
-> 		Version: 0.0.4
-> 		Copyright (C) Manu Abraham
-> $ 
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Remove unnecessary check and fix the error code for vb1 drivers.
 
-Afatech AF9015 reference design:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-3.18.12-200.fc21.x86_64        - OK
-
-3.19.7-200.fc21.x86_64         - KO
-4.0.2-200.fc21.x86_64          - KO
-4.1.0-0.rc2.git3.1.fc23.x86_64 - KO
-
-
-If you have a patch to test, shout loudly.
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index f6c05c6..a80cde5 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -470,14 +470,10 @@ static int soc_camera_expbuf(struct file *file, void *priv,
+ 	struct soc_camera_device *icd = file->private_data;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 
+-	if (icd->streamer != file)
+-		return -EBUSY;
+-
+ 	/* videobuf2 only */
+ 	if (ici->ops->init_videobuf)
+-		return -EINVAL;
+-	else
+-		return vb2_expbuf(&icd->vb2_vidq, p);
++		return -ENOTTY;
++	return vb2_expbuf(&icd->vb2_vidq, p);
+ }
+ 
+ /* Always entered with .host_lock held */
+-- 
+1.7.10.4
 
