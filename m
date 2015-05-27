@@ -1,30 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from afb11.rev.netart.pl ([77.55.131.11]:31370 "EHLO
-	afb11.rev.netart.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbbESGlO convert rfc822-to-8bit (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:36692 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527AbbE0Pxy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2015 02:41:14 -0400
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Twoje konto email przekroczyles limitu bagazu!!!
-To: Recipients <bydgoszcz@vetlab.pl>
-From: System Admin <bydgoszcz@vetlab.pl>
-Date: Tue, 19 May 2015 07:34:16 +0100
-Reply-To: noreply@wiw.lublin.pl
-Message-Id: <20150519063427.02B3037E049@sigmed.nazwa.pl>
+	Wed, 27 May 2015 11:53:54 -0400
+Date: Wed, 27 May 2015 11:53:51 -0400 (EDT)
+Message-Id: <20150527.115351.590594935690171018.davem@davemloft.net>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-metag@vger.kernel.org,
+	kvm-ppc@vger.kernel.org, linux-wireless@vger.kernel.org,
+	sparclinux@vger.kernel.org
+Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
+From: David Miller <davem@davemloft.net>
+In-Reply-To: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Twój e-mail pole przekroczyla kwote i nie moze wysylac lub odbierac wiadomosci e-mail juz, konto e-mail zostanie usuniety z naszego serwera. Aby uniknac tego problemu, zaleca sie, kliknij na link ponizej i zaktualizowac konto
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 27 May 2015 15:05:42 +0300
 
-http://pwsip9.wix.com/admin-poczta-center
+> Even though 'compatability' has a dedicated entry in the Wiktionary,
+> it's listed as 'Mispelling of compatibility'. Fix it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Dziekuje Za Wspólprace
-@ 2015 SYSTEM ADMINISTRATOR HELP DESK
-
----
-This email is free from viruses and malware because avast! Antivirus protection is active.
-http://www.avast.com
-
+Acked-by: David S. Miller <davem@davemloft.net>
