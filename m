@@ -1,52 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:34466 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753716AbbETNVq (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59308 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524AbbE0RsZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2015 09:21:46 -0400
+	Wed, 27 May 2015 13:48:25 -0400
+Date: Wed, 27 May 2015 18:48:14 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dan.j.williams@intel.com,
+	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Message-ID: <20150527174814.GJ21577@sirena.org.uk>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-12-git-send-email-peter.ujfalusi@ti.com>
+ <20150526152730.GT21577@sirena.org.uk>
+ <5565A740.2020707@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <555C86A5.2030007@melag.de>
-References: <555C86A5.2030007@melag.de>
-Date: Wed, 20 May 2015 10:21:44 -0300
-Message-ID: <CAOMZO5CTz4DOdB6xvrw1=i4DRsukQjtzyDMJn50znXd6uXMBUA@mail.gmail.com>
-Subject: Re: imx53 IPU support on 4.0.4
-From: Fabio Estevam <festevam@gmail.com>
-To: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="9BaSWpvdCbxAh9tt"
+Content-Disposition: inline
+In-Reply-To: <5565A740.2020707@ti.com>
+Subject: Re: [PATCH 11/13] spi: omap2-mcspi: Support for deferred probing
+ when requesting DMA channels
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
 
-On Wed, May 20, 2015 at 10:05 AM, Enrico Weigelt, metux IT consult
-<weigelt@melag.de> wrote:
->
-> Hi folks,
->
->
-> I've rebased the IPUv3 patches from ptx folks onto 4.0.4,
-> working good for me. (now gst plays h264 @25fps on imx53)
->
-> https://github.com/metux/linux/commits/submit-4.0-imx53-ipuv3
+--9BaSWpvdCbxAh9tt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-That's great.
+On Wed, May 27, 2015 at 02:15:12PM +0300, Peter Ujfalusi wrote:
 
-Kamil mentioned that the scaler patches should be merged via the the
-gpu subsystem:
-http://www.spinics.net/lists/linux-media/msg88582.html
+> I have put the maintainers of the relevant subsystems as CC in the commit
+> message and sent the series to all of the mailing lists. This series was
+> touching 7 subsystems and I thought not spamming every maintainer with all the
+> mails might be better.
 
-,so I guess Phillip will handle it.
+You need to at least include people on the cover letter, otherwise
+they'll have no idea what's going on.
 
->
-> (Haven't 4.1rc* yet, as it broke some other things for me.)
+--9BaSWpvdCbxAh9tt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-What are the regressions you see?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Regards,
+iQEcBAEBCAAGBQJVZgNeAAoJECTWi3JdVIfQ+fQH/3RUAsyi76DjZZ0jvTPJTYNb
+dEmuvdMbEj9fTeutH/6xnbGT95c8tLNOZ8Pmn436SwZJ08AHG+e4SqJ1Xl7Uu58q
+DLb6ZCxjGRaLfMqXf6XxWsX4KF3kb5ZBNIK2QH6dqTWb3qptSxGvBhP4hzGEb0fV
+FJzPl7QByw+m8e5LQK2mUW0on4ZWOT5/oNPSkWmGcTlTkpQeS1i1ZELcpd0zdsF1
+jTQJwoGgvL5lNkuTfw807uB8v/mciRSDv9phV353E4ea6API0YP26k8jftTb2ex3
+48E1xb2nzLGb/bt6D3wNO0GzidwQ4heN8J/1zmlLWMbX03UxtT6Pt2BYKGxF11M=
+=UYw3
+-----END PGP SIGNATURE-----
 
-Fabio Estevam
+--9BaSWpvdCbxAh9tt--
