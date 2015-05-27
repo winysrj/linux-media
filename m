@@ -1,304 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35662 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993500AbbEEQBY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 12:01:24 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 9/9] drm/exynos: Convert g2d_userptr_get_dma_addr() to use get_vaddr_frames()
-Date: Tue,  5 May 2015 18:01:18 +0200
-Message-Id: <1430841678-11117-10-git-send-email-jack@suse.cz>
-In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
-References: <1430841678-11117-1-git-send-email-jack@suse.cz>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52385 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751947AbbE0QK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2015 12:10:59 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 02/15] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+Date: Wed, 27 May 2015 17:10:40 +0100
+Message-Id: <1432743053-13479-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
-This removes the knowledge about vmas and mmap_sem locking from exynos
-driver. Also it fixes a problem that the function has been mapping user
-provided address without holding mmap_sem.
+This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+which is used by the ADV7612 chip.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+
+Modified to use MEDIA_BUS_FMT_* constants
+
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
 ---
- drivers/gpu/drm/exynos/exynos_drm_g2d.c | 91 ++++++++++---------------------
- drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
- 2 files changed, 30 insertions(+), 158 deletions(-)
+ drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-index 81a250830808..65eb38797fd3 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-@@ -190,10 +190,8 @@ struct g2d_cmdlist_userptr {
- 	dma_addr_t		dma_addr;
- 	unsigned long		userptr;
- 	unsigned long		size;
--	struct page		**pages;
--	unsigned int		npages;
-+	struct frame_vector	*vec;
- 	struct sg_table		*sgt;
--	struct vm_area_struct	*vma;
- 	atomic_t		refcount;
- 	bool			in_pool;
- 	bool			out_of_list;
-@@ -363,6 +361,7 @@ static void g2d_userptr_put_dma_addr(struct drm_device *drm_dev,
- {
- 	struct g2d_cmdlist_userptr *g2d_userptr =
- 					(struct g2d_cmdlist_userptr *)obj;
-+	struct page **pages;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index db7700b..16352a8 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -98,6 +98,7 @@
+ #define VNMC_INF_YUV10_BT656	(2 << 16)
+ #define VNMC_INF_YUV10_BT601	(3 << 16)
+ #define VNMC_INF_YUV16		(5 << 16)
++#define VNMC_INF_RGB888		(6 << 16)
+ #define VNMC_VUP		(1 << 10)
+ #define VNMC_IM_ODD		(0 << 3)
+ #define VNMC_IM_ODD_EVEN	(1 << 3)
+@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	struct soc_camera_device *icd = priv->ici.icd;
+ 	struct rcar_vin_cam *cam = icd->host_priv;
+ 	u32 vnmc, dmr, interrupts;
+-	bool progressive = false, output_is_yuv = false;
++	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
  
- 	if (!obj)
- 		return;
-@@ -382,19 +381,21 @@ out:
- 	exynos_gem_unmap_sgt_from_dma(drm_dev, g2d_userptr->sgt,
- 					DMA_BIDIRECTIONAL);
+ 	switch (priv->field) {
+ 	case V4L2_FIELD_TOP:
+@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
++		input_is_yuv = true;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vnmc |= VNMC_INF_RGB888;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
++		input_is_yuv = true;
+ 		break;
+ 	default:
+ 		break;
+@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	vnmc |= VNMC_VUP;
  
--	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
--					g2d_userptr->npages,
--					g2d_userptr->vma);
-+	pages = frame_vector_pages(g2d_userptr->vec);
-+	if (!IS_ERR(pages)) {
-+		int i;
+ 	/* If input and output use the same colorspace, use bypass mode */
+-	if (output_is_yuv)
++	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
  
--	exynos_gem_put_vma(g2d_userptr->vma);
-+		for (i = 0; i < frame_vector_count(g2d_userptr->vec); i++)
-+			set_page_dirty_lock(pages[i]);
-+	}
-+	put_vaddr_frames(g2d_userptr->vec);
-+	frame_vector_destroy(g2d_userptr->vec);
+ 	/* progressive or interlaced mode */
+@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
++	case MEDIA_BUS_FMT_RGB888_1X24:
+ 		if (cam->extra_fmt)
+ 			break;
  
- 	if (!g2d_userptr->out_of_list)
- 		list_del_init(&g2d_userptr->list);
- 
- 	sg_free_table(g2d_userptr->sgt);
- 	kfree(g2d_userptr->sgt);
--
--	drm_free_large(g2d_userptr->pages);
- 	kfree(g2d_userptr);
- }
- 
-@@ -413,6 +414,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
- 	struct vm_area_struct *vma;
- 	unsigned long start, end;
- 	unsigned int npages, offset;
-+	struct frame_vector *vec;
- 	int ret;
- 
- 	if (!size) {
-@@ -456,65 +458,37 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
- 		return ERR_PTR(-ENOMEM);
- 
- 	atomic_set(&g2d_userptr->refcount, 1);
-+	g2d_userptr->size = size;
- 
- 	start = userptr & PAGE_MASK;
- 	offset = userptr & ~PAGE_MASK;
- 	end = PAGE_ALIGN(userptr + size);
- 	npages = (end - start) >> PAGE_SHIFT;
--	g2d_userptr->npages = npages;
-+	vec = g2d_userptr->vec = frame_vector_create(npages);
-+	if (!vec)
-+		goto out_free;
- 
--	pages = drm_calloc_large(npages, sizeof(struct page *));
--	if (!pages) {
--		DRM_ERROR("failed to allocate pages.\n");
--		ret = -ENOMEM;
--		goto err_free;
--	}
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, userptr);
--	if (!vma) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to get vm region.\n");
-+	ret = get_vaddr_frames(start, npages, 1, 1, vec);
-+	if (ret != npages) {
-+		DRM_ERROR("failed to get user pages from userptr.\n");
-+		if (ret < 0)
-+			goto err_destroy_framevec;
- 		ret = -EFAULT;
--		goto err_free_pages;
-+		goto err_put_framevec;
- 	}
--
--	if (vma->vm_end < userptr + size) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("vma is too small.\n");
-+	if (frame_vector_to_pages(vec) < 0) {
- 		ret = -EFAULT;
--		goto err_free_pages;
-+		goto err_put_framevec;
- 	}
- 
--	g2d_userptr->vma = exynos_gem_get_vma(vma);
--	if (!g2d_userptr->vma) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to copy vma.\n");
--		ret = -ENOMEM;
--		goto err_free_pages;
--	}
--
--	g2d_userptr->size = size;
--
--	ret = exynos_gem_get_pages_from_userptr(start & PAGE_MASK,
--						npages, pages, vma);
--	if (ret < 0) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to get user pages from userptr.\n");
--		goto err_put_vma;
--	}
--
--	up_read(&current->mm->mmap_sem);
--	g2d_userptr->pages = pages;
--
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
- 		ret = -ENOMEM;
--		goto err_free_userptr;
-+		goto err_put_framevec;
- 	}
- 
--	ret = sg_alloc_table_from_pages(sgt, pages, npages, offset,
--					size, GFP_KERNEL);
-+	ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), npages,
-+					offset, size, GFP_KERNEL);
- 	if (ret < 0) {
- 		DRM_ERROR("failed to get sgt from pages.\n");
- 		goto err_free_sgt;
-@@ -549,16 +523,11 @@ err_sg_free_table:
- err_free_sgt:
- 	kfree(sgt);
- 
--err_free_userptr:
--	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
--					g2d_userptr->npages,
--					g2d_userptr->vma);
--
--err_put_vma:
--	exynos_gem_put_vma(g2d_userptr->vma);
-+err_put_framevec:
-+	put_vaddr_frames(vec);
- 
--err_free_pages:
--	drm_free_large(pages);
-+err_destroy_framevec:
-+	frame_vector_destroy(vec);
- 
- err_free:
- 	kfree(g2d_userptr);
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-index 0d5b9698d384..47068ae44ced 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-@@ -378,103 +378,6 @@ int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
- 	return 0;
- }
- 
--struct vm_area_struct *exynos_gem_get_vma(struct vm_area_struct *vma)
--{
--	struct vm_area_struct *vma_copy;
--
--	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
--	if (!vma_copy)
--		return NULL;
--
--	if (vma->vm_ops && vma->vm_ops->open)
--		vma->vm_ops->open(vma);
--
--	if (vma->vm_file)
--		get_file(vma->vm_file);
--
--	memcpy(vma_copy, vma, sizeof(*vma));
--
--	vma_copy->vm_mm = NULL;
--	vma_copy->vm_next = NULL;
--	vma_copy->vm_prev = NULL;
--
--	return vma_copy;
--}
--
--void exynos_gem_put_vma(struct vm_area_struct *vma)
--{
--	if (!vma)
--		return;
--
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--
--	kfree(vma);
--}
--
--int exynos_gem_get_pages_from_userptr(unsigned long start,
--						unsigned int npages,
--						struct page **pages,
--						struct vm_area_struct *vma)
--{
--	int get_npages;
--
--	/* the memory region mmaped with VM_PFNMAP. */
--	if (vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < npages; ++i, start += PAGE_SIZE) {
--			unsigned long pfn;
--			int ret = follow_pfn(vma, start, &pfn);
--			if (ret)
--				return ret;
--
--			pages[i] = pfn_to_page(pfn);
--		}
--
--		if (i != npages) {
--			DRM_ERROR("failed to get user_pages.\n");
--			return -EINVAL;
--		}
--
--		return 0;
--	}
--
--	get_npages = get_user_pages(current, current->mm, start,
--					npages, 1, 1, pages, NULL);
--	get_npages = max(get_npages, 0);
--	if (get_npages != npages) {
--		DRM_ERROR("failed to get user_pages.\n");
--		while (get_npages)
--			put_page(pages[--get_npages]);
--		return -EFAULT;
--	}
--
--	return 0;
--}
--
--void exynos_gem_put_pages_to_userptr(struct page **pages,
--					unsigned int npages,
--					struct vm_area_struct *vma)
--{
--	if (!vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < npages; i++) {
--			set_page_dirty_lock(pages[i]);
--
--			/*
--			 * undo the reference we took when populating
--			 * the table.
--			 */
--			put_page(pages[i]);
--		}
--	}
--}
--
- int exynos_gem_map_sgt_with_dma(struct drm_device *drm_dev,
- 				struct sg_table *sgt,
- 				enum dma_data_direction dir)
 -- 
-2.1.4
+1.7.10.4
 
