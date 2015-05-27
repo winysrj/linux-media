@@ -1,96 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:31673 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070AbbEZNTy (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59320 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753244AbbE0Rsw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:19:54 -0400
-Message-id: <5564371E.2040705@samsung.com>
-Date: Tue, 26 May 2015 11:04:30 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH v9 8/8] exynos4-is: Add support for v4l2-flash subdevs
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
- <1432566843-6391-9-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1432566843-6391-9-git-send-email-j.anaszewski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Wed, 27 May 2015 13:48:52 -0400
+Date: Wed, 27 May 2015 18:48:42 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dan.j.williams@intel.com,
+	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Jarkko Nikula <jarkko.nikula@bitmer.com>,
+	Liam Girdwood <lgirdwood@gmail.com>
+Message-ID: <20150527174842.GL21577@sirena.org.uk>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-14-git-send-email-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="nt+vFqn/aPO6zu0j"
+Content-Disposition: inline
+In-Reply-To: <1432646768-12532-14-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 13/13] ASoC: omap-pcm: Switch to use
+ dma_request_slave_channel_compat_reason()
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/05/15 17:14, Jacek Anaszewski wrote:
-> This patch adds support for external v4l2-flash devices.
-> The support includes parsing "camera-flashes" DT property
 
-"samsung,camera-flashes" ?
+--nt+vFqn/aPO6zu0j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> and asynchronous sub-device registration.
+On Tue, May 26, 2015 at 04:26:08PM +0300, Peter Ujfalusi wrote:
+> dmaengine provides a wrapper function to handle DT and non DT boots when
+> requesting DMA channel. Use that instead of checking for of_node in the
+> platform driver.
 
-> +static int fimc_md_register_flash_entities(struct fimc_md *fmd)
-> +{
-> +	struct device_node *parent = fmd->pdev->dev.of_node, *np_sensor,
-> +		*np_flash;
-> +	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
-> +	struct v4l2_async_subdev *asd;
-> +	int i, j, num_flashes = 0, num_elems;
-> +
-> +	num_elems = of_property_count_elems_of_size(parent,
-> +				"samsung,camera-flashes", sizeof(np_flash));
+Acked-by: Mark Brown <broonie@kernel.org>
 
-I think this should be of_property_count_u32_elems(), phandle is always
-a 32-bit value [1], while size of a pointer depends on the architecture.
+--nt+vFqn/aPO6zu0j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-> +	/* samsung,camera-flashes property is optional */
-> +	if (num_elems < 0)
-> +		return 0;
-> +
-> +	/* samsung,camera-flashes array must have even number of elements */
-> +	if ((num_elems & 1) || (num_elems > FIMC_MAX_SENSORS * 2))
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < num_elems; i += 2) {
-> +		np_sensor = of_parse_phandle(parent,
-> +					     "samsung,camera-flashes", i);
-> +
-> +		for (j = 0; j < fmd->num_sensors; j++)
-> +			if (fmd->async_subdevs.sensors[j].match.of.node ==
-> +			    np_sensor)
-> +				break;
-> +
-> +		of_node_put(np_sensor);
+iQEcBAEBCAAGBQJVZgN6AAoJECTWi3JdVIfQK9QH/0/yPag64vn/82FuyAK+qqjP
+yKDVu5pt9gu5mC9wK69tm9TyqijJ4MLRFLYvaiLfSFgchTZN2upb6fxCEZAlsLNX
+5VSso5EVNC3XAnP4Ong5EgAJluhf3X29RIc/TNinG426/0mPD0E9udZKpYDddxI9
+MSgLVt1UELbHdcXC2pESJWxu2AID0kvaGfPV99vH8U3qOAtyimM/Au/DpXaiji6m
+1XFlwGwNITHD0ZsjpkH39Q6MjQU2WItVL+Kr7m+4SrAo85jMvrP3MQ5Po6jlpx3s
+urUiv2OWG7FyRfnaJQcxLC+KeC5E9WgzkrqGbtjfwSDOQWNJMek0daZkIMoTo2Q=
+=pr+m
+-----END PGP SIGNATURE-----
 
-Would be good to add some comment here, why is the sensor required.
-It's just a DT correctness check? Couldn't we carry on with the flash
-registration after just emitting some warning?
-
-> +		if (j == fmd->num_sensors)
-> +			continue;
-> +
-> +		np_flash = of_parse_phandle(parent, "samsung,camera-flashes",
-> +						i + 1);
-> +
-> +		asd = &fmd->async_subdevs.flashes[num_flashes++];
-> +		asd->match_type = V4L2_ASYNC_MATCH_OF;
-> +		asd->match.of.node = np_flash;
-> +		notifier->subdevs[notifier->num_subdevs++] = asd;
-> +
-> +		of_node_put(np_flash);
-> +	}
-> +
-> +	return 0;
-> +}
-
-Otherwise looks good to me.
-
--- 
-Thanks,
-Sylwester
-
-[1]
-http://lxr.free-electrons.com/source/Documentation/devicetree/booting-without-of.txt#L545
-
+--nt+vFqn/aPO6zu0j--
