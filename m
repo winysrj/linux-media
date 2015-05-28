@@ -1,137 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52405 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752307AbbE0QLA (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51457 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932193AbbE1Vtv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:11:00 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 09/15] media: soc_camera pad-aware driver initialisation
-Date: Wed, 27 May 2015 17:10:47 +0100
-Message-Id: <1432743053-13479-10-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+	Thu, 28 May 2015 17:49:51 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 23/35] DocBook: reformat FE_ENABLE_HIGH_LNB_VOLTAGE ioctl
+Date: Thu, 28 May 2015 18:49:26 -0300
+Message-Id: <d21a6bdb0008b1e2ede2f5e59c0ce8b981dc829a.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media
-controller API, so that soc_camera/rcar_vin can create device nodes
-to support a driver such as adv7604.c (for HDMI on Lager) underneath.
+Use the proper format for FE_ENABLE_HIGH_LNB_VOLTAGE documentation.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c   |    6 +++++
- drivers/media/platform/soc_camera/soc_camera.c |   32 ++++++++++++++++++++++++
- include/media/soc_camera.h                     |    1 +
- 3 files changed, 39 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 16352a8..0df3212 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1358,7 +1358,13 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 		struct v4l2_rect rect;
- 		struct device *dev = icd->parent;
- 		int shift;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		struct media_pad *remote_pad;
- 
-+		remote_pad = media_entity_remote_pad(
-+					&icd->vdev->entity.pads[0]);
-+		fmt.pad = remote_pad->index;
-+#endif
- 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d708df4..b054f46 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1293,6 +1293,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+	int src_pad_idx = -1;
- 	int ret;
- 
- 	sd->grp_id = soc_camera_grp_id(icd);
-@@ -1310,8 +1311,30 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
- 	/* At this point client .probe() should have run already */
-+	ret = media_entity_init(&icd->vdev->entity, 1, &icd->pad, 0);
-+	if (!ret) {
-+		for (src_pad_idx = 0; src_pad_idx < sd->entity.num_pads;
-+				src_pad_idx++)
-+			if (sd->entity.pads[src_pad_idx].flags
-+						== MEDIA_PAD_FL_SOURCE)
-+				break;
+ create mode 100644 Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
+
+diff --git a/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml b/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
+new file mode 100644
+index 000000000000..3ee08a82cc7c
+--- /dev/null
++++ b/Documentation/DocBook/media/dvb/fe-enable-high-lnb-voltage.xml
+@@ -0,0 +1,61 @@
++<refentry id="FE_ENABLE_HIGH_LNB_VOLTAGE">
++  <refmeta>
++    <refentrytitle>ioctl FE_ENABLE_HIGH_LNB_VOLTAGE</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+		if (src_pad_idx < sd->entity.num_pads) {
-+			if (!media_entity_create_link(
-+			    &icd->vdev->entity, 0,
-+			    &sd->entity, src_pad_idx,
-+			    MEDIA_LNK_FL_IMMUTABLE |
-+			    MEDIA_LNK_FL_ENABLED)) {
-+				ret = soc_camera_init_user_formats(icd);
-+			}
-+		}
-+	}
-+#else
- 	ret = soc_camera_init_user_formats(icd);
-+#endif
++  <refnamediv>
++    <refname>FE_ENABLE_HIGH_LNB_VOLTAGE</refname>
++    <refpurpose>Select output DC level between normal LNBf voltages or higher
++	LNBf voltages.</refpurpose>
++  </refnamediv>
 +
- 	if (ret < 0)
- 		goto eusrfmt;
- 
-@@ -1322,6 +1345,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		goto evidstart;
- 
- 	/* Try to improve our guess of a reasonable window format */
-+	fmt.pad = src_pad_idx;
- 	if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt)) {
- 		icd->user_width		= mf->width;
- 		icd->user_height	= mf->height;
-@@ -1335,6 +1359,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- evidstart:
- 	soc_camera_free_user_formats(icd);
- eusrfmt:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&icd->vdev->entity);
-+#endif
- 	soc_camera_remove_device(icd);
- 
- 	return ret;
-@@ -1856,6 +1883,11 @@ static int soc_camera_remove(struct soc_camera_device *icd)
- 	if (icd->num_user_formats)
- 		soc_camera_free_user_formats(icd);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (icd->vdev->entity.num_pads)
-+		media_entity_cleanup(&icd->vdev->entity);
-+#endif
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>unsigned int <parameter>high</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
- 	if (icd->clk) {
- 		/* For the synchronous case */
- 		v4l2_clk_unregister(icd->clk);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..f0c5238 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -42,6 +42,7 @@ struct soc_camera_device {
- 	unsigned char devnum;		/* Device number per host */
- 	struct soc_camera_sense *sense;	/* See comment in struct definition */
- 	struct video_device *vdev;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	const struct soc_camera_format_xlate *current_fmt;
- 	struct soc_camera_format_xlate *user_formats;
++  <refsect1>
++    <title>Arguments</title>
++        <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fe_fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>FE_ENABLE_HIGH_LNB_VOLTAGE</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>high</parameter></term>
++	<listitem>
++	    <para>Valid flags:</para>
++	    <itemizedlist>
++		<listitem>0 - normal 13V and 18V.</listitem>
++		<listitem>&gt;0 - enables slightly higher voltages instead of
++		    13/18V, in order to compensate for long antena cables.</listitem>
++	    </itemizedlist>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Select output DC level between normal LNBf voltages or higher
++	LNBf voltages between 0 (normal) or a value grater than 0 for higher
++	voltages.</para>
++&return-value-dvb;
++</refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 645f92bec767..bb2cd9ef3b03 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -689,55 +689,7 @@ typedef enum fe_hierarchy {
+ &return-value-dvb;
+ </section>
+ 
+-<section id="FE_ENABLE_HIGH_LNB_VOLTAGE">
+-<title>FE_ENABLE_HIGH_LNB_VOLTAGE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>If high != 0 enables slightly higher voltages instead of 13/18V (to compensate
+- for long cables). This call requires read/write permissions. Not all DVB
+- adapters support this ioctl.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request =
+- <link linkend="FE_ENABLE_HIGH_LNB_VOLTAGE">FE_ENABLE_HIGH_LNB_VOLTAGE</link>, int high);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals <link linkend="FE_SET_VOLTAGE">FE_SET_VOLTAGE</link> for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int high</para>
+-</entry><entry
+- align="char">
+-<para>The requested bus voltage.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-&return-value-dvb;
+-</section>
+-
++&sub-fe-enable-high-lnb-voltage;
+ &sub-fe-set-frontend-tune-mode;
+ 
+ </section>
 -- 
-1.7.10.4
+2.4.1
 
