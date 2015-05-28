@@ -1,76 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:36500 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbbE2NJo (ORCPT
+Received: from smtprelay0058.hostedemail.com ([216.40.44.58]:55147 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754755AbbE1Vcj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2015 09:09:44 -0400
-Date: Fri, 29 May 2015 09:09:39 -0400
-From: Tejun Heo <tj@kernel.org>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Thu, 28 May 2015 17:32:39 -0400
+Message-ID: <1432848754.1556.25.camel@perches.com>
+Subject: Re: [PATCH 1/9] drivers/media/usb/airspy/airspy.c: drop unneeded
+ goto
+From: Joe Perches <joe@perches.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Antti Palosaari <crope@iki.fi>, kernel-janitors@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	Jean Delvare <jdelvare@suse.de>, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, Dmitry Torokhov <dtor@google.com>,
-	Anatol Pomazau <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	bcm-kernel-feedback-list@broadcom.com, maxime.coquelin@st.com
-Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
-Message-ID: <20150529130939.GG27479@htj.duckdns.org>
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
- <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com>
- <55685D7E.9000700@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55685D7E.9000700@ti.com>
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 28 May 2015 14:32:34 -0700
+In-Reply-To: <1432846944-7122-2-git-send-email-Julia.Lawall@lip6.fr>
+References: <1432846944-7122-1-git-send-email-Julia.Lawall@lip6.fr>
+	 <1432846944-7122-2-git-send-email-Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 29, 2015 at 06:07:18PM +0530, Kishon Vijay Abraham I wrote:
-> Tejun, Maxime, Sylwester, Kyungmin
+On Thu, 2015-05-28 at 23:02 +0200, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 > 
-> On Thursday 23 April 2015 04:34 AM, Arun Ramamurthy wrote:
-> >Most of the phy providers use "select" to enable GENERIC_PHY. Since select
-> >is only recommended when the config is not visible, GENERIC_PHY is changed
-> >an invisible option. To maintain consistency, all phy providers are changed
-> >to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
-> >phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
-> >dependency, so it is left as "select".
-> >
-> >Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-> 
-> Need your ACK for this patch.
+> Delete jump to a label on the next line, when that label is not
+> used elsewhere.
 
-For ATA part,
+Seems sensible but:
 
- Acked-by: Tejun Heo <tj@kernel.org>
+> diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+[]
+> @@ -937,9 +937,6 @@ static int airspy_set_if_gain(struct airspy *s)
+>  	ret = airspy_ctrl_msg(s, CMD_SET_VGA_GAIN, 0, s->if_gain->val,
+>  			&u8tmp, 1);
+>  	if (ret)
+> -		goto err;
+> -err:
+> -	if (ret)
+>  		dev_dbg(s->dev, "failed=%d\n", ret);
+>  
+>  	return ret;
 
-Thanks.
+Ideally the function above this should also be modified
+do drop the unnecessary double test of ret
 
--- 
-tejun
+static int airspy_set_mixer_gain(struct airspy *s)
+{
+	int ret;
+	u8 u8tmp;
+
+	dev_dbg(s->dev, "mixer auto=%d->%d val=%d->%d\n",
+			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
+			s->mixer_gain->cur.val, s->mixer_gain->val);
+
+	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
+			&u8tmp, 1);
+	if (ret)
+		goto err;
+
+	if (s->mixer_gain_auto->val == false) {
+		ret = airspy_ctrl_msg(s, CMD_SET_MIXER_GAIN, 0,
+				s->mixer_gain->val, &u8tmp, 1);
+		if (ret)
+			goto err;
+	}
+err:
+	if (ret)
+		dev_dbg(s->dev, "failed=%d\n", ret);
+
+	return ret;
+}
+
+These could become something like:
+
+static int airspy_set_mixer_gain(struct airspy *s)
+{
+	int ret;
+	u8 u8tmp;
+
+	dev_dbg(s->dev, "mixer auto=%d->%d val=%d->%d\n",
+			s->mixer_gain_auto->cur.val, s->mixer_gain_auto->val,
+			s->mixer_gain->cur.val, s->mixer_gain->val);
+
+	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
+			&u8tmp, 1);
+	if (ret)
+		goto err;
+
+	if (s->mixer_gain_auto->val == false) {
+		ret = airspy_ctrl_msg(s, CMD_SET_MIXER_GAIN, 0,
+				s->mixer_gain->val, &u8tmp, 1);
+		if (ret)
+			goto err;
+	}
+
+	return 0;
+
+err:
+	dev_dbg(s->dev, "failed=%d\n", ret);
+	return ret;
+}
+
+
