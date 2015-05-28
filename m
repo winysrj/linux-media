@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56565 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932170AbbEUJDN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51442 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932147AbbE1Vtu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:13 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 16/20] media: adv7180: Fix set_pad_format() passing wrong format
-Date: Wed, 20 May 2015 17:39:36 +0100
-Message-Id: <1432139980-12619-17-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Thu, 28 May 2015 17:49:50 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 02/35] DocBook: add a note about the ALSA API
+Date: Thu, 28 May 2015 18:49:05 -0300
+Message-Id: <d36805dafed09c888475beb0964ba4e08044063a.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Return a usable format (and resolution) from adv7180_set_pad_format()
-in the TRY_FORMAT case
+The Docbook mistakenly makes to believe that all needed APIs for
+media devices are there. Add a note there pointing that some
+sub-devices are actually be controlled via ALSA API.
 
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Tested-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/i2c/adv7180.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 09a96df..ba0b92d5 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -686,12 +686,14 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 			adv7180_set_field_mode(state);
- 			adv7180_set_power(state, true);
- 		}
-+		adv7180_mbus_fmt(sd, framefmt);
- 	} else {
- 		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
- 		*framefmt = format->format;
-+		adv7180_mbus_fmt(sd, framefmt);
-+		format->format = *framefmt;
- 	}
--
--	return adv7180_mbus_fmt(sd, framefmt);
-+	return 0;
- }
- 
- static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+diff --git a/Documentation/DocBook/media_api.tmpl b/Documentation/DocBook/media_api.tmpl
+index 60d0c877ea16..c71ebe3277b1 100644
+--- a/Documentation/DocBook/media_api.tmpl
++++ b/Documentation/DocBook/media_api.tmpl
+@@ -72,6 +72,9 @@
+ 		<xref linkend="fe-delivery-system-t" />.</para>
+ 	<para>The third part covers the Remote Controller API.</para>
+ 	<para>The fourth part covers the Media Controller API.</para>
++	<para>It should also be noticed that a media device may also have audio
++	      components, like mixers, PCM capture, PCM playback, etc, with
++	      are controlled via ALSA API.</para>
+ 	<para>For additional information and for the latest development code,
+ 		see: <ulink url="http://linuxtv.org">http://linuxtv.org</ulink>.</para>
+ 	<para>For discussing improvements, reporting troubles, sending new drivers, etc, please mail to: <ulink url="http://vger.kernel.org/vger-lists.html#linux-media">Linux Media Mailing List (LMML).</ulink>.</para>
 -- 
-1.7.10.4
+2.4.1
 
