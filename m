@@ -1,188 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35699 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993503AbbEEQB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 12:01:26 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 5/9] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
-Date: Tue,  5 May 2015 18:01:14 +0200
-Message-Id: <1430841678-11117-6-git-send-email-jack@suse.cz>
-In-Reply-To: <1430841678-11117-1-git-send-email-jack@suse.cz>
-References: <1430841678-11117-1-git-send-email-jack@suse.cz>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64975 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290AbbE1Kuu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 06:50:50 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NP2000MV3GOA780@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 28 May 2015 11:50:48 +0100 (BST)
+Message-id: <5566F307.6040600@samsung.com>
+Date: Thu, 28 May 2015 12:50:47 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kamil Debski <kamil@wypas.org>
+Subject: Re: s5p-mfc: sparse warnings
+References: <555F356A.9030000@xs4all.nl>
+In-reply-to: <555F356A.9030000@xs4all.nl>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 97 +++++-------------------------
- 1 file changed, 15 insertions(+), 82 deletions(-)
+Hello,
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index afd4b514affc..4ee1b3fbfe2a 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
-+	struct frame_vector		*vec;
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
- 	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
--	struct vm_area_struct		*vma;
- 
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -224,25 +224,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size,
- 				    enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
--	unsigned long first, last;
--	int num_pages_from_user;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	DEFINE_DMA_ATTRS(attrs);
-+	struct frame_vector *vec;
- 
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
--
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
-@@ -253,63 +245,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 	buf->dma_sgt = &buf->sg_table;
-+	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec))
-+		goto userptr_fail_pfnvec;
-+	buf->vec = vec;
- 
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->num_pages = last - first + 1;
--
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
--	if (!buf->pages)
--		goto userptr_fail_alloc_pages;
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		dprintk(1, "no vma for address %lu\n", vaddr);
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		dprintk(1, "vma at %lu is too small for %lu bytes\n",
--			vaddr, size);
--		goto userptr_fail_find_vma;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		dprintk(1, "failed to copy vma\n");
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma_is_io(buf->vma)) {
--		for (num_pages_from_user = 0;
--		     num_pages_from_user < buf->num_pages;
--		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
--			unsigned long pfn;
--
--			if (follow_pfn(vma, vaddr, &pfn)) {
--				dprintk(1, "no page for address %lu\n", vaddr);
--				break;
--			}
--			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
--		}
--	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->num_pages,
--					     buf->dma_dir == DMA_FROM_DEVICE,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--	up_read(&current->mm->mmap_sem);
--
--	if (num_pages_from_user != buf->num_pages)
--		goto userptr_fail_get_user_pages;
-+	buf->pages = frame_vector_pages(vec);
-+	if (IS_ERR(buf->pages))
-+		goto userptr_fail_sgtable;
-+	buf->num_pages = frame_vector_count(vec);
- 
- 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
--		goto userptr_fail_alloc_table_from_pages;
-+		goto userptr_fail_sgtable;
- 
- 	sgt = &buf->sg_table;
- 	/*
-@@ -323,19 +271,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- userptr_fail_map:
- 	sg_free_table(&buf->sg_table);
--userptr_fail_alloc_table_from_pages:
--userptr_fail_get_user_pages:
--	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--		buf->num_pages, num_pages_from_user);
--	if (!vma_is_io(buf->vma))
--		while (--num_pages_from_user >= 0)
--			put_page(buf->pages[num_pages_from_user]);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--userptr_fail_find_vma:
--	up_read(&current->mm->mmap_sem);
--	kfree(buf->pages);
--userptr_fail_alloc_pages:
-+userptr_fail_sgtable:
-+	vb2_destroy_framevec(vec);
-+userptr_fail_pfnvec:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -362,13 +300,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	while (--i >= 0) {
- 		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
--		if (!vma_is_io(buf->vma))
--			put_page(buf->pages[i]);
- 	}
--	kfree(buf->pages);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
+On 2015-05-22 15:55, Hans Verkuil wrote:
+> Hi Marek, Kamil,
+>
+> Can someone look at these sparse warnings?
+>
+> s5p-mfc/s5p_mfc_opr_v5.c:266:23: warning: incorrect type in argument 2 (different address spaces)
+> s5p-mfc/s5p_mfc_opr_v5.c:274:23: warning: incorrect type in argument 1 (different address spaces)
+> s5p-mfc/s5p_mfc_opr_v6.c:1855:23: warning: incorrect type in argument 2 (different address spaces)
+> s5p-mfc/s5p_mfc_opr_v6.c:1865:22: warning: incorrect type in argument 1 (different address spaces)
+>
+> It all depends on whether this is supposed to be __iomem memory or not.
+>
+> If it is supposed to be __iomem, then sparse will fail elsewhere (I saw at
+> least one memset).
+
+Well, this really looks messy. I will send a fix for it.
+
+Best regards
 -- 
-2.1.4
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
