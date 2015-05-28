@@ -1,77 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:50987 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933048AbbEMLLo (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51422 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754964AbbE1Vtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 07:11:44 -0400
-Date: Wed, 13 May 2015 14:11:27 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: crope@iki.fi
-Cc: linux-media@vger.kernel.org
-Subject: re: rtl2832_sdr: move from staging to media
-Message-ID: <20150513111127.GA29021@mwanda>
+	Thu, 28 May 2015 17:49:49 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
+Subject: [PATCH 30/35] DocBook: better organize the function descriptions for frontend
+Date: Thu, 28 May 2015 18:49:33 -0300
+Message-Id: <3462ce7ca1acea2b618187de16cf202e01f557d4.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Antti Palosaari,
+Move the function ioctl definitions to the end of the chapter,
+at their importance. That makes the document better organized,
+as the DVB frontend system call index will look like:
 
-The patch 77bbb2b049c1: "rtl2832_sdr: move from staging to media"
-from Jul 15, 2014, leads to the following static checker warning:
+	open()
+	close()
+	ioctl FE_GET_INFO — Query DVB frontend capabilities and returns information about the front-end. This call only requires read-only access to the device
+	ioctl FE_READ_STATUS — Returns status information about the front-end. This call only requires read-only access to the device
+	ioctl FE_SET_PROPERTY, FE_GET_PROPERTY — FE_SET_PROPERTY sets one or more frontend properties. FE_GET_PROPERTY returns one or more frontend properties.
+	ioctl FE_DISEQC_RESET_OVERLOAD — Restores the power to the antenna subsystem, if it was powered off due to power overload.
+	ioctl FE_DISEQC_SEND_MASTER_CMD — Sends a DiSEqC command
+	ioctl FE_DISEQC_RECV_SLAVE_REPLY — Receives reply from a DiSEqC 2.0 command
+	ioctl FE_DISEQC_SEND_BURST — Sends a 22KHz tone burst for 2x1 mini DiSEqC satellite selection.
+	ioctl FE_SET_TONE — Sets/resets the generation of the continuous 22kHz tone.
+	ioctl FE_SET_VOLTAGE — Allow setting the DC level sent to the antenna subsystem.
+	ioctl FE_ENABLE_HIGH_LNB_VOLTAGE — Select output DC level between normal LNBf voltages or higher LNBf voltages.
+	ioctl FE_SET_FRONTEND_TUNE_MODE — Allow setting tuner mode flags to the frontend.
 
-	drivers/media/dvb-frontends/rtl2832_sdr.c:1265 rtl2832_sdr_s_ctrl()
-	warn: test_bit() bitwise op in bit number
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This is harmless but messy.
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 12a31e628d34..0fa4ccfd406d 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -35,8 +35,6 @@ the capability ioctls weren't implemented yet via the new way.</para>
+ API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+ struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
+ 
+-&sub-fe-get-property;
+-
+ <section id="dtv-stats">
+ <title>DTV stats type</title>
+ <programlisting>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 86bd9ed9d7f8..bcee1d9fc73d 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -37,8 +37,6 @@ specification is available at
+ 	<link linkend="FE_GET_INFO">FE_GET_INFO</link>.</para>
+ </section>
+ 
+-&sub-fe-get-info;
+-
+ <section id="dvb-fe-read-status">
+ <title>Querying frontend status</title>
+ 
+@@ -46,8 +44,6 @@ specification is available at
+ 	<link linkend="FE_READ_STATUS">FE_READ_STATUS</link>.</para>
+ </section>
+ 
+-&sub-fe-read-status;
+-
+ &sub-dvbproperty;
+ 
+ <section id="fe-spectral-inversion-t">
+@@ -333,6 +329,9 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ </section>
+ 
++&sub-fe-get-info;
++&sub-fe-read-status;
++&sub-fe-get-property;
+ &sub-fe-diseqc-reset-overload;
+ &sub-fe-diseqc-send-master-cmd;
+ &sub-fe-diseqc-recv-slave-reply;
+-- 
+2.4.1
 
-drivers/media/dvb-frontends/rtl2832_sdr.c
-   109  
-   110  struct rtl2832_sdr_dev {
-   111  #define POWER_ON           (1 << 1)
-   112  #define URB_BUF            (1 << 2)
-
-We were supposed to use these to set ->flags on the next line.
-
-   113          unsigned long flags;
-   114  
-   115          struct platform_device *pdev;
-   116  
-   117          struct video_device vdev;
-   118          struct v4l2_device v4l2_dev;
-   119  
-
-[ snip ]
-
-   389                  dev_dbg(&pdev->dev, "alloc buf=%d %p (dma %llu)\n",
-   390                          dev->buf_num, dev->buf_list[dev->buf_num],
-   391                          (long long)dev->dma_addr[dev->buf_num]);
-   392                  dev->flags |= USB_STATE_URB_BUF;
-                                      ^^^^^^^^^^^^^^^^^
-But we use USB_STATE_URB_BUF (0x1) instead of URB_BUF.
-
-   393          }
-
-[ snip ]
-
-  1263                  c->bandwidth_hz = dev->bandwidth->val;
-  1264  
-  1265                  if (!test_bit(POWER_ON, &dev->flags))
-                                      ^^^^^^^^
-The original intent of the code was we test "if (dev->flags & POWER_ON)"
-but really what this is doing is "if (dev->flags & (1 << POWER_ON))"
-which is fine because we do it consistently, but it's not pretty and it
-causes static checkers to complain (and rightfully so).
-
-  1266                          return 0;
-  1267  
-  1268                  if (fe->ops.tuner_ops.set_params)
-  1269                          ret = fe->ops.tuner_ops.set_params(fe);
-  1270                  else
-  1271                          ret = 0;
-  1272                  break;
-  1273          default:
-
-regards,
-dan carpenter
