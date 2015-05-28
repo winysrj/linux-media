@@ -1,117 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36605 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398AbbEHBMy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: [PATCH 07/18] media controller: rename the tuner entity
-Date: Thu,  7 May 2015 22:12:29 -0300
-Message-Id: <6d88ece22cbbbaa72bbddb8b152b0d62728d6129.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46824 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754667AbbE1XTG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 19:19:06 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/1] omap3isp: Fix sub-device power management code
+Date: Fri, 29 May 2015 02:17:47 +0300
+Message-Id: <1432855083-25969-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Finally, let's rename the tuner entity. inside the media subsystem,
-a tuner can be used by AM/FM radio, SDR radio, analog TV and digital TV.
-It could even be used on other subsystems, like network, for wireless
-devices.
+The power management code was reworked a little due to interface changes in
+the MC. Due to those changes the power management broke a bit, fix it so the
+functionality is reverted to old behaviour.
 
-So, it is not constricted to V4L2 API, or to a subdev.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Fixes: 813f5c0ac5cc [media] media: Change media device link_notify behaviour
+Cc: stable@vger.kernel.org # since v3.10
+---
+ drivers/media/platform/omap3isp/isp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Let's then rename it as:
-	MEDIA_ENT_T_V4L2_SUBDEV_TUNER -> MEDIA_ENT_T_TUNER
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 9b3861058f0d..5c7f366bb1f4 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -241,7 +241,7 @@
- 	    signals.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
-+	    <entry><constant>MEDIA_ENT_T_TUNER</constant></entry>
- 	    <entry>TV and/or radio tuner</entry>
- 	  </row>
- 	</tbody>
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 39846077045e..d6a096495035 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -393,7 +393,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index a038c05..3e6b97b 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -829,14 +829,14 @@ static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
+ 	int ret;
  
- 	media_device_for_each_entity(entity, mdev) {
- 		switch (entity->type) {
--		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+		case MEDIA_ENT_T_TUNER:
- 			tuner = entity;
- 			break;
- 		case MEDIA_ENT_T_DTV_DEMOD:
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index a756f74f0adc..2a7331e3c4a0 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1213,7 +1213,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+ 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+-	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
++	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		/* Powering off entities is assumed to never fail. */
+ 		isp_pipeline_pm_power(source, -sink_use);
+ 		isp_pipeline_pm_power(sink, -source_use);
+ 		return 0;
+ 	}
  
- 	media_device_for_each_entity(entity, mdev) {
- 		switch (entity->type) {
--		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+		case MEDIA_ENT_T_TUNER:
- 			tuner = entity;
- 			break;
- 		case MEDIA_ENT_T_ATV_DECODER:
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index abdcffabcb59..ecf4e8a543b3 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -696,7 +696,7 @@ static int tuner_probe(struct i2c_client *client,
- register_client:
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	t->pad.flags = MEDIA_PAD_FL_SOURCE;
--	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-+	t->sd.entity.type = MEDIA_ENT_T_TUNER;
- 	t->sd.entity.name = t->name;
+-	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+ 		(flags & MEDIA_LNK_FL_ENABLED)) {
  
- 	ret = media_entity_init(&t->sd.entity, 1, &t->pad, 0);
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 9b3d80e765f0..6acc4be1378c 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -57,7 +57,7 @@ struct media_device_info {
- 
- #define MEDIA_ENT_T_ATV_DECODER	(MEDIA_ENT_T_CAM_SENSOR + 3)
- 
--#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
-+#define MEDIA_ENT_T_TUNER	(MEDIA_ENT_T_CAM_SENSOR + 4)
- 
- #if 1
- /*
-@@ -88,6 +88,8 @@ struct media_device_info {
- #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_T_CAM_LENS
- 
- #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER MEDIA_ENT_T_ATV_DECODER
-+
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_T_TUNER
- #endif
- 
- /* Used bitmasks for media_entity_desc::flags */
+ 		ret = isp_pipeline_pm_power(source, sink_use);
 -- 
-2.1.0
+2.1.4
 
