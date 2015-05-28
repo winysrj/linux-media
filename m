@@ -1,31 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:48942 "EHLO butterbrot.org"
+Received: from mx1.redhat.com ([209.132.183.28]:41583 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755284AbbEUMhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 08:37:16 -0400
-From: Florian Echtler <floe@butterbrot.org>
-To: hans.verkuil@cisco.com, mchehab@osg.samsung.com,
+	id S1752769AbbE1KIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 06:08:14 -0400
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <5564C269.2000003@gmail.com>
+References: <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: dhowells@redhat.com, crope@iki.fi, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org
-Cc: modin@yuri.at, Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 0/4] [sur40] minor fixes & performance improvements
-Date: Thu, 21 May 2015 14:29:38 +0200
-Message-Id: <1432211382-5155-1-git-send-email-floe@butterbrot.org>
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <359.1432807690.1@warthog.procyon.org.uk>
+Date: Thu, 28 May 2015 11:08:10 +0100
+Message-ID: <360.1432807690@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds several small fixes, features & performance
-improvements. Many thanks to Martin Kaltenbrunner for testing the
-original driver & submitting the patches. 
+Malcolm Priestley <tvboxspy@gmail.com> wrote:
 
-Martin Kaltenbrunner (4):
-  reduce poll interval to allow full 60 FPS framerate
-  add frame size/frame rate query functions
-  add extra debug output, remove noisy warning
-  return BUF_STATE_ERROR if streaming stopped during acquisition
+> Statistics polling can not be done by lmedm04 driver's implementation of
+> M88RS2000/TS2020 because I2C messages stop the devices demuxer.
+> 
+> So any polling must be a config option for this driver.
 
- drivers/input/touchscreen/sur40.c | 46 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 44 insertions(+), 2 deletions(-)
+Ummm...  I presume a runtime config option is okay.
 
--- 
-1.9.1
+Also, does that mean that the lmedm04 driver can't be made compatible with the
+DVBv5 API?
 
+David
