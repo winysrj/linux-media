@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52399 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752295AbbE0QLA (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:36832 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754306AbbE1UHM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:11:00 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 07/15] ARM: shmobile: lager dts: specify default-input for ADV7612
-Date: Wed, 27 May 2015 17:10:45 +0100
-Message-Id: <1432743053-13479-8-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+	Thu, 28 May 2015 16:07:12 -0400
+Message-ID: <55677568.4070603@gmail.com>
+Date: Thu, 28 May 2015 21:07:04 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
+MIME-Version: 1.0
+To: David Howells <dhowells@redhat.com>
+CC: crope@iki.fi, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+References: <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk> <360.1432807690@warthog.procyon.org.uk>
+In-Reply-To: <360.1432807690@warthog.procyon.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set 'default-input' property for ADV7612. Enables image/video capture
-without the need to have userspace specifying routing.
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Tested-by: William Towle <william.towle@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790-lager.dts |    1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 90c4531..6946e9a 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -544,6 +544,7 @@
- 		port {
- 			hdmi_in_ep: endpoint {
- 				remote-endpoint = <&vin0ep0>;
-+				default-input = <0>;
- 			};
- 		};
- 	};
--- 
-1.7.10.4
+On 28/05/15 11:08, David Howells wrote:
+> Malcolm Priestley <tvboxspy@gmail.com> wrote:
+>
+>> Statistics polling can not be done by lmedm04 driver's implementation of
+>> M88RS2000/TS2020 because I2C messages stop the devices demuxer.
+>>
+>> So any polling must be a config option for this driver.
+>
+> Ummm...  I presume a runtime config option is okay.
 
+Yes, also, the workqueue appears not to be initialized when using the 
+dvb attached method.
+
+>
+> Also, does that mean that the lmedm04 driver can't be made compatible with the
+> DVBv5 API?
+
+No, the driver will have to implement its own version. It doesn't need a 
+polling thread it simply gets it directly from its interrupt urb buffer.
+
+
+Malcolm
