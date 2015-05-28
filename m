@@ -1,74 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45254 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754578AbbEZN1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:27:23 -0400
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <vinod.koul@intel.com>, <tony@atomide.com>
-CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, Mark Brown <broonie@kernel.org>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Liam Girdwood <lgirdwood@gmail.com>
-Subject: [PATCH 13/13] ASoC: omap-pcm: Switch to use dma_request_slave_channel_compat_reason()
-Date: Tue, 26 May 2015 16:26:08 +0300
-Message-ID: <1432646768-12532-14-git-send-email-peter.ujfalusi@ti.com>
-In-Reply-To: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42848 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754667AbbE1V6I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 17:58:08 -0400
+Message-ID: <55678F64.6080801@xs4all.nl>
+Date: Thu, 28 May 2015 23:57:56 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 07/35] dvb: split enum from typedefs at frontend.h
+References: <cover.1432844837.git.mchehab@osg.samsung.com> <6576f479a6e2449132811f5681e35d3794110d25.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <6576f479a6e2449132811f5681e35d3794110d25.1432844837.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dmaengine provides a wrapper function to handle DT and non DT boots when
-requesting DMA channel. Use that instead of checking for of_node in the
-platform driver.
+On 05/28/2015 11:49 PM, Mauro Carvalho Chehab wrote:
+> Using typedefs is already bad enough, but doing it together
+> with enum declaration is even worse.
+> 
+> Also, it breaks the scripts at DocBook that would be generating
+> reference pointers for the enums.
+> 
+> Well, we can't get rid of typedef right now, but let's at least
+> declare it on a separate line, and let the scripts to generate
+> the cross-reference, as this is needed for the next DocBook
+> patches.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+> index 466f56997272..7aeeb5a69fdf 100644
+> --- a/include/uapi/linux/dvb/frontend.h
+> +++ b/include/uapi/linux/dvb/frontend.h
+> @@ -36,7 +36,7 @@ typedef enum fe_type {
+>  } fe_type_t;
+>  
+>  
+> -typedef enum fe_caps {
+> +enum fe_caps {
+>  	FE_IS_STUPID			= 0,
+>  	FE_CAN_INVERSION_AUTO		= 0x1,
+>  	FE_CAN_FEC_1_2			= 0x2,
+> @@ -68,7 +68,9 @@ typedef enum fe_caps {
+>  	FE_NEEDS_BENDING		= 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+>  	FE_CAN_RECOVER			= 0x40000000, /* frontend can recover from a cable unplug automatically */
+>  	FE_CAN_MUTE_TS			= 0x80000000  /* frontend can stop spurious TS data output */
+> -} fe_caps_t;
+> +};
+> +
+> +typedef enum fe_caps_t;
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Mark Brown <broonie@kernel.org>
-CC: Jarkko Nikula <jarkko.nikula@bitmer.com>
-CC: Liam Girdwood <lgirdwood@gmail.com>
----
- sound/soc/omap/omap-pcm.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+This can't be right. This should be:
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 52fd7cbbd1f4..ae04834f4697 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -132,6 +132,7 @@ static int omap_pcm_open(struct snd_pcm_substream *substream)
- 	struct snd_dmaengine_dai_dma_data *dma_data;
- 	struct dma_slave_caps dma_caps;
- 	struct dma_chan *chan;
-+	dma_cap_mask_t mask;
- 	u32 addr_widths = BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) |
- 			  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
- 			  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
-@@ -139,12 +140,15 @@ static int omap_pcm_open(struct snd_pcm_substream *substream)
- 
- 	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
- 
--	if (rtd->cpu_dai->dev->of_node)
--		chan = dma_request_slave_channel(rtd->cpu_dai->dev,
--						 dma_data->filter_data);
--	else
--		chan = snd_dmaengine_pcm_request_channel(omap_dma_filter_fn,
--							 dma_data->filter_data);
-+	dma_cap_zero(mask);
-+	dma_cap_set(DMA_SLAVE, mask);
-+	dma_cap_set(DMA_CYCLIC, mask);
-+	chan = dma_request_slave_channel_compat_reason(mask, omap_dma_filter_fn,
-+				dma_data->filter_data, rtd->cpu_dai->dev,
-+				dma_data->filter_data);
-+
-+	if (IS_ERR(chan))
-+		return PTR_ERR(chan);
- 
- 	if (!dma_get_slave_caps(chan, &dma_caps)) {
- 		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
--- 
-2.3.5
+typedef enum fe_caps fe_caps_t;
+
+Does it even compile?
+
+Regards,
+
+	Hans
+
+>  
+>  
+>  struct dvb_frontend_info {
+> @@ -134,7 +136,7 @@ typedef enum fe_sec_mini_cmd {
+>   *			to reset DiSEqC, tone and parameters
+>   */
+>  
+> -typedef enum fe_status {
+> +enum fe_status {
+>  	FE_HAS_SIGNAL		= 0x01,
+>  	FE_HAS_CARRIER		= 0x02,
+>  	FE_HAS_VITERBI		= 0x04,
+> @@ -142,7 +144,9 @@ typedef enum fe_status {
+>  	FE_HAS_LOCK		= 0x10,
+>  	FE_TIMEDOUT		= 0x20,
+>  	FE_REINIT		= 0x40,
+> -} fe_status_t;
+> +};
+> +
+> +typedef enum fe_status fe_status_t;
+>  
+>  typedef enum fe_spectral_inversion {
+>  	INVERSION_OFF,
+> 
 
