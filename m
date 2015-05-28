@@ -1,139 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40875 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252AbbEDHo1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2015 03:44:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/3] videodev2.h: add entity_id to struct v4l2_capability
-Date: Mon, 04 May 2015 01:31:59 +0300
-Message-ID: <6142421.YpIavoBsT0@avalon>
-In-Reply-To: <1430480030-29136-4-git-send-email-hverkuil@xs4all.nl>
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-4-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:51335 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754745AbbE1Vto (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 17:49:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 11/35] DocBook: move DVB properties to happen earlier at the document
+Date: Thu, 28 May 2015 18:49:14 -0300
+Message-Id: <70ff21105bd10db8b3fc5a068652adcd3be1c42f.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The DVBv5 API uses DVB properties as the main way to set the frontend
+and collect statistics. Move the definition to happen earlier, in
+order to reflect its importance.
 
-Thank you for the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On Friday 01 May 2015 13:33:50 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Export the entity ID (if any) of the video device.
-
-I would postpone this until we finish the DVB+MC discussion and properly 
-define the relationship between device nodes and MC, as it could have 
-implications on the V4L2 side as well.
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/vidioc-querycap.xml | 16 +++++++++++++++-
->  drivers/media/v4l2-core/v4l2-ioctl.c                |  7 +++++++
->  include/uapi/linux/videodev2.h                      |  5 ++++-
->  3 files changed, 26 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> b/Documentation/DocBook/media/v4l/vidioc-querycap.xml index
-> c1ed844..4a7737c 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -154,7 +154,14 @@ printf ("Version: %u.%u.%u\n",
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[3]</entry>
-> +	    <entry><structfield>entity_id</structfield></entry>
-> +	    <entry>The media controller entity ID of the device. This is only
-> valid if
-> +	    the <constant>V4L2_CAP_ENTITY</constant> capability is set.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[2]</entry>
->  	    <entry>Reserved for future extensions. Drivers must set
->  this array to zero.</entry>
->  	  </row>
-> @@ -308,6 +315,13 @@ modulator programming see
->  fields.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_CAP_ENTITY</constant></entry>
-> +	    <entry>0x00400000</entry>
-> +	    <entry>The device is a media controller entity and
-> +	    the <structfield>entity_id</structfield> field of &v4l2-capability;
-> +	    is valid.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
->  	    <entry>0x01000000</entry>
->  	    <entry>The device supports the <link
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index 1476602..5179611 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1011,6 +1011,7 @@ static void v4l_sanitize_format(struct v4l2_format
-> *fmt) static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
-> +	struct video_device *vfd = video_devdata(file);
->  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
->  	int ret;
-> 
-> @@ -1019,6 +1020,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops
-> *ops, ret = ops->vidioc_querycap(file, fh, cap);
-> 
->  	cap->capabilities |= V4L2_CAP_EXT_PIX_FORMAT;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	if (vfd->entity.parent) {
-> +		cap->capabilities |= V4L2_CAP_ENTITY;
-> +		cap->entity_id = vfd->entity.id;
-> +	}
-> +#endif
->  	/*
->  	 * Drivers MUST fill in device_caps, so check for this and
->  	 * warn if it was forgotten.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index fa376f7..af7a667 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -307,6 +307,7 @@ struct v4l2_fract {
->    * @version:	   KERNEL_VERSION
->    * @capabilities: capabilities of the physical device as a whole
->    * @device_caps:  capabilities accessed via this particular device (node)
-> +  * @entity_id:    the media controller entity ID
->    * @reserved:	   reserved fields for future extensions
->    */
->  struct v4l2_capability {
-> @@ -316,7 +317,8 @@ struct v4l2_capability {
->  	__u32   version;
->  	__u32	capabilities;
->  	__u32	device_caps;
-> -	__u32	reserved[3];
-> +	__u32	entity_id;
-> +	__u32	reserved[2];
->  };
-> 
->  /* Values for 'capabilities' field */
-> @@ -348,6 +350,7 @@ struct v4l2_capability {
-> 
->  #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
->  #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended 
-pixel
-> format */ +#define V4L2_CAP_ENTITY                 0x00400000  /* This is a
-> Media Controller entity */
-> 
->  #define V4L2_CAP_READWRITE              0x01000000  /* read/write
-> systemcalls */ #define V4L2_CAP_ASYNCIO                0x02000000  /* async
-> I/O */
-
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 28acf5a1e9ff..659f71ab67ef 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -48,6 +48,8 @@ specification is available at
+ 
+ &sub-frontend_read_status;
+ 
++&sub-dvbproperty;
++
+ <section id="dvb-diseqc-master-cmd">
+ <title>diseqc master command</title>
+ 
+@@ -778,5 +780,3 @@ FE_TUNE_MODE_ONESHOT When set, this flag will disable any zigzagging or other "n
+ 
+ &sub-frontend_legacy_api;
+ </section>
+-
+-&sub-dvbproperty;
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.1
 
