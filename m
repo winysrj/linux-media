@@ -1,79 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:33085 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752019AbbEYME0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2015 08:04:26 -0400
-From: Florian Echtler <floe@butterbrot.org>
-To: hans.verkuil@cisco.com, mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, modin@yuri.at,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv2 2/4] add frame size/frame rate query functions
-Date: Mon, 25 May 2015 14:04:14 +0200
-Message-Id: <1432555456-20292-3-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
-References: <1432555456-20292-1-git-send-email-floe@butterbrot.org>
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:34475 "EHLO
+	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbbE1HUT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 03:20:19 -0400
+Received: by qkoo18 with SMTP id o18so19976569qko.1
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2015 00:20:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1432646768-12532-5-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+	<1432646768-12532-5-git-send-email-peter.ujfalusi@ti.com>
+Date: Thu, 28 May 2015 09:20:18 +0200
+Message-ID: <CAPDyKFrOUOuctSMpx+RFixB_ub=d66YqXEsa7D78gyFeiGiNkQ@mail.gmail.com>
+Subject: Re: [PATCH 04/13] mmc: omap_hsmmc: No need to check DMA channel
+ validity at module remove
+From: Ulf Hansson <ulf.hansson@linaro.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-omap <linux-omap@vger.kernel.org>,
+	linux-mmc <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	"linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing functions to query the single fixed frame size (960x540) and
-supported frame rates. Technically, the SUR40 supports any arbitrary frame
-rate up to 60 FPS, as it is polled and not interrupt-driven. For now, we
-just report 30 and 60 FPS, which is sufficient to make most V4L2 tools work.
+On 26 May 2015 at 15:25, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> The driver will not probe without valid DMA channels so no need to check
+> if they are valid when the module is removed.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Ulf Hansson <ulf.hansson@linaro.org>
 
-Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index e707b8d..d860d05 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -778,6 +778,33 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
-+					struct v4l2_frmsizeenum *f)
-+{
-+	if ((f->index != 0) || (f->pixel_format != V4L2_PIX_FMT_GREY))
-+		return -EINVAL;
-+
-+	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+	f->discrete.width  = sur40_video_format.width;
-+	f->discrete.height = sur40_video_format.height;
-+	return 0;
-+}
-+
-+static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
-+					    struct v4l2_frmivalenum *f)
-+{
-+	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
-+		|| (f->width  != sur40_video_format.width)
-+		|| (f->height != sur40_video_format.height))
-+			return -EINVAL;
-+
-+	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+	f->discrete.denominator  = 60/(f->index+1);
-+	f->discrete.numerator = 1;
-+	return 0;
-+}
-+
-+
- static const struct usb_device_id sur40_table[] = {
- 	{ USB_DEVICE(ID_MICROSOFT, ID_SUR40) },  /* Samsung SUR40 */
- 	{ }                                      /* terminating null entry */
-@@ -829,6 +856,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
- 	.vidioc_s_fmt_vid_cap	= sur40_vidioc_fmt,
- 	.vidioc_g_fmt_vid_cap	= sur40_vidioc_fmt,
- 
-+	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
-+	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
-+
- 	.vidioc_enum_input	= sur40_vidioc_enum_input,
- 	.vidioc_g_input		= sur40_vidioc_g_input,
- 	.vidioc_s_input		= sur40_vidioc_s_input,
--- 
-1.9.1
+Kind regards
+Uffe
 
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 2cd828f42151..57bb85930f81 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2190,10 +2190,8 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+>         if (host->use_reg)
+>                 omap_hsmmc_reg_put(host);
+>
+> -       if (host->tx_chan)
+> -               dma_release_channel(host->tx_chan);
+> -       if (host->rx_chan)
+> -               dma_release_channel(host->rx_chan);
+> +       dma_release_channel(host->tx_chan);
+> +       dma_release_channel(host->rx_chan);
+>
+>         pm_runtime_put_sync(host->dev);
+>         pm_runtime_disable(host->dev);
+> --
+> 2.3.5
+>
