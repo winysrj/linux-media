@@ -1,75 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 251.110.2.81.in-addr.arpa ([81.2.110.251]:40689 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760679AbbEEQya (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 12:54:30 -0400
-Date: Tue, 5 May 2015 17:54:05 +0100
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Rob Clark <robdclark@gmail.com>,
-	Thierry Reding <treding@nvidia.com>,
-	Dave Airlie <airlied@redhat.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>
-Subject: Re: [RFC] How implement Secure Data Path ?
-Message-ID: <20150505175405.2787db4b@lxorguk.ukuu.org.uk>
-In-Reply-To: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
-References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51331 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754667AbbE1Vto (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 17:49:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 22/35] DocBook: reformat FE_SET_FRONTEND_TUNE_MODE ioctl
+Date: Thu, 28 May 2015 18:49:25 -0300
+Message-Id: <b0ac361917cb97f04ba179680e788660f2b54165.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> First what is Secure Data Path ? SDP is a set of hardware features to garanty
-> that some memories regions could only be read and/or write by specific hardware
-> IPs. You can imagine it as a kind of memory firewall which grant/revoke
-> accesses to memory per devices. Firewall configuration must be done in a trusted
-> environment: for ARM architecture we plan to use OP-TEE + a trusted
-> application to do that.
+Use the proper format for FE_SET_FRONTEND_TUNE_MODE documentation.
 
-It's not just an ARM feature so any basis for this in the core code
-should be generic, whether its being enforced by ARM SDP, various Intel
-feature sets or even via a hypervisor.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> I have try 2 "hacky" approachs with dma_buf:
-> - add a secure field in dma_buf structure and configure firewall in
->   dma_buf_{map/unmap}_attachment() functions.
+ create mode 100644 Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
 
-How is SDP not just another IOMMU. The only oddity here is that it
-happens to configure buffers the CPU can't touch and it has a control
-mechanism that is designed to cover big media corp type uses where the
-threat model is that the system owner is the enemy. Why does anything care
-about it being SDP, there are also generic cases this might be a useful
-optimisation (eg knowing the buffer isn't CPU touched so you can optimise
-cache flushing).
+diff --git a/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml b/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
+new file mode 100644
+index 000000000000..30bc99dc4c1c
+--- /dev/null
++++ b/Documentation/DocBook/media/dvb/fe-set-frontend-tune-mode.xml
+@@ -0,0 +1,64 @@
++<refentry id="FE_SET_FRONTEND_TUNE_MODE">
++  <refmeta>
++    <refentrytitle>ioctl FE_SET_FRONTEND_TUNE_MODE</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>FE_SET_FRONTEND_TUNE_MODE</refname>
++    <refpurpose>Allow setting tuner mode flags to the frontend.</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>unsigned int <parameter>flags</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++        <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fe_fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>FE_SET_FRONTEND_TUNE_MODE</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>flags</parameter></term>
++	<listitem>
++	    <para>Valid flags:</para>
++	    <itemizedlist>
++		<listitem>0 - normal tune mode</listitem>
++		<listitem>FE_TUNE_MODE_ONESHOT - When set, this flag will
++		    disable any zigzagging or other "normal" tuning behaviour.
++		    Additionally, there will be no automatic monitoring of the
++		    lock status, and hence no frontend events will be
++		    generated. If a frontend device is closed, this flag will
++		    be automatically turned off when the device is reopened
++		    read-write.</listitem>
++	    </itemizedlist>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Allow setting tuner mode flags to the frontend, between 0 (normal)
++	or FE_TUNE_MODE_ONESHOT mode</para>
++&return-value-dvb;
++</refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 079f631cc848..645f92bec767 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -738,37 +738,7 @@ typedef enum fe_hierarchy {
+ &return-value-dvb;
+ </section>
+ 
+-<section id="FE_SET_FRONTEND_TUNE_MODE">
+-<title>FE_SET_FRONTEND_TUNE_MODE</title>
+-<para>DESCRIPTION</para>
+-<informaltable><tgroup cols="1"><tbody><row>
+-<entry align="char">
+-<para>Allow setting tuner mode flags to the frontend.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+-
+-<para>SYNOPSIS</para>
+-<informaltable><tgroup cols="1"><tbody><row>
+-<entry align="char">
+-<para>int ioctl(int fd, int request =
+-<link linkend="FE_SET_FRONTEND_TUNE_MODE">FE_SET_FRONTEND_TUNE_MODE</link>, unsigned int flags);</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+-
+-<para>PARAMETERS</para>
+-<informaltable><tgroup cols="2"><tbody><row>
+-<entry align="char">
+-	<para>unsigned int flags</para>
+-</entry>
+-<entry align="char">
+-<para>
+-FE_TUNE_MODE_ONESHOT When set, this flag will disable any zigzagging or other "normal" tuning behaviour. Additionally, there will be no automatic monitoring of the lock status, and hence no frontend events will be generated. If a frontend device is closed, this flag will be automatically turned off when the device is reopened read-write.
+-</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-&return-value-dvb;
+-</section>
++&sub-fe-set-frontend-tune-mode;
+ 
+ </section>
+ 
+-- 
+2.4.1
 
-The control mechanism is a device/platform detail as with any IOMMU. It
-doesn't matter who configures it or how, providing it happens.
-
-We do presumably need some small core DMA changes - anyone trying to map
-such a buffer into CPU space needs to get a warning or error but what
-else ?
-
-> >From buffer allocation point of view I also facing a problem because when v4l2
-> or drm/kms are exporting buffers by using dma_buf they don't attaching
-> themself on it and never call dma_buf_{map/unmap}_attachment(). This is not
-> an issue in those framework while it is how dma_buf exporters are
-> supposed to work.
-
-Which could be addressed if need be.
-
-So if "SDP" is just another IOMMU feature, just as stuff like IMR is on
-some x86 devices, and hypervisor enforced protection is on assorted
-platforms why do we need a special way to do it ? Is there anything
-actually needed beyond being able to tell the existing DMA code that this
-buffer won't be CPU touched and wiring it into the DMA operations for the
-platform ?
-
-Alan
