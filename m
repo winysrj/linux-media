@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bruce.bmat.com ([176.9.54.181]:48216 "EHLO bruce.bmat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751733AbbEHLQU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 07:16:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by bruce.bmat.com (Postfix) with ESMTP id 9F2175E480F
-	for <linux-media@vger.kernel.org>; Fri,  8 May 2015 13:16:19 +0200 (CEST)
-Received: from bruce.bmat.com ([127.0.0.1])
-	by localhost (bruce.bmat.srv [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id gQxOZIePr4oB for <linux-media@vger.kernel.org>;
-	Fri,  8 May 2015 13:16:17 +0200 (CEST)
-Received: from jbrines.bmat.office (207.90.135.37.dynamic.jazztel.es [37.135.90.207])
-	(Authenticated sender: jbrines@bmat.es)
-	by bruce.bmat.com (Postfix) with ESMTPSA id 86FFE1254002
-	for <linux-media@vger.kernel.org>; Fri,  8 May 2015 13:16:17 +0200 (CEST)
-From: =?iso-8859-1?Q?Javier_Brines_Garcia_=7C=A0BMAT?= <jbrines@bmat.es>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Fwd: Error with TBS6285
-Date: Fri, 8 May 2015 13:16:16 +0200
-References: <B13F8F10-6044-43B4-8006-D96690CC50B6@bmat.es>
-To: linux-media@vger.kernel.org
-Message-Id: <B137AE33-5722-4B67-BC43-D54902C5ADF2@bmat.es>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59705 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216AbbE1KoK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 06:44:10 -0400
+Message-ID: <1432809845.3228.25.camel@pengutronix.de>
+Subject: Re: [PATCH v2 2/5] gpu: ipu-v3: Add mem2mem image conversion
+ support to IC
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
+Cc: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Lucas Stach <l.stach@pengutronix.de>
+Date: Thu, 28 May 2015 12:44:05 +0200
+In-Reply-To: <5566D92F.8090802@melag.de>
+References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
+	 <1426674173-17088-3-git-send-email-p.zabel@pengutronix.de>
+	 <CAH-u=82OC=r+kgyHpvQFLMwrBiuaV_V3Q7W5FKV3eK4o_n0-HA@mail.gmail.com>
+	 <5566D92F.8090802@melag.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, 
+Hi Enrico,
 
-I'm trying to use this card for DVB-C and when I use w_scan I get this error:
+Am Donnerstag, den 28.05.2015, 11:00 +0200 schrieb Enrico Weigelt, metux
+IT consult:
+> Am 27.05.2015 um 20:42 schrieb Jean-Michel Hautbois:
+> 
+> <snip>
+> 
+> @Phillip,
+> 
+> I've missed the previous mails (just subscribed here yesterday) ...
+>
+> Are these patches same as in your git branch tmp/imx-ipu-scaler ?
 
--_-_-_-_ Getting frontend capabilities-_-_-_-_ 
-Using DVB API 5.3
-frontend 'TurboSight TBS 62x1 DVBT/T2 frontend' supports
-INVERSION_AUTO
-QAM_AUTO
-FEC_AUTO
-FREQ (42.00MHz ... 1002.00MHz)
-This dvb driver is *buggy*: the symbol rate limits are undefined - please report to linuxtv.org
+No, that is an older version.
 
-Any ideas?
+> I've got them running on 4.0.4 and currently trying on 4.1-rc*
+> 
+> Yet another question:
+> 
+> when using it w/ gst for video playback, can be directly pass buffers
+> between VPU, IPU and FB (or let them directly write into shared
+> buffers), so CPU doesn't need to act on each frame for each step
+> in the decoding pipeline ?
 
-Many thanks,
+Check out the (capture/output-)io-mode parameters, that's what the
+dmabuf/dmabuf-import option pairs are for.
+
+regards
+Philipp
+
