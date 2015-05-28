@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:39445 "EHLO mx2.suse.de"
+Received: from mail.melag.de ([217.6.74.107]:34790 "EHLO mail.melag.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753851AbbEZN2J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:28:09 -0400
-Date: Tue, 26 May 2015 15:28:07 +0200 (CEST)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Antonio Ospite <ao2@ao2.it>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/12] trivial: [media] cx25821: cx25821-medusa-reg.h:
- fix 0x0x prefix
-In-Reply-To: <1430219491-5076-8-git-send-email-ao2@ao2.it>
-Message-ID: <alpine.LNX.2.00.1505261527510.13817@pobox.suse.cz>
-References: <1430219491-5076-1-git-send-email-ao2@ao2.it> <1430219491-5076-8-git-send-email-ao2@ao2.it>
+	id S1753594AbbE1JBQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 05:01:16 -0400
+Message-ID: <5566D92F.8090802@melag.de>
+Date: Thu, 28 May 2015 11:00:31 +0200
+From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Lucas Stach <l.stach@pengutronix.de>
+Subject: Re: [PATCH v2 2/5] gpu: ipu-v3: Add mem2mem image conversion support
+ to IC
+References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de> <1426674173-17088-3-git-send-email-p.zabel@pengutronix.de> <CAH-u=82OC=r+kgyHpvQFLMwrBiuaV_V3Q7W5FKV3eK4o_n0-HA@mail.gmail.com>
+In-Reply-To: <CAH-u=82OC=r+kgyHpvQFLMwrBiuaV_V3Q7W5FKV3eK4o_n0-HA@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 28 Apr 2015, Antonio Ospite wrote:
+Am 27.05.2015 um 20:42 schrieb Jean-Michel Hautbois:
 
-> Fix the 0x0x prefix in integer constants.
-> 
-> In this case a padding 0 must also be inserted to make the constants
-> look like all the other 16 bits ones.
-> 
-> Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: linux-media@vger.kernel.org
+<snip>
 
-Doesn't seem to be in linux-next as of today. I am picking it up.
+@Phillip,
 
-> ---
->  drivers/media/pci/cx25821/cx25821-medusa-reg.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/pci/cx25821/cx25821-medusa-reg.h b/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-> index c98ac94..2e10643 100644
-> --- a/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-> +++ b/drivers/media/pci/cx25821/cx25821-medusa-reg.h
-> @@ -84,9 +84,9 @@
->  #define	ABIST_BIN4_VGA3				0x01D4
->  #define	ABIST_BIN5_VGA4				0x01D8
->  #define	ABIST_BIN6_VGA5				0x01DC
-> -#define	ABIST_BIN7_VGA6				0x0x1E0
-> -#define	ABIST_CLAMP_A				0x0x1E4
-> -#define	ABIST_CLAMP_B				0x0x1E8
-> +#define	ABIST_BIN7_VGA6				0x01E0
-> +#define	ABIST_CLAMP_A				0x01E4
-> +#define	ABIST_CLAMP_B				0x01E8
->  #define	ABIST_CLAMP_C				0x01EC
->  #define	ABIST_CLAMP_D				0x01F0
->  #define	ABIST_CLAMP_E				0x01F4
-> -- 
-> 2.1.4
-> 
+I've missed the previous mails (just subscribed here yesterday) ...
 
--- 
-Jiri Kosina
-SUSE Labs
+Are these patches same as in your git branch tmp/imx-ipu-scaler ?
+I've got them running on 4.0.4 and currently trying on 4.1-rc*
+
+Yet another question:
+
+when using it w/ gst for video playback, can be directly pass buffers
+between VPU, IPU and FB (or let them directly write into shared
+buffers), so CPU doesn't need to act on each frame for each step
+in the decoding pipeline ?
+Playing an 800x400 mp4 still produces about 70..75%.
+
+
+cu
+--
+Enrico Weigelt, metux IT consult
++49-151-27565287
+MELAG Medizintechnik oHG Sitz Berlin Registergericht AG Charlottenburg HRA 21333 B
+
+Wichtiger Hinweis: Diese Nachricht kann vertrauliche oder nur für einen begrenzten Personenkreis bestimmte Informationen enthalten. Sie ist ausschließlich für denjenigen bestimmt, an den sie gerichtet worden ist. Wenn Sie nicht der Adressat dieser E-Mail sind, dürfen Sie diese nicht kopieren, weiterleiten, weitergeben oder sie ganz oder teilweise in irgendeiner Weise nutzen. Sollten Sie diese E-Mail irrtümlich erhalten haben, so benachrichtigen Sie bitte den Absender, indem Sie auf diese Nachricht antworten. Bitte löschen Sie in diesem Fall diese Nachricht und alle Anhänge, ohne eine Kopie zu behalten.
+Important Notice: This message may contain confidential or privileged information. It is intended only for the person it was addressed to. If you are not the intended recipient of this email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever. If you received this email in error please notify the sender by replying and delete this message and any attachments without retaining a copy.
