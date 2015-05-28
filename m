@@ -1,154 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:36294 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932459AbbEKSnT (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51500 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932234AbbE1Vtx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2015 14:43:19 -0400
-Received: by wizk4 with SMTP id k4so117835685wiz.1
-        for <linux-media@vger.kernel.org>; Mon, 11 May 2015 11:43:17 -0700 (PDT)
-Message-ID: <5550F842.3050604@gmail.com>
-Date: Mon, 11 May 2015 20:43:14 +0200
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >=  4.1.x
-References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com> <554F352F.10301@gmail.com> <554FDAE7.4010906@gmail.com>
-In-Reply-To: <554FDAE7.4010906@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 28 May 2015 17:49:53 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 29/35] DocBook: better document FE_DISEQC_RESET_OVERLOAD
+Date: Thu, 28 May 2015 18:49:32 -0300
+Message-Id: <eef99691e0f7d4869ff8932cc5e0dccccac57878.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/11/2015 12:25 AM, poma wrote:
-> On 10.05.2015 12:38, poma wrote:
->> On 08.05.2015 12:59, poma wrote:
->>> On 08.05.2015 12:20, poma wrote:
->>>>
->>>> [    0.000000] Linux version 4.0.2-200.fc21.x86_64 ...
->>>>
->>>> [    0.870875] usb 1-2: new high-speed USB device number 2 using ehci-pci
->>>> [    0.990286] usb 1-2: New USB device found, idVendor=15a4, idProduct=9016
->>>> [    0.992575] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
->>>> [    0.994859] usb 1-2: Product: DVB-T 2
->>>>
->>>> [    1.001398] usb 1-2: Manufacturer: Afatech
->>>> [    1.003555] usb 1-2: SerialNumber: 010101010600001
->>>> [    1.009194] Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 10 -> 7
->>>> [    1.011694] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:02.1/usb1/1-2/1-2:1.1/0003:15A4:9016.0001/input/input5
->>>> [    1.066814] hid-generic 0003:15A4:9016.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:02.1-2/input1
->>>>
->>>> [   11.997119] usb 1-2: dvb_usb_v2: found a 'Afatech AF9015 reference design' in warm state
->>>> [   12.206778] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
->>>> [   12.207412] DVB: registering new adapter (Afatech AF9015 reference design)
->>>>
->>>> [   12.286137] i2c i2c-13: af9013: firmware version 5.1.0.0
->>>> [   12.289121] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
->>>> [   12.343650] mxl5007t 13-00c0: creating new instance
->>>> [   12.346003] mxl5007t_get_chip_id: unknown rev (3f)
->>>> [   12.346156] mxl5007t_get_chip_id: MxL5007T detected @ 13-00c0
->>>> [   12.350371] usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
->>>> [   12.350649] DVB: registering new adapter (Afatech AF9015 reference design)
->>>> [   12.553632] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
->>>> [   12.557256] i2c i2c-13: af9013: firmware version 5.1.0.0
->>>> [   12.563779] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
->>>> [   12.564554] mxl5007t 13-00c0: attaching existing instance
->>>> [   12.567004] usb 1-2: dvb_usb_af9015: command failed=1
->>>> [   12.567555] mxl5007t_soft_reset: 521: failed!
->>>> [   12.569745] mxl5007t_attach: error -121 on line 907
->>>> [   12.571231] usbcore: registered new interface driver dvb_usb_af9015
->>>>
->>>>
->>>> $ lsdvb
->>>>
->>>> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
->>>> 		Version: 0.0.4
->>>> 		Copyright (C) Manu Abraham
->>>> $ 
->>>>
->>>
->>>
->>> Afatech AF9015 reference design:
->>>
->>> 3.18.12-200.fc21.x86_64        - OK
->>>
->>> 3.19.7-200.fc21.x86_64         - KO
->>> 4.0.2-200.fc21.x86_64          - KO
->>> 4.1.0-0.rc2.git3.1.fc23.x86_64 - KO
->>>
->>>
->>> If you have a patch to test, shout loudly.
->>>
->>>
->>
->> Looks like the same bug:
->> AVerMedia HD Volar (A867) - Afatech AF9033
->> http://forum.sifteam.eu/sifbox-by-sif-team/125122-kernel-3-19-a867-xgaz-dove.html
->>
->> http://git.linuxtv.org/cgit.cgi/media_build.git - no positive effect.
->>
->>
->> Ho ho ho
->>
-> 
-> It seems the 'lsdvb' is what made the device unusable after re/boot.
-> Of course this applies to kernel >= 3.19.x
-> The device has to be unplugged and after a minute or two plugged back to be usable again.
-> 
-> 
-> $ lsdvb
-> 
-> 		lsdvb: Simple utility to list PCI/PCIe DVB devices
-> 		Version: 0.0.4
-> 		Copyright (C) Manu Abraham
-> 
-> usb (5:0 -868620712:32665) on PCI Domain:-874755276 Bus:32665 Device:2098 Function:0
-> 	DEVICE:0 ADAPTER:0 FRONTEND:0 (Afatech AF9013) 
-> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
-> 	DEVICE:0 ADAPTER:1 FRONTEND:0 (Afatech AF9013) 
-> 		 FE_OFDM Fmin=174MHz Fmax=862MHz
-> 
-> $ dmesg
-> [   80.332837] usb 2-2: dvb_usb_af9015: command failed=1
-> [   80.332857] i2c i2c-13: af9013: i2c wr failed=-5 reg=d607 len=1
-> [   80.337837] usb 2-2: dvb_usb_af9015: command failed=1
-> [   80.337848] mxl5007t_write_reg: 472: failed!
-> [   80.337853] mxl5007t_sleep: error -121 on line 709
-> [   80.338324] usb 2-2: dvb_usb_af9015: command failed=1
-> [   80.338328] mxl5007t_write_reg: 472: failed!
-> [   80.338332] mxl5007t_sleep: error -121 on line 711
-> 
-> 
-> 
+Use the new format for the ioctl documentation and put the
+struct dvb_diseqc_slave_reply together with the ioctl.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Furthermore, it is sufficient to re/boot to the latest kernels,
-and the device is K.O. again,
+ create mode 100644 Documentation/DocBook/media/dvb/fe-diseqc-reset-overload.xml
 
-e.g.
-# modinfo -n mxl5007t
-/lib/modules/4.1.0-0.rc3.git0.1.fc23.x86_64+debug/kernel/drivers/media/tuners/mxl5007t.ko.xz
-
-...
-[   13.874536] i2c i2c-13: af9013: found a 'Afatech AF9013' in warm state
-[   13.878031] i2c i2c-13: af9013: firmware version 5.1.0.0
-[   13.884691] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
-[   13.884942] mxl5007t 13-00c0: attaching existing instance
-[   13.887166] usb 1-2: dvb_usb_af9015: command failed=1
-[   13.887179] mxl5007t_soft_reset: 521: failed!
-[   13.888780] mxl5007t_attach: error -121 on line 907
-[   13.897808] usbcore: registered new interface driver dvb_usb_af9015
-...
-
-# ls -al /dev/dvb
-ls: cannot access /dev/dvb: No such file or directory
-
-
-Keep in mind, this time it has nothing to do with 'lsdvb',
-
-# lsdvb
--bash: /bin/lsdvb: Permission denied
-
+diff --git a/Documentation/DocBook/media/dvb/fe-diseqc-reset-overload.xml b/Documentation/DocBook/media/dvb/fe-diseqc-reset-overload.xml
+new file mode 100644
+index 000000000000..c104df77ecd0
+--- /dev/null
++++ b/Documentation/DocBook/media/dvb/fe-diseqc-reset-overload.xml
+@@ -0,0 +1,51 @@
++<refentry id="FE_DISEQC_RESET_OVERLOAD">
++  <refmeta>
++    <refentrytitle>ioctl FE_DISEQC_RESET_OVERLOAD</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>FE_DISEQC_RESET_OVERLOAD</refname>
++    <refpurpose>Restores the power to the antenna subsystem, if it was powered
++	off due to power overload.</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>NULL</paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++        <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fe_fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>FE_DISEQC_RESET_OVERLOAD</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>If the bus has been automatically powered off due to power overload, this ioctl
++ call restores the power to the bus. The call requires read/write access to the
++ device. This call has no effect if the device is manually powered off. Not all
++ DVB adapters support this ioctl.</para>
++&return-value-dvb;
++</refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index f7bb2db07c23..86bd9ed9d7f8 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -333,50 +333,7 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ </section>
+ 
+-
+-<section id="FE_DISEQC_RESET_OVERLOAD">
+-<title>FE_DISEQC_RESET_OVERLOAD</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>If the bus has been automatically powered off due to power overload, this ioctl
+- call restores the power to the bus. The call requires read/write access to the
+- device. This call has no effect if the device is manually powered off. Not all
+- DVB adapters support this ioctl.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request =
+- <link linkend="FE_DISEQC_RESET_OVERLOAD">FE_DISEQC_RESET_OVERLOAD</link>);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals <link linkend="FE_DISEQC_RESET_OVERLOAD">FE_DISEQC_RESET_OVERLOAD</link> for this
+- command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-&return-value-dvb;
+-</section>
+-
++&sub-fe-diseqc-reset-overload;
+ &sub-fe-diseqc-send-master-cmd;
+ &sub-fe-diseqc-recv-slave-reply;
+ &sub-fe-diseqc-send-burst;
+-- 
+2.4.1
 
