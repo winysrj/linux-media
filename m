@@ -1,123 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42738 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932097AbbEHMBl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 08:01:41 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Cheolhyun Park <pch851130@gmail.com>,
-	Benoit Taine <benoit.taine@lip6.fr>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH] media: replace bellow -> below
-Date: Fri,  8 May 2015 09:01:28 -0300
-Message-Id: <65116e50702f631e14a8d3ded91637faaac6a319.1431086474.git.mchehab@osg.samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37130 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754107AbbE1Ryv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 13:54:51 -0400
+Date: Thu, 28 May 2015 19:54:48 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/5] gpu: ipu-v3: Add mem2mem image conversion support
+ to IC
+Message-ID: <20150528175448.GO32610@pengutronix.de>
+References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
+ <1426674173-17088-3-git-send-email-p.zabel@pengutronix.de>
+ <CAH-u=82OC=r+kgyHpvQFLMwrBiuaV_V3Q7W5FKV3eK4o_n0-HA@mail.gmail.com>
+ <5566D92F.8090802@melag.de>
+ <1432809845.3228.25.camel@pengutronix.de>
+ <5566FC95.3020000@melag.de>
+ <1432814386.3228.51.camel@pengutronix.de>
+ <5567528C.7010903@melag.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5567528C.7010903@melag.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bellow is yelling. Ok, sometimes the code is yells a lot, but
-but this is not the case there ;)
+On Thu, May 28, 2015 at 07:38:20PM +0200, Enrico Weigelt, metux IT consult wrote:
+> Thx. already integrated it into my tree - works fine :)
+> 
+> By the way: i still have some your older patches (2012) in my tree,
+> eg. some mediabus, camara, display timing stuff, etc ... not sure
+> whether I really need them for my device.
+> 
+> Should I post them to linux-media list for review?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+No. That's all old stuff and has developed quite a lot since then. We'll
+post new series here on the lists when they are ready for mainline.
 
-diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
-index 1d60d200d9ab..41f2a3939979 100644
---- a/drivers/media/common/siano/smsir.c
-+++ b/drivers/media/common/siano/smsir.c
-@@ -78,7 +78,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
- 	dev->dev.parent = coredev->device;
- 
- #if 0
--	/* TODO: properly initialize the parameters bellow */
-+	/* TODO: properly initialize the parameters below */
- 	dev->input_id.bustype = BUS_USB;
- 	dev->input_id.version = 1;
- 	dev->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 61f76038442a..52245354bf04 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -9541,7 +9541,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance *demod)
- 	/* ----------------------------------------- */
- 	/* Pre Viterbi Symbol Error Rate Calculation */
- 	/* ----------------------------------------- */
--	/* pre viterbi SER is good if it is bellow 0.025 */
-+	/* pre viterbi SER is good if it is below 0.025 */
- 
- 	/* get the register value */
- 	/*   no of quadrature symbol errors */
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index d46cf5f7cd2e..ad35264a3819 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -544,7 +544,7 @@ error:
- static int init_state(struct drxk_state *state)
- {
- 	/*
--	 * FIXME: most (all?) of the values bellow should be moved into
-+	 * FIXME: most (all?) of the values below should be moved into
- 	 * struct drxk_config, as they are probably board-specific
- 	 */
- 	u32 ul_vsb_if_agc_mode = DRXK_AGC_CTRL_AUTO;
-diff --git a/drivers/media/dvb-frontends/tda10021.c b/drivers/media/dvb-frontends/tda10021.c
-index 1bff7f457e19..28d987068048 100644
---- a/drivers/media/dvb-frontends/tda10021.c
-+++ b/drivers/media/dvb-frontends/tda10021.c
-@@ -258,7 +258,7 @@ static int tda10021_set_parameters(struct dvb_frontend *fe)
- 	}
- 
- 	/*
--	 * gcc optimizes the code bellow the same way as it would code:
-+	 * gcc optimizes the code below the same way as it would code:
- 	 *           "if (qam > 5) return -EINVAL;"
- 	 * Yet, the code is clearer, as it shows what QAM standards are
- 	 * supported by the driver, and avoids the usage of magic numbers on
-diff --git a/drivers/media/dvb-frontends/tda10023.c b/drivers/media/dvb-frontends/tda10023.c
-index ca1e0d54b69a..f92fbbbb4a71 100644
---- a/drivers/media/dvb-frontends/tda10023.c
-+++ b/drivers/media/dvb-frontends/tda10023.c
-@@ -331,7 +331,7 @@ static int tda10023_set_parameters(struct dvb_frontend *fe)
- 	}
- 
- 	/*
--	 * gcc optimizes the code bellow the same way as it would code:
-+	 * gcc optimizes the code below the same way as it would code:
- 	 *		 "if (qam > 5) return -EINVAL;"
- 	 * Yet, the code is clearer, as it shows what QAM standards are
- 	 * supported by the driver, and avoids the usage of magic numbers on
-diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
-index 070c152da95a..0c50e5285cf6 100644
---- a/drivers/media/i2c/tvaudio.c
-+++ b/drivers/media/i2c/tvaudio.c
-@@ -272,7 +272,7 @@ static int chip_cmd(struct CHIPSTATE *chip, char *name, audiocmd *cmd)
- 		return -EINVAL;
- 	}
- 
--	/* FIXME: it seems that the shadow bytes are wrong bellow !*/
-+	/* FIXME: it seems that the shadow bytes are wrong below !*/
- 
- 	/* update our shadow register set; print bytes if (debug > 0) */
- 	v4l2_dbg(1, debug, sd, "chip_cmd(%s): reg=%d, data:",
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index d12f5e4ad8bf..4e941f00b600 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -1094,7 +1094,7 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 		 * Still need tests for XC3028L (firmware 3.2 or upper)
- 		 * So, for now, let's just comment the per-firmware
- 		 * version of this change. Reports with xc3028l working
--		 * with and without the lines bellow are welcome
-+		 * with and without the lines below are welcome
- 		 */
- 
- 		if (priv->firm_version < 0x0302) {
+rsc
 -- 
-2.1.0
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
