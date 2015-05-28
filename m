@@ -1,215 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50251 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754002AbbEORvN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2015 13:51:13 -0400
-Message-ID: <55563209.3020808@redhat.com>
-Date: Fri, 15 May 2015 19:51:05 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Vasily Khoruzhick <anarsoul@gmail.com>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60586 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753635AbbE1L7v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 07:59:51 -0400
+Message-ID: <1432814386.3228.51.camel@pengutronix.de>
+Subject: Re: [PATCH v2 2/5] gpu: ipu-v3: Add mem2mem image conversion
+ support to IC
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
+Cc: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v2 1/2] gspca: sn9c2028: Add support for Genius Videocam
- Live v2
-References: <1429859044-18071-1-git-send-email-anarsoul@gmail.com> <CA+E=qVeZpVKqpnBJ2OCXwXEd=okLXcttMyRTPfwXAWY1twKDRw@mail.gmail.com>
-In-Reply-To: <CA+E=qVeZpVKqpnBJ2OCXwXEd=okLXcttMyRTPfwXAWY1twKDRw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	David Airlie <airlied@linux.ie>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Lucas Stach <l.stach@pengutronix.de>
+Date: Thu, 28 May 2015 13:59:46 +0200
+In-Reply-To: <5566FC95.3020000@melag.de>
+References: <1426674173-17088-1-git-send-email-p.zabel@pengutronix.de>
+		 <1426674173-17088-3-git-send-email-p.zabel@pengutronix.de>
+		 <CAH-u=82OC=r+kgyHpvQFLMwrBiuaV_V3Q7W5FKV3eK4o_n0-HA@mail.gmail.com>
+		 <5566D92F.8090802@melag.de> <1432809845.3228.25.camel@pengutronix.de>
+	 <5566FC95.3020000@melag.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vasily
+Am Donnerstag, den 28.05.2015, 13:31 +0200 schrieb Enrico Weigelt, metux
+IT consult:
+> Am 28.05.2015 um 12:44 schrieb Philipp Zabel:
+> 
+> Hi,
+> 
+>  >> Are these patches same as in your git branch tmp/imx-ipu-scaler ?
+> >
+> > No, that is an older version.
+> 
+> Where can I get the recent ones ?
+> Could you push it to your public repo ?
 
-On 15-05-15 17:55, Vasily Khoruzhick wrote:
-> Ping?
+I've updated the tmp/imx-ipu-scaler branch.
 
-Sorry for being a bit slow on this one, v2 looks good. I'll queue it up for
-merging into 4.2 as soon as I find some time to work on this,
+> >> when using it w/ gst for video playback, can be directly pass buffers
+> >> between VPU, IPU and FB (or let them directly write into shared
+> >> buffers), so CPU doesn't need to act on each frame for each step
+> >> in the decoding pipeline ?
+> >
+> > Check out the (capture/output-)io-mode parameters, that's what the
+> > dmabuf/dmabuf-import option pairs are for.
+> 
+> Tried dmabuf, but load stays at the same (77..80% CPU, 1.2 loadavg).
+> dmabuf-import doesnt run at all:
+> 
+> root@KoMo:/usr/share/videos/komo gst-launch-1.0 filesrc
+> location=montage.mp4 \! qtdemux \! h264parse \! v4l2video4dec
+> output-io-mode=5 \! v4l2video0convert capture-io-mode=5 output-io-mode=4
+> \! fbdevsink
 
-Regards,
+That should be capture-io-mode=dmabuf for the decoder and
+output-io-mode=dmabuf-import for the converter element. h264parse
+doesn't provide and fbdevsink can't handle dmabufs, so the decoder's
+output-io-mode and the converter's capture-io-mode should be kept as
+mmio.
 
-Hans
+[...]
+> By the way: do you have any idea whether the proprietary driver
+> (or the gpus itself) might talk to ipu and vpu ?
 
->
-> On Fri, Apr 24, 2015 at 10:04 AM, Vasily Khoruzhick <anarsoul@gmail.com> wrote:
->> This cam seems to return different values on long commands, so make status check
->> in sn9c2028_long_command() more tolerant. Anyway, read value isn't used anywhere
->> later.
->>
->> Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
->> ---
->> v2: update commit message to explain change in sn9c2028_long_command()
->>
->>   drivers/media/usb/gspca/sn9c2028.c | 120 ++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 119 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
->> index 39b6b2e..317b02c 100644
->> --- a/drivers/media/usb/gspca/sn9c2028.c
->> +++ b/drivers/media/usb/gspca/sn9c2028.c
->> @@ -2,6 +2,7 @@
->>    * SN9C2028 library
->>    *
->>    * Copyright (C) 2009 Theodore Kilgore <kilgota@auburn.edu>
->> + * Copyright (C) 2015 Vasily Khoruzhick <anarsoul@gmail.com>
->>    *
->>    * This program is free software; you can redistribute it and/or modify
->>    * it under the terms of the GNU General Public License as published by
->> @@ -128,7 +129,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
->>          status = -1;
->>          for (i = 0; i < 256 && status < 2; i++)
->>                  status = sn9c2028_read1(gspca_dev);
->> -       if (status != 2) {
->> +       if (status < 0) {
->>                  pr_err("long command status read error %d\n", status);
->>                  return (status < 0) ? status : -EIO;
->>          }
->> @@ -178,6 +179,9 @@ static int sd_config(struct gspca_dev *gspca_dev,
->>          case 0x7005:
->>                  PDEBUG(D_PROBE, "Genius Smart 300 camera");
->>                  break;
->> +       case 0x7003:
->> +               PDEBUG(D_PROBE, "Genius Videocam Live v2");
->> +               break;
->>          case 0x8000:
->>                  PDEBUG(D_PROBE, "DC31VC");
->>                  break;
->> @@ -530,6 +534,116 @@ static int start_genius_cam(struct gspca_dev *gspca_dev)
->>                                    ARRAY_SIZE(genius_start_commands));
->>   }
->>
->> +static int start_genius_videocam_live(struct gspca_dev *gspca_dev)
->> +{
->> +       int r;
->> +       struct sd *sd = (struct sd *) gspca_dev;
->> +       struct init_command genius_vcam_live_start_commands[] = {
->> +               {{0x0c, 0x01, 0x00, 0x00, 0x00, 0x00}, 0},
->> +               {{0x16, 0x01, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x10, 0x00, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
->> +               {{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
->> +
->> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
->> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
->> +               {{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
->> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
->> +               {{0x1c, 0x20, 0x00, 0x2d, 0x00, 0x00}, 4},
->> +               {{0x13, 0x20, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x21, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x22, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x23, 0x01, 0x01, 0x00, 0x00}, 4},
->> +               {{0x13, 0x24, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x25, 0x01, 0x16, 0x00, 0x00}, 4},
->> +               {{0x13, 0x26, 0x01, 0x12, 0x00, 0x00}, 4},
->> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
->> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
->> +               {{0x13, 0x29, 0x01, 0x22, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2a, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2b, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2d, 0x01, 0x02, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2e, 0x01, 0x09, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2f, 0x01, 0x07, 0x00, 0x00}, 4},
->> +               {{0x12, 0x34, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x34, 0x01, 0xa1, 0x00, 0x00}, 4},
->> +               {{0x13, 0x35, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x01, 0x04, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x02, 0x92, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x11, 0x64, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x13, 0x91, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x15, 0x20, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x16, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x17, 0x60, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x21, 0x2d, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x23, 0x03, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x25, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x26, 0x02, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x27, 0x88, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x30, 0x38, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x31, 0x2a, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x32, 0x2a, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x33, 0x2a, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x34, 0x02, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x5b, 0x0a, 0x00, 0x00, 0x00}, 4},
->> +               {{0x13, 0x25, 0x01, 0x28, 0x00, 0x00}, 4},
->> +               {{0x13, 0x26, 0x01, 0x1e, 0x00, 0x00}, 4},
->> +               {{0x13, 0x28, 0x01, 0x0e, 0x00, 0x00}, 4},
->> +               {{0x13, 0x27, 0x01, 0x20, 0x00, 0x00}, 4},
->> +               {{0x13, 0x29, 0x01, 0x62, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2c, 0x01, 0x02, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2d, 0x01, 0x03, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2e, 0x01, 0x0f, 0x00, 0x00}, 4},
->> +               {{0x13, 0x2f, 0x01, 0x0c, 0x00, 0x00}, 4},
->> +               {{0x11, 0x20, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x21, 0x2a, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x22, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x23, 0x28, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x10, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x11, 0x04, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x12, 0x00, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x13, 0x03, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x14, 0x01, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x15, 0xe0, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x16, 0x02, 0x00, 0x00, 0x00}, 4},
->> +               {{0x11, 0x17, 0x80, 0x00, 0x00, 0x00}, 4},
->> +               {{0x1c, 0x20, 0x00, 0x2a, 0x00, 0x00}, 1},
->> +               {{0x20, 0x34, 0xa1, 0x00, 0x00, 0x00}, 0},
->> +               /* Camera should start to capture now. */
->> +               {{0x12, 0x27, 0x01, 0x00, 0x00, 0x00}, 0},
->> +               {{0x1b, 0x32, 0x26, 0x00, 0x00, 0x00}, 0},
->> +               {{0x1d, 0x25, 0x10, 0x20, 0xab, 0x00}, 0},
->> +       };
->> +
->> +       r = run_start_commands(gspca_dev, genius_vcam_live_start_commands,
->> +                                 ARRAY_SIZE(genius_vcam_live_start_commands));
->> +       if (r < 0)
->> +               return r;
->> +
->> +       return r;
->> +}
->> +
->>   static int start_vivitar_cam(struct gspca_dev *gspca_dev)
->>   {
->>          struct init_command vivitar_start_commands[] = {
->> @@ -623,6 +737,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
->>          case 0x7005:
->>                  err_code = start_genius_cam(gspca_dev);
->>                  break;
->> +       case 0x7003:
->> +               err_code = start_genius_videocam_live(gspca_dev);
->> +               break;
->>          case 0x8001:
->>                  err_code = start_spy_cam(gspca_dev);
->>                  break;
->> @@ -701,6 +818,7 @@ static const struct sd_desc sd_desc = {
->>   /* -- module initialisation -- */
->>   static const struct usb_device_id device_table[] = {
->>          {USB_DEVICE(0x0458, 0x7005)}, /* Genius Smart 300, version 2 */
->> +       {USB_DEVICE(0x0458, 0x7003)}, /* Genius Videocam Live v2  */
->>          /* The Genius Smart is untested. I can't find an owner ! */
->>          /* {USB_DEVICE(0x0c45, 0x8000)}, DC31VC, Don't know this camera */
->>          {USB_DEVICE(0x0c45, 0x8001)}, /* Wild Planet digital spy cam */
->> --
->> 2.3.5
->>
+Not that I am aware of.
+
+regards
+Philipp
+
