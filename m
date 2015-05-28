@@ -1,94 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:33404 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2993425AbbEEPj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2015 11:39:59 -0400
-Received: by layy10 with SMTP id y10so130702097lay.0
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2015 08:39:57 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 5 May 2015 17:39:57 +0200
-Message-ID: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com>
-Subject: [RFC] How implement Secure Data Path ?
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Rob Clark <robdclark@gmail.com>,
-	Thierry Reding <treding@nvidia.com>,
-	Dave Airlie <airlied@redhat.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from benson.vm.bytemark.co.uk ([212.110.190.137]:46553 "EHLO
+	benson.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751415AbbE1Hlu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 03:41:50 -0400
+Message-ID: <1432798906.5748.183.camel@hellion.org.uk>
+Subject: Re: DVB-T2 PCIe vs DVB-S2
+From: Ian Campbell <ijc@hellion.org.uk>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Jemma Denson <jdenson@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 28 May 2015 08:41:46 +0100
+In-Reply-To: <CAAZRmGzcU0sGjzvim+ap2HXDp=ZxTkn8h+ZbNEA8DQn3P0jVag@mail.gmail.com>
+References: <1432626810.5748.173.camel@hellion.org.uk>
+	 <556494F9.1020406@gmail.com>
+	 <CAAZRmGzcU0sGjzvim+ap2HXDp=ZxTkn8h+ZbNEA8DQn3P0jVag@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Thanks guys, it hadn't occurred to me that I'd need to check the mythtv
+side as well! (It's obvious though now it's been pointed out...)
 
-Since few months I'm looking for Linaro to how do Secure Data Path (SPD).
-I have tried and implemented multiple thinks but I always facing architecture
-issues so I would like to get your help to solve the problem.
+Since one of my two Nova-T-500 died recently I may just replace it with
+an HD capable DVB-T2 card but only use it for DVD-T for now while the
+PVR side catches up.
 
-First what is Secure Data Path ? SDP is a set of hardware features to garanty
-that some memories regions could only be read and/or write by specific hardware
-IPs. You can imagine it as a kind of memory firewall which grant/revoke
-accesses to memory per devices. Firewall configuration must be done in a trusted
-environment: for ARM architecture we plan to use OP-TEE + a trusted
-application to do that.
+Thanks for the advice and the pointers to the available h/w!
 
-One typical use case for SDP in a video playback which involve those elements:
-decrypt -> video decoder -> transform -> display
+Ian.
 
-decrypt output contains encoded data that need to be secure: only hardware video
-decoder should be able to read them.
-Hardware decoder output (decoded frame) can only be read by hardware
-transform and
-only hardware display can read transform output.
-Video decoder and transform are v4l2 devices and display is a drm/kms device.
+On Tue, 2015-05-26 at 21:10 +0200, Olli Salonen wrote:
+> There are indeed a few DVB-T2 PCIe cards that are supported (DVBSky
+> T9580, T980C, T982C, TechnoTrend CT2-4500 CI, Hauppauge HVR-2205,
+> Hauppauge HVR-5525 at least come to my mind). PCTV 290e is a USB
+> device, not PCIe. In the wiki there's currently some issue with the
+> filtering when it comes to the tables - that's why every PCIe device
+> is printed instead of just the DVB-T2 supporting ones.
+> 
+> As Jemma points out, the application should be clever enough to tell
+> the driver that DVB-T2 delivery system is wanted. For the cxd2820r
+> driver (PCTV 290e) Antti made the "fudge", but has decided not to
+> implement it in the Si2168 driver (reasoning, to which I
+> wholeheartedly agree, is here:
+> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html ).
+> 
+> When it comes to PVR backends, at least tvheadend supports DVBv5 fully
+> - I don't have a clear picture of other backends.
+> 
+> Cheers,
+> -olli
+> 
+> On 26 May 2015 at 17:44, Jemma Denson <jdenson@gmail.com> wrote:
+> > On 26/05/15 08:53, Ian Campbell wrote:
+> >>
+> >> Hello,
+> >>
+> >> I'm looking to get a DVB-T2 tuner card to add UK Freeview HD to my
+> >> mythtv box.
+> >>
+> >> Looking at http://linuxtv.org/wiki/index.php/DVB-T2_PCIe_Cards is seems
+> >> that many (the majority even) of the cards there are actually DVB-S2.
+> >>
+> >> Is this a mistake or is there something I don't know (like maybe S2 is
+> >> compatible with T2)?
+> >>
+> >> Thanks,
+> >> Ian.
+> >
+> >
+> > That's a mistake - I don't recall that table looking like that when I was
+> > looking for one, and S2 is quite definitely not compatible with T2!
+> >
+> > I can confirm that the 290e works out of the box with myth with very few
+> > problems, however it's well out of production now and you might not be after
+> > a USB device. I'm not sure anything else would work without some hacking
+> > because last I heard myth doesn't do T2 the proper way using DVBv5 yet, and
+> > afaik only the 290e driver has a fudge to allow T2 on v3.
+> > (http://lists.mythtv.org/pipermail/mythtv-users/2014-November/374441.html
+> > and https://code.mythtv.org/trac/ticket/12342)
+> >
+> >
+> > Jemma.
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-To be able to configure the firewall SDP need to know when each device need to
-have access to memory (physical address and size) and in which direction (read
-or write).
-SDP also need a way to transfert information that memory is secure between
-different frameworks and devices.
-Obviously I also want to limit the impact of SDP in userland and kernel:
-For example not change the way of how buffers are allocating or how
-graph/pipeline
-are setup.
 
-When looking to all those constraints I have try to use dma_buf: it is a cross
-frameworks and processes way to share buffers and, with
-dma_buf_map_attachment() and dma_buf_unmap_attachment() functions, have an API
-that provide the informations (device, memory, direction) to configure
-the firewall.
-
-I have try 2 "hacky" approachs with dma_buf:
-- add a secure field in dma_buf structure and configure firewall in
-  dma_buf_{map/unmap}_attachment() functions.
-- overwrite dma_buf exporter ops to have a kind of nested calls which allow to
-  configure firewall without impacting the exporter code.
-
-The both solutions have architecture issues, the first one add a "metadata"
-into dma_buf structure and calls to a specific SDP environment (OP-TEE +
-trusted application) and second obvious break dma_buf coding rules
-when overwriting
-exporter ops.
-
->From buffer allocation point of view I also facing a problem because when v4l2
-or drm/kms are exporting buffers by using dma_buf they don't attaching
-themself on it and never call dma_buf_{map/unmap}_attachment(). This is not
-an issue in those framework while it is how dma_buf exporters are
-supposed to work.
-
-Using an "external" allocator (like ION) solve this problem but I think in
-this case we will have the same problem than for the "constraint aware
-allocator" which has never been accepted.
-
-The goal of this RFC is to share/test ideas to solve this problem which at
-least impact v4l2 and drm/kms.
-Any suggestions/inputs are welcome !
-
-Regards,
-Benjamin
