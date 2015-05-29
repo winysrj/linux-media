@@ -1,60 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:32884 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbbECLDk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2015 07:03:40 -0400
-Received: by pacwv17 with SMTP id wv17so135794432pac.0
-        for <linux-media@vger.kernel.org>; Sun, 03 May 2015 04:03:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAL9G6WU9g25Ybr6wo+-OBOfMu2xsR_DpywxqKmbUfqmf8a9pog@mail.gmail.com>
-References: <CAL9G6WU9g25Ybr6wo+-OBOfMu2xsR_DpywxqKmbUfqmf8a9pog@mail.gmail.com>
-Date: Sun, 3 May 2015 13:03:39 +0200
-Message-ID: <CAG_g8w6MOdqJLQYLDyqt+SBXhiCqQTHHMJxN7NB_VboFEZX0Rg@mail.gmail.com>
-Subject: Re: Kernel crash with dvb devices
-From: crow <crow@linux.org.ba>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:65415 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752097AbbE2NN7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2015 09:13:59 -0400
+Message-id: <55686606.1010701@samsung.com>
+Date: Fri, 29 May 2015 15:13:42 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Kishon Vijay Abraham I <kishon@ti.com>,
+	Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
+	Mathias Nyman <mathias.nyman@linux.intel.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Thomas Pugliese <thomas.pugliese@gmail.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	David Mosberger <davidm@egauge.net>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Gregory CLEMENT <gregory.clement@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kevin Hao <haokexin@gmail.com>,
+	Jean Delvare <jdelvare@suse.de>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, Dmitry Torokhov <dtor@google.com>,
+	Anatol Pomazau <anatol@google.com>,
+	Jonathan Richardson <jonathar@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>,
+	bcm-kernel-feedback-list@broadcom.com, maxime.coquelin@st.com
+Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
+ <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com>
+ <55685D7E.9000700@ti.com>
+In-reply-to: <55685D7E.9000700@ti.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I don’t have S660 but the S650 and I have hat also kernel crash see on
-the link [1]. For this i am using an workaround inside grub (I am on
-Archlinux x86_64):
-/etc/default/grub:
-GRUB_CMDLINE_LINUX_DEFAULT="irqpoll ipv6.disable=1"
+On 29/05/15 14:37, Kishon Vijay Abraham I wrote:
+> Tejun, Maxime, Sylwester, Kyungmin
+> 
+> On Thursday 23 April 2015 04:34 AM, Arun Ramamurthy wrote:
+>> Most of the phy providers use "select" to enable GENERIC_PHY. Since select
+>> is only recommended when the config is not visible, GENERIC_PHY is changed
+>> an invisible option. To maintain consistency, all phy providers are changed
+>> to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
+>> phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
+>> dependency, so it is left as "select".
+>>
+>> Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+> 
+> Need your ACK for this patch.
 
-With the irqpoll I don’t have crashes. Of course it would be great to
-fix this. Maybe it can help you to.
+For
+	drivers/media/platform/exynos4-is/Kconfig
+	drivers/video/fbdev/exynos/Kconfig
 
-[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg79486.html
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Regards,
-
-On Sat, May 2, 2015 at 11:55 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
-> Hello list,
->
-> I have some DVB devices in a MythTV backend:
->
-> TeVii S660 USB
-> Hauppauge Nova-TD Stick (52009)
-> Avermedia Super 007
->
-> The problems is that sometimes I got a kernel crash and I need to
-> reboot the machine. Here is a log: http://paste.debian.net/170723/
->
-> Is this kernel/module/firmware problem?
->
-> I am using Debian Jessie with 3.16.0-4-amd64 kernel.
->
-> Thanks for your help.
->
-> Best regards.
->
-> --
-> Josu Lazkano
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+Thanks,
+Sylwester
