@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41382 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057AbbEEUWm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2015 16:22:42 -0400
-Date: Tue, 5 May 2015 17:22:35 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mail-qc0-f176.google.com ([209.85.216.176]:36500 "EHLO
+	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752833AbbE2NJo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2015 09:09:44 -0400
+Date: Fri, 29 May 2015 09:09:39 -0400
+From: Tejun Heo <tj@kernel.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Arnd Bergmann <arnd@arndb.de>, Felipe Balbi <balbi@ti.com>,
+	Mathias Nyman <mathias.nyman@linux.intel.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Thomas Pugliese <thomas.pugliese@gmail.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	David Mosberger <davidm@egauge.net>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Gregory CLEMENT <gregory.clement@free-electrons.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: Time for a v4l-utils 1.8.0 release
-Message-ID: <20150505172235.4bef50eb@recife.lan>
-In-Reply-To: <55491541.1040709@googlemail.com>
-References: <55491541.1040709@googlemail.com>
+	Kevin Hao <haokexin@gmail.com>,
+	Jean Delvare <jdelvare@suse.de>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, Dmitry Torokhov <dtor@google.com>,
+	Anatol Pomazau <anatol@google.com>,
+	Jonathan Richardson <jonathar@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Ray Jui <rjui@broadcom.com>,
+	bcm-kernel-feedback-list@broadcom.com, maxime.coquelin@st.com
+Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
+Message-ID: <20150529130939.GG27479@htj.duckdns.org>
+References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
+ <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com>
+ <55685D7E.9000700@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55685D7E.9000700@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 05 May 2015 21:08:49 +0200
-Gregor Jasny <gjasny@googlemail.com> escreveu:
-
-> Hello,
+On Fri, May 29, 2015 at 06:07:18PM +0530, Kishon Vijay Abraham I wrote:
+> Tejun, Maxime, Sylwester, Kyungmin
 > 
-> It's already more than half a year since the last v4l-utils release. Do
-> you have any pending commits or objections? If no one vetos I'd like to
-> release this weekend.
+> On Thursday 23 April 2015 04:34 AM, Arun Ramamurthy wrote:
+> >Most of the phy providers use "select" to enable GENERIC_PHY. Since select
+> >is only recommended when the config is not visible, GENERIC_PHY is changed
+> >an invisible option. To maintain consistency, all phy providers are changed
+> >to "select" GENERIC_PHY and all non-phy drivers use "depends on" when the
+> >phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyclic
+> >dependency, so it is left as "select".
+> >
+> >Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
+> 
+> Need your ACK for this patch.
 
-There is are a additions I'd like to add to v4l-utils: 
+For ATA part,
 
-1) on DVB, ioctls may fail with -EAGAIN. Some parts of the libdvbv5 don't
-handle it well. I made one quick hack for it, but didn't have time to
-add a timeout to avoid an endless loop. The patch is simple. I just need
-some time to do that;
+ Acked-by: Tejun Heo <tj@kernel.org>
 
-2) The Media Controller control util (media-ctl) doesn't support DVB.
+Thanks.
 
-The patchset adding DVB support on media-ctl is ready, and I'm merging
-right now, and matches what's there at Kernel version 4.1-rc1 and upper.
-
-Yet, Laurent and Sakari want to do some changes at the Kernel API, before
-setting it into a stone at Kernel v 4.1 release.
-
-This has to happen on the next 4 weeks.
-
-So, I suggest to postpone the release of 1.8.0 until the end of this month.
-
-Regards,
-Mauro
+-- 
+tejun
