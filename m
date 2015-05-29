@@ -1,99 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36543 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467AbbEHBMu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2015 21:12:50 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 02/18] media controller: deprecate entity subtype
-Date: Thu,  7 May 2015 22:12:24 -0300
-Message-Id: <80e0882a4194460ca232f19ebbc85fa3338eda3f.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1431046915.git.mchehab@osg.samsung.com>
-References: <cover.1431046915.git.mchehab@osg.samsung.com>
+Received: from mga14.intel.com ([192.55.52.115]:23086 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754278AbbE2KSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2015 06:18:02 -0400
+Date: Fri, 29 May 2015 15:48:46 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Message-ID: <20150529101846.GG3140@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+ <20150529093317.GF3140@localhost>
+ <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media controller entity subtype doesn't make much sense,
-especially since V4L2 subdevices may also have associated devnodes.
+On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
+> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+> > On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
+> >> dma_request_slave_channel_compat() 'eats' up the returned error codes which
+> >> prevents drivers using the compat call to be able to do deferred probing.
+> >>
+> >> The new wrapper is identical in functionality but it will return with error
+> >> code in case of failure and will pass the -EPROBE_DEFER to the caller in
+> >> case dma_request_slave_channel_reason() returned with it.
+> > This is okay but am worried about one more warpper, how about fixing
+> > dma_request_slave_channel_compat()
+> 
+> Then all callers of dma_request_slave_channel_compat() have to be
+> modified to handle ERR_PTR first.
+> 
+> The same is true for (the existing) dma_request_slave_channel_reason()
+> vs. dma_request_slave_channel().
+Good point, looking again, I think we should rather fix
+dma_request_slave_channel_reason() as it was expected to return err code and
+add new users. Anyway users of this API do expect the reason...
 
-So, better to get rid of it while it is not too late.
-
-We need, of course, to keep the old symbols to avoid userspace
-breakage, but we should avoid using them internally at the
-Kernel.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4e816be3de39..775c11c6b173 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -42,31 +42,45 @@ struct media_device_info {
- 
- #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
- 
-+/* Used values for media_entity_desc::type */
-+
-+#define MEDIA_ENT_T_DEVNODE_V4L		(((1 << 16)) + 1)
-+#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE_V4L + 3)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE_V4L + 4)
-+#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE_V4L + 5)
-+#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE_V4L + 6)
-+#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE_V4L + 7)
-+
-+#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	((2 << 16) + 1)
-+#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 1)
-+#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 2)
-+/* A converter of analogue video to its digital representation. */
-+#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 3)
-+
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_SENSOR + 4)
-+
-+#if 1
-+/*
-+ * Legacy symbols.
-+ * Kept just to avoid userspace compilation breakages.
-+ * One day, the symbols bellow will be removed
-+ */
-+
- #define MEDIA_ENT_TYPE_SHIFT		16
- #define MEDIA_ENT_TYPE_MASK		0x00ff0000
- #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
- 
- #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
--#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
-+#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
-+
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
--#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
--#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
--#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
--#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
- 
--/* Legacy symbol. Use it to avoid userspace compilation breakages */
-+
- #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
-+#endif
- 
--#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
--#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
--#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
--#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
--/* A converter of analogue video to its digital representation. */
--#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
--
--#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-+/* Used bitmasks for media_entity_desc::flags */
- 
- #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
- 
 -- 
-2.1.0
+~Vinod
 
