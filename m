@@ -1,71 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48142 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329AbbEFKrh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 06:47:37 -0400
-Message-ID: <5549F147.3050800@suse.cz>
-Date: Wed, 06 May 2015 12:47:35 +0200
-From: Vlastimil Babka <vbabka@suse.cz>
-MIME-Version: 1.0
-To: Jan Kara <jack@suse.cz>, linux-mm@kvack.org
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 9/9] drm/exynos: Convert g2d_userptr_get_dma_addr() to
- use get_vaddr_frames()
-References: <1430897296-5469-1-git-send-email-jack@suse.cz> <1430897296-5469-10-git-send-email-jack@suse.cz>
-In-Reply-To: <1430897296-5469-10-git-send-email-jack@suse.cz>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52366 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753234AbbE2CtO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 22:49:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DB6D62A0376
+	for <linux-media@vger.kernel.org>; Fri, 29 May 2015 04:49:02 +0200 (CEST)
+Date: Fri, 29 May 2015 04:49:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150529024902.DB6D62A0376@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/06/2015 09:28 AM, Jan Kara wrote:
-> Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
-> This removes the knowledge about vmas and mmap_sem locking from exynos
-> driver. Also it fixes a problem that the function has been mapping user
-> provided address without holding mmap_sem.
->
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->   drivers/gpu/drm/exynos/exynos_drm_g2d.c | 89 ++++++++++--------------------
->   drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
->   2 files changed, 29 insertions(+), 157 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> index 81a250830808..265519c0fe2d 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-...
-> @@ -456,65 +458,37 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
->   		return ERR_PTR(-ENOMEM);
->
->   	atomic_set(&g2d_userptr->refcount, 1);
-> +	g2d_userptr->size = size;
->
->   	start = userptr & PAGE_MASK;
->   	offset = userptr & ~PAGE_MASK;
->   	end = PAGE_ALIGN(userptr + size);
->   	npages = (end - start) >> PAGE_SHIFT;
-> -	g2d_userptr->npages = npages;
-> -
-> -	pages = drm_calloc_large(npages, sizeof(struct page *));
-> -	if (!pages) {
-> -		DRM_ERROR("failed to allocate pages.\n");
-> -		ret = -ENOMEM;
-> +	vec = g2d_userptr->vec = frame_vector_create(npages);
-> +	if (!vec)
->   		goto err_free;
-> -	}
->
-> -	down_read(&current->mm->mmap_sem);
-> -	vma = find_vma(current->mm, userptr);
-> -	if (!vma) {
-> -		up_read(&current->mm->mmap_sem);
-> -		DRM_ERROR("failed to get vm region.\n");
-> +	ret = get_vaddr_frames(start, npages, 1, 1, vec);
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Use true instead of 1.
+Results of the daily build of media_tree:
 
+date:		Fri May 29 04:00:16 CEST 2015
+git branch:	test
+git hash:	2a80f296422a01178d0a993479369e94f5830127
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
