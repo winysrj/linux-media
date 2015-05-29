@@ -1,83 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45129 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535AbbEDK0Z (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:60644 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbbE2BIH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2015 06:26:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 7/8] ov9640: avoid calling ov9640_res_roundup() twice
-Date: Mon,  4 May 2015 12:25:54 +0200
-Message-Id: <1430735155-24110-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430735155-24110-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 28 May 2015 21:08:07 -0400
+Message-ID: <1432861681.5061.73.camel@codethink.co.uk>
+Subject: Re: [Linux-kernel] [PATCH 13/20] media: soc_camera: v4l2-compliance
+ fixes for querycap
+From: Ben Hutchings <ben.hutchings@codethink.co.uk>
+To: Rob Taylor <rob.taylor@codethink.co.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	William Towle <william.towle@codethink.co.uk>,
+	linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com
+Date: Fri, 29 May 2015 02:08:01 +0100
+In-Reply-To: <555DD3B4.2080308@codethink.co.uk>
+References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	 <1432139980-12619-14-git-send-email-william.towle@codethink.co.uk>
+	 <555D7419.8000303@xs4all.nl> <555DD3B4.2080308@codethink.co.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 2015-05-21 at 13:46 +0100, Rob Taylor wrote:
+> On 21/05/15 06:58, Hans Verkuil wrote:
+> > On 05/20/2015 06:39 PM, William Towle wrote:
+> >> Fill in bus_info field and zero reserved field.
+> >>
+> >> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> >> Reviewed-by: William Towle <william.towle@codethink.co.uk>
+> >> ---
+> >>  drivers/media/platform/soc_camera/soc_camera.c |    2 ++
+> >>  1 file changed, 2 insertions(+)
+> >>
+> >> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> >> index fd7497e..583c5e6 100644
+> >> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> >> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> >> @@ -954,6 +954,8 @@ static int soc_camera_querycap(struct file *file, void  *priv,
+> >>  	WARN_ON(priv != file->private_data);
+> >>  
+> >>  	strlcpy(cap->driver, ici->drv_name, sizeof(cap->driver));
+> >> +	strlcpy(cap->bus_info, "platform:soc_camera", sizeof(cap->bus_info));
+> >> +	memset(cap->reserved, 0, sizeof(cap->reserved));
+> > 
+> > Why the memset? That shouldn't be needed.
+> 
+> v4l2-complience complained it wasn't zero (v4l2-compliance.cpp:308 in
+> v4l-utils v1.6.2 [1])
 
-Simplify ov9640_s_fmt and ov9640_set_fmt
+I'm puzzled by that.  Isn't this function called by v4l_querycap(),
+which is called by video_usercopy()?  And video_usercopy() zeroes the
+entire structure before doing so, or at least it appears to be intended
+to.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/ov9640.c | 24 +++---------------------
- 1 file changed, 3 insertions(+), 21 deletions(-)
+Anyway, if we're failing to initialise kernel memory that's copied to
+user-space, that's a (usually minor) security issue and the fix ought to
+be cc'd to stable.
 
-diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
-index 8caae1c..c8ac41e 100644
---- a/drivers/media/i2c/soc_camera/ov9640.c
-+++ b/drivers/media/i2c/soc_camera/ov9640.c
-@@ -486,11 +486,8 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov9640_reg_alt alts = {0};
--	enum v4l2_colorspace cspace;
--	u32 code = mf->code;
- 	int ret;
- 
--	ov9640_res_roundup(&mf->width, &mf->height);
- 	ov9640_alter_regs(mf->code, &alts);
- 
- 	ov9640_reset(client);
-@@ -499,24 +496,7 @@ static int ov9640_s_fmt(struct v4l2_subdev *sd,
- 	if (ret)
- 		return ret;
- 
--	switch (code) {
--	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
--	case MEDIA_BUS_FMT_RGB565_2X8_LE:
--		cspace = V4L2_COLORSPACE_SRGB;
--		break;
--	default:
--		code = MEDIA_BUS_FMT_UYVY8_2X8;
--	case MEDIA_BUS_FMT_UYVY8_2X8:
--		cspace = V4L2_COLORSPACE_JPEG;
--	}
--
--	ret = ov9640_write_regs(client, mf->width, code, &alts);
--	if (!ret) {
--		mf->code	= code;
--		mf->colorspace	= cspace;
--	}
--
--	return ret;
-+	return ov9640_write_regs(client, mf->width, mf->code, &alts);
- }
- 
- static int ov9640_set_fmt(struct v4l2_subdev *sd,
-@@ -539,8 +519,10 @@ static int ov9640_set_fmt(struct v4l2_subdev *sd,
- 		break;
- 	default:
- 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+		/* fall through */
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		mf->colorspace = V4L2_COLORSPACE_JPEG;
-+		break;
- 	}
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--- 
-2.1.4
+Ben.
+
 
