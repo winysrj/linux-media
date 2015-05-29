@@ -1,66 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.melag.de ([217.6.74.107]:43213 "EHLO mail.melag.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485AbbEHJBH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2015 05:01:07 -0400
-Message-ID: <554C79F7.2080308@melag.de>
-Date: Fri, 8 May 2015 10:55:19 +0200
-From: "Enrico Weigelt, metux IT consult" <weigelt@melag.de>
-MIME-Version: 1.0
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
-	Thierry Reding <treding@nvidia.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <robdclark@gmail.com>,
-	Dave Airlie <airlied@redhat.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>
-Subject: Re: [RFC] How implement Secure Data Path ?
-References: <CA+M3ks7=3sfRiUdUiyq03jCbp08FdZ9ESMgDwE5rgb-0+No3uA@mail.gmail.com> <20150505175405.2787db4b@lxorguk.ukuu.org.uk> <20150506083552.GF30184@phenom.ffwll.local> <20150506091919.GC16325@ulmo.nvidia.com> <20150506131532.GC30184@phenom.ffwll.local> <20150507132218.GA24541@ulmo.nvidia.com> <20150507135212.GD30184@phenom.ffwll.local> <20150507174003.2a5b42e6@lxorguk.ukuu.org.uk> <20150508083735.GB15256@phenom.ffwll.local>
-In-Reply-To: <20150508083735.GB15256@phenom.ffwll.local>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:39384 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422659AbbE2TWQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2015 15:22:16 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
+Subject: [PATCH 1/5] DocBook: improve documentation of the properties structs
+Date: Fri, 29 May 2015 16:22:04 -0300
+Message-Id: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.05.2015 um 10:37 schrieb Daniel Vetter:
+Rename the tytle of the struct documentation to reflect
+the name of the structures, and use links to do cross-ref.
 
-> dma-buf user handles are fds, which means anything allocated can be passed
-> around nicely already. The question really is whether we'll have one ioctl
-> on top of a special dev node or a syscall. I thought that in these cases
-> where the dev node is only ever used to allocate the real thing, a syscall
-> is the preferred way to go.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I'd generally prefer a /dev node instead of syscall, as they can be
-dynamically allocated (loaded as module, etc), which in turn offers more
-finer control (eg. for containers, etc). One could easily replace the
-it with its own implementation (w/o patching the kernel directly and
-reboot it).
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index ae9bc1e089cc..b91210d646cf 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -36,7 +36,7 @@ API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+ struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
+ 
+ <section id="dtv-stats">
+-<title>DTV stats type</title>
++<title>struct <structname>dtv_stats</structname></title>
+ <programlisting>
+ struct dtv_stats {
+ 	__u8 scale;	/* enum fecap_scale_params type */
+@@ -48,19 +48,19 @@ struct dtv_stats {
+ </programlisting>
+ </section>
+ <section id="dtv-fe-stats">
+-<title>DTV stats type</title>
++<title>struct <structname>dtv_fe_stats</structname></title>
+ <programlisting>
+ #define MAX_DTV_STATS   4
+ 
+ struct dtv_fe_stats {
+ 	__u8 len;
+-	struct dtv_stats stat[MAX_DTV_STATS];
++	&dtv-stats; stat[MAX_DTV_STATS];
+ } __packed;
+ </programlisting>
+ </section>
+ 
+ <section id="dtv-property">
+-<title>DTV property type</title>
++<title>struct <structname>dtv_property</structname></title>
+ <programlisting>
+ /* Reserved fields should be set to 0 */
+ 
+@@ -69,7 +69,7 @@ struct dtv_property {
+ 	__u32 reserved[3];
+ 	union {
+ 		__u32 data;
+-		struct dtv_fe_stats st;
++		&dtv-fe-stats; st;
+ 		struct {
+ 			__u8 data[32];
+ 			__u32 len;
+@@ -85,11 +85,11 @@ struct dtv_property {
+ </programlisting>
+ </section>
+ <section id="dtv-properties">
+-<title>DTV properties type</title>
++<title>struct <structname>dtv_properties</structname></title>
+ <programlisting>
+ struct dtv_properties {
+ 	__u32 num;
+-	struct dtv_property *props;
++	&dtv-property; *props;
+ };
+ </programlisting>
+ </section>
+diff --git a/Documentation/DocBook/media/dvb/fe-get-property.xml b/Documentation/DocBook/media/dvb/fe-get-property.xml
+index b121fe5380ca..456ed92133f1 100644
+--- a/Documentation/DocBook/media/dvb/fe-get-property.xml
++++ b/Documentation/DocBook/media/dvb/fe-get-property.xml
+@@ -17,7 +17,7 @@
+ 	<funcdef>int <function>ioctl</function></funcdef>
+ 	<paramdef>int <parameter>fd</parameter></paramdef>
+ 	<paramdef>int <parameter>request</parameter></paramdef>
+-	<paramdef>&dtv-property; *<parameter>argp</parameter></paramdef>
++	<paramdef>&dtv-properties; *<parameter>argp</parameter></paramdef>
+       </funcprototype>
+     </funcsynopsis>
+   </refsynopsisdiv>
+@@ -40,7 +40,7 @@
+       <varlistentry>
+ 	<term><parameter>argp</parameter></term>
+ 	<listitem>
+-	    <para>pointer to &dtv-property;</para>
++	    <para>pointer to &dtv-properties;</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
+-- 
+2.4.1
 
-Actually, I'm a bit unhappy with the syscall inflation, in fact I'm
-not even a big friend of ioctl's - I'd really prefer the Plan9 way :p
-
->> I guess the same kind of logic as with GEM (except preferably without
->> the DoS security holes) applies as to why its useful to have handles to
->> the DMA buffers.
->
-> We have handles (well file descriptors) to dma-bufs already, I'm a bit
-> confused what you mean?
-
-Just curious (as I'm pretty new to this area): how to GEM objects and
-dma-bufs relate to each other ? Is it possible to directly exchange
-buffers between GPUs, VPUs, IPUs, FBs, etc ?
-
-
-cu
---
-Enrico Weigelt, metux IT consult
-+49-151-27565287
-MELAG Medizintechnik oHG Sitz Berlin Registergericht AG Charlottenburg HRA 21333 B
-
-Wichtiger Hinweis: Diese Nachricht kann vertrauliche oder nur für einen begrenzten Personenkreis bestimmte Informationen enthalten. Sie ist ausschließlich für denjenigen bestimmt, an den sie gerichtet worden ist. Wenn Sie nicht der Adressat dieser E-Mail sind, dürfen Sie diese nicht kopieren, weiterleiten, weitergeben oder sie ganz oder teilweise in irgendeiner Weise nutzen. Sollten Sie diese E-Mail irrtümlich erhalten haben, so benachrichtigen Sie bitte den Absender, indem Sie auf diese Nachricht antworten. Bitte löschen Sie in diesem Fall diese Nachricht und alle Anhänge, ohne eine Kopie zu behalten.
-Important Notice: This message may contain confidential or privileged information. It is intended only for the person it was addressed to. If you are not the intended recipient of this email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever. If you received this email in error please notify the sender by replying and delete this message and any attachments without retaining a copy.
