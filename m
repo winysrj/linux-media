@@ -1,176 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49590 "EHLO mx2.suse.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:56874 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965055AbbEMNIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 09:08:32 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 8/9] media: vb2: Remove unused functions
-Date: Wed, 13 May 2015 15:08:14 +0200
-Message-Id: <1431522495-4692-9-git-send-email-jack@suse.cz>
-In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
+	id S1756828AbbE2VFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2015 17:05:32 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Adam Baker <linux@baker-net.org.uk>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] si2157: implement signal strength stats
+Date: Sat, 30 May 2015 00:05:10 +0300
+Message-Id: <1432933510-19028-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1432933510-19028-1-git-send-email-crope@iki.fi>
+References: <1432933510-19028-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion to the use of pinned pfns made some functions unused. Remove
-them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
+Implement DVBv5 signal strength stats. Returns dBm.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
- include/media/videobuf2-memops.h           |   6 --
- 2 files changed, 120 deletions(-)
+ drivers/media/tuners/si2157.c      | 39 +++++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/si2157_priv.h |  1 +
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index 0ec186d41b9b..48c6a49c4928 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -23,120 +23,6 @@
- #include <media/videobuf2-memops.h>
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index cdaf687..fad2ec9 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -79,6 +79,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ {
+ 	struct i2c_client *client = fe->tuner_priv;
+ 	struct si2157_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, len, remaining;
+ 	struct si2157_cmd cmd;
+ 	const struct firmware *fw;
+@@ -201,9 +202,14 @@ skip_fw_download:
+ 	dev->fw_loaded = true;
  
- /**
-- * vb2_get_vma() - acquire and lock the virtual memory area
-- * @vma:	given virtual memory area
-- *
-- * This function attempts to acquire an area mapped in the userspace for
-- * the duration of a hardware operation. The area is "locked" by performing
-- * the same set of operation that are done when process calls fork() and
-- * memory areas are duplicated.
-- *
-- * Returns a copy of a virtual memory region on success or NULL.
-- */
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
--{
--	struct vm_area_struct *vma_copy;
+ warm:
++	/* init statistics in order signal app which are supported */
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	/* start statistics polling */
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(1000));
++
+ 	dev->active = true;
+ 	return 0;
 -
--	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
--	if (vma_copy == NULL)
--		return NULL;
--
--	if (vma->vm_ops && vma->vm_ops->open)
--		vma->vm_ops->open(vma);
--
--	if (vma->vm_file)
--		get_file(vma->vm_file);
--
--	memcpy(vma_copy, vma, sizeof(*vma));
--
--	vma_copy->vm_mm = NULL;
--	vma_copy->vm_next = NULL;
--	vma_copy->vm_prev = NULL;
--
--	return vma_copy;
--}
--EXPORT_SYMBOL_GPL(vb2_get_vma);
--
--/**
-- * vb2_put_userptr() - release a userspace virtual memory area
-- * @vma:	virtual memory region associated with the area to be released
-- *
-- * This function releases the previously acquired memory area after a hardware
-- * operation.
-- */
--void vb2_put_vma(struct vm_area_struct *vma)
--{
--	if (!vma)
--		return;
--
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--
--	kfree(vma);
--}
--EXPORT_SYMBOL_GPL(vb2_put_vma);
--
--/**
-- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
-- * @vaddr:	starting virtual address of the area to be verified
-- * @size:	size of the area
-- * @res_paddr:	will return physical address for the given vaddr
-- * @res_vma:	will return locked copy of struct vm_area for the given area
-- *
-- * This function will go through memory area of size @size mapped at @vaddr and
-- * verify that the underlying physical pages are contiguous. If they are
-- * contiguous the virtual memory area is locked and a @res_vma is filled with
-- * the copy and @res_pa set to the physical address of the buffer.
-- *
-- * Returns 0 on success.
-- */
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
--{
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	unsigned long offset, start, end;
--	unsigned long this_pfn, prev_pfn;
--	dma_addr_t pa = 0;
--
--	start = vaddr;
--	offset = start & ~PAGE_MASK;
--	end = start + size;
--
--	vma = find_vma(mm, start);
--
--	if (vma == NULL || vma->vm_end < end)
--		return -EFAULT;
--
--	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
--		int ret = follow_pfn(vma, start, &this_pfn);
--		if (ret)
--			return ret;
--
--		if (prev_pfn == 0)
--			pa = this_pfn << PAGE_SHIFT;
--		else if (this_pfn != prev_pfn + 1)
--			return -EFAULT;
--
--		prev_pfn = this_pfn;
--	}
--
--	/*
--	 * Memory is contigous, lock vma and return to the caller
--	 */
--	*res_vma = vb2_get_vma(vma);
--	if (*res_vma == NULL)
--		return -ENOMEM;
--
--	*res_pa = pa + offset;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
--
--/**
-  * vb2_create_framevec() - map virtual addresses to pfns
-  * @start:	Virtual user address where we start mapping
-  * @length:	Length of a range to map
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 2f0564ff5f31..830b5239fd8b 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -31,12 +31,6 @@ struct vb2_vmarea_handler {
+ err_release_firmware:
+ 	release_firmware(fw);
+ err:
+@@ -222,6 +228,9 @@ static int si2157_sleep(struct dvb_frontend *fe)
  
- extern const struct vm_operations_struct vb2_common_vm_ops;
+ 	dev->active = false;
  
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
--
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
--void vb2_put_vma(struct vm_area_struct *vma);
--
- struct frame_vector *vb2_create_framevec(unsigned long start,
- 					 unsigned long length,
- 					 bool write);
++	/* stop statistics polling */
++	cancel_delayed_work_sync(&dev->stat_work);
++
+ 	/* standby */
+ 	memcpy(cmd.args, "\x16\x00", 2);
+ 	cmd.wlen = 2;
+@@ -360,6 +369,33 @@ static const struct dvb_tuner_ops si2157_ops = {
+ 	.get_if_frequency = si2157_get_if_frequency,
+ };
+ 
++static void si2157_stat_work(struct work_struct *work)
++{
++	struct si2157_dev *dev = container_of(work, struct si2157_dev, stat_work.work);
++	struct dvb_frontend *fe = dev->fe;
++	struct i2c_client *client = fe->tuner_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct si2157_cmd cmd;
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	memcpy(cmd.args, "\x42\x00", 2);
++	cmd.wlen = 2;
++	cmd.rlen = 12;
++	ret = si2157_cmd_execute(client, &cmd);
++	if (ret)
++		goto err;
++
++	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
++	c->strength.stat[0].svalue = (s8) cmd.args[3] * 1000;
++
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
++	return;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++}
++
+ static int si2157_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+@@ -384,6 +420,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	dev->chiptype = (u8)id->driver_data;
+ 	dev->if_frequency = 5000000; /* default value of property 0x0706 */
+ 	mutex_init(&dev->i2c_mutex);
++	INIT_DELAYED_WORK(&dev->stat_work, si2157_stat_work);
+ 
+ 	/* check if the tuner is there */
+ 	cmd.wlen = 0;
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index 71a5f8c..ecc463d 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -30,6 +30,7 @@ struct si2157_dev {
+ 	u8 chiptype;
+ 	u8 if_port;
+ 	u32 if_frequency;
++	struct delayed_work stat_work;
+ };
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
 -- 
-2.1.4
+http://palosaari.fi/
 
