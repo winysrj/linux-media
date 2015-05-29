@@ -1,61 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55147 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934169AbbEOLUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2015 07:20:48 -0400
-Message-ID: <5555D68E.4090708@iki.fi>
-Date: Fri, 15 May 2015 14:20:46 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH RFCv1] v4l2: add support for SDR transmitter
-References: <1431625907-7562-1-git-send-email-crope@iki.fi> <5555BB9C.8070605@xs4all.nl>
-In-Reply-To: <5555BB9C.8070605@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:34170 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754427AbbE2B3C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2015 21:29:02 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/8] Second series of DocBook fixes for DVB frontend
+Date: Thu, 28 May 2015 22:28:49 -0300
+Message-Id: <cover.1432862317.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+This series do another round of format conversion and cleanups
+at the DVB frontend docbook.
 
-On 05/15/2015 12:25 PM, Hans Verkuil wrote:
-> Hi Antti,
->
-> Looks good, but the DocBook updates are missing. You probably planned to do that in
-> RFCv2 or similar.
+It basically moves all enums/typedefs that are used on both DVBv5
+and DVBv3 calls to the DVBv5 xml. Links at the DVBv3 section are
+provided, in order to point to those enums.
 
-Yep, first code then doc.
+The enums touched on this series were converted from programlisting
+into tables, with allowed to add better descriptions to each field.
 
-> Which device will have sdr_out? What's the cheapest device and where can I buy it? I'd
-> like to be able to test it (and add qv4l2 support),
+There were one enum (fe_bandwidth) that is DVBv3 specific. This got
+moved to the legacy part of the document.
 
-I used HackRF One, it is likely 150-250e used one.
+After this change, the API documentation looks clearer, at least on
+my eyes.
 
-Currently I have implemented almost all radio features it has, only 
-option to enable antenna power supply is missing (and firmware upgrade, 
-but it is not radio feature).
+TODO:
 
-Device is half-duplex - only RX or TX could be used at the time. Driver 
-creates two device nodes, one for receiver and another for transmitter.
+- At the dvbproperty.xml, there are still several programlisting
+  code with some enums. Those should be converted latter to tables.
+  I'll eventually convert them and do a cleanup on this xml file, but
+  I'll likely look into the net and demux part of the document first.
+  So, patches are welcome.
 
-There is:
-2 x struct video_device
-2 x struct v4l2_device
-2 x struct vb2_queue
-2 x struct v4l2_ctrl_handler
+- The frontend_legacy_api.xml (with contains the DVBv3 legacy stuff)
+  still uses the original format. I don't intend to convert it, as
+  there are still lots of other things that require improvements at
+  the document. So, this has low priority. Of course, patches fixing
+  it are welcome.
 
-Locking is still missing. I am not sure how it should be done, but 
-likely I try add lock to start/stop streaming. When start streaming is 
-called it sets some flag/lock and if another device node tries start 
-streaming at same time error is returned.
+- The open() and close() syscalls are still using the original format.
+  Patches are welcome.
 
-Device uses Complex S8 format for both receiver and transmitter. I will 
-add that format to vivid and then it should be possible generate beep 
-using vivid and transmit it using HackRF (cat /dev/swradio0 > 
-/dev/swradio1), where swradio0 is vivid and swradio1 is HackRF.
+Mauro Carvalho Chehab (8):
+  DocBook/Makefile: improve typedef parser
+  DocBook: cross-reference enum fe_modulation where needed
+  DocBook: improve documentation for DVB spectral inversion
+  DocBook: improve documentation for OFDM transmission mode
+  DocBook: move fe_bandwidth to the frontend legacy section
+  DocBook: improve documentation for FEC fields
+  DocBook: improve documentation for guard interval
+  DocBook: improve documentation for hierarchy
 
-regards
-Antti
+ Documentation/DocBook/media/Makefile               |   4 +-
+ Documentation/DocBook/media/dvb/dvbproperty.xml    | 358 +++++++++++++++------
+ Documentation/DocBook/media/dvb/frontend.xml       | 109 -------
+ .../DocBook/media/dvb/frontend_legacy_api.xml      |  66 +++-
+ include/uapi/linux/dvb/frontend.h                  |  34 +-
+ 5 files changed, 331 insertions(+), 240 deletions(-)
 
 -- 
-http://palosaari.fi/
+2.4.1
+
