@@ -1,45 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:36832 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306AbbE1UHM (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39407 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422681AbbE2TWS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2015 16:07:12 -0400
-Message-ID: <55677568.4070603@gmail.com>
-Date: Thu, 28 May 2015 21:07:04 +0100
-From: Malcolm Priestley <tvboxspy@gmail.com>
-MIME-Version: 1.0
-To: David Howells <dhowells@redhat.com>
-CC: crope@iki.fi, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
-References: <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk> <360.1432807690@warthog.procyon.org.uk>
-In-Reply-To: <360.1432807690@warthog.procyon.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 29 May 2015 15:22:18 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
+Subject: [PATCH 3/5] DocBook: cleaup the notes about DTV properties
+Date: Fri, 29 May 2015 16:22:06 -0300
+Message-Id: <366cb101566d6a5bdccd038eb50edf951870bfcf.1432927303.git.mchehab@osg.samsung.com>
+In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The notes there are somewhat confusing and assumes that the
+reader would have read the DVBv3 way. This is not true anymore,
+as the DVBv3 is now on a separate section that is marked as
+deprecated.
 
+So, cleanup the notes.
 
-On 28/05/15 11:08, David Howells wrote:
-> Malcolm Priestley <tvboxspy@gmail.com> wrote:
->
->> Statistics polling can not be done by lmedm04 driver's implementation of
->> M88RS2000/TS2020 because I2C messages stop the devices demuxer.
->>
->> So any polling must be a config option for this driver.
->
-> Ummm...  I presume a runtime config option is okay.
+While here, add a note about using libdvbv5, instead of using
+the DVBv5 API directly.
 
-Yes, also, the workqueue appears not to be initialized when using the 
-dvb attached method.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
->
-> Also, does that mean that the lmedm04 driver can't be made compatible with the
-> DVBv5 API?
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 00ba1a9e314c..a5d0a209d3f3 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -13,8 +13,14 @@
+     Also, the union didn't have any space left to be expanded without breaking
+     userspace. So, the decision was to deprecate the legacy union/struct based
+     approach, in favor of a properties set approach.</para>
+-<para>By using a properties set, it is now possible to extend and support any
+-    digital TV without needing to redesign the API</para>
++
++<para>NOTE: on Linux DVB API version 3, setting a frontend were done via
++    <link linkend="dvb-frontend-parameters">struct  <constant>dvb_frontend_parameters</constant></link>.
++    This got replaced on version 5 (also called "S2API", as this API were
++    added originally_enabled to provide support for DVB-S2), because the old
++    API has a very limited support to new standards and new hardware. This
++    section describes the new and recommended way to set the frontend, with
++    suppports all digital TV delivery systems.</para>
+ 
+ <para>Example: with the properties based approach, in order to set the tuner
+     to a DVB-C channel at 651 kHz, modulated with 256-QAM, FEC 3/4 and symbol
+@@ -67,13 +73,13 @@ int main(void)
+ 	return 0;
+ }
+ </programlisting>
+-<para>NOTE: This section describes the DVB version 5 extension of the DVB-API,
+-also called "S2API", as this API were added to provide support for DVB-S2. It
+-was designed to be able to replace the old frontend API. Yet, the DISEQC and
+-the capability ioctls weren't implemented yet via the new way.</para>
+-<para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
+-API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+-struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
++
++<para>NOTE: While it is possible to directly call the Kernel code like the
++    above example, it is strongly recommended to use
++    <ulink url="http://linuxtv.org/docs/libdvbv5/index.html">libdvbv5</ulink>,
++    as it provides abstraction to work with the supported digital TV standards
++    and provides methods for usual operations like program scanning and to
++    read/write channel descriptor files.</para>
+ 
+ <section id="dtv-stats">
+ <title>struct <structname>dtv_stats</structname></title>
+-- 
+2.4.1
 
-No, the driver will have to implement its own version. It doesn't need a 
-polling thread it simply gets it directly from its interrupt urb buffer.
-
-
-Malcolm
