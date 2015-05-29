@@ -1,96 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39772 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbbECJy6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:34180 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754759AbbE2B3C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 May 2015 05:54:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/9] ov772x: avoid calling ov772x_select_params() twice
-Date: Sun,  3 May 2015 11:54:33 +0200
-Message-Id: <1430646876-19594-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430646876-19594-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 28 May 2015 21:29:02 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org,
+	linux-api@vger.kernel.org
+Subject: [PATCH 7/8] DocBook: improve documentation for guard interval
+Date: Thu, 28 May 2015 22:28:56 -0300
+Message-Id: <46da1278eaccfe26cf61017d50dc2f231a8622ee.1432862317.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
+References: <cover.1432862317.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1432862317.git.mchehab@osg.samsung.com>
+References: <cover.1432862317.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Format it as a table and add more details, in special for
+DTMB guard intervals.
 
-Merge ov772x_s_fmt into ov772x_set_fmt.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/ov772x.c | 41 +++++++++++------------------------
- 1 file changed, 13 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-index f150a8b..aa32bc5 100644
---- a/drivers/media/i2c/soc_camera/ov772x.c
-+++ b/drivers/media/i2c/soc_camera/ov772x.c
-@@ -895,38 +895,15 @@ static int ov772x_get_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index b96a91a1494d..5f30a28a15b0 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -818,21 +818,59 @@ typedef enum atscmh_sccc_code_mode {
+ 		<title><constant>DTV_GUARD_INTERVAL</constant></title>
  
--static int ov772x_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
--{
--	struct ov772x_priv *priv = to_ov772x(sd);
--	const struct ov772x_color_format *cfmt;
--	const struct ov772x_win_size *win;
--	int ret;
--
--	ov772x_select_params(mf, &cfmt, &win);
--
--	ret = ov772x_set_params(priv, cfmt, win);
--	if (ret < 0)
--		return ret;
--
--	priv->win = win;
--	priv->cfmt = cfmt;
--
--	mf->code = cfmt->code;
--	mf->width = win->rect.width;
--	mf->height = win->rect.height;
--	mf->field = V4L2_FIELD_NONE;
--	mf->colorspace = cfmt->colorspace;
--
--	return 0;
--}
--
- static int ov772x_set_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_format *format)
- {
-+	struct ov772x_priv *priv = to_ov772x(sd);
- 	struct v4l2_mbus_framefmt *mf = &format->format;
- 	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size *win;
-+	int ret;
- 
- 	if (format->pad)
- 		return -EINVAL;
-@@ -939,9 +916,17 @@ static int ov772x_set_fmt(struct v4l2_subdev *sd,
- 	mf->field = V4L2_FIELD_NONE;
- 	mf->colorspace = cfmt->colorspace;
- 
--	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--		return ov772x_s_fmt(sd, mf);
--	cfg->try_fmt = *mf;
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = *mf;
-+		return 0;
-+	}
+ 		<para>Possible values are:</para>
+-<programlisting>
+-typedef enum fe_guard_interval {
+-	GUARD_INTERVAL_1_32,
+-	GUARD_INTERVAL_1_16,
+-	GUARD_INTERVAL_1_8,
+-	GUARD_INTERVAL_1_4,
+-	GUARD_INTERVAL_AUTO,
+-	GUARD_INTERVAL_1_128,
+-	GUARD_INTERVAL_19_128,
+-	GUARD_INTERVAL_19_256,
+-	GUARD_INTERVAL_PN420,
+-	GUARD_INTERVAL_PN595,
+-	GUARD_INTERVAL_PN945,
+-} fe_guard_interval_t;
+-</programlisting>
 +
-+	ret = ov772x_set_params(priv, cfmt, win);
-+	if (ret < 0)
-+		return ret;
++<section id="fe-guard-interval-t">
++<title>Modulation guard interval</title>
 +
-+	priv->win = win;
-+	priv->cfmt = cfmt;
- 	return 0;
- }
++<table pgwide="1" frame="none" id="fe-guard-interval">
++    <title>enum fe_guard_interval</title>
++    <tgroup cols="2">
++	&cs-def;
++	<thead>
++	<row>
++	    <entry>ID</entry>
++	    <entry>Description</entry>
++	</row>
++	</thead>
++	<tbody valign="top">
++	<row>
++	    <entry>GUARD_INTERVAL_AUTO</entry>
++	    <entry>Autodetect the guard interval</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_1_128</entry>
++	    <entry>Guard interval 1/128</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_1_32</entry>
++	    <entry>Guard interval 1/32</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_1_16</entry>
++	    <entry>Guard interval 1/16</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_1_8</entry>
++	    <entry>Guard interval 1/8</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_1_4</entry>
++	    <entry>Guard interval 1/4</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_19_128</entry>
++	    <entry>Guard interval 19/128</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_19_256</entry>
++	    <entry>Guard interval 19/256</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_PN420</entry>
++	    <entry>PN length 420 (1/4)</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_PN595</entry>
++	    <entry>PN length 595 (1/6)</entry>
++	</row><row>
++	    <entry>GUARD_INTERVAL_PN945</entry>
++	    <entry>PN length 945 (1/9)</entry>
++	</row>
++        </tbody>
++    </tgroup>
++</table>
++</section>
  
+ 		<para>Notes:</para>
+ 		<para>1) If <constant>DTV_GUARD_INTERVAL</constant> is set the <constant>GUARD_INTERVAL_AUTO</constant> the hardware will
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 563800eb1216..a005c4b472f5 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -59,22 +59,6 @@ specification is available at
+ <section>
+ <title>More OFDM parameters</title>
+ 
+-<section id="fe-guard-interval-t">
+-<title>frontend guard inverval</title>
+-<programlisting>
+-typedef enum fe_guard_interval {
+-	GUARD_INTERVAL_1_32,
+-	GUARD_INTERVAL_1_16,
+-	GUARD_INTERVAL_1_8,
+-	GUARD_INTERVAL_1_4,
+-	GUARD_INTERVAL_AUTO,
+-	GUARD_INTERVAL_1_128,
+-	GUARD_INTERVAL_19_128,
+-	GUARD_INTERVAL_19_256,
+-} fe_guard_interval_t;
+-</programlisting>
+-</section>
+-
+ <section id="fe-hierarchy-t">
+ <title>frontend hierarchy</title>
+ <programlisting>
+diff --git a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
+index c1dfbd8096bd..d20f1fd75fa9 100644
+--- a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
++++ b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
+@@ -182,7 +182,7 @@ struct dvb_vsb_parameters {
+ 	 &fe-code-rate-t;      code_rate_LP;  /&#x22C6; low priority stream code rate &#x22C6;/
+ 	 &fe-modulation-t;     constellation; /&#x22C6; modulation type (see above) &#x22C6;/
+ 	 &fe-transmit-mode-t;  transmission_mode;
+-	 fe_guard_interval_t guard_interval;
++	 &fe-guard-interval-t; guard_interval;
+ 	 fe_hierarchy_t      hierarchy_information;
+  };
+ </programlisting>
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 49f6e980125b..1d2b7c6dee04 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -228,7 +228,7 @@ enum fe_bandwidth {
+ typedef enum fe_bandwidth fe_bandwidth_t;
+ #endif
+ 
+-typedef enum fe_guard_interval {
++enum fe_guard_interval {
+ 	GUARD_INTERVAL_1_32,
+ 	GUARD_INTERVAL_1_16,
+ 	GUARD_INTERVAL_1_8,
+@@ -240,8 +240,9 @@ typedef enum fe_guard_interval {
+ 	GUARD_INTERVAL_PN420,
+ 	GUARD_INTERVAL_PN595,
+ 	GUARD_INTERVAL_PN945,
+-} fe_guard_interval_t;
++};
+ 
++typedef enum fe_guard_interval fe_guard_interval_t;
+ 
+ typedef enum fe_hierarchy {
+ 	HIERARCHY_NONE,
 -- 
-2.1.4
+2.4.1
 
