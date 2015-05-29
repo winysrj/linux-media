@@ -1,41 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout06.plus.net ([212.159.14.18]:47104 "EHLO
-	avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758574AbbEaWax (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39378 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422636AbbE2TWQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 18:30:53 -0400
-Message-ID: <556B8B98.5050602@baker-net.org.uk>
-Date: Sun, 31 May 2015 23:30:48 +0100
-From: Adam Baker <linux@baker-net.org.uk>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] si2157: implement signal strength stats
-References: <1432933510-19028-1-git-send-email-crope@iki.fi> <1432933510-19028-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1432933510-19028-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 29 May 2015 15:22:16 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 4/5] DocBook: Fix arguments on some ioctl documentation
+Date: Fri, 29 May 2015 16:22:07 -0300
+Message-Id: <9ae6409006ad9abd51f9e985a20ed8287ac8aa0b.1432927303.git.mchehab@osg.samsung.com>
+In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+In-Reply-To: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
+References: <cad656bf57ce3c7db9a651401449537876694dfe.1432927303.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29/05/15 22:05, Antti Palosaari wrote:
-> Implement DVBv5 signal strength stats. Returns dBm.
->
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
+Due to a cut-and-paste error, the argument is missing or wrong
+on 3 ioctl documentation. Fix them.
 
-Tested-by: Adam Baker <linux@baker-net.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I don't have the test gear to verify the absolute levels but the signal 
-level readings were close to those obtained feeding the same signal into 
-a Hauppauge Nova TD and varied as additional cables and splitters were 
-added in a consistent fashion. I didn't see much variation in C/N but I 
-wouldn't expect to in a setup with a masthead amp.
+diff --git a/Documentation/DocBook/media/dvb/fe-diseqc-send-burst.xml b/Documentation/DocBook/media/dvb/fe-diseqc-send-burst.xml
+index d1a798048641..f79c3f21323d 100644
+--- a/Documentation/DocBook/media/dvb/fe-diseqc-send-burst.xml
++++ b/Documentation/DocBook/media/dvb/fe-diseqc-send-burst.xml
+@@ -36,7 +36,10 @@
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+-	<term><parameter>pointer to &fe-sec-mini-cmd;</parameter></term>
++	<term><parameter>tone</parameter></term>
++	<listitem>
++	  <para>pointer to &fe-sec-mini-cmd;</para>
++	</listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect1>
+diff --git a/Documentation/DocBook/media/dvb/fe-set-tone.xml b/Documentation/DocBook/media/dvb/fe-set-tone.xml
+index b4b1f5303170..f3d965503c25 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-tone.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-tone.xml
+@@ -36,7 +36,10 @@
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+-	<term><parameter>pointer to &fe-sec-tone-mode;</parameter></term>
++	<term><parameter>tone</parameter></term>
++	<listitem>
++	  <para>pointer to &fe-sec-tone-mode;</para>
++	</listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect1>
+diff --git a/Documentation/DocBook/media/dvb/fe-set-voltage.xml b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+index a1ee5f9c28e0..d43d51ab8a2d 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-voltage.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+@@ -36,7 +36,10 @@
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+-	<term><parameter>pointer to &fe-sec-voltage;</parameter></term>
++	<term><parameter>voltage</parameter></term>
++	<listitem>
++	  <para>pointer to &fe-sec-voltage;</para>
++	</listitem>
+       </varlistentry>
+     </variablelist>
+   </refsect1>
+-- 
+2.4.1
 
-Turning the LNA on and off in a PCTV 292e showed that the LNA gives 
-approx 20dB gain.
-
-Test environment was this patch, the si2168: Implement own I2C adapter 
-locking patch and Olli Salonen's si2168: add I2C error handling patch as 
-that is needed to make Antti's patch apply cleanly.
-
-Adam
