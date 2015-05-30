@@ -1,98 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vn0-f53.google.com ([209.85.216.53]:39691 "EHLO
-	mail-vn0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974AbbEFPJU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2015 11:09:20 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:41024 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752580AbbE3PCT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 May 2015 11:02:19 -0400
+Date: Sat, 30 May 2015 12:02:14 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/5] m88ds3103: do not return error from
+ get_frontend() when not ready
+Message-ID: <20150530120214.15ae4165@recife.lan>
+In-Reply-To: <1432236172-13964-2-git-send-email-crope@iki.fi>
+References: <1432236172-13964-1-git-send-email-crope@iki.fi>
+	<1432236172-13964-2-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1430915838-20547-1-git-send-email-k.debski@samsung.com>
-References: <1430915838-20547-1-git-send-email-k.debski@samsung.com>
-Date: Wed, 6 May 2015 16:09:19 +0100
-Message-ID: <CACvgo52weKaFL44jbYiWTeQDFv9WqFNXFW+RMhPp4kcPt7L6cw@mail.gmail.com>
-Subject: Re: [PATCH v3] libgencec: Add userspace library for the generic CEC
- kernel interface
-From: Emil Velikov <emil.l.velikov@gmail.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: ML dri-devel <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	thomas@tommie-lie.de, sean@mess.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>, lars@opdenkamp.eu
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Em Thu, 21 May 2015 22:22:48 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-There are a couple of bits that I've missed out previously. All but
-the missing install of libgencec.pc are general cleanups.
+> Do not return error from get_frontend() when status is queried, but
+> device is not ready. dvbv5-zap has habit to call that IOCTL before
+> device is tuned and it also refuses to use DVBv5 statistic after
+> that...
 
-On 6 May 2015 at 13:37, Kamil Debski <k.debski@samsung.com> wrote:
+This is actually an error at libdvbv5, that was solved by this patch:
 
-> --- /dev/null
-> +++ b/.gitignore
-> @@ -0,0 +1,26 @@
+commit bf028618f0a2f86f8515560865b8f8142eddb1d9
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Tue Apr 14 11:47:57 2015 -0300
 
-> +/ar-lib
-You can drop this (see the configure.ac note).
+    libdvbv5: Retry FE_GET_PROPERTY ioctl if it returns EAGAIN
+    
+    Retry the FE_GET_PROPERTY ioctl used to determine if we have a DVBv5 device
+    if it returns EAGAIN indicating the driver is currently locked by the kernel.
+    
+    Also skip over subsequent information gathering calls to FE_GET_PROPERTY
+    that return EAGAIN.
+    
+    Signed-off-by: David Howells <dhowells@redhat.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> +/aclocal.m4
-> +/autom4te.cache/*
-> +/config.*
-> +/configure
-> +/depcomp
-> +/install-sh
-> +/missing
-Normally one can drop the leading forward slash in .gitignore files.
-This way git won't bother if you build in a subdirectory - for example
-$(project_top)/build.
+Basically, -EAGAIN should be discarded.
 
-> +/examples/.deps/*
-> +/examples/.libs/*
-> +src/.deps/*
-> +src/.libs/*
-One can replace these four with
-.deps/
-.libs/
-
-> +/examples/cectest
-echo cectest > examples/.gitignore
+That's said, see below.
 
 
-> --- /dev/null
-> +++ b/Makefile.am
-> @@ -0,0 +1,4 @@
-> +SUBDIRS = src examples
-> +ACLOCAL_AMFLAGS = -I m4
-> +library_includedir=$(includedir)
-> +library_include_HEADERS = include/gencec.h
-We want to install the pc file. Otherwise one cannot really use it.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/dvb-frontends/m88ds3103.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+> index d3d928e..03dceb5 100644
+> --- a/drivers/media/dvb-frontends/m88ds3103.c
+> +++ b/drivers/media/dvb-frontends/m88ds3103.c
+> @@ -742,7 +742,7 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
+>  	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
+>  
+>  	if (!priv->warm || !(priv->fe_status & FE_HAS_LOCK)) {
+> -		ret = -EAGAIN;
+> +		ret = 0;
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libgencec.pc
+Returning EAGAIN here doesn't seem right, as this ioctl didn't fail
+due to mutex locked while calling an ioctl with non-block mode (that's
+basically the usage of EAGAIN).
 
+The proper behavior is to succeed the ioctl, keeping the cache untouched,
+with all the DVBv5 available status with scale filled with
+FE_SCALE_NOT_AVAILABLE.
 
-> --- /dev/null
-> +++ b/configure.ac
-> @@ -0,0 +1,27 @@
-> +AC_PREREQ(2.60)
-> +
-> +AC_INIT([libgencec], [0.1], [k.debski@samsung.com])
-> +AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-> +
-> +AC_PROG_CC
-> +AM_PROG_AR
-There is not plan to use the library on Windows is there ? If so we
-can remove this as per the manual [1].
+That's said, I'm not seeing the part of the code on m88ds3103 that would
+be filling the DVBv5 stats. It seems that this patch comment is bogus.
 
-"You must use this macro when you use the archiver in your project, if
-you want support for unusual archivers such as Microsoft lib"
-
-Cheers,
-Emil
-
-[1] http://www.gnu.org/software/automake/manual/html_node/Public-Macros.html
+>  		goto err;
+>  	}
+>  
