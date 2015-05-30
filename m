@@ -1,128 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:56598 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753988AbbEUJDT (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:35990 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755756AbbE3SKf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2015 05:03:19 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-kernel@lists.codethink.co.uk, linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sergei.shtylyov@cogentembedded.com,
-	hverkuil@xs4all.nl, rob.taylor@codethink.co.uk
-Subject: [PATCH 08/20] media: soc_camera pad-aware driver initialisation
-Date: Wed, 20 May 2015 17:39:28 +0100
-Message-Id: <1432139980-12619-9-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432139980-12619-1-git-send-email-william.towle@codethink.co.uk>
+	Sat, 30 May 2015 14:10:35 -0400
+Received: by wivl4 with SMTP id l4so42944118wiv.1
+        for <linux-media@vger.kernel.org>; Sat, 30 May 2015 11:10:34 -0700 (PDT)
+From: Jemma Denson <jdenson@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, patrick.boettcher@posteo.de,
+	Jemma Denson <jdenson@gmail.com>
+Subject: [PATCH v2 0/4] SkystarS2 pid filtering fix and stream control
+Date: Sat, 30 May 2015 19:10:05 +0100
+Message-Id: <1433009409-5622-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media
-controller API, so that soc_camera/rcar_vin can create device nodes
-to support a driver such as adv7604.c (for HDMI on Lager) underneath.
+This patch series finishes off the addition of the SkyStarS2 card -
+the patches here aren't strictly required for running the card so
+haven't previously been included.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c   |    4 ++++
- drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++++++++++++++-
- include/media/soc_camera.h                     |    1 +
- 3 files changed, 31 insertions(+), 1 deletion(-)
+The first patch fixes a bug present in the current flexcop driver -
+I've seen it with this card, and it has also been noticed in some
+other cards. Those cards will need identifying and patches created to
+use this fix as it is not enabled by default.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 0f67646..b4e9b43 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1364,8 +1364,12 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 		struct v4l2_mbus_framefmt *mf = &fmt.format;
- 		struct v4l2_rect rect;
- 		struct device *dev = icd->parent;
-+		struct media_pad *remote_pad;
- 		int shift;
- 
-+		remote_pad = media_entity_remote_pad(
-+					&icd->vdev->entity.pads[0]);
-+		fmt.pad = remote_pad->index;
- 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d708df4..126d645 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1293,6 +1293,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+	int src_pad_idx = -1;
- 	int ret;
- 
- 	sd->grp_id = soc_camera_grp_id(icd);
-@@ -1311,7 +1312,25 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 	}
- 
- 	/* At this point client .probe() should have run already */
--	ret = soc_camera_init_user_formats(icd);
-+	ret = media_entity_init(&icd->vdev->entity, 1, &icd->pad, 0);
-+	if (!ret) {
-+		for (src_pad_idx = 0; src_pad_idx < sd->entity.num_pads;
-+				src_pad_idx++)
-+			if (sd->entity.pads[src_pad_idx].flags
-+						== MEDIA_PAD_FL_SOURCE)
-+				break;
-+
-+		if (src_pad_idx < sd->entity.num_pads) {
-+			if (!media_entity_create_link(
-+				&icd->vdev->entity, 0,
-+				&sd->entity, src_pad_idx,
-+				MEDIA_LNK_FL_IMMUTABLE |
-+				MEDIA_LNK_FL_ENABLED)) {
-+				ret = soc_camera_init_user_formats(icd);
-+			}
-+		}
-+	}
-+
- 	if (ret < 0)
- 		goto eusrfmt;
- 
-@@ -1322,6 +1341,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		goto evidstart;
- 
- 	/* Try to improve our guess of a reasonable window format */
-+	fmt.pad = src_pad_idx;
- 	if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt)) {
- 		icd->user_width		= mf->width;
- 		icd->user_height	= mf->height;
-@@ -1335,6 +1355,7 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- evidstart:
- 	soc_camera_free_user_formats(icd);
- eusrfmt:
-+	media_entity_cleanup(&icd->vdev->entity);
- 	soc_camera_remove_device(icd);
- 
- 	return ret;
-@@ -1856,6 +1877,10 @@ static int soc_camera_remove(struct soc_camera_device *icd)
- 	if (icd->num_user_formats)
- 		soc_camera_free_user_formats(icd);
- 
-+	if (icd->vdev->entity.num_pads) {
-+		media_entity_cleanup(&icd->vdev->entity);
-+	}
-+
- 	if (icd->clk) {
- 		/* For the synchronous case */
- 		v4l2_clk_unregister(icd->clk);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..f0c5238 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -42,6 +42,7 @@ struct soc_camera_device {
- 	unsigned char devnum;		/* Device number per host */
- 	struct soc_camera_sense *sense;	/* See comment in struct definition */
- 	struct video_device *vdev;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	const struct soc_camera_format_xlate *current_fmt;
- 	struct soc_camera_format_xlate *user_formats;
+The other three patches add in a feature that was half complete in the
+original binary blob for this card, and allows the demod chip to
+control the streams on the b2c2 when it turns off it's output during
+tuning. This helps to avoid a situation where the hardware filter is
+constantly reset by a software watchdog in flexcop-pci because it
+can't see any data coming in.
+
+Changes since v1:
+* Move the stream reset code from flexcop_pci to flexcop_hw_filter so
+  the fact it might interfere with hw_filter code isn't missed.
+* Control both streams - so output stream aswell as receive.
+* Track the external stream state so we don't leave the stream turned
+  off in a reset.
+* Don't let the external control start the stream until a feed is
+  actually requested.
+
+Jemma Denson (4):
+  b2c2: Add option to skip the first 6 pid filters
+  b2c2: Move stream reset code from flexcop-pci to flexcop
+  b2c2: Add external stream control
+  cx24120: Take control of b2c2 streams
+
+ drivers/media/common/b2c2/flexcop-common.h    |  5 ++
+ drivers/media/common/b2c2/flexcop-fe-tuner.c  | 13 +++++
+ drivers/media/common/b2c2/flexcop-hw-filter.c | 71 ++++++++++++++++++++++-----
+ drivers/media/dvb-frontends/cx24120.c         | 29 +++++++----
+ drivers/media/dvb-frontends/cx24120.h         |  1 +
+ drivers/media/pci/b2c2/flexcop-pci.c          | 19 ++-----
+ 6 files changed, 103 insertions(+), 35 deletions(-)
+
 -- 
-1.7.10.4
+2.1.0
 
