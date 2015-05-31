@@ -1,347 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49589 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964932AbbEMNIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2015 09:08:32 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 7/9] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
-Date: Wed, 13 May 2015 15:08:13 +0200
-Message-Id: <1431522495-4692-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1431522495-4692-1-git-send-email-jack@suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51743 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754733AbbEaM72 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2015 08:59:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] DocBook media: fix typos
+Date: Sun, 31 May 2015 14:59:10 +0200
+Message-Id: <1433077152-18200-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433077152-18200-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433077152-18200-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert vb2_dc_get_userptr() to use frame vector infrastructure. When we
-are doing that there's no need to allocate page array and some code can
-be simplified.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+satellital -> satellite
+antena -> antenna
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 214 ++++---------------------
- 1 file changed, 34 insertions(+), 180 deletions(-)
+ Documentation/DocBook/media/dvb/dvbproperty.xml    | 8 ++++----
+ Documentation/DocBook/media/dvb/fe-set-tone.xml    | 2 +-
+ Documentation/DocBook/media/dvb/fe-set-voltage.xml | 2 +-
+ Documentation/DocBook/media/dvb/frontend.xml       | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 620c4aa78881..e6cea452302b 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -32,15 +32,13 @@ struct vb2_dc_buf {
- 	dma_addr_t			dma_addr;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
-+	struct frame_vector		*vec;
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index a5d0a20..00bf3ed 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -3,7 +3,7 @@
+ <para>Tuning into a Digital TV physical channel and starting decoding it
+     requires to change a set of parameters, in order to control the
+     tuner, the demodulator, the Linear Low-noise Amplifier (LNA) and to set the
+-    antena subsystem via Satellite Equipment Control (SEC), on satellital
++    antenna subsystem via Satellite Equipment Control (SEC), on satellite
+     systems. The actual parameters are specific to each particular digital
+     TV standards, and may change as the digital TV specs evolutes.</para>
+ <para>In the past, the strategy used were to have an union with the parameters
+@@ -171,7 +171,7 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 		<para>Central frequency of the channel.</para>
  
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
- 	struct sg_table			*sgt_base;
+ 		<para>Notes:</para>
+-		<para>1)For satellital delivery systems, it is measured in kHz.
++		<para>1)For satellite delivery systems, it is measured in kHz.
+ 			For the other ones, it is measured in Hz.</para>
+ 		<para>2)For ISDB-T, the channels are usually transmitted with an offset of 143kHz.
+ 			E.g. a valid frequency could be 474143 kHz. The stepping is bound to the bandwidth of
+@@ -1434,8 +1434,8 @@ enum fe_interleaving {
+ 		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	</section>
+-	<section id="frontend-property-satellital-systems">
+-	<title>Properties used on satellital delivery systems</title>
++	<section id="frontend-property-satellite-systems">
++	<title>Properties used on satellite delivery systems</title>
+ 	<section id="dvbs-params">
+ 		<title>DVB-S delivery system</title>
+ 		<para>The following parameters are valid for DVB-S:</para>
+diff --git a/Documentation/DocBook/media/dvb/fe-set-tone.xml b/Documentation/DocBook/media/dvb/fe-set-tone.xml
+index f3d9655..4ef6c74 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-tone.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-tone.xml
+@@ -49,7 +49,7 @@
  
--	/* USERPTR related */
--	struct vm_area_struct		*vma;
--
- 	/* DMABUF related */
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -49,24 +47,6 @@ struct vb2_dc_buf {
- /*        scatterlist table functions        */
- /*********************************************/
+ <para>This ioctl is used to set the generation of the continuous 22kHz tone.
+     This call requires read/write permissions.</para>
+-<para>Usually, satellital antenna subsystems require that the digital TV
++<para>Usually, satellite antenna subsystems require that the digital TV
+     device to send a 22kHz tone in order to select between high/low band on
+     some dual-band LNBf. It is also used to send signals to DiSEqC equipment,
+     but this is done using the DiSEqC ioctls.</para>
+diff --git a/Documentation/DocBook/media/dvb/fe-set-voltage.xml b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+index d43d51a..688fbc2 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-voltage.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+@@ -49,7 +49,7 @@
  
--
--static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
--	void (*cb)(struct page *pg))
--{
--	struct scatterlist *s;
--	unsigned int i;
--
--	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
--		struct page *page = sg_page(s);
--		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
--			>> PAGE_SHIFT;
--		unsigned int j;
--
--		for (j = 0; j < n_pages; ++j, ++page)
--			cb(page);
--	}
--}
--
- static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- {
- 	struct scatterlist *s;
-@@ -429,92 +409,12 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
+ <para>This ioctl allows to set the DC voltage level sent through the antenna
+     cable to 13V, 18V or off.</para>
+-<para>Usually, a satellital antenna subsystems require that the digital TV
++<para>Usually, a satellite antenna subsystems require that the digital TV
+     device to send a DC voltage to feed power to the LNBf. Depending on the
+     LNBf type, the polarization or the intermediate frequency (IF) of the LNBf
+     can controlled by the voltage level. Other devices (for example, the ones
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index d81b3ff..9eda6c0 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -4,7 +4,7 @@
+ <itemizedlist>
+     <listitem>Terrestrial systems: DVB-T, DVB-T2, ATSC, ATSC M/H, ISDB-T, DVB-H, DTMB, CMMB</listitem>
+     <listitem>Cable systems: DVB-C Annex A/C, ClearQAM (DVB-C Annex B), ISDB-C</listitem>
+-    <listitem>Satellital systems: DVB-S, DVB-S2, DVB Turbo, ISDB-S, DSS</listitem>
++    <listitem>Satellite systems: DVB-S, DVB-S2, DVB Turbo, ISDB-S, DSS</listitem>
+ </itemizedlist>
+ <para>The DVB frontend controls several sub-devices including:</para>
+ <itemizedlist>
+@@ -21,7 +21,7 @@
  
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
--static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
--	struct vm_area_struct *vma, unsigned long *res)
--{
--	unsigned long pfn, start_pfn, prev_pfn;
--	unsigned int i;
--	int ret;
--
--	if (!vma_is_io(vma))
--		return -EFAULT;
--
--	ret = follow_pfn(vma, start, &pfn);
--	if (ret)
--		return ret;
--
--	start_pfn = pfn;
--	start += PAGE_SIZE;
--
--	for (i = 1; i < n_pages; ++i, start += PAGE_SIZE) {
--		prev_pfn = pfn;
--		ret = follow_pfn(vma, start, &pfn);
--
--		if (ret) {
--			pr_err("no page for address %lu\n", start);
--			return ret;
--		}
--		if (pfn != prev_pfn + 1)
--			return -EINVAL;
--	}
--
--	*res = start_pfn;
--	return 0;
--}
--
--static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
--	int n_pages, struct vm_area_struct *vma,
--	enum dma_data_direction dma_dir)
--{
--	if (vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
--			unsigned long pfn;
--			int ret = follow_pfn(vma, start, &pfn);
--
--			if (!pfn_valid(pfn))
--				return -EINVAL;
--
--			if (ret) {
--				pr_err("no page for address %lu\n", start);
--				return ret;
--			}
--			pages[i] = pfn_to_page(pfn);
--		}
--	} else {
--		int n;
--
--		n = get_user_pages(current, current->mm, start & PAGE_MASK,
--			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
--		/* negative error means that no page was pinned */
--		n = max(n, 0);
--		if (n != n_pages) {
--			pr_err("got only %d of %d user pages\n", n, n_pages);
--			while (n)
--				put_page(pages[--n]);
--			return -EFAULT;
--		}
--	}
--
--	return 0;
--}
--
--static void vb2_dc_put_dirty_page(struct page *page)
--{
--	set_page_dirty_lock(page);
--	put_page(page);
--}
--
- static void vb2_dc_put_userptr(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
-+	int i;
-+	struct page **pages;
- 
- 	if (sgt) {
- 		DEFINE_DMA_ATTRS(attrs);
-@@ -526,15 +426,15 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 		 */
- 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
- 				   buf->dma_dir, &attrs);
--		if (!vma_is_io(buf->vma))
--			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
--
-+		pages = frame_vector_pages(buf->vec);
-+		/* sgt should exist only if vector contains pages... */
-+		BUG_ON(IS_ERR(pages));
-+		for (i = 0; i < frame_vector_count(buf->vec); i++)
-+			set_page_dirty_lock(pages[i]);
- 		sg_free_table(sgt);
- 		kfree(sgt);
- 	}
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
-@@ -574,13 +474,10 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
--	unsigned long start;
--	unsigned long end;
-+	struct frame_vector *vec;
- 	unsigned long offset;
--	struct page **pages;
--	int n_pages;
-+	int n_pages, i;
- 	int ret = 0;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
- 	unsigned long dma_align = dma_get_cache_alignment();
-@@ -606,75 +503,43 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->dev = conf->dev;
- 	buf->dma_dir = dma_dir;
- 
--	start = vaddr & PAGE_MASK;
- 	offset = vaddr & ~PAGE_MASK;
--	end = PAGE_ALIGN(vaddr + size);
--	n_pages = (end - start) >> PAGE_SHIFT;
--
--	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
--	if (!pages) {
--		ret = -ENOMEM;
--		pr_err("failed to allocate pages table\n");
-+	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec)) {
-+		ret = PTR_ERR(vec);
- 		goto fail_buf;
- 	}
-+	buf->vec = vec;
-+	n_pages = frame_vector_count(vec);
-+	ret = frame_vector_to_pages(vec);
-+	if (ret < 0) {
-+		unsigned long *nums = frame_vector_pfns(vec);
- 
--	down_read(&current->mm->mmap_sem);
--	/* current->mm->mmap_sem is taken by videobuf2 core */
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		pr_err("no vma for address %lu\n", vaddr);
--		ret = -EFAULT;
--		goto fail_pages;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
--		ret = -EFAULT;
--		goto fail_pages;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		pr_err("failed to copy vma\n");
--		ret = -ENOMEM;
--		goto fail_pages;
--	}
--
--	/* extract page list from userspace mapping */
--	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, dma_dir);
--	if (ret) {
--		unsigned long pfn;
--		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
--			up_read(&current->mm->mmap_sem);
--			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
--			buf->size = size;
--			kfree(pages);
--			return buf;
--		}
--
--		pr_err("failed to get user pages\n");
--		goto fail_vma;
-+		/*
-+		 * Failed to convert to pages... Check the memory is physically
-+		 * contiguous and use direct mapping
-+		 */
-+		for (i = 1; i < n_pages; i++)
-+			if (nums[i-1] + 1 != nums[i])
-+				goto fail_pfnvec;
-+		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
-+		goto out;
- 	}
--	up_read(&current->mm->mmap_sem);
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
- 		pr_err("failed to allocate sg table\n");
- 		ret = -ENOMEM;
--		goto fail_get_user_pages;
-+		goto fail_pfnvec;
- 	}
- 
--	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
-+	ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), n_pages,
- 		offset, size, GFP_KERNEL);
- 	if (ret) {
- 		pr_err("failed to initialize sg table\n");
- 		goto fail_sgt;
- 	}
- 
--	/* pages are no longer needed */
--	kfree(pages);
--	pages = NULL;
--
- 	/*
- 	 * No need to sync to the device, this will happen later when the
- 	 * prepare() memop is called.
-@@ -696,8 +561,9 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	}
- 
- 	buf->dma_addr = sg_dma_address(sgt->sgl);
--	buf->size = size;
- 	buf->dma_sgt = sgt;
-+out:
-+	buf->size = size;
- 
- 	return buf;
- 
-@@ -706,25 +572,13 @@ fail_map_sg:
- 			   buf->dma_dir, &attrs);
- 
- fail_sgt_init:
--	if (!vma_is_io(buf->vma))
--		vb2_dc_sgt_foreach_page(sgt, put_page);
- 	sg_free_table(sgt);
- 
- fail_sgt:
- 	kfree(sgt);
- 
--fail_get_user_pages:
--	if (pages && !vma_is_io(buf->vma))
--		while (n_pages)
--			put_page(pages[--n_pages]);
--
--	down_read(&current->mm->mmap_sem);
--fail_vma:
--	vb2_put_vma(buf->vma);
--
--fail_pages:
--	up_read(&current->mm->mmap_sem);
--	kfree(pages); /* kfree is NULL-proof */
-+fail_pfnvec:
-+	vb2_destroy_framevec(vec);
- 
- fail_buf:
- 	kfree(buf);
+ <para>NOTE: Transmission via the internet (DVB-IP)
+     is not yet handled by this API but a future extension is possible.</para>
+-<para>On Satellital systems, the API support for the Satellite Equipment Control
++<para>On Satellite systems, the API support for the Satellite Equipment Control
+     (SEC) allows to power control and to send/receive signals to control the
+     antenna subsystem, selecting the polarization and choosing the Intermediate
+     Frequency IF) of the Low Noise Block Converter Feed Horn (LNBf). It
 -- 
 2.1.4
 
