@@ -1,239 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [192.199.1.245] ([192.199.1.245]:19296 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753498AbbEZNKe (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:33021 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183AbbEaHRM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2015 09:10:34 -0400
-Message-ID: <55643980.6090101@atmel.com>
-Date: Tue, 26 May 2015 17:14:40 +0800
-From: Josh Wu <josh.wu@atmel.com>
+	Sun, 31 May 2015 03:17:12 -0400
+Date: Sun, 31 May 2015 12:47:06 +0530
+From: Tina Ruchandani <ruchandani.tina@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: y2038@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuah.kh@samsung.com>,
+	Akihiro Tsukada <tskd08@gmail.com>
+Subject: [PATCH v3] [media] dvb-frontend: Replace timeval with ktime_t
+Message-ID: <20150531071706.GA3940@tinar>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v4 1/2] media: atmel-isi: add runtime pm support
-References: <1432627211-4338-1-git-send-email-josh.wu@atmel.com> <1432627211-4338-2-git-send-email-josh.wu@atmel.com> <3343948.3GpRNgsx2G@avalon>
-In-Reply-To: <3343948.3GpRNgsx2G@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+struct timeval uses a 32-bit seconds representation which will
+overflow in the year 2038 and beyond. This patch replaces
+the usage of struct timeval with ktime_t which is a 64-bit
+timestamp and is year 2038 safe.
+This patch is part of a larger attempt to remove all instances
+of 32-bit timekeeping variables (timeval, timespec, time_t)
+which are not year 2038 safe, from the kernel.
 
-On 5/26/2015 4:16 PM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> Thank you for the patch.
->
-> On Tuesday 26 May 2015 16:00:09 Josh Wu wrote:
->> The runtime pm resume/suspend will enable/disable pclk (ISI peripheral
->> clock).
->> And we need to call runtime_pm_get_sync()/runtime_pm_put() when we need
->> access ISI registers. In atmel_isi_probe(), remove the isi disable code
->> as in the moment ISI peripheral clock is not enable yet.
->>
->> In the meantime, as clock_start()/clock_stop() is used to control the
->> mclk not ISI peripheral clock. So move this to start[stop]_streaming()
->> function.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->> Changes in v4:
->> - need to call pm_runtime_disable() in atmel_isi_remove().
->> - merged the patch which remove isi disable code in atmel_isi_probe() as
->>    isi peripherial clock is not enabled in this moment.
->> - refine the commit log
->>
->> Changes in v3: None
->> Changes in v2:
->> - merged v1 two patch into one.
->> - use runtime_pm_put() instead of runtime_pm_put_sync()
->> - enable peripheral clock before access ISI registers.
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c | 54 ++++++++++++++++++++----
->>   1 file changed, 46 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->> b/drivers/media/platform/soc_camera/atmel-isi.c index 2879026..194e875
->> 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -20,6 +20,7 @@
->>   #include <linux/kernel.h>
->>   #include <linux/module.h>
->>   #include <linux/platform_device.h>
->> +#include <linux/pm_runtime.h>
->>   #include <linux/slab.h>
->>
->>   #include <media/atmel-isi.h>
->> @@ -386,6 +387,8 @@ static int start_streaming(struct vb2_queue *vq,
->> unsigned int count) struct atmel_isi *isi = ici->priv;
->>   	int ret;
->>
->> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
->> +
->>   	/* Reset ISI */
->>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
->>   	if (ret < 0) {
-> You need to call pm_runtime_put() in the error path, otherwise an
-> atmel_isi_wait_status() failure will keep the device enabled.
+Signed-off-by: Tina Ruchandani <ruchandani.tina@gmail.com>
+Suggested-by: Arnd Bergmann <arndb@arndb.de>
 
-Nice catch. Thanks.
+--
+Changes in v3:
+- Clean up commit message.
+- Use ktime_us_delta which is more concise than the combination
+of ktime_sub and ktime_to_us
+Changes in v2:
+- Use the more concise ktime_us_delta
+- Preserve the waketime argument in dvb_frontend_sleep_until as
+a pointer, fixes bug introduced in v1 of the patch where the caller
+doesn't get its timestamp modified.
 
->
->> @@ -445,6 +448,8 @@ static void stop_streaming(struct vb2_queue *vq)
->>   	ret = atmel_isi_wait_status(isi, WAIT_ISI_DISABLE);
->>   	if (ret < 0)
->>   		dev_err(icd->parent, "Disable ISI timed out\n");
->> +
->> +	pm_runtime_put(ici->v4l2_dev.dev);
->>   }
->>
->>   static struct vb2_ops isi_video_qops = {
->> @@ -516,7 +521,13 @@ static int isi_camera_set_fmt(struct soc_camera_device
->> *icd, if (mf->code != xlate->code)
->>   		return -EINVAL;
->>
->> +	/* Enable PM and peripheral clock before operate isi registers */
->> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
->> +
->>   	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
->> +
->> +	pm_runtime_put(ici->v4l2_dev.dev);
-> I think it would simplify the code to move the configure_geometry() call to
-> start_streaming() as you already call pm_runtime_get_sync() there. That can be
-> done in a separate patch though.
+Signed-off-by: Tina Ruchandani <ruchandani.tina@gmail.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 41 ++++++++++-------------------------
+ drivers/media/dvb-core/dvb_frontend.h |  3 +--
+ drivers/media/dvb-frontends/stv0299.c | 12 +++++-----
+ 3 files changed, 19 insertions(+), 37 deletions(-)
 
-I think it's a good idea. I would like to make this in a separate patch 
-and not include in this series.
-
-In summary, I'll resend this patch just with the fix you mentioned in 
-above (fix the error path in start_streaming).
-Is that okay for you?
-
-Best Regards,
-Josh Wu
-
->
->> +
->>   	if (ret < 0)
->>   		return ret;
->>
->> @@ -736,14 +747,9 @@ static int isi_camera_clock_start(struct
->> soc_camera_host *ici) struct atmel_isi *isi = ici->priv;
->>   	int ret;
->>
->> -	ret = clk_prepare_enable(isi->pclk);
->> -	if (ret)
->> -		return ret;
->> -
->>   	if (!IS_ERR(isi->mck)) {
->>   		ret = clk_prepare_enable(isi->mck);
->>   		if (ret) {
->> -			clk_disable_unprepare(isi->pclk);
->>   			return ret;
->>   		}
->>   	}
->> @@ -758,7 +764,6 @@ static void isi_camera_clock_stop(struct soc_camera_host
->> *ici)
->>
->>   	if (!IS_ERR(isi->mck))
->>   		clk_disable_unprepare(isi->mck);
->> -	clk_disable_unprepare(isi->pclk);
->>   }
->>
->>   static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
->> @@ -855,9 +860,14 @@ static int isi_camera_set_bus_param(struct
->> soc_camera_device *icd)
->>
->>   	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
->>
->> +	/* Enable PM and peripheral clock before operate isi registers */
->> +	pm_runtime_get_sync(ici->v4l2_dev.dev);
->> +
->>   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->>   	isi_writel(isi, ISI_CFG1, cfg1);
->>
->> +	pm_runtime_put(ici->v4l2_dev.dev);
->> +
->>   	return 0;
->>   }
->>
->> @@ -889,6 +899,7 @@ static int atmel_isi_remove(struct platform_device
->> *pdev) sizeof(struct fbd) * MAX_BUFFER_NUM,
->>   			isi->p_fb_descriptors,
->>   			isi->fb_descriptors_phys);
->> +	pm_runtime_disable(&pdev->dev);
->>
->>   	return 0;
->>   }
->> @@ -1027,8 +1038,6 @@ static int atmel_isi_probe(struct platform_device
->> *pdev) if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
->>   		isi->width_flags |= 1 << 9;
->>
->> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->> -
->>   	irq = platform_get_irq(pdev, 0);
->>   	if (IS_ERR_VALUE(irq)) {
->>   		ret = irq;
->> @@ -1049,6 +1058,9 @@ static int atmel_isi_probe(struct platform_device
->> *pdev) soc_host->v4l2_dev.dev	= &pdev->dev;
->>   	soc_host->nr		= pdev->id;
->>
->> +	pm_suspend_ignore_children(&pdev->dev, true);
->> +	pm_runtime_enable(&pdev->dev);
->> +
->>   	if (isi->pdata.asd_sizes) {
->>   		soc_host->asd = isi->pdata.asd;
->>   		soc_host->asd_sizes = isi->pdata.asd_sizes;
->> @@ -1062,6 +1074,7 @@ static int atmel_isi_probe(struct platform_device
->> *pdev) return 0;
->>
->>   err_register_soc_camera_host:
->> +	pm_runtime_disable(&pdev->dev);
->>   err_req_irq:
->>   err_ioremap:
->>   	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
->> @@ -1074,6 +1087,30 @@ err_alloc_ctx:
->>   	return ret;
->>   }
->>
->> +static int atmel_isi_runtime_suspend(struct device *dev)
->> +{
->> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
->> +	struct atmel_isi *isi = container_of(soc_host,
->> +					struct atmel_isi, soc_host);
->> +
->> +	clk_disable_unprepare(isi->pclk);
->> +
->> +	return 0;
->> +}
->> +static int atmel_isi_runtime_resume(struct device *dev)
->> +{
->> +	struct soc_camera_host *soc_host = to_soc_camera_host(dev);
->> +	struct atmel_isi *isi = container_of(soc_host,
->> +					struct atmel_isi, soc_host);
->> +
->> +	return clk_prepare_enable(isi->pclk);
->> +}
->> +
->> +static const struct dev_pm_ops atmel_isi_dev_pm_ops = {
->> +	SET_RUNTIME_PM_OPS(atmel_isi_runtime_suspend,
->> +				atmel_isi_runtime_resume, NULL)
->> +};
->> +
->>   static const struct of_device_id atmel_isi_of_match[] = {
->>   	{ .compatible = "atmel,at91sam9g45-isi" },
->>   	{ }
->> @@ -1085,6 +1122,7 @@ static struct platform_driver atmel_isi_driver = {
->>   	.driver		= {
->>   		.name = "atmel_isi",
->>   		.of_match_table = of_match_ptr(atmel_isi_of_match),
->> +		.pm	= &atmel_isi_dev_pm_ops,
->>   	},
->>   };
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 882ca41..69be73c 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -40,6 +40,7 @@
+ #include <linux/freezer.h>
+ #include <linux/jiffies.h>
+ #include <linux/kthread.h>
++#include <linux/ktime.h>
+ #include <asm/processor.h>
+ 
+ #include "dvb_frontend.h"
+@@ -889,42 +890,21 @@ static void dvb_frontend_stop(struct dvb_frontend *fe)
+ 				fepriv->thread);
+ }
+ 
+-s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime)
+-{
+-	return ((curtime.tv_usec < lasttime.tv_usec) ?
+-		1000000 - lasttime.tv_usec + curtime.tv_usec :
+-		curtime.tv_usec - lasttime.tv_usec);
+-}
+-EXPORT_SYMBOL(timeval_usec_diff);
+-
+-static inline void timeval_usec_add(struct timeval *curtime, u32 add_usec)
+-{
+-	curtime->tv_usec += add_usec;
+-	if (curtime->tv_usec >= 1000000) {
+-		curtime->tv_usec -= 1000000;
+-		curtime->tv_sec++;
+-	}
+-}
+-
+ /*
+  * Sleep until gettimeofday() > waketime + add_usec
+  * This needs to be as precise as possible, but as the delay is
+  * usually between 2ms and 32ms, it is done using a scheduled msleep
+  * followed by usleep (normally a busy-wait loop) for the remainder
+  */
+-void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec)
++void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec)
+ {
+-	struct timeval lasttime;
+ 	s32 delta, newdelta;
+ 
+-	timeval_usec_add(waketime, add_usec);
+-
+-	do_gettimeofday(&lasttime);
+-	delta = timeval_usec_diff(lasttime, *waketime);
++	ktime_add_us(*waketime, add_usec);
++	delta = ktime_us_delta(ktime_get_real(), *waketime);
+ 	if (delta > 2500) {
+ 		msleep((delta - 1500) / 1000);
+-		do_gettimeofday(&lasttime);
+-		newdelta = timeval_usec_diff(lasttime, *waketime);
++		newdelta = ktime_us_delta(ktime_get_real(), *waketime);
+ 		delta = (newdelta > delta) ? 0 : newdelta;
+ 	}
+ 	if (delta > 0)
+@@ -2458,13 +2438,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 			 * include the initialization or start bit
+ 			 */
+ 			unsigned long swcmd = ((unsigned long) parg) << 1;
+-			struct timeval nexttime;
+-			struct timeval tv[10];
++			ktime_t nexttime;
++			ktime_t tv[10];
+ 			int i;
+ 			u8 last = 1;
+ 			if (dvb_frontend_debug)
+ 				printk("%s switch command: 0x%04lx\n", __func__, swcmd);
+-			do_gettimeofday(&nexttime);
++			nexttime = ktime_get_real();
+ 			if (dvb_frontend_debug)
+ 				tv[0] = nexttime;
+ 			/* before sending a command, initialize by sending
+@@ -2475,7 +2455,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 
+ 			for (i = 0; i < 9; i++) {
+ 				if (dvb_frontend_debug)
+-					do_gettimeofday(&tv[i + 1]);
++					tv[i+1] = ktime_get_real();
+ 				if ((swcmd & 0x01) != last) {
+ 					/* set voltage to (last ? 13V : 18V) */
+ 					fe->ops.set_voltage(fe, (last) ? SEC_VOLTAGE_13 : SEC_VOLTAGE_18);
+@@ -2489,7 +2469,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 				printk("%s(%d): switch delay (should be 32k followed by all 8k\n",
+ 					__func__, fe->dvb->num);
+ 				for (i = 1; i < 10; i++)
+-					printk("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
++					printk("%d: %d\n", i,
++					(int) ktime_us_delta(tv[i], tv[i-1]);
+ 			}
+ 			err = 0;
+ 			fepriv->state = FESTATE_DISEQC;
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 816269e..5b64686 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -439,7 +439,6 @@ extern void dvb_frontend_reinitialise(struct dvb_frontend *fe);
+ extern int dvb_frontend_suspend(struct dvb_frontend *fe);
+ extern int dvb_frontend_resume(struct dvb_frontend *fe);
+ 
+-extern void dvb_frontend_sleep_until(struct timeval *waketime, u32 add_usec);
+-extern s32 timeval_usec_diff(struct timeval lasttime, struct timeval curtime);
++extern void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec);
+ 
+ #endif
+diff --git a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
+index b57ecf4..347c2bc 100644
+--- a/drivers/media/dvb-frontends/stv0299.c
++++ b/drivers/media/dvb-frontends/stv0299.c
+@@ -44,6 +44,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/ktime.h>
+ #include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+@@ -404,8 +405,8 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
+ 	u8 lv_mask = 0x40;
+ 	u8 last = 1;
+ 	int i;
+-	struct timeval nexttime;
+-	struct timeval tv[10];
++	ktime_t nexttime;
++	ktime_t tv[10];
+ 
+ 	reg0x08 = stv0299_readreg (state, 0x08);
+ 	reg0x0c = stv0299_readreg (state, 0x0c);
+@@ -418,7 +419,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
+ 	if (debug_legacy_dish_switch)
+ 		printk ("%s switch command: 0x%04lx\n",__func__, cmd);
+ 
+-	do_gettimeofday (&nexttime);
++	nexttime = ktime_get_real();
+ 	if (debug_legacy_dish_switch)
+ 		tv[0] = nexttime;
+ 	stv0299_writeregI (state, 0x0c, reg0x0c | 0x50); /* set LNB to 18V */
+@@ -427,7 +428,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
+ 
+ 	for (i=0; i<9; i++) {
+ 		if (debug_legacy_dish_switch)
+-			do_gettimeofday (&tv[i+1]);
++			tv[i+1] = ktime_get_real();
+ 		if((cmd & 0x01) != last) {
+ 			/* set voltage to (last ? 13V : 18V) */
+ 			stv0299_writeregI (state, 0x0c, reg0x0c | (last ? lv_mask : 0x50));
+@@ -443,7 +444,8 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
+ 		printk ("%s(%d): switch delay (should be 32k followed by all 8k\n",
+ 			__func__, fe->dvb->num);
+ 		for (i = 1; i < 10; i++)
+-			printk ("%d: %d\n", i, timeval_usec_diff(tv[i-1] , tv[i]));
++			printk("%d: %d\n", i,
++			       (int) ktime_us_delta(tv[i], tv[i-1]));
+ 	}
+ 
+ 	return 0;
+-- 
+2.2.0.rc0.207.ga3a616c
 
