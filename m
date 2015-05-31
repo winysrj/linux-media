@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:52409 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752347AbbE0QLA (ORCPT
+Received: from avasout06.plus.net ([212.159.14.18]:44358 "EHLO
+	avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754559AbbEaRE0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2015 12:11:00 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct pad when calling subdev try_fmt
-Date: Wed, 27 May 2015 17:10:49 +0100
-Message-Id: <1432743053-13479-12-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
-References: <1432743053-13479-1-git-send-email-william.towle@codethink.co.uk>
+	Sun, 31 May 2015 13:04:26 -0400
+Message-ID: <556B3D4E.6090509@baker-net.org.uk>
+Date: Sun, 31 May 2015 17:56:46 +0100
+From: Adam Baker <linux@baker-net.org.uk>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] si2168: Implement own I2C adapter locking
+References: <1432933510-19028-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1432933510-19028-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+On 29/05/15 22:05, Antti Palosaari wrote:
+> We need own I2C locking because of tuner I2C adapter/repeater.
+> Firmware command is executed using I2C send + reply message. Default
+> I2C adapter locking protects only single I2C operation, not whole
+> send + reply sequence as needed. Due to that, it was possible tuner
+> I2C message interrupts firmware command sequence.
+>
+> Reported-by: Adam Baker <linux@baker-net.org.uk>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
 
-Fix calls to subdev try_fmt to use correct pad. Fixes failures with
-subdevs that care about having the right pad number set.
+Reviewed-by: Adam Baker <linux@baker-net.org.uk>
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/soc_scale_crop.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Having looked over this I can't see any remaining deadlocks or failures 
+to provide adequate locking.
 
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index bda29bc..d2b377f 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -224,6 +224,12 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	struct v4l2_cropcap cap;
- 	bool host_1to1;
- 	int ret;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad *remote_pad;
-+
-+	remote_pad = media_entity_remote_pad(&icd->vdev->entity.pads[0]);
-+	format->pad = remote_pad->index;
-+#endif
- 
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					 soc_camera_grp_id(icd), pad,
-@@ -261,10 +267,21 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
- 	while ((width > tmp_w || height > tmp_h) &&
- 	       tmp_w < max_width && tmp_h < max_height) {
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		struct media_pad *remote_pad;
-+#endif
-+
- 		tmp_w = min(2 * tmp_w, max_width);
- 		tmp_h = min(2 * tmp_h, max_height);
- 		mf->width = tmp_w;
- 		mf->height = tmp_h;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		remote_pad = media_entity_remote_pad(
-+			&icd->vdev->entity.pads[0]);
-+		format->pad = remote_pad->index;
-+#endif
-+
- 		ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					soc_camera_grp_id(icd), pad,
- 					set_fmt, NULL, format);
--- 
-1.7.10.4
+Without a detailed device datasheet (the public datasheet is only the 
+short version) it is impossible to say
 
+1) If accessing the I2C gate in between a read and write cycle would 
+actually cause a problem, if it doesn't then a simpler solution would be 
+possible but it seems reasonable to assume that it does.
+
+2) How effective the retry mechanism is. The current behaviour that 
+retries the read cycle without retrying the preceding write means that 
+it isn't possible to pass the read and write messages as multiple 
+messages to i2c_transfer and let that handle the locking for us.
+
+Do you know how likely it is for this issue to be triggered without the 
+signal stats patch applied? My suspicion is that it could only happen if 
+user space deliberately tried changing parameters on the tuner and 
+frontend at the same time from different threads and hence the fix isn't 
+worth pushing to stable.
+
+Adam
