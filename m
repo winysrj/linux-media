@@ -1,62 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58621 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752828AbbEANFw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2015 09:05:52 -0400
-Date: Fri, 1 May 2015 21:05:02 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: [linuxtv-media:master 841/883]
- drivers/media/pci/saa7164/saa7164-dvb.c:704 saa7164_dvb_register() error:
- potential null dereference 'client_demod'.  (i2c_new_device returns null)
-Message-ID: <201505012101.TIMaSxDo%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48057 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758147AbbEaNMB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2015 09:12:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/9] cobalt: support transfer function
+Date: Sun, 31 May 2015 15:11:37 +0200
+Message-Id: <1433077899-18516-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   ebf984bb151e9952cccd060d3aba0b4d30a87e81
-commit: 3600433f19f59410010770d61ead509d785b8a6e [841/883] saa7164: Fix CodingStyle issues added on previous patches
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-drivers/media/pci/saa7164/saa7164-dvb.c:704 saa7164_dvb_register() error: potential null dereference 'client_demod'.  (i2c_new_device returns null)
+Add support for the transfer function to the cobalt driver: make sure it is
+passed on to/retrieved from the sub-device correctly.
 
-vim +/client_demod +704 drivers/media/pci/saa7164/saa7164-dvb.c
-
-504b29cbb0 Steven Toth           2015-03-23  688  		} else {
-504b29cbb0 Steven Toth           2015-03-23  689  			/* attach frontend */
-504b29cbb0 Steven Toth           2015-03-23  690  			memset(&si2168_config, 0, sizeof(si2168_config));
-504b29cbb0 Steven Toth           2015-03-23  691  			si2168_config.i2c_adapter = &adapter;
-504b29cbb0 Steven Toth           2015-03-23  692  			si2168_config.fe = &port->dvb.frontend;
-504b29cbb0 Steven Toth           2015-03-23  693  			si2168_config.ts_mode = SI2168_TS_SERIAL;
-504b29cbb0 Steven Toth           2015-03-23  694  			memset(&info, 0, sizeof(struct i2c_board_info));
-504b29cbb0 Steven Toth           2015-03-23  695  			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-504b29cbb0 Steven Toth           2015-03-23  696  			info.addr = 0xcc >> 1;
-504b29cbb0 Steven Toth           2015-03-23  697  			info.platform_data = &si2168_config;
-504b29cbb0 Steven Toth           2015-03-23  698  			request_module(info.type);
-3600433f19 Mauro Carvalho Chehab 2015-05-01  699  			client_demod = i2c_new_device(&dev->i2c_bus[2].i2c_adap,
-3600433f19 Mauro Carvalho Chehab 2015-05-01  700  						      &info);
-3600433f19 Mauro Carvalho Chehab 2015-05-01  701  			if (!client_tuner || !client_tuner->dev.driver)
-504b29cbb0 Steven Toth           2015-03-23  702  				goto frontend_detach;
-3600433f19 Mauro Carvalho Chehab 2015-05-01  703  
-504b29cbb0 Steven Toth           2015-03-23 @704  			if (!try_module_get(client_demod->dev.driver->owner)) {
-504b29cbb0 Steven Toth           2015-03-23  705  				i2c_unregister_device(client_demod);
-504b29cbb0 Steven Toth           2015-03-23  706  				goto frontend_detach;
-504b29cbb0 Steven Toth           2015-03-23  707  			}
-504b29cbb0 Steven Toth           2015-03-23  708  			port->i2c_client_demod = client_demod;
-504b29cbb0 Steven Toth           2015-03-23  709  
-504b29cbb0 Steven Toth           2015-03-23  710  			/* attach tuner */
-504b29cbb0 Steven Toth           2015-03-23  711  			memset(&si2157_config, 0, sizeof(si2157_config));
-504b29cbb0 Steven Toth           2015-03-23  712  			si2157_config.fe = port->dvb.frontend;
-
-:::::: The code at line 704 was first introduced by commit
-:::::: 504b29cbb0cc0fb7169c276054a72110b57660c0 [media] saa7164: Add Digital TV support for the HVR2255 and HVR2205
-
-:::::: TO: Steven Toth <stoth@kernellabs.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/pci/cobalt/cobalt-driver.h | 1 +
+ drivers/media/pci/cobalt/cobalt-v4l2.c   | 6 ++++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.h b/drivers/media/pci/cobalt/cobalt-driver.h
+index f63ce19..c206df9 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.h
++++ b/drivers/media/pci/cobalt/cobalt-driver.h
+@@ -231,6 +231,7 @@ struct cobalt_stream {
+ 	u32 pixfmt;
+ 	u32 sequence;
+ 	u32 colorspace;
++	u32 xfer_func;
+ 	u32 ycbcr_enc;
+ 	u32 quantization;
+ 
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index 8b14bec..72b081f 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -170,6 +170,7 @@ static void cobalt_enable_output(struct cobalt_stream *s)
+ 	}
+ 
+ 	sd_fmt.format.colorspace = s->colorspace;
++	sd_fmt.format.xfer_func = s->xfer_func;
+ 	sd_fmt.format.ycbcr_enc = s->ycbcr_enc;
+ 	sd_fmt.format.quantization = s->quantization;
+ 	sd_fmt.format.width = bt->width;
+@@ -737,6 +738,7 @@ static int cobalt_g_fmt_vid_cap(struct file *file, void *priv_fh,
+ 		v4l2_subdev_call(s->sd, pad, get_fmt, NULL, &sd_fmt);
+ 		v4l2_fill_pix_format(pix, &sd_fmt.format);
+ 		pix->colorspace = sd_fmt.format.colorspace;
++		pix->xfer_func = sd_fmt.format.xfer_func;
+ 		pix->ycbcr_enc = sd_fmt.format.ycbcr_enc;
+ 		pix->quantization = sd_fmt.format.quantization;
+ 	}
+@@ -782,6 +784,7 @@ static int cobalt_try_fmt_vid_cap(struct file *file, void *priv_fh,
+ 		v4l2_subdev_call(s->sd, pad, get_fmt, NULL, &sd_fmt);
+ 		v4l2_fill_pix_format(pix, &sd_fmt.format);
+ 		pix->colorspace = sd_fmt.format.colorspace;
++		pix->xfer_func = sd_fmt.format.xfer_func;
+ 		pix->ycbcr_enc = sd_fmt.format.ycbcr_enc;
+ 		pix->quantization = sd_fmt.format.quantization;
+ 	}
+@@ -897,6 +900,7 @@ static int cobalt_g_fmt_vid_out(struct file *file, void *priv_fh,
+ 	pix->field = V4L2_FIELD_NONE;
+ 	pix->pixelformat = s->pixfmt;
+ 	pix->colorspace = s->colorspace;
++	pix->xfer_func = s->xfer_func;
+ 	pix->ycbcr_enc = s->ycbcr_enc;
+ 	pix->quantization = s->quantization;
+ 	pix->sizeimage = pix->bytesperline * pix->height;
+@@ -953,11 +957,13 @@ static int cobalt_s_fmt_vid_out(struct file *file, void *priv_fh,
+ 	s->stride = pix->bytesperline;
+ 	s->pixfmt = pix->pixelformat;
+ 	s->colorspace = pix->colorspace;
++	s->xfer_func = pix->xfer_func;
+ 	s->ycbcr_enc = pix->ycbcr_enc;
+ 	s->quantization = pix->quantization;
+ 	sd_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 	v4l2_subdev_call(s->sd, pad, get_fmt, NULL, &sd_fmt);
+ 	sd_fmt.format.colorspace = pix->colorspace;
++	sd_fmt.format.xfer_func = pix->xfer_func;
+ 	sd_fmt.format.ycbcr_enc = pix->ycbcr_enc;
+ 	sd_fmt.format.quantization = pix->quantization;
+ 	v4l2_subdev_call(s->sd, pad, set_fmt, NULL, &sd_fmt);
+-- 
+2.1.4
+
