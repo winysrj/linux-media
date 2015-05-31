@@ -1,126 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48623 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38310 "EHLO
 	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751103AbbEFMIH (ORCPT
+	by vger.kernel.org with ESMTP id S1758215AbbEaNME (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2015 08:08:07 -0400
-Message-ID: <554A041F.5000107@xs4all.nl>
-Date: Wed, 06 May 2015 14:07:59 +0200
+	Sun, 31 May 2015 09:12:04 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: matrandg@cisco.com, linux-media@vger.kernel.org
-CC: hansverk@cisco.com, p.zabel@pengutronix.de, kernel@pengutronix.de
-Subject: Re: [PATCH] Driver for Toshiba TC358743 HDMI to CSI-2 bridge
-References: <1430904429-24899-1-git-send-email-matrandg@cisco.com>
-In-Reply-To: <1430904429-24899-1-git-send-email-matrandg@cisco.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 9/9] vivid.txt: update the vivid documentation
+Date: Sun, 31 May 2015 15:11:39 +0200
+Message-Id: <1433077899-18516-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433077899-18516-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mats,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Here is one more:
+Document the new Transfer Function control (and fix the documentation for
+the other colorspace controls which were not quite correct).
 
-On 05/06/15 11:27, matrandg@cisco.com wrote:
-> From: Mats Randgaard <matrandg@cisco.com>
-> 
-> The driver is tested on our hardware and all the implemented features
-> works as expected.
-> 
-> Missing features:
-> - CEC support
-> - HDCP repeater support
-> - IR support
-> 
-> Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-> ---
->  MAINTAINERS                        |    6 +
->  drivers/media/i2c/Kconfig          |    9 +
->  drivers/media/i2c/Makefile         |    1 +
->  drivers/media/i2c/tc358743.c       | 1838 ++++++++++++++++++++++++++++++++++++
->  drivers/media/i2c/tc358743_regs.h  |  680 +++++++++++++
->  include/media/tc358743.h           |   92 ++
->  include/uapi/linux/v4l2-controls.h |    4 +
->  7 files changed, 2630 insertions(+)
->  create mode 100644 drivers/media/i2c/tc358743.c
->  create mode 100644 drivers/media/i2c/tc358743_regs.h
->  create mode 100644 include/media/tc358743.h
-> 
+Mention the support for 4:2:0 and more multiplanar formats.
 
-<snip>
+Update the TODO list at the end.
 
-> +static int tc358743_set_fmt(struct v4l2_subdev *sd,
-> +		struct v4l2_subdev_pad_config *cfg,
-> +		struct v4l2_subdev_format *format)
-> +{
-> +	struct tc358743_state *state = to_state(sd);
-> +
-> +	if (format->pad != 0)
-> +		return -EINVAL;
-> +
-> +	switch (format->format.code) {
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +	case MEDIA_BUS_FMT_UYVY8_1X16:
-> +		state->mbus_fmt_code = format->format.code;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	enable_stream(sd, false);
-> +	tc358743_set_pll(sd);
-> +	tc358743_set_csi(sd);
-> +	tc358743_set_csi_color_space(sd);
-> +
-> +	return 0;
-> +}
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/vivid.txt | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-I'd rewrite this as follows:
-
-static int tc358743_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
-{
-	struct tc358743_state *state = to_state(sd);
-	u32 code = format->format.code; /* is overwritten by get_fmt */
-	int ret = tc358743_get_fmt(sd, cfg, format);
-
-	format->format.code = code;
-
-	if (ret)
-		return ret;
-
-	switch (code) {
-	case MEDIA_BUS_FMT_RGB888_1X24:
-	case MEDIA_BUS_FMT_UYVY8_1X16:
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		return 0;
-
-	enable_stream(sd, false);
-	tc358743_set_pll(sd);
-	tc358743_set_csi(sd);
-	tc358743_set_csi_color_space(sd);
-
-	return 0;
-}
-
-The call to tc358743_get_fmt() ensures that all the other fields are
-filled in correctly, and the FORMAT_TRY check ensures that calling this
-with FORMAT_TRY doesn't actually change anything.
-
-Obviously, set_fmt should be moved after get_fmt so that it can call
-the get_fmt function, and like get_fmt it should be moved to the PAD OPS
-section.
-
-<snip>
-
-Regards,
-
-	Hans
+diff --git a/Documentation/video4linux/vivid.txt b/Documentation/video4linux/vivid.txt
+index cd4b5a1..0c1b3a6 100644
+--- a/Documentation/video4linux/vivid.txt
++++ b/Documentation/video4linux/vivid.txt
+@@ -631,26 +631,33 @@ Timestamp Source: selects when the timestamp for each buffer is taken.
+ 
+ Colorspace: selects which colorspace should be used when generating the image.
+ 	This only applies if the CSC Colorbar test pattern is selected,
+-	otherwise the test pattern will go through unconverted (except for
+-	the so-called 'Transfer Function' corrections and the R'G'B' to Y'CbCr
+-	conversion). This behavior is also what you want, since a 75% Colorbar
++	otherwise the test pattern will go through unconverted.
++	This behavior is also what you want, since a 75% Colorbar
+ 	should really have 75% signal intensity and should not be affected
+ 	by colorspace conversions.
+ 
+ 	Changing the colorspace will result in the V4L2_EVENT_SOURCE_CHANGE
+ 	to be sent since it emulates a detected colorspace change.
+ 
++Transfer Function: selects which colorspace transfer function should be used when
++	generating an image. This only applies if the CSC Colorbar test pattern is
++	selected, otherwise the test pattern will go through unconverted.
++        This behavior is also what you want, since a 75% Colorbar
++        should really have 75% signal intensity and should not be affected
++        by colorspace conversions.
++
++	Changing the transfer function will result in the V4L2_EVENT_SOURCE_CHANGE
++	to be sent since it emulates a detected colorspace change.
++
+ Y'CbCr Encoding: selects which Y'CbCr encoding should be used when generating
+-	a Y'CbCr image.	This only applies if the CSC Colorbar test pattern is
+-	selected, and if the format is set to a Y'CbCr format as opposed to an
+-	RGB format.
++	a Y'CbCr image.	This only applies if the format is set to a Y'CbCr format
++	as opposed to an RGB format.
+ 
+ 	Changing the Y'CbCr encoding will result in the V4L2_EVENT_SOURCE_CHANGE
+ 	to be sent since it emulates a detected colorspace change.
+ 
+ Quantization: selects which quantization should be used for the RGB or Y'CbCr
+-	encoding when generating the test pattern. This only applies if the CSC
+-	Colorbar test pattern is selected.
++	encoding when generating the test pattern.
+ 
+ 	Changing the quantization will result in the V4L2_EVENT_SOURCE_CHANGE
+ 	to be sent since it emulates a detected colorspace change.
+@@ -985,8 +992,9 @@ to change crop and compose rectangles on the fly.
+ Section 12: Formats
+ -------------------
+ 
+-The driver supports all the regular packed YUYV formats, 16, 24 and 32 RGB
+-packed formats and two multiplanar formats (one luma and one chroma plane).
++The driver supports all the regular packed and planar 4:4:4, 4:2:2 and 4:2:0
++YUYV formats, 8, 16, 24 and 32 RGB packed formats and various multiplanar
++formats.
+ 
+ The alpha component can be set through the 'Alpha Component' User control
+ for those formats that support it. If the 'Apply Alpha To Red Only' control
+@@ -1119,11 +1127,9 @@ Just as a reminder and in no particular order:
+ - Use per-queue locks and/or per-device locks to improve throughput
+ - Add support to loop from a specific output to a specific input across
+   vivid instances
+-- Add support for VIDIOC_EXPBUF once support for that has been added to vb2
+ - The SDR radio should use the same 'frequencies' for stations as the normal
+   radio receiver, and give back noise if the frequency doesn't match up with
+   a station frequency
+-- Improve the sine generation of the SDR radio.
+ - Make a thread for the RDS generation, that would help in particular for the
+   "Controls" RDS Rx I/O Mode as the read-only RDS controls could be updated
+   in real-time.
+-- 
+2.1.4
 
