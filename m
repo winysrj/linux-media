@@ -1,49 +1,48 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
- "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
- Boris BREZILLON <boris.brezillon@free-electrons.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 07/12] media/i2c/tlv320aic23: Remove compat control ops
-Date: Fri, 12 Jun 2015 18:31:13 +0200
-Message-id: <1434126678-7978-8-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lists.s-osg.org ([54.187.51.154]:44283 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751973AbbFAJWT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 05:22:19 -0400
+Date: Mon, 1 Jun 2015 06:22:14 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] DocBook media: xmllint/typo fixes
+Message-ID: <20150601062214.667f76cd@recife.lan>
+In-Reply-To: <1433077152-18200-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433077152-18200-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-They are no longer used in old non-control-framework
-bridge drivers.
+Em Sun, 31 May 2015 14:59:09 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/tlv320aic23b.c | 7 -------
- 1 file changed, 7 deletions(-)
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Hi Mauro,
+> 
+> Here are three patches that fix typos and xmllint errors.
+> 
+> The first patch fixes typos, the second a large number of xmllint
+> errors and the last fixes a final xmllint error, but it does that by
+> copying most of the v4l2 open/close text and you should check whether
+> I didn't remove anything that is relevant for DVB.
+> 
+> Note that I use the following 'gitdocs.sh' script to build the documentation:
 
-diff --git a/drivers/media/i2c/tlv320aic23b.c b/drivers/media/i2c/tlv320aic23b.c
-index ef87f7b09ea2..0370dd89f1fc 100644
---- a/drivers/media/i2c/tlv320aic23b.c
-+++ b/drivers/media/i2c/tlv320aic23b.c
-@@ -122,13 +122,6 @@ static const struct v4l2_ctrl_ops tlv320aic23b_ctrl_ops = {
- 
- static const struct v4l2_subdev_core_ops tlv320aic23b_core_ops = {
- 	.log_status = tlv320aic23b_log_status,
--	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_audio_ops tlv320aic23b_audio_ops = {
--- 
-2.1.4
+Patches applied. I had to add two extra patches in order to fix a few
+issues (one at the open() conversion and another one that it is likely
+a cut-and-past mistake that I introduced).
+> 
+> --------------------------------
+> #!/bin/sh
+> 
+> make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID .* already defined"
+> xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
+> xmllint --noent --postvalid --noout /tmp/x.xml
+> xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
+
+Updated my scripts to use this more pedantic variation.
