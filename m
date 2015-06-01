@@ -1,76 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37643 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932443AbbFFICq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 04:02:46 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 154402A0006
-	for <linux-media@vger.kernel.org>; Sat,  6 Jun 2015 10:02:33 +0200 (CEST)
-Message-ID: <5572A918.5040406@xs4all.nl>
-Date: Sat, 06 Jun 2015 10:02:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:33955 "EHLO
+	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752279AbbFAKNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2015 06:13:15 -0400
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] cx231xx: fix compiler warning
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1433153392-18037-1-git-send-email-geert@linux-m68k.org>
+References: <1433153392-18037-1-git-send-email-geert@linux-m68k.org>
+Date: Mon, 1 Jun 2015 12:13:14 +0200
+Message-ID: <CAMuHMdW6MAj6bOMY_RRt9=OF2iM2Gy4bCXWCEWK7hM5ia1Rtvg@mail.gmail.com>
+Subject: Re: Build regressions/improvements in v4.1-rc6
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this compiler warning by allocating a structure to read the eeprom instead
-of doing it on the stack and worse: the eeprom array is static, so that can
-cause problems if there are multiple cx231xx instances.
+On Mon, Jun 1, 2015 at 12:09 PM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> JFYI, when comparing v4.1-rc6[1] to v4.1-rc5[3], the summaries are:
+>   - build errors: +8/-52
 
-cx231xx-cards.c: In function 'cx231xx_card_setup':
-cx231xx-cards.c:1110:1: warning: the frame size of 2064 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
+  + /home/kisskb/slave/src/drivers/media/i2c/ov2659.c: error: 'struct
+v4l2_subdev_fh' has no member named 'pad':  => 1264:38
+  + /home/kisskb/slave/src/drivers/media/i2c/ov2659.c: error: implicit
+declaration of function 'v4l2_subdev_get_try_format'
+[-Werror=implicit-function-declaration]:  => 1054:3
 
-I did consider removing the code altogether since the result is actually
-not used at the moment, but I decided against it since it is used in other
-drivers and someone might want to start using it in this driver as well. And
-then it is useful that the code is already there.
+i386-randconfig
 
-Signed-of-by: Hans Verkuil <hans.verkuil@cisco.com>
+  + error: aes.c: undefined reference to `.enable_kernel_altivec':  =>
+.text+0x48e894), .text+0x48e6e0), .text+0x48e960)
+  + error: aes_cbc.c: undefined reference to `.enable_kernel_altivec':
+ => .text+0x48ea98), .text+0x48ebf4)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index fe00da1..a4aa285 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1092,17 +1092,25 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
- 	case CX231XX_BOARD_HAUPPAUGE_955Q:
- 		{
--			struct tveeprom tvee;
--			static u8 eeprom[256];
--			struct i2c_client client;
--
--			memset(&client, 0, sizeof(client));
--			client.adapter = cx231xx_get_i2c_adap(dev, I2C_1_MUX_1);
--			client.addr = 0xa0 >> 1;
-+			struct eeprom {
-+				struct tveeprom tvee;
-+				u8 eeprom[256];
-+				struct i2c_client client;
-+			};
-+			struct eeprom *e = kzalloc(sizeof(*e), GFP_KERNEL);
-+
-+			if (e == NULL) {
-+				dev_err(dev->dev,
-+					"failed to allocate memory to read eeprom\n");
-+				break;
-+			}
-+			e->client.adapter = cx231xx_get_i2c_adap(dev, I2C_1_MUX_1);
-+			e->client.addr = 0xa0 >> 1;
- 
--			read_eeprom(dev, &client, eeprom, sizeof(eeprom));
--			tveeprom_hauppauge_analog(&client,
--						&tvee, eeprom + 0xc0);
-+			read_eeprom(dev, &e->client, e->eeprom, sizeof(e->eeprom));
-+			tveeprom_hauppauge_analog(&e->client,
-+						&e->tvee, e->eeprom + 0xc0);
-+			kfree(e);
- 			break;
- 		}
- 	}
+powerpc-randconfig
+
+> [1] http://kisskb.ellerman.id.au/kisskb/head/8943/ (254 out of 257 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/head/8914/ (254 out of 257 configs)
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
