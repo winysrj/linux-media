@@ -1,94 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33371 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437AbbFXKtx (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58253 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752595AbbFANC1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 06:49:53 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 1/7] [media] si470x: cleanup define namespace
-Date: Wed, 24 Jun 2015 07:49:05 -0300
-Message-Id: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
+	Mon, 1 Jun 2015 09:02:27 -0400
+Message-ID: <556C57D6.80908@xs4all.nl>
+Date: Mon, 01 Jun 2015 15:02:14 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>
+CC: linux-mm@kvack.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
+References: <1431522495-4692-1-git-send-email-jack@suse.cz> <1431522495-4692-3-git-send-email-jack@suse.cz> <20150528162402.19a0a26a5b9eae36aa8050e5@linux-foundation.org> <20150601124017.GC20288@quack.suse.cz>
+In-Reply-To: <20150601124017.GC20288@quack.suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some architectures already use CHIPID defines:
+On 06/01/2015 02:40 PM, Jan Kara wrote:
+> On Thu 28-05-15 16:24:02, Andrew Morton wrote:
+>> On Wed, 13 May 2015 15:08:08 +0200 Jan Kara <jack@suse.cz> wrote:
+>>
+>>> Provide new function get_vaddr_frames().  This function maps virtual
+>>> addresses from given start and fills given array with page frame numbers of
+>>> the corresponding pages. If given start belongs to a normal vma, the function
+>>> grabs reference to each of the pages to pin them in memory. If start
+>>> belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
+>>> must make sure pfns aren't reused for anything else while he is using
+>>> them.
+>>>
+>>> This function is created for various drivers to simplify handling of
+>>> their buffers.
+>>>
+>>> Acked-by: Mel Gorman <mgorman@suse.de>
+>>> Acked-by: Vlastimil Babka <vbabka@suse.cz>
+>>> Signed-off-by: Jan Kara <jack@suse.cz>
+>>> ---
+>>>  include/linux/mm.h |  44 +++++++++++
+>>>  mm/gup.c           | 226 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>
+>> That's a lump of new code which many kernels won't be needing.  Can we
+>> put all this in a new .c file and select it within drivers/media
+>> Kconfig?
+>   Yeah, makes sense. I'll write a patch. Hans, is it OK with you if I
+> just create a patch on top of the series you have in your tree?
 
-	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
-	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
-	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
+No problem.
 
-So, use SI_foo namespace to avoid conflicts.
+Regards,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 49fe8453e218..471d6a8ae8a4 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -384,14 +384,14 @@ static int si470x_i2c_probe(struct i2c_client *client,
- 		goto err_radio;
- 	}
- 	dev_info(&client->dev, "DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
--			radio->registers[DEVICEID], radio->registers[CHIPID]);
--	if ((radio->registers[CHIPID] & CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
-+			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
-+	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
- 		dev_warn(&client->dev,
- 			"This driver is known to work with "
- 			"firmware version %hu,\n", RADIO_FW_VERSION);
- 		dev_warn(&client->dev,
- 			"but the device has firmware version %hu.\n",
--			radio->registers[CHIPID] & CHIPID_FIRMWARE);
-+			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
- 		version_warning = 1;
- 	}
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-index 57f0bc3b60e7..091d793f6583 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -686,14 +686,14 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
- 		goto err_ctrl;
- 	}
- 	dev_info(&intf->dev, "DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
--			radio->registers[DEVICEID], radio->registers[CHIPID]);
--	if ((radio->registers[CHIPID] & CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
-+			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
-+	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
- 		dev_warn(&intf->dev,
- 			"This driver is known to work with "
- 			"firmware version %hu,\n", RADIO_FW_VERSION);
- 		dev_warn(&intf->dev,
- 			"but the device has firmware version %hu.\n",
--			radio->registers[CHIPID] & CHIPID_FIRMWARE);
-+			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
- 		version_warning = 1;
- 	}
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 4b7660470e2f..6c0ca900702e 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -54,10 +54,10 @@
- #define DEVICEID_PN		0xf000	/* bits 15..12: Part Number */
- #define DEVICEID_MFGID		0x0fff	/* bits 11..00: Manufacturer ID */
- 
--#define CHIPID			1	/* Chip ID */
--#define CHIPID_REV		0xfc00	/* bits 15..10: Chip Version */
--#define CHIPID_DEV		0x0200	/* bits 09..09: Device */
--#define CHIPID_FIRMWARE		0x01ff	/* bits 08..00: Firmware Version */
-+#define SI_CHIPID		1	/* Chip ID */
-+#define SI_CHIPID_REV		0xfc00	/* bits 15..10: Chip Version */
-+#define SI_CHIPID_DEV		0x0200	/* bits 09..09: Device */
-+#define SI_CHIPID_FIRMWARE	0x01ff	/* bits 08..00: Firmware Version */
- 
- #define POWERCFG		2	/* Power Configuration */
- #define POWERCFG_DSMUTE		0x8000	/* bits 15..15: Softmute Disable */
--- 
-2.4.3
-
+	Hans
