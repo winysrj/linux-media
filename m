@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.mail.ru ([94.100.179.91]:58042 "EHLO smtp2.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751962AbbFZK76 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 06:59:58 -0400
-Message-ID: <2DCE24E5218441A2AD205B5EA707CB62@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
-Cc: <linux-media@vger.kernel.org>,
-	"Devin Heitmueller" <dheitmueller@kernellabs.com>
-References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown> <20150626062210.6ee035ec@recife.lan>
-Subject: Re: XC5000C 0x14b4 status
-Date: Fri, 26 Jun 2015 17:59:48 +0700
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58055 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751781AbbFAJ2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 05:28:24 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 57D442A007E
+	for <linux-media@vger.kernel.org>; Mon,  1 Jun 2015 11:28:18 +0200 (CEST)
+Message-ID: <556C25B2.4060402@xs4all.nl>
+Date: Mon, 01 Jun 2015 11:28:18 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Final set of compile/sparse fixes
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Mauro Carvalho Chehab"
-To: "Unembossed Name"
-Cc: <linux-media@vger.kernel.org>; "Devin Heitmueller"
-Sent: Friday, June 26, 2015 4:22 PM
-Subject: Re: XC5000C 0x14b4 status
+This set fixes the final compilation and sparse warnings (except for a few remaining
+sparse warnings for which I have no obvious solution).
 
+It also improves timestamp handling in the davinci drivers.
 
->> After that RF tuner identification became always successful.
->> I had a conversation with a hardware vendor.
->> Now I can say, that such behaviour, most likely, because of  "early" firmware for XC5000C.
->> This hardware vendor is using for his Windows driver a latest firmware, and reading Product ID register always gives 0x14b4 
->> status.
->> As he says, 0x1388 status is only for previous XC5000 IC. (Without C at end of a P/N)
->> Is this possible to patch xc5000.c with something like this:
->>
->>  #define XC_PRODUCT_ID_FW_LOADED 0x1388
->> +#define XC_PRODUCT_ID_FW_LOADED_XC5000C 0x14b4
->>
->>   case XC_PRODUCT_ID_FW_LOADED:
->> + case XC_PRODUCT_ID_FW_LOADED_XC5000C:
->>    printk(KERN_INFO
->>     "xc5000: Successfully identified at address 0x%02x\n",
->>
->> Or to try to get a chip vendor's permission for using a latest firmware for XC5000C in Linux, and then anyway, patch the driver?
->
-> IMHO, the best is to get the latest firmware licensed is the best
-> thing to do.
-Agreed. If that possible of course.
+Regards,
 
-> Does that "new" xc5000c come with a firmware pre-loaded already?
-It's not "new" IC. It's XC5000C. Maybe i was interpreted wrong.
-As I have understood, such behaviour can depends from FW version.
-HW vendor says, that with his latest FW he always gets response 0x14b4.
-Not a 0x1388. And I think, that these ICs still come without pre-loaded FW.
-HW vendor also didn't says anything about FW pre-load possibility.
+	Hans
 
-Best regards. 
+The following changes since commit c1c3c85ddf60a6d97c122d57d385b4929fcec4b3:
 
+  [media] DocBook: fix FE_SET_PROPERTY ioctl arguments (2015-06-01 06:10:15 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2n
+
+for you to fetch changes up to 4dc825912fb78205a3ec5c6d43f9d517569d6adc:
+
+  media: s5p-mfc: fix sparse warnings (2015-06-01 11:19:45 +0200)
+
+----------------------------------------------------------------
+Lad, Prabhakar (4):
+      media: davinci_vpfe: clear the output_specs
+      media: davinci_vpfe: set minimum required buffers to three
+      media: davinci_vpfe: use monotonic timestamp
+      media: davinci: vpbe: use v4l2_get_timestamp()
+
+Marek Szyprowski (1):
+      media: s5p-mfc: fix sparse warnings
+
+ drivers/media/platform/davinci/vpbe_display.c        |  9 ++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c      |  4 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c      |  4 ++--
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c   |  1 +
+ drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h |  2 --
+ drivers/staging/media/davinci_vpfe/vpfe_video.c      | 18 +++++-------------
+ 6 files changed, 12 insertions(+), 26 deletions(-)
