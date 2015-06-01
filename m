@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:34251 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbbFFHpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 03:45:10 -0400
-Received: by lbcmx3 with SMTP id mx3so57330471lbc.1
-        for <linux-media@vger.kernel.org>; Sat, 06 Jun 2015 00:45:08 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:25753 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbbFAMO3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2015 08:14:29 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NP900I6FM02AM50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Jun 2015 13:14:26 +0100 (BST)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] saa7164: change Si2168 reglen to 0 bit
-Date: Sat,  6 Jun 2015 10:44:57 +0300
-Message-Id: <1433576698-1780-1-git-send-email-olli.salonen@iki.fi>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] media: videobuf2-dc: set properly dma_max_segment_size
+Date: Mon, 01 Jun 2015 14:14:17 +0200
+Message-id: <1433160857-11124-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The i2c_reg_len for Si2168 should be 0 for correct I2C communication.
+If device has no DMA max_seg_size set, we assume that there is no limit
+and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
+let DMA-mapping API always create contiguous mappings in DMA address
+space. This is essential for all devices, which use dma-contig
+videobuf2 memory allocator.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/pci/saa7164/saa7164-cards.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-cards.c b/drivers/media/pci/saa7164/saa7164-cards.c
-index 8a6455d..c2b7382 100644
---- a/drivers/media/pci/saa7164/saa7164-cards.c
-+++ b/drivers/media/pci/saa7164/saa7164-cards.c
-@@ -621,7 +621,7 @@ struct saa7164_board saa7164_boards[] = {
- 			.name		= "SI2168-1",
- 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
- 			.i2c_bus_addr	= 0xc8 >> 1,
--			.i2c_reg_len	= REGLEN_8bit,
-+			.i2c_reg_len	= REGLEN_0bit,
- 		}, {
- 			.id		= 0x25,
- 			.type		= SAA7164_UNIT_TUNER,
-@@ -635,7 +635,7 @@ struct saa7164_board saa7164_boards[] = {
- 			.name		= "SI2168-2",
- 			.i2c_bus_nr	= SAA7164_I2C_BUS_2,
- 			.i2c_bus_addr	= 0xcc >> 1,
--			.i2c_reg_len	= REGLEN_8bit,
-+			.i2c_reg_len	= REGLEN_0bit,
- 		} },
- 	},
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 644dec73d220..9d7c1814b0f3 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -862,6 +862,23 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ void *vb2_dma_contig_init_ctx(struct device *dev)
+ {
+ 	struct vb2_dc_conf *conf;
++	int err;
++
++	/*
++	 * if device has no max_seg_size set, we assume that there is no limit
++	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
++	 * in DMA address space
++	 */
++	if (!dev->dma_parms) {
++		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
++		if (!dev->dma_parms)
++			return ERR_PTR(-ENOMEM);
++	}
++	if (dma_get_max_seg_size(dev) < DMA_BIT_MASK(32)) {
++		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
++		if (err)
++			return ERR_PTR(err);
++	}
+ 
+ 	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+ 	if (!conf)
 -- 
-1.9.1
+1.9.2
 
