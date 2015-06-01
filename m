@@ -1,77 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f66.google.com ([209.85.192.66]:35825 "EHLO
-	mail-qg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbbFKSNY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 14:13:24 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
-	bhelgaas@google.com, luto@amacapital.net,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	Toshi Kani <toshi.kani@hp.com>,
-	Roland Dreier <roland@kernel.org>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	infinipath@intel.com, linux-fbdev@vger.kernel.org
-Subject: [PATCH v6 2/3] IB/ipath: add counting for MTRR
-Date: Thu, 11 Jun 2015 10:50:01 -0700
-Message-Id: <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56323 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752243AbbFAI22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 04:28:28 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Adam Baker <linux@baker-net.org.uk>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2 2/2] si2157: implement signal strength stats
+Date: Mon,  1 Jun 2015 11:28:07 +0300
+Message-Id: <1433147287-29932-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1433147287-29932-1-git-send-email-crope@iki.fi>
+References: <1433147287-29932-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Implement DVBv5 signal strength stats. Returns dBm.
 
-There is no good reason not to, we eventually delete it as well.
-
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: infinipath@intel.com
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Adam Baker <linux@baker-net.org.uk>
 ---
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/tuners/si2157.c      | 40 +++++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/si2157_priv.h |  1 +
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-index 4ad0b93..70c1f3a 100644
---- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-+++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
- 			   "(addr %llx, len=0x%llx)\n",
- 			   (unsigned long long) pioaddr,
- 			   (unsigned long long) piolen);
--		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
-+		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
- 		if (cookie < 0) {
- 			{
- 				dev_info(&dd->pcidev->dev,
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index cdaf687..a6245ef 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -79,6 +79,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ {
+ 	struct i2c_client *client = fe->tuner_priv;
+ 	struct si2157_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, len, remaining;
+ 	struct si2157_cmd cmd;
+ 	const struct firmware *fw;
+@@ -201,9 +202,14 @@ skip_fw_download:
+ 	dev->fw_loaded = true;
+ 
+ warm:
++	/* init statistics in order signal app which are supported */
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	/* start statistics polling */
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(1000));
++
+ 	dev->active = true;
+ 	return 0;
+-
+ err_release_firmware:
+ 	release_firmware(fw);
+ err:
+@@ -222,6 +228,9 @@ static int si2157_sleep(struct dvb_frontend *fe)
+ 
+ 	dev->active = false;
+ 
++	/* stop statistics polling */
++	cancel_delayed_work_sync(&dev->stat_work);
++
+ 	/* standby */
+ 	memcpy(cmd.args, "\x16\x00", 2);
+ 	cmd.wlen = 2;
+@@ -360,6 +369,34 @@ static const struct dvb_tuner_ops si2157_ops = {
+ 	.get_if_frequency = si2157_get_if_frequency,
+ };
+ 
++static void si2157_stat_work(struct work_struct *work)
++{
++	struct si2157_dev *dev = container_of(work, struct si2157_dev, stat_work.work);
++	struct dvb_frontend *fe = dev->fe;
++	struct i2c_client *client = fe->tuner_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct si2157_cmd cmd;
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	memcpy(cmd.args, "\x42\x00", 2);
++	cmd.wlen = 2;
++	cmd.rlen = 12;
++	ret = si2157_cmd_execute(client, &cmd);
++	if (ret)
++		goto err;
++
++	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
++	c->strength.stat[0].svalue = (s8) cmd.args[3] * 1000;
++
++	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
++	return;
++err:
++	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++}
++
+ static int si2157_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+@@ -384,6 +421,7 @@ static int si2157_probe(struct i2c_client *client,
+ 	dev->chiptype = (u8)id->driver_data;
+ 	dev->if_frequency = 5000000; /* default value of property 0x0706 */
+ 	mutex_init(&dev->i2c_mutex);
++	INIT_DELAYED_WORK(&dev->stat_work, si2157_stat_work);
+ 
+ 	/* check if the tuner is there */
+ 	cmd.wlen = 0;
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index 71a5f8c..ecc463d 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -30,6 +30,7 @@ struct si2157_dev {
+ 	u8 chiptype;
+ 	u8 if_port;
+ 	u32 if_frequency;
++	struct delayed_work stat_work;
+ };
+ 
+ #define SI2157_CHIPTYPE_SI2157 0
 -- 
-2.3.2.209.gd67f9d5.dirty
+http://palosaari.fi/
 
