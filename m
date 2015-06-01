@@ -1,132 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50258 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758981AbbFBNC3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 09:02:29 -0400
-Date: Tue, 2 Jun 2015 10:02:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH 04/35] DocBook: fix emphasis at the DVB documentation
-Message-ID: <20150602100224.201e2e86@recife.lan>
-In-Reply-To: <20150602085138.72d453e3@recife.lan>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-	<6674a17160ba2f80a4537d4dc9e501149c308706.1432844837.git.mchehab@osg.samsung.com>
-	<20150602115604.54302981@lwn.net>
-	<20150602085138.72d453e3@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40091 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751203AbbFACtD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2015 22:49:03 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DEC032A0081
+	for <linux-media@vger.kernel.org>; Mon,  1 Jun 2015 04:48:57 +0200 (CEST)
+Date: Mon, 01 Jun 2015 04:48:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150601024857.DEC032A0081@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 2 Jun 2015 08:51:38 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Em Tue, 02 Jun 2015 11:56:04 +0900
-> Jonathan Corbet <corbet@lwn.net> escreveu:
-> 
-> > On Thu, 28 May 2015 18:49:07 -0300
-> > Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > 
-> > > Currently, it is using 'role="tt"', but this is not defined at
-> > > the DocBook 4.5 spec. The net result is that no emphasis happens.
-> > > 
-> > > So, replace them to bold emphasis.
-> > 
-> > Nit: I suspect the intent of the "emphasis" here was to get the code in a
-> > monospace font, which "bold" is unlikely to do.  Isn't there a
-> > role="code" or something useful like that to use?  I'd have to go look.
-> 
-> Good point! I think that emphasis only does italic (with is the default,
-> and don't need role option) or bold on DocBook 4.5. 
-> 
-> We're using <constant> on the places where we want a monospace font.
-> That's probably the right tag there.
-> 
-> For the record: this document was produced by merging two different
-> documents: the V4L docbook (that used a legacy DocBook version - 3.x or
-> 2.x) and the DVB LaTex documentation, which was converted by some
-> tool to docbook 3.x (or 2.x) to match the same DocBook spec that
-> V4L were using. The 'role="tt"' came from such conversion. This
-> were maintained together with the legacy Mercurial tree that was 
-> used to contain the media drivers.
-> 
-> When we moved to git, the DocBook got merged in the Kernel and
-> another conversion was taken to allow compiling it using DocBook 4.x.
-> We only checked the tags that didn't compile, but options with
-> invalid arguments like 'role="tt"' where xmllint doesn't complain
-> weren't touched.
-> 
-> One question: any plans to update the documentation to DocBook schema?
+Results of the daily build of media_tree:
 
-Gah, something got wrong on my edition on the above line...
-I meant to say, instead:
+date:		Mon Jun  1 04:00:27 CEST 2015
+git branch:	test
+git hash:	d511eb7d642aaf513fefeb05514dc6177c53c350
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-	"One question: any plans to update the DocBook schema on the documentation?"
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1-rc1-i686: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: WARNINGS
+linux-4.1-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
 
-> 
-> We're using either schema 4.1 or 4.2, with are both very old. The
-> latest 4.x is 4.5, with was written back on 2006. So, except for historic
-> reasons, are there any reason why keeping them at version 4.2? 
-> I did a quick look at the DocBook specs (for 4.3, 4.4 and 4.5), 
-> and they say that no backward compatible changes were done. So, using
-> version 4.5 should be straightforward.
-> 
-> I applied this patch here:
-> 
-> --- a/Documentation/DocBook/media_api.tmpl
-> +++ b/Documentation/DocBook/media_api.tmpl
-> @@ -2,2 +2,2 @@
-> -<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-> -       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
-> +<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-> +       "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-> 
-> and compiled the media documentation with:
-> 
-> make cleanmediadocs
-> make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID 
-> .* already defined"
-> xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
-> xmllint --noent --postvalid --noout /tmp/x.xml
-> xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
-> 
-> In order to try to produce errors. Everything seemed to work. On a quick
-> look, the documentation looked fine, and no errors (except for some
-> crappy element validity errors, with seems to be due to a bug on recent
-> versions of the xml tools present on Fedora 22).
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-I did a diff between what's produced with v4.2 and v4.5 using:
+Full logs are available here:
 
-make cleanmediadocs
-make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID .* already defined"
-xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
-cat Documentation/DocBook/media/media_api.html |sed s,'>','>\n',g >v4.2
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Then applying the patch and doing the same.
+The Media Infrastructure API from this daily build is here:
 
-Except for auto-generated naming references:
-
---- v4.2        2015-06-02 09:51:14.867426792 -0300
-+++ v4.5        2015-06-02 09:51:21.030553531 -0300
-@@ -24 +24 @@ Copyright <A9> 2009-2014 LinuxTV Developers
--<a name="idm140503220604352">
-+<a name="idm140423402024512">
-@@ -45 +45 @@ Table of Contents</b>
--<a href="#idm140503221376592">
-+<a href="#idm140423402329888">
-
-The document looks the same.
-
-So, I'll likely send on my next docbook patch series a patch
-changing the DTD to DocBook schema 4.5, with is the latest 4.x
-spec.
-
-Still, the question remains: are there any value on changing it to
-5.0?
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
