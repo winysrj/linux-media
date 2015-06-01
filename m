@@ -1,61 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52619 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:33583 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751489AbbFRU6C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 16:58:02 -0400
-Date: Thu, 18 Jun 2015 17:57:57 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mantis: fix unused variable compiler warning
-Message-ID: <20150618175757.0cbc3551@recife.lan>
-In-Reply-To: <55792525.9030003@xs4all.nl>
-References: <55792525.9030003@xs4all.nl>
+	id S1750936AbbFAGOu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 02:14:50 -0400
+Message-ID: <556BF852.80202@iki.fi>
+Date: Mon, 01 Jun 2015 09:14:42 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Jemma Denson <jdenson@gmail.com>, linux-media@vger.kernel.org
+CC: mchehab@osg.samsung.com, patrick.boettcher@posteo.de
+Subject: Re: [PATCH v2 1/4] b2c2: Add option to skip the first 6 pid filters
+References: <1433009409-5622-1-git-send-email-jdenson@gmail.com> <1433009409-5622-2-git-send-email-jdenson@gmail.com>
+In-Reply-To: <1433009409-5622-2-git-send-email-jdenson@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 11 Jun 2015 08:05:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 05/30/2015 09:10 PM, Jemma Denson wrote:
+> The flexcop bridge chip has two banks of hardware pid filters -
+> an initial 6, and on some chip revisions an additional bank of 32.
+>
+> A bug is present on the initial 6 - when changing transponders
+> one of two PAT packets from the old transponder would be included
+> in the initial packets from the new transponder. This usually
+> transpired with userspace programs complaining about services
+> missing, because they are seeing a PAT that they would not be
+> expecting. Running in full TS mode does not exhibit this problem,
+> neither does using just the additional 32.
+>
+> This patch adds in an option to not use the inital 6 and solely use
+> just the additional 32, and enables this option for the SkystarS2
+> card. Other cards can be added as required if they also have
+> this bug.
 
-> mantis_i2c.c:222:15: warning: variable 'intmask' set but not used [-Wunused-but-set-variable]
->   u32 intstat, intmask;
->                ^
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/pci/mantis/mantis_i2c.c b/drivers/media/pci/mantis/mantis_i2c.c
-> index a938234..9abe1c7 100644
-> --- a/drivers/media/pci/mantis/mantis_i2c.c
-> +++ b/drivers/media/pci/mantis/mantis_i2c.c
-> @@ -219,7 +219,7 @@ static struct i2c_algorithm mantis_algo = {
->  
->  int mantis_i2c_init(struct mantis_pci *mantis)
->  {
-> -	u32 intstat, intmask;
-> +	u32 intstat;
->  	struct i2c_adapter *i2c_adapter = &mantis->adapter;
->  	struct pci_dev *pdev		= mantis->pdev;
->  
-> @@ -242,7 +242,6 @@ int mantis_i2c_init(struct mantis_pci *mantis)
->  	dprintk(MANTIS_DEBUG, 1, "Initializing I2C ..");
->  
->  	intstat = mmread(MANTIS_INT_STAT);
-> -	intmask = mmread(MANTIS_INT_MASK);
+Why not to use strategy where 32 pid filter is used as a priority and 
+that buggy 6 pid filter is used only when 32 pid filter is not available 
+(or it is already 100% in use)?
 
-Doing this sounds too risky for me without enough info from this
-device, as reading the mask could be needed in order to reset the
-IRQ.
+regards
+Antti
 
-I added earlier today a patch that keeps the mmread() there, just
-removing the temporary unused var.
-
->  	mmwrite(intstat, MANTIS_INT_STAT);
->  	dprintk(MANTIS_DEBUG, 1, "Disabling I2C interrupt");
->  	mantis_mask_ints(mantis, MANTIS_INT_I2CDONE);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+http://palosaari.fi/
