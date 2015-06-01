@@ -1,157 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49820 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752055AbbFEK7z (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44512 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752259AbbFAQiV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 08/10] sh-vou: let sh_vou_s_fmt_vid_out call sh_vou_try_fmt_vid_out
-Date: Fri,  5 Jun 2015 12:59:24 +0200
-Message-Id: <1433501966-30176-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 1 Jun 2015 12:38:21 -0400
+Date: Mon, 1 Jun 2015 19:37:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Export alignment requirements for buffers
+Message-ID: <20150601163746.GF25595@valkosipuli.retiisi.org.uk>
+References: <556C2993.4030708@xs4all.nl>
+ <20150601104428.GE25595@valkosipuli.retiisi.org.uk>
+ <556C3BC2.2050500@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <556C3BC2.2050500@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-This ensures that both do the same checks, and simplifies s_fmt_vid_out
-a bit.
+On Mon, Jun 01, 2015 at 01:02:26PM +0200, Hans Verkuil wrote:
+> On 06/01/2015 12:44 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > Thanks for the RFC.
+> > 
+> > On Mon, Jun 01, 2015 at 11:44:51AM +0200, Hans Verkuil wrote:
+> >> One of the things that is really irritating is the fact that drivers that
+> >> use contig-dma sometimes want to support USERPTR, allowing applications to
+> >> pass pointers to the driver that point to physically contiguous memory that
+> >> was somehow obtained, and that userspace has no way of knowing whether the
+> >> driver has this requirement or not.
+> >>
+> >> A related issue is that, depending on the DMA engine, the user pointer might
+> >> have some alignment requirements (page aligned, or at minimum 16 bytes aligned)
+> >> that userspace has no way of knowing.
+> >>
+> >> The same alignment issue is present also for dma-buf.
+> >>
+> >> I propose to take one reserved field from struct v4l2_create_buffers and
+> >> from struct v4l2_requestbuffers and change it to this:
+> >>
+> >> 	__u32 flags;
+> >>
+> >> #define V4L2_REQBUFS_FL_ALIGNMENT_MSK	0x3f
+> > 
+> > How about V4L2_REQBUFS_FL_ALIGN_MASK instead? It's shorter, and that msk
+> > part looks odd to me.
+> 
+> Hmm, how to do this. Currently it masks out 6 bits which form the power-of-two
+> that determines the alignment. How about this:
+> 
+> #define V4L2_REQBUFS_FL_ALIGN_EXP(flags) ((flags) & 0x3f)
+> #define V4L2_REQBUFS_FL_ALIGN_MASK(flags) ((1ULL << (flags & 0x3f)) - 1)
+> 
+> That gives you both mask and the exponent. Better names are welcome :-)
+> ALIGN_PWR? PWR2? ALIGN_AT_BIT?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 86 +++++++++++++++++++----------------------
- 1 file changed, 40 insertions(+), 46 deletions(-)
+I think ALIGN_EXP and ALIGN_MASK are good.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 400efec..489d045 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -675,34 +675,19 @@ static void vou_adjust_output(struct sh_vou_geometry *geo, v4l2_std_id std)
- 		 vou_scale_v_num[idx], vou_scale_v_den[idx], best);
- }
- 
--static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
--				struct v4l2_format *fmt)
-+static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
-+				  struct v4l2_format *fmt)
- {
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
- 	struct v4l2_pix_format *pix = &fmt->fmt.pix;
- 	unsigned int img_height_max;
- 	int pix_idx;
--	struct sh_vou_geometry geo;
--	struct v4l2_subdev_format format = {
--		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--		/* Revisit: is this the correct code? */
--		.format.code = MEDIA_BUS_FMT_YUYV8_2X8,
--		.format.field = V4L2_FIELD_INTERLACED,
--		.format.colorspace = V4L2_COLORSPACE_SMPTE170M,
--	};
--	struct v4l2_mbus_framefmt *mbfmt = &format.format;
--	int ret;
--
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u -> %ux%u\n", __func__,
--		vou_dev->rect.width, vou_dev->rect.height,
--		pix->width, pix->height);
- 
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = V4L2_FIELD_NONE;
-+	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
--	if (fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
--	    pix->field != V4L2_FIELD_NONE)
--		return -EINVAL;
-+	pix->field = V4L2_FIELD_INTERLACED;
-+	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	pix->ycbcr_enc = pix->quantization = 0;
- 
- 	for (pix_idx = 0; pix_idx < ARRAY_SIZE(vou_fmt); pix_idx++)
- 		if (vou_fmt[pix_idx].pfmt == pix->pixelformat)
-@@ -716,9 +701,37 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
- 	else
- 		img_height_max = 576;
- 
--	/* Image width must be a multiple of 4 */
- 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
- 			      &pix->height, 0, img_height_max, 1, 0);
-+	pix->bytesperline = pix->width * 2;
-+
-+	return 0;
-+}
-+
-+static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *fmt)
-+{
-+	struct sh_vou_device *vou_dev = video_drvdata(file);
-+	struct v4l2_pix_format *pix = &fmt->fmt.pix;
-+	unsigned int img_height_max;
-+	struct sh_vou_geometry geo;
-+	struct v4l2_subdev_format format = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+		/* Revisit: is this the correct code? */
-+		.format.code = MEDIA_BUS_FMT_YUYV8_2X8,
-+		.format.field = V4L2_FIELD_INTERLACED,
-+		.format.colorspace = V4L2_COLORSPACE_SMPTE170M,
-+	};
-+	struct v4l2_mbus_framefmt *mbfmt = &format.format;
-+	int ret = sh_vou_try_fmt_vid_out(file, priv, fmt);
-+	int pix_idx;
-+
-+	if (ret)
-+		return ret;
-+
-+	for (pix_idx = 0; pix_idx < ARRAY_SIZE(vou_fmt); pix_idx++)
-+		if (vou_fmt[pix_idx].pfmt == pix->pixelformat)
-+			break;
- 
- 	geo.in_width = pix->width;
- 	geo.in_height = pix->height;
-@@ -737,6 +750,11 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u -> %ux%u\n", __func__,
- 		geo.output.width, geo.output.height, mbfmt->width, mbfmt->height);
- 
-+	if (vou_dev->std & V4L2_STD_525_60)
-+		img_height_max = 480;
-+	else
-+		img_height_max = 576;
-+
- 	/* Sanity checks */
- 	if ((unsigned)mbfmt->width > VOU_MAX_IMAGE_WIDTH ||
- 	    (unsigned)mbfmt->height > img_height_max ||
-@@ -769,30 +787,6 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
--				  struct v4l2_format *fmt)
--{
--	struct sh_vou_device *vou_dev = video_drvdata(file);
--	struct v4l2_pix_format *pix = &fmt->fmt.pix;
--	int i;
--
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
--
--	fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	pix->field = V4L2_FIELD_NONE;
--
--	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 1,
--			      &pix->height, 0, VOU_MAX_IMAGE_HEIGHT, 1, 0);
--
--	for (i = 0; i < ARRAY_SIZE(vou_fmt); i++)
--		if (vou_fmt[i].pfmt == pix->pixelformat)
--			return 0;
--
--	pix->pixelformat = vou_fmt[0].pfmt;
--
--	return 0;
--}
--
- static int sh_vou_reqbufs(struct file *file, void *priv,
- 			  struct v4l2_requestbuffers *req)
- {
+> 
+> > 
+> >> #define V4L2_REQBUFS_FL_PHYS_CONTIG	(1 << 31)
+> >>
+> >> Where the alignment is a power of 2 (and if 0 the alignment is unknown). The max
+> >> is 2^63, which should be enough for the foreseeable future :-)
+> >>
+> >> If the physically contiguous flag is set, then the buffer must be physically
+> >> contiguous.
+> > 
+> > Both only apply to userptr buffers. I guess saying this in documentation
+> > only is enough.
+> 
+> I don't follow you. Perhaps there is some confusion here? The flags field is set
+> by the driver, not by userspace. So PHYS_CONTIG applies to any type of buffer if
+> the driver uses dma-contig. And the alignment is valid for all drivers as well.
+
+What I meant was that this is mostly relevant for userptr buffers, mmap
+buffers are allocated by the driver as well as dma-buf buffers are, so the
+user has no (or little?) use for this information on those buffer types.
+
+> 
+> > 
+> > The approach looks good to me.
+> > 
+> >> dma-contig: the PHYS_CONTIG flag is always set and the alignment is (unless overridden
+> >> by the driver) page aligned.
+> >>
+> >> dma-sg: the PHYS_CONTIG flag is 0 and the alignment will depend on the driver DMA
+> >> implementation. Note: malloc will align the buffer to 8 bytes on a 32 bit OS and 16 bytes
+> >> on a 64 bit OS.
+> >>
+> >> vmalloc: PHYS_CONFIG is 0 and the alignment should be 3 (2^3 == 8) for 32 bit and
+> >> 4 (2^4=16) for 64 bit OS. This matches malloc() which will align the buffer to
+> >> 8 bytes on a 32 bit OS and 16 bytes on a 64 bit OS.
+> > 
+> > Ack. Many dma-sg drivers actually can handle physically contiguous memory
+> > since they're behind an IOMMU; the drivers can then set the flag if needed.
+> 
+> All dma-sg drivers can handle phys contig memory since that's just one DMA descriptor.
+> 
+> The flag is meant to say that the buffer *has* to be phys contig, not that it might
+> be. So dma-sg drivers will not set it, since they don't have that requirement.
+
+I meant to say drivers using dma-contig, not dma-sg.
+
 -- 
-2.1.4
+regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
