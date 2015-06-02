@@ -1,42 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49820 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750877AbbFEK7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/10] sh-vou: fix incorrect initial pixelformat.
-Date: Fri,  5 Jun 2015 12:59:21 +0200
-Message-Id: <1433501966-30176-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+Received: from tex.lwn.net ([70.33.254.29]:36568 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539AbbFBDJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 23:09:04 -0400
+Date: Tue, 2 Jun 2015 12:08:59 +0900
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 32/35] DocBook: Provide a high-level description for DVB
+ frontend
+Message-ID: <20150602120859.485acc77@lwn.net>
+In-Reply-To: <575a0cc7bafa09eb42b50d404b93a0747135400b.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	<575a0cc7bafa09eb42b50d404b93a0747135400b.1432844837.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 28 May 2015 18:49:35 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-It was set to a format that wasn't supported.
+> +    Please notice that several statistics require the demodulator to be fully
+> +    locked (e. g. with FE_HAS_LOCK bit set). See
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+s/notice/note/
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 2adf16d..eaa432e 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1376,7 +1376,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	rect->height		= 480;
- 	pix->width		= VOU_MAX_IMAGE_WIDTH;
- 	pix->height		= 480;
--	pix->pixelformat	= V4L2_PIX_FMT_YVYU;
-+	pix->pixelformat	= V4L2_PIX_FMT_NV16;
- 	pix->field		= V4L2_FIELD_NONE;
- 	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH * 2;
- 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
--- 
-2.1.4
-
+jon
