@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:34019 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961AbbFNR3q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 13:29:46 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH/RFC] v4l: vsp1: Change pixel count at scale-up setting
-Date: Mon, 15 Jun 2015 02:29:14 +0900
-Message-Id: <1434302954-31273-1-git-send-email-ykaneko0929@gmail.com>
+Received: from gloria.sntech.de ([95.129.55.99]:40686 "EHLO gloria.sntech.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759226AbbFBOnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jun 2015 10:43:55 -0400
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] rc: gpio-ir-recv: don't sleep in irq handler
+Date: Tue, 02 Jun 2015 16:43:50 +0200
+Message-ID: <1607281.RSg8CEJ1UJ@diego>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Atsushi Akatsuka <atsushi.akatsuka.vb@hitachi.com>
+Don't allow sleep when getting the gpio value in the irq-handler.
+On my rk3288 board this results in might_sleep warnings when receiving
+data like:
 
-This commit sets AMD bit of VI6_UDSn_CTRL register,
-and modifies scaling formula to fit AMD bit.
+BUG: sleeping function called from invalid context at drivers/gpio/gpiolib.c:1531
+in_atomic(): 1, irqs_disabled(): 128, pid: 0, name: swapper/0
+CPU: 0 PID: 0 Comm: swapper/0 Tainted: P                4.1.0-rc5+ #2011
+Hardware name: Rockchip (Device Tree)
+[<c00189a0>] (unwind_backtrace) from [<c0013b04>] (show_stack+0x20/0x24)
+[<c0013b04>] (show_stack) from [<c0757970>] (dump_stack+0x8c/0xbc)
+[<c0757970>] (dump_stack) from [<c0053188>] (___might_sleep+0x238/0x284)
+[<c0053188>] (___might_sleep) from [<c0053264>] (__might_sleep+0x90/0xa4)
+[<c0053264>] (__might_sleep) from [<c02ff4ac>] (gpiod_get_raw_value_cansleep+0x28/0x44)
+[<c02ff4ac>] (gpiod_get_raw_value_cansleep) from [<bf0363c4>] (gpio_ir_recv_irq+0x24/0x6c [gpio_ir_recv])
+[<bf0363c4>] (gpio_ir_recv_irq [gpio_ir_recv]) from [<c008a78c>] (handle_irq_event_percpu+0x164/0x550)
+[<c008a78c>] (handle_irq_event_percpu) from [<c008abc4>] (handle_irq_event+0x4c/0x6c)
+[<c008abc4>] (handle_irq_event) from [<c008df88>] (handle_edge_irq+0x128/0x150)
+[<c008df88>] (handle_edge_irq) from [<c0089edc>] (generic_handle_irq+0x30/0x40)
+[<c0089edc>] (generic_handle_irq) from [<c02fc4cc>] (rockchip_irq_demux+0x158/0x210)
+[<c02fc4cc>] (rockchip_irq_demux) from [<c0089edc>] (generic_handle_irq+0x30/0x40)
+[<c0089edc>] (generic_handle_irq) from [<c008a058>] (__handle_domain_irq+0x98/0xc0)
+[<c008a058>] (__handle_domain_irq) from [<c00094a4>] (gic_handle_irq+0x4c/0x70)
+[<c00094a4>] (gic_handle_irq) from [<c0014684>] (__irq_svc+0x44/0x5c)
 
-Signed-off-by: Atsushi Akatsuka <atsushi.akatsuka.vb@hitachi.com>
-Signed-off-by: Hiroki Negishi <hiroki.negishi.zr@hitachi-solutions.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
 ---
+ drivers/media/rc/gpio-ir-recv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This patch is based on the master branch of linuxtv.org/media_tree.git.
-
- drivers/media/platform/vsp1/vsp1_uds.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index ccc8243..e7a046d 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -64,10 +64,10 @@ static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
- 		mp = ratio / 4096;
- 		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 229853d..e4d43cc 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -78,7 +78,7 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ 	int rc = 0;
+ 	enum raw_event_type type = IR_SPACE;
  
--		return (input - 1) / mp * mp * 4096 / ratio + 1;
-+		return input / mp * mp * 4096 / ratio;
- 	} else {
- 		/* Up-scaling */
--		return (input - 1) * 4096 / ratio + 1;
-+		return input * 4096 / ratio;
- 	}
- }
+-	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
++	gval = gpio_get_value(gpio_dev->gpio_nr);
  
-@@ -145,7 +145,8 @@ static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
- 
- 	vsp1_uds_write(uds, VI6_UDS_CTRL,
- 		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
--		       (multitap ? VI6_UDS_CTRL_BC : 0));
-+		       (multitap ? VI6_UDS_CTRL_BC : 0) |
-+		       VI6_UDS_CTRL_AMD);
- 
- 	vsp1_uds_write(uds, VI6_UDS_PASS_BWIDTH,
- 		       (uds_passband_width(hscale)
+ 	if (gval < 0)
+ 		goto err_get_value;
 -- 
-1.9.1
+2.1.4
+
 
