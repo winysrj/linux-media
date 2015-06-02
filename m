@@ -1,130 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37104 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754240AbbFJJVW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:21:22 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:48418 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751949AbbFBLvo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jun 2015 07:51:44 -0400
+Date: Tue, 2 Jun 2015 08:51:38 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 3/9] [media] vb2: Provide helpers for mapping virtual addresses
-Date: Wed, 10 Jun 2015 06:20:46 -0300
-Message-Id: <76f634393be69e0852566d910d46145f33649ce1.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 04/35] DocBook: fix emphasis at the DVB documentation
+Message-ID: <20150602085138.72d453e3@recife.lan>
+In-Reply-To: <20150602115604.54302981@lwn.net>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	<6674a17160ba2f80a4537d4dc9e501149c308706.1432844837.git.mchehab@osg.samsung.com>
+	<20150602115604.54302981@lwn.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+Em Tue, 02 Jun 2015 11:56:04 +0900
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Provide simple helper functions to map virtual address range into an
-array of pfns / pages.
+> On Thu, 28 May 2015 18:49:07 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> 
+> > Currently, it is using 'role="tt"', but this is not defined at
+> > the DocBook 4.5 spec. The net result is that no emphasis happens.
+> > 
+> > So, replace them to bold emphasis.
+> 
+> Nit: I suspect the intent of the "emphasis" here was to get the code in a
+> monospace font, which "bold" is unlikely to do.  Isn't there a
+> role="code" or something useful like that to use?  I'd have to go look.
 
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Good point! I think that emphasis only does italic (with is the default,
+and don't need role option) or bold on DocBook 4.5. 
 
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index 81c1ad8b2cf1..0ec186d41b9b 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
- 
- /**
-+ * vb2_create_framevec() - map virtual addresses to pfns
-+ * @start:	Virtual user address where we start mapping
-+ * @length:	Length of a range to map
-+ * @write:	Should we map for writing into the area
-+ *
-+ * This function allocates and fills in a vector with pfns corresponding to
-+ * virtual address range passed in arguments. If pfns have corresponding pages,
-+ * page references are also grabbed to pin pages in memory. The function
-+ * returns pointer to the vector on success and error pointer in case of
-+ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
-+ */
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write)
-+{
-+	int ret;
-+	unsigned long first, last;
-+	unsigned long nr;
-+	struct frame_vector *vec;
-+
-+	first = start >> PAGE_SHIFT;
-+	last = (start + length - 1) >> PAGE_SHIFT;
-+	nr = last - first + 1;
-+	vec = frame_vector_create(nr);
-+	if (!vec)
-+		return ERR_PTR(-ENOMEM);
-+	ret = get_vaddr_frames(start, nr, write, 1, vec);
-+	if (ret < 0)
-+		goto out_destroy;
-+	/* We accept only complete set of PFNs */
-+	if (ret != nr) {
-+		ret = -EFAULT;
-+		goto out_release;
-+	}
-+	return vec;
-+out_release:
-+	put_vaddr_frames(vec);
-+out_destroy:
-+	frame_vector_destroy(vec);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(vb2_create_framevec);
-+
-+/**
-+ * vb2_destroy_framevec() - release vector of mapped pfns
-+ * @vec:	vector of pfns / pages to release
-+ *
-+ * This releases references to all pages in the vector @vec (if corresponding
-+ * pfns are backed by pages) and frees the passed vector.
-+ */
-+void vb2_destroy_framevec(struct frame_vector *vec)
-+{
-+	put_vaddr_frames(vec);
-+	frame_vector_destroy(vec);
-+}
-+EXPORT_SYMBOL(vb2_destroy_framevec);
-+
-+/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index f05444ca8c0c..2f0564ff5f31 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -15,6 +15,7 @@
- #define _MEDIA_VIDEOBUF2_MEMOPS_H
- 
- #include <media/videobuf2-core.h>
-+#include <linux/mm.h>
- 
- /**
-  * vb2_vmarea_handler - common vma refcount tracking handler
-@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write);
-+void vb2_destroy_framevec(struct frame_vector *vec);
- 
- #endif
--- 
-2.4.2
+We're using <constant> on the places where we want a monospace font.
+That's probably the right tag there.
 
+For the record: this document was produced by merging two different
+documents: the V4L docbook (that used a legacy DocBook version - 3.x or
+2.x) and the DVB LaTex documentation, which was converted by some
+tool to docbook 3.x (or 2.x) to match the same DocBook spec that
+V4L were using. The 'role="tt"' came from such conversion. This
+were maintained together with the legacy Mercurial tree that was 
+used to contain the media drivers.
+
+When we moved to git, the DocBook got merged in the Kernel and
+another conversion was taken to allow compiling it using DocBook 4.x.
+We only checked the tags that didn't compile, but options with
+invalid arguments like 'role="tt"' where xmllint doesn't complain
+weren't touched.
+
+One question: any plans to update the documentation to DocBook schema?
+
+We're using either schema 4.1 or 4.2, with are both very old. The
+latest 4.x is 4.5, with was written back on 2006. So, except for historic
+reasons, are there any reason why keeping them at version 4.2? 
+I did a quick look at the DocBook specs (for 4.3, 4.4 and 4.5), 
+and they say that no backward compatible changes were done. So, using
+version 4.5 should be straightforward.
+
+I applied this patch here:
+
+--- a/Documentation/DocBook/media_api.tmpl
++++ b/Documentation/DocBook/media_api.tmpl
+@@ -2,2 +2,2 @@
+-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+-       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
++<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
++       "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+
+and compiled the media documentation with:
+
+make cleanmediadocs
+make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID 
+.* already defined"
+xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
+xmllint --noent --postvalid --noout /tmp/x.xml
+xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
+
+In order to try to produce errors. Everything seemed to work. On a quick
+look, the documentation looked fine, and no errors (except for some
+crappy element validity errors, with seems to be due to a bug on recent
+versions of the xml tools present on Fedora 22).
+
+Maybe 5.x would provide nicer documents, but converting to it doesn't
+seem too easy, although there are some semi-auto way of doing it,
+at least according with:
+	http://doccookbook.sourceforge.net/html/en/dbc.structure.db4-to-db5.html
+Not sure if worth the efforts to convert to 5.x.
+
+Regards,
+Mauro
