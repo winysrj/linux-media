@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34554 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754307AbbF2UwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 16:52:00 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>, <stable@vger.kernel.org>
-Subject: [Patch v2 1/1] media: am437x-vpfe: Fix a race condition during release
-Date: Mon, 29 Jun 2015 15:51:10 -0500
-Message-ID: <1435611070-3239-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46711 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605AbbFBW3N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 18:29:13 -0400
+Date: Tue, 2 Jun 2015 15:29:12 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
+Message-Id: <20150602152912.4851e6fd4213828ddf7eb5b2@linux-foundation.org>
+In-Reply-To: <20150602152300.GD17315@quack.suse.cz>
+References: <1431522495-4692-1-git-send-email-jack@suse.cz>
+	<1431522495-4692-3-git-send-email-jack@suse.cz>
+	<20150528162402.19a0a26a5b9eae36aa8050e5@linux-foundation.org>
+	<20150602152300.GD17315@quack.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a race condition where during cleanup/release operation
-on-going streaming would cause a kernel panic because the hardware
-module was disabled prematurely with IRQ still pending.
+On Tue, 2 Jun 2015 17:23:00 +0200 Jan Kara <jack@suse.cz> wrote:
 
-Fixes: 417d2e507ed [media] media: platform: add VPFE capture driver support for AM437X
-Cc: <stable@vger.kernel.org> # v4.0+
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
-Changes from v1:
-- Added stable reference
+> > That's a lump of new code which many kernels won't be needing.  Can we
+> > put all this in a new .c file and select it within drivers/media
+> > Kconfig?
+>   So the attached patch should do what you had in mind. OK?
 
- drivers/media/platform/am437x/am437x-vpfe.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+lgtm.
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index a30cc2f..eb25c43 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1185,14 +1185,21 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe)
- static int vpfe_release(struct file *file)
- {
- 	struct vpfe_device *vpfe = video_drvdata(file);
-+	bool fh_singular = v4l2_fh_is_singular_file(file);
- 	int ret;
- 
- 	mutex_lock(&vpfe->lock);
- 
--	if (v4l2_fh_is_singular_file(file))
--		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
-+	/* the release helper will cleanup any on-going streaming */
- 	ret = _vb2_fop_release(file, NULL);
- 
-+	/*
-+	 * If this was the last open file.
-+	 * Then de-initialize hw module.
-+	 */
-+	if (fh_singular)
-+		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
-+
- 	mutex_unlock(&vpfe->lock);
- 
- 	return ret;
--- 
-1.8.5.1
+>  drivers/gpu/drm/exynos/Kconfig      |   1 +
+>  drivers/media/platform/omap/Kconfig |   1 +
+>  drivers/media/v4l2-core/Kconfig     |   1 +
+>  mm/Kconfig                          |   3 +
+>  mm/Makefile                         |   1 +
+>  mm/frame-vec.c                      | 233 ++++++++++++++++++++++++++++++++++++
 
+But frame_vector.c would be a more pleasing name.  For `struct frame_vector'.
