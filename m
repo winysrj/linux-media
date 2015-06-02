@@ -1,326 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:49555 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276AbbF2K0N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:26:13 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Received: from mail.uni-paderborn.de ([131.234.142.9]:37000 "EHLO
+	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbbFBI4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 04:56:35 -0400
+MIME-Version: 1.0
+Date: Tue, 2 Jun 2015 10:39:19 +0200
+Message-ID: <CALcgO_6mcTpEORqWMVzPONYHZH-h8bBMDMddkKxSyrc7F3-oiQ@mail.gmail.com>
+Subject: [RFC] v4l: omap4iss: DT bindings development
+From: Michael Allwright <michael.allwright@upb.de>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv7 11/15] cec: adv7604: add cec support.
-Date: Mon, 29 Jun 2015 12:14:56 +0200
-Message-Id: <1435572900-56998-12-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Hi Everyone,
 
-Add CEC support to the adv7604 driver.
+I'm working on the DT bindings for the OMAP4 ISS at the moment, but I
+am unable to capture any data in my test setup. As detailed below, it
+seems that everything has been configured correctly however I never
+get any interrupts from the ISS unless I do something drastic like
+removing one of the wires from the clock differential pair which
+results in constant complex IO error interrupts from CSIA until I
+restore the physical connection.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-[k.debski@samsung.com: add missing methods cec/io_write_and_or]
-[k.debski@samsung.com: change adv7604 to adv76xx in added functions]
-[hansverk@cisco.com: use _clr_set instead of _and_or]
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 219 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 217 insertions(+), 2 deletions(-)
+My test setup includes a OV6540 sensor camera module (MIPI) from
+Lepoard Imaging, an Duovero COM from Gumstix and breakout boards
+forming an interconnect between the two. The sensor is connected to
+CSI21 on the OMAP4 using a clock lane (on position 1, default
+polarity) and a single data lane (on position 2, default polarity),
+the sensor input clock XVCLK uses the OMAP4 auxclk1_ck channel (rounds
+to 19.2MHz when asked for 24MHz).
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 808360f..a937391 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -39,6 +39,7 @@
- #include <linux/workqueue.h>
- 
- #include <media/adv7604.h>
-+#include <media/cec.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-dv-timings.h>
-@@ -78,6 +79,8 @@ MODULE_LICENSE("GPL");
- 
- #define ADV76XX_OP_SWAP_CB_CR				(1 << 0)
- 
-+#define ADV76XX_MAX_ADDRS (3)
-+
- enum adv76xx_type {
- 	ADV7604,
- 	ADV7611,
-@@ -181,6 +184,10 @@ struct adv76xx_state {
- 	u16 spa_port_a[2];
- 	struct v4l2_fract aspect_ratio;
- 	u32 rgb_quantization_range;
-+	u8   cec_addr[ADV76XX_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
-+
- 	struct workqueue_struct *work_queues;
- 	struct delayed_work delayed_work_enable_hotplug;
- 	bool restart_stdi_once;
-@@ -451,7 +458,8 @@ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_IO, reg, val);
- }
- 
--static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				   u8 val)
- {
- 	return io_write(sd, reg, (io_read(sd, reg) & ~mask) | val);
- }
-@@ -484,6 +492,12 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CEC, reg, val);
- }
- 
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				   u8 val)
-+{
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
-+}
-+
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -1897,6 +1911,188 @@ static int adv76xx_set_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static void adv76xx_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_ARB_LOST);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_OK);
-+		return;
-+	}
-+}
-+
-+static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
-+{
-+	struct cec_msg msg;
-+	u8 cec_irq;
-+
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x4d) & 0x0f;
-+	if (!cec_irq)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv76xx_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
-+		}
-+	}
-+
-+	/* note: the bit order is swapped between 0x4d and 0x4e */
-+	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
-+		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
-+	io_write(sd, 0x4e, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static unsigned adv76xx_cec_available_log_addrs(struct v4l2_subdev *sd)
-+{
-+	return ADV76XX_MAX_ADDRS;
-+}
-+
-+static int adv76xx_cec_enable(struct v4l2_subdev *sd, bool enable)
-+{
-+	struct adv76xx_state *state = to_state(sd);
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x01);	/* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_clr_set(sd, 0x11, 0x01, 0);  /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_clr_set(sd, 0x50, 0x0f, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_clr_set(sd, 0x50, 0x0f, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
-+		/* power down cec section */
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv76xx_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
-+{
-+	struct adv76xx_state *state = to_state(sd);
-+	unsigned i, free_idx = ADV76XX_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	for (i = 0; i < ADV76XX_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV76XX_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV76XX_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV76XX_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_clr_set(sd, 0x28, 0x0f, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x29, 0x0f, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv76xx_cec_transmit(struct v4l2_subdev *sd, struct cec_msg *msg)
-+{
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	if (len == 1)
-+		/* allow for one retry for polling */
-+		cec_write_clr_set(sd, 0x12, 0x07, 1);
-+	else
-+		/* allow for three retries */
-+		cec_write_clr_set(sd, 0x12, 0x07, 3);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
-+	/* For some reason sometimes the
-+	 * transmit won't start.
-+	 * Doing it twice seems to help ?
-+	*/
-+	cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
-+static void adv76xx_cec_transmit_timed_out(struct v4l2_subdev *sd)
-+{
-+	cec_write_clr_set(sd, 0x11, 0x01, 0);  /* disable tx */
-+}
-+
- static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -1943,6 +2139,9 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+	/* cec */
-+	adv76xx_cec_isr(sd, handled);
-+
- 	/* tx 5v detect */
- 	tx_5v = io_read(sd, 0x70) & info->cable_det_mask;
- 	if (tx_5v) {
-@@ -2250,8 +2449,19 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 			((edid_enabled & 0x02) ? "Yes" : "No"),
- 			((edid_enabled & 0x04) ? "Yes" : "No"),
- 			((edid_enabled & 0x08) ? "Yes" : "No"));
--	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
- 			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		int i;
-+
-+		for (i = 0; i < ADV76XX_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
-+	}
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	cable_det = info->read_cable_det(sd);
-@@ -2368,6 +2578,11 @@ static const struct v4l2_subdev_video_ops adv76xx_video_ops = {
- 	.s_dv_timings = adv76xx_s_dv_timings,
- 	.g_dv_timings = adv76xx_g_dv_timings,
- 	.query_dv_timings = adv76xx_query_dv_timings,
-+	.cec_available_log_addrs = adv76xx_cec_available_log_addrs,
-+	.cec_enable = adv76xx_cec_enable,
-+	.cec_log_addr = adv76xx_cec_log_addr,
-+	.cec_transmit = adv76xx_cec_transmit,
-+	.cec_transmit_timed_out = adv76xx_cec_transmit_timed_out,
- };
- 
- static const struct v4l2_subdev_pad_ops adv76xx_pad_ops = {
+The relevant parts of my device tree can be seen here:
+https://gist.github.com/allsey87/fdf1feb6eb6a94158638 - I'm actually
+somewhat unclear what effect stating the ti,hwmod="iss" parameter has.
+Does anything else need to be done here? As far as I can tell I think
+all clocks and power has been switched on. I do make two function
+calls to the PM API in the ISS probe function, i.e.:
+
+pm_runtime_enable(&pdev->dev);
+r = pm_runtime_get_sync(&pdev->dev);
+
+Regarding my debugging, this is what I have checked so far
+
+* Changing the pixel rate of the sensor - this lead me to discover a
+possible bug in iss.c or perhaps my ov5640 driver, as the
+V4L2_CID_PIXEL_RATE control was always returning zero. I patched this
+by copying what Laurent has done in the OMAP3ISP driver which now
+works.
+* As I only have a 100MHz scope, I had to slow down the camera
+significantly (MIPI clock => 10-12MHz range) to verify that I was
+getting reasonable output from the sensor (i.e. signals that were
+characteristic of CSI2/MIPI). I checked the calculations and made sure
+these updated values came across via the V4L2_CID_PIXEL_RATE control
+and ended up in the THS_TERM and THS_SETTLE fields of register 0.
+* Using the omapconf tool, I have manually and one by one pulled up
+the CSI2 pins and verified multiple times all connections to the
+sensor module and have even manually tried swapping the DP/DN pairs in
+case they were still somehow backwards despite previous testing
+* Verified that the interrupt service routine is called by generating
+a test interrupt HS_VS from inside the ISS i.e.
+
+./omapconf write ISS_HL_IRQENABLE_SET_5 0x00020000
+./omapconf write ISS_HL_IRQSTATUS_RAW_5 0x00020000
+
+* Verified that the default CMA region is being used, it ends up in
+the ping-pong resisters of the ISS.
+
+Additional information:
+
+* Initialisation of pipe line and stream commands:
+
+media-ctl -r -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS CSI2a output":0 [1]'
+media-ctl -V '"ov5640 2-003c":0 [UYVY 640x480]','"OMAP4 ISS CSI2a":0
+[UYVY 640x480]'
+yavta /dev/video0 -c4 -n1 -s640x480 -fUYVY -Fov5640-640x480-#.uyvy
+
+* Output from OMAPCONF tool is in the second part of:
+https://gist.github.com/allsey87/fdf1feb6eb6a94158638
+
+Anyway, at this point, I'm almost completely out of ideas on how to
+move forwards so any suggestions, criticisms or help of any nature
+would be appreciated!
+
+All the best,
+
 -- 
-2.1.4
+Michael Allwright
 
+PhD Student
+Paderborn Institute for Advanced Studies in Computer Science and Engineering
+
+University of Paderborn
+Office-number 02-47
+Zukunftsmeile 1
+33102 Paderborn
+Germany
