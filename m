@@ -1,71 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54150 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752015AbbFJVfB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 17:35:01 -0400
-Date: Thu, 11 Jun 2015 00:34:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, mchehab@osg.samsung.com
-Subject: Re: [PATCH v10 2/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Message-ID: <20150610213458.GQ5904@valkosipuli.retiisi.org.uk>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
- <1433754145-12765-3-git-send-email-j.anaszewski@samsung.com>
- <CAK5ve-+FojRu1Ti3doEUJrf+QF-=Hb7ku_wZZEP2TEnS0PK=2g@mail.gmail.com>
- <CAK5ve-L6MJ0RfE+9Spp1YCu3MZAJSNnK8pBX0bc_G_4dL6812w@mail.gmail.com>
- <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:33088 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771AbbFBWZc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 18:25:32 -0400
+Received: by wiwd19 with SMTP id d19so33526028wiw.0
+        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2015 15:25:31 -0700 (PDT)
+Received: from [192.168.0.3] (196.108.90.146.dyn.plus.net. [146.90.108.196])
+        by mx.google.com with ESMTPSA id r9sm28851436wjo.26.2015.06.02.15.25.30
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 02 Jun 2015 15:25:30 -0700 (PDT)
+Message-ID: <556E2D5B.5080201@gmail.com>
+Date: Tue, 02 Jun 2015 23:25:31 +0100
+From: Andy Furniss <adf.lists@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Subject: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt to
+ work when recording.
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+Running kernel 3.18.14 with git master v4l-utils and a pctv290e + a 292e.
 
-On Wed, Jun 10, 2015 at 11:12:50AM -0700, Bryan Wu wrote:
-> On Wed, Jun 10, 2015 at 11:01 AM, Bryan Wu <cooloney@gmail.com> wrote:
-> > On Wed, Jun 10, 2015 at 10:57 AM, Bryan Wu <cooloney@gmail.com> wrote:
-> >> On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
-> >> <j.anaszewski@samsung.com> wrote:
-> >>> This patch adds helper functions for registering/unregistering
-> >>> LED Flash class devices as V4L2 sub-devices. The functions should
-> >>> be called from the LED subsystem device driver. In case the
-> >>> support for V4L2 Flash sub-devices is disabled in the kernel
-> >>> config the functions' empty versions will be used.
-> >>>
-> >>
-> >> Please go ahead with my Ack
-> >>
-> >> Acked-by: Bryan Wu <cooloney@gmail.com>
-> >>
-> >
-> > I found the rest of LED patches depend on this one. What about merging
-> > this through my tree?
-> >
-> > -Bryan
-> >
-> >
-> 
-> Merged into my -devel branch and it won't be merged into 4.2.0 merge
-> window but wait for one more cycle, since now it's quite late in 4.1.0
-> cycle.
+If I try to record with dvbv5-zap and include the "p" option to get
+pat/pmt I get -
 
-Thanks!!
+read_sections: read error: Resource temporarily unavailable
+couldn't find pmt-pid for sid 10bf
 
-I briefly discussed this with Mauro (cc'd), this should be fine indeed.
+Doing this this fixes it for me (obviously not meant to be a a proper 
+patch).
 
--- 
-Kind regards,
+diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
+index 30d4eda..b520948 100644
+--- a/lib/libdvbv5/dvb-demux.c
++++ b/lib/libdvbv5/dvb-demux.c
+@@ -151,8 +151,10 @@ int dvb_get_pmt_pid(int patfd, int sid)
+                 if (((count = read(patfd, buf, sizeof(buft))) < 0) && 
+errno == EOVERFLOW)
+                 count = read(patfd, buf, sizeof(buft));
+                 if (count < 0) {
+-               perror("read_sections: read error");
+-               return -1;
++                       if (errno == EAGAIN) /*ADF*/
++                               continue;
++                       perror("read_sections: read error");
++                       return -1;
+                 }
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+                 section_length = ((buf[1] & 0x0f) << 8) | buf[2];
+
+
