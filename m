@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:10446 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040AbbF2K0B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:26:01 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org
-Subject: [PATCHv7 05/15] input.h: add BUS_CEC type
-Date: Mon, 29 Jun 2015 12:14:50 +0200
-Message-Id: <1435572900-56998-6-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:49999 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437AbbFBKUd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 06:20:33 -0400
+Date: Tue, 2 Jun 2015 13:20:00 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] m88ds3103: a couple missing error codes
+Message-ID: <20150602102000.GD11247@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inputs can come in over the HDMI CEC bus, so add a new type for this.
+We need to set some error codes here.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/input.h | 1 +
- 1 file changed, 1 insertion(+)
+Fixes: f01919e8f54f ('[media] m88ds3103: add I2C client binding')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index 7430a3f..0af80b2 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -984,6 +984,7 @@ struct input_keymap_entry {
- #define BUS_GSC			0x1A
- #define BUS_ATARI		0x1B
- #define BUS_SPI			0x1C
-+#define BUS_CEC			0x1D
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 01b9ded..7b21f1a 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1563,6 +1563,7 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 		u8tmp = 0x10;
+ 		break;
+ 	default:
++		ret = -EINVAL;
+ 		goto err_kfree;
+ 	}
  
- /*
-  * MT_TOOL types
--- 
-2.1.4
-
+@@ -1590,8 +1591,10 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 	dev->i2c_adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+ 					       dev, 0, 0, 0, m88ds3103_select,
+ 					       m88ds3103_deselect);
+-	if (dev->i2c_adapter == NULL)
++	if (dev->i2c_adapter == NULL) {
++		ret = -ENOMEM;
+ 		goto err_kfree;
++	}
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
