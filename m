@@ -1,76 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:63564 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750788AbbFUQkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jun 2015 12:40:53 -0400
-Date: Sun, 21 Jun 2015 18:40:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 01/14] sh-veu: initialize timestamp_flags and copy
- timestamp info
-In-Reply-To: <1434368021-7467-2-git-send-email-hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1506211840210.7745@axis700.grange>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
- <1434368021-7467-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59442 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932207AbbFBJN6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 05:13:58 -0400
+Message-id: <556D73D2.20600@samsung.com>
+Date: Tue, 02 Jun 2015 11:13:54 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v9 2/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
+ <1432566843-6391-3-git-send-email-j.anaszewski@samsung.com>
+ <20150601205921.GH25595@valkosipuli.retiisi.org.uk>
+In-reply-to: <20150601205921.GH25595@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 15 Jun 2015, Hans Verkuil wrote:
+Hi Sakari,
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This field wasn't set, causing WARN_ON's from the vb2 core.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/01/2015 10:59 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Mon, May 25, 2015 at 05:13:57PM +0200, Jacek Anaszewski wrote:
+>> This patch adds helper functions for registering/unregistering
+>> LED Flash class devices as V4L2 sub-devices. The functions should
+>> be called from the LED subsystem device driver. In case the
+>> support for V4L2 Flash sub-devices is disabled in the kernel
+>> config the functions' empty versions will be used.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Thanks for adding indicator support!
+>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+I missed one thing - sysfs interface of the indicator LED class
+also has to be disabled/enabled of v4l2_flash_open/close.
 
-Thanks
-Guennadi
+I am planning to reimplement the functions as follows,
+please let me know if you see any issues here:
 
-> ---
->  drivers/media/platform/sh_veu.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-> index 2554f37..77a74d3 100644
-> --- a/drivers/media/platform/sh_veu.c
-> +++ b/drivers/media/platform/sh_veu.c
-> @@ -958,6 +958,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
->  	src_vq->ops = &sh_veu_qops;
->  	src_vq->mem_ops = &vb2_dma_contig_memops;
->  	src_vq->lock = &veu->fop_lock;
-> +	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  
->  	ret = vb2_queue_init(src_vq);
->  	if (ret < 0)
-> @@ -971,6 +972,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
->  	dst_vq->ops = &sh_veu_qops;
->  	dst_vq->mem_ops = &vb2_dma_contig_memops;
->  	dst_vq->lock = &veu->fop_lock;
-> +	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  
->  	return vb2_queue_init(dst_vq);
->  }
-> @@ -1103,6 +1105,12 @@ static irqreturn_t sh_veu_isr(int irq, void *dev_id)
->  	if (!src || !dst)
->  		return IRQ_NONE;
->  
-> +	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
-> +	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +	dst->v4l2_buf.flags |=
-> +		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
-> +
->  	spin_lock(&veu->lock);
->  	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
-> -- 
-> 2.1.4
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh 
+*fh)
+{
+         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd); 
+
+         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev; 
+
+         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev; 
+
+         struct led_classdev *led_cdev_ind; 
+
+         int ret = 0; 
+
+
+         mutex_lock(&led_cdev->led_access); 
+
+
+         if (!v4l2_fh_is_singular(&fh->vfh)) 
+
+                 goto unlock; 
+
+
+         led_sysfs_disable(led_cdev);
+         led_trigger_remove(led_cdev); 
+
+
+         if (iled_cdev) {
+                 led_cdev_ind = &iled_cdev->led_cdev; 
+
+
+                 mutex_lock(&led_cdev_ind->led_access); 
+
+
+                 led_sysfs_disable(led_cdev_ind);
+                 led_trigger_remove(led_cdev_ind); 
+
+
+                 mutex_unlock(&led_cdev_ind->led_access); 
+
+         } 
+
+
+         ret = __sync_device_with_v4l2_controls(v4l2_flash); 
+
+
+unlock:
+         mutex_unlock(&led_cdev->led_access); 
+
+         return ret; 
+
+} 
+
+
+static int v4l2_flash_close(struct v4l2_subdev *sd, struct 
+v4l2_subdev_fh *fh)
+{
+         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd); 
+
+         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev; 
+
+         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev; 
+
+         struct led_classdev *led_cdev_ind; 
+
+         int ret = 0; 
+
+
+         mutex_lock(&led_cdev->led_access); 
+
+
+         if (v4l2_fh_is_singular(&fh->vfh)) {
+                 if (v4l2_flash->ctrls[STROBE_SOURCE])
+                         ret = 
+v4l2_ctrl_s_ctrl(v4l2_flash->ctrls[STROBE_SV4L2_FLASH_STROBE_SOURCE_SOFTWARE); 
+
+                 led_sysfs_enable(led_cdev); 
+
+
+                 if (iled_cdev) {
+                         led_cdev_ind = &iled_cdev->led_cdev; 
+
+
+                         mutex_lock(&led_cdev_ind->led_access); 
+
+
+                         led_sysfs_enable(led_cdev_ind); 
+
+
+                         mutex_unlock(&led_cdev_ind->led_access); 
+
+                 } 
+
+
+         } 
+
+
+         mutex_unlock(&led_cdev->led_access); 
+
+
+         return ret; 
+
+}
+
+
+-- 
+Best Regards,
+Jacek Anaszewski
