@@ -1,1545 +1,947 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33861 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555AbbFFL7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 07:59:10 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 6/8] m88ds3103: rename variables and correct logging
-Date: Sat,  6 Jun 2015 14:58:46 +0300
-Message-Id: <1433591928-30915-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1433591928-30915-1-git-send-email-crope@iki.fi>
-References: <1433591928-30915-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49395 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755022AbbFBHa4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jun 2015 03:30:56 -0400
+Date: Tue, 2 Jun 2015 10:30:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: i2c: add new driver for single string flash.
+Message-ID: <20150602073022.GK25595@valkosipuli.retiisi.org.uk>
+References: <1421655923-20466-1-git-send-email-gshark.jeong@gmail.com>
+ <1421659754.31903.41.camel@linux.intel.com>
+ <54BEFCE5.6020901@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <54BEFCE5.6020901@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename driver state from priv to dev.
-Use I2C client for correct logging.
-Use adapter and address from I2C client structure where needed.
+Hi Daniel and Andy,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/Kconfig          |   2 +-
- drivers/media/dvb-frontends/m88ds3103.c      | 538 +++++++++++++--------------
- drivers/media/dvb-frontends/m88ds3103.h      |   2 +-
- drivers/media/dvb-frontends/m88ds3103_priv.h |   5 +-
- 4 files changed, 267 insertions(+), 280 deletions(-)
+My apologies for a late answer; you can always ping me.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index ba65a00..b7627ca 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -36,7 +36,7 @@ config DVB_STV6110x
- 	  A Silicon tuner that supports DVB-S and DVB-S2 modes
- 
- config DVB_M88DS3103
--	tristate "Montage M88DS3103"
-+	tristate "Montage Technology M88DS3103"
- 	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 7b21f1a..c4d5a7a 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1,5 +1,5 @@
- /*
-- * Montage M88DS3103/M88RS6000 demodulator driver
-+ * Montage Technology M88DS3103/M88RS6000 demodulator driver
-  *
-  * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-  *
-@@ -19,16 +19,17 @@
- static struct dvb_frontend_ops m88ds3103_ops;
- 
- /* write multiple registers */
--static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
-+static int m88ds3103_wr_regs(struct m88ds3103_dev *dev,
- 		u8 reg, const u8 *val, int len)
- {
- #define MAX_WR_LEN 32
- #define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 buf[MAX_WR_XFER_LEN];
- 	struct i2c_msg msg[1] = {
- 		{
--			.addr = priv->cfg->i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 1 + len,
- 			.buf = buf,
-@@ -41,15 +42,14 @@ static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
- 	buf[0] = reg;
- 	memcpy(&buf[1], val, len);
- 
--	mutex_lock(&priv->i2c_mutex);
--	ret = i2c_transfer(priv->i2c, msg, 1);
--	mutex_unlock(&priv->i2c_mutex);
-+	mutex_lock(&dev->i2c_mutex);
-+	ret = i2c_transfer(client->adapter, msg, 1);
-+	mutex_unlock(&dev->i2c_mutex);
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev,
--				"%s: i2c wr failed=%d reg=%02x len=%d\n",
--				KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&client->dev, "i2c wr failed=%d reg=%02x len=%d\n",
-+			 ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
- 
-@@ -57,21 +57,22 @@ static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
- }
- 
- /* read multiple registers */
--static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
-+static int m88ds3103_rd_regs(struct m88ds3103_dev *dev,
- 		u8 reg, u8 *val, int len)
- {
- #define MAX_RD_LEN 3
- #define MAX_RD_XFER_LEN (MAX_RD_LEN)
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 buf[MAX_RD_XFER_LEN];
- 	struct i2c_msg msg[2] = {
- 		{
--			.addr = priv->cfg->i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 1,
- 			.buf = &reg,
- 		}, {
--			.addr = priv->cfg->i2c_addr,
-+			.addr = client->addr,
- 			.flags = I2C_M_RD,
- 			.len = len,
- 			.buf = buf,
-@@ -81,16 +82,15 @@ static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
- 	if (WARN_ON(len > MAX_RD_LEN))
- 		return -EINVAL;
- 
--	mutex_lock(&priv->i2c_mutex);
--	ret = i2c_transfer(priv->i2c, msg, 2);
--	mutex_unlock(&priv->i2c_mutex);
-+	mutex_lock(&dev->i2c_mutex);
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+	mutex_unlock(&dev->i2c_mutex);
- 	if (ret == 2) {
- 		memcpy(val, buf, len);
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev,
--				"%s: i2c rd failed=%d reg=%02x len=%d\n",
--				KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&client->dev, "i2c rd failed=%d reg=%02x len=%d\n",
-+			 ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
- 
-@@ -98,19 +98,19 @@ static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
- }
- 
- /* write single register */
--static int m88ds3103_wr_reg(struct m88ds3103_priv *priv, u8 reg, u8 val)
-+static int m88ds3103_wr_reg(struct m88ds3103_dev *dev, u8 reg, u8 val)
- {
--	return m88ds3103_wr_regs(priv, reg, &val, 1);
-+	return m88ds3103_wr_regs(dev, reg, &val, 1);
- }
- 
- /* read single register */
--static int m88ds3103_rd_reg(struct m88ds3103_priv *priv, u8 reg, u8 *val)
-+static int m88ds3103_rd_reg(struct m88ds3103_dev *dev, u8 reg, u8 *val)
- {
--	return m88ds3103_rd_regs(priv, reg, val, 1);
-+	return m88ds3103_rd_regs(dev, reg, val, 1);
- }
- 
- /* write single register with mask */
--static int m88ds3103_wr_reg_mask(struct m88ds3103_priv *priv,
-+static int m88ds3103_wr_reg_mask(struct m88ds3103_dev *dev,
- 		u8 reg, u8 val, u8 mask)
- {
- 	int ret;
-@@ -118,7 +118,7 @@ static int m88ds3103_wr_reg_mask(struct m88ds3103_priv *priv,
- 
- 	/* no need for read if whole reg is written */
- 	if (mask != 0xff) {
--		ret = m88ds3103_rd_regs(priv, reg, &u8tmp, 1);
-+		ret = m88ds3103_rd_regs(dev, reg, &u8tmp, 1);
- 		if (ret)
- 			return ret;
- 
-@@ -127,17 +127,17 @@ static int m88ds3103_wr_reg_mask(struct m88ds3103_priv *priv,
- 		val |= u8tmp;
- 	}
- 
--	return m88ds3103_wr_regs(priv, reg, &val, 1);
-+	return m88ds3103_wr_regs(dev, reg, &val, 1);
- }
- 
- /* read single register with mask */
--static int m88ds3103_rd_reg_mask(struct m88ds3103_priv *priv,
-+static int m88ds3103_rd_reg_mask(struct m88ds3103_dev *dev,
- 		u8 reg, u8 *val, u8 mask)
- {
- 	int ret, i;
- 	u8 u8tmp;
- 
--	ret = m88ds3103_rd_regs(priv, reg, &u8tmp, 1);
-+	ret = m88ds3103_rd_regs(dev, reg, &u8tmp, 1);
- 	if (ret)
- 		return ret;
- 
-@@ -154,13 +154,14 @@ static int m88ds3103_rd_reg_mask(struct m88ds3103_priv *priv,
- }
- 
- /* write reg val table using reg addr auto increment */
--static int m88ds3103_wr_reg_val_tab(struct m88ds3103_priv *priv,
-+static int m88ds3103_wr_reg_val_tab(struct m88ds3103_dev *dev,
- 		const struct m88ds3103_reg_val *tab, int tab_len)
- {
-+	struct i2c_client *client = dev->client;
- 	int ret, i, j;
- 	u8 buf[83];
- 
--	dev_dbg(&priv->i2c->dev, "%s: tab_len=%d\n", __func__, tab_len);
-+	dev_dbg(&client->dev, "tab_len=%d\n", tab_len);
- 
- 	if (tab_len > 86) {
- 		ret = -EINVAL;
-@@ -171,8 +172,8 @@ static int m88ds3103_wr_reg_val_tab(struct m88ds3103_priv *priv,
- 		buf[j] = tab[i].val;
- 
- 		if (i == tab_len - 1 || tab[i].reg != tab[i + 1].reg - 1 ||
--				!((j + 1) % (priv->cfg->i2c_wr_max - 1))) {
--			ret = m88ds3103_wr_regs(priv, tab[i].reg - j, buf, j + 1);
-+				!((j + 1) % (dev->cfg->i2c_wr_max - 1))) {
-+			ret = m88ds3103_wr_regs(dev, tab[i].reg - j, buf, j + 1);
- 			if (ret)
- 				goto err;
- 
-@@ -182,13 +183,14 @@ static int m88ds3103_wr_reg_val_tab(struct m88ds3103_priv *priv,
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, itmp;
- 	u8 u8tmp;
-@@ -196,14 +198,14 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	*status = 0;
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBS:
--		ret = m88ds3103_rd_reg_mask(priv, 0xd1, &u8tmp, 0x07);
-+		ret = m88ds3103_rd_reg_mask(dev, 0xd1, &u8tmp, 0x07);
- 		if (ret)
- 			goto err;
- 
-@@ -213,7 +215,7 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 					FE_HAS_LOCK;
- 		break;
- 	case SYS_DVBS2:
--		ret = m88ds3103_rd_reg_mask(priv, 0x0d, &u8tmp, 0x8f);
-+		ret = m88ds3103_rd_reg_mask(dev, 0x0d, &u8tmp, 0x8f);
- 		if (ret)
- 			goto err;
- 
-@@ -223,19 +225,17 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 					FE_HAS_LOCK;
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid delivery_system\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	priv->fe_status = *status;
-+	dev->fe_status = *status;
- 
--	dev_dbg(&priv->i2c->dev, "%s: lock=%02x status=%02x\n",
--			__func__, u8tmp, *status);
-+	dev_dbg(&client->dev, "lock=%02x status=%02x\n", u8tmp, *status);
- 
- 	/* CNR */
--	if (priv->fe_status & FE_HAS_VITERBI) {
-+	if (dev->fe_status & FE_HAS_VITERBI) {
- 		unsigned int cnr, noise, signal, noise_tot, signal_tot;
- 
- 		cnr = 0;
-@@ -247,7 +247,7 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 			itmp = 0;
- 
- 			for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
--				ret = m88ds3103_rd_reg(priv, 0xff, &buf[0]);
-+				ret = m88ds3103_rd_reg(dev, 0xff, &buf[0]);
- 				if (ret)
- 					goto err;
- 
-@@ -265,7 +265,7 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 			signal_tot = 0;
- 
- 			for (i = 0; i < M88DS3103_SNR_ITERATIONS; i++) {
--				ret = m88ds3103_rd_regs(priv, 0x8c, buf, 3);
-+				ret = m88ds3103_rd_regs(dev, 0x8c, buf, 3);
- 				if (ret)
- 					goto err;
- 
-@@ -289,8 +289,7 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 			}
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev,
--				"%s: invalid delivery_system\n", __func__);
-+			dev_dbg(&client->dev, "invalid delivery_system\n");
- 			ret = -EINVAL;
- 			goto err;
- 		}
-@@ -306,40 +305,40 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	}
- 
- 	/* BER */
--	if (priv->fe_status & FE_HAS_LOCK) {
-+	if (dev->fe_status & FE_HAS_LOCK) {
- 		unsigned int utmp, post_bit_error, post_bit_count;
- 
- 		switch (c->delivery_system) {
- 		case SYS_DVBS:
--			ret = m88ds3103_wr_reg(priv, 0xf9, 0x04);
-+			ret = m88ds3103_wr_reg(dev, 0xf9, 0x04);
- 			if (ret)
- 				goto err;
- 
--			ret = m88ds3103_rd_reg(priv, 0xf8, &u8tmp);
-+			ret = m88ds3103_rd_reg(dev, 0xf8, &u8tmp);
- 			if (ret)
- 				goto err;
- 
- 			/* measurement ready? */
- 			if (!(u8tmp & 0x10)) {
--				ret = m88ds3103_rd_regs(priv, 0xf6, buf, 2);
-+				ret = m88ds3103_rd_regs(dev, 0xf6, buf, 2);
- 				if (ret)
- 					goto err;
- 
- 				post_bit_error = buf[1] << 8 | buf[0] << 0;
- 				post_bit_count = 0x800000;
--				priv->post_bit_error += post_bit_error;
--				priv->post_bit_count += post_bit_count;
--				priv->dvbv3_ber = post_bit_error;
-+				dev->post_bit_error += post_bit_error;
-+				dev->post_bit_count += post_bit_count;
-+				dev->dvbv3_ber = post_bit_error;
- 
- 				/* restart measurement */
- 				u8tmp |= 0x10;
--				ret = m88ds3103_wr_reg(priv, 0xf8, u8tmp);
-+				ret = m88ds3103_wr_reg(dev, 0xf8, u8tmp);
- 				if (ret)
- 					goto err;
- 			}
- 			break;
- 		case SYS_DVBS2:
--			ret = m88ds3103_rd_regs(priv, 0xd5, buf, 3);
-+			ret = m88ds3103_rd_regs(dev, 0xd5, buf, 3);
- 			if (ret)
- 				goto err;
- 
-@@ -347,45 +346,44 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 			/* enough data? */
- 			if (utmp > 4000) {
--				ret = m88ds3103_rd_regs(priv, 0xf7, buf, 2);
-+				ret = m88ds3103_rd_regs(dev, 0xf7, buf, 2);
- 				if (ret)
- 					goto err;
- 
- 				post_bit_error = buf[1] << 8 | buf[0] << 0;
- 				post_bit_count = 32 * utmp; /* TODO: FEC */
--				priv->post_bit_error += post_bit_error;
--				priv->post_bit_count += post_bit_count;
--				priv->dvbv3_ber = post_bit_error;
-+				dev->post_bit_error += post_bit_error;
-+				dev->post_bit_count += post_bit_count;
-+				dev->dvbv3_ber = post_bit_error;
- 
- 				/* restart measurement */
--				ret = m88ds3103_wr_reg(priv, 0xd1, 0x01);
-+				ret = m88ds3103_wr_reg(dev, 0xd1, 0x01);
- 				if (ret)
- 					goto err;
- 
--				ret = m88ds3103_wr_reg(priv, 0xf9, 0x01);
-+				ret = m88ds3103_wr_reg(dev, 0xf9, 0x01);
- 				if (ret)
- 					goto err;
- 
--				ret = m88ds3103_wr_reg(priv, 0xf9, 0x00);
-+				ret = m88ds3103_wr_reg(dev, 0xf9, 0x00);
- 				if (ret)
- 					goto err;
- 
--				ret = m88ds3103_wr_reg(priv, 0xd1, 0x00);
-+				ret = m88ds3103_wr_reg(dev, 0xd1, 0x00);
- 				if (ret)
- 					goto err;
- 			}
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev,
--				"%s: invalid delivery_system\n", __func__);
-+			dev_dbg(&client->dev, "invalid delivery_system\n");
- 			ret = -EINVAL;
- 			goto err;
- 		}
- 
- 		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
--		c->post_bit_error.stat[0].uvalue = priv->post_bit_error;
-+		c->post_bit_error.stat[0].uvalue = dev->post_bit_error;
- 		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
--		c->post_bit_count.stat[0].uvalue = priv->post_bit_count;
-+		c->post_bit_count.stat[0].uvalue = dev->post_bit_count;
- 	} else {
- 		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-@@ -393,13 +391,14 @@ static int m88ds3103_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, len;
- 	const struct m88ds3103_reg_val *init;
-@@ -409,29 +408,28 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	u32 tuner_frequency, target_mclk;
- 	s32 s32tmp;
- 
--	dev_dbg(&priv->i2c->dev,
--			"%s: delivery_system=%d modulation=%d frequency=%d symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
--			__func__, c->delivery_system,
--			c->modulation, c->frequency, c->symbol_rate,
--			c->inversion, c->pilot, c->rolloff);
-+	dev_dbg(&client->dev,
-+		"delivery_system=%d modulation=%d frequency=%u symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
-+		c->delivery_system, c->modulation, c->frequency, c->symbol_rate,
-+		c->inversion, c->pilot, c->rolloff);
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
- 
- 	/* reset */
--	ret = m88ds3103_wr_reg(priv, 0x07, 0x80);
-+	ret = m88ds3103_wr_reg(dev, 0x07, 0x80);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0x07, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0x07, 0x00);
- 	if (ret)
- 		goto err;
- 
- 	/* Disable demod clock path */
--	if (priv->chip_id == M88RS6000_CHIP_ID) {
--		ret = m88ds3103_wr_reg(priv, 0x06, 0xe0);
-+	if (dev->chip_id == M88RS6000_CHIP_ID) {
-+		ret = m88ds3103_wr_reg(dev, 0x06, 0xe0);
- 		if (ret)
- 			goto err;
- 	}
-@@ -457,11 +455,11 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	}
- 
- 	/* select M88RS6000 demod main mclk and ts mclk from tuner die. */
--	if (priv->chip_id == M88RS6000_CHIP_ID) {
-+	if (dev->chip_id == M88RS6000_CHIP_ID) {
- 		if (c->symbol_rate > 45010000)
--			priv->mclk_khz = 110250;
-+			dev->mclk_khz = 110250;
- 		else
--			priv->mclk_khz = 96000;
-+			dev->mclk_khz = 96000;
- 
- 		if (c->delivery_system == SYS_DVBS)
- 			target_mclk = 96000;
-@@ -469,18 +467,18 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			target_mclk = 144000;
- 
- 		/* Enable demod clock path */
--		ret = m88ds3103_wr_reg(priv, 0x06, 0x00);
-+		ret = m88ds3103_wr_reg(dev, 0x06, 0x00);
- 		if (ret)
- 			goto err;
- 		usleep_range(10000, 20000);
- 	} else {
- 	/* set M88DS3103 mclk and ts mclk. */
--		priv->mclk_khz = 96000;
-+		dev->mclk_khz = 96000;
- 
--		switch (priv->cfg->ts_mode) {
-+		switch (dev->cfg->ts_mode) {
- 		case M88DS3103_TS_SERIAL:
- 		case M88DS3103_TS_SERIAL_D7:
--			target_mclk = priv->cfg->ts_clk;
-+			target_mclk = dev->cfg->ts_clk;
- 			break;
- 		case M88DS3103_TS_PARALLEL:
- 		case M88DS3103_TS_CI:
-@@ -496,8 +494,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			}
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n",
--					__func__);
-+			dev_dbg(&client->dev, "invalid ts_mode\n");
- 			ret = -EINVAL;
- 			goto err;
- 		}
-@@ -516,25 +513,25 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			u8tmp2 = 0x00; /* 0b00 */
- 			break;
- 		}
--		ret = m88ds3103_wr_reg_mask(priv, 0x22, u8tmp1 << 6, 0xc0);
-+		ret = m88ds3103_wr_reg_mask(dev, 0x22, u8tmp1 << 6, 0xc0);
- 		if (ret)
- 			goto err;
--		ret = m88ds3103_wr_reg_mask(priv, 0x24, u8tmp2 << 6, 0xc0);
-+		ret = m88ds3103_wr_reg_mask(dev, 0x24, u8tmp2 << 6, 0xc0);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = m88ds3103_wr_reg(priv, 0xb2, 0x01);
-+	ret = m88ds3103_wr_reg(dev, 0xb2, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0x00, 0x01);
-+	ret = m88ds3103_wr_reg(dev, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBS:
--		if (priv->chip_id == M88RS6000_CHIP_ID) {
-+		if (dev->chip_id == M88RS6000_CHIP_ID) {
- 			len = ARRAY_SIZE(m88rs6000_dvbs_init_reg_vals);
- 			init = m88rs6000_dvbs_init_reg_vals;
- 		} else {
-@@ -543,7 +540,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		}
- 		break;
- 	case SYS_DVBS2:
--		if (priv->chip_id == M88RS6000_CHIP_ID) {
-+		if (dev->chip_id == M88RS6000_CHIP_ID) {
- 			len = ARRAY_SIZE(m88rs6000_dvbs2_init_reg_vals);
- 			init = m88rs6000_dvbs2_init_reg_vals;
- 		} else {
-@@ -552,44 +549,43 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		}
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid delivery_system\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
- 	/* program init table */
--	if (c->delivery_system != priv->delivery_system) {
--		ret = m88ds3103_wr_reg_val_tab(priv, init, len);
-+	if (c->delivery_system != dev->delivery_system) {
-+		ret = m88ds3103_wr_reg_val_tab(dev, init, len);
- 		if (ret)
- 			goto err;
- 	}
- 
--	if (priv->chip_id == M88RS6000_CHIP_ID) {
-+	if (dev->chip_id == M88RS6000_CHIP_ID) {
- 		if ((c->delivery_system == SYS_DVBS2)
- 			&& ((c->symbol_rate / 1000) <= 5000)) {
--			ret = m88ds3103_wr_reg(priv, 0xc0, 0x04);
-+			ret = m88ds3103_wr_reg(dev, 0xc0, 0x04);
- 			if (ret)
- 				goto err;
- 			buf[0] = 0x09;
- 			buf[1] = 0x22;
- 			buf[2] = 0x88;
--			ret = m88ds3103_wr_regs(priv, 0x8a, buf, 3);
-+			ret = m88ds3103_wr_regs(dev, 0x8a, buf, 3);
- 			if (ret)
- 				goto err;
- 		}
--		ret = m88ds3103_wr_reg_mask(priv, 0x9d, 0x08, 0x08);
-+		ret = m88ds3103_wr_reg_mask(dev, 0x9d, 0x08, 0x08);
- 		if (ret)
- 			goto err;
--		ret = m88ds3103_wr_reg(priv, 0xf1, 0x01);
-+		ret = m88ds3103_wr_reg(dev, 0xf1, 0x01);
- 		if (ret)
- 			goto err;
--		ret = m88ds3103_wr_reg_mask(priv, 0x30, 0x80, 0x80);
-+		ret = m88ds3103_wr_reg_mask(dev, 0x30, 0x80, 0x80);
- 		if (ret)
- 			goto err;
- 	}
- 
--	switch (priv->cfg->ts_mode) {
-+	switch (dev->cfg->ts_mode) {
- 	case M88DS3103_TS_SERIAL:
- 		u8tmp1 = 0x00;
- 		u8tmp = 0x06;
-@@ -605,39 +601,39 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		u8tmp = 0x03;
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid ts_mode\n", __func__);
-+		dev_dbg(&client->dev, "invalid ts_mode\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	if (priv->cfg->ts_clk_pol)
-+	if (dev->cfg->ts_clk_pol)
- 		u8tmp |= 0x40;
- 
- 	/* TS mode */
--	ret = m88ds3103_wr_reg(priv, 0xfd, u8tmp);
-+	ret = m88ds3103_wr_reg(dev, 0xfd, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	switch (priv->cfg->ts_mode) {
-+	switch (dev->cfg->ts_mode) {
- 	case M88DS3103_TS_SERIAL:
- 	case M88DS3103_TS_SERIAL_D7:
--		ret = m88ds3103_wr_reg_mask(priv, 0x29, u8tmp1, 0x20);
-+		ret = m88ds3103_wr_reg_mask(dev, 0x29, u8tmp1, 0x20);
- 		if (ret)
- 			goto err;
- 		u8tmp1 = 0;
- 		u8tmp2 = 0;
- 		break;
- 	default:
--		if (priv->cfg->ts_clk) {
--			divide_ratio = DIV_ROUND_UP(target_mclk, priv->cfg->ts_clk);
-+		if (dev->cfg->ts_clk) {
-+			divide_ratio = DIV_ROUND_UP(target_mclk, dev->cfg->ts_clk);
- 			u8tmp1 = divide_ratio / 2;
- 			u8tmp2 = DIV_ROUND_UP(divide_ratio, 2);
- 		}
- 	}
- 
--	dev_dbg(&priv->i2c->dev,
--			"%s: target_mclk=%d ts_clk=%d divide_ratio=%d\n",
--			__func__, target_mclk, priv->cfg->ts_clk, divide_ratio);
-+	dev_dbg(&client->dev,
-+		"target_mclk=%d ts_clk=%d divide_ratio=%d\n",
-+		target_mclk, dev->cfg->ts_clk, divide_ratio);
- 
- 	u8tmp1--;
- 	u8tmp2--;
-@@ -646,17 +642,17 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	/* u8tmp2[5:0] => ea[5:0] */
- 	u8tmp2 &= 0x3f;
- 
--	ret = m88ds3103_rd_reg(priv, 0xfe, &u8tmp);
-+	ret = m88ds3103_rd_reg(dev, 0xfe, &u8tmp);
- 	if (ret)
- 		goto err;
- 
- 	u8tmp = ((u8tmp  & 0xf0) << 0) | u8tmp1 >> 2;
--	ret = m88ds3103_wr_reg(priv, 0xfe, u8tmp);
-+	ret = m88ds3103_wr_reg(dev, 0xfe, u8tmp);
- 	if (ret)
- 		goto err;
- 
- 	u8tmp = ((u8tmp1 & 0x03) << 6) | u8tmp2 >> 0;
--	ret = m88ds3103_wr_reg(priv, 0xea, u8tmp);
-+	ret = m88ds3103_wr_reg(dev, 0xea, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -667,182 +663,181 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	else
- 		u8tmp = 0x06;
- 
--	ret = m88ds3103_wr_reg(priv, 0xc3, 0x08);
-+	ret = m88ds3103_wr_reg(dev, 0xc3, 0x08);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0xc8, u8tmp);
-+	ret = m88ds3103_wr_reg(dev, 0xc8, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0xc4, 0x08);
-+	ret = m88ds3103_wr_reg(dev, 0xc4, 0x08);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0xc7, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0xc7, 0x00);
- 	if (ret)
- 		goto err;
- 
--	u16tmp = DIV_ROUND_CLOSEST((c->symbol_rate / 1000) << 15, priv->mclk_khz / 2);
-+	u16tmp = DIV_ROUND_CLOSEST((c->symbol_rate / 1000) << 15, dev->mclk_khz / 2);
- 	buf[0] = (u16tmp >> 0) & 0xff;
- 	buf[1] = (u16tmp >> 8) & 0xff;
--	ret = m88ds3103_wr_regs(priv, 0x61, buf, 2);
-+	ret = m88ds3103_wr_regs(dev, 0x61, buf, 2);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x4d, priv->cfg->spec_inv << 1, 0x02);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x4d, dev->cfg->spec_inv << 1, 0x02);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x30, priv->cfg->agc_inv << 4, 0x10);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x30, dev->cfg->agc_inv << 4, 0x10);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0x33, priv->cfg->agc);
-+	ret = m88ds3103_wr_reg(dev, 0x33, dev->cfg->agc);
- 	if (ret)
- 		goto err;
- 
--	dev_dbg(&priv->i2c->dev, "%s: carrier offset=%d\n", __func__,
--			(tuner_frequency - c->frequency));
-+	dev_dbg(&client->dev, "carrier offset=%d\n",
-+		(tuner_frequency - c->frequency));
- 
- 	s32tmp = 0x10000 * (tuner_frequency - c->frequency);
--	s32tmp = DIV_ROUND_CLOSEST(s32tmp, priv->mclk_khz);
-+	s32tmp = DIV_ROUND_CLOSEST(s32tmp, dev->mclk_khz);
- 	if (s32tmp < 0)
- 		s32tmp += 0x10000;
- 
- 	buf[0] = (s32tmp >> 0) & 0xff;
- 	buf[1] = (s32tmp >> 8) & 0xff;
--	ret = m88ds3103_wr_regs(priv, 0x5e, buf, 2);
-+	ret = m88ds3103_wr_regs(dev, 0x5e, buf, 2);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0x00, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0x00, 0x00);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0xb2, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0xb2, 0x00);
- 	if (ret)
- 		goto err;
- 
--	priv->delivery_system = c->delivery_system;
-+	dev->delivery_system = c->delivery_system;
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_init(struct dvb_frontend *fe)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, len, remaining;
- 	const struct firmware *fw = NULL;
- 	u8 *fw_file;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	dev_dbg(&client->dev, "\n");
- 
- 	/* set cold state by default */
--	priv->warm = false;
-+	dev->warm = false;
- 
- 	/* wake up device from sleep */
--	ret = m88ds3103_wr_reg_mask(priv, 0x08, 0x01, 0x01);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x08, 0x01, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x04, 0x00, 0x01);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x04, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x23, 0x00, 0x10);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x23, 0x00, 0x10);
- 	if (ret)
- 		goto err;
- 
- 	/* firmware status */
--	ret = m88ds3103_rd_reg(priv, 0xb9, &u8tmp);
-+	ret = m88ds3103_rd_reg(dev, 0xb9, &u8tmp);
- 	if (ret)
- 		goto err;
- 
--	dev_dbg(&priv->i2c->dev, "%s: firmware=%02x\n", __func__, u8tmp);
-+	dev_dbg(&client->dev, "firmware=%02x\n", u8tmp);
- 
- 	if (u8tmp)
- 		goto skip_fw_download;
- 
- 	/* global reset, global diseqc reset, golbal fec reset */
--	ret = m88ds3103_wr_reg(priv, 0x07, 0xe0);
-+	ret = m88ds3103_wr_reg(dev, 0x07, 0xe0);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0x07, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0x07, 0x00);
- 	if (ret)
- 		goto err;
- 
- 	/* cold state - try to download firmware */
--	dev_info(&priv->i2c->dev, "%s: found a '%s' in cold state\n",
--			KBUILD_MODNAME, m88ds3103_ops.info.name);
-+	dev_info(&client->dev, "found a '%s' in cold state\n",
-+		 m88ds3103_ops.info.name);
- 
--	if (priv->chip_id == M88RS6000_CHIP_ID)
-+	if (dev->chip_id == M88RS6000_CHIP_ID)
- 		fw_file = M88RS6000_FIRMWARE;
- 	else
- 		fw_file = M88DS3103_FIRMWARE;
- 	/* request the firmware, this will block and timeout */
--	ret = request_firmware(&fw, fw_file, priv->i2c->dev.parent);
-+	ret = request_firmware(&fw, fw_file, &client->dev);
- 	if (ret) {
--		dev_err(&priv->i2c->dev, "%s: firmware file '%s' not found\n",
--				KBUILD_MODNAME, fw_file);
-+		dev_err(&client->dev, "firmare file '%s' not found\n", fw_file);
- 		goto err;
- 	}
- 
--	dev_info(&priv->i2c->dev, "%s: downloading firmware from file '%s'\n",
--			KBUILD_MODNAME, fw_file);
-+	dev_info(&client->dev, "downloading firmware from file '%s'\n",
-+		 fw_file);
- 
--	ret = m88ds3103_wr_reg(priv, 0xb2, 0x01);
-+	ret = m88ds3103_wr_reg(dev, 0xb2, 0x01);
- 	if (ret)
- 		goto error_fw_release;
- 
- 	for (remaining = fw->size; remaining > 0;
--			remaining -= (priv->cfg->i2c_wr_max - 1)) {
-+			remaining -= (dev->cfg->i2c_wr_max - 1)) {
- 		len = remaining;
--		if (len > (priv->cfg->i2c_wr_max - 1))
--			len = (priv->cfg->i2c_wr_max - 1);
-+		if (len > (dev->cfg->i2c_wr_max - 1))
-+			len = (dev->cfg->i2c_wr_max - 1);
- 
--		ret = m88ds3103_wr_regs(priv, 0xb0,
-+		ret = m88ds3103_wr_regs(dev, 0xb0,
- 				&fw->data[fw->size - remaining], len);
- 		if (ret) {
--			dev_err(&priv->i2c->dev,
--					"%s: firmware download failed=%d\n",
--					KBUILD_MODNAME, ret);
-+			dev_err(&client->dev, "firmware download failed=%d\n",
-+				ret);
- 			goto error_fw_release;
- 		}
- 	}
- 
--	ret = m88ds3103_wr_reg(priv, 0xb2, 0x00);
-+	ret = m88ds3103_wr_reg(dev, 0xb2, 0x00);
- 	if (ret)
- 		goto error_fw_release;
- 
- 	release_firmware(fw);
- 	fw = NULL;
- 
--	ret = m88ds3103_rd_reg(priv, 0xb9, &u8tmp);
-+	ret = m88ds3103_rd_reg(dev, 0xb9, &u8tmp);
- 	if (ret)
- 		goto err;
- 
- 	if (!u8tmp) {
--		dev_info(&priv->i2c->dev, "%s: firmware did not run\n",
--				KBUILD_MODNAME);
-+		dev_info(&client->dev, "firmware did not run\n");
- 		ret = -EFAULT;
- 		goto err;
- 	}
- 
--	dev_info(&priv->i2c->dev, "%s: found a '%s' in warm state\n",
--			KBUILD_MODNAME, m88ds3103_ops.info.name);
--	dev_info(&priv->i2c->dev, "%s: firmware version %X.%X\n",
--			KBUILD_MODNAME, (u8tmp >> 4) & 0xf, (u8tmp >> 0 & 0xf));
-+	dev_info(&client->dev, "found a '%s' in warm state\n",
-+		 m88ds3103_ops.info.name);
-+	dev_info(&client->dev, "firmware version: %X.%X\n",
-+		 (u8tmp >> 4) & 0xf, (u8tmp >> 0 & 0xf));
- 
- skip_fw_download:
- 	/* warm state */
--	priv->warm = true;
-+	dev->warm = true;
-+
- 	/* init stats here in order signal app which stats are supported */
- 	c->cnr.len = 1;
- 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-@@ -850,75 +845,77 @@ skip_fw_download:
- 	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->post_bit_count.len = 1;
- 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
--	return 0;
- 
-+	return 0;
- error_fw_release:
- 	release_firmware(fw);
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_sleep(struct dvb_frontend *fe)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	dev_dbg(&client->dev, "\n");
- 
--	priv->fe_status = 0;
--	priv->delivery_system = SYS_UNDEFINED;
-+	dev->fe_status = 0;
-+	dev->delivery_system = SYS_UNDEFINED;
- 
- 	/* TS Hi-Z */
--	if (priv->chip_id == M88RS6000_CHIP_ID)
-+	if (dev->chip_id == M88RS6000_CHIP_ID)
- 		u8tmp = 0x29;
- 	else
- 		u8tmp = 0x27;
--	ret = m88ds3103_wr_reg_mask(priv, u8tmp, 0x00, 0x01);
-+	ret = m88ds3103_wr_reg_mask(dev, u8tmp, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
- 	/* sleep */
--	ret = m88ds3103_wr_reg_mask(priv, 0x08, 0x00, 0x01);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x08, 0x00, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x04, 0x01, 0x01);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x04, 0x01, 0x01);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0x23, 0x10, 0x10);
-+	ret = m88ds3103_wr_reg_mask(dev, 0x23, 0x10, 0x10);
- 	if (ret)
- 		goto err;
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_get_frontend(struct dvb_frontend *fe)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	u8 buf[3];
- 
--	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	dev_dbg(&client->dev, "\n");
- 
--	if (!priv->warm || !(priv->fe_status & FE_HAS_LOCK)) {
-+	if (!dev->warm || !(dev->fe_status & FE_HAS_LOCK)) {
- 		ret = 0;
- 		goto err;
- 	}
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBS:
--		ret = m88ds3103_rd_reg(priv, 0xe0, &buf[0]);
-+		ret = m88ds3103_rd_reg(dev, 0xe0, &buf[0]);
- 		if (ret)
- 			goto err;
- 
--		ret = m88ds3103_rd_reg(priv, 0xe6, &buf[1]);
-+		ret = m88ds3103_rd_reg(dev, 0xe6, &buf[1]);
- 		if (ret)
- 			goto err;
- 
-@@ -948,23 +945,22 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
- 			c->fec_inner = FEC_1_2;
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev, "%s: invalid fec_inner\n",
--					__func__);
-+			dev_dbg(&client->dev, "invalid fec_inner\n");
- 		}
- 
- 		c->modulation = QPSK;
- 
- 		break;
- 	case SYS_DVBS2:
--		ret = m88ds3103_rd_reg(priv, 0x7e, &buf[0]);
-+		ret = m88ds3103_rd_reg(dev, 0x7e, &buf[0]);
- 		if (ret)
- 			goto err;
- 
--		ret = m88ds3103_rd_reg(priv, 0x89, &buf[1]);
-+		ret = m88ds3103_rd_reg(dev, 0x89, &buf[1]);
- 		if (ret)
- 			goto err;
- 
--		ret = m88ds3103_rd_reg(priv, 0xf2, &buf[2]);
-+		ret = m88ds3103_rd_reg(dev, 0xf2, &buf[2]);
- 		if (ret)
- 			goto err;
- 
-@@ -997,8 +993,7 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
- 			c->fec_inner = FEC_9_10;
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev, "%s: invalid fec_inner\n",
--					__func__);
-+			dev_dbg(&client->dev, "invalid fec_inner\n");
- 		}
- 
- 		switch ((buf[0] >> 5) & 0x01) {
-@@ -1024,8 +1019,7 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
- 			c->modulation = APSK_32;
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev, "%s: invalid modulation\n",
--					__func__);
-+			dev_dbg(&client->dev, "invalid modulation\n");
- 		}
- 
- 		switch ((buf[1] >> 7) & 0x01) {
-@@ -1048,27 +1042,25 @@ static int m88ds3103_get_frontend(struct dvb_frontend *fe)
- 			c->rolloff = ROLLOFF_20;
- 			break;
- 		default:
--			dev_dbg(&priv->i2c->dev, "%s: invalid rolloff\n",
--					__func__);
-+			dev_dbg(&client->dev, "invalid rolloff\n");
- 		}
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid delivery_system\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid delivery_system\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	ret = m88ds3103_rd_regs(priv, 0x6d, buf, 2);
-+	ret = m88ds3103_rd_regs(dev, 0x6d, buf, 2);
- 	if (ret)
- 		goto err;
- 
- 	c->symbol_rate = 1ull * ((buf[1] << 8) | (buf[0] << 0)) *
--			priv->mclk_khz * 1000 / 0x10000;
-+			dev->mclk_khz * 1000 / 0x10000;
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -1086,9 +1078,9 @@ static int m88ds3103_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- static int m88ds3103_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
- 
--	*ber = priv->dvbv3_ber;
-+	*ber = dev->dvbv3_ber;
- 
- 	return 0;
- }
-@@ -1096,14 +1088,14 @@ static int m88ds3103_read_ber(struct dvb_frontend *fe, u32 *ber)
- static int m88ds3103_set_tone(struct dvb_frontend *fe,
- 	fe_sec_tone_mode_t fe_sec_tone_mode)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 u8tmp, tone, reg_a1_mask;
- 
--	dev_dbg(&priv->i2c->dev, "%s: fe_sec_tone_mode=%d\n", __func__,
--			fe_sec_tone_mode);
-+	dev_dbg(&client->dev, "fe_sec_tone_mode=%d\n", fe_sec_tone_mode);
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
-@@ -1118,40 +1110,39 @@ static int m88ds3103_set_tone(struct dvb_frontend *fe,
- 		reg_a1_mask = 0x00;
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_tone_mode\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid fe_sec_tone_mode\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	u8tmp = tone << 7 | priv->cfg->envelope_mode << 5;
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0xe0);
-+	u8tmp = tone << 7 | dev->cfg->envelope_mode << 5;
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, u8tmp, 0xe0);
- 	if (ret)
- 		goto err;
- 
- 	u8tmp = 1 << 2;
--	ret = m88ds3103_wr_reg_mask(priv, 0xa1, u8tmp, reg_a1_mask);
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa1, u8tmp, reg_a1_mask);
- 	if (ret)
- 		goto err;
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_set_voltage(struct dvb_frontend *fe,
- 	fe_sec_voltage_t fe_sec_voltage)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	u8 u8tmp;
- 	bool voltage_sel, voltage_dis;
- 
--	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
--			fe_sec_voltage);
-+	dev_dbg(&client->dev, "fe_sec_voltage=%d\n", fe_sec_voltage);
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
-@@ -1170,39 +1161,39 @@ static int m88ds3103_set_voltage(struct dvb_frontend *fe,
- 		voltage_dis = true;
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_voltage\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid fe_sec_voltage\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
- 	/* output pin polarity */
--	voltage_sel ^= priv->cfg->lnb_hv_pol;
--	voltage_dis ^= priv->cfg->lnb_en_pol;
-+	voltage_sel ^= dev->cfg->lnb_hv_pol;
-+	voltage_dis ^= dev->cfg->lnb_en_pol;
- 
- 	u8tmp = voltage_dis << 1 | voltage_sel << 0;
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0x03);
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, u8tmp, 0x03);
- 	if (ret)
- 		goto err;
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 		struct dvb_diseqc_master_cmd *diseqc_cmd)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	unsigned long timeout;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->i2c->dev, "%s: msg=%*ph\n", __func__,
--			diseqc_cmd->msg_len, diseqc_cmd->msg);
-+	dev_dbg(&client->dev, "msg=%*ph\n",
-+		diseqc_cmd->msg_len, diseqc_cmd->msg);
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
-@@ -1212,17 +1203,17 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 		goto err;
- 	}
- 
--	u8tmp = priv->cfg->envelope_mode << 5;
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0xe0);
-+	u8tmp = dev->cfg->envelope_mode << 5;
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, u8tmp, 0xe0);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_regs(priv, 0xa3, diseqc_cmd->msg,
-+	ret = m88ds3103_wr_regs(dev, 0xa3, diseqc_cmd->msg,
- 			diseqc_cmd->msg_len);
- 	if (ret)
- 		goto err;
- 
--	ret = m88ds3103_wr_reg(priv, 0xa1,
-+	ret = m88ds3103_wr_reg(dev, 0xa1,
- 			(diseqc_cmd->msg_len - 1) << 3 | 0x07);
- 	if (ret)
- 		goto err;
-@@ -1235,24 +1226,24 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 	usleep_range(50000, 54000);
- 
- 	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
--		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
-+		ret = m88ds3103_rd_reg_mask(dev, 0xa1, &u8tmp, 0x40);
- 		if (ret)
- 			goto err;
- 	}
- 
- 	if (u8tmp == 0) {
--		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
-+		dev_dbg(&client->dev, "diseqc tx took %u ms\n",
- 			jiffies_to_msecs(jiffies) -
- 			(jiffies_to_msecs(timeout) - SEND_MASTER_CMD_TIMEOUT));
- 	} else {
--		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
-+		dev_dbg(&client->dev, "diseqc tx timeout\n");
- 
--		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
-+		ret = m88ds3103_wr_reg_mask(dev, 0xa1, 0x40, 0xc0);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, 0x80, 0xc0);
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, 0x80, 0xc0);
- 	if (ret)
- 		goto err;
- 
-@@ -1263,28 +1254,28 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	fe_sec_mini_cmd_t fe_sec_mini_cmd)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	unsigned long timeout;
- 	u8 u8tmp, burst;
- 
--	dev_dbg(&priv->i2c->dev, "%s: fe_sec_mini_cmd=%d\n", __func__,
--			fe_sec_mini_cmd);
-+	dev_dbg(&client->dev, "fe_sec_mini_cmd=%d\n", fe_sec_mini_cmd);
- 
--	if (!priv->warm) {
-+	if (!dev->warm) {
- 		ret = -EAGAIN;
- 		goto err;
- 	}
- 
--	u8tmp = priv->cfg->envelope_mode << 5;
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, u8tmp, 0xe0);
-+	u8tmp = dev->cfg->envelope_mode << 5;
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, u8tmp, 0xe0);
- 	if (ret)
- 		goto err;
- 
-@@ -1296,13 +1287,12 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 		burst = 0x01;
- 		break;
- 	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid fe_sec_mini_cmd\n",
--				__func__);
-+		dev_dbg(&client->dev, "invalid fe_sec_mini_cmd\n");
- 		ret = -EINVAL;
- 		goto err;
- 	}
- 
--	ret = m88ds3103_wr_reg(priv, 0xa1, burst);
-+	ret = m88ds3103_wr_reg(dev, 0xa1, burst);
- 	if (ret)
- 		goto err;
- 
-@@ -1314,24 +1304,24 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	usleep_range(8500, 12500);
- 
- 	for (u8tmp = 1; !time_after(jiffies, timeout) && u8tmp;) {
--		ret = m88ds3103_rd_reg_mask(priv, 0xa1, &u8tmp, 0x40);
-+		ret = m88ds3103_rd_reg_mask(dev, 0xa1, &u8tmp, 0x40);
- 		if (ret)
- 			goto err;
- 	}
- 
- 	if (u8tmp == 0) {
--		dev_dbg(&priv->i2c->dev, "%s: diseqc tx took %u ms\n", __func__,
-+		dev_dbg(&client->dev, "diseqc tx took %u ms\n",
- 			jiffies_to_msecs(jiffies) -
- 			(jiffies_to_msecs(timeout) - SEND_BURST_TIMEOUT));
- 	} else {
--		dev_dbg(&priv->i2c->dev, "%s: diseqc tx timeout\n", __func__);
-+		dev_dbg(&client->dev, "diseqc tx timeout\n");
- 
--		ret = m88ds3103_wr_reg_mask(priv, 0xa1, 0x40, 0xc0);
-+		ret = m88ds3103_wr_reg_mask(dev, 0xa1, 0x40, 0xc0);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = m88ds3103_wr_reg_mask(priv, 0xa2, 0x80, 0xc0);
-+	ret = m88ds3103_wr_reg_mask(dev, 0xa2, 0x80, 0xc0);
- 	if (ret)
- 		goto err;
- 
-@@ -1342,7 +1332,7 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 
- 	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -1356,32 +1346,32 @@ static int m88ds3103_get_tune_settings(struct dvb_frontend *fe,
- 
- static void m88ds3103_release(struct dvb_frontend *fe)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
--	struct i2c_client *client = priv->client;
-+	struct m88ds3103_dev *dev = fe->demodulator_priv;
-+	struct i2c_client *client = dev->client;
- 
- 	i2c_unregister_device(client);
- }
- 
- static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- {
--	struct m88ds3103_priv *priv = mux_priv;
-+	struct m88ds3103_dev *dev = mux_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 	struct i2c_msg gate_open_msg[1] = {
- 		{
--			.addr = priv->cfg->i2c_addr,
-+			.addr = client->addr,
- 			.flags = 0,
- 			.len = 2,
- 			.buf = "\x03\x11",
- 		}
- 	};
- 
--	mutex_lock(&priv->i2c_mutex);
-+	mutex_lock(&dev->i2c_mutex);
- 
- 	/* open tuner I2C repeater for 1 xfer, closes automatically */
--	ret = __i2c_transfer(priv->i2c, gate_open_msg, 1);
-+	ret = __i2c_transfer(client->adapter, gate_open_msg, 1);
- 	if (ret != 1) {
--		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d\n",
--				KBUILD_MODNAME, ret);
-+		dev_warn(&client->dev, "i2c wr failed=%d\n", ret);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
- 
-@@ -1394,9 +1384,9 @@ static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- static int m88ds3103_deselect(struct i2c_adapter *adap, void *mux_priv,
- 		u32 chan)
- {
--	struct m88ds3103_priv *priv = mux_priv;
-+	struct m88ds3103_dev *dev = mux_priv;
- 
--	mutex_unlock(&priv->i2c_mutex);
-+	mutex_unlock(&dev->i2c_mutex);
- 
- 	return 0;
- }
-@@ -1441,9 +1431,9 @@ struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
- EXPORT_SYMBOL(m88ds3103_attach);
- 
- static struct dvb_frontend_ops m88ds3103_ops = {
--	.delsys = { SYS_DVBS, SYS_DVBS2 },
-+	.delsys = {SYS_DVBS, SYS_DVBS2},
- 	.info = {
--		.name = "Montage M88DS3103",
-+		.name = "Montage Technology M88DS3103",
- 		.frequency_min =  950000,
- 		.frequency_max = 2150000,
- 		.frequency_tolerance = 5000,
-@@ -1487,7 +1477,7 @@ static struct dvb_frontend_ops m88ds3103_ops = {
- 
- static struct dvb_frontend *m88ds3103_get_dvb_frontend(struct i2c_client *client)
- {
--	struct m88ds3103_priv *dev = i2c_get_clientdata(client);
-+	struct m88ds3103_dev *dev = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -1496,7 +1486,7 @@ static struct dvb_frontend *m88ds3103_get_dvb_frontend(struct i2c_client *client
- 
- static struct i2c_adapter *m88ds3103_get_i2c_adapter(struct i2c_client *client)
- {
--	struct m88ds3103_priv *dev = i2c_get_clientdata(client);
-+	struct m88ds3103_dev *dev = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -1506,7 +1496,7 @@ static struct i2c_adapter *m88ds3103_get_i2c_adapter(struct i2c_client *client)
- static int m88ds3103_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
--	struct m88ds3103_priv *dev;
-+	struct m88ds3103_dev *dev;
- 	struct m88ds3103_platform_data *pdata = client->dev.platform_data;
- 	int ret;
- 	u8 chip_id, u8tmp;
-@@ -1518,8 +1508,6 @@ static int m88ds3103_probe(struct i2c_client *client,
- 	}
- 
- 	dev->client = client;
--	dev->i2c = client->adapter;
--	dev->config.i2c_addr = client->addr;
- 	dev->config.clock = pdata->clk;
- 	dev->config.i2c_wr_max = pdata->i2c_wr_max;
- 	dev->config.ts_mode = pdata->ts_mode;
-@@ -1599,8 +1587,8 @@ static int m88ds3103_probe(struct i2c_client *client,
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
- 	if (dev->chip_id == M88RS6000_CHIP_ID)
--		strncpy(dev->fe.ops.info.name,
--			"Montage M88RS6000", sizeof(dev->fe.ops.info.name));
-+		strncpy(dev->fe.ops.info.name, "Montage Technology M88RS6000",
-+			sizeof(dev->fe.ops.info.name));
- 	if (!pdata->attach_in_use)
- 		dev->fe.ops.release = NULL;
- 	dev->fe.demodulator_priv = dev;
-@@ -1619,7 +1607,7 @@ err:
- 
- static int m88ds3103_remove(struct i2c_client *client)
- {
--	struct m88ds3103_priv *dev = i2c_get_clientdata(client);
-+	struct m88ds3103_dev *dev = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -1649,7 +1637,7 @@ static struct i2c_driver m88ds3103_driver = {
- module_i2c_driver(m88ds3103_driver);
- 
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
--MODULE_DESCRIPTION("Montage M88DS3103 DVB-S/S2 demodulator driver");
-+MODULE_DESCRIPTION("Montage Technology M88DS3103 DVB-S/S2 demodulator driver");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(M88DS3103_FIRMWARE);
- MODULE_FIRMWARE(M88RS6000_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/m88ds3103.h b/drivers/media/dvb-frontends/m88ds3103.h
-index 3811468..ff03905 100644
---- a/drivers/media/dvb-frontends/m88ds3103.h
-+++ b/drivers/media/dvb-frontends/m88ds3103.h
-@@ -1,5 +1,5 @@
- /*
-- * Montage M88DS3103 demodulator driver
-+ * Montage Technology M88DS3103/M88RS6000 demodulator driver
-  *
-  * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-  *
-diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
-index 6217d92..7461e6b 100644
---- a/drivers/media/dvb-frontends/m88ds3103_priv.h
-+++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
-@@ -1,5 +1,5 @@
- /*
-- * Montage M88DS3103 demodulator driver
-+ * Montage Technology M88DS3103/M88RS6000 demodulator driver
-  *
-  * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-  *
-@@ -30,8 +30,7 @@
- #define M88RS6000_CHIP_ID 0x74
- #define M88DS3103_CHIP_ID 0x70
- 
--struct m88ds3103_priv {
--	struct i2c_adapter *i2c;
-+struct m88ds3103_dev {
- 	struct i2c_client *client;
- 	/* mutex needed due to own tuner I2C adapter */
- 	struct mutex i2c_mutex;
+On Wed, Jan 21, 2015 at 10:12:05AM +0900, Daniel Jeong wrote:
+> Hi.
+> >On Mon, 2015-01-19 at 17:25 +0900, Daniel Jeong wrote:
+> >>This patch adds the driver for the single string flash products of TI.
+> >>Several single string flash controllers of TI have similar register map
+> >>and bit data. This driver supports four products,lm3556, lm3561, lm3642
+> >>and lm3648.
+> >Why not to name it as lm3648 to be in align with other drivers?
+> I tried to match it with the above line. I will fix it.
+> >
+> >Or even better solution (I suppose) to create a "library" and on top of
+> >that one driver per each device?
+> >
+> >Sakari, what do you think?
+> Sakrai, I'd like to keep it but please let me know your opinion.
+
+The rest of the drivers use the chip name. If you google for "ti single
+string flash", this patch is actually what you get as the second hit. The
+first one is lm3639a spec which is not included in the above list. :-)
+
+I'd use the chip name, e.g. lm3556.
+
+In the future you should implement LED flash class drivers for such devices
+instead, the V4L2 flash LED class wrapper gives you V4L2 flash API as well.
+I think this one is good to go from that viewpoint though IMO, as the flash
+API wrapper was not ready back then. Feel free to convert the driver though.
+
+There's an additional matter to consider: lm3556 is partially supported by a
+LED class drivers. Perhaps the plain LED class support could be replaced by
+LED flash class support and the old driver renamed, as it'd only support a
+single chip then.
+
+> >>Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+> >>---
+> >>  drivers/media/i2c/Kconfig       |    9 +
+> >>  drivers/media/i2c/Makefile      |    1 +
+> >>  drivers/media/i2c/ti-ss-flash.c |  744 +++++++++++++++++++++++++++++++++++++++
+> >>  include/media/ti-ss-flash.h     |   33 ++
+> >>  4 files changed, 787 insertions(+)
+> >>  create mode 100644 drivers/media/i2c/ti-ss-flash.c
+> >>  create mode 100644 include/media/ti-ss-flash.h
+> >>
+> >>diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> >>index 205d713..886c1fb 100644
+> >>--- a/drivers/media/i2c/Kconfig
+> >>+++ b/drivers/media/i2c/Kconfig
+> >>@@ -638,6 +638,15 @@ config VIDEO_LM3646
+> >>  	  This is a driver for the lm3646 dual flash controllers. It controls
+> >>  	  flash, torch LEDs.
+> >>+config VIDEO_TI_SS_FLASH
+> >>+	tristate "TI Single String Flash driver support"
+
+The list of the chip names fits here, how about putting those instead?
+
+> >>+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+> >>+	depends on MEDIA_CAMERA_SUPPORT
+> >>+	select REGMAP_I2C
+> >>+	---help---
+> >>+	  This is a driver for the signle string flash controllers of TI.
+> >>+	  It supports LM3556, LM3561, LM3642 and LM3648.
+> >>+
+> >>  comment "Video improvement chips"
+> >>  config VIDEO_UPD64031A
+> >>diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> >>index 98589001..0e523ec 100644
+> >>--- a/drivers/media/i2c/Makefile
+> >>+++ b/drivers/media/i2c/Makefile
+> >>@@ -73,6 +73,7 @@ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+> >>  obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+> >>  obj-$(CONFIG_VIDEO_LM3560)	+= lm3560.o
+> >>  obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+> >>+obj-$(CONFIG_VIDEO_TI_SS_FLASH)	+= ti-ss-flash.o
+> >>  obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+> >>  obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+> >>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+> >>diff --git a/drivers/media/i2c/ti-ss-flash.c b/drivers/media/i2c/ti-ss-flash.c
+> >>new file mode 100644
+> >>index 0000000..035aeba
+> >>--- /dev/null
+> >>+++ b/drivers/media/i2c/ti-ss-flash.c
+> >>@@ -0,0 +1,744 @@
+> >>+/*
+> >>+ * drivers/media/i2c/ti-ss-flash.c
+> >>+ * General device driver for Single String FLASH LED Drivers of TI
+> >>+ * It covers lm3556, lm3561, lm3642 and lm3648.
+> >>+ *
+> >>+ * Copyright (C) 2015 Texas Instruments
+> >>+ *
+> >>+ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
+> >>+ *			Ldd-Mlp <ldd-mlp@list.ti.com>
+> >>+ *
+> >>+ * This program is free software; you can redistribute it and/or
+> >>+ * modify it under the terms of the GNU General Public License
+> >>+ * version 2 as published by the Free Software Foundation.
+> >>+ *
+> >>+ */
+> >>+
+> >>+#include <linux/delay.h>
+> >>+#include <linux/i2c.h>
+> >>+#include <linux/module.h>
+> >>+#include <linux/of_device.h>
+> >>+#include <linux/regmap.h>
+> >>+#include <linux/slab.h>
+> >>+#include <linux/videodev2.h>
+> >>+#include <media/ti-ss-flash.h>
+> >>+#include <media/v4l2-ctrls.h>
+> >>+#include <media/v4l2-device.h>
+> >>+
+> >>+/* operation mode */
+> >>+enum led_opmode {
+> >>+	OPMODE_SHDN = 0x0,
+> >>+	OPMODE_INDI_IR,
+> >>+	OPMODE_TORCH,
+> >>+	OPMODE_FLASH,
+> >>+};
+> >>+
+> >>+/*
+> >>+ * register data
+> >>+ * @reg : register
+> >>+ * @mask : mask bits
+> >>+ * @shift : bit shift of data
+> >>+ */
+> >>+struct ctrl_reg {
+> >>+	unsigned int reg;
+> >>+	unsigned int mask;
+> >>+	unsigned int shift;
+> >>+};
+> >>+
+> >>+/*
+> >>+ * unit data
+> >>+ * @min : min value of brightness or timeout
+> >>+ *        brightness : uA
+> >>+ *		  timeout    : ms
+> >>+ * @step : step value of brightness or timeout
+> >>+ *        brightness : uA
+> >>+ *		  timeout    : ms
+> >>+ * @knee: knee point of step of brightness/timeout
+> >>+ *        brightness : uA
+> >>+ *		  timeout    : ms
+> >>+ * @knee_step : step value of brightness or timeout after knee point
+> >>+ *        brightness : uA
+> >>+ *		  timeout    : ms
+> >>+ * @max : max value of brightness or timeout
+> >>+ *        brightness : uA
+> >>+ *		  timeout    : ms
+> >>+ * @ctrl : register info to control brightness or timeout
+> >>+ */
+> >>+struct ssflash_config {
+> >>+	unsigned int min;
+> >>+	unsigned int step;
+> >>+	unsigned int knee;
+> >>+	unsigned int knee_step;
+> >>+	unsigned int max;
+> >>+	struct ctrl_reg ctrl;
+> >>+};
+> >>+
+> >>+/*
+> >>+ * @reg : fault register
+> >>+ * @mask : fault mask bit
+> >>+ * @v4l2_fault : bit mapping to V4L2_FLASH_FAULT_
+> >>+ *               refer to include//uapi/linux/v4l2-controls.h
+> >>+ */
+> >>+struct ssflash_fault {
+> >>+	unsigned int reg;
+> >>+	unsigned int mask;
+> >>+	unsigned int v4l2_fault;
+> >>+};
+> >>+
+> >>+#define NUM_V4L2_FAULT 9
+> >>+
+> >>+/*
+> >>+ * ssflash data
+> >>+ * @name: device name
+> >>+ * @mode: operation mode control data
+> >>+ * @flash_br: flash brightness register and bit data
+> >>+ * @timeout: timeout control data
+> >>+ * @strobe: strobe control data
+> >>+ * @torch_br: torch brightness register and bit data
+> >>+ * @fault: fault data
+> >>+ * @func: initialize function
+> >>+ */
+> >>+struct ssflash_data {
+> >>+	char *name;
+> >>+	struct ctrl_reg mode;
+> >>+	struct ssflash_config flash_br;
+> >>+	struct ssflash_config timeout;
+> >>+	struct ctrl_reg strobe;
+> >>+
+> >>+	struct ssflash_config torch_br;
+> >>+	struct ssflash_fault fault[NUM_V4L2_FAULT];
+> >>+
+> >>+	int (*func)(struct regmap *regmap);
+> >>+};
+> >>+
+> >>+/*
+> >>+ * struct ssflash_flash
+> >>+ * @dev: device
+> >>+ * @regmap: reg map for interface
+> >>+ * @ctrls_led: V4L2 contols
+> >>+ * @subdev_led: V4L2 subdev
+> >>+ * @data : chip control data
+> >>+ * @mode_reg: value of mode register
+> >>+ */
+> >>+struct ssflash_flash {
+> >>+	struct device *dev;
+> >>+	struct regmap *regmap;
+> >>+
+> >>+	struct v4l2_ctrl_handler ctrls_led;
+> >>+	struct v4l2_subdev subdev_led;
+> >>+	const struct ssflash_data *data;
+> >>+	u8 mode_reg;
+> >>+};
+> >>+
+> >>+#define to_ssflash_flash(_ctrl)	\
+> >>+	container_of(_ctrl->handler, struct ssflash_flash, ctrls_led)
+> >>+
+> >>+static const struct ssflash_data flash_lm3556 = {
+> >>+	.name = LM3556_NAME,
+> >>+	.mode = {
+> >>+		.reg = 0x0a, .mask = 0x03, .shift = 0
+> >>+	},
+> >>+	.flash_br = {
+> >>+		.min = 93750, .step = 93750,
+> >>+		.max = 1500000,
+> >>+		.ctrl = {
+> >>+			.reg = 0x09, .mask = 0xf, .shift = 0
+> >>+		},
+> >>+	},
+> >>+	.timeout = {
+> >>+		.min = 100,	.step = 100,
+> >>+		.max = 800,
+> >>+		.ctrl = {
+> >>+			.reg = 0x08, .mask = 0x07, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.torch_br = {
+> >>+		.min = 46880, .step = 46880,
+> >>+		.max = 375000,
+> >>+		.ctrl = {
+> >>+			.reg = 0x09, .mask = 0x70, .shift = 4
+> >>+		}
+> >>+	},
+> >>+	.strobe = {
+> >>+		.reg = 0x0a, .mask = 0x20, .shift = 5
+> >>+	},
+> >>+	.fault = {
+> >>+		[0] = {
+> >>+			.reg = 0x0b, .mask = 0x01,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_TIMEOUT,
+> >>+		},
+> >>+		[1] = {
+> >>+			.reg = 0x0b, .mask = 0x02,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_OVER_TEMPERATURE,
+> >>+		},
+> >>+		[2] = {
+> >>+			.reg = 0x0b, .mask = 0x04,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_SHORT_CIRCUIT,
+> >>+		},
+> >>+		[3] = {
+> >>+			.reg = 0x0b, .mask = 0x08,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_OVER_VOLTAGE,
+> >>+		},
+> >>+
+> >>+		[4] = {
+> >>+			.reg = 0x0b, .mask = 0x10,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_UNDER_VOLTAGE,
+> >>+		},
+> >>+		[5] = {
+> >>+			.reg = 0x0b, .mask = 0x20,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_INPUT_VOLTAGE,
+> >>+		},
+> >>+	},
+> >>+	.func = NULL
+> >>+};
+> >>+
+> >>+static const struct ssflash_data flash_lm3561 = {
+> >>+	.name = LM3561_NAME,
+> >>+	.mode = {
+> >>+		.reg = 0x10, .mask = 0x03, .shift = 0
+> >>+	},
+> >>+	.flash_br = {
+> >>+		.min = 36000, .step = 37600,
+> >>+		.max = 600000,
+> >>+		.ctrl = {
+> >>+			.reg = 0xb0, .mask = 0xf, .shift = 0
+> >>+		},
+> >>+	},
+> >>+	.timeout = {
+> >>+		.min = 32,	.step = 32,
+> >>+		.max = 1024,
+> >>+		.ctrl = {
+> >>+			.reg = 0xc0, .mask = 0x1f, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.torch_br = {
+> >>+		.min = 18000, .step = 18800,
+> >>+		.max = 149600,
+> >>+		.ctrl = {
+> >>+			.reg = 0xa0, .mask = 0x07, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.strobe = {
+> >>+		.reg = 0xe0, .mask = 0x04, .shift = 2
+> >>+	},
+> >>+	.fault = {
+> >>+		[0] = {
+> >>+			.reg = 0xd0, .mask = 0x01,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_TIMEOUT,
+> >>+		},
+> >>+		[1] = {
+> >>+			.reg = 0xd0, .mask = 0x02,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_OVER_TEMPERATURE,
+> >>+		},
+> >>+		[2] = {
+> >>+			.reg = 0xd0, .mask = 0x04,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_SHORT_CIRCUIT,
+> >>+		},
+> >>+		[3] = {
+> >>+			.reg = 0xd0, .mask = 0x20,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE,
+> >>+		},
+> >>+		[4] = {
+> >>+			.reg = 0xd0, .mask = 0x80,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_INPUT_VOLTAGE,
+> >>+		},
+> >>+	},
+> >>+	.func = NULL
+> >>+};
+> >>+
+> >>+static const struct ssflash_data flash_lm3642 = {
+> >>+	.name = LM3642_NAME,
+> >>+	.mode = {
+> >>+		.reg = 0x0a, .mask = 0x03, .shift = 0
+> >>+	},
+> >>+	.flash_br = {
+> >>+		.min = 93750, .step = 93750,
+> >>+		.max = 1500000,
+> >>+		.ctrl = {
+> >>+			.reg = 0x09, .mask = 0xf, .shift = 0
+> >>+		},
+> >>+	},
+> >>+	.timeout = {
+> >>+		.min = 100,	.step = 100,
+> >>+		.max = 800,
+> >>+		.ctrl = {
+> >>+			.reg = 0x08, .mask = 0x07, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.torch_br = {
+> >>+		.min = 46880, .step = 46880,
+> >>+		.max = 375000,
+> >>+		.ctrl = {
+> >>+			.reg = 0x09, .mask = 0x70, .shift = 4
+> >>+		}
+> >>+	},
+> >>+	.strobe = {
+> >>+		.reg = 0x0a, .mask = 0x20, .shift = 5
+> >>+	},
+> >>+	.fault = {
+> >>+		[0] = {
+> >>+			.reg = 0x0b, .mask = 0x01,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_TIMEOUT,
+> >>+		},
+> >>+		[1] = {
+> >>+			.reg = 0x0b, .mask = 0x02,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_OVER_TEMPERATURE,
+> >>+		},
+> >>+		[2] = {
+> >>+			.reg = 0x0b, .mask = 0x04,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_SHORT_CIRCUIT,
+> >>+		},
+> >>+		[3] = {
+> >>+			.reg = 0x0b, .mask = 0x20,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_INPUT_VOLTAGE,
+> >>+		},
+> >>+	},
+> >>+	.func = NULL
+> >>+};
+> >>+
+> >>+static int ssflash_lm3648_init(struct regmap *regmap)
+> >>+{
+> >>+	int rval;
+> >>+
+> >>+	/* enable LED */
+> >>+	rval = regmap_update_bits(regmap, 0x01, 0x03, 0x03);
+> >>+	/* bit[7:6] must be set to 10b for proper operation */
+> >>+	rval |= regmap_update_bits(regmap, 0x03, 0xc0, 0x80);
+> >>+	/* bit[7] must be set to 1b for proper operation */
+> >>+	rval |= regmap_update_bits(regmap, 0x05, 0x80, 0x80);
+> >>+	if (rval < 0)
+> >>+		return rval;
+> >>+	return 0;
+> >>+}
+> >>+
+> >>+static const struct ssflash_data flash_lm3648 = {
+> >>+	.name = LM3648_NAME,
+> >>+	.mode = {
+> >>+		.reg = 0x01, .mask = 0x0c, .shift = 2
+> >>+	},
+> >>+	.flash_br = {
+> >>+		.min = 21800, .step = 23450,
+> >>+		.max = 1500000,
+> >>+		.ctrl = {
+> >>+			.reg = 0x03, .mask = 0x3f, .shift = 0
+> >>+		},
+> >>+	},
+> >>+	.timeout = {
+> >>+		.min = 10,	.step = 10,
+
+You're using tab above for indentation but spaces elsewhere (except timeout
+step).
+
+> >>+		.knee = 100, .knee_step = 50,
+> >>+		.max = 1024,
+> >>+		.ctrl = {
+> >>+			.reg = 0x08, .mask = 0x0f, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.torch_br = {
+> >>+		.min = 1954, .step = 2800,
+> >>+		.max = 357600,
+> >>+		.ctrl = {
+> >>+			.reg = 0x5, .mask = 0x7f, .shift = 0
+> >>+		}
+> >>+	},
+> >>+	.strobe = {
+> >>+		.reg = 0x1, .mask = 0x20, .shift = 5
+> >>+	},
+> >>+	.fault = {
+> >>+		[0] = {
+> >>+			.reg = 0x0a, .mask = 0x01,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_TIMEOUT,
+> >>+		},
+> >>+		[1] = {
+> >>+			.reg = 0x0a, .mask = 0x04,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_OVER_TEMPERATURE,
+> >>+		},
+> >>+		[2] = {
+> >>+			.reg = 0x0a, .mask = 0x70,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_SHORT_CIRCUIT,
+> >>+		},
+> >>+		[3] = {
+> >>+			.reg = 0x0b, .mask = 0x04,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_INPUT_VOLTAGE,
+> >>+		},
+> >>+		[4] = {
+> >>+			.reg = 0x0b, .mask = 0x01,
+> >>+			.v4l2_fault = V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE,
+> >>+		},
+> >>+	},
+> >>+	.func = ssflash_lm3648_init
+> >>+};
+> >>+
+> >>+static u8 ssflash_conv_val_to_reg(unsigned int val,
+> >>+	unsigned int min, unsigned int step,
+> >>+	unsigned int knee, unsigned int knee_step,
+> >>+	unsigned int max)
+> >>+{
+> >>+	if (val >= max)
+> >>+		return 0xff;
+> >>+
+> >>+	if (knee <= min)
+> >>+		return (u8)(val < min ? 0 : (val - min)/step);
+> >>+	return (u8)val < min ? 0 :
+> >>+			(val < knee ? (val-min)/step :
+> >>+				(val-knee)/knee_step + (knee-min)/step);
+> >>+}
+> >>+
+> >>+/* mode control */
+> >>+static int ssflash_mode_ctrl(struct ssflash_flash *flash,
+> >>+			    enum v4l2_flash_led_mode v4l_led_mode)
+> >>+{
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	enum led_opmode opmode;
+> >>+
+> >>+	switch (v4l_led_mode) {
+> >>+	case V4L2_FLASH_LED_MODE_NONE:
+> >>+		opmode = OPMODE_SHDN;
+> >>+	break;
+
+breaks should be indented one stop right.
+
+> >>+	case V4L2_FLASH_LED_MODE_TORCH:
+> >>+		opmode = OPMODE_TORCH;
+> >>+	break;
+> >>+	case V4L2_FLASH_LED_MODE_FLASH:
+> >>+		opmode = OPMODE_FLASH;
+> >>+	break;
+> >>+	default:
+> >>+		return -EINVAL;
+> >>+	}
+> >>+	return regmap_update_bits(flash->regmap, data->mode.reg,
+> >>+				data->mode.mask, opmode << data->mode.shift);
+> >>+}
+> >>+
+> >>+/* torch brightness control */
+> >>+static int ssflash_torch_brt_ctrl
+> >>+	(struct ssflash_flash *flash, unsigned int brt)
+> >>+{
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	int rval;
+> >>+	u8 br_bits;
+> >>+
+> >>+	br_bits = ssflash_conv_val_to_reg(brt,
+> >>+				data->torch_br.min, data->torch_br.step,
+> >>+				data->torch_br.knee, data->torch_br.knee_step,
+> >>+				data->torch_br.max);
+> >>+
+> >>+	rval = regmap_update_bits(flash->regmap,
+> >>+			data->torch_br.ctrl.reg,
+> >>+			data->torch_br.ctrl.mask,
+> >>+			br_bits << data->torch_br.ctrl.shift);
+> >>+
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+/* flash brightness control */
+> >>+static int ssflash_flash_brt_ctrl(struct ssflash_flash *flash,
+> >>+				 unsigned int brt)
+> >>+{
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	int rval;
+> >>+	u8 br_bits;
+> >>+
+> >>+	br_bits = ssflash_conv_val_to_reg(brt,
+> >>+					data->flash_br.min,
+> >>+					data->flash_br.step,
+> >>+					data->flash_br.knee,
+> >>+					data->flash_br.knee_step,
+> >>+					data->flash_br.max);
+> >>+
+> >>+	rval = regmap_update_bits(flash->regmap,
+
+You can return here and drop rval. Same in ssflash_torch_brt_ctrl().
+
+> >>+				data->flash_br.ctrl.reg,
+> >>+				data->flash_br.ctrl.mask,
+> >>+				br_bits << data->flash_br.ctrl.shift);
+> >>+
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+/* fault status */
+> >>+static int ssflash_get_ctrl(struct v4l2_ctrl *ctrl)
+> >>+{
+> >>+	struct ssflash_flash *flash = to_ssflash_flash(ctrl);
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	int rval = -EINVAL;
+> >>+
+> >>+	if (ctrl->id == V4L2_CID_FLASH_FAULT) {
+
+if (ctrl->id != V4L2_CID_FLASH_FAULT)
+	return -EINVAL;
+
+But you could also remove the check as I assume this is the only volatile
+control you have.
+
+> >>+		int icnt;
+> >>+		s32 fault = 0;
+> >>+		unsigned int reg_val;
+> >>+		unsigned int reg = 0xfff;
+> >>+
+> >>+		for (icnt = 0; icnt < NUM_V4L2_FAULT; icnt++) {
+> >>+			if (data->fault[icnt].mask == 0x0)
+> >>+				continue;
+> >>+			if (data->fault[icnt].reg != reg) {
+> >>+				reg = data->fault[icnt].reg;
+> >>+				rval = regmap_read(
+> >>+						flash->regmap, reg, &reg_val);
+> >>+				if (rval < 0)
+> >>+					goto out;
+
+return rval;
+
+> >>+			}
+> >>+			if (rval & data->fault[icnt].mask)
+> >>+				fault |= data->fault[icnt].v4l2_fault;
+> >>+		}
+> >>+		ctrl->cur.val = fault;
+
+And return 0 here.
+
+> >>+	}
+> >>+
+> >>+out:
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+static int ssflash_set_ctrl(struct v4l2_ctrl *ctrl)
+> >>+{
+> >>+	struct ssflash_flash *flash = to_ssflash_flash(ctrl);
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	u8 tout_bits;
+> >>+	unsigned int reg_val;
+> >>+	int rval = -EINVAL;
+> >>+
+> >>+	switch (ctrl->id) {
+> >>+	case V4L2_CID_FLASH_LED_MODE:
+> >>+		if (ctrl->val != V4L2_FLASH_LED_MODE_FLASH)
+> >>+			return ssflash_mode_ctrl(flash, ctrl->val);
+> >>+		/* switch to SHDN mode before flash strobe on */
+> >>+		return ssflash_mode_ctrl(flash, V4L2_FLASH_LED_MODE_NONE);
+> >>+
+> >>+	case V4L2_CID_FLASH_TORCH_INTENSITY:
+> >>+		return ssflash_torch_brt_ctrl(flash, ctrl->val);
+> >>+
+> >>+	case V4L2_CID_FLASH_INTENSITY:
+> >>+		return ssflash_flash_brt_ctrl(flash, ctrl->val);
+> >>+
+> >>+	case V4L2_CID_FLASH_STROBE_SOURCE:
+> >>+		return regmap_update_bits(flash->regmap,
+> >>+					data->strobe.reg, data->strobe.mask,
+> >>+					(ctrl->val) << data->strobe.shift);
+> >>+
+> >>+	case V4L2_CID_FLASH_STROBE:
+> >>+		/* read and check current mode of chip to start flash */
+> >>+		rval = regmap_read(flash->regmap, data->mode.reg, &reg_val);
+> >>+		if (rval < 0 ||
+> >>+				(((reg_val & data->mode.mask)>>data->mode.shift)
+> >>+				!= OPMODE_SHDN))
+> >>+			return rval;
+> >>+		/* flash on */
+> >>+		return ssflash_mode_ctrl(flash,
+> >>+					V4L2_FLASH_LED_MODE_FLASH);
+> >>+
+> >>+	case V4L2_CID_FLASH_STROBE_STOP:
+> >>+		/*
+> >>+		 * flash mode will be turned automatically
+> >>+		 * from FLASH mode to SHDN mode after flash duration timeout
+> >>+		 * read and check current mode of chip to stop flash
+> >>+		 */
+> >>+		rval = regmap_read(flash->regmap, data->mode.reg, &reg_val);
+> >>+		if (rval < 0)
+> >>+			return rval;
+> >>+		if (((reg_val & data->mode.mask)
+> >>+				>> data->mode.shift) == OPMODE_FLASH)
+> >>+			return ssflash_mode_ctrl(flash,
+> >>+						V4L2_FLASH_LED_MODE_NONE);
+> >>+		return rval;
+> >>+
+> >>+	case V4L2_CID_FLASH_TIMEOUT:
+> >>+		tout_bits = ssflash_conv_val_to_reg(ctrl->val,
+> >>+						data->timeout.min,
+> >>+						data->timeout.step,
+> >>+						data->timeout.knee,
+> >>+						data->timeout.knee_step,
+> >>+						data->timeout.max);
+> >>+
+> >>+		return regmap_update_bits(flash->regmap,
+> >>+					data->timeout.ctrl.reg,
+> >>+					data->timeout.ctrl.mask,
+> >>+					tout_bits << data->timeout.ctrl.shift);
+> >>+	}
+> >>+
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+static int ssflash_led_get_ctrl(struct v4l2_ctrl *ctrl)
+> >>+{
+> >>+	return ssflash_get_ctrl(ctrl);
+> >>+}
+> >>+
+> >>+static int ssflash_led_set_ctrl(struct v4l2_ctrl *ctrl)
+> >>+{
+> >>+	return ssflash_set_ctrl(ctrl);
+> >>+}
+
+You should drop the two wrapper functions, they don't do anythin.
+
+> >>+
+> >>+static const struct v4l2_ctrl_ops ssflash_led_ctrl_ops = {
+> >>+	 .g_volatile_ctrl = ssflash_led_get_ctrl,
+> >>+	 .s_ctrl = ssflash_led_set_ctrl,
+> >>+};
+> >>+
+> >>+static int ssflash_init_controls(struct ssflash_flash *flash)
+> >>+{
+> >>+	struct v4l2_ctrl *fault;
+> >>+	struct v4l2_ctrl_handler *hdl = &flash->ctrls_led;
+> >>+	const struct v4l2_ctrl_ops *ops = &ssflash_led_ctrl_ops;
+> >>+	const struct ssflash_data *data = flash->data;
+> >>+	s64 fault_max = 0;
+> >>+	int icnt;
+> >>+
+> >>+	v4l2_ctrl_handler_init(hdl, 8);
+> >>+	/* flash mode */
+
+I think this kind of comments are redundant, the same information is in the
+control ID macro.
+
+> >>+	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_LED_MODE,
+> >>+			       V4L2_FLASH_LED_MODE_TORCH, ~0x7,
+> >>+			       V4L2_FLASH_LED_MODE_NONE);
+> >>+	/* flash source */
+> >>+	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_STROBE_SOURCE,
+> >>+			       0x1, ~0x3, V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
+> >>+	/* flash strobe */
+> >>+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE, 0, 0, 0, 0);
+> >>+	/* flash strobe stop */
+> >>+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE_STOP, 0, 0, 0, 0);
+> >>+	/* flash strobe timeout */
+> >>+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TIMEOUT,
+> >>+			  data->timeout.min,
+> >>+			  data->timeout.max,
+> >>+			  data->timeout.step,
+> >>+			  data->timeout.max);
+> >>+	/* flash brt */
+> >>+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_INTENSITY,
+> >>+			  data->flash_br.min,
+> >>+			  data->flash_br.max,
+> >>+			  data->flash_br.step,
+> >>+			  data->flash_br.max);
+> >>+	/* torch brt */
+> >>+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TORCH_INTENSITY,
+> >>+			  data->torch_br.min,
+> >>+			  data->torch_br.max,
+> >>+			  data->torch_br.step,
+> >>+			  data->torch_br.max);
+> >>+	/* fault */
+> >>+	for (icnt = 0; icnt < NUM_V4L2_FAULT; icnt++)
+> >>+		fault_max |= data->fault[icnt].v4l2_fault;
+> >>+	fault = v4l2_ctrl_new_std(hdl,
+> >>+				ops, V4L2_CID_FLASH_FAULT, 0, fault_max, 0, 0);
+> >>+	if (fault != NULL)
+> >>+		fault->flags |= V4L2_CTRL_FLAG_VOLATILE;
+> >>+
+> >>+	if (hdl->error)
+> >>+		return hdl->error;
+> >>+
+> >>+	flash->subdev_led.ctrl_handler = hdl;
+
+I'd leave an empty line before return, the code needs to breathe. :-)
+
+> >>+	return 0;
+> >>+}
+> >>+
+> >>+/* initialize device */
+> >>+static const struct v4l2_subdev_ops ssflash_ops = {
+> >>+	.core = NULL,
+> >>+};
+> >>+
+> >>+static const struct regmap_config ssflash_regmap = {
+> >>+	.reg_bits = 8,
+> >>+	.val_bits = 8,
+> >>+	.max_register = 0xff,
+> >>+};
+> >>+
+> >>+static int ssflash_subdev_init(struct ssflash_flash *flash)
+> >>+{
+> >>+	struct i2c_client *client = to_i2c_client(flash->dev);
+> >>+	int rval;
+> >>+
+> >>+	v4l2_i2c_subdev_init(&flash->subdev_led, client, &ssflash_ops);
+> >>+	flash->subdev_led.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> >>+	strcpy(flash->subdev_led.name, flash->data->name);
+> >>+
+> >>+	rval = ssflash_init_controls(flash);
+> >>+	if (rval)
+> >>+		goto err_out;
+> >>+
+> >>+	rval = media_entity_init(&flash->subdev_led.entity, 0, NULL, 0);
+> >>+	if (rval < 0)
+> >>+		goto err_out;
+> >>+
+> >>+	flash->subdev_led.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> >>+	return rval;
+
+I'd return plain 0 instead.
+
+> >>+
+> >>+err_out:
+> >>+	v4l2_ctrl_handler_free(&flash->ctrls_led);
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+static int ssflash_init_device(struct ssflash_flash *flash)
+> >>+{
+> >>+	int rval;
+> >>+
+> >>+	/* output disable */
+> >>+	rval = ssflash_mode_ctrl(flash, V4L2_FLASH_LED_MODE_NONE);
+> >>+	if (rval < 0)
+> >>+		return rval;
+> >>+
+> >>+	if (flash->data->func != NULL) {
+> >>+		rval = flash->data->func(flash->regmap);
+> >>+		if (rval < 0)
+> >>+			return rval;
+> >>+	}
+> >>+
+> >>+	return rval;
+> >>+}
+> >>+
+> >>+static int ssflash_probe(struct i2c_client *client,
+> >>+			const struct i2c_device_id *devid)
+> >>+{
+> >>+	struct ssflash_flash *flash;
+> >>+	int rval;
+> >>+
+> >>+	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
+> >>+	if (flash == NULL)
+> >>+		return -ENOMEM;
+> >>+
+> >>+	flash->regmap = devm_regmap_init_i2c(client, &ssflash_regmap);
+> >>+	if (IS_ERR(flash->regmap)) {
+> >>+		rval = PTR_ERR(flash->regmap);
+> >>+		return rval;
+
+return PTR_ERR...
+
+> >>+	}
+> >>+
+> >>+	flash->dev = &client->dev;
+> >>+	flash->data = (const struct ssflash_data *)devid->driver_data;
+
+How about V4L2 async / OF support? Otherwise there are not going to be many
+users for the driver.
+
+> >>+
+> >>+	rval = ssflash_subdev_init(flash);
+> >>+	if (rval < 0)
+> >>+		return rval;
+> >>+
+> >>+	rval = ssflash_init_device(flash);
+> >>+	if (rval < 0)
+> >>+		return rval;
+> >>+
+> >>+	i2c_set_clientdata(client, flash);
+> >>+
+> >>+	return 0;
+> >>+}
+> >>+
+> >>+static int ssflash_remove(struct i2c_client *client)
+> >>+{
+> >>+	struct ssflash_flash *flash = i2c_get_clientdata(client);
+> >>+
+> >>+	v4l2_device_unregister_subdev(&flash->subdev_led);
+> >>+	v4l2_ctrl_handler_free(&flash->ctrls_led);
+> >>+	media_entity_cleanup(&flash->subdev_led.entity);
+> >>+
+> >>+	return 0;
+> >>+}
+> >>+
+> >>+static const struct i2c_device_id ssflash_id_table[] = {
+> >>+	{LM3556_NAME, (unsigned long)&flash_lm3556},
+> >>+	{LM3561_NAME, (unsigned long)&flash_lm3561},
+> >>+	{LM3642_NAME, (unsigned long)&flash_lm3642},
+> >>+	{LM3648_NAME, (unsigned long)&flash_lm3648},
+> >>+	{}
+> >>+};
+> >>+
+> >>+MODULE_DEVICE_TABLE(i2c, ssflash_id_table);
+> >>+
+> >>+static struct i2c_driver ssflash_i2c_driver = {
+> >>+	.driver = {
+> >>+		.name = SINGLE_STRING_FLASH_NAME,
+> >>+	},
+> >>+	.probe = ssflash_probe,
+> >>+	.remove = ssflash_remove,
+> >>+	.id_table = ssflash_id_table,
+> >>+};
+> >>+
+> >>+module_i2c_driver(ssflash_i2c_driver);
+> >>+
+> >>+MODULE_AUTHOR("Daniel Jeong <gshark.jeong@gmail.com>");
+> >>+MODULE_AUTHOR("Ldd Mlp <ldd-mlp@list.ti.com>");
+> >>+MODULE_DESCRIPTION("Texas Instruments single string LED flash driver");
+> >>+MODULE_LICENSE("GPL");
+> >>diff --git a/include/media/ti-ss-flash.h b/include/media/ti-ss-flash.h
+> >>new file mode 100644
+> >>index 0000000..505b33f
+> >>--- /dev/null
+> >>+++ b/include/media/ti-ss-flash.h
+> >>@@ -0,0 +1,33 @@
+> >>+/*
+> >>+ * include/media/ti-ss-flash.h
+> >>+ *
+> >>+ * Copyright (C) 2014 Texas Instruments
+
+2014 or 2015?
+
+> >>+ *
+> >>+ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
+> >>+ *			Ldd-Mlp <ldd-mlp@list.ti.com>
+> >>+ *
+> >>+ * This program is free software; you can redistribute it and/or
+> >>+ * modify it under the terms of the GNU General Public License
+> >>+ * version 2 as published by the Free Software Foundation.
+> >>+ */
+> >>+
+> >>+#ifndef __TI_SS_FLASH_H__
+> >>+#define __TI_SS_FLASH_H__
+> >>+
+> >>+#include <media/v4l2-subdev.h>
+> >>+
+> >>+#define LM3556_NAME "lm3556"
+> >>+#define LM3556_I2C_ADDR	(0x63)
+> >>+
+> >>+#define LM3561_NAME "lm3561"
+> >>+#define LM3561_I2C_ADDR	(0x53)
+> >>+
+> >>+#define LM3642_NAME "lm3642"
+> >>+#define LM3642_I2C_ADDR	(0x63)
+> >>+
+> >>+#define LM3648_NAME "lm3648"
+> >>+#define LM3648_I2C_ADDR	(0x63)
+> >>+
+> >>+#define SINGLE_STRING_FLASH_NAME	"ti_ss_flash"
+> >>+
+> >>+#endif /* __TI_SS_FLASH_H__ */
+> >
+> 
+
 -- 
-http://palosaari.fi/
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
