@@ -1,100 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47632 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbbFEKdR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:33:17 -0400
-Message-ID: <55717AE0.7090205@xs4all.nl>
-Date: Fri, 05 Jun 2015 12:33:04 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from tex.lwn.net ([70.33.254.29]:37402 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757967AbbFBJd7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jun 2015 05:33:59 -0400
+Date: Tue, 2 Jun 2015 18:33:54 +0900
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 00/35] Improve DVB frontend API documentation
+Message-ID: <20150602183354.0701b29a@lwn.net>
+In-Reply-To: <20150602062613.0377e5e5@recife.lan>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	<20150602121229.74b537a8@lwn.net>
+	<20150602062613.0377e5e5@recife.lan>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] vivid: don't use more than 1024 bytes of stack
-References: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
-In-Reply-To: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2015 12:29 PM, Mauro Carvalho Chehab wrote:
-> Remove the following compilation warnings:
-> 
-> 	drivers/media/platform/vivid/vivid-tpg.c: In function 'tpg_gen_text':
-> 	drivers/media/platform/vivid/vivid-tpg.c:1562:1: warning: the frame size of 1308 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-> 	 }
-> 	 ^
-> 
-> This seems to be due to some bad optimization done by gcc.
-> 
-> Moving the for() loop to happen inside the macro solves the
-> issue.
+On Tue, 2 Jun 2015 06:26:13 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-Huh, interesting. I'd never have guessed that.
+> I prefer to send it via my tree, if you don't mind. 
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+That's fine.
 
-Thanks for looking at this!
-
-	Hans
-
-> 
-> While here, fix CodingStyle at the switch().
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-> index b1147f2df26c..7a3ed580626a 100644
-> --- a/drivers/media/platform/vivid/vivid-tpg.c
-> +++ b/drivers/media/platform/vivid/vivid-tpg.c
-> @@ -1492,12 +1492,10 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
->  	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
->  		div = 2;
->  
-> -	for (p = 0; p < tpg->planes; p++) {
-> -		unsigned vdiv = tpg->vdownsampling[p];
-> -		unsigned hdiv = tpg->hdownsampling[p];
-> -
-> -		/* Print text */
-> -#define PRINTSTR(PIXTYPE) do {	\
-> +	/* Print text */
-> +#define PRINTSTR(PIXTYPE) for (p = 0; p < tpg->planes; p++) {	\
-> +	unsigned vdiv = tpg->vdownsampling[p];	\
-> +	unsigned hdiv = tpg->hdownsampling[p];	\
->  	PIXTYPE fg;	\
->  	PIXTYPE bg;	\
->  	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
-> @@ -1548,16 +1546,19 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
->  	}	\
->  } while (0)
->  
-> -		switch (tpg->twopixelsize[p]) {
-> -		case 2:
-> -			PRINTSTR(u8); break;
-> -		case 4:
-> -			PRINTSTR(u16); break;
-> -		case 6:
-> -			PRINTSTR(x24); break;
-> -		case 8:
-> -			PRINTSTR(u32); break;
-> -		}
-> +	switch (tpg->twopixelsize[p]) {
-> +	case 2:
-> +		PRINTSTR(u8);
-> +		break;
-> +	case 4:
-> +		PRINTSTR(u16);
-> +		break;
-> +	case 6:
-> +		PRINTSTR(x24);
-> +		break;
-> +	case 8:
-> +		PRINTSTR(u32);
-> +		break;
->  	}
->  }
->  
-> 
-
+jon
