@@ -1,150 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37102 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754232AbbFJJVW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:21:22 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from tex.lwn.net ([70.33.254.29]:36537 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539AbbFBDD5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 23:03:57 -0400
+Date: Tue, 2 Jun 2015 12:03:50 +0900
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Fabian Frederick <fabf@skynet.be>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 2/9] [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
-Date: Wed, 10 Jun 2015 06:20:45 -0300
-Message-Id: <0bec810973e08df0e66260e84d2dcea055a3fad7.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
+	David Howells <dhowells@redhat.com>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH 15/35] DocBook: Improve the description of the
+ properties API
+Message-ID: <20150602120350.00ab6617@lwn.net>
+In-Reply-To: <a3f0fbdc4f04c0e8fde70b866fd203912c1e858b.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	<a3f0fbdc4f04c0e8fde70b866fd203912c1e858b.1432844837.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+A few minor corrections here.
 
-Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
-hand made mapping of virtual address to physical address. Also the
-function leaked page reference from get_user_pages() so fix that by
-properly release the reference when omap_vout_buffer_release() is
-called.
+jon
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[hans.verkuil@cisco.com: remove unused struct omap_vout_device *vout variable]
+On Thu, 28 May 2015 18:49:18 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Make the text clearer about what the properties API does.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> index 28ea62067af6..c10ed0636d02 100644
+> --- a/Documentation/DocBook/media/dvb/dvbproperty.xml
+> +++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> @@ -1,8 +1,35 @@
+> -<section id="FE_GET_SET_PROPERTY">
+> -<title><constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></title>
+> -<para>This section describes the DVB version 5 extension of the DVB-API, also
+> -called "S2API", as this API were added to provide support for DVB-S2. It was
+> -designed to be able to replace the old frontend API. Yet, the DISEQC and
+> +<section id="frontend-properties">
+> +<title>DVB Frontend properties</title>
+> +<para>Tuning into a Digital TV physical channel and starting decoding it
+> +    requires to change a set of parameters, in order to control the
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index f09c5f17a42f..7feb6394f111 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
- }
- 
- /*
-- * omap_vout_uservirt_to_phys: This inline function is used to convert user
-- * space virtual address to physical address.
-+ * omap_vout_get_userptr: Convert user space virtual address to physical
-+ * address.
-  */
--static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
-+static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
-+				 u32 *physp)
- {
--	unsigned long physp = 0;
--	struct vm_area_struct *vma;
--	struct mm_struct *mm = current->mm;
-+	struct frame_vector *vec;
-+	int ret;
- 
- 	/* For kernel direct-mapped memory, take the easy way */
--	if (virtp >= PAGE_OFFSET)
--		return virt_to_phys((void *) virtp);
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(mm, virtp);
--	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
--		/* this will catch, kernel-allocated, mmaped-to-usermode
--		   addresses */
--		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
--		up_read(&current->mm->mmap_sem);
--	} else {
--		/* otherwise, use get_user_pages() for general userland pages */
--		int res, nr_pages = 1;
--		struct page *pages;
-+	if (virtp >= PAGE_OFFSET) {
-+		*physp = virt_to_phys((void *)virtp);
-+		return 0;
-+	}
- 
--		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
--				0, &pages, NULL);
--		up_read(&current->mm->mmap_sem);
-+	vec = frame_vector_create(1);
-+	if (!vec)
-+		return -ENOMEM;
- 
--		if (res == nr_pages) {
--			physp =  __pa(page_address(&pages[0]) +
--					(virtp & ~PAGE_MASK));
--		} else {
--			printk(KERN_WARNING VOUT_NAME
--					"get_user_pages failed\n");
--			return 0;
--		}
-+	ret = get_vaddr_frames(virtp, 1, true, false, vec);
-+	if (ret != 1) {
-+		frame_vector_destroy(vec);
-+		return -EINVAL;
- 	}
-+	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
-+	vb->priv = vec;
- 
--	return physp;
-+	return 0;
- }
- 
- /*
-@@ -784,11 +772,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
- 	 * address of the buffer
- 	 */
- 	if (V4L2_MEMORY_USERPTR == vb->memory) {
-+		int ret;
-+
- 		if (0 == vb->baddr)
- 			return -EINVAL;
- 		/* Physical address */
--		vout->queued_buf_addr[vb->i] = (u8 *)
--			omap_vout_uservirt_to_phys(vb->baddr);
-+		ret = omap_vout_get_userptr(vb, vb->baddr,
-+				(u32 *)&vout->queued_buf_addr[vb->i]);
-+		if (ret < 0)
-+			return ret;
- 	} else {
- 		unsigned long addr, dma_addr;
- 		unsigned long size;
-@@ -834,12 +826,13 @@ static void omap_vout_buffer_queue(struct videobuf_queue *q,
- static void omap_vout_buffer_release(struct videobuf_queue *q,
- 			    struct videobuf_buffer *vb)
- {
--	struct omap_vout_device *vout = q->priv_data;
--
- 	vb->state = VIDEOBUF_NEEDS_INIT;
-+	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
-+		struct frame_vector *vec = vb->priv;
- 
--	if (V4L2_MEMORY_MMAP != vout->memory)
--		return;
-+		put_vaddr_frames(vec);
-+		frame_vector_destroy(vec);
-+	}
- }
- 
- /*
--- 
-2.4.2
+requires *changing* as set...
 
+> +    tuner, the demodulator, the Linear Low-noise Amplifier (LNA) and to set the
+> +    antena subsystem via Satellite Equipment Control (SEC), on satellital
+
+antenna
+
+> +    systems. The actual parameters are specific to each particular digital
+> +    TV standards, and may change as the digital TV specs evolutes.</para>
+
+standard (no "s").  s/evolutes/evolves/
+
+> +<para>In the past, the strategy used were to have an union with the parameters
+
+s/were to have an/was to have a/
+
+> +    needed to tune for DVB-S, DVB-C, DVB-T and ATSC delivery systems grouped
+> +    there. The problem is that, as the second generation standards appeared,
+> +    those structs were not big enough to contain the additional parameters.
+> +    Also, the union didn't have any space left to be expanded without breaking
+> +    userspace. So, the decision was to deprecate the legacy union/struct based
+> +    approach, in favor of a properties set approach.</para>
+> +<para>By using a properties set, it is now possible to extend and support any
+> +    digital TV without needing to redesign the API</para>
+> +<para>Example: with the properties based approach, in order to set the tuner
+> +    to a DVB-C channel at 651 kHz, modulated with 256-QAM, FEC 3/4 and symbol
+> +    rate of 5.217 Mbauds, those properties should be sent to
+> +    <link linkend="FE_GET_PROPERTY"><constant>FE_SET_PROPERTY</constant></link> ioctl:</para>
+> +    <itemizedlist>
+> +	<listitem>DTV_FREQUENCY = 651000000</listitem>
+> +	<listitem>DTV_MODULATION = QAM_256</listitem>
+> +	<listitem>DTV_INVERSION = INVERSION_AUTO</listitem>
+> +	<listitem>DTV_SYMBOL_RATE = 5217000</listitem>
+> +	<listitem>DTV_INNER_FEC = FEC_3_4</listitem>
+> +	<listitem>DTV_TUNE</listitem>
+> +    </itemizedlist>
+> +<para>NOTE: This section describes the DVB version 5 extension of the DVB-API,
+> +also called "S2API", as this API were added to provide support for DVB-S2. It
+> +was designed to be able to replace the old frontend API. Yet, the DISEQC and
+>  the capability ioctls weren't implemented yet via the new way.</para>
+>  <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
+>  API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+
+jon
