@@ -1,240 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:45502 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733AbbFRP0m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 11:26:42 -0400
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/2] genalloc: add name arg to gen_pool_get() and devm_gen_pool_create()
-Date: Thu, 18 Jun 2015 18:26:22 +0300
-Message-ID: <1434641182-23957-1-git-send-email-vladimir_zapolskiy@mentor.com>
-In-Reply-To: <1434641162-23908-1-git-send-email-vladimir_zapolskiy@mentor.com>
-References: <1434641162-23908-1-git-send-email-vladimir_zapolskiy@mentor.com>
+Received: from mga03.intel.com ([134.134.136.65]:10634 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753267AbbFBMyb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jun 2015 08:54:31 -0400
+Date: Tue, 2 Jun 2015 18:25:35 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Message-ID: <20150602125535.GS3140@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+ <20150529093317.GF3140@localhost>
+ <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
+ <20150529101846.GG3140@localhost>
+ <55687892.7050606@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55687892.7050606@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change modifies gen_pool_get() and devm_gen_pool_create()
-client interfaces adding one more argument "name" of a gen_pool
-object.
+On Fri, May 29, 2015 at 05:32:50PM +0300, Peter Ujfalusi wrote:
+> On 05/29/2015 01:18 PM, Vinod Koul wrote:
+> > On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
+> >> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+> >>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
+> >>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
+> >>>> prevents drivers using the compat call to be able to do deferred probing.
+> >>>>
+> >>>> The new wrapper is identical in functionality but it will return with error
+> >>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
+> >>>> case dma_request_slave_channel_reason() returned with it.
+> >>> This is okay but am worried about one more warpper, how about fixing
+> >>> dma_request_slave_channel_compat()
+> >>
+> >> Then all callers of dma_request_slave_channel_compat() have to be
+> >> modified to handle ERR_PTR first.
+> >>
+> >> The same is true for (the existing) dma_request_slave_channel_reason()
+> >> vs. dma_request_slave_channel().
+> > Good point, looking again, I think we should rather fix
+> > dma_request_slave_channel_reason() as it was expected to return err code and
+> > add new users. Anyway users of this API do expect the reason...
+> 
+> Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
+> drivers only working via DT or ACPI while
+> dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
+> DT/ACPI or legacy mode as well.
+> 
+> I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
+> drivers are using this to request channels - they need to support DT and
+> legacy mode.
+I think we should hide these things behind the API and do this behind the
+hood for ACPI/DT systems.
 
-Due to implementation gen_pool_get() is capable to retrieve only one
-gen_pool associated with a device even if multiple gen_pools are
-created, fortunately right at the moment it is sufficient for the
-clients, hence provide NULL as a valid argument on both producer
-devm_gen_pool_create() and consumer gen_pool_get() sides.
+Also it makes sense to use right API and mark rest as depricated
+> 
+> But it is doable to do this for both the non _compat and _compat version:
+> 1. change all users to check IS_ERR_OR_NULL(chan)
+>  return the PTR_ERR if not NULL, or do whatever the driver was doing in case
+> of chan == NULL.
+> 2. change the non _compat and _compat versions to do the same as the _reason
+> variants, #define the _reason ones to the non _reason names
+> 3. Rename the _reason use to non _reason function in drivers
+> 4. Remove the #defines for the _reason functions
+> 5. Change the IS_ERR_OR_NULL(chan) to IS_ERR(chan) in all drivers
+> The result:
+> Both dma_request_slave_channel() and dma_request_slave_channel_compat() will
+> return ERR_PTR in case of failure or in success they will return the pinter to
+> chan.
+> 
+> Is this what you were asking?
+> It is a bit broader than what this series was doing: taking care of
+> OMAP/daVinci drivers for deferred probing regarding to dmaengine ;)
+Yes but it would make sense right? I know it is a larger work but then we
+wouldn't want another dma_request_slave_xxx API, at some point we have stop
+it exapnding, perhpas now :)
 
-Because only one created gen_pool per device is addressable,
-explicitly add a restriction to devm_gen_pool_create() to create only
-one gen_pool per device, this implies two possible error codes
-returned by the function, account it on client side (only misc/sram).
-This completes client side changes related to genalloc updates.
+Yes I am all ears to stage this work and not do transition gardually..
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
----
- arch/arm/mach-at91/pm.c                   |  2 +-
- arch/arm/mach-imx/pm-imx5.c               |  2 +-
- arch/arm/mach-imx/pm-imx6.c               |  2 +-
- drivers/media/platform/coda/coda-common.c |  2 +-
- drivers/misc/sram.c                       |  8 ++---
- include/linux/genalloc.h                  |  4 +--
- lib/genalloc.c                            | 49 ++++++++++++++++++-------------
- 7 files changed, 38 insertions(+), 31 deletions(-)
-
-diff --git a/arch/arm/mach-at91/pm.c b/arch/arm/mach-at91/pm.c
-index e24df77..e65e9db 100644
---- a/arch/arm/mach-at91/pm.c
-+++ b/arch/arm/mach-at91/pm.c
-@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(void)
- 		return;
- 	}
- 
--	sram_pool = gen_pool_get(&pdev->dev);
-+	sram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!sram_pool) {
- 		pr_warn("%s: sram pool unavailable!\n", __func__);
- 		return;
-diff --git a/arch/arm/mach-imx/pm-imx5.c b/arch/arm/mach-imx/pm-imx5.c
-index 1885676..532d4b0 100644
---- a/arch/arm/mach-imx/pm-imx5.c
-+++ b/arch/arm/mach-imx/pm-imx5.c
-@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocram(
- 		goto put_node;
- 	}
- 
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff --git a/arch/arm/mach-imx/pm-imx6.c b/arch/arm/mach-imx/pm-imx6.c
-index 93ecf55..8ff8fc0 100644
---- a/arch/arm/mach-imx/pm-imx6.c
-+++ b/arch/arm/mach-imx/pm-imx6.c
-@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(const struct imx6_pm_socdata *socdata)
- 		goto put_node;
- 	}
- 
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 58f6548..284ac4c 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_device *pdev)
- 	/* Get IRAM pool from device tree or platform data */
- 	pool = of_gen_pool_get(np, "iram", 0);
- 	if (!pool && pdata)
--		pool = gen_pool_get(pdata->iram_dev);
-+		pool = gen_pool_get(pdata->iram_dev, NULL);
- 	if (!pool) {
- 		dev_err(&pdev->dev, "iram pool not available\n");
- 		return -ENOMEM;
-diff --git a/drivers/misc/sram.c b/drivers/misc/sram.c
-index 15c33cc..431e1dd 100644
---- a/drivers/misc/sram.c
-+++ b/drivers/misc/sram.c
-@@ -186,10 +186,10 @@ static int sram_probe(struct platform_device *pdev)
- 	if (IS_ERR(sram->virt_base))
- 		return PTR_ERR(sram->virt_base);
- 
--	sram->pool = devm_gen_pool_create(sram->dev,
--					  ilog2(SRAM_GRANULARITY), -1);
--	if (!sram->pool)
--		return -ENOMEM;
-+	sram->pool = devm_gen_pool_create(sram->dev, ilog2(SRAM_GRANULARITY),
-+					  NUMA_NO_NODE, NULL);
-+	if (IS_ERR(sram->pool))
-+		return PTR_ERR(sram->pool);
- 
- 	ret = sram_reserve_regions(sram, res);
- 	if (ret)
-diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
-index 5383bb1..6afa65e 100644
---- a/include/linux/genalloc.h
-+++ b/include/linux/genalloc.h
-@@ -118,8 +118,8 @@ extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
- 		unsigned long start, unsigned int nr, void *data);
- 
- extern struct gen_pool *devm_gen_pool_create(struct device *dev,
--		int min_alloc_order, int nid);
--extern struct gen_pool *gen_pool_get(struct device *dev);
-+		int min_alloc_order, int nid, const char *name);
-+extern struct gen_pool *gen_pool_get(struct device *dev, const char *name);
- 
- bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
- 			size_t size);
-diff --git a/lib/genalloc.c b/lib/genalloc.c
-index daf0afb..7cf19a5 100644
---- a/lib/genalloc.c
-+++ b/lib/genalloc.c
-@@ -571,23 +571,46 @@ static void devm_gen_pool_release(struct device *dev, void *res)
- }
- 
- /**
-+ * gen_pool_get - Obtain the gen_pool (if any) for a device
-+ * @dev: device to retrieve the gen_pool from
-+ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
-+ *
-+ * Returns the gen_pool for the device if one is present, or NULL.
-+ */
-+struct gen_pool *gen_pool_get(struct device *dev, const char *name)
-+{
-+	struct gen_pool **p = devres_find(dev, devm_gen_pool_release,
-+					  NULL, NULL);
-+
-+	if (!p)
-+		return NULL;
-+	return *p;
-+}
-+EXPORT_SYMBOL_GPL(gen_pool_get);
-+
-+/**
-  * devm_gen_pool_create - managed gen_pool_create
-  * @dev: device that provides the gen_pool
-  * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
-- * @nid: node id of the node the pool structure should be allocated on, or -1
-+ * @nid: node selector for allocated gen_pool, %NUMA_NO_NODE for all nodes
-+ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
-  *
-  * Create a new special memory pool that can be used to manage special purpose
-  * memory not managed by the regular kmalloc/kfree interface. The pool will be
-  * automatically destroyed by the device management code.
-  */
- struct gen_pool *devm_gen_pool_create(struct device *dev, int min_alloc_order,
--		int nid)
-+				      int nid, const char *name)
- {
- 	struct gen_pool **ptr, *pool;
- 
-+	/* Check that genpool to be created is uniquely addressed on device */
-+	if (gen_pool_get(dev, name))
-+		return ERR_PTR(-EINVAL);
-+
- 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
- 	if (!ptr)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	pool = gen_pool_create(min_alloc_order, nid);
- 	if (pool) {
-@@ -595,29 +618,13 @@ struct gen_pool *devm_gen_pool_create(struct device *dev, int min_alloc_order,
- 		devres_add(dev, ptr);
- 	} else {
- 		devres_free(ptr);
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	return pool;
- }
- EXPORT_SYMBOL(devm_gen_pool_create);
- 
--/**
-- * gen_pool_get - Obtain the gen_pool (if any) for a device
-- * @dev: device to retrieve the gen_pool from
-- *
-- * Returns the gen_pool for the device if one is present, or NULL.
-- */
--struct gen_pool *gen_pool_get(struct device *dev)
--{
--	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
--					NULL);
--
--	if (!p)
--		return NULL;
--	return *p;
--}
--EXPORT_SYMBOL_GPL(gen_pool_get);
--
- #ifdef CONFIG_OF
- /**
-  * of_gen_pool_get - find a pool by phandle property
-@@ -642,7 +649,7 @@ struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	of_node_put(np_pool);
- 	if (!pdev)
- 		return NULL;
--	return gen_pool_get(&pdev->dev);
-+	return gen_pool_get(&pdev->dev, NULL);
- }
- EXPORT_SYMBOL_GPL(of_gen_pool_get);
- #endif /* CONFIG_OF */
 -- 
-2.1.4
-
+~Vinod
