@@ -1,33 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:34499 "EHLO
-	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755220AbbFCObW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 10:31:22 -0400
-Received: by qkoo18 with SMTP id o18so6226645qko.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 07:31:21 -0700 (PDT)
+Received: from tex.lwn.net ([70.33.254.29]:36500 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753893AbbFBC4K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2015 22:56:10 -0400
+Date: Tue, 2 Jun 2015 11:56:04 +0900
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 04/35] DocBook: fix emphasis at the DVB documentation
+Message-ID: <20150602115604.54302981@lwn.net>
+In-Reply-To: <6674a17160ba2f80a4537d4dc9e501149c308706.1432844837.git.mchehab@osg.samsung.com>
+References: <cover.1432844837.git.mchehab@osg.samsung.com>
+	<6674a17160ba2f80a4537d4dc9e501149c308706.1432844837.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <556EB2F7.506@iki.fi>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-	<556EB2F7.506@iki.fi>
-Date: Wed, 3 Jun 2015 10:31:21 -0400
-Message-ID: <CALzAhNWKPOFe1=jdo6f=FFMtWyNWxm34M1EoJA0CMD3GZfhvWA@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Many thanks to the developers for all of your hard work.
->
->
-> Let me guess they have changed Si2168 chip to latest "C" version. Driver
-> supports only A and B (A20, A30 and B40). I have never seen C version.
+On Thu, 28 May 2015 18:49:07 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-I'll look in detail and report back shortly.
+> Currently, it is using 'role="tt"', but this is not defined at
+> the DocBook 4.5 spec. The net result is that no emphasis happens.
+> 
+> So, replace them to bold emphasis.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Nit: I suspect the intent of the "emphasis" here was to get the code in a
+monospace font, which "bold" is unlikely to do.  Isn't there a
+role="code" or something useful like that to use?  I'd have to go look.
+
+jon
