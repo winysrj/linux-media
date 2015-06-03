@@ -1,58 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58055 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751781AbbFAJ2Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 05:28:24 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 57D442A007E
-	for <linux-media@vger.kernel.org>; Mon,  1 Jun 2015 11:28:18 +0200 (CEST)
-Message-ID: <556C25B2.4060402@xs4all.nl>
-Date: Mon, 01 Jun 2015 11:28:18 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:34593 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757069AbbFCTYy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 15:24:54 -0400
+Received: by lbcmx3 with SMTP id mx3so13734043lbc.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 12:24:52 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] Final set of compile/sparse fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Nico Herpich <nico.herpich@online.de>
+Date: Wed, 3 Jun 2015 21:24:12 +0200
+Message-ID: <CABSbMOHSD1Te3rJKjkXa2asrVgFgSjTRzDB_0df4+JiCs3PONg@mail.gmail.com>
+Subject: Manjaro Linux distro-specific hint for media-build
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This set fixes the final compilation and sparse warnings (except for a few remaining
-sparse warnings for which I have no obvious solution).
+Hi together, I just installed my new DVR-Card. Therefor I had to clone
+the linuxtv.org/media_build.git and get a text for my distro. I can't
+write a patch, but with this part of the log I think it will be easy
+for you to extend the dependency-administration.
 
-It also improves timestamp handling in the davinci drivers.
+Greatings!
 
-Regards,
+$ git clone git://linuxtv.org/media_build.git
+Klone nach 'media_build' ...
+remote: Counting objects: 2855, done.
+remote: Compressing objects: 100% (1238/1238), done.
+remote: Total 2855 (delta 2014), reused 2258 (delta 1577)
+Empfange Objekte: 100% (2855/2855), 544.18 KiB | 972.00 KiB/s, Fertig.
+Löse Unterschiede auf: 100% (2014/2014), Fertig.
+Prüfe Konnektivität ... Fertig.
+$ cd media_build
+$ ./build
+Checking if the needed tools for Manjaro Linux are available
+ERROR: please install "lsdiff", otherwise, build won't work.
+I don't know distro Manjaro Linux. So, I can't provide you a hint with
+the package names.
+Be welcome to contribute with a patch for media-build, by submitting a
+distro-specific hint
+to linux-media@vger.kernel.org
+Build can't procceed as 1 dependency is missing at ./build line 266.
+$ yaourt -S lsdiff
+Fehler: Ziel nicht gefunden: lsdiff
+$ yaourt -S patchutils
+Löse Abhängigkeiten auf...
+Suche nach in Konflikt stehenden Paketen...
 
-	Hans
+Pakete (1) patchutils-0.3.3-1
 
-The following changes since commit c1c3c85ddf60a6d97c122d57d385b4929fcec4b3:
+Gesamtgröße der zu installierenden Pakete:  0,16 MiB
 
-  [media] DocBook: fix FE_SET_PROPERTY ioctl arguments (2015-06-01 06:10:15 -0300)
+:: Installation fortsetzen? [J/n]
+(1/1) Prüfe Schlüssel im Schlüsselring
 
-are available in the git repository at:
+[########################################################] 100%
+(1/1) Überprüfe Paket-Integrität
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2n
+[########################################################] 100%
+(1/1) Lade Paket-Dateien
 
-for you to fetch changes up to 4dc825912fb78205a3ec5c6d43f9d517569d6adc:
+[########################################################] 100%
+(1/1) Prüfe auf Dateikonflikte
 
-  media: s5p-mfc: fix sparse warnings (2015-06-01 11:19:45 +0200)
+[########################################################] 100%
+(1/1) Überprüfe verfügbaren Festplattenspeicher
 
-----------------------------------------------------------------
-Lad, Prabhakar (4):
-      media: davinci_vpfe: clear the output_specs
-      media: davinci_vpfe: set minimum required buffers to three
-      media: davinci_vpfe: use monotonic timestamp
-      media: davinci: vpbe: use v4l2_get_timestamp()
+[########################################################] 100%
+(1/1) Installiere patchutils
 
-Marek Szyprowski (1):
-      media: s5p-mfc: fix sparse warnings
+[########################################################] 100%
+$ ./build
+Checking if the needed tools for Manjaro Linux are available
+Needed package dependencies are met.
 
- drivers/media/platform/davinci/vpbe_display.c        |  9 ++-------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c      |  4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c      |  4 ++--
- drivers/staging/media/davinci_vpfe/dm365_resizer.c   |  1 +
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h |  2 --
- drivers/staging/media/davinci_vpfe/vpfe_video.c      | 18 +++++-------------
- 6 files changed, 12 insertions(+), 26 deletions(-)
+************************************************************
+* This script will download the latest tarball and build it*
+* Assuming that your kernel is compatible with the latest  *
+* drivers. If not, you'll need to add some extra backports,*
+* ./backports/<kernel> directory.                          *
+* It will also update this tree to be sure that all compat *
+* bits are there, to avoid compilation failures            *
+************************************************************
+************************************************************
+* All drivers and build system are under GPLv2 License     *
+* Firmware files are under the license terms found at:     *
+* http://www.linuxtv.org/downloads/firmware/               *
+* Please abort in the next 5 secs if you don't agree with  *
+* the license                                              *
+************************************************************
+
+Not aborted. It means that the licence was agreed. Proceeding...
