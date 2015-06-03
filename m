@@ -1,89 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iodev.co.uk ([82.211.30.53]:56597 "EHLO iodev.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117AbbFNWEH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 18:04:07 -0400
-Date: Sun, 14 Jun 2015 18:53:47 -0300
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] SOLO6x10: remove unneeded register locking and
- barriers.
-Message-ID: <20150614185347.5c12ccf0@pirotess>
-In-Reply-To: <m3twuiwc3j.fsf@t19.piap.pl>
-References: <m3a8waxr86.fsf@t19.piap.pl>
-	<m3twuiwc3j.fsf@t19.piap.pl>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:32916 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754646AbbFCP5O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 11:57:14 -0400
+Message-ID: <556F23CF.8030707@gmail.com>
+Date: Wed, 03 Jun 2015 16:57:03 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>, David Howells <dhowells@redhat.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+References: <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk> <360.1432807690@warthog.procyon.org.uk> <55677568.4070603@gmail.com> <556EE155.1000508@iki.fi>
+In-Reply-To: <556EE155.1000508@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 08 Jun 2015 15:42:24 +0200
-khalasa@piap.pl (Krzysztof Hałasa) wrote:
-> readl() and writel() are atomic, we don't need the spin lock.
-> Also, flushing posted write buffer isn't required. Especially on
-> read :-)
-> 
-> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
-> 
-> --- a/drivers/media/pci/solo6x10/solo6x10-core.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-core.c
-> @@ -483,7 +483,6 @@ static int solo_pci_probe(struct pci_dev *pdev,
-> const struct pci_device_id *id) 
->  	solo_dev->type = id->driver_data;
->  	solo_dev->pdev = pdev;
-> -	spin_lock_init(&solo_dev->reg_io_lock);
->  	ret = v4l2_device_register(&pdev->dev, &solo_dev->v4l2_dev);
->  	if (ret)
->  		goto fail_probe;
-> --- a/drivers/media/pci/solo6x10/solo6x10.h
-> +++ b/drivers/media/pci/solo6x10/solo6x10.h
-> @@ -201,7 +201,6 @@ struct solo_dev {
->  	int			nr_ext;
->  	u32			irq_mask;
->  	u32			motion_mask;
-> -	spinlock_t		reg_io_lock;
->  	struct v4l2_device	v4l2_dev;
->  
->  	/* tw28xx accounting */
-> @@ -283,36 +282,13 @@ struct solo_dev {
->  
->  static inline u32 solo_reg_read(struct solo_dev *solo_dev, int reg)
->  {
-> -	unsigned long flags;
-> -	u32 ret;
-> -	u16 val;
-> -
-> -	spin_lock_irqsave(&solo_dev->reg_io_lock, flags);
-> -
-> -	ret = readl(solo_dev->reg_base + reg);
-> -	rmb();
-> -	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
-> -	rmb();
-> -
-> -	spin_unlock_irqrestore(&solo_dev->reg_io_lock, flags);
-> -
-> -	return ret;
-> +	return readl(solo_dev->reg_base + reg);
->  }
->  
->  static inline void solo_reg_write(struct solo_dev *solo_dev, int reg,
->  				  u32 data)
->  {
-> -	unsigned long flags;
-> -	u16 val;
-> -
-> -	spin_lock_irqsave(&solo_dev->reg_io_lock, flags);
-> -
->  	writel(data, solo_dev->reg_base + reg);
-> -	wmb();
-> -	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
-> -	rmb();
-> -
-> -	spin_unlock_irqrestore(&solo_dev->reg_io_lock, flags);
->  }
->  
->  static inline void solo_irq_on(struct solo_dev *dev, u32 mask)
 
-Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
+
+On 03/06/15 12:13, Antti Palosaari wrote:
+> On 05/28/2015 11:07 PM, Malcolm Priestley wrote:
+>> On 28/05/15 11:08, David Howells wrote:
+>>> Malcolm Priestley <tvboxspy@gmail.com> wrote:
+>>>
+>>>> Statistics polling can not be done by lmedm04 driver's
+>>>> implementation of
+>>>> M88RS2000/TS2020 because I2C messages stop the devices demuxer.
+>
+> I did make tests (using that same lme2510 + rs2000 device) and didn't
+> saw the issue TS was lost. Could test and and tell me how to reproduce it?
+> Signal strength returned was quite boring though, about same value all
+> the time, but it is different issue...
+Hi Antti
+
+The workqueue is not working because ts2020_probe() isn't called.
+
+I am thinking that other drivers that still use dvb_attach may be broken.
+
+It will become an issue when the driver is converted to I2C binding.
+
+Regards
+
+
+Malcolm
