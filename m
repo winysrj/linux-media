@@ -1,85 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:35692 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbbFYGvx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 02:51:53 -0400
-Date: Thu, 25 Jun 2015 08:51:47 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com,
-	dledford@redhat.com, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Message-ID: <20150625065147.GB5339@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60052 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752046AbbFCLGc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 07:06:32 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NPD00DL686UB790@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Jun 2015 12:06:30 +0100 (BST)
+Message-id: <556EDFB5.2050903@samsung.com>
+Date: Wed, 03 Jun 2015 13:06:29 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: videobuf2-dc: set properly dma_max_segment_size
+References: <1433160857-11124-1-git-send-email-m.szyprowski@samsung.com>
+ <6344262.Bi3ADFT2cX@avalon>
+In-reply-to: <6344262.Bi3ADFT2cX@avalon>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-* Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
+On 2015-06-03 03:22, Laurent Pinchart wrote:
+> On Monday 01 June 2015 14:14:17 Marek Szyprowski wrote:
+>> If device has no DMA max_seg_size set, we assume that there is no limit
+>> and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
+>> let DMA-mapping API always create contiguous mappings in DMA address
+>> space. This is essential for all devices, which use dma-contig
+>> videobuf2 memory allocator.
+>>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 17 +++++++++++++++++
+>>   1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index
+>> 644dec73d220..9d7c1814b0f3 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -862,6 +862,23 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+>>   void *vb2_dma_contig_init_ctx(struct device *dev)
+>>   {
+>>   	struct vb2_dc_conf *conf;
+>> +	int err;
+>> +
+>> +	/*
+>> +	 * if device has no max_seg_size set, we assume that there is no limit
+>> +	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
+>> +	 * in DMA address space
+>> +	 */
+>> +	if (!dev->dma_parms) {
+>> +		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
+> I was checking how dma_parms was usually allocated and freed, and was shocked
+> to find that the memory is never freed. OK, actually not shocked, I had a bad
+> feeling about it already, but it's still not good :-/
+>
+> This goes beyond the scope of this patch, but I think we need to clean up
+> dma_parms. The structure is 8 bytes long on 32-bit systems and 16 bytes long
+> on 64-bit systems. I wonder if it's really worth it to allocate it separately
+> from struct device. It might if we moved more DMA-related fields to struct
+> device_dma_parameters but that hasn't happened since 2008 when the structure
+> was introduced (yes that's more than 7 years ago).
+>
+> If we consider it's worth it (and I believe Josh Triplett might, in the
+> context of the Linux kernel tinification project), we should at least handle
+> allocation and free of the field coherently across drivers.
 
-> From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> 
-> On built-in kernels this warning will always splat as this is part
-> of the module init. Fix that by shifting the PAT requirement check
-> out under the code that does the "quasi-probe" for the device. This
-> device driver relies on an existing driver to find its own devices,
-> it looks for that device driver and its own found devices, then
-> uses driver_for_each_device() to try to see if it can probe each of
-> those devices as a frambuffer device with ivtvfb_init_card(). We
-> tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> call making the check at least require an ivtv device present
-> before complaining.
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> ---
->  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> index 4cb365d..8b95eef 100644
-> --- a/drivers/media/pci/ivtv/ivtvfb.c
-> +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> @@ -38,6 +38,8 @@
->      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/kernel.h>
->  #include <linux/fb.h>
-> @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
->  {
->  	int rc;
->  
-> +#ifdef CONFIG_X86_64
-> +	if (pat_enabled()) {
-> +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> +		return -ENODEV;
-> +	}
-> +#endif
-> +
->  	if (itv->osd_info) {
->  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
->  		return -EBUSY;
+Right, the whole dma_params approach looks like some unfinished thing. 
+Maybe it
+would be better to remove it completely instead of having separate structure
+just for 2 values? This will solve the allocation/freeing issue as well.
 
-Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and return 
--1, and check it in arch_phys_wc_del()?
+>
+>> +		if (!dev->dma_parms)
+>> +			return ERR_PTR(-ENOMEM);
+>> +	}
+>> +	if (dma_get_max_seg_size(dev) < DMA_BIT_MASK(32)) {
+>> +		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
+> What if the device has set a maximum segment size smaller than 4GB because of
+> hardware limitations ?
 
-That way we don't do anything drastic, the remaining few drivers still keep 
-working (albeit suboptimally - can be worked around with the 'nopat' boot option) 
-- yet we've reduced the use of MTRRs drastically.
+Then it looks that it will make more sense to set max_seg_size only when dma
+params structure has been allocated and keep the old value otherwise.
 
-Thanks,
+> I also wonder whether this is the correct place to solve the issue.
 
-	Ingo
+Frankly I don't see any good place for this code, especially if you consider
+the default 64kB value and the fact that some code relies on it, so you 
+cannot
+change it easily in generic code.
+
+> Why is the
+> default value returned by dma_get_max_seg_size() set to 64kB ?
+
+I really have no idea why the default value is 64kB, but it looks that 
+there are
+drivers that rely on this value:
+https://www.marc.info/?l=linux-arm-kernel&m=141692087708203&w=2
+
+>
+>> +		if (err)
+>> +			return ERR_PTR(err);
+>> +	}
+>>
+>>   	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+>>   	if (!conf)
+>
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
