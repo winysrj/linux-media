@@ -1,260 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39678 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbbFAI22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:28:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Adam Baker <linux@baker-net.org.uk>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 1/2] si2168: Implement own I2C adapter locking
-Date: Mon,  1 Jun 2015 11:28:06 +0300
-Message-Id: <1433147287-29932-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1433147287-29932-1-git-send-email-crope@iki.fi>
-References: <1433147287-29932-1-git-send-email-crope@iki.fi>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34141 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511AbbFCIlb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 04:41:31 -0400
+Date: Wed, 3 Jun 2015 09:41:15 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+Message-ID: <20150603084115.GC7557@n2100.arm.linux.org.uk>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <54DB12B5.4080000@samsung.com>
+ <20150211111258.GP8656@n2100.arm.linux.org.uk>
+ <54DB4908.10004@samsung.com>
+ <20150211162312.GR8656@n2100.arm.linux.org.uk>
+ <CAO_48GHf=Zt7Ju=N=FAVfaudApSV+rSfb+Wou7L1Dh3egULm9g@mail.gmail.com>
+ <556EA13B.7080306@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <556EA13B.7080306@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need own I2C locking because of tuner I2C adapter/repeater.
-Firmware command is executed using I2C send + reply message. Default
-I2C adapter locking protects only single I2C operation, not whole
-send + reply sequence as needed. Due to that, it was possible tuner
-I2C message interrupts firmware command sequence.
+On Wed, Jun 03, 2015 at 08:39:55AM +0200, Hans Verkuil wrote:
+> Hi Sumit,
+> 
+> On 05/05/2015 04:41 PM, Sumit Semwal wrote:
+> > Hi Russell, everyone,
+> > 
+> > First up, sincere apologies for being awol for sometime; had some
+> > personal / medical things to take care of, and then I thought I'd wait
+> > for the merge window to get over before beginning to discuss this
+> > again.
+> > 
+> > On 11 February 2015 at 21:53, Russell King - ARM Linux
+> > <linux@arm.linux.org.uk> wrote:
+> >> On Wed, Feb 11, 2015 at 01:20:24PM +0100, Marek Szyprowski wrote:
+> >>> Hello,
+> >>>
+> >>> On 2015-02-11 12:12, Russell King - ARM Linux wrote:
+> >>>> Which is a damn good reason to NAK it - by that admission, it's a half-baked
+> >>>> idea.
+> >>>>
+> >>>> If all we want to know is whether the importer can accept only contiguous
+> >>>> memory or not, make a flag to do that, and allow the exporter to test this
+> >>>> flag.  Don't over-engineer this to make it _seem_ like it can do something
+> >>>> that it actually totally fails with.
+> >>>>
+> >>>> As I've already pointed out, there's a major problem if you have already
+> >>>> had a less restrictive attachment which has an active mapping, and a new
+> >>>> more restrictive attachment comes along later.
+> >>>>
+> >>>> It seems from Rob's descriptions that we also need another flag in the
+> >>>> importer to indicate whether it wants to have a valid struct page in the
+> >>>> scatter list, or whether it (correctly) uses the DMA accessors on the
+> >>>> scatter list - so that exporters can reject importers which are buggy.
+> >>>
+> >>> Okay, but flag-based approach also have limitations.
+> >>
+> >> Yes, the flag-based approach doesn't let you describe in detail what
+> >> the importer can accept - which, given the issues that I've raised
+> >> is a *good* thing.  We won't be misleading anyone into thinking that
+> >> we can do something that's really half-baked, and which we have no
+> >> present requirement for.
+> >>
+> >> This is precisely what Linus talks about when he says "don't over-
+> >> engineer" - if we over-engineer this, we end up with something that
+> >> sort-of works, and that's a bad thing.
+> >>
+> >> The Keep It Simple approach here makes total sense - what are our
+> >> current requirements - to be able to say that an importer can only accept:
+> >>   - contiguous memory rather than a scatterlist
+> >>   - scatterlists with struct page pointers
+> >>
+> >> Does solving that need us to compare all the constraints of each and
+> >> every importer, possibly ending up with constraints which can't be
+> >> satisfied?  No.  Does the flag approach satisfy the requirements?  Yes.
+> >>
+> > 
+> > So, for basic constraint-sharing, we'll just go with the flag based
+> > approach, with a flag (best place for it is still dev->dma_params I
+> > suppose) for denoting contiguous or scatterlist. Is that agreed, then?
+> > Also, with this idea, of course, there won't be any helpers for trying
+> > to calculate constraints; it would be totally the exporter's
+> > responsibility to handle it via the attach() dma_buf_op if it wishes
+> > to.
+> 
+> What's wrong with the proposed max_segment_count? Many media devices do
+> have a limited max_segment_count and that should be taken into account.
 
-Reported-by: Adam Baker <linux@baker-net.org.uk>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Adam Baker <linux@baker-net.org.uk>
----
- drivers/media/dvb-frontends/si2168.c      | 135 +++++++++++++++++-------------
- drivers/media/dvb-frontends/si2168_priv.h |   1 -
- 2 files changed, 79 insertions(+), 57 deletions(-)
+So what happens if you have a dma_buf exporter, and several dma_buf
+importers.  One dma_buf importer attaches to the exporter, and asks
+for the buffer, and starts making use of the buffer.  This export has
+many scatterlist segments.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index b68ab34..d6a4cb0 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -18,23 +18,53 @@
- 
- static const struct dvb_frontend_ops si2168_ops;
- 
-+/* Own I2C adapter locking is needed because of I2C gate logic. */
-+static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
-+					   const char *buf, int count)
-+{
-+	int ret;
-+	struct i2c_msg msg = {
-+		.addr = client->addr,
-+		.flags = 0,
-+		.len = count,
-+		.buf = (char *)buf,
-+	};
-+
-+	ret = __i2c_transfer(client->adapter, &msg, 1);
-+	return (ret == 1) ? count : ret;
-+}
-+
-+static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
-+					   char *buf, int count)
-+{
-+	int ret;
-+	struct i2c_msg msg = {
-+		.addr = client->addr,
-+		.flags = I2C_M_RD,
-+		.len = count,
-+		.buf = buf,
-+	};
-+
-+	ret = __i2c_transfer(client->adapter, &msg, 1);
-+	return (ret == 1) ? count : ret;
-+}
-+
- /* execute firmware command */
--static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
-+static int si2168_cmd_execute_unlocked(struct i2c_client *client,
-+				       struct si2168_cmd *cmd)
- {
--	struct si2168_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	unsigned long timeout;
- 
--	mutex_lock(&dev->i2c_mutex);
--
- 	if (cmd->wlen) {
- 		/* write cmd and args for firmware */
--		ret = i2c_master_send(client, cmd->args, cmd->wlen);
-+		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
-+						      cmd->wlen);
- 		if (ret < 0) {
--			goto err_mutex_unlock;
-+			goto err;
- 		} else if (ret != cmd->wlen) {
- 			ret = -EREMOTEIO;
--			goto err_mutex_unlock;
-+			goto err;
- 		}
- 	}
- 
-@@ -43,12 +73,13 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
- 		#define TIMEOUT 70
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
--			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
-+			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
-+							      cmd->rlen);
- 			if (ret < 0) {
--				goto err_mutex_unlock;
-+				goto err;
- 			} else if (ret != cmd->rlen) {
- 				ret = -EREMOTEIO;
--				goto err_mutex_unlock;
-+				goto err;
- 			}
- 
- 			/* firmware ready? */
-@@ -63,24 +94,32 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
- 		/* error bit set? */
- 		if ((cmd->args[0] >> 6) & 0x01) {
- 			ret = -EREMOTEIO;
--			goto err_mutex_unlock;
-+			goto err;
- 		}
- 
- 		if (!((cmd->args[0] >> 7) & 0x01)) {
- 			ret = -ETIMEDOUT;
--			goto err_mutex_unlock;
-+			goto err;
- 		}
- 	}
- 
--	mutex_unlock(&dev->i2c_mutex);
- 	return 0;
--
--err_mutex_unlock:
--	mutex_unlock(&dev->i2c_mutex);
-+err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-+static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
-+{
-+	int ret;
-+
-+	i2c_lock_adapter(client->adapter);
-+	ret = si2168_cmd_execute_unlocked(client, cmd);
-+	i2c_unlock_adapter(client->adapter);
-+
-+	return ret;
-+}
-+
- static int si2168_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
-@@ -569,60 +608,46 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
- 
- /*
-  * I2C gate logic
-- * We must use unlocked i2c_transfer() here because I2C lock is already taken
-- * by tuner driver.
-+ * We must use unlocked I2C I/O because I2C adapter lock is already taken
-+ * by the caller (usually tuner driver).
-  */
- static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- {
- 	struct i2c_client *client = mux_priv;
--	struct si2168_dev *dev = i2c_get_clientdata(client);
- 	int ret;
--	struct i2c_msg gate_open_msg = {
--		.addr = client->addr,
--		.flags = 0,
--		.len = 3,
--		.buf = "\xc0\x0d\x01",
--	};
--
--	mutex_lock(&dev->i2c_mutex);
-+	struct si2168_cmd cmd;
- 
--	/* open tuner I2C gate */
--	ret = __i2c_transfer(client->adapter, &gate_open_msg, 1);
--	if (ret != 1) {
--		dev_warn(&client->dev, "i2c write failed=%d\n", ret);
--		if (ret >= 0)
--			ret = -EREMOTEIO;
--	} else {
--		ret = 0;
--	}
-+	/* open I2C gate */
-+	memcpy(cmd.args, "\xc0\x0d\x01", 3);
-+	cmd.wlen = 3;
-+	cmd.rlen = 0;
-+	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	if (ret)
-+		goto err;
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- {
- 	struct i2c_client *client = mux_priv;
--	struct si2168_dev *dev = i2c_get_clientdata(client);
- 	int ret;
--	struct i2c_msg gate_close_msg = {
--		.addr = client->addr,
--		.flags = 0,
--		.len = 3,
--		.buf = "\xc0\x0d\x00",
--	};
--
--	/* close tuner I2C gate */
--	ret = __i2c_transfer(client->adapter, &gate_close_msg, 1);
--	if (ret != 1) {
--		dev_warn(&client->dev, "i2c write failed=%d\n", ret);
--		if (ret >= 0)
--			ret = -EREMOTEIO;
--	} else {
--		ret = 0;
--	}
-+	struct si2168_cmd cmd;
- 
--	mutex_unlock(&dev->i2c_mutex);
-+	/* close I2C gate */
-+	memcpy(cmd.args, "\xc0\x0d\x00", 3);
-+	cmd.wlen = 3;
-+	cmd.rlen = 0;
-+	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	if (ret)
-+		goto err;
- 
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -679,8 +704,6 @@ static int si2168_probe(struct i2c_client *client,
- 		goto err;
- 	}
- 
--	mutex_init(&dev->i2c_mutex);
--
- 	/* create mux i2c adapter for tuner */
- 	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
- 			client, 0, 0, 0, si2168_select, si2168_deselect);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index d2589e3..90b6b6e 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -30,7 +30,6 @@
- /* state struct */
- struct si2168_dev {
- 	struct i2c_adapter *adapter;
--	struct mutex i2c_mutex;
- 	struct dvb_frontend fe;
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
+Another dma_buf importer attaches to the same buffer, and now asks for
+the buffer, but the number of scatterlist segments exceeds it's
+requirement.
+
+You can't reallocate the buffer because it's in-use by another importer.
+There is no way to revoke the buffer from the other importer.  So there
+is no way to satisfy this importer's requirements.
+
+What I'm showing is that the idea that exporting these parameters fixes
+some problem is just an illusion - it may work for the single importer
+case, but doesn't for the multiple importer case.
+
+Importers really have two choices here: either they accept what the
+exporter is giving them, or they reject it.
+
+The other issue here is that DMA scatterlists are _not_ really that
+determinable in terms of number of entries when it comes to systems with
+system IOMMUs.  System IOMMUs, which should be integrated into the DMA
+API, are permitted to coalesce entries in the physical page range.  For
+example:
+
+	nsg = 128;
+	n = dma_map_sg(dev, sg, nsg, DMA_TO_DEVICE);
+
+Here, n might be 4 if the system IOMMU has been able to coalesce the 128
+entries down to 4 IOMMU entries - and that means for DMA purposes, only
+the first four scatterlist entries should be walked (this is why
+dma_map_sg() returns a positive integer when mapping.)
+
+Each struct device has a set of parameters which control how the IOMMU
+entries are coalesced:
+
+struct device_dma_parameters {
+        /*
+         * a low level driver may set these to teach IOMMU code about
+         * sg limitations.
+         */
+        unsigned int max_segment_size;
+        unsigned long segment_boundary_mask;
+};
+
+and this is independent of the dma_buf API.  This doesn't indicate the
+maximum number of segments, but as I've shown above, it's not something
+that you can say "I want a scatterlist for this memory with only 32
+segments" so it's totally unclear how an exporter would limit that.
+
+The only thing an exporter could do would be to fail the export if the
+buffer didn't end up having fewer than the requested scatterlist entries,
+which is something the importer can do too.
+
+> One of the main problems end-users are faced with today is that they do not
+> know which device should be the exporter of buffers and which should be the
+> importer. This depends on the constraints and right now applications have
+> no way of knowing this. It's nuts that this hasn't been addressed yet since
+> it is the main complaint I am getting.
+
+IT's nuts that we've ended up in this situation in the first place.  This
+was bound to happen as soon as the dma_buf sharing was introduced, because
+it immediately introduced this problem.  I don't think there is any easy
+solution to it, and what's being proposed with flags and other stuff is
+just trying to paper over the problem.
+
+What you're actually asking is that each dmabuf exporting subsystem needs
+to publish their DMA parameters to userspace, and userspace then gets to
+decide which dmabuf exporter should be used.
+
+That's not a dmabuf problem, that's a subsystem problem, but even so, we
+don't have a standardised way to export that information (and I'd suspect
+that it would be very difficult to get agreements between subsystems on
+a standard ioctl and/or data structure.)  In my experience, getting cross-
+subsystem agreement in the kernel with anything is very difficult, you
+normally end up with 60% of people agreeing, and the other 40% going off
+and doing something completely different because they object to it
+(figures vary, 90% of all statistics are made up on the spot!)
+
 -- 
-http://palosaari.fi/
-
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
