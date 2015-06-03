@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:49782 "EHLO hardeman.nu"
+Received: from mail.kapsi.fi ([217.30.184.167]:60774 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834AbbF2TFa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 15:05:30 -0400
-Date: Mon, 29 Jun 2015 21:05:24 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>,
-	linux-media@vger.kernel.org, James Hogan <james@albanarts.com>
-Subject: Re: [PATCH v3 1/7] rc: rc-ir-raw: Add scancode encoder callback
-Message-ID: <20150629190524.GA29330@hardeman.nu>
-References: <CAKv9HNZ_JjCutG-V+77vu2xMEihbRrYJSr4QR+LESSdrM71+yQ@mail.gmail.com>
- <db6f383689a45d2d9b5346c41e48d535@hardeman.nu>
- <CAKv9HNY5jM-i5i420iu_kcfS2ZsnnMjdED59fxkxH5e5mjYe=Q@mail.gmail.com>
- <20150521194034.GB19532@hardeman.nu>
- <CAKv9HNbsCK_1XbYMgO3Monui9JnHc7knJL3yon9FUMJ_MCLppg@mail.gmail.com>
- <5418c2397b8a8dab54bfbcfe9ed3df1d@hardeman.nu>
- <CAKv9HNbGAta3BDSk=xjsviUuqMP7TBGtf4PhdfNn8B7N-Gz_dg@mail.gmail.com>
- <3b967113dc16d6edc8d8dd7df9be8b80@hardeman.nu>
- <20150618182305.577ba0df@recife.lan>
- <e50840af0dbb6e43148ae999a9c60da5@hardeman.nu>
+	id S1751680AbbFCPeL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 11:34:11 -0400
+Message-ID: <556F1E70.7070507@iki.fi>
+Date: Wed, 03 Jun 2015 18:34:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <e50840af0dbb6e43148ae999a9c60da5@hardeman.nu>
+To: Olli Salonen <olli.salonen@iki.fi>
+CC: Stephen Allan <stephena@intellectit.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>	<556EB2F7.506@iki.fi>	<556EB4B0.8050505@iki.fi> <CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
+In-Reply-To: <CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 23, 2015 at 10:45:42PM +0200, David Härdeman wrote:
->On 2015-06-18 23:23, Mauro Carvalho Chehab wrote:
->>Em Sun, 14 Jun 2015 01:44:54 +0200
->>David Härdeman <david@hardeman.nu> escreveu:
->>>Mauro....wake up? I hope you're not planning to push the current code
->>>upstream???
->>
->>What's there are planned to be sent upstream. If you think that something
->>is not mature enough to be applied, please send a patch reverting it,
->>with "[PATCH FIXES]" in the subject, clearly explaining why it should be
->>reverted for me to analyze. Having Antti/James acks on that would help.
+On 06/03/2015 12:29 PM, Olli Salonen wrote:
+> I'm seeing the same issue as well. I thought that maybe some recent
+> Si2168 changes did impact this, but it does not seem to be the case.
 >
->This thread should already provide you with all the information you need why
->the patches should be reverted (including Antii saying the patches should be
->reverted).
+> I made a quick test myself. I reverted the latest si2168 patches one
+> by one, but that did not remedy the situation. Anyway, the kernel log
+> does not seem to indicate that the si2168_cmd_execute itself would
+> fail (which is what happens after the I2C error handling patch in case
+> the demod sets the error bit).
 >
->The current code includes hilarious "features" like producing different
->results depending on module load order and makes sure we'll be stuck with a
->bad API. Sending them upstream will look quite foolish...
+> olli@dl160:~/src/media_tree/drivers/media/dvb-frontends$ git log
+> --oneline si2168.c
+>
+> d4b3830 Revert "[media] si2168: add support for gapped clock"
+> eb62eb1 Revert "[media] si2168: add I2C error handling"
+> 7adf99d [media] si2168: add I2C error handling
+> 8117a31 [media] si2168: add support for gapped clock
+> 17d4d6a [media] si2168: add support for 1.7MHz bandwidth
+> 683e98b [media] si2168: return error if set_frontend is called with invalid para
+> c32b281 [media] si2168: change firmware variable name and type
+> 9b7839c [media] si2168: print chip version
+>
+> dmesg lines when it fails (this is with a card that has worked before):
+>
+> [66661.336898] saa7164[0]: registered device video0 [mpeg]
+> [66661.567295] saa7164[0]: registered device video1 [mpeg]
+> [66661.778660] saa7164[0]: registered device vbi0 [vbi]
+> [66661.778817] saa7164[0]: registered device vbi1 [vbi]
+> [66675.175508] si2168:si2168_init: si2168 2-0064:
+> [66675.187299] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution took 6 ms
+> [66675.194105] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution
+> took 2 ms [OLLI: The result of this I2C cmd must be bogus]
+> [66675.194110] si2168 2-0064: unknown chip version Si2168-
+> [66675.200244] si2168:si2168_init: si2168 2-0064: failed=-22
+> [66675.213020] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
+> [66675.242856] si2157 0-0060: firmware version: 3.0.5
 
-And now the patches have been submitted and comitted upstream. What's
-your plan? Leave it like this?
+Okei, so it has been working earlier... Could you enable I2C debugs to 
+see what kind of data that command returns?
+
+What I suspect in first hand is that Windows driver has downloaded 
+firmware to chip and linux driver does it again, but with incompatible 
+firmware, which leads to situation it starts failing. But if that is 
+issue you likely already noted it.
+
+regards
+Antti
 
 -- 
-David Härdeman
+http://palosaari.fi/
