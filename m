@@ -1,42 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0153.hostedemail.com ([216.40.44.153]:36103 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753379AbbFOCBs (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50699 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755987AbbFCOAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 22:01:48 -0400
-Message-ID: <1434333705.2507.32.camel@perches.com>
-Subject: [PATCH] media: ttpci:  Use vsprintf %pM extension
-From: Joe Perches <joe@perches.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Sun, 14 Jun 2015 19:01:45 -0700
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 3 Jun 2015 10:00:12 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 05/15] media: adv7604: document support for ADV7612 dual HDMI input decoder
+Date: Wed,  3 Jun 2015 14:59:52 +0100
+Message-Id: <1433340002-1691-6-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format mac addresses with the normal kernel extension.
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Signed-off-by: Joe Perches <joe@perches.com>
+This documentation accompanies the patch adding support for the ADV7612
+dual HDMI decoder / repeater chip.
+
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
 ---
- drivers/media/pci/ttpci/ttpci-eeprom.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ .../devicetree/bindings/media/i2c/adv7604.txt        |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/ttpci/ttpci-eeprom.c b/drivers/media/pci/ttpci/ttpci-eeprom.c
-index 32d4315..c6f31f2 100644
---- a/drivers/media/pci/ttpci/ttpci-eeprom.c
-+++ b/drivers/media/pci/ttpci/ttpci-eeprom.c
-@@ -162,9 +162,7 @@ int ttpci_eeprom_parse_mac(struct i2c_adapter *adapter, u8 *proposed_mac)
- 	}
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index c27cede..7eafdbc 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -1,15 +1,17 @@
+-* Analog Devices ADV7604/11 video decoder with HDMI receiver
++* Analog Devices ADV7604/11/12 video decoder with HDMI receiver
  
- 	memcpy(proposed_mac, decodedMAC, 6);
--	dprintk("adapter has MAC addr = %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
--		decodedMAC[0], decodedMAC[1], decodedMAC[2],
--		decodedMAC[3], decodedMAC[4], decodedMAC[5]);
-+	dprintk("adapter has MAC addr = %pM\n", decodedMAC);
- 	return 0;
- }
+-The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
+-receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
+-and the ADV7611 has one HDMI input and no analog input.
++The ADV7604 and ADV7611/12 are multiformat video decoders with an integrated
++HDMI receiver. The ADV7604 has four multiplexed HDMI inputs and one analog
++input, and the ADV7611 has one HDMI input and no analog input. The 7612 is
++similar to the 7611 but has 2 HDMI inputs.
  
-
+-These device tree bindings support the ADV7611 only at the moment.
++These device tree bindings support the ADV7611/12 only at the moment.
+ 
+ Required Properties:
+ 
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7612" for the ADV7612
+ 
+   - reg: I2C slave address
+ 
+@@ -22,10 +24,10 @@ port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+ are numbered as follows.
+ 
+-  Port			ADV7611
++  Port			ADV7611    ADV7612
+ ------------------------------------------------------------
+-  HDMI			0
+-  Digital output	1
++  HDMI			0             0, 1
++  Digital output	1                2
+ 
+ The digital output port node must contain at least one endpoint.
+ 
+-- 
+1.7.10.4
 
