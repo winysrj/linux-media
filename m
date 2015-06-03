@@ -1,73 +1,98 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v3 07/19] media/usb/prusb2: Implement vivioc_g_def_ext_ctrls
-Date: Fri, 12 Jun 2015 18:46:26 +0200
-Message-id: <1434127598-11719-8-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50761 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755981AbbFCOAL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 10:00:11 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 10/15] media: rcar_vin: Use correct pad number in try_fmt
+Date: Wed,  3 Jun 2015 14:59:57 +0100
+Message-Id: <1433340002-1691-11-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
-use the controller framework.
+Fix rcar_vin_try_fmt to use the correct pad number when calling the
+subdev set_fmt. Previously pad number 0 was always used, resulting in
+EINVAL if the subdev cares about the pad number (e.g. ADV7612).
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
 ---
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/media/platform/soc_camera/rcar_vin.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 1c5f85bf7ed4..16198c53ffa3 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -649,6 +649,33 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
- 	return 0;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 00c1034..cc993bc 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1697,7 +1697,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct v4l2_subdev_pad_config pad_cfg;
++	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = V4L2_SUBDEV_FORMAT_TRY,
+ 	};
+@@ -1706,6 +1706,8 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	int width, height;
+ 	int ret;
+ 
++	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+ 	if (!xlate) {
+ 		xlate = icd->current_fmt;
+@@ -1734,10 +1736,15 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	mf->code = xlate->code;
+ 	mf->colorspace = pix->colorspace;
+ 
+-	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+-					 pad, set_fmt, &pad_cfg, &format);
+-	if (ret < 0)
++	format.pad = icd->src_pad_idx;
++	ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					soc_camera_grp_id(icd), pad,
++					set_fmt, pad_cfg,
++					&format);
++	if (ret < 0) {
++		v4l2_subdev_free_pad_config(pad_cfg);
+ 		return ret;
++	}
+ 
+ 	/* Adjust only if VIN cannot scale */
+ 	if (pix->width > mf->width * 2)
+@@ -1759,13 +1766,15 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 			 */
+ 			mf->width = VIN_MAX_WIDTH;
+ 			mf->height = VIN_MAX_HEIGHT;
++			format.pad = icd->src_pad_idx;
+ 			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+ 							 soc_camera_grp_id(icd),
+-							 pad, set_fmt, &pad_cfg,
++							 pad, set_fmt, pad_cfg,
+ 							 &format);
+ 			if (ret < 0) {
+ 				dev_err(icd->parent,
+ 					"client try_fmt() = %d\n", ret);
++				v4l2_subdev_free_pad_config(pad_cfg);
+ 				return ret;
+ 			}
+ 		}
+@@ -1776,6 +1785,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 			pix->height = height;
+ 	}
+ 
++	v4l2_subdev_free_pad_config(pad_cfg);
+ 	return ret;
  }
  
-+static int pvr2_g_def_ext_ctrls(struct file *file, void *priv,
-+					struct v4l2_ext_controls *ctls)
-+{
-+	struct pvr2_v4l2_fh *fh = file->private_data;
-+	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
-+	struct v4l2_ext_control *ctrl;
-+	unsigned int idx;
-+	int ret;
-+	struct pvr2_ctrl *cptr;
-+
-+	ret = 0;
-+	for (idx = 0; idx < ctls->count; idx++) {
-+		ctrl = ctls->controls + idx;
-+		cptr = pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id);
-+		if (!ctrl){
-+			ctls->error_idx = idx;
-+			return -EINVAL;
-+		}
-+
-+		/* Ensure that if read as a 64 bit value, the user
-+		   will still get a hopefully sane value */
-+		ctrl->value64 = 0;
-+		pvr2_ctrl_get_def(cptr, &ctrl->value);
-+	}
-+	return 0;
-+}
-+
- static int pvr2_s_ext_ctrls(struct file *file, void *priv,
- 		struct v4l2_ext_controls *ctls)
- {
-@@ -809,6 +836,7 @@ static const struct v4l2_ioctl_ops pvr2_ioctl_ops = {
- 	.vidioc_g_ctrl			    = pvr2_g_ctrl,
- 	.vidioc_s_ctrl			    = pvr2_s_ctrl,
- 	.vidioc_g_ext_ctrls		    = pvr2_g_ext_ctrls,
-+	.vidioc_g_def_ext_ctrls		    = pvr2_g_def_ext_ctrls,
- 	.vidioc_s_ext_ctrls		    = pvr2_s_ext_ctrls,
- 	.vidioc_try_ext_ctrls		    = pvr2_try_ext_ctrls,
- };
 -- 
-2.1.4
+1.7.10.4
+
