@@ -1,68 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48144 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933359AbbFJS3F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:29:05 -0400
-Date: Wed, 10 Jun 2015 20:29:03 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Bryan Wu <cooloney@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v10 2/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Message-ID: <20150610182902.GA21761@amd>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
- <1433754145-12765-3-git-send-email-j.anaszewski@samsung.com>
- <CAK5ve-+FojRu1Ti3doEUJrf+QF-=Hb7ku_wZZEP2TEnS0PK=2g@mail.gmail.com>
- <CAK5ve-L6MJ0RfE+9Spp1YCu3MZAJSNnK8pBX0bc_G_4dL6812w@mail.gmail.com>
- <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:35311 "EHLO
+	mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbbFCWQz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 18:16:55 -0400
+Received: by qkhq76 with SMTP id q76so14301975qkh.2
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 15:16:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
+In-Reply-To: <loom.20150603T234551-193@post.gmane.org>
+References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
+	<556EB2F7.506@iki.fi>
+	<CALzAhNWKPOFe1=jdo6f=FFMtWyNWxm34M1EoJA0CMD3GZfhvWA@mail.gmail.com>
+	<loom.20150603T234551-193@post.gmane.org>
+Date: Wed, 3 Jun 2015 18:16:54 -0400
+Message-ID: <CALzAhNVLBdpk3R9use4hOuc4z49a4QreFmsfOb2bCyezy6GU9Q@mail.gmail.com>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+From: Steven Toth <stoth@kernellabs.com>
+To: Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
+Cc: Linux-Media <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 2015-06-10 11:12:50, Bryan Wu wrote:
-> On Wed, Jun 10, 2015 at 11:01 AM, Bryan Wu <cooloney@gmail.com> wrote:
-> > On Wed, Jun 10, 2015 at 10:57 AM, Bryan Wu <cooloney@gmail.com> wrote:
-> >> On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
-> >> <j.anaszewski@samsung.com> wrote:
-> >>> This patch adds helper functions for registering/unregistering
-> >>> LED Flash class devices as V4L2 sub-devices. The functions should
-> >>> be called from the LED subsystem device driver. In case the
-> >>> support for V4L2 Flash sub-devices is disabled in the kernel
-> >>> config the functions' empty versions will be used.
-> >>>
-> >>
-> >> Please go ahead with my Ack
-> >>
-> >> Acked-by: Bryan Wu <cooloney@gmail.com>
-> >>
-> >
-> > I found the rest of LED patches depend on this one. What about merging
-> > this through my tree?
-> >
-> > -Bryan
-> >
-> >
-> 
-> Merged into my -devel branch and it won't be merged into 4.2.0 merge
-> window but wait for one more cycle, since now it's quite late in 4.1.0
-> cycle.
+> I have a working solution (workaround) for the HVR2205/HVR2215 firmware
+> loading issue.
+>
+>
+> In the file:
+>
+> dvb-frontends/si2168.c
+>
+>
+> change:
+>
+> #define SI2168_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
+>
+>
+> to:
+>
+> #define SI2168_B40 (68 << 16 | '4' << 8 | '0' << 0)
+>
+>
+> I do not know why this works, but this is the place where the new chip
+> is not being detected correctly.
+>
+> In my case the chip is labelled as: SI2168 40
+> When the firmware failed to load the error log reported as: si2168-x0040
+>
+> I hope this is helpful.
+>
+>
+> I have 2x HVR2215 cards both working for DVB-T on OpenSuse13.2
 
-Actually... as this code will not be used (so it can't break
-anything), it would make some sense to merge it to 4.2.
+So the hardware is reporting as a 'D' revision, and a prior firmware
+is being loaded and its working nicely. Looks like an easy fix to the
+2168 driver.
 
-Thanks,
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
