@@ -1,105 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:55403 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759019AbbFBQM2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jun 2015 12:12:28 -0400
-Date: Tue, 2 Jun 2015 09:12:25 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Michael Allwright <michael.allwright@upb.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC] v4l: omap4iss: DT bindings development
-Message-ID: <20150602161224.GG16478@atomide.com>
-References: <CALcgO_6mcTpEORqWMVzPONYHZH-h8bBMDMddkKxSyrc7F3-oiQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALcgO_6mcTpEORqWMVzPONYHZH-h8bBMDMddkKxSyrc7F3-oiQ@mail.gmail.com>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50703 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754953AbbFCOAL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 10:00:11 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 02/15] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+Date: Wed,  3 Jun 2015 14:59:49 +0100
+Message-Id: <1433340002-1691-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Michael Allwright <michael.allwright@upb.de> [150602 01:41]:
-> Hi Everyone,
-> 
-> I'm working on the DT bindings for the OMAP4 ISS at the moment, but I
-> am unable to capture any data in my test setup. As detailed below, it
-> seems that everything has been configured correctly however I never
-> get any interrupts from the ISS unless I do something drastic like
-> removing one of the wires from the clock differential pair which
-> results in constant complex IO error interrupts from CSIA until I
-> restore the physical connection.
-> 
-> My test setup includes a OV6540 sensor camera module (MIPI) from
-> Lepoard Imaging, an Duovero COM from Gumstix and breakout boards
-> forming an interconnect between the two. The sensor is connected to
-> CSI21 on the OMAP4 using a clock lane (on position 1, default
-> polarity) and a single data lane (on position 2, default polarity),
-> the sensor input clock XVCLK uses the OMAP4 auxclk1_ck channel (rounds
-> to 19.2MHz when asked for 24MHz).
-> 
-> The relevant parts of my device tree can be seen here:
-> https://gist.github.com/allsey87/fdf1feb6eb6a94158638 - I'm actually
-> somewhat unclear what effect stating the ti,hwmod="iss" parameter has.
-> Does anything else need to be done here? As far as I can tell I think
-> all clocks and power has been switched on. I do make two function
-> calls to the PM API in the ISS probe function, i.e.:
-> 
-> pm_runtime_enable(&pdev->dev);
-> r = pm_runtime_get_sync(&pdev->dev);
+This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+which is used by the ADV7612 chip.
 
-The ti,hwmod = "iss" hooks up the device with the PM runtime, see
-omap_hwmod_44xx_data.c for "iss".
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+
+Modified to use MEDIA_BUS_FMT_* constants
+
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index db7700b..16352a8 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -98,6 +98,7 @@
+ #define VNMC_INF_YUV10_BT656	(2 << 16)
+ #define VNMC_INF_YUV10_BT601	(3 << 16)
+ #define VNMC_INF_YUV16		(5 << 16)
++#define VNMC_INF_RGB888		(6 << 16)
+ #define VNMC_VUP		(1 << 10)
+ #define VNMC_IM_ODD		(0 << 3)
+ #define VNMC_IM_ODD_EVEN	(1 << 3)
+@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	struct soc_camera_device *icd = priv->ici.icd;
+ 	struct rcar_vin_cam *cam = icd->host_priv;
+ 	u32 vnmc, dmr, interrupts;
+-	bool progressive = false, output_is_yuv = false;
++	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
  
-> Regarding my debugging, this is what I have checked so far
-> 
-> * Changing the pixel rate of the sensor - this lead me to discover a
-> possible bug in iss.c or perhaps my ov5640 driver, as the
-> V4L2_CID_PIXEL_RATE control was always returning zero. I patched this
-> by copying what Laurent has done in the OMAP3ISP driver which now
-> works.
-> * As I only have a 100MHz scope, I had to slow down the camera
-> significantly (MIPI clock => 10-12MHz range) to verify that I was
-> getting reasonable output from the sensor (i.e. signals that were
-> characteristic of CSI2/MIPI). I checked the calculations and made sure
-> these updated values came across via the V4L2_CID_PIXEL_RATE control
-> and ended up in the THS_TERM and THS_SETTLE fields of register 0.
-> * Using the omapconf tool, I have manually and one by one pulled up
-> the CSI2 pins and verified multiple times all connections to the
-> sensor module and have even manually tried swapping the DP/DN pairs in
-> case they were still somehow backwards despite previous testing
-> * Verified that the interrupt service routine is called by generating
-> a test interrupt HS_VS from inside the ISS i.e.
-> 
-> ./omapconf write ISS_HL_IRQENABLE_SET_5 0x00020000
-> ./omapconf write ISS_HL_IRQSTATUS_RAW_5 0x00020000
-> 
-> * Verified that the default CMA region is being used, it ends up in
-> the ping-pong resisters of the ISS.
-> 
-> Additional information:
-> 
-> * Initialisation of pipe line and stream commands:
-> 
-> media-ctl -r -l '"OMAP4 ISS CSI2a":1 -> "OMAP4 ISS CSI2a output":0 [1]'
-> media-ctl -V '"ov5640 2-003c":0 [UYVY 640x480]','"OMAP4 ISS CSI2a":0
-> [UYVY 640x480]'
-> yavta /dev/video0 -c4 -n1 -s640x480 -fUYVY -Fov5640-640x480-#.uyvy
-> 
-> * Output from OMAPCONF tool is in the second part of:
-> https://gist.github.com/allsey87/fdf1feb6eb6a94158638
-> 
-> Anyway, at this point, I'm almost completely out of ideas on how to
-> move forwards so any suggestions, criticisms or help of any nature
-> would be appreciated!
+ 	switch (priv->field) {
+ 	case V4L2_FIELD_TOP:
+@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
++		input_is_yuv = true;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vnmc |= VNMC_INF_RGB888;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
++		input_is_yuv = true;
+ 		break;
+ 	default:
+ 		break;
+@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	vnmc |= VNMC_VUP;
+ 
+ 	/* If input and output use the same colorspace, use bypass mode */
+-	if (output_is_yuv)
++	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
+ 	/* progressive or interlaced mode */
+@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
++	case MEDIA_BUS_FMT_RGB888_1X24:
+ 		if (cam->extra_fmt)
+ 			break;
+ 
+-- 
+1.7.10.4
 
-Usually it's pinmuxing or some regulator or clock not enabled. Or
-incorrect hwmod sysc and syss configuration for iss that prevents
-enabling it properly.
-
-Regards,
-
-Tony
