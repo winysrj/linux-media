@@ -1,171 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38389 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754418AbbFVMN2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 08:13:28 -0400
-Date: Mon, 22 Jun 2015 09:13:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: poma <pomidorabelisima@gmail.com>
-Cc: For testing and quality assurance of Fedora releases
-	<test@lists.fedoraproject.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Development discussions related to Fedora
-	<devel@lists.fedoraproject.org>,
-	Kevin Thayer <nufan_wfk@yahoo.com>,
-	Chris Kennedy <c@groovy.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Josh Boyer <jwboyer@redhat.com>,
-	Richard Vollkommer <linux@hauppauge.com>,
-	Fred Richter <frichter@hauppauge.com>,
-	Hauppauge Tech Support <support@hauppauge.com>
-Subject: Re: ivtv - firmware - v4l-cx2341x*.fw - Upstream & Fedora
-Message-ID: <20150622091321.60b60633@recife.lan>
-In-Reply-To: <558730FE.1030700@gmail.com>
-References: <558730FE.1030700@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49528 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbbFCBVe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 21:21:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: videobuf2-dc: set properly dma_max_segment_size
+Date: Wed, 03 Jun 2015 04:15 +0300
+Message-ID: <2701486.3yXLn3ebOa@avalon>
+In-Reply-To: <1433160857-11124-1-git-send-email-m.szyprowski@samsung.com>
+References: <1433160857-11124-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Marek,
 
-Em Sun, 21 Jun 2015 23:47:42 +0200
-poma <pomidorabelisima@gmail.com> escreveu:
+Thank you for the patch.
 
+On Monday 01 June 2015 14:14:17 Marek Szyprowski wrote:
+> If device has no DMA max_seg_size set, we assume that there is no limit
+> and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
+> let DMA-mapping API always create contiguous mappings in DMA address
+> space. This is essential for all devices, which use dma-contig
+> videobuf2 memory allocator.
 > 
-> Háu kola
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
-> 
-> $ lspci -d 4444:0016 -knn
-> 01:08.0 Multimedia video controller [0400]: Internext Compression Inc iTVC16 (CX23416) Video Decoder [4444:0016] (rev 01)
-> 	Subsystem: Hauppauge computer works Inc. WinTV PVR 150 [0070:8801]
-> 	Kernel driver in use: ivtv
-> 	Kernel modules: ivtv
-> 
-> ~~~~~~~~~~~~~~~~~~~~
-> 
-> $ dmesg | grep ivtv
-> [   10.082881] ivtv: Start initialization, version 1.4.3
-> [   10.085644] ivtv0: Initializing card 0
-> [   10.088287] ivtv0: Autodetected Hauppauge card (cx23416 based)
-> [   10.094502] ivtv0: Unreasonably low latency timer, setting to 64 (was 32)
-> [   10.183374] ivtv0: Autodetected Hauppauge WinTV PVR-150
-> [   10.240409] cx25840 2-0044: cx25843-23 found @ 0x88 (ivtv i2c driver #0)
-> [   10.380617] wm8775 2-001b: chip found @ 0x36 (ivtv i2c driver #0)
-> [   10.431991] ivtv0: Registered device video0 for encoder MPG (4096 kB)
-> [   10.432151] ivtv0: Registered device video32 for encoder YUV (2048 kB)
-> [   10.432256] ivtv0: Registered device vbi0 for encoder VBI (1024 kB)
-> [   10.432358] ivtv0: Registered device video24 for encoder PCM (320 kB)
-> [   10.432459] ivtv0: Registered device radio0 for encoder radio
-> [   10.432473] ivtv0: Initialized card: Hauppauge WinTV PVR-150
-> [   10.433869] ivtv: End initialization
-> [   11.820105] ivtv 0000:01:08.0: Direct firmware load for v4l-cx2341x-enc.fw failed with error -2
-> [   11.820119] ivtv0: Unable to open firmware v4l-cx2341x-enc.fw (must be 376836 bytes)
-> [   11.820124] ivtv0: Did you put the firmware in the hotplug firmware directory?
-> [   11.820129] ivtv0: Retry loading firmware
-> [   12.439735] ivtv 0000:01:08.0: Direct firmware load for v4l-cx2341x-enc.fw failed with error -2
-> [   12.439747] ivtv0: Unable to open firmware v4l-cx2341x-enc.fw (must be 376836 bytes)
-> [   12.439752] ivtv0: Did you put the firmware in the hotplug firmware directory?
-> [   12.439757] ivtv0: Failed to initialize on device video32
-> [   12.439788] ivtv0: Failed to initialize on device video0
-> [   12.439953] ivtv0: Failed to initialize on device vbi0
-> [   12.439968] ivtv0: Failed to initialize on device video24
-> [   12.440110] ivtv0: Failed to initialize on device radio0
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> $ modinfo ivtv | grep 'author\|firmware'
-> author:         Kevin Thayer, Chris Kennedy, Hans Verkuil
-> firmware:       v4l-cx2341x-init.mpg
-> firmware:       v4l-cx2341x-dec.fw
-> firmware:       v4l-cx2341x-enc.fw
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> $ rpm -qi linux-firmware
-> ...
-> Packager    : Fedora Project
-> Vendor      : Fedora Project
-> ...
-> Summary     : Firmware files used by the Linux kernel
-> Description :
-> This package includes firmware files required for some devices to
-> operate.
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> $ rpm -ql linux-firmware | grep v4l-cx2341x
-> $ 
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> # yum install ivtv-firmware
-> ...
-> No package ivtv-firmware available.
-> Error: Nothing to do
-> 
-> ~~~~~~~~~~~~~~~~~~~~
-> 
-> $ rpm -qilp https://kojipkgs.fedoraproject.org/packages/ivtv-firmware/20080701/26/noarch/ivtv-firmware-20080701-26.noarch.rpm
-> Name        : ivtv-firmware
-> Epoch       : 2
-> Version     : 20080701
-> Release     : 26
-> Architecture: noarch
-> Install Date: (not installed)
-> Group       : System Environment/Kernel
-> Size        : 857256
-> License     : Redistributable, no modification permitted
-> Signature   : (none)
-> Source RPM  : ivtv-firmware-20080701-26.src.rpm
-> Build Date  : Sun 08 Jun 2014 05:38:45 AM CEST
-> Build Host  : buildvm-11.phx2.fedoraproject.org
-> Relocations : (not relocatable)
-> Packager    : Fedora Project
-> Vendor      : Fedora Project
-> URL         : http://dl.ivtvdriver.org/ivtv/firmware/
-> Summary     : Firmware for the Hauppauge PVR 250/350/150/500/USB2 model series
-> Description :
-> This package contains the firmware for WinTV Hauppauge PVR
-> 250/350/150/500/USB2 cards.
-> /lib/firmware/ivtv-firmware-license-end-user.txt
-> /lib/firmware/ivtv-firmware-license-oemihvisv.txt
-> /lib/firmware/v4l-cx2341x-dec.fw
-> /lib/firmware/v4l-cx2341x-enc.fw
-> /lib/firmware/v4l-cx2341x-init.mpg
-> /lib/firmware/v4l-cx25840.fw
-> /lib/firmware/v4l-pvrusb2-24xxx-01.fw
-> /lib/firmware/v4l-pvrusb2-29xxx-01.fw
-> /usr/share/doc/ivtv-firmware
-> /usr/share/doc/ivtv-firmware/license-end-user.txt
-> /usr/share/doc/ivtv-firmware/license-oemihvisv.txt
-> 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> Why these firmwares are not included upstream
-> http://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git/
-> ?
-> 
-> Why these firmwares are obsoleted(?) downstream
-> http://pkgs.fedoraproject.org/cgit/ivtv-firmware.git
-> ?
-> 
-> Why these firmware are not included downstream
-> http://pkgs.fedoraproject.org/cgit/linux-firmware.git
-> ?
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index
+> 644dec73d220..9d7c1814b0f3 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -862,6 +862,23 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+>  void *vb2_dma_contig_init_ctx(struct device *dev)
+>  {
+>  	struct vb2_dc_conf *conf;
+> +	int err;
+> +
+> +	/*
+> +	 * if device has no max_seg_size set, we assume that there is no limit
+> +	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
+> +	 * in DMA address space
+> +	 */
+> +	if (!dev->dma_parms) {
+> +		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
 
-I've no idea who tagged the ivtv-firmware package as obsoleted.
+I was checking how dma_parms was usually allocated and freed, and was shocked 
+to find that the memory is never freed. OK, actually not shocked, I had a bad 
+feeling about it already, but it's still not good :-/
 
-The status of the firmwares is that almost all ivtv firmwares
-are part of linux-firmware. The PVR USB2 firmwares are also
-not part of upstream. So, IMHO, those files should be kept at
-the package:
-	v4l-cx23885-enc.fw 	Conexant cx23885 firmware (reported as broken)
-	v4l-pvrusb2-24xxx-01.fw
-	v4l-pvrusb2-29xxx-01.fw
+This goes beyond the scope of this patch, but I think we need to clean up 
+dma_parms. The structure is 8 bytes long on 32-bit systems and 16 bytes long 
+on 64-bit systems. I wonder if it's really worth it to allocate it separately 
+from struct device. It might if we moved more DMA-related fields to struct 
+device_dma_parameters but that hasn't happened since 2008 when the structure 
+was introduced (yes that's more than 7 years ago).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+If we consider it's worth it (and I believe Josh Triplett might, in the 
+context of the Linux kernel tinification project), we should at least handle 
+allocation and free of the field coherently across drivers.
+
+> +		if (!dev->dma_parms)
+> +			return ERR_PTR(-ENOMEM);
+> +	}
+> +	if (dma_get_max_seg_size(dev) < DMA_BIT_MASK(32)) {
+> +		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
+
+What if the device has set a maximum segment size smaller than 4GB because of 
+hardware limitations ?
+
+I also wonder whether this is the correct place to solve the issue. Why is the 
+default value returned by dma_get_max_seg_size() set to 64kB ?
+
+> +		if (err)
+> +			return ERR_PTR(err);
+> +	}
+> 
+>  	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+>  	if (!conf)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
