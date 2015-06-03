@@ -1,123 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35242 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751161AbbFWCuG (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50702 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755995AbbFCOAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 22:50:06 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id CD6612A0095
-	for <linux-media@vger.kernel.org>; Tue, 23 Jun 2015 04:49:38 +0200 (CEST)
-Date: Tue, 23 Jun 2015 04:49:38 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150623024938.CD6612A0095@tschai.lan>
+	Wed, 3 Jun 2015 10:00:12 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 03/15] media: adv7180: add of match table
+Date: Wed,  3 Jun 2015 14:59:50 +0100
+Message-Id: <1433340002-1691-4-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Ben Dooks <ben.dooks@codethink.co.uk>
 
-Results of the daily build of media_tree:
+Add a proper of match id for use when the device is being bound via
+device tree, to avoid having to use the i2c old-style binding of the
+device.
 
-date:		Tue Jun 23 04:00:19 CEST 2015
-git branch:	test
-git hash:	77a3c6fd90c94f635edb00d4a65f485687538791
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: William.Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/i2c/adv7180.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index a493c0b..09a96df 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -25,6 +25,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ #include <media/v4l2-ioctl.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+@@ -1324,11 +1325,21 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
+ #define ADV7180_PM_OPS NULL
+ #endif
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id adv7180_of_id[] = {
++	{ .compatible = "adi,adv7180", },
++	{ },
++};
++
++MODULE_DEVICE_TABLE(of, adv7180_of_id);
++#endif
++
+ static struct i2c_driver adv7180_driver = {
+ 	.driver = {
+ 		   .owner = THIS_MODULE,
+ 		   .name = KBUILD_MODNAME,
+ 		   .pm = ADV7180_PM_OPS,
++		   .of_match_table = of_match_ptr(adv7180_of_id),
+ 		   },
+ 	.probe = adv7180_probe,
+ 	.remove = adv7180_remove,
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
