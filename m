@@ -1,75 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbbFEK7t (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50784 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756005AbbFCOAM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/10] sh-vou: support compulsory G/S/ENUM_OUTPUT ioctls
-Date: Fri,  5 Jun 2015 12:59:20 +0200
-Message-Id: <1433501966-30176-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 3 Jun 2015 10:00:12 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 15/15] media: rcar_vin: Reject videobufs that are too small for current format
+Date: Wed,  3 Jun 2015 15:00:02 +0100
+Message-Id: <1433340002-1691-16-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Rob Taylor <rob.taylor@codethink.co.uk>
 
-Video output drivers must support these ioctls. Otherwise applications
-cannot deduce that these outputs exist and what capabilities they have.
+In videobuf_setup reject buffers that are too small for the configured
+format. Fixes v4l2-complience issue.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
 ---
- drivers/media/platform/sh_vou.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/media/platform/soc_camera/rcar_vin.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index a75e6fa..2adf16d 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -874,6 +874,30 @@ static int sh_vou_streamoff(struct file *file, void *priv,
- 	return 0;
- }
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index cc993bc..1531a76 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -541,6 +541,9 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
+ 		unsigned int bytes_per_line;
+ 		int ret;
  
-+static int sh_vou_enum_output(struct file *file, void *fh,
-+			      struct v4l2_output *a)
-+{
-+	struct sh_vou_device *vou_dev = video_drvdata(file);
++		if (fmt->fmt.pix.sizeimage < icd->sizeimage)
++			return -EINVAL;
 +
-+	if (a->index)
-+		return -EINVAL;
-+	strlcpy(a->name, "Video Out", sizeof(a->name));
-+	a->type = V4L2_OUTPUT_TYPE_ANALOG;
-+	a->std = vou_dev->vdev.tvnorms;
-+	return 0;
-+}
-+
-+int sh_vou_g_output(struct file *file, void *fh, unsigned int *i)
-+{
-+	*i = 0;
-+	return 0;
-+}
-+
-+int sh_vou_s_output(struct file *file, void *fh, unsigned int i)
-+{
-+	return i ? -EINVAL : 0;
-+}
-+
- static u32 sh_vou_ntsc_mode(enum sh_vou_bus_fmt bus_fmt)
- {
- 	switch (bus_fmt) {
-@@ -1278,6 +1302,9 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
- 	.vidioc_dqbuf			= sh_vou_dqbuf,
- 	.vidioc_streamon		= sh_vou_streamon,
- 	.vidioc_streamoff		= sh_vou_streamoff,
-+	.vidioc_g_output		= sh_vou_g_output,
-+	.vidioc_s_output		= sh_vou_s_output,
-+	.vidioc_enum_output		= sh_vou_enum_output,
- 	.vidioc_s_std			= sh_vou_s_std,
- 	.vidioc_g_std			= sh_vou_g_std,
- 	.vidioc_cropcap			= sh_vou_cropcap,
+ 		xlate = soc_camera_xlate_by_fourcc(icd,
+ 						   fmt->fmt.pix.pixelformat);
+ 		if (!xlate)
 -- 
-2.1.4
+1.7.10.4
 
