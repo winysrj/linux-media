@@ -1,110 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50728 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756008AbbFCOAM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 08/15] v4l: subdev: Add pad config allocator and init
-Date: Wed,  3 Jun 2015 14:59:55 +0100
-Message-Id: <1433340002-1691-9-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:57671 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751169AbbFCLN2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 07:13:28 -0400
+Message-ID: <556EE155.1000508@iki.fi>
+Date: Wed, 03 Jun 2015 14:13:25 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>,
+	David Howells <dhowells@redhat.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+References: <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk> <360.1432807690@warthog.procyon.org.uk> <55677568.4070603@gmail.com>
+In-Reply-To: <55677568.4070603@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@linaro.org>
+On 05/28/2015 11:07 PM, Malcolm Priestley wrote:
+> On 28/05/15 11:08, David Howells wrote:
+>> Malcolm Priestley <tvboxspy@gmail.com> wrote:
+>>
+>>> Statistics polling can not be done by lmedm04 driver's implementation of
+>>> M88RS2000/TS2020 because I2C messages stop the devices demuxer.
 
-Add a new subdev operation to initialize a subdev pad config array, and
-a helper function to allocate and initialize the array. This can be used
-by bridge drivers to implement try format based on subdev pad
-operations.
+I did make tests (using that same lme2510 + rs2000 device) and didn't 
+saw the issue TS was lost. Could test and and tell me how to reproduce it?
+Signal strength returned was quite boring though, about same value all 
+the time, but it is different issue...
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           | 10 ++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
+>>>
+>>> So any polling must be a config option for this driver.
+>>
+>> Ummm...  I presume a runtime config option is okay.
+>
+> Yes, also, the workqueue appears not to be initialized when using the
+> dvb attached method.
+>
+>>
+>> Also, does that mean that the lmedm04 driver can't be made compatible
+>> with the
+>> DVBv5 API?
+>
+> No, the driver will have to implement its own version. It doesn't need a
+> polling thread it simply gets it directly from its interrupt urb buffer.
 
-Changes since v1:
+I assume lme2510 firmware will read signal strength from rs2000 and it 
+is returned then directly by USB interface.
 
-- Added v4l2_subdev_free_pad_config
----
- drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           |   10 ++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
+regards
+Antti
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 6359606..d594fe5 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -35,7 +35,7 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	fh->pad = v4l2_subdev_alloc_pad_config(sd);
- 	if (fh->pad == NULL)
- 		return -ENOMEM;
- #endif
-@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
- 		sink, link, &source_fmt, &sink_fmt);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+
-+	if (!sd->entity.num_pads)
-+		return NULL;
-+
-+	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg)
-+		return NULL;
-+
-+	v4l2_subdev_call(sd, pad, init_cfg, cfg);
-+
-+	return cfg;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index dc20102..4a609f6 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -485,6 +485,8 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	void (*init_cfg)(struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
-@@ -677,7 +679,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt);
- int v4l2_subdev_link_validate(struct media_link *link);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-+
-+static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-+{
-+	kfree(cfg);
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
-+
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
 -- 
-1.7.10.4
-
+http://palosaari.fi/
