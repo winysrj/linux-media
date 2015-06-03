@@ -1,121 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40091 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751203AbbFACtD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2015 22:49:03 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DEC032A0081
-	for <linux-media@vger.kernel.org>; Mon,  1 Jun 2015 04:48:57 +0200 (CEST)
-Date: Mon, 01 Jun 2015 04:48:57 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:35616 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932559AbbFCOPY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 10:15:24 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Z09Rh-0005F8-IT
+	for linux-media@vger.kernel.org; Wed, 03 Jun 2015 16:15:06 +0200
+Received: from 190-1-59-90.bvconline.com.ar ([190-1-59-90.bvconline.com.ar])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 16:15:05 +0200
+Received: from luciano.faletti by 190-1-59-90.bvconline.com.ar with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 16:15:05 +0200
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150601024857.DEC032A0081@tschai.lan>
+From: Luciano <luciano.faletti@hotmail.com>
+Subject: Re: ISDB Dongle MyGica S2870
+Date: Wed, 3 Jun 2015 03:43:38 +0000 (UTC)
+Message-ID: <loom.20150603T053209-426@post.gmane.org>
+References: <CACha5riDu2q1wztAny5he+s0W26rkY2_YuTZLNox7O2m8N=9UA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Nicolas Antonio Corrarello <ncorrare <at> gmail.com> writes:
 
-Results of the daily build of media_tree:
+> 
+> Hey Everyone,
+> I just bought this new dongle, and while the parts seem to be
+> supported, the usb id is not recognised.
+> It seems to be based on the dibcom 0700 IC and it identifies itself as
+> STK8096-PVR.
+> 
+> I tried the patch in
+> http://www.spinics.net/lists/linux-media/msg63445.html on the latest
+> linux media tree, but while the dib0700 module now loads
+> automatically, I don't see anything on dmesg showing that its loading
+> the firmware, and I most definitely don't get a /dev/dvb directory.
+> 
 
-date:		Mon Jun  1 04:00:27 CEST 2015
-git branch:	test
-git hash:	d511eb7d642aaf513fefeb05514dc6177c53c350
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Hi Nicolas,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Could you make this work?
 
-Detailed results are available here:
+I'm having the same results as you with the same device. Below is my output:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+[  154.192777] usb 3-1: new high-speed USB device number 4 using xhci_hcd
+[  154.209368] usb 3-1: New USB device found, idVendor=10b8, idProduct=1faa
+[  154.209375] usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[  154.209379] usb 3-1: Product: STK8096-PVR
+[  154.209382] usb 3-1: Manufacturer: Geniatech
+[  154.209385] usb 3-1: SerialNumber: 1
 
-Full logs are available here:
+Installed the latest drivers from the git repo.
+Any help much appreciated.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Thanks,
+Luciano
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
