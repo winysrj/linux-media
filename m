@@ -1,62 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54496 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752537AbbFFUO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 16:14:29 -0400
-Message-ID: <557354A2.7060900@iki.fi>
-Date: Sat, 06 Jun 2015 23:14:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:33824 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673AbbFCEZh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 00:25:37 -0400
+Received: by pdbki1 with SMTP id ki1so147817124pdb.1
+        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2015 21:25:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Unembossed Name <severe.siberian.man@mail.ru>,
-	linux-media@vger.kernel.org
-Subject: Re: Si2168 B40 frimware.
-References: <0448C37B97FE43E6A8CD61968C10E73F@unknown> <55733133.6050502@iki.fi> <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown>
-In-Reply-To: <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <46233666.tCPCuE4QYo@avalon>
+References: <556C2993.4030708@xs4all.nl> <46233666.tCPCuE4QYo@avalon>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Wed, 3 Jun 2015 09:55:15 +0530
+Message-ID: <CAO_48GHRaD5AEStaX+eQWftBr-wigUJYbQu0Yr=NPH+Md4T7aQ@mail.gmail.com>
+Subject: Re: [RFC] Export alignment requirements for buffers
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2015 11:02 PM, Unembossed Name wrote:
->>> Anybody want to test it? Unfortunately, I can not do it myself, because
->>> I do not own hardware with B40 revision.
->>
->> That does not even download. It looks like 17 byte chunk format, but
->> it does not divide by 17. Probably there is some bytes missing or too
->> many at the end of file.
->>
->> That is how first 16 bytes of those firmwares looks:
->> 4.0.4:  05 00 aa 4d 56 40 00 00  0c 6a 7e aa ef 51 da 89
->> 4.0.11: 08 05 00 8d fc 56 40 00  00 00 00 00 00 00 00 00
->> 4.0.19: 08 05 00 f0 9a 56 40 00  00 00 00 00 00 00 00 00
->>
->> 4.0.4 is 8 byte chunks, 4.0.11 is 17 byte.
->
-> Hi Antti,
->
-> You're right. I've made a mistake with determining of the end of a
-> patch. It seems I  blindly used an obsolete information about size it
-> should be. And because of that, these version of a patch can be even
-> more recent. Like 4.0.20.
->
-> Could you please check it again? And in case of success see which
-> version it is?
->
-> file
-> name:dvb-demod-si2168-b40-rom4_0_2-patch-build-probably4_0_19.fw.tar.gz
-> http://beholder.ru/bb/download/file.php?id=857
-> Best regards.
+Hi Laurent,
 
-That one works, DVB-T/T2 scan tested.
+Thanks for looping me into this email chain, and apologies about not
+responding earlier; it just got lost in the barrage of things.
 
-si2168 6-0064: found a 'Silicon Labs Si2168-B40'
-si2168 6-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-si2168 6-0064: firmware version: 4.0.19
-si2157 7-0060: found a 'Silicon Labs Si2157-A30'
-si2157 7-0060: firmware version: 3.0.5
+On 1 June 2015 at 21:20, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Hans,
+>
+> On Monday 01 June 2015 11:44:51 Hans Verkuil wrote:
+>> One of the things that is really irritating is the fact that drivers that
+>> use contig-dma sometimes want to support USERPTR, allowing applications to
+>> pass pointers to the driver that point to physically contiguous memory that
+>> was somehow obtained, and that userspace has no way of knowing whether the
+>> driver has this requirement or not.
+>>
+>> A related issue is that, depending on the DMA engine, the user pointer might
+>> have some alignment requirements (page aligned, or at minimum 16 bytes
+>> aligned) that userspace has no way of knowing.
+>>
+>> The same alignment issue is present also for dma-buf.
+>
+> Doesn't the first issue also apply to DMABUF ?
+>
+> As you already know, I'm not a big fan of USERPTR when used for sharing
+> buffers between devices. DMABUF is a much better choice there. USERPTR can
+> still be helpful for other use cases though. One of them that comes to my mind
+> is to capturing directly buffers allocated by a software codec (or another
+> similar userspace library) that doesn't support externally allocated memory
+> (although the core issue there would be the library design).
+>
+> Anyway, the problem of conveying memory constraints is identical in the DMABUF
+> case, so a solution is needed.
 
-regards
-Antti
+Yes, +1 on that.
+
+The problem posed here is similar in the sense of requirement of
+conveying memory constraints, but the key is probably the reverse
+direction - the userspace here *needs* to share constraints of
+_buffers_ obtained from elsewhere.
+
+>
+>> I propose to take one reserved field from struct v4l2_create_buffers and
+>> from struct v4l2_requestbuffers and change it to this:
+>>
+>>       __u32 flags;
+>>
+>> #define V4L2_REQBUFS_FL_ALIGNMENT_MSK 0x3f
+>> #define V4L2_REQBUFS_FL_PHYS_CONTIG   (1 << 31)
+>>
+>> Where the alignment is a power of 2 (and if 0 the alignment is unknown). The
+>> max is 2^63, which should be enough for the foreseeable future :-)
+>>
+>> If the physically contiguous flag is set, then the buffer must be physically
+>> contiguous.
+>>
+>> These flags can be set for every vb2 dma implementation:
+>>
+>> dma-contig: the PHYS_CONTIG flag is always set and the alignment is (unless
+>> overridden by the driver) page aligned.
+>>
+>> dma-sg: the PHYS_CONTIG flag is 0 and the alignment will depend on the
+>> driver DMA implementation. Note: malloc will align the buffer to 8 bytes on
+>> a 32 bit OS and 16 bytes on a 64 bit OS.
+>>
+>> vmalloc: PHYS_CONFIG is 0 and the alignment should be 3 (2^3 == 8) for 32
+>> bit and 4 (2^4=16) for 64 bit OS. This matches malloc() which will align
+>> the buffer to 8 bytes on a 32 bit OS and 16 bytes on a 64 bit OS.
+>>
+>> The flags field can be extended with things like OPAQUE if the buffers
+>> cannot be mmapped (since they are in protected memory).
+>>
+>> Comments? Alternative solutions?
+>
+> The question of conveying memory constraints has been raised several times in
+> the past, without any solutions being merged. The work has been revived
+> recently, see http://lists.freedesktop.org/archives/dri-devel/2015-February/076862.html for instance.
+>
+> Even if the API proposed here is specific to V4L2, and even if the patch set I
+> linked to addresses a different problem, I believe it would be wise to widen
+> the audience to make sure the solutions we come up with are at least aligned
+> between subsystems. I've thus CC'ed Sumit to this e-mail as a start.
+>
+
+So I've been (trying to) work out some way of conveying memory
+constraints between devices, and our idea was to get that added to
+struct device->dma_parameters; that ways, the userspace doesn't have
+to necessarily know of the constraints, and some negotiation can
+happen in the kernel itself. It doesn't at the moment concern with
+taking care of sharing those back to userspace, but I think that's an
+orthogonal thing to handle.
+
+Absolutely, it'd be great if we can come up with some aligned way of
+conveying these constraints.
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+
 
 -- 
-http://palosaari.fi/
+Thanks and regards,
+
+Sumit Semwal
+Kernel SubTeam Lead - Linaro Mobile Group
+Linaro.org │ Open source software for ARM SoCs
