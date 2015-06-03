@@ -1,208 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49622 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751882AbbFYJbN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:31:13 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 04/15] media: adv7604: chip info and formats for ADV7612
-Date: Thu, 25 Jun 2015 10:30:58 +0100
-Message-Id: <1435224669-23672-5-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:33562 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751862AbbFCLeQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2015 07:34:16 -0400
+Subject: [PATCH] ts2020: Copy loop_through from the config to the internal
+ data
+From: David Howells <dhowells@redhat.com>
+To: crope@iki.fi
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Date: Wed, 03 Jun 2015 12:34:13 +0100
+Message-ID: <20150603113413.31994.35192.stgit@warthog.procyon.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the ADV7612 chip as implemented on Renesas' Lager
-board to adv7604.c, including lists for formats/colourspace/timing
-selection and an IRQ handler.
+Copy the loop_through setting from the ts2020_config struct to the internal
+ts2020_priv struct so that it can actually be used.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Whilst we're at it, group the bitfields together in the same order in both
+structs so that the compiler has a good chance to copy them in one go.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 ---
- drivers/media/i2c/adv7604.c |  102 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 98 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 808360f..ebeddd5 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -81,6 +81,7 @@ MODULE_LICENSE("GPL");
- enum adv76xx_type {
- 	ADV7604,
- 	ADV7611,
-+	ADV7612,
+ drivers/media/dvb-frontends/ts2020.c |    3 ++-
+ drivers/media/dvb-frontends/ts2020.h |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index 80ae039..8c997d0 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -37,6 +37,7 @@ struct ts2020_priv {
+ 	/* i2c details */
+ 	struct i2c_adapter *i2c;
+ 	int i2c_address;
++	bool loop_through:1;
+ 	u8 clk_out:2;
+ 	u8 clk_out_div:5;
+ 	u32 frequency_div; /* LO output divider switch frequency */
+@@ -44,7 +45,6 @@ struct ts2020_priv {
+ #define TS2020_M88TS2020 0
+ #define TS2020_M88TS2022 1
+ 	u8 tuner;
+-	u8 loop_through:1;
  };
  
- struct adv76xx_reg_seq {
-@@ -766,6 +767,23 @@ static const struct adv76xx_format_info adv7611_formats[] = {
- 	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_12BIT },
- };
+ struct ts2020_reg_val {
+@@ -582,6 +582,7 @@ static int ts2020_probe(struct i2c_client *client,
  
-+static const struct adv76xx_format_info adv7612_formats[] = {
-+	{ MEDIA_BUS_FMT_RGB888_1X24, ADV76XX_OP_CH_SEL_RGB, true, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_444 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_2X8, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_UYVY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_VYUY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_1X16, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_1X16, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+};
-+
- static const struct adv76xx_format_info *
- adv76xx_format_info(struct adv76xx_state *state, u32 code)
- {
-@@ -870,6 +888,16 @@ static unsigned int adv7611_read_cable_det(struct v4l2_subdev *sd)
- 	return value & 1;
- }
- 
-+static unsigned int adv7612_read_cable_det(struct v4l2_subdev *sd)
-+{
-+	/*  Reads CABLE_DET_A_RAW. For input B support, need to
-+	 *  account for bit 7 [MSB] of 0x6a (ie. CABLE_DET_B_RAW)
-+	 */
-+	u8 value = io_read(sd, 0x6f);
-+
-+	return value & 1;
-+}
-+
- static int adv76xx_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -2510,6 +2538,11 @@ static void adv7611_setup_irqs(struct v4l2_subdev *sd)
- 	io_write(sd, 0x41, 0xd0); /* STDI irq for any change, disable INT2 */
- }
- 
-+static void adv7612_setup_irqs(struct v4l2_subdev *sd)
-+{
-+	io_write(sd, 0x41, 0xd0); /* disable INT2 */
-+}
-+
- static void adv76xx_unregister_clients(struct adv76xx_state *state)
- {
- 	unsigned int i;
-@@ -2597,6 +2630,19 @@ static const struct adv76xx_reg_seq adv7611_recommended_settings_hdmi[] = {
- 	{ ADV76XX_REG_SEQ_TERM, 0 },
- };
- 
-+static const struct adv76xx_reg_seq adv7612_recommended_settings_hdmi[] = {
-+	{ ADV76XX_REG(ADV76XX_PAGE_CP, 0x6c), 0x00 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x9b), 0x03 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x6f), 0x08 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x85), 0x1f },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x87), 0x70 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x57), 0xda },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x58), 0x01 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x03), 0x98 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x4c), 0x44 },
-+	{ ADV76XX_REG_SEQ_TERM, 0 },
-+};
-+
- static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 	[ADV7604] = {
- 		.type = ADV7604,
-@@ -2685,17 +2731,60 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 		.field1_vsync_mask = 0x3fff,
- 		.field1_vbackporch_mask = 0x3fff,
- 	},
-+	[ADV7612] = {
-+		.type = ADV7612,
-+		.has_afe = false,
-+		.max_port = ADV76XX_PAD_HDMI_PORT_A,	/* B not supported */
-+		.num_dv_ports = 1,			/* normally 2 */
-+		.edid_enable_reg = 0x74,
-+		.edid_status_reg = 0x76,
-+		.lcf_reg = 0xa3,
-+		.tdms_lock_mask = 0x43,
-+		.cable_det_mask = 0x01,
-+		.fmt_change_digital_mask = 0x03,
-+		.cp_csc = 0xf4,
-+		.formats = adv7612_formats,
-+		.nformats = ARRAY_SIZE(adv7612_formats),
-+		.set_termination = adv7611_set_termination,
-+		.setup_irqs = adv7612_setup_irqs,
-+		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
-+		.read_cable_det = adv7612_read_cable_det,
-+		.recommended_settings = {
-+		    [1] = adv7612_recommended_settings_hdmi,
-+		},
-+		.num_recommended_settings = {
-+		    [1] = ARRAY_SIZE(adv7612_recommended_settings_hdmi),
-+		},
-+		.page_mask = BIT(ADV76XX_PAGE_IO) | BIT(ADV76XX_PAGE_CEC) |
-+			BIT(ADV76XX_PAGE_INFOFRAME) | BIT(ADV76XX_PAGE_AFE) |
-+			BIT(ADV76XX_PAGE_REP) |  BIT(ADV76XX_PAGE_EDID) |
-+			BIT(ADV76XX_PAGE_HDMI) | BIT(ADV76XX_PAGE_CP),
-+		.linewidth_mask = 0x1fff,
-+		.field0_height_mask = 0x1fff,
-+		.field1_height_mask = 0x1fff,
-+		.hfrontporch_mask = 0x1fff,
-+		.hsync_mask = 0x1fff,
-+		.hbackporch_mask = 0x1fff,
-+		.field0_vfrontporch_mask = 0x3fff,
-+		.field0_vsync_mask = 0x3fff,
-+		.field0_vbackporch_mask = 0x3fff,
-+		.field1_vfrontporch_mask = 0x3fff,
-+		.field1_vsync_mask = 0x3fff,
-+		.field1_vbackporch_mask = 0x3fff,
-+	},
- };
- 
- static const struct i2c_device_id adv76xx_i2c_id[] = {
- 	{ "adv7604", (kernel_ulong_t)&adv76xx_chip_info[ADV7604] },
- 	{ "adv7611", (kernel_ulong_t)&adv76xx_chip_info[ADV7611] },
-+	{ "adv7612", (kernel_ulong_t)&adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, adv76xx_i2c_id);
- 
- static const struct of_device_id adv76xx_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv76xx_chip_info[ADV7611] },
-+	{ .compatible = "adi,adv7612", .data = &adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, adv76xx_of_id);
-@@ -2840,21 +2929,26 @@ static int adv76xx_probe(struct i2c_client *client,
- 	 * identifies the revision, while on ADV7611 it identifies the model as
- 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
+ 	dev->i2c = client->adapter;
+ 	dev->i2c_address = client->addr;
++	dev->loop_through = pdata->loop_through;
+ 	dev->clk_out = pdata->clk_out;
+ 	dev->clk_out_div = pdata->clk_out_div;
+ 	dev->frequency_div = pdata->frequency_div;
+diff --git a/drivers/media/dvb-frontends/ts2020.h b/drivers/media/dvb-frontends/ts2020.h
+index 3779724..002bc0a 100644
+--- a/drivers/media/dvb-frontends/ts2020.h
++++ b/drivers/media/dvb-frontends/ts2020.h
+@@ -32,7 +32,7 @@ struct ts2020_config {
+ 	/*
+ 	 * RF loop-through
  	 */
--	if (state->info->type == ADV7604) {
-+	switch (state->info->type) {
-+	case ADV7604:
- 		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
- 		if (val != 0x68) {
- 			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
--	} else {
-+		break;
-+	case ADV7611:
-+	case ADV7612:
- 		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
- 		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
--		if (val != 0x2051) {
--			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
-+		if ((state->info->type == ADV7611 && val != 0x2051) ||
-+			(state->info->type == ADV7612 && val != 0x2041)) {
-+			v4l2_info(sd, "not an adv761x on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
-+		break;
- 	}
+-	u8 loop_through:1;
++	bool loop_through:1;
  
- 	/* control handlers */
--- 
-1.7.10.4
+ 	/*
+ 	 * clock output
 
