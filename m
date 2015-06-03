@@ -1,53 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f65.google.com ([209.85.192.65]:33649 "EHLO
-	mail-qg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752807AbbFKUWR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 16:22:17 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
-	bhelgaas@google.com, luto@amacapital.net,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [PATCH v7 0/3] linux: address broken PAT drivers
-Date: Thu, 11 Jun 2015 13:19:51 -0700
-Message-Id: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:33306 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932827AbbFCREQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 13:04:16 -0400
+Message-ID: <556F3388.607@gmail.com>
+Date: Wed, 03 Jun 2015 18:04:08 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>, David Howells <dhowells@redhat.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] ts2020: Provide DVBv5 API signal strength
+References: <556F1A02.9020203@gmail.com> <55677568.4070603@gmail.com> <5564C269.2000003@gmail.com> <20150526150400.10241.25444.stgit@warthog.procyon.org.uk> <20150526150407.10241.89123.stgit@warthog.procyon.org.uk> <360.1432807690@warthog.procyon.org.uk> <23160.1433326669@warthog.procyon.org.uk> <31746.1433349441@warthog.procyon.org.uk> <556F2EB4.6030108@iki.fi>
+In-Reply-To: <556F2EB4.6030108@iki.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-Boris,
 
-the following patches make use of the newly exported pat_enabled()
-which went in through your tree. All driver and respective subsystem
-maintainers have Acked these patches and are OK for them to go in through
-your tree. Please let me know if there any issues or questions.
+On 03/06/15 17:43, Antti Palosaari wrote:
+> On 06/03/2015 07:37 PM, David Howells wrote:
+>> Malcolm Priestley <tvboxspy@gmail.com> wrote:
+>>
+>>>>> Yes, also, the workqueue appears not to be initialized when using
+>>>>> the dvb
+>>>>> attached method.
+>>>>
+>>>> I'm not sure what you're referring to.  It's initialised in
+>>>> ts2020_probe()
+>>>> just after the ts2020_priv struct is allocated - the only place it is
+>>>> allocated.
+>>>>
+>>> ts2020_probe() isn't touched by devices not converted to I2C binding.
+>>
+>> Hmmm...  Doesn't that expose a larger problem?  The only place the
+>> ts2020_priv
+>> struct is allocated is in ts2020_probe() within ts2020.c and the struct
+>> definition is private to that file and so it can't be allocated from
+>> outside.
+>> So if you don't pass through ts2020_probe(), fe->tuner_priv will
+>> remain NULL
+>> and the driver will crash.
+>
+> Malcolm misses some pending patches where attach() is wrapped to I2C
+> model probe().
+> http://git.linuxtv.org/cgit.cgi/anttip/media_tree.git/log/?h=ts2020
+>
 
-This v7 series goes with the return value fixed to be negative, this
-was spotted by Mauro on the ivtv driver, I also spotted this then on
-the ipath driver so fixed that there too in this series. The v7 also
-goes with a small change on language on the Kconfig for the ivtv as
-requested by Mauro. The v7 also goes with a small change on language
-on the Kconfig for the ivtv as requested by Mauro.
+Hmmm... Yes, I am indeed missing those patches.
 
-Luis R. Rodriguez (3):
-  ivtv: use arch_phys_wc_add() and require PAT disabled
-  IB/ipath: add counting for MTRR
-  IB/ipath: use arch_phys_wc_add() and require PAT disabled
-
- drivers/infiniband/hw/ipath/Kconfig           |  3 ++
- drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
- drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
- drivers/media/pci/ivtv/Kconfig                |  3 ++
- drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
- 6 files changed, 52 insertions(+), 77 deletions(-)
-
--- 
-2.3.2.209.gd67f9d5.dirty
-
+I will test.
