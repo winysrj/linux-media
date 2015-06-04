@@ -1,86 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39016 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756791AbbFRUBJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 16:01:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH/RFC] v4l: vsp1: Change pixel count at scale-up setting
-Date: Thu, 18 Jun 2015 23:01:58 +0300
-Message-ID: <65213967.H6cJcZz00U@avalon>
-In-Reply-To: <1434302954-31273-1-git-send-email-ykaneko0929@gmail.com>
-References: <1434302954-31273-1-git-send-email-ykaneko0929@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58650 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751878AbbFDP6X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Jun 2015 11:58:23 -0400
+Message-ID: <5570758E.6030302@ti.com>
+Date: Thu, 4 Jun 2015 18:58:06 +0300
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Vinod Koul <vinod.koul@intel.com>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	<dmaengine@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	<linux-crypto@vger.kernel.org>,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com> <20150529093317.GF3140@localhost> <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com> <20150529101846.GG3140@localhost> <55687892.7050606@ti.com> <20150602125535.GS3140@localhost>
+In-Reply-To: <20150602125535.GS3140@localhost>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kaneko-san,
+Vinod,
 
-Thank you for the patch.
+On 06/02/2015 03:55 PM, Vinod Koul wrote:
+> On Fri, May 29, 2015 at 05:32:50PM +0300, Peter Ujfalusi wrote:
+>> On 05/29/2015 01:18 PM, Vinod Koul wrote:
+>>> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
+>>>> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+>>>>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
+>>>>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
+>>>>>> prevents drivers using the compat call to be able to do deferred probing.
+>>>>>>
+>>>>>> The new wrapper is identical in functionality but it will return with error
+>>>>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
+>>>>>> case dma_request_slave_channel_reason() returned with it.
+>>>>> This is okay but am worried about one more warpper, how about fixing
+>>>>> dma_request_slave_channel_compat()
+>>>>
+>>>> Then all callers of dma_request_slave_channel_compat() have to be
+>>>> modified to handle ERR_PTR first.
+>>>>
+>>>> The same is true for (the existing) dma_request_slave_channel_reason()
+>>>> vs. dma_request_slave_channel().
+>>> Good point, looking again, I think we should rather fix
+>>> dma_request_slave_channel_reason() as it was expected to return err code and
+>>> add new users. Anyway users of this API do expect the reason...
+>>
+>> Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
+>> drivers only working via DT or ACPI while
+>> dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
+>> DT/ACPI or legacy mode as well.
+>>
+>> I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
+>> drivers are using this to request channels - they need to support DT and
+>> legacy mode.
+> I think we should hide these things behind the API and do this behind the
+> hood for ACPI/DT systems.
+> 
+> Also it makes sense to use right API and mark rest as depricated
 
-On Monday 15 June 2015 02:29:14 Yoshihiro Kaneko wrote:
-> From: Atsushi Akatsuka <atsushi.akatsuka.vb@hitachi.com>
-> 
-> This commit sets AMD bit of VI6_UDSn_CTRL register,
-> and modifies scaling formula to fit AMD bit.
+So to convert the dma_request_slave_channel_compat() and not to create _reason
+variant?
 
-What's the rationale for that ? What are the side effects of setting the AMD 
-bit ? Will it change anything beside the scaling factor computation formula ?
+Or to have single API to request channel? The problem with that is that we
+need different parameters for legacy and DT for example.
 
-> Signed-off-by: Atsushi Akatsuka <atsushi.akatsuka.vb@hitachi.com>
-> Signed-off-by: Hiroki Negishi <hiroki.negishi.zr@hitachi-solutions.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> ---
-> 
-> This patch is based on the master branch of linuxtv.org/media_tree.git.
-> 
->  drivers/media/platform/vsp1/vsp1_uds.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c
-> b/drivers/media/platform/vsp1/vsp1_uds.c index ccc8243..e7a046d 100644
-> --- a/drivers/media/platform/vsp1/vsp1_uds.c
-> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
-> @@ -64,10 +64,10 @@ static unsigned int uds_output_size(unsigned int input,
-> unsigned int ratio) mp = ratio / 4096;
->  		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
-> 
-> -		return (input - 1) / mp * mp * 4096 / ratio + 1;
-> +		return input / mp * mp * 4096 / ratio;
+>>
+>> But it is doable to do this for both the non _compat and _compat version:
+>> 1. change all users to check IS_ERR_OR_NULL(chan)
+>>  return the PTR_ERR if not NULL, or do whatever the driver was doing in case
+>> of chan == NULL.
+>> 2. change the non _compat and _compat versions to do the same as the _reason
+>> variants, #define the _reason ones to the non _reason names
+>> 3. Rename the _reason use to non _reason function in drivers
+>> 4. Remove the #defines for the _reason functions
+>> 5. Change the IS_ERR_OR_NULL(chan) to IS_ERR(chan) in all drivers
+>> The result:
+>> Both dma_request_slave_channel() and dma_request_slave_channel_compat() will
+>> return ERR_PTR in case of failure or in success they will return the pinter to
+>> chan.
+>>
+>> Is this what you were asking?
+>> It is a bit broader than what this series was doing: taking care of
+>> OMAP/daVinci drivers for deferred probing regarding to dmaengine ;)
+> Yes but it would make sense right? I know it is a larger work but then we
+> wouldn't want another dma_request_slave_xxx API, at some point we have stop
+> it exapnding, perhpas now :)
 
-According to the datasheet I have access to the AMD bit only influences the 
-scale-up case.
+Yes, it make sense to get rid if the _reason() things and have the
+dma_request_slave_channel() and dma_request_slave_channel_compat() return with
+error code
 
->  	} else {
->  		/* Up-scaling */
-> -		return (input - 1) * 4096 / ratio + 1;
-> +		return input * 4096 / ratio;
->  	}
->  }
+One thing we need to do for this is to change the error codes coming back from
+the _dt() and _acpi() calls when we boot in legacy mode. Right now the only
+error code which comes back is -ENODEV and -EPROBE_DEFER. We need to
+differentiate between 'real' errors and from the fact that we did not booted
+with DT or the ACPI is not available.
+IMHO if we boot with DT and the channel request fails with other than
+-EPROBE_DEFER we should not go and try to get the channel via legacy API.
+
+> Yes I am all ears to stage this work and not do transition gardually..
 > 
-> @@ -145,7 +145,8 @@ static int uds_s_stream(struct v4l2_subdev *subdev, int
-> enable)
-> 
->  	vsp1_uds_write(uds, VI6_UDS_CTRL,
->  		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
-> -		       (multitap ? VI6_UDS_CTRL_BC : 0));
-> +		       (multitap ? VI6_UDS_CTRL_BC : 0) |
-> +		       VI6_UDS_CTRL_AMD);
-> 
->  	vsp1_uds_write(uds, VI6_UDS_PASS_BWIDTH,
->  		       (uds_passband_width(hscale)
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Péter
