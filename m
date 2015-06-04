@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49069 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932407AbbFEO2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 06/11] [media] ivtv: fix two smatch warnings
-Date: Fri,  5 Jun 2015 11:27:39 -0300
-Message-Id: <8b4193726e8c8a0b88df2493aca77d61449464ca.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:44501 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753939AbbFDXC0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 19:02:26 -0400
+Date: Thu, 4 Jun 2015 23:02:25 +0000 (UTC)
+From: Paul Walmsley <paul@pwsan.com>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+cc: Mike Turquette <mturquette@linaro.org>,
+	Stephen Boyd <sboyd@codeaurora.org>, linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	=?ISO-8859-15?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-mips@linux-mips.org, patches@opensource.wolfsonmicro.com,
+	linux-rockchip@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, spear-devel@list.st.com,
+	linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+In-Reply-To: <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+Message-ID: <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch currently produces two warnings:
-	drivers/media/pci/ivtv/ivtv-fileops.c:901 ivtv_v4l2_close() warn: suspicious bitop condition
-	drivers/media/pci/ivtv/ivtv-fileops.c:1026 ivtv_open() warn: suspicious bitop condition
+Hi folks
 
-Those are false positives, but it is not hard to get rid of them by
-using a different way to evaluate the macro, splitting the logical
-boolean evaluation from the bitmap one.
+just a brief comment on this one:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Thu, 30 Apr 2015, Boris Brezillon wrote:
 
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.h b/drivers/media/pci/ivtv/ivtv-driver.h
-index e8b6c7ad2ba9..ee0ef6e48c7d 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.h
-+++ b/drivers/media/pci/ivtv/ivtv-driver.h
-@@ -830,7 +830,8 @@ static inline int ivtv_raw_vbi(const struct ivtv *itv)
- 	do {								\
- 		struct v4l2_subdev *__sd;				\
- 		__v4l2_device_call_subdevs_p(&(itv)->v4l2_dev, __sd,	\
--			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
-+			 !(hw) ? true : (__sd->grp_id & (hw)),		\
-+			 o, f, ##args);					\
- 	} while (0)
- 
- #define ivtv_call_all(itv, o, f, args...) ivtv_call_hw(itv, 0, o, f , ##args)
--- 
-2.4.2
+> Clock rates are stored in an unsigned long field, but ->round_rate()
+> (which returns a rounded rate from a requested one) returns a long
+> value (errors are reported using negative error codes), which can lead
+> to long overflow if the clock rate exceed 2Ghz.
+> 
+> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> requested rate as a pointer so that it can be adjusted depending on
+> hardware capabilities.
 
+...
+
+> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+> index 0e4f90a..fca8b7a 100644
+> --- a/Documentation/clk.txt
+> +++ b/Documentation/clk.txt
+> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+>  		int		(*is_enabled)(struct clk_hw *hw);
+>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+>  						unsigned long parent_rate);
+> -		long		(*round_rate)(struct clk_hw *hw,
+> -						unsigned long rate,
+> +		int		(*round_rate)(struct clk_hw *hw,
+> +						unsigned long *rate,
+>  						unsigned long *parent_rate);
+>  		long		(*determine_rate)(struct clk_hw *hw,
+>  						unsigned long rate,
+
+I'd suggest that we should probably go straight to 64-bit rates.  There 
+are already plenty of clock sources that can generate rates higher than 
+4GiHz.
+
+
+- Paul
