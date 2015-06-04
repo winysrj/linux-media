@@ -1,61 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f181.google.com ([209.85.220.181]:35311 "EHLO
-	mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107AbbFCWQz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 18:16:55 -0400
-Received: by qkhq76 with SMTP id q76so14301975qkh.2
-        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 15:16:54 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:42412 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752860AbbFDT3A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Jun 2015 15:29:00 -0400
+Message-ID: <5570A6F9.1030004@iki.fi>
+Date: Thu, 04 Jun 2015 22:28:57 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <loom.20150603T234551-193@post.gmane.org>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-	<556EB2F7.506@iki.fi>
-	<CALzAhNWKPOFe1=jdo6f=FFMtWyNWxm34M1EoJA0CMD3GZfhvWA@mail.gmail.com>
-	<loom.20150603T234551-193@post.gmane.org>
-Date: Wed, 3 Jun 2015 18:16:54 -0400
-Message-ID: <CALzAhNVLBdpk3R9use4hOuc4z49a4QreFmsfOb2bCyezy6GU9Q@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Steven Toth <stoth@kernellabs.com>
-To: Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: Hurda <hurda@chello.at>, linux-media@vger.kernel.org
+Subject: Re: si2168/dvbsky - blind-scan for DVB-T2 with PLP fails
+References: <556644C7.8040701@chello.at> <5566A70A.1090805@iki.fi> <55708CB2.8090502@chello.at>
+In-Reply-To: <55708CB2.8090502@chello.at>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I have a working solution (workaround) for the HVR2205/HVR2215 firmware
-> loading issue.
->
->
-> In the file:
->
-> dvb-frontends/si2168.c
->
->
-> change:
->
-> #define SI2168_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
->
->
-> to:
->
-> #define SI2168_B40 (68 << 16 | '4' << 8 | '0' << 0)
->
->
-> I do not know why this works, but this is the place where the new chip
-> is not being detected correctly.
->
-> In my case the chip is labelled as: SI2168 40
-> When the firmware failed to load the error log reported as: si2168-x0040
->
-> I hope this is helpful.
->
->
-> I have 2x HVR2215 cards both working for DVB-T on OpenSuse13.2
 
-So the hardware is reporting as a 'D' revision, and a prior firmware
-is being loaded and its working nicely. Looks like an easy fix to the
-2168 driver.
+
+On 06/04/2015 08:36 PM, Hurda wrote:
+> How can I enable debug-output to get the log-messages like
+> http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/dvb-frontends/si2168.c#n164
+> ?
+
+Compile kernel with dynamic debugs. After that you could enable debugs:
+modprobe si2168; echo -n 'module si2168 =pft' > 
+/sys/kernel/debug/dynamic_debug/control
+
+Antti
+
+
+>
+> Am 28.05.2015 07:26, schrieb Antti Palosaari:
+>> On 05/28/2015 01:27 AM, Hurda wrote:
+>>> Hello.
+>>>
+>>> I think I came across a bug in either of the drivers si2168 and dvbsky
+>>> regarding
+>>> blind-scanning DVB-T2-frequencies.
+>>>
+>>> HW: Technotrend CT2-4400v2 (afaik based on or the same as DVBSky T330)
+>>>      demod: Si2168-B40
+>>>      tuner: Si2158-A20
+>>> OS: Ubuntu 15.04 (kernel 3.19)
+>>>
+>>> In Austria, the DVB-T2-service "SimpliTV" is currently airing up to four
+>>> muxes, next to one or two DVB-T-muxes.
+>>> In my region, the frequencies are 490MHz, 546MHz, 690MHz, 714MHz for
+>>> DVB-T2,
+>>> and 498MHz for DVB-T.
+>>> These numbers might be of interest when reading the logs.
+>>>
+>>> The peculiar aspect of these T2-muxes is that they're aired on PLP 1
+>>> without
+>>> there being a PLP 0. I think this is also the root of my problem.
+>>
+>> dvbv5-scan is working, but w_scan not?
+>>
+>> Could you hack si2168.c file and test?
+>>
+>> if (c->delivery_system == SYS_DVBT2) {
+>>     /* select PLP */
+>>     cmd.args[0] = 0x52;
+>>     cmd.args[1] = c->stream_id & 0xff;
+>> //    cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
+>>     cmd.args[2] = 0;
+>>     cmd.wlen = 3;
+>>     cmd.rlen = 1;
+>>     ret = si2168_cmd_execute(client, &cmd);
+>>     if (ret)
+>>         goto err;
+>> }
+>>
+>> Antti
+>>
+>>>
+>>>
+>>> When doing a blind-scan using w_scan 20140727 on Ubuntu 15.04 (kernel
+>>> 3.19),
+>>> w_scan does not find any of these four DVB-T2-muxes.
+>>> It just finds the DVB-T-mux.
+>>>
+>>> Logs:
+>>> media-tree_dmesg_lsusb.txt http://pastebin.com/0ixFPMSA
+>>> media-tree_w_scan.txt http://pastebin.com/yyG3jSwj
+>>>
+>>> The found transponder:
+>>> initial_v3_media_build_trunk.conf http://pastebin.com/LmFQavpy
+>>> initial_v5.conf http://pastebin.com/Jx6kymVt
+>>>
+>>> I also tried a fresh checkout from git.linuxtv.org as of last weekend
+>>> and the
+>>> most recent w_scan version (20141122).
+>>>
+>>> As you can see, w_scan tries to tune(?) the DVB-T2-frequencies, but
+>>> ultimately doesn't find anything on them.
+>>>
+>>>
+>>> Then I tried the DVBSky-linux-driver[1]
+>>> (media_build-bst-20150322.tar.gz)[2]
+>>> from their site, which is using a binary called sit2 for this card.
+>>> Using this driver, w_scan found all four DVB-T2-muxes and the DVB-T-mux.
+>>> Additionally, it found the DVB-T2-muxes during the DVB-T-scan.
+>>>
+>>> Logs:
+>>> media_build-bst_dmesg_lsusb.txt http://pastebin.com/vJeDMxtu
+>>> media_build-bst_w_scan.txt http://pastebin.com/yhwAYjen
+>>>
+>>> Found transponders:
+>>> initial_v3_bst.conf http://pastebin.com/ECKQvRWX
+>>> initial_v5_bst.conf http://pastebin.com/CbhY6Hpz
+>>>
+>>> Of course, doing a channel-scan using dvbv5-scan on these transponders
+>>> worked
+>>> too:
+>>>
+>>> dvbv5_sit2.conf http://pastebin.com/3W52bbhv
+>>> dvbv5_sit2.log http://pastebin.com/nc66PTkt
+>>>
+>>> Afterwards, I tried to do a channel-scan with the same initial
+>>> tuning-file
+>>> using the opensource-driver, which also worked:
+>>>
+>>> dvbv5_si2168.conf http://pastebin.com/A6FbqUL1
+>>> dvbv5_si2168.log http://pastebin.com/ewyVPJR2
+>>>
+>>> This should verify that tuning PLP 1 without there being PLP 0 is not
+>>> the issue.
+>>>
+>>>
+>>> Additionally, if you compare the two channel-lists, you find interesting
+>>> differences:
+>>>
+>>> The scan with si2168 has AUTO for "MODULATION" and "INVERSION" for
+>>> DVB-T2-channels, and for "CODE_RATE_LP" and "INVERSION" for
+>>> DVB-T-channels.
+>>>
+>>> The scan with sit2 has the respective values in the channel-list.
+>>>
+>>> The dvbv5-scan-logs also differ, as using sit2 also displays the signal
+>>> quality
+>>> during tuning.
+>>>
+>>>
+>>> I know that there were changes regarding DVB-T2-scanning[3], but as the
+>>> blog-
+>>> article specifically mentions si2168 and w_scan to be fully
+>>> dvbv5-compliant
+>>> and good for using with DVB-T2, I thought you should know about this
+>>> particular problem.
+>>>
+>>>
+>>> In the attachment I've packed the previously linked logs, for archival
+>>> reasons.
+>>>
+>>>
+>>> Thank you for your attention.
+>>>
+>>> [1] http://www.dvbsky.net/Support_linux.html
+>>> [2] http://www.dvbsky.net/download/linux/media_build-bst-150322.tar.gz
+>>> [3] http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html
+>>>
+>>> PS: Interesting comments regarding auto-detection for si2168:
+>>> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html?showComment=1427233615765#c8591459871945922951
+>>>
+>>>
+>>> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html?showComment=1427234034259#c6500661729983566638
+>>>
+>>>
+>>
+>
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
