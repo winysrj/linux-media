@@ -1,138 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:34740 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbbFSMFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 08:05:53 -0400
-Received: by lbbti3 with SMTP id ti3so70739492lbb.1
-        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2015 05:05:52 -0700 (PDT)
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:36682 "EHLO
+	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbbFDMq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 08:46:57 -0400
+Received: by qkx62 with SMTP id 62so22903722qkx.3
+        for <linux-media@vger.kernel.org>; Thu, 04 Jun 2015 05:46:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <55840540.3020906@xs4all.nl>
-References: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<55840540.3020906@xs4all.nl>
-Date: Fri, 19 Jun 2015 13:05:51 +0100
-Message-ID: <CAP3TMiGz4Gwd_SnkaPkj0PwuDdZZtPOp2foWn+9gY-khuqgSeA@mail.gmail.com>
-Subject: Re: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when
- v4l2_buffer.bytesused is 0 for multiplanar buffers
-From: Kamil Debski <kamil@wypas.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In-Reply-To: <CALzAhNWZxoCHyYmjTKVzMR-7z_+cqAmcG_LAuCKEaoDdP1JswQ@mail.gmail.com>
+References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
+	<556EB2F7.506@iki.fi>
+	<556EB4B0.8050505@iki.fi>
+	<CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
+	<CALzAhNWZxoCHyYmjTKVzMR-7z_+cqAmcG_LAuCKEaoDdP1JswQ@mail.gmail.com>
+Date: Thu, 4 Jun 2015 08:46:56 -0400
+Message-ID: <CALzAhNXPBOhYeirQrp8OVqS9cEqMcFcBEjx-nohWBLK-xrUgCg@mail.gmail.com>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+From: Steven Toth <stoth@kernellabs.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Stephen Allan <stephena@intellectit.com.au>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-First - thank you so much for the patch. I had a look into the code
-and it looks good. You have my Ack.
-
-Thank and best wishes,
-Kamil Debski
-
-On 19 June 2015 at 13:04, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 06/19/2015 02:02 PM, Laurent Pinchart wrote:
->> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
->> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
->> using a zero value for v4l2_buffer.bytesused.
->>
->> However, the condition is checked incorrectly, as the v4L2_buffer
->> bytesused field is supposed to be ignored for multiplanar buffers. This
->> results in spurious warnings when using the multiplanar API.
->>
->> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
->> v4l2_plane.bytesused for multiplanar buffers.
->>
->> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
->> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> If the GPIOs aren't truly resetting the SI2168 and thus a warm boot
+> didn't flush the firmware, I suspect dropping the patches would have
+> no immediate effect until a full power-down took place. I'm wondering
+> whether the testing was invalid and indeed we have a problem in the
+> field, as well as a GPIO issue. Two potential issues.
 >
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> I'll schedule sometime later this week to fire up my HVR22xx dev
+> platform and re-validate the 2205.
 
-Acked-by: Kamil Debski <kamil@wypas.org>
+For the record, here's what happened.
 
->
-> Thanks!
->
->         Hans
->
->> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
->>  1 file changed, 23 insertions(+), 10 deletions(-)
->>
->> Changes since v1:
->>
->> - Rename __check_once to check_once
->> - Drop __read_mostly on check_once
->> - Use pr_warn instead of pr_warn_once
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index d835814a24d4..4eaf2f4f0294 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_discard_done);
->>
->> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
->> +{
->> +     static bool check_once;
->> +
->> +     if (check_once)
->> +             return;
->> +
->> +     check_once = true;
->> +     __WARN();
->> +
->> +     pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
->> +     if (vb->vb2_queue->allow_zero_bytesused)
->> +             pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
->> +     else
->> +             pr_warn("use the actual size instead.\n");
->> +}
->> +
->>  /**
->>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->>   * v4l2_buffer by the userspace. The caller has already verified that struct
->> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>  {
->>       unsigned int plane;
->>
->> -     if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->> -             if (WARN_ON_ONCE(b->bytesused == 0)) {
->> -                     pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
->> -                     if (vb->vb2_queue->allow_zero_bytesused)
->> -                             pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
->> -                     else
->> -                             pr_warn_once("use the actual size instead.\n");
->> -             }
->> -     }
->> -
->>       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->>               if (b->memory == V4L2_MEMORY_USERPTR) {
->>                       for (plane = 0; plane < vb->num_planes; ++plane) {
->> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>                               struct v4l2_plane *pdst = &v4l2_planes[plane];
->>                               struct v4l2_plane *psrc = &b->m.planes[plane];
->>
->> +                             if (psrc->bytesused == 0)
->> +                                     vb2_warn_zero_bytesused(vb);
->> +
->>                               if (vb->vb2_queue->allow_zero_bytesused)
->>                                       pdst->bytesused = psrc->bytesused;
->>                               else
->> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->>               }
->>
->>               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->> +                     if (b->bytesused == 0)
->> +                             vb2_warn_zero_bytesused(vb);
->> +
->>                       if (vb->vb2_queue->allow_zero_bytesused)
->>                               v4l2_planes[0].bytesused = b->bytesused;
->>                       else
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+1. The GPIO is working correctly, I've validated this with a meter.
+This wasn't a warm vs cold boot issue, or in any way Windows related.
+2. I have multiple HVR22x5 cards. a HVR2205 and a HVR2215. The HVR2215
+I obtained much later after prompting my Olli, it has a newer build
+date stamped on the demodulators and reports a newer chip version.
+These newer demods are not recognized by the current tip, the prior
+ones are.
+
+The solution was to patch the SI2168 to recognize the newer demodulator version.
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
