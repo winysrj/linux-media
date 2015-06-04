@@ -1,121 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58689 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422789AbbFEPl5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 11:41:57 -0400
-Date: Fri, 5 Jun 2015 12:41:52 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] vivid: don't use more than 1024 bytes of stack
-Message-ID: <20150605124152.6a721c9d@recife.lan>
-In-Reply-To: <5571BBFD.6070902@xs4all.nl>
-References: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
-	<5571BBFD.6070902@xs4all.nl>
+Received: from mail-qg0-f52.google.com ([209.85.192.52]:35268 "EHLO
+	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752081AbbFDOD3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 10:03:29 -0400
+Received: by qgh73 with SMTP id 73so3282262qgh.2
+        for <linux-media@vger.kernel.org>; Thu, 04 Jun 2015 07:03:29 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAAZRmGy_AwJfGzfDorx_=43xNQ3cB915GFnck-YJ0gu0W64xKw@mail.gmail.com>
+References: <CALzAhNW=Oei7_Nziozh3Mm+X_NNHvM5EdmPVPh9ajn5Aen9O2g@mail.gmail.com>
+	<557048EF.3040703@iki.fi>
+	<CAAZRmGw7NcDo8YJtYN5gC6DM23jtgqmGhhJUAa6VaEovX+qNdA@mail.gmail.com>
+	<CAAZRmGy_AwJfGzfDorx_=43xNQ3cB915GFnck-YJ0gu0W64xKw@mail.gmail.com>
+Date: Thu, 4 Jun 2015 10:03:28 -0400
+Message-ID: <CALzAhNXWsv6O23yzRAx9L6TrKRvm9o7SdApsHjMgE3dpqUYpWA@mail.gmail.com>
+Subject: Re: [PATCH][media] SI2168: Resolve unknown chip version errors with
+ different HVR22x5 models
+From: Steven Toth <stoth@kernellabs.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 05 Jun 2015 17:10:53 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Thu, Jun 4, 2015 at 9:22 AM, Olli Salonen <olli.salonen@iki.fi> wrote:
+> I compiled an old HVR-2205 driver from my git tree:
+> https://github.com/trsqr/media_tree/tree/hvr2205
 
-> On 06/05/2015 12:29 PM, Mauro Carvalho Chehab wrote:
-> > Remove the following compilation warnings:
-> > 
-> > 	drivers/media/platform/vivid/vivid-tpg.c: In function 'tpg_gen_text':
-> > 	drivers/media/platform/vivid/vivid-tpg.c:1562:1: warning: the frame size of 1308 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-> > 	 }
-> > 	 ^
-> > 
-> > This seems to be due to some bad optimization done by gcc.
-> > 
-> > Moving the for() loop to happen inside the macro solves the
-> > issue.
-> > 
-> > While here, fix CodingStyle at the switch().
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-> > index b1147f2df26c..7a3ed580626a 100644
-> > --- a/drivers/media/platform/vivid/vivid-tpg.c
-> > +++ b/drivers/media/platform/vivid/vivid-tpg.c
-> > @@ -1492,12 +1492,10 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
-> >  	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
-> >  		div = 2;
-> >  
-> > -	for (p = 0; p < tpg->planes; p++) {
-> > -		unsigned vdiv = tpg->vdownsampling[p];
-> > -		unsigned hdiv = tpg->hdownsampling[p];
-> > -
-> > -		/* Print text */
-> > -#define PRINTSTR(PIXTYPE) do {	\
-> > +	/* Print text */
-> > +#define PRINTSTR(PIXTYPE) for (p = 0; p < tpg->planes; p++) {	\
-> > +	unsigned vdiv = tpg->vdownsampling[p];	\
-> > +	unsigned hdiv = tpg->hdownsampling[p];	\
-> >  	PIXTYPE fg;	\
-> >  	PIXTYPE bg;	\
-> >  	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
-> > @@ -1548,16 +1546,19 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
-> >  	}	\
-> >  } while (0)
-> >  
-> > -		switch (tpg->twopixelsize[p]) {
-> > -		case 2:
-> > -			PRINTSTR(u8); break;
-> > -		case 4:
-> > -			PRINTSTR(u16); break;
-> > -		case 6:
-> > -			PRINTSTR(x24); break;
-> > -		case 8:
-> > -			PRINTSTR(u32); break;
-> > -		}
-> > +	switch (tpg->twopixelsize[p]) {
-> 
-> This doesn't work I just discovered. Compiling gives this warning:
-> 
-> drivers/media/platform/vivid/vivid-tpg.c: In function ‘tpg_gen_text’:
-> drivers/media/platform/vivid/vivid-tpg.c:1549:27: warning: ‘p’ may be used uninitialized in this function [-Wmaybe-uninitialized]
->   switch (tpg->twopixelsize[p]) {
->                            ^
-> 
+https://github.com/trsqr/media_tree/commit/61c2ef874b8a9620f498c9a4ab4138e97119462b
 
-Weird. here (gcc 5.1.1) I didn't get any warning.
+That's the difference perhaps.
 
-> And the value for tpg->twopixelsize[p] will actually differ depending on the value of p.
-> 
-> It's probably best to revert this patch.
-> 
-> The correct approach is likely to make four functions, one for case,
-> with the macro as the function body.
-
-I tried that (without the for). The result was worse.
-
-I'll double check it latter today.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +	case 2:
-> > +		PRINTSTR(u8);
-> > +		break;
-> > +	case 4:
-> > +		PRINTSTR(u16);
-> > +		break;
-> > +	case 6:
-> > +		PRINTSTR(x24);
-> > +		break;
-> > +	case 8:
-> > +		PRINTSTR(u32);
-> > +		break;
-> >  	}
-> >  }
-> >  
-> > 
-> 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
