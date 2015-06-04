@@ -1,646 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:35884 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753615AbbFSNXK (ORCPT
+Received: from 59-100-193-174.mel.static-ipl.aapt.com.au ([59.100.193.174]:22746
+	"EHLO mail6.intellectit.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753192AbbFDAiJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 09:23:10 -0400
-Received: by wicnd19 with SMTP id nd19so18979959wic.1
-        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2015 06:23:08 -0700 (PDT)
-From: Pablo Anton <pablo.anton@veo-labs.com>
-To: hans.verkuil@cisco.com
-Cc: mchehab@osg.samsung.com, lars@metafoo.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Subject: [PATCH v3] media: i2c: ADV7604: Migrate to regmap
-Date: Fri, 19 Jun 2015 15:23:06 +0200
-Message-Id: <1434720186-25611-1-git-send-email-pablo.anton@veo-labs.com>
+	Wed, 3 Jun 2015 20:38:09 -0400
+Received: from mail6.intellectit.com.au (localhost.localdomain [127.0.0.1])
+	by localhost (Email Security Appliance) with SMTP id 5143143E62_56F9DEBB
+	for <linux-media@vger.kernel.org>; Thu,  4 Jun 2015 00:38:03 +0000 (GMT)
+Received: from mail.intellectit.com.au (iitmail.intellectit.local [192.168.254.230])
+	by mail6.intellectit.com.au (Sophos Email Appliance) with ESMTP id 7EA8C43EB2_56F9DEAF
+	for <linux-media@vger.kernel.org>; Thu,  4 Jun 2015 00:38:02 +0000 (GMT)
+From: Stephen Allan <stephena@intellectit.com.au>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Hauppauge WinTV-HVR2205 driver feedback
+Date: Thu, 4 Jun 2015 00:38:05 +0000
+Message-ID: <d5b30de9fc234bd7b4bbf3d1cbcc8ffc@IITMAIL.intellectit.local>
+References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
+ <556EB2F7.506@iki.fi> <556EB4B0.8050505@iki.fi>
+In-Reply-To: <556EB4B0.8050505@iki.fi>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preliminary patch in order to add support for ALSA.
-It replaces all current i2c access with regmap.
-
-Signed-off-by: Pablo Anton <pablo.anton@veo-labs.com>
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-v3: check return value of regmap_read
-    start configure_regmaps from ADV7604_PAGE_AVLINK
-    add Acked-by and Tested-by
-    change some v4l2_info to v4l2_err
-
- drivers/media/i2c/adv7604.c | 351 ++++++++++++++++++++++++++++++++------------
- 1 file changed, 256 insertions(+), 95 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 60ffcf0..0bbf800 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -36,6 +36,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
-+#include <linux/regmap.h>
- 
- #include <media/adv7604.h>
- #include <media/v4l2-ctrls.h>
-@@ -166,6 +167,9 @@ struct adv76xx_state {
- 	/* i2c clients */
- 	struct i2c_client *i2c_clients[ADV76XX_PAGE_MAX];
- 
-+	/* Regmaps */
-+	struct regmap *regmap[ADV76XX_PAGE_MAX];
-+
- 	/* controls */
- 	struct v4l2_ctrl *detect_tx_5v_ctrl;
- 	struct v4l2_ctrl *analog_sampling_phase_ctrl;
-@@ -346,66 +350,39 @@ static inline unsigned vtotal(const struct v4l2_bt_timings *t)
- 
- /* ----------------------------------------------------------------------- */
- 
--static s32 adv_smbus_read_byte_data_check(struct i2c_client *client,
--		u8 command, bool check)
--{
--	union i2c_smbus_data data;
--
--	if (!i2c_smbus_xfer(client->adapter, client->addr, client->flags,
--			I2C_SMBUS_READ, command,
--			I2C_SMBUS_BYTE_DATA, &data))
--		return data.byte;
--	if (check)
--		v4l_err(client, "error reading %02x, %02x\n",
--				client->addr, command);
--	return -EIO;
--}
--
--static s32 adv_smbus_read_byte_data(struct adv76xx_state *state,
--				    enum adv76xx_page page, u8 command)
-+static int adv76xx_read_check(struct adv76xx_state *state,
-+			     int client_page, u8 reg)
- {
--	return adv_smbus_read_byte_data_check(state->i2c_clients[page],
--					      command, true);
--}
--
--static s32 adv_smbus_write_byte_data(struct adv76xx_state *state,
--				     enum adv76xx_page page, u8 command,
--				     u8 value)
--{
--	struct i2c_client *client = state->i2c_clients[page];
--	union i2c_smbus_data data;
-+	struct i2c_client *client = state->i2c_clients[client_page];
- 	int err;
--	int i;
-+	unsigned int val;
- 
--	data.byte = value;
--	for (i = 0; i < 3; i++) {
--		err = i2c_smbus_xfer(client->adapter, client->addr,
--				client->flags,
--				I2C_SMBUS_WRITE, command,
--				I2C_SMBUS_BYTE_DATA, &data);
--		if (!err)
--			break;
-+	err = regmap_read(state->regmap[client_page], reg, &val);
-+
-+	if (err) {
-+		v4l_err(client, "error reading %02x, %02x\n",
-+				client->addr, reg);
-+		return err;
- 	}
--	if (err < 0)
--		v4l_err(client, "error writing %02x, %02x, %02x\n",
--				client->addr, command, value);
--	return err;
-+	return val;
- }
- 
--static s32 adv_smbus_write_i2c_block_data(struct adv76xx_state *state,
--					  enum adv76xx_page page, u8 command,
--					  unsigned length, const u8 *values)
-+/* adv76xx_write_block(): Write raw data with a maximum of I2C_SMBUS_BLOCK_MAX
-+ * size to one or more registers.
-+ *
-+ * A value of zero will be returned on success, a negative errno will
-+ * be returned in error cases.
-+ */
-+static int adv76xx_write_block(struct adv76xx_state *state, int client_page,
-+			      unsigned int init_reg, const void *val,
-+			      size_t val_len)
- {
--	struct i2c_client *client = state->i2c_clients[page];
--	union i2c_smbus_data data;
-+	struct regmap *regmap = state->regmap[client_page];
-+
-+	if (val_len > I2C_SMBUS_BLOCK_MAX)
-+		val_len = I2C_SMBUS_BLOCK_MAX;
- 
--	if (length > I2C_SMBUS_BLOCK_MAX)
--		length = I2C_SMBUS_BLOCK_MAX;
--	data.block[0] = length;
--	memcpy(data.block + 1, values, length);
--	return i2c_smbus_xfer(client->adapter, client->addr, client->flags,
--			      I2C_SMBUS_WRITE, command,
--			      I2C_SMBUS_I2C_BLOCK_DATA, &data);
-+	return regmap_raw_write(regmap, init_reg, val, val_len);
- }
- 
- /* ----------------------------------------------------------------------- */
-@@ -414,14 +391,14 @@ static inline int io_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_IO, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_IO, reg);
- }
- 
- static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_IO, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_IO], reg, val);
- }
- 
- static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -433,71 +410,70 @@ static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_AVLINK, reg);
-+	return adv76xx_read_check(state, ADV7604_PAGE_AVLINK, reg);
- }
- 
- static inline int avlink_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_AVLINK, reg, val);
-+	return regmap_write(state->regmap[ADV7604_PAGE_AVLINK], reg, val);
- }
- 
- static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CEC, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_CEC, reg);
- }
- 
- static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CEC, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_CEC], reg, val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_INFOFRAME, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_INFOFRAME, reg);
- }
- 
- static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_INFOFRAME,
--					 reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_INFOFRAME], reg, val);
- }
- 
- static inline int afe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_AFE, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_AFE, reg);
- }
- 
- static inline int afe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_AFE, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_AFE], reg, val);
- }
- 
- static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_REP, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_REP, reg);
- }
- 
- static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_REP, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_REP], reg, val);
- }
- 
- static inline int rep_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -509,28 +485,37 @@ static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_EDID, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_EDID, reg);
- }
- 
- static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_EDID, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_EDID], reg, val);
- }
- 
- static inline int edid_write_block(struct v4l2_subdev *sd,
--					unsigned len, const u8 *val)
-+					unsigned int total_len, const u8 *val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 	int err = 0;
--	int i;
-+	int i = 0;
-+	int len = 0;
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n", __func__, len);
-+	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n",
-+				__func__, total_len);
-+
-+	while (!err && i < total_len) {
-+		len = (total_len - i) > I2C_SMBUS_BLOCK_MAX ?
-+				I2C_SMBUS_BLOCK_MAX :
-+				(total_len - i);
-+
-+		err = adv76xx_write_block(state, ADV76XX_PAGE_EDID,
-+				i, val + i, len);
-+		i += len;
-+	}
- 
--	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
--		err = adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_EDID,
--				i, I2C_SMBUS_BLOCK_MAX, val + i);
- 	return err;
- }
- 
-@@ -560,7 +545,7 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_HDMI, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_HDMI, reg);
- }
- 
- static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-@@ -572,7 +557,7 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_HDMI, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_HDMI], reg, val);
- }
- 
- static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -584,14 +569,14 @@ static inline int test_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_TEST, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_TEST], reg, val);
- }
- 
- static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CP, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_CP, reg);
- }
- 
- static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-@@ -603,7 +588,7 @@ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CP, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_CP], reg, val);
- }
- 
- static inline int cp_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -615,14 +600,14 @@ static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_VDP, reg);
-+	return adv76xx_read_check(state, ADV7604_PAGE_VDP, reg);
- }
- 
- static inline int vdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_VDP, reg, val);
-+	return regmap_write(state->regmap[ADV7604_PAGE_VDP], reg, val);
- }
- 
- #define ADV76XX_REG(page, offset)	(((page) << 8) | (offset))
-@@ -633,13 +618,16 @@ static int adv76xx_read_reg(struct v4l2_subdev *sd, unsigned int reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 	unsigned int page = reg >> 8;
-+	unsigned int val;
-+	int err;
- 
- 	if (!(BIT(page) & state->info->page_mask))
- 		return -EINVAL;
- 
- 	reg &= 0xff;
-+	err = regmap_read(state->regmap[page], reg, &val);
- 
--	return adv_smbus_read_byte_data(state, page, reg);
-+	return err ? err : val;
- }
- #endif
- 
-@@ -653,7 +641,7 @@ static int adv76xx_write_reg(struct v4l2_subdev *sd, unsigned int reg, u8 val)
- 
- 	reg &= 0xff;
- 
--	return adv_smbus_write_byte_data(state, page, reg, val);
-+	return regmap_write(state->regmap[page], reg, val);
- }
- 
- static void adv76xx_write_reg_seq(struct v4l2_subdev *sd,
-@@ -949,8 +937,8 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
- 		/* Should only be set in auto-graphics mode [REF_02, p. 91-92] */
- 		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
- 		/* IO-map reg. 0x16 and 0x17 should be written in sequence */
--		if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_IO,
--						   0x16, 2, pll))
-+		if (regmap_raw_write(state->regmap[ADV76XX_PAGE_IO],
-+					0x16, pll, 2))
- 			v4l2_err(sd, "writing to reg 0x16 and 0x17 failed\n");
- 
- 		/* active video - horizontal timing */
-@@ -1001,8 +989,8 @@ static void adv76xx_set_offset(struct v4l2_subdev *sd, bool auto_offset, u16 off
- 	offset_buf[3] = offset_c & 0x0ff;
- 
- 	/* Registers must be written in this order with no i2c access in between */
--	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
--					   0x77, 4, offset_buf))
-+	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
-+			0x77, offset_buf, 4))
- 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x77, 0x78, 0x79, 0x7a\n", __func__);
- }
- 
-@@ -1031,8 +1019,8 @@ static void adv76xx_set_gain(struct v4l2_subdev *sd, bool auto_gain, u16 gain_a,
- 	gain_buf[3] = ((gain_c & 0x0ff));
- 
- 	/* Registers must be written in this order with no i2c access in between */
--	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
--					   0x73, 4, gain_buf))
-+	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
-+			     0x73, gain_buf, 4))
- 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x73, 0x74, 0x75, 0x76\n", __func__);
- }
- 
-@@ -2674,6 +2662,148 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	return 0;
- }
- 
-+static const struct regmap_config adv76xx_regmap_cnf[] = {
-+	{
-+		.name			= "io",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "avlink",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "cec",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "infoframe",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "esdp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "epp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "afe",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "rep",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "edid",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+
-+	{
-+		.name			= "hdmi",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "test",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "cp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "vdp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+};
-+
-+static int configure_regmap(struct adv76xx_state *state, int region)
-+{
-+	int err;
-+
-+	if (!state->i2c_clients[region])
-+		return -ENODEV;
-+
-+	state->regmap[region] =
-+		devm_regmap_init_i2c(state->i2c_clients[region],
-+				     &adv76xx_regmap_cnf[region]);
-+
-+	if (IS_ERR(state->regmap[region])) {
-+		err = PTR_ERR(state->regmap[region]);
-+		v4l_err(state->i2c_clients[region],
-+			"Error initializing regmap %d with error %d\n",
-+			region, err);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int configure_regmaps(struct adv76xx_state *state)
-+{
-+	int i, err;
-+
-+	for (i = ADV7604_PAGE_AVLINK ; i < ADV76XX_PAGE_MAX; i++) {
-+		err = configure_regmap(state, i);
-+		if (err && (err != -ENODEV))
-+			return err;
-+	}
-+	return 0;
-+}
-+
- static int adv76xx_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-@@ -2683,7 +2813,7 @@ static int adv76xx_probe(struct i2c_client *client,
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
- 	unsigned int i;
--	u16 val;
-+	unsigned int val, val2;
- 	int err;
- 
- 	/* Check if the adapter supports the needed features */
-@@ -2747,23 +2877,49 @@ static int adv76xx_probe(struct i2c_client *client,
- 		client->addr);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-+	/* Configure IO Regmap region */
-+	err = configure_regmap(state, ADV76XX_PAGE_IO);
-+
-+	if (err) {
-+		v4l2_err(sd, "Error configuring IO regmap region\n");
-+		return -ENODEV;
-+	}
-+
- 	/*
- 	 * Verify that the chip is present. On ADV7604 the RD_INFO register only
- 	 * identifies the revision, while on ADV7611 it identifies the model as
- 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
- 	 */
- 	if (state->info->type == ADV7604) {
--		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
-+		err = regmap_read(state->regmap[ADV76XX_PAGE_IO], 0xfb, &val);
-+		if (err) {
-+			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
-+			return -ENODEV;
-+		}
- 		if (val != 0x68) {
--			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
-+			v4l2_err(sd, "not an adv7604 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
- 	} else {
--		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
--		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
--		if (val != 0x2051) {
--			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
-+		err = regmap_read(state->regmap[ADV76XX_PAGE_IO],
-+				0xea,
-+				&val);
-+		if (err) {
-+			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
-+			return -ENODEV;
-+		}
-+		val2 = val << 8;
-+		err = regmap_read(state->regmap[ADV76XX_PAGE_IO],
-+			    0xeb,
-+			    &val);
-+		if (err) {
-+			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
-+			return -ENODEV;
-+		}
-+		val2 |= val;
-+		if (val2 != 0x2051) {
-+			v4l2_err(sd, "not an adv7611 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
-@@ -2853,6 +3009,11 @@ static int adv76xx_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_work_queues;
- 
-+	/* Configure regmaps */
-+	err = configure_regmaps(state);
-+	if (err)
-+		goto err_entity;
-+
- 	err = adv76xx_core_init(sd);
- 	if (err)
- 		goto err_entity;
--- 
-2.3.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+SGksDQoNCkp1c3QgdGhvdWdodCBJJ2QgY2xhcmlmeSB0aGF0IGluIG15IGNhc2UgSSBoYXZlbid0
+IGV2ZXIgdXNlZCB0aGlzIGJvYXJkIHdpdGggV2luZG93cy4gIFNlZSBhIG1vcmUgZGV0YWlsZWQg
+ZG1lc2cgb3V0cHV0IGJlbG93IGZvciAic2FhNzE2OCIgYW5kICJzaTIxeHgiIG1lc3NhZ2VzLiAg
+RnJvbSB3aGF0IEkgYW0gc2VlaW5nIHRoZSBmaXJtd2FyZSBpcyBsb2FkaW5nIGNvcnJlY3RseS4g
+IEhvd2V2ZXIgSSBtYXkgYmUgd3JvbmcuDQoNCmRtZXNnIHwgZ3JlcCAnc2FhNzE2NFx8c2kyMScN
+ClsgICAxOC4xMTI0MzldIHNhYTcxNjQgZHJpdmVyIGxvYWRlZA0KWyAgIDE4LjExMzQyOV0gQ09S
+RSBzYWE3MTY0WzBdOiBzdWJzeXN0ZW06IDAwNzA6ZjEyMCwgYm9hcmQ6IEhhdXBwYXVnZSBXaW5U
+Vi1IVlIyMjA1IFtjYXJkPTEzLGF1dG9kZXRlY3RlZF0NClsgICAxOC4xMTM0MzVdIHNhYTcxNjRb
+MF0vMDogZm91bmQgYXQgMDAwMDowMzowMC4wLCByZXY6IDEyOSwgaXJxOiAxNiwgbGF0ZW5jeTog
+MCwgbW1pbzogMHhmNzgwMDAwMA0KWyAgIDE4LjExMzQ3MF0gc2FhNzE2NCAwMDAwOjAzOjAwLjA6
+IGlycSA0NiBmb3IgTVNJL01TSS1YDQpbICAgMTguMjcwMzEwXSBzYWE3MTY0X2Rvd25sb2FkZmly
+bXdhcmUoKSBubyBmaXJzdCBpbWFnZQ0KWyAgIDE4LjI3MDMyMl0gc2FhNzE2NF9kb3dubG9hZGZp
+cm13YXJlKCkgV2FpdGluZyBmb3IgZmlybXdhcmUgdXBsb2FkIChOWFA3MTY0LTIwMTAtMDMtMTAu
+MS5mdykNClsgICAyMC4yNDA2MzVdIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIGZpcm13YXJl
+IHJlYWQgNDAxOTA3MiBieXRlcy4NClsgICAyMC4yNDA2MzddIHNhYTcxNjRfZG93bmxvYWRmaXJt
+d2FyZSgpIGZpcm13YXJlIGxvYWRlZC4NClsgICAyMC4yNDA2NDJdIHNhYTcxNjRfZG93bmxvYWRm
+aXJtd2FyZSgpIFNlY0Jvb3RMb2FkZXIuRmlsZVNpemUgPSA0MDE5MDcyDQpbICAgMjAuMjQwNjQ4
+XSBzYWE3MTY0X2Rvd25sb2FkZmlybXdhcmUoKSBGaXJtd2FyZVNpemUgPSAweDFmZDYNClsgICAy
+MC4yNDA2NDldIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIEJTTFNpemUgPSAweDANClsgICAy
+MC4yNDA2NTBdIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIFJlc2VydmVkID0gMHgwDQpbICAg
+MjAuMjQwNjUwXSBzYWE3MTY0X2Rvd25sb2FkZmlybXdhcmUoKSBWZXJzaW9uID0gMHgxNjYxYzAw
+DQpbICAgMjcuMDk2MjY5XSBzYWE3MTY0X2Rvd25sb2FkaW1hZ2UoKSBJbWFnZSBkb3dubG9hZGVk
+LCBib290aW5nLi4uDQpbICAgMjcuMjAwMzAwXSBzYWE3MTY0X2Rvd25sb2FkaW1hZ2UoKSBJbWFn
+ZSBib290ZWQgc3VjY2Vzc2Z1bGx5Lg0KWyAgIDI5LjkzNjk2Ml0gc2FhNzE2NF9kb3dubG9hZGlt
+YWdlKCkgSW1hZ2UgZG93bmxvYWRlZCwgYm9vdGluZy4uLg0KWyAgIDMxLjcwNTQwN10gc2FhNzE2
+NF9kb3dubG9hZGltYWdlKCkgSW1hZ2UgYm9vdGVkIHN1Y2Nlc3NmdWxseS4NClsgICAzMS43NTAz
+NThdIHNhYTcxNjRbMF06IEhhdXBwYXVnZSBlZXByb206IG1vZGVsPTE1MTYwOQ0KWyAgIDMxLjc3
+NjQ0Nl0gc2kyMTY4IDIyLTAwNjQ6IFNpbGljb24gTGFicyBTaTIxNjggc3VjY2Vzc2Z1bGx5IGF0
+dGFjaGVkDQpbICAgMzEuNzgxMzA3XSBzaTIxNTcgMjAtMDA2MDogU2lsaWNvbiBMYWJzIFNpMjE0
+Ny8yMTQ4LzIxNTcvMjE1OCBzdWNjZXNzZnVsbHkgYXR0YWNoZWQNClsgICAzMS43ODE2OTVdIERW
+QjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKHNhYTcxNjQpDQpbICAgMzEuNzgxNjk4XSBzYWE3
+MTY0IDAwMDA6MDM6MDAuMDogRFZCOiByZWdpc3RlcmluZyBhZGFwdGVyIDQgZnJvbnRlbmQgMCAo
+U2lsaWNvbiBMYWJzIFNpMjE2OCkuLi4NClsgICAzMS43ODI2NTJdIHNpMjE2OCAyMi0wMDY2OiBT
+aWxpY29uIExhYnMgU2kyMTY4IHN1Y2Nlc3NmdWxseSBhdHRhY2hlZA0KWyAgIDMxLjc4NTk2MV0g
+c2kyMTU3IDIxLTAwNjA6IFNpbGljb24gTGFicyBTaTIxNDcvMjE0OC8yMTU3LzIxNTggc3VjY2Vz
+c2Z1bGx5IGF0dGFjaGVkDQpbICAgMzEuNzg2MzQwXSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFw
+dGVyIChzYWE3MTY0KQ0KWyAgIDMxLjc4NjM0Ml0gc2FhNzE2NCAwMDAwOjAzOjAwLjA6IERWQjog
+cmVnaXN0ZXJpbmcgYWRhcHRlciA1IGZyb250ZW5kIDAgKFNpbGljb24gTGFicyBTaTIxNjgpLi4u
+DQpbICAgMzEuNzg2NTYyXSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzEgW21w
+ZWddDQpbICAgMzIuMDIxNjU5XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzIg
+W21wZWddDQpbICAgMzIuMjM4MzM2XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2Ymkw
+IFt2YmldDQpbICAgMzIuMjM4Mzg5XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2Ymkx
+IFt2YmldDQpbMTY1NTEyLjQzNjY2Ml0gc2kyMTY4IDIyLTAwNjY6IHVua25vd24gY2hpcCB2ZXJz
+aW9uIFNpMjE2OC0NClsxNjU1MTIuNDUwMzE1XSBzaTIxNTcgMjEtMDA2MDogZm91bmQgYSAnU2ls
+aWNvbiBMYWJzIFNpMjE1Ny1BMzAnDQpbMTY1NTEyLjQ4MDU1OV0gc2kyMTU3IDIxLTAwNjA6IGZp
+cm13YXJlIHZlcnNpb246IDMuMC41DQpbMTY1NTE3Ljk4MTE1NV0gc2kyMTY4IDIyLTAwNjQ6IHVu
+a25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0NClsxNjU1MTcuOTk0NjIwXSBzaTIxNTcgMjAtMDA2
+MDogZm91bmQgYSAnU2lsaWNvbiBMYWJzIFNpMjE1Ny1BMzAnDQpbMTY1NTE4LjAyNDg2N10gc2ky
+MTU3IDIwLTAwNjA6IGZpcm13YXJlIHZlcnNpb246IDMuMC41DQpbMTY1NjgyLjMzNDE3MV0gc2ky
+MTY4IDIyLTAwNjQ6IHVua25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0NClsxNjU3MzAuNTc5MDg1
+XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LQ0KWzE2NTgzOC40
+MjA2OTNdIHNpMjE2OCAyMi0wMDY0OiB1bmtub3duIGNoaXAgdmVyc2lvbiBTaTIxNjgtDQpbMTY2
+MzM3LjM0MjQzN10gc2kyMTY4IDIyLTAwNjQ6IHVua25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0N
+ClsxNjczMDUuMzkzNTcyXSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2ky
+MTY4LQ0KWzE3MDc2Mi45MDcwNzFdIHNpMjE2OCAyMi0wMDY0OiB1bmtub3duIGNoaXAgdmVyc2lv
+biBTaTIxNjgtDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBBbnR0aSBQYWxv
+c2FhcmkgW21haWx0bzpjcm9wZUBpa2kuZmldIA0KU2VudDogV2VkbmVzZGF5LCBKdW5lIDMsIDIw
+MTUgNjowMyBQTQ0KVG86IFN0ZXBoZW4gQWxsYW47IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
+Zw0KU3ViamVjdDogUmU6IEhhdXBwYXVnZSBXaW5UVi1IVlIyMjA1IGRyaXZlciBmZWVkYmFjaw0K
+DQpPbiAwNi8wMy8yMDE1IDEwOjU1IEFNLCBBbnR0aSBQYWxvc2Fhcmkgd3JvdGU6DQo+IE9uIDA2
+LzAzLzIwMTUgMDY6NTUgQU0sIFN0ZXBoZW4gQWxsYW4gd3JvdGU6DQo+PiBJIGFtIGF3YXJlIHRo
+YXQgdGhlcmUgaXMgc29tZSBkZXZlbG9wbWVudCBnb2luZyBvbiBmb3IgdGhlIHNhYTcxNjQgDQo+
+PiBkcml2ZXIgdG8gc3VwcG9ydCB0aGUgSGF1cHBhdWdlIFdpblRWLUhWUjIyMDUuICBJIHRob3Vn
+aHQgSSB3b3VsZCANCj4+IHBvc3Qgc29tZSBmZWVkYmFjay4gIEkgaGF2ZSByZWNlbnRseSBjb21w
+aWxlZCB0aGUgZHJpdmVyIGFzIGF0IA0KPj4gMjAxNS0wNS0zMSB1c2luZyAibWVkaWEgYnVpbGQg
+dHJlZSIuICBJIGFtIHVuYWJsZSB0byB0dW5lIGEgY2hhbm5lbC4gIA0KPj4gV2hlbiBydW5uaW5n
+IHRoZSBmb2xsb3dpbmcgd19zY2FuIGNvbW1hbmQ6DQo+Pg0KPj4gd19zY2FuIC1hNCAtZnQgLWNB
+VSAtdCAzIC1YID4gL3RtcC90emFwL2NoYW5uZWxzLmNvbmYNCj4+DQo+PiBJIGdldCB0aGUgZm9s
+bG93aW5nIGVycm9yIGFmdGVyIHNjYW5uaW5nIHRoZSBmcmVxdWVuY3kgcmFuZ2UgZm9yIA0KPj4g
+QXVzdHJhbGlhLg0KPj4NCj4+IEVSUk9SOiBTb3JyeSAtIGkgY291bGRuJ3QgZ2V0IGFueSB3b3Jr
+aW5nIGZyZXF1ZW5jeS90cmFuc3BvbmRlcg0KPj4gICBOb3RoaW5nIHRvIHNjYW4hIQ0KPj4NCj4+
+IEF0IHRoZSBzYW1lIHRpbWUgSSBnZXQgdGhlIGZvbGxvd2luZyBtZXNzYWdlcyBiZWluZyBsb2dn
+ZWQgdG8gdGhlIA0KPj4gTGludXggY29uc29sZS4NCj4+DQo+PiBkbWVzZw0KPj4gWzE2NTUxMi40
+MzY2NjJdIHNpMjE2OCAyMi0wMDY2OiB1bmtub3duIGNoaXAgdmVyc2lvbiBTaTIxNjgtIA0KPj4g
+WzE2NTUxMi40NTAzMTVdIHNpMjE1NyAyMS0wMDYwOiBmb3VuZCBhICdTaWxpY29uIExhYnMgU2ky
+MTU3LUEzMCcNCj4+IFsxNjU1MTIuNDgwNTU5XSBzaTIxNTcgMjEtMDA2MDogZmlybXdhcmUgdmVy
+c2lvbjogMy4wLjUgDQo+PiBbMTY1NTE3Ljk4MTE1NV0gc2kyMTY4IDIyLTAwNjQ6IHVua25vd24g
+Y2hpcCB2ZXJzaW9uIFNpMjE2OC0gDQo+PiBbMTY1NTE3Ljk5NDYyMF0gc2kyMTU3IDIwLTAwNjA6
+IGZvdW5kIGEgJ1NpbGljb24gTGFicyBTaTIxNTctQTMwJw0KPj4gWzE2NTUxOC4wMjQ4NjddIHNp
+MjE1NyAyMC0wMDYwOiBmaXJtd2FyZSB2ZXJzaW9uOiAzLjAuNSANCj4+IFsxNjU2ODIuMzM0MTcx
+XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LSANCj4+IFsxNjU3
+MzAuNTc5MDg1XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LSAN
+Cj4+IFsxNjU4MzguNDIwNjkzXSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24g
+U2kyMTY4LSANCj4+IFsxNjYzMzcuMzQyNDM3XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlw
+IHZlcnNpb24gU2kyMTY4LSANCj4+IFsxNjczMDUuMzkzNTcyXSBzaTIxNjggMjItMDA2NDogdW5r
+bm93biBjaGlwIHZlcnNpb24gU2kyMTY4LQ0KPj4NCj4+DQo+PiBNYW55IHRoYW5rcyB0byB0aGUg
+ZGV2ZWxvcGVycyBmb3IgYWxsIG9mIHlvdXIgaGFyZCB3b3JrLg0KPg0KPiBMZXQgbWUgZ3Vlc3Mg
+dGhleSBoYXZlIGNoYW5nZWQgU2kyMTY4IGNoaXAgdG8gbGF0ZXN0ICJDIiB2ZXJzaW9uLiANCj4g
+RHJpdmVyIHN1cHBvcnRzIG9ubHkgQSBhbmQgQiAoQTIwLCBBMzAgYW5kIEI0MCkuIEkgaGF2ZSBu
+ZXZlciBzZWVuIEMgdmVyc2lvbi4NCg0KZ2FoLCBsb29raW5nIHRoZSBkcml2ZXIgSSB0aGluayB0
+aGF0IGlzIG5vdCBpc3N1ZSAtIGl0IHdpbGwgbGlrZWx5IHByaW50ICJ1bmtub3duIGNoaXAgdmVy
+c2lvbiBTaTIxNjgtQy4uIiBvbiB0aGF0IGNhc2UgYWxyZWFkeS4gSG93ZXZlciwgSSByZW1lbWJl
+ciBJIGhhdmUgc2VlbiB0aGF0IGtpbmQgb2YgaXNzdWUgZWFybGllciB0b28sIGJ1dCBkb24ndCBy
+ZW1lbWJlciB3aGF0IHdhcyBhY3R1YWwgcmVhc29uLiBQcm9iYWJseSBzb21ldGhpbmcgdG8gZG8g
+d2l0aCBmaXJtd2FyZSwgd3JvbmcgZmlybXdhcmUgYW5kIGxvYWRpbmcgaGFzIGZhaWxlZD8gQ291
+bGQgeW91IG1ha2UgY29sZCBib290LCByZW1vdmUgc29ja2V0IGZyb20gdGhlIHdhbGxldCBhbmQg
+d2FpdCBtaW51dGUgaXQgcmVhbGx5IHBvd2VycyBkb3duLCB0aGVuIGJvb3QgYW5kIGxvb2sgd2hh
+dCBoYXBwZW5zLg0KDQpyZWdhcmRzDQpBbnR0aQ0KDQoNCg0KLS0NCmh0dHA6Ly9wYWxvc2Fhcmku
+ZmkvDQo=
