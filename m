@@ -1,42 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33013 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbbFEK7q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/10] sh-vou: fix querycap support
-Date: Fri,  5 Jun 2015 12:59:18 +0200
-Message-Id: <1433501966-30176-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:33434 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770AbbFDFYY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 01:24:24 -0400
+Received: by padj3 with SMTP id j3so21953077pad.0
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 22:24:24 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <556ECACC.9000207@xs4all.nl>
+References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
+ <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
+ <54DB12B5.4080000@samsung.com> <20150211111258.GP8656@n2100.arm.linux.org.uk>
+ <54DB4908.10004@samsung.com> <20150211162312.GR8656@n2100.arm.linux.org.uk>
+ <CAO_48GHf=Zt7Ju=N=FAVfaudApSV+rSfb+Wou7L1Dh3egULm9g@mail.gmail.com>
+ <556EA13B.7080306@xs4all.nl> <20150603084115.GC7557@n2100.arm.linux.org.uk> <556ECACC.9000207@xs4all.nl>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 4 Jun 2015 10:54:03 +0530
+Message-ID: <CAO_48GFiHgpo7O_db5YMEQPmsOUDjouquF5V6bkQa2U6Ej7=Kg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
+ attacher constraints with dma-parms
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	Rob Clark <robdclark@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Robin Murphy <robin.murphy@arm.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 3 June 2015 at 15:07, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/03/15 10:41, Russell King - ARM Linux wrote:
+>> On Wed, Jun 03, 2015 at 08:39:55AM +0200, Hans Verkuil wrote:
+>>> Hi Sumit,
+>>>
+>>> On 05/05/2015 04:41 PM, Sumit Semwal wrote:
+>>>> Hi Russell, everyone,
+>>>>
+>>>> First up, sincere apologies for being awol for sometime; had some
+>>>> personal / medical things to take care of, and then I thought I'd wait
+>>>> for the merge window to get over before beginning to discuss this
+>>>> again.
+>>>>
+>>>> On 11 February 2015 at 21:53, Russell King - ARM Linux
+>>>> <linux@arm.linux.org.uk> wrote:
+>>>>> On Wed, Feb 11, 2015 at 01:20:24PM +0100, Marek Szyprowski wrote:
+>>>>>> Hello,
+>>>>>>
+>>>>>> On 2015-02-11 12:12, Russell King - ARM Linux wrote:
+>>>>>>> Which is a damn good reason to NAK it - by that admission, it's a half-baked
+>>>>>>> idea.
+>>>>>>>
+>>>>>>> If all we want to know is whether the importer can accept only contiguous
+>>>>>>> memory or not, make a flag to do that, and allow the exporter to test this
+>>>>>>> flag.  Don't over-engineer this to make it _seem_ like it can do something
+>>>>>>> that it actually totally fails with.
+>>>>>>>
+>>>>>>> As I've already pointed out, there's a major problem if you have already
+>>>>>>> had a less restrictive attachment which has an active mapping, and a new
+>>>>>>> more restrictive attachment comes along later.
+>>>>>>>
+>>>>>>> It seems from Rob's descriptions that we also need another flag in the
+>>>>>>> importer to indicate whether it wants to have a valid struct page in the
+>>>>>>> scatter list, or whether it (correctly) uses the DMA accessors on the
+>>>>>>> scatter list - so that exporters can reject importers which are buggy.
+>>>>>>
+>>>>>> Okay, but flag-based approach also have limitations.
+>>>>>
+>>>>> Yes, the flag-based approach doesn't let you describe in detail what
+>>>>> the importer can accept - which, given the issues that I've raised
+>>>>> is a *good* thing.  We won't be misleading anyone into thinking that
+>>>>> we can do something that's really half-baked, and which we have no
+>>>>> present requirement for.
+>>>>>
+>>>>> This is precisely what Linus talks about when he says "don't over-
+>>>>> engineer" - if we over-engineer this, we end up with something that
+>>>>> sort-of works, and that's a bad thing.
+>>>>>
+>>>>> The Keep It Simple approach here makes total sense - what are our
+>>>>> current requirements - to be able to say that an importer can only accept:
+>>>>>   - contiguous memory rather than a scatterlist
+>>>>>   - scatterlists with struct page pointers
+>>>>>
+>>>>> Does solving that need us to compare all the constraints of each and
+>>>>> every importer, possibly ending up with constraints which can't be
+>>>>> satisfied?  No.  Does the flag approach satisfy the requirements?  Yes.
+>>>>>
+>>>>
+>>>> So, for basic constraint-sharing, we'll just go with the flag based
+>>>> approach, with a flag (best place for it is still dev->dma_params I
+>>>> suppose) for denoting contiguous or scatterlist. Is that agreed, then?
+>>>> Also, with this idea, of course, there won't be any helpers for trying
+>>>> to calculate constraints; it would be totally the exporter's
+>>>> responsibility to handle it via the attach() dma_buf_op if it wishes
+>>>> to.
+>>>
+>>> What's wrong with the proposed max_segment_count? Many media devices do
+>>> have a limited max_segment_count and that should be taken into account.
+>>
+>> So what happens if you have a dma_buf exporter, and several dma_buf
+>> importers.  One dma_buf importer attaches to the exporter, and asks
+>> for the buffer, and starts making use of the buffer.  This export has
+>> many scatterlist segments.
+>>
+>> Another dma_buf importer attaches to the same buffer, and now asks for
+>> the buffer, but the number of scatterlist segments exceeds it
+>> requirement.
 
-Fix v4l2-compliance errors due to empty driver and bus_info fields.
+So, in the midst of all the various directions this discussion has
+taken, I seem to have missed to reiterate the base premise for this
+suggestion [1] - that we can use this information to help implement a
+deferred allocation logic - so that all the importers can attach
+first, and the exporter can do the actual allocation on the first
+map() call.
+This is also inline with the prescribed usage of dma_buf_attach() /
+dma_buf_map_attachment() sequence - ideally speaking, all
+participating 'importers' of dma_buf should only attach first, and
+then map() at a 'later' time, which is usually right before using the
+buffer actually.
+Note: at present, both DRI and V4L subsystems don't do that; while
+proposing this RFC I had deliberately kept that separate, as it is a
+related but orthogonal problem to solve. I guess I should address that
+in parallel.
+>>
+>> You can't reallocate the buffer because it's in-use by another importer.
+>> There is no way to revoke the buffer from the other importer.  So there
+>> is no way to satisfy this importer's requirements.
+>>
+You're right; but in a deferred allocation mechanism, this
+constraint-sharing can atleast help decide on the most restrictive
+allocation at the time of first map() ,and if later, an importer with
+more relaxed constraints attaches, it can still use the same buffer.
+A more restrictive importer would still be not allowed, but in that
+case the exporter can disallow that importer from attaching, and a
+feedback to userspace is possible.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 2 ++
- 1 file changed, 2 insertions(+)
+>> What I'm showing is that the idea that exporting these parameters fixes
+>> some problem is just an illusion - it may work for the single importer
+>> case, but doesn't for the multiple importer case.
+>>
+>> Importers really have two choices here: either they accept what the
+>> exporter is giving them, or they reject it.
+>
+> I agree completely with that.
+>
+In a non-deferred allocation case, these constraints have no meaning,
+since it will always depend on the first subsystem to attach,
+irrespective of the exporter's possible capability to allocate from
+different allocators with different constraints; for example, if a
+subsystem with relaxed constraints attaches first, a later more
+restrictive constraints attach() request will fail, even though the
+exporter might have the ability to allocate with the more restricted
+constraints.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 9e98233..ba1a16c 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -398,6 +398,8 @@ static int sh_vou_querycap(struct file *file, void  *priv,
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
- 	strlcpy(cap->card, "SuperH VOU", sizeof(cap->card));
-+	strlcpy(cap->driver, "sh-vou", sizeof(cap->driver));
-+	strlcpy(cap->bus_info, "platform:sh-vou", sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
--- 
-2.1.4
+In deferred allocation, on the other hand, the exporter atleast gets
+the ability to possibly choose the allocation mechanism based on the
+match of most restricted importers, so the order of attach() ceases to
+matter.
 
+>> The other issue here is that DMA scatterlists are _not_ really that
+>> determinable in terms of number of entries when it comes to systems with
+>> system IOMMUs.  System IOMMUs, which should be integrated into the DMA
+>> API, are permitted to coalesce entries in the physical page range.  For
+>> example:
+>>
+>>       nsg = 128;
+>>       n = dma_map_sg(dev, sg, nsg, DMA_TO_DEVICE);
+>>
+>> Here, n might be 4 if the system IOMMU has been able to coalesce the 128
+>> entries down to 4 IOMMU entries - and that means for DMA purposes, only
+>> the first four scatterlist entries should be walked (this is why
+>> dma_map_sg() returns a positive integer when mapping.)
+>>
+>> Each struct device has a set of parameters which control how the IOMMU
+>> entries are coalesced:
+>>
+>> struct device_dma_parameters {
+>>         /*
+>>          * a low level driver may set these to teach IOMMU code about
+>>          * sg limitations.
+>>          */
+>>         unsigned int max_segment_size;
+>>         unsigned long segment_boundary_mask;
+>> };
+>>
+>> and this is independent of the dma_buf API.  This doesn't indicate the
+>> maximum number of segments, but as I've shown above, it's not something
+>> that you can say "I want a scatterlist for this memory with only 32
+>> segments" so it's totally unclear how an exporter would limit that.
+>>
+>> The only thing an exporter could do would be to fail the
+>> buffer didn't end up having fewer than the requested scatterlist entries,
+>> which is something the importer can do too.
+>
+You're right in that after allocation is done, an exporter can only
+fail a more restrictive attach request, but I don't think the importer
+has any way of knowing the information about the current allocation?
+Unless I misunderstood something.
+> Right.
+>
+>>> One of the main problems end-users are faced with today is that they do not
+>>> know which device should be the exporter of buffers and which should be the
+>>> importer. This depends on the constraints and right now applications have
+>>> no way of knowing this. It's nuts that this hasn't been addressed yet since
+>>> it is the main complaint I am getting.
+>>
+One of the ways to try and solve this is via the deferred allocation
+mechanism described above; I hope it makes sense to you all, but if it
+doesn't, may I request you to please help me understand why not?
+
+>> IT's nuts that we've ended up in this situation in the first place.  This
+>> was bound to happen as soon as the dma_buf sharing was introduced, because
+>> it immediately introduced this problem.  I don't think there is any easy
+>> solution to it, and what's being proposed with flags and other stuff is
+>> just trying to paper over the problem.
+>
+> This was the first thing raised in the initial discussions. My suggestion at
+> the time was to give userspace limited information about the buffer restrictions:
+> Physically contiguous, scatter-gather and 'weird'. But obviously you need
+> segment_boundary_mask and max_segment_size as well.
+>
+> And the application can decide based on that info which device has the most
+> restrictive requirements and make that the exporter.
+>
+> I am not sure whether there is any sense in exporting the max_segment_count
+> to userspace (probably not), but I see no reason why we can't set it internally.
+> That said, a single flag is OK for me as well.
+>
+>> What you're actually asking is that each dmabuf exporting subsystem needs
+>> to publish their DMA parameters to userspace, and userspace then gets to
+>> decide which dmabuf exporter should be used.
+>
+> Yes, that was the initial plan.
+>
+In absence of deferred allocation, that could be the other option.
+With deferred allocation, we could try and keep this internal to the
+kernel.
+
+>> That's not a dmabuf problem, that's a subsystem problem,
+>
+> Well, yes, but it doesn't hurt to sync which DMA parameters are exposed with
+> what dma-buf uses.
+>
+>> but even so, we
+>> don't have a standardised way to export that information (and I'd suspect
+>> that it would be very difficult to get agreements between subsystems on
+>> a standard ioctl and/or data structure.)  In my experience, getting cross-
+>> subsystem agreement in the kernel with anything is very difficult, you
+>> normally end up with 60% of people agreeing, and the other 40% going off
+>> and doing something completely different because they object to it
+>> (figures vary, 90% of all statistics are made up on the spot!)
+>
+> I don't care which ioctl or other mechanism a subsystem uses to expose the
+> information. Each subsystem should design their own method for that. Imposing
+> a standard API for that generally doesn't work for the reasons you give.
+>
+> But deciding *which* minimum set of information is exposed, that is another
+> matter and that should be synced. And the easiest starting point for that is
+> that the device will store that information internally in device_dma_parameters.
+>
+> The various subsystems can then make APIs to expose that info.
+>
+> Regards,
+>
+>         Hans
+
+Best regards,
+Sumit.
