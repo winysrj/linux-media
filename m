@@ -1,33 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:38158 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754235AbbFWI6E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2015 04:58:04 -0400
+Received: from mail.skyhub.de ([78.46.96.112]:57870 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750877AbbFENdb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 09:33:31 -0400
+Date: Fri, 5 Jun 2015 15:33:27 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: Aravind Gopalakrishnan <Aravind.Gopalakrishnan@amd.com>,
+	kbuild-all@01.org, Borislav Petkov <bp@suse.de>,
+	Doug Thompson <dougthompson@xmission.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-edac@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH bp] EDAC, mce_amd_inj: inj_type can be static
+Message-ID: <20150605133327.GG3679@pd.tnic>
+References: <201506051907.ofv5fD3p%fengguang.wu@intel.com>
+ <20150605112426.GA97073@lkp-sb04>
 MIME-Version: 1.0
-In-Reply-To: <20150623073959.GC21872@gmail.com>
-References: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
- <1435012318-381-2-git-send-email-mcgrof@do-not-panic.com> <20150623073959.GC21872@gmail.com>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Tue, 23 Jun 2015 01:57:43 -0700
-Message-ID: <CAB=NE6W7oJuqva=YM_aegzTu1XLGy66WF8jF52YLX8opEm2+XQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN()
- with pr_warn()
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20150605112426.GA97073@lkp-sb04>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 23, 2015 at 12:39 AM, Ingo Molnar <mingo@kernel.org> wrote:
-> Same observation as for the other patch: please only warn if the hardware is
-> present and the driver tries to activate. No need to annoy others.
+On Fri, Jun 05, 2015 at 07:24:26PM +0800, kbuild test robot wrote:
+> 
+> Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+> ---
+>  mce_amd_inj.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/edac/mce_amd_inj.c b/drivers/edac/mce_amd_inj.c
+> index 2a0c829..46a6b0e 100644
+> --- a/drivers/edac/mce_amd_inj.c
+> +++ b/drivers/edac/mce_amd_inj.c
+> @@ -44,7 +44,7 @@ static const char * const flags_options[] = {
+>  };
+>  
+>  /* Set default injection to SW_INJ */
+> -enum injection_type inj_type = SW_INJ;
+> +static enum injection_type inj_type = SW_INJ;
+>  
+>  #define MCE_INJECT_SET(reg)						\
+>  static int inj_##reg##_set(void *data, u64 val)				\
 
-Will fix, and respin.
+Thanks kbuild test robot, applied!
 
- Luis
+:-D
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
