@@ -1,72 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:51825 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786AbbFKIb1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 04:31:27 -0400
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 11 Jun 2015 10:29:52 +0200
-Subject: RE: [PATCH] [media] bdisp: remove unused var
-Message-ID: <15ED7CB7B68B4D4C96C7D27A1A23941201B9F8D7E0@SAFEX1MAIL2.st.com>
-References: <1433950485-12994-1-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <1433950485-12994-1-git-send-email-mchehab@osg.samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:35691 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447AbbFEMBP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 08:01:15 -0400
+Date: Fri, 5 Jun 2015 14:01:10 +0200
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Jan Roemisch <maxx@spaceboyz.net>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pavel Machek <pavel@ucw.cz>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] radio-bcm2048: Fix region selection
+Message-ID: <20150605120110.GF7881@pali>
+References: <1431725571-7417-1-git-send-email-pali.rohar@gmail.com>
+ <557189C8.7040203@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <557189C8.7040203@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Fabien Dessenne <fabien.dessenne@st.com>
+On Friday 05 June 2015 13:36:40 Hans Verkuil wrote:
+> On 05/15/2015 11:32 PM, Pali Rohár wrote:
+> > From: maxx <maxx@spaceboyz.net>
+> > 
+> > This actually fixes region selection for BCM2048 FM receiver. To select
+> > the japanese FM-band an additional bit in FM_CTRL register needs to be
+> > set. This might not sound so important but it enables at least me to
+> > listen to some 'very interesting' radio transmission below normal
+> > FM-band.
+> > 
+> > Patch writen by maxx@spaceboyz.net
+> > 
+> > Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+> > Cc: maxx@spaceboyz.net
+> 
+> Looks good to me. If someone can repost with correct names and SoBs, then I'll
+> apply.
+> 
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
-> Sent: mercredi 10 juin 2015 17:35
-> To: Linux Media Mailing List
-> Cc: Mauro Carvalho Chehab; Mauro Carvalho Chehab
-> Subject: [PATCH] [media] bdisp: remove unused var
-> 
-> Fix the following warning:
-> 
-> drivers/media/platform/sti/bdisp/bdisp-v4l2.c: In function
-> 'bdisp_register_device':
-> drivers/media/platform/sti/bdisp/bdisp-v4l2.c:1024:26: warning: variable
-> 'pdev' set but not used [-Wunused-but-set-variable]
->   struct platform_device *pdev;
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> index 9a8405cd5216..9e782ebe18da 100644
-> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> @@ -1021,14 +1021,11 @@ static const struct v4l2_ioctl_ops bdisp_ioctl_ops
-> = {
-> 
->  static int bdisp_register_device(struct bdisp_dev *bdisp)  {
-> -	struct platform_device *pdev;
->  	int ret;
-> 
->  	if (!bdisp)
->  		return -ENODEV;
-> 
-> -	pdev = bdisp->pdev;
-> -
->  	bdisp->vdev.fops        = &bdisp_fops;
->  	bdisp->vdev.ioctl_ops   = &bdisp_ioctl_ops;
->  	bdisp->vdev.release     = video_device_release_empty;
-> --
-> 2.4.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Jan, will you resend patch in correct format with correct names?
+
+-- 
+Pali Rohár
+pali.rohar@gmail.com
