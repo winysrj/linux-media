@@ -1,261 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f196.google.com ([209.85.216.196]:36342 "EHLO
-	mail-qc0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752656AbbFKUr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 16:47:28 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
-	bhelgaas@google.com, luto@amacapital.net,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Roland Dreier <roland@purestorage.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	=?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <syrjala@sci.fi>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Stefan Bader <stefan.bader@canonical.com>,
-	konrad.wilk@oracle.com, ville.syrjala@linux.intel.com,
-	jbeulich@suse.com, toshi.kani@hp.com,
-	=?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>,
-	infinipath@intel.com, linux-fbdev@vger.kernel.org,
-	xen-devel@lists.xensource.com
-Subject: [PATCH v7 3/3] IB/ipath: use arch_phys_wc_add() and require PAT disabled
-Date: Thu, 11 Jun 2015 13:19:54 -0700
-Message-Id: <1434053994-2196-4-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from down.free-electrons.com ([37.187.137.238]:52706 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751433AbbFELjg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 07:39:36 -0400
+Date: Fri, 5 Jun 2015 13:39:28 +0200
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Jon Hunter <jonathanh@nvidia.com>
+Cc: Paul Walmsley <paul@pwsan.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Stephen Boyd <sboyd@codeaurora.org>,
+	<linux-clk@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	<linux-doc@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-arm-msm@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mips@linux-mips.org>, <patches@opensource.wolfsonmicro.com>,
+	<linux-rockchip@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <spear-devel@list.st.com>,
+	<linux-tegra@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linux-media@vger.kernel.org>, <rtc-linux@googlegroups.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+Message-ID: <20150605133928.66909901@bbrezillon>
+In-Reply-To: <557161D1.3040107@nvidia.com>
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
+ <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+ <557161D1.3040107@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Hi Jon,
 
-We are burrying direct access to MTRR code support on
-x86 in order to take advantage of PAT. In the future we
-also want to make the default behaviour of ioremap_nocache()
-to use strong UC, use of mtrr_add() on those systems
-would make write-combining void.
+On Fri, 5 Jun 2015 09:46:09 +0100
+Jon Hunter <jonathanh@nvidia.com> wrote:
 
-In order to help both enable us to later make strong
-UC default and in order to phase out direct MTRR access
-code port the driver over to arch_phys_wc_add() and
-annotate that the device driver requires systems to
-boot with PAT disabled, with the nopat kernel parameter.
+> 
+> On 05/06/15 00:02, Paul Walmsley wrote:
+> > Hi folks
+> > 
+> > just a brief comment on this one:
+> > 
+> > On Thu, 30 Apr 2015, Boris Brezillon wrote:
+> > 
+> >> Clock rates are stored in an unsigned long field, but ->round_rate()
+> >> (which returns a rounded rate from a requested one) returns a long
+> >> value (errors are reported using negative error codes), which can lead
+> >> to long overflow if the clock rate exceed 2Ghz.
+> >>
+> >> Change ->round_rate() prototype to return 0 or an error code, and pass the
+> >> requested rate as a pointer so that it can be adjusted depending on
+> >> hardware capabilities.
+> > 
+> > ...
+> > 
+> >> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+> >> index 0e4f90a..fca8b7a 100644
+> >> --- a/Documentation/clk.txt
+> >> +++ b/Documentation/clk.txt
+> >> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+> >>  		int		(*is_enabled)(struct clk_hw *hw);
+> >>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+> >>  						unsigned long parent_rate);
+> >> -		long		(*round_rate)(struct clk_hw *hw,
+> >> -						unsigned long rate,
+> >> +		int		(*round_rate)(struct clk_hw *hw,
+> >> +						unsigned long *rate,
+> >>  						unsigned long *parent_rate);
+> >>  		long		(*determine_rate)(struct clk_hw *hw,
+> >>  						unsigned long rate,
+> > 
+> > I'd suggest that we should probably go straight to 64-bit rates.  There 
+> > are already plenty of clock sources that can generate rates higher than 
+> > 4GiHz.
+> 
+> An alternative would be to introduce to a frequency "base" the default
+> could be Hz (for backwards compatibility), but for CPUs we probably only
+> care about MHz (or may be kHz) and so 32-bits would still suffice. Even
+> if CPUs cared about Hz they could still use Hz, but in that case they
+> probably don't care about GHz. Obviously, we don't want to break DT
+> compatibility but may be the frequency base could be defined in DT and
+> if it is missing then Hz is assumed. Just a thought ...
 
-This is a worthy compromise given that the ipath device
-driver powers the old HTX bus cards that only work in
-AMD systems, while the newer IB/qib device driver
-powers all PCI-e cards. The ipath device driver is
-obsolete, hardware hard to find and because of this
-this its a reasonable compromise to make to require
-users of ipath to boot with nopat.
+Yes, but is it really worth the additional complexity. You'll have to
+add the unit information anyway, so using an unsigned long for the
+value and another field for the unit (an enum ?) is just like using a
+64 bit integer.
 
-Acked-by: Doug Ledford <dledford@redhat.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: Roland Dreier <roland@purestorage.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ville Syrjälä <syrjala@sci.fi>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: konrad.wilk@oracle.com
-Cc: ville.syrjala@linux.intel.com
-Cc: jbeulich@suse.com
-Cc: toshi.kani@hp.com
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: infinipath@intel.com
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: xen-devel@lists.xensource.com
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/infiniband/hw/ipath/Kconfig           |  3 ++
- drivers/infiniband/hw/ipath/ipath_driver.c    | 18 +++++++----
- drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +--
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 ++++++---------------------
- 4 files changed, 26 insertions(+), 42 deletions(-)
+Best Regards,
 
-diff --git a/drivers/infiniband/hw/ipath/Kconfig b/drivers/infiniband/hw/ipath/Kconfig
-index 1d9bb11..8fe54ff 100644
---- a/drivers/infiniband/hw/ipath/Kconfig
-+++ b/drivers/infiniband/hw/ipath/Kconfig
-@@ -9,3 +9,6 @@ config INFINIBAND_IPATH
- 	as IP-over-InfiniBand as well as with userspace applications
- 	(in conjunction with InfiniBand userspace access).
- 	For QLogic PCIe QLE based cards, use the QIB driver instead.
-+
-+	If you have this hardware you will need to boot with PAT disabled
-+	on your x86-64 systems, use the nopat kernel parameter.
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index bd0caed..2d7e503 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -42,6 +42,9 @@
- #include <linux/bitmap.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#ifdef CONFIG_X86_64
-+#include <asm/pat.h>
-+#endif
- 
- #include "ipath_kernel.h"
- #include "ipath_verbs.h"
-@@ -395,6 +398,14 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	unsigned long long addr;
- 	u32 bar0 = 0, bar1 = 0;
- 
-+#ifdef CONFIG_X86_64
-+	if (WARN(pat_enabled(),
-+		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+#endif
-+
- 	dd = ipath_alloc_devdata(pdev);
- 	if (IS_ERR(dd)) {
- 		ret = PTR_ERR(dd);
-@@ -542,6 +553,7 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	dd->ipath_kregbase = __ioremap(addr, len,
- 		(_PAGE_NO_CACHE|_PAGE_WRITETHRU));
- #else
-+	/* XXX: split this properly to enable on PAT */
- 	dd->ipath_kregbase = ioremap_nocache(addr, len);
- #endif
- 
-@@ -587,12 +599,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	ret = ipath_enable_wc(dd);
- 
--	if (ret) {
--		ipath_dev_err(dd, "Write combining not enabled "
--			      "(err %d): performance may be poor\n",
--			      -ret);
-+	if (ret)
- 		ret = 0;
--	}
- 
- 	ipath_verify_pioperf(dd);
- 
-diff --git a/drivers/infiniband/hw/ipath/ipath_kernel.h b/drivers/infiniband/hw/ipath/ipath_kernel.h
-index e08db70..f0f9471 100644
---- a/drivers/infiniband/hw/ipath/ipath_kernel.h
-+++ b/drivers/infiniband/hw/ipath/ipath_kernel.h
-@@ -463,9 +463,7 @@ struct ipath_devdata {
- 	/* offset in HT config space of slave/primary interface block */
- 	u8 ipath_ht_slave_off;
- 	/* for write combining settings */
--	unsigned long ipath_wc_cookie;
--	unsigned long ipath_wc_base;
--	unsigned long ipath_wc_len;
-+	int wc_cookie;
- 	/* ref count for each pkey */
- 	atomic_t ipath_pkeyrefs[4];
- 	/* shadow copy of struct page *'s for exp tid pages */
-diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-index 70c1f3a..7b6e4c8 100644
---- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-+++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-@@ -37,7 +37,6 @@
-  */
- 
- #include <linux/pci.h>
--#include <asm/mtrr.h>
- #include <asm/processor.h>
- 
- #include "ipath_kernel.h"
-@@ -122,27 +121,14 @@ int ipath_enable_wc(struct ipath_devdata *dd)
- 	}
- 
- 	if (!ret) {
--		int cookie;
--		ipath_cdbg(VERBOSE, "Setting mtrr for chip to WC "
--			   "(addr %llx, len=0x%llx)\n",
--			   (unsigned long long) pioaddr,
--			   (unsigned long long) piolen);
--		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
--		if (cookie < 0) {
--			{
--				dev_info(&dd->pcidev->dev,
--					 "mtrr_add()  WC for PIO bufs "
--					 "failed (%d)\n",
--					 cookie);
--				ret = -EINVAL;
--			}
--		} else {
--			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC, "
--				   "cookie is %d\n", cookie);
--			dd->ipath_wc_cookie = cookie;
--			dd->ipath_wc_base = (unsigned long) pioaddr;
--			dd->ipath_wc_len = (unsigned long) piolen;
--		}
-+		dd->wc_cookie = arch_phys_wc_add(pioaddr, piolen);
-+		if (dd->wc_cookie < 0) {
-+			ipath_dev_err(dd, "Seting mtrr failed on PIO buffers\n");
-+			ret = -ENODEV;
-+		} else if (dd->wc_cookie == 0)
-+			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC not needed\n");
-+		else
-+			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC\n");
- 	}
- 
- 	return ret;
-@@ -154,16 +140,5 @@ int ipath_enable_wc(struct ipath_devdata *dd)
-  */
- void ipath_disable_wc(struct ipath_devdata *dd)
- {
--	if (dd->ipath_wc_cookie) {
--		int r;
--		ipath_cdbg(VERBOSE, "undoing WCCOMB on pio buffers\n");
--		r = mtrr_del(dd->ipath_wc_cookie, dd->ipath_wc_base,
--			     dd->ipath_wc_len);
--		if (r < 0)
--			dev_info(&dd->pcidev->dev,
--				 "mtrr_del(%lx, %lx, %lx) failed: %d\n",
--				 dd->ipath_wc_cookie, dd->ipath_wc_base,
--				 dd->ipath_wc_len, r);
--		dd->ipath_wc_cookie = 0; /* even on failure */
--	}
-+	arch_phys_wc_del(dd->wc_cookie);
- }
+Boris
+
 -- 
-2.3.2.209.gd67f9d5.dirty
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
