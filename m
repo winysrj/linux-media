@@ -1,89 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:60710 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750709AbbFXGiz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 02:38:55 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC PATCH 1/2] v4l2-utils: add support for reduced fps in cvt modeline
-Date: Wed, 24 Jun 2015 12:08:51 +0530
-Message-Id: <1435127932-10193-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1435127932-10193-1-git-send-email-prladdha@cisco.com>
-References: <1435127932-10193-1-git-send-email-prladdha@cisco.com>
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:18188 "EHLO
+	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754213AbbFEIqV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 04:46:21 -0400
+Message-ID: <557161D1.3040107@nvidia.com>
+Date: Fri, 5 Jun 2015 09:46:09 +0100
+From: Jon Hunter <jonathanh@nvidia.com>
+MIME-Version: 1.0
+To: Paul Walmsley <paul@pwsan.com>,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+CC: Mike Turquette <mturquette@linaro.org>,
+	Stephen Boyd <sboyd@codeaurora.org>,
+	<linux-clk@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	ascha Hauer <kernel@pengutronix.de>,
+	David Brown <davidb@codeaurora.org>,
+	Daniel Walker <dwalker@fifo99.com>,
+	Bryan Huntsman <bryanh@codeaurora.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Liviu Dudau <liviu.dudau@arm.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Barry Song <baohua@kernel.org>,
+	Viresh Kumar <viresh.linux@gmail.com>,
+	=?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Peter De Schrijver <pdeschrijver@nvidia.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Alexandre Courbot <gnurou@gmail.com>,
+	Tero Kristo <t-kristo@ti.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	<linux-doc@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-arm-msm@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-mips@linux-mips.org>, <patches@opensource.wolfsonmicro.com>,
+	<linux-rockchip@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <spear-devel@list.st.com>,
+	<linux-tegra@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linux-media@vger.kernel.org>, <rtc-linux@googlegroups.com>
+Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
+References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com> <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com> <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added reduced fps option in cvt timings calculation. In this case,
-pixel clock is slowed down by a factor of 1000 / 1001 and all other
-timing parameters are unchanged. With reduced fps option one could
-generate timings for refresh rates like 29.97 or 59.94. Pixel clock
-in this case needs better precision, in the order of 0.001 Khz and
-hence reduced fps option can be supported only when reduced blanking
-V2 is enabled. Reduced fps is applicable only to nominal refresh
-rates which are integer multiple of 6, say 24, 30, 60 etc.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- utils/v4l2-ctl/v4l2-ctl-modes.cpp | 6 +++++-
- utils/v4l2-ctl/v4l2-ctl-stds.cpp  | 2 +-
- utils/v4l2-ctl/v4l2-ctl.h         | 3 ++-
- 3 files changed, 8 insertions(+), 3 deletions(-)
+On 05/06/15 00:02, Paul Walmsley wrote:
+> Hi folks
+> 
+> just a brief comment on this one:
+> 
+> On Thu, 30 Apr 2015, Boris Brezillon wrote:
+> 
+>> Clock rates are stored in an unsigned long field, but ->round_rate()
+>> (which returns a rounded rate from a requested one) returns a long
+>> value (errors are reported using negative error codes), which can lead
+>> to long overflow if the clock rate exceed 2Ghz.
+>>
+>> Change ->round_rate() prototype to return 0 or an error code, and pass the
+>> requested rate as a pointer so that it can be adjusted depending on
+>> hardware capabilities.
+> 
+> ...
+> 
+>> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+>> index 0e4f90a..fca8b7a 100644
+>> --- a/Documentation/clk.txt
+>> +++ b/Documentation/clk.txt
+>> @@ -68,8 +68,8 @@ the operations defined in clk.h:
+>>  		int		(*is_enabled)(struct clk_hw *hw);
+>>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
+>>  						unsigned long parent_rate);
+>> -		long		(*round_rate)(struct clk_hw *hw,
+>> -						unsigned long rate,
+>> +		int		(*round_rate)(struct clk_hw *hw,
+>> +						unsigned long *rate,
+>>  						unsigned long *parent_rate);
+>>  		long		(*determine_rate)(struct clk_hw *hw,
+>>  						unsigned long rate,
+> 
+> I'd suggest that we should probably go straight to 64-bit rates.  There 
+> are already plenty of clock sources that can generate rates higher than 
+> 4GiHz.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-index 88f7b6a..1912238 100644
---- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-@@ -131,7 +131,8 @@ static int v_sync_from_aspect_ratio(int width, int height)
- 
- bool calc_cvt_modeline(int image_width, int image_height,
- 		       int refresh_rate, int reduced_blanking,
--		       bool interlaced, struct v4l2_bt_timings *cvt)
-+		       bool interlaced, bool reduced_fps,
-+		       struct v4l2_bt_timings *cvt)
- {
- 	int h_sync;
- 	int v_sync;
-@@ -295,6 +296,9 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 
- 		pixel_clock = v_refresh * total_h_pixel *
- 			      (2 * total_v_lines + interlace) / 2;
-+		if (reduced_fps && v_refresh % 6 == 0)
-+			pixel_clock = ((long long)pixel_clock * 1000) / 1001;
-+
- 		pixel_clock -= pixel_clock  % clk_gran;
- 	}
- 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-index aea46c9..e969d08 100644
---- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-@@ -241,7 +241,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 
- 	if (standard == V4L2_DV_BT_STD_CVT) {
- 		timings_valid = calc_cvt_modeline(width, height, fps, r_blank,
--						  interlaced == 1 ? true : false, bt);
-+						  interlaced == 1 ? true : false, false, bt);
- 	} else {
- 		timings_valid = calc_gtf_modeline(width, height, fps, r_blank,
- 						  interlaced == 1 ? true : false, bt);
-diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
-index de65900..113f348 100644
---- a/utils/v4l2-ctl/v4l2-ctl.h
-+++ b/utils/v4l2-ctl/v4l2-ctl.h
-@@ -351,7 +351,8 @@ void edid_get(int fd);
- /* v4l2-ctl-modes.cpp */
- bool calc_cvt_modeline(int image_width, int image_height,
- 		       int refresh_rate, int reduced_blanking,
--		       bool interlaced, struct v4l2_bt_timings *cvt);
-+		       bool interlaced, bool reduced_fps,
-+		       struct v4l2_bt_timings *cvt);
- 
- bool calc_gtf_modeline(int image_width, int image_height,
- 		       int refresh_rate, int reduced_blanking,
--- 
-1.9.1
+An alternative would be to introduce to a frequency "base" the default
+could be Hz (for backwards compatibility), but for CPUs we probably only
+care about MHz (or may be kHz) and so 32-bits would still suffice. Even
+if CPUs cared about Hz they could still use Hz, but in that case they
+probably don't care about GHz. Obviously, we don't want to break DT
+compatibility but may be the frequency base could be defined in DT and
+if it is missing then Hz is assumed. Just a thought ...
 
+Jon
