@@ -1,50 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43166 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393AbbFBTwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 15:52:49 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 4/5] [media] DocBook: fix some syntax issues at dvbproperty.xml
-Date: Tue,  2 Jun 2015 16:52:42 -0300
-Message-Id: <e954b5c370a0b30c006e5843a6c35959967d44e2.1433274739.git.mchehab@osg.samsung.com>
-In-Reply-To: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-References: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-In-Reply-To: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-References: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53341 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933061AbbFEO3J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 10:29:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] v4l2-mem2mem: add support for prepare_buf
+Date: Fri,  5 Jun 2015 16:28:50 +0200
+Message-Id: <1433514532-23306-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433514532-23306-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433514532-23306-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some minor English syntax fixes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This was never added for some reason, so add it now.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 746b4e2ae346..28e306ee5827 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -1,12 +1,12 @@
- <section id="frontend-properties">
- <title>DVB Frontend properties</title>
- <para>Tuning into a Digital TV physical channel and starting decoding it
--    requires to change a set of parameters, in order to control the
-+    requires changing a set of parameters, in order to control the
-     tuner, the demodulator, the Linear Low-noise Amplifier (LNA) and to set the
-     antenna subsystem via Satellite Equipment Control (SEC), on satellite
-     systems. The actual parameters are specific to each particular digital
--    TV standards, and may change as the digital TV specs evolutes.</para>
--<para>In the past, the strategy used were to have an union with the parameters
-+    TV standards, and may change as the digital TV specs evolves.</para>
-+<para>In the past, the strategy used was to have a union with the parameters
-     needed to tune for DVB-S, DVB-C, DVB-T and ATSC delivery systems grouped
-     there. The problem is that, as the second generation standards appeared,
-     those structs were not big enough to contain the additional parameters.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 28 ++++++++++++++++++++++++++++
+ include/media/v4l2-mem2mem.h           |  4 ++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index cbef15c..dc853e5 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -427,6 +427,25 @@ int v4l2_m2m_dqbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ EXPORT_SYMBOL_GPL(v4l2_m2m_dqbuf);
+ 
+ /**
++ * v4l2_m2m_prepare_buf() - prepare a source or destination buffer, depending on
++ * the type
++ */
++int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
++			 struct v4l2_buffer *buf)
++{
++	struct vb2_queue *vq;
++	int ret;
++
++	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
++	ret = vb2_prepare_buf(vq, buf);
++	if (!ret)
++		v4l2_m2m_try_schedule(m2m_ctx);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
++
++/**
+  * v4l2_m2m_create_bufs() - create a source or destination buffer, depending
+  * on the type
+  */
+@@ -811,6 +830,15 @@ int v4l2_m2m_ioctl_dqbuf(struct file *file, void *priv,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_dqbuf);
+ 
++int v4l2_m2m_ioctl_prepare_buf(struct file *file, void *priv,
++			       struct v4l2_buffer *buf)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	return v4l2_m2m_prepare_buf(file, fh->m2m_ctx, buf);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_ioctl_prepare_buf);
++
+ int v4l2_m2m_ioctl_expbuf(struct file *file, void *priv,
+ 				struct v4l2_exportbuffer *eb)
+ {
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index c5f3914..3bbd96d 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -116,6 +116,8 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		  struct v4l2_buffer *buf);
+ int v4l2_m2m_dqbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		   struct v4l2_buffer *buf);
++int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
++			 struct v4l2_buffer *buf);
+ int v4l2_m2m_create_bufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 			 struct v4l2_create_buffers *create);
+ 
+@@ -248,6 +250,8 @@ int v4l2_m2m_ioctl_qbuf(struct file *file, void *fh,
+ 				struct v4l2_buffer *buf);
+ int v4l2_m2m_ioctl_dqbuf(struct file *file, void *fh,
+ 				struct v4l2_buffer *buf);
++int v4l2_m2m_ioctl_prepare_buf(struct file *file, void *fh,
++			       struct v4l2_buffer *buf);
+ int v4l2_m2m_ioctl_streamon(struct file *file, void *fh,
+ 				enum v4l2_buf_type type);
+ int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
 -- 
-2.4.1
+2.1.4
 
