@@ -1,100 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:41589 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932711AbbFJOWD (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752276AbbFEK7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 10:22:03 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
-	damien@zamaudio.com, chris.j.arges@canonical.com,
-	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
-	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
-	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 1/2] media: media controller entity framework enhancements for ALSA
-Date: Wed, 10 Jun 2015 08:21:56 -0600
-Message-Id: <3f740931e63a551c75aeed1c36955c468d448ef2.1433904553.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1433904553.git.shuahkh@osg.samsung.com>
-References: <cover.1433904553.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1433904553.git.shuahkh@osg.samsung.com>
-References: <cover.1433904553.git.shuahkh@osg.samsung.com>
+	Fri, 5 Jun 2015 06:59:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/10] sh-vou: replace g/s_crop/cropcap by g/s_selection
+Date: Fri,  5 Jun 2015 12:59:22 +0200
+Message-Id: <1433501966-30176-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new media entity operation register_notify is added
-to media_entity_operations structure. This hook is called
-from media_device_register_entity() whenever a new entity
-is registered to notify other entities attached to that
-media device of the newly created entity. Entity owners
-can register the hook to create links and take any other
-action when a new entity is registered. A new field is
-added to the struct media_entity for entity owners to save
-their private data that is used in the register_notify hook.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Implement g/s_selection. The v4l2 core will emulate g/s_crop and
+cropcap on top of g/s_selection.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/media-device.c | 7 +++++++
- include/media/media-entity.h | 4 ++++
- 2 files changed, 11 insertions(+)
+ drivers/media/platform/sh_vou.c | 71 +++++++++++++++--------------------------
+ 1 file changed, 25 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c55ab50..76590ba 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -428,6 +428,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
- {
-+	struct media_entity *eptr;
-+
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->parent != NULL);
- 	entity->parent = mdev;
-@@ -440,6 +442,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	list_add_tail(&entity->list, &mdev->entities);
- 	spin_unlock(&mdev->lock);
- 
-+	media_device_for_each_entity(eptr, mdev) {
-+		if (eptr != entity)
-+			media_entity_call(eptr, register_notify);
-+	}
-+
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index eaa432e..7ed5a8b 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -951,24 +951,36 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
  	return 0;
  }
- EXPORT_SYMBOL_GPL(media_device_register_entity);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0c003d8..0bc4c2f 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -46,6 +46,7 @@ struct media_pad {
  
- /**
-  * struct media_entity_operations - Media entity operations
-+ * @register_notify	Notify entity of newly registered entity
-  * @link_setup:		Notify the entity of link changes. The operation can
-  *			return an error, in which case link setup will be
-  *			cancelled. Optional.
-@@ -54,6 +55,7 @@ struct media_pad {
-  *			validates all links by calling this operation. Optional.
-  */
- struct media_entity_operations {
-+	int (*register_notify)(struct media_entity *entity);
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
-@@ -101,6 +103,8 @@ struct media_entity {
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
- 	} info;
-+
-+	void *private;			/* private data for the entity */
+-static int sh_vou_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
++static int sh_vou_g_selection(struct file *file, void *fh,
++			      struct v4l2_selection *sel)
+ {
+ 	struct sh_vou_device *vou_dev = video_drvdata(file);
+ 
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+-
+-	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	a->c = vou_dev->rect;
+-
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++	switch (sel->target) {
++	case V4L2_SEL_TGT_COMPOSE:
++		sel->r = vou_dev->rect;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = VOU_MAX_IMAGE_WIDTH;
++		sel->r.height = VOU_MAX_IMAGE_HEIGHT;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+ /* Assume a dull encoder, do all the work ourselves. */
+-static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
++static int sh_vou_s_selection(struct file *file, void *fh,
++			      struct v4l2_selection *sel)
+ {
+-	struct v4l2_crop a_writable = *a;
++	struct v4l2_rect *rect = &sel->r;
+ 	struct sh_vou_device *vou_dev = video_drvdata(file);
+-	struct v4l2_rect *rect = &a_writable.c;
+ 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
+ 	struct v4l2_pix_format *pix = &vou_dev->pix;
+ 	struct sh_vou_geometry geo;
+@@ -982,10 +994,8 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ 	unsigned int img_height_max;
+ 	int ret;
+ 
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u@%u:%u\n", __func__,
+-		rect->width, rect->height, rect->left, rect->top);
+-
+-	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++	    sel->target != V4L2_SEL_TGT_COMPOSE)
+ 		return -EINVAL;
+ 
+ 	if (vou_dev->std & V4L2_STD_525_60)
+@@ -1049,36 +1059,6 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ 	return 0;
+ }
+ 
+-/*
+- * Total field: NTSC 858 x 2 * 262/263, PAL 864 x 2 * 312/313, default rectangle
+- * is the initial register values, height takes the interlaced format into
+- * account. The actual image can only go up to 720 x 2 * 240, So, VOUVPR can
+- * actually only meaningfully contain values <= 720 and <= 240 respectively, and
+- * not <= 864 and <= 312.
+- */
+-static int sh_vou_cropcap(struct file *file, void *priv,
+-			  struct v4l2_cropcap *a)
+-{
+-	struct sh_vou_device *vou_dev = video_drvdata(file);
+-
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+-
+-	a->type				= V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	a->bounds.left			= 0;
+-	a->bounds.top			= 0;
+-	a->bounds.width			= VOU_MAX_IMAGE_WIDTH;
+-	a->bounds.height		= VOU_MAX_IMAGE_HEIGHT;
+-	/* Default = max, set VOUDPR = 0, which is not hardware default */
+-	a->defrect.left			= 0;
+-	a->defrect.top			= 0;
+-	a->defrect.width		= VOU_MAX_IMAGE_WIDTH;
+-	a->defrect.height		= VOU_MAX_IMAGE_HEIGHT;
+-	a->pixelaspect.numerator	= 1;
+-	a->pixelaspect.denominator	= 1;
+-
+-	return 0;
+-}
+-
+ static irqreturn_t sh_vou_isr(int irq, void *dev_id)
+ {
+ 	struct sh_vou_device *vou_dev = dev_id;
+@@ -1307,9 +1287,8 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
+ 	.vidioc_enum_output		= sh_vou_enum_output,
+ 	.vidioc_s_std			= sh_vou_s_std,
+ 	.vidioc_g_std			= sh_vou_g_std,
+-	.vidioc_cropcap			= sh_vou_cropcap,
+-	.vidioc_g_crop			= sh_vou_g_crop,
+-	.vidioc_s_crop			= sh_vou_s_crop,
++	.vidioc_g_selection		= sh_vou_g_selection,
++	.vidioc_s_selection		= sh_vou_s_selection,
  };
  
- static inline u32 media_entity_type(struct media_entity *entity)
+ static const struct v4l2_file_operations sh_vou_fops = {
 -- 
 2.1.4
 
