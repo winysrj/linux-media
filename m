@@ -1,87 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:11187 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757202AbbFPJ0s (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45796 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754503AbbFEQJn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 05:26:48 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH 3/3] v4l2-utils: fix pixel clock calc for cvt reduced blanking
-Date: Tue, 16 Jun 2015 14:47:52 +0530
-Message-Id: <1434446272-21256-4-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
-References: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
+	Fri, 5 Jun 2015 12:09:43 -0400
+Message-ID: <5571C9BB.60608@xs4all.nl>
+Date: Fri, 05 Jun 2015 18:09:31 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH] vivid: move PRINTSTR to separate functions
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case of CVT reduced blanking, pixel clock calculation does not
-use h period estimates, it rather directly uses refresh rate and
-total vertical lines. This difference can lead to a minor mismatch
-between the pixel clocks calculated by v4l2-utils and the standards
-spreadsheet.
+Commit 84cb7be43cec12868e94163c99fdc34c0297c3b8 broke vivid-tpg (uninitialized variable p).
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- utils/v4l2-ctl/v4l2-ctl-modes.cpp | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+This patch takes a different approach: four different functions are created, one for
+each PRINTSTR version.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-index d65cd75..7768998 100644
---- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
-@@ -139,6 +139,7 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 	int active_h_pixel;
- 	int active_v_lines;
- 	int total_h_pixel;
-+	int total_v_lines;
+In order to avoid the 'the frame size of 1308 bytes is larger than 1024 bytes' warning I
+had to mark those functions with 'noinline'. For whatever reason gcc seems to inline this
+aggressively and it is doing weird things with the stack.
+
+I tried to read the assembly code, but I couldn't see what exactly it was doing on the stack.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index c86c8ff..32ebf0d 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -1462,40 +1462,10 @@ static void tpg_precalculate_line(struct tpg_data *tpg)
+ /* need this to do rgb24 rendering */
+ typedef struct { u16 __; u8 _; } __packed x24;
  
- 	int h_blank;
- 	int v_blank;
-@@ -229,6 +230,10 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 
- 		h_bp = h_blank / 2;
- 		h_fp = h_blank - h_bp - h_sync;
-+
-+		pixel_clock =  ((long long)total_h_pixel * HV_FACTOR * 1000000)
-+				/ h_period;
-+		pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
- 	} else {
- 		/* Reduced blanking */
- 
-@@ -247,11 +252,12 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 		if (vbi_lines < (CVT_RB_V_FPORCH + v_sync + CVT_MIN_V_BPORCH))
- 			vbi_lines = CVT_RB_V_FPORCH + v_sync + CVT_MIN_V_BPORCH;
- 
--		total_h_pixel = active_h_pixel + CVT_RB_H_BLANK;
+-void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+-		  int y, int x, char *text)
+-{
+-	int line;
+-	unsigned step = V4L2_FIELD_HAS_T_OR_B(tpg->field) ? 2 : 1;
+-	unsigned div = step;
+-	unsigned first = 0;
+-	unsigned len = strlen(text);
+-	unsigned p;
 -
- 		h_blank = CVT_RB_H_BLANK;
- 		v_blank = vbi_lines;
+-	if (font8x16 == NULL || basep == NULL)
+-		return;
+-
+-	/* Checks if it is possible to show string */
+-	if (y + 16 >= tpg->compose.height || x + 8 >= tpg->compose.width)
+-		return;
+-
+-	if (len > (tpg->compose.width - x) / 8)
+-		len = (tpg->compose.width - x) / 8;
+-	if (tpg->vflip)
+-		y = tpg->compose.height - y - 16;
+-	if (tpg->hflip)
+-		x = tpg->compose.width - x - 8;
+-	y += tpg->compose.top;
+-	x += tpg->compose.left;
+-	if (tpg->field == V4L2_FIELD_BOTTOM)
+-		first = 1;
+-	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
+-		div = 2;
+-
+-	/* Print text */
+-#define PRINTSTR(PIXTYPE) for (p = 0; p < tpg->planes; p++) {	\
+-	unsigned vdiv = tpg->vdownsampling[p];	\
+-	unsigned hdiv = tpg->hdownsampling[p];	\
++#define PRINTSTR(PIXTYPE) do {	\
++	unsigned vdiv = tpg->vdownsampling[p]; \
++	unsigned hdiv = tpg->hdownsampling[p]; \
++	int line;	\
+ 	PIXTYPE fg;	\
+ 	PIXTYPE bg;	\
+ 	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
+@@ -1546,19 +1516,83 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+ 	}	\
+ } while (0)
  
-+		total_h_pixel = active_h_pixel + h_blank;
-+		total_v_lines = active_v_lines + v_blank;
+-	switch (tpg->twopixelsize[p]) {
+-	case 2:
+-		PRINTSTR(u8);
+-		break;
+-	case 4:
+-		PRINTSTR(u16);
+-		break;
+-	case 6:
+-		PRINTSTR(x24);
+-		break;
+-	case 8:
+-		PRINTSTR(u32);
+-		break;
++static noinline void tpg_print_str_2(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
++			unsigned p, unsigned first, unsigned div, unsigned step,
++			int y, int x, char *text, unsigned len)
++{
++	PRINTSTR(u8);
++}
 +
- 		h_sync = CVT_RB_H_SYNC;
++static noinline void tpg_print_str_4(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
++			unsigned p, unsigned first, unsigned div, unsigned step,
++			int y, int x, char *text, unsigned len)
++{
++	PRINTSTR(u16);
++}
++
++static noinline void tpg_print_str_6(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
++			unsigned p, unsigned first, unsigned div, unsigned step,
++			int y, int x, char *text, unsigned len)
++{
++	PRINTSTR(x24);
++}
++
++static noinline void tpg_print_str_8(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
++			unsigned p, unsigned first, unsigned div, unsigned step,
++			int y, int x, char *text, unsigned len)
++{
++	PRINTSTR(u32);
++}
++
++void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
++		  int y, int x, char *text)
++{
++	unsigned step = V4L2_FIELD_HAS_T_OR_B(tpg->field) ? 2 : 1;
++	unsigned div = step;
++	unsigned first = 0;
++	unsigned len = strlen(text);
++	unsigned p;
++
++	if (font8x16 == NULL || basep == NULL)
++		return;
++
++	/* Checks if it is possible to show string */
++	if (y + 16 >= tpg->compose.height || x + 8 >= tpg->compose.width)
++		return;
++
++	if (len > (tpg->compose.width - x) / 8)
++		len = (tpg->compose.width - x) / 8;
++	if (tpg->vflip)
++		y = tpg->compose.height - y - 16;
++	if (tpg->hflip)
++		x = tpg->compose.width - x - 8;
++	y += tpg->compose.top;
++	x += tpg->compose.left;
++	if (tpg->field == V4L2_FIELD_BOTTOM)
++		first = 1;
++	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
++		div = 2;
++
++	for (p = 0; p < tpg->planes; p++) {
++		/* Print text */
++		switch (tpg->twopixelsize[p]) {
++		case 2:
++			tpg_print_str_2(tpg, basep, p, first, div, step, y, x,
++					text, len);
++			break;
++		case 4:
++			tpg_print_str_4(tpg, basep, p, first, div, step, y, x,
++					text, len);
++			break;
++		case 6:
++			tpg_print_str_6(tpg, basep, p, first, div, step, y, x,
++					text, len);
++			break;
++		case 8:
++			tpg_print_str_8(tpg, basep, p, first, div, step, y, x,
++					text, len);
++			break;
++		}
+ 	}
+ }
  
- 		h_bp = h_blank / 2;
-@@ -259,11 +265,11 @@ bool calc_cvt_modeline(int image_width, int image_height,
- 
- 		v_fp = CVT_RB_V_FPORCH;
- 		v_bp = v_blank - v_fp - v_sync;
--	}
- 
--	pixel_clock =  ((long long)total_h_pixel * HV_FACTOR * 1000000)
--			/ h_period;
--	pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
-+		pixel_clock = v_refresh * total_h_pixel *
-+			      (2 * total_v_lines + interlace) / 2;
-+		pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
-+	}
- 
- 	cvt->standards 	 = V4L2_DV_BT_STD_CVT;
- 
--- 
-1.9.1
-
