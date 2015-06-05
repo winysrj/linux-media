@@ -1,75 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from g4t3427.houston.hp.com ([15.201.208.55]:44751 "EHLO
-	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753775AbbFLQ6k (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56432 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753543AbbFEILh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 12:58:40 -0400
-Message-ID: <1434128306.11808.97.camel@misato.fc.hp.com>
-Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
-From: Toshi Kani <toshi.kani@hp.com>
-To: Jan Beulich <JBeulich@suse.com>
-Cc: Andy Lutomirski <luto@amacapital.net>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jej B <James.Bottomley@hansenpartnership.com>,
-	X86 ML <x86@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	ville.syrjala@linux.intel.com, Julia Lawall <julia.lawall@lip6.fr>,
-	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
-	syrjala@sci.fi, Juergen Gross <JGross@suse.com>,
-	Luis Rodriguez <Mcgrof@Suse.com>, Borislav Petkov <bp@suse.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Date: Fri, 12 Jun 2015 10:58:26 -0600
-In-Reply-To: <557AAD910200007800084014@mail.emea.novell.com>
-References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
-	 <1434064996.11808.64.camel@misato.fc.hp.com>
-	 <557AAD910200007800084014@mail.emea.novell.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 5 Jun 2015 04:11:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] DocBook media: correct description of reserved fields
+Date: Fri,  5 Jun 2015 10:11:15 +0200
+Message-Id: <1433491875-42608-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433491875-42608-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433491875-42608-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2015-06-12 at 08:59 +0100, Jan Beulich wrote:
-> >>> On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
-> > There are two usages on MTRRs:
-> >  1) MTRR entries set by firmware
-> >  2) MTRR entries set by OS drivers
-> > 
-> > We can obsolete 2), but we have no control over 1).  As UEFI firmwares
-> > also set this up, this usage will continue to stay.  So, we should not
-> > get rid of the MTRR code that looks up the MTRR entries, while we have
-> > no need to modify them.
-> > 
-> > Such MTRR entries provide safe guard to /dev/mem, which allows
-> > privileged user to access a range that may require UC mapping while
-> > the /dev/mem driver blindly maps it with WB.  MTRRs converts WB to UC in
-> > such a case.
-> 
-> But it wouldn't be impossible to simply read the MTRRs upon boot,
-> store the information, disable MTRRs, and correctly use PAT to
-> achieve the same effect (i.e. the "blindly maps" part of course
-> would need fixing).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It could be done, but I do not see much benefit of doing it.  One of the
-reasons platform vendors set MTRRs is so that a system won't hit a
-machine check when an OS bug leads an access with a wrong cache type.  A
-machine check is hard to analyze and can be seen as a hardware issue by
-customers.  Emulating MTRRs with PAT won't protect from such a bug. 
+Make sure that the documentation clearly states who is zeroing reserved
+fields: drivers and/or applications.
 
-> > UEFI memory table has memory attribute, which describes cache types
-> > supported in physical memory ranges.  However, this information gets
-> > lost when it it is converted to e820 table.
-> 
-> I'm afraid you rather don't want to trust that information, as
-> firmware vendors frequently screw it up.
+This patch syncs the documentation with the checks that v4l2-compliance
+and valgrind do.
 
-Could be, but we need to use firmware info when necessary...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/io.xml                       | 12 ++++++------
+ Documentation/DocBook/media/v4l/pixfmt.xml                   |  8 ++++----
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml       |  3 ++-
+ .../DocBook/media/v4l/vidioc-enum-frameintervals.xml         |  3 ++-
+ Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml   |  3 ++-
+ Documentation/DocBook/media/v4l/vidioc-expbuf.xml            |  3 ++-
+ Documentation/DocBook/media/v4l/vidioc-g-selection.xml       |  2 +-
+ Documentation/DocBook/media/v4l/vidioc-querybuf.xml          |  3 ++-
+ Documentation/DocBook/media/v4l/vidioc-reqbufs.xml           |  4 ++--
+ 9 files changed, 23 insertions(+), 18 deletions(-)
 
-Thanks,
--Toshi
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index bfe6662..7bbc2a4 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -841,15 +841,15 @@ is the file descriptor associated with a DMABUF buffer.</entry>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved2</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions. Applications
+-should set this to 0.</entry>
++	    <entry>A place holder for future extensions. Drivers and applications
++must set this to 0.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>A place holder for future extensions. Applications
+-should set this to 0.</entry>
++	    <entry>A place holder for future extensions. Drivers and applications
++must set this to 0.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+@@ -930,8 +930,8 @@ should set this to 0.</entry>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved[11]</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Reserved for future use. Should be zeroed by an
+-	    application.</entry>
++	    <entry>Reserved for future use. Should be zeroed by drivers and
++	    applications.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 6c3d653..8d95172 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -190,8 +190,8 @@ see <xref linkend="colorspaces" />.</entry>
+         <row>
+           <entry>__u16</entry>
+           <entry><structfield>reserved[6]</structfield></entry>
+-          <entry>Reserved for future extensions. Should be zeroed by the
+-           application.</entry>
++          <entry>Reserved for future extensions. Should be zeroed by drivers and
++           applications.</entry>
+         </row>
+       </tbody>
+     </tgroup>
+@@ -267,8 +267,8 @@ see <xref linkend="colorspaces" />.</entry>
+         <row>
+           <entry>__u8</entry>
+           <entry><structfield>reserved[8]</structfield></entry>
+-          <entry>Reserved for future extensions. Should be zeroed by the
+-           application.</entry>
++          <entry>Reserved for future extensions. Should be zeroed by drivers
++           and applications.</entry>
+         </row>
+       </tbody>
+     </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index 9b700a5..8ffe74f 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -134,7 +134,8 @@ information.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield>[8]</entry>
+-	    <entry>A place holder for future extensions.</entry>
++	    <entry>A place holder for future extensions. Drivers and applications
++must set the array to zero.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-frameintervals.xml b/Documentation/DocBook/media/v4l/vidioc-enum-frameintervals.xml
+index 5fd72c4..7c839ab 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-frameintervals.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-frameintervals.xml
+@@ -217,7 +217,8 @@ enumerated.</entry>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved[2]</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Reserved space for future use.</entry>
++	    <entry>Reserved space for future use. Must be zeroed by drivers and
++	    applications.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+index a78454b..9ed68ac 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+@@ -223,7 +223,8 @@ application should zero out all members except for the
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved[2]</structfield></entry>
+ 	    <entry></entry>
+-	    <entry>Reserved space for future use.</entry>
++	    <entry>Reserved space for future use. Must be zeroed by drivers and
++	    applications.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+index 4165e7b..a78c920 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+@@ -184,7 +184,8 @@ of open() for more details.</entry>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved[11]</structfield></entry>
+-	    <entry>Reserved field for future use. Must be set to zero.</entry>
++	    <entry>Reserved field for future use. Drivers and applications must
++set the array to zero.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index 0bb5c06..7865351 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -199,7 +199,7 @@ exist no rectangle</emphasis> that satisfies the constraints.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved[9]</structfield></entry>
+-	    <entry>Reserved fields for future use.</entry>
++	    <entry>Reserved fields for future use. Drivers and applications must zero this array.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querybuf.xml b/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
+index a597155..50bfcb5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querybuf.xml
+@@ -60,7 +60,8 @@ buffer at any time after buffers have been allocated with the
+     field. Valid index numbers range from zero
+ to the number of buffers allocated with &VIDIOC-REQBUFS;
+     (&v4l2-requestbuffers; <structfield>count</structfield>) minus one.
+-The <structfield>reserved</structfield> field should to set to 0.
++The <structfield>reserved</structfield> and <structfield>reserved2 </structfield>
++fields must be set to 0.
+ When using the <link linkend="planar-apis">multi-planar API</link>, the
+ <structfield>m.planes</structfield> field must contain a userspace pointer to an
+ array of &v4l2-plane; and the <structfield>length</structfield> field has
+diff --git a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
+index 78a06a9..0f193fd 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
+@@ -112,8 +112,8 @@ as the &v4l2-format; <structfield>type</structfield> field. See <xref
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield>[2]</entry>
+-	    <entry>A place holder for future extensions. This array should
+-be zeroed by applications.</entry>
++	    <entry>A place holder for future extensions. Drivers and applications
++must set the array to zero.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+-- 
+2.1.4
 
