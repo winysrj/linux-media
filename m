@@ -1,85 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39038 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674AbbFRUUT (ORCPT
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:46349 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751899AbbFEUL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 16:20:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	Simon Horman <horms@verge.net.au>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v2] v4l: vsp1: Align crop rectangle to even boundary for YUV formats
-Date: Thu, 18 Jun 2015 23:21:08 +0300
-Message-ID: <14792550.FyoUCuzjPK@avalon>
-In-Reply-To: <1432817979-2929-1-git-send-email-ykaneko0929@gmail.com>
-References: <1432817979-2929-1-git-send-email-ykaneko0929@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 5 Jun 2015 16:11:58 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: define Media Controller API when CONFIG_MEDIA_CONTROLLER enabled
+Date: Fri,  5 Jun 2015 14:11:54 -0600
+Message-Id: <1433535114-5493-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kaneko-san,
+Change to define Media Controller API when CONFIG_MEDIA_CONTROLLER
+is enabled. Define stubs for CONFIG_MEDIA_CONTROLLER disabled case.
+This will help avoid drivers needing to enclose Media Controller
+code within ifdef CONFIG_MEDIA_CONTROLLER block.
 
-Thank you for the patch.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c |  4 ++++
+ include/media/media-device.h | 27 +++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-On Thursday 28 May 2015 21:59:39 Yoshihiro Kaneko wrote:
-> From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
-> 
-> Make sure that there are valid values in the crop rectangle to ensure
-> that the color plane doesn't get shifted when cropping.
-> Since there is no distinction between 12bit and 16bit YUV formats in
-> at the subdev level, use the more restrictive 12bit limits for all YUV
-> formats.
-> 
-> Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree with a summary of the commit message added as a source 
-code comment.
-
-> ---
-> 
-> This patch is based on the master branch of linuxtv.org/media_tree.git.
-> 
-> v2 [Yoshihiro Kaneko]
-> * As suggested by Laurent Pinchart
->   - remove the change to add a restriction to the left and top
->   - use round_down() to align the width and height
-> * As suggested by Sergei Shtylyov
->   - use ALIGN() to align the left and top
->   - correct a misspelling of the commit message
-> * Compile tested only
-> 
->  drivers/media/platform/vsp1/vsp1_rwpf.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> b/drivers/media/platform/vsp1/vsp1_rwpf.c index fa71f46..32687c7 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-> @@ -197,6 +197,14 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
-> */
->  	format = vsp1_entity_get_pad_format(&rwpf->entity, cfg, RWPF_PAD_SINK,
->  					    sel->which);
-> +
-> +	if (format->code == MEDIA_BUS_FMT_AYUV8_1X32) {
-> +		sel->r.left = ALIGN(sel->r.left, 2);
-> +		sel->r.top = ALIGN(sel->r.top, 2);
-> +		sel->r.width = round_down(sel->r.width, 2);
-> +		sel->r.height = round_down(sel->r.height, 2);
-> +	}
-> +
->  	sel->r.left = min_t(unsigned int, sel->r.left, format->width - 2);
->  	sel->r.top = min_t(unsigned int, sel->r.top, format->height - 2);
->  	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index a4d5b24..c55ab50 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -30,6 +30,8 @@
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++
+ /* -----------------------------------------------------------------------------
+  * Userspace API
+  */
+@@ -495,3 +497,5 @@ struct media_device *media_device_find_devres(struct device *dev)
+ 	return devres_find(dev, media_device_release_devres, NULL, NULL);
+ }
+ EXPORT_SYMBOL_GPL(media_device_find_devres);
++
++#endif /* CONFIG_MEDIA_CONTROLLER */
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 22792cd..a44f18f 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -80,6 +80,8 @@ struct media_device {
+ 			   unsigned int notification);
+ };
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++
+ /* Supported link_notify @notification values. */
+ #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+ #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+@@ -102,4 +104,29 @@ struct media_device *media_device_find_devres(struct device *dev);
+ #define media_device_for_each_entity(entity, mdev)			\
+ 	list_for_each_entry(entity, &(mdev)->entities, list)
+ 
++#else
++static inline int media_device_register(struct media_device *mdev)
++{
++	return 0;
++}
++static inline void media_device_unregister(struct media_device *mdev)
++{
++}
++static inline int media_device_register_entity(struct media_device *mdev,
++						struct media_entity *entity)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity(struct media_entity *entity)
++{
++}
++static inline struct media_device *media_device_get_devres(struct device *dev)
++{
++	return NULL;
++}
++static inline struct media_device *media_device_find_devres(struct device *dev)
++{
++	return NULL;
++}
++#endif /* CONFIG_MEDIA_CONTROLLER */
+ #endif
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
