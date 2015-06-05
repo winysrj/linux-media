@@ -1,92 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33797 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbbFNK3e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 06:29:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-Subject: Re: [PATCH v2 6/6] staging: media: omap4iss: ipipe: Expose the RGB2RGB blending matrix
-Date: Sun, 14 Jun 2015 13:30:16 +0300
-Message-ID: <1879561.VjzCEG2LFt@avalon>
-In-Reply-To: <109421334.Lm3XXHQ8EE@avalon>
-References: <1422436639-18292-1-git-send-email-laurent.pinchart@ideasonboard.com> <54C8B976.3090908@xs4all.nl> <109421334.Lm3XXHQ8EE@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:49062 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755190AbbFEO2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 05/11] [media] bt8xx: remove needless check
+Date: Fri,  5 Jun 2015 11:27:38 -0300
+Message-Id: <e445af95ff02b82de88636f302d322c37721f103.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+As reported by smatch:
+	drivers/media/pci/bt8xx/dst_ca.c:323 ca_get_message() warn: this array is probably non-NULL. 'p_ca_message->msg'
+	drivers/media/pci/bt8xx/dst_ca.c:498 ca_send_message() warn: this array is probably non-NULL. 'p_ca_message->msg'
 
-On Wednesday 28 January 2015 14:18:20 Laurent Pinchart wrote:
-> On Wednesday 28 January 2015 11:27:02 Hans Verkuil wrote:
-> > On 01/28/15 10:17, Laurent Pinchart wrote:
-> >> Expose the module as two controls, one for the 3x3 multiplier matrix and
-> >> one for the 3x1 offset vector.
-> >> 
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> ---
-> >> 
-> >>  drivers/staging/media/omap4iss/iss_ipipe.c | 129 +++++++++++++++++++++-
-> >>  drivers/staging/media/omap4iss/iss_ipipe.h |  17 ++++
-> >>  2 files changed, 144 insertions(+), 2 deletions(-)
-> >> 
-> >> diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
-> >> b/drivers/staging/media/omap4iss/iss_ipipe.c index 73b165e..624c5d2
-> >> 100644
-> >> --- a/drivers/staging/media/omap4iss/iss_ipipe.c
-> >> +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-> >> @@ -119,6 +119,105 @@ static void ipipe_configure(struct
-> >> iss_ipipe_device *ipipe)
-> >>  }
-> >>  
-> >>  /* --------------------------------------------------------------------
-> >> + * V4L2 controls
-> >> + */
-> >> +
-> >> +#define OMAP4ISS_IPIPE_CID_BASE			(V4L2_CID_USER_BASE | 0xf000)
-> > 
-> > Private control ranges should be reserved in uapi/linux/v4l2-controls.h.
-> > 
-> > See e.g. V4L2_CID_USER_SAA7134_BASE.
-> 
-> My bad, I'll fix that.
-> 
-> >> +#define OMAP4ISS_IPIPE_CID_RGB2RGB_MULT		(OMAP4ISS_IPIPE_CID_BASE
-> >> + 0)
-> >> +#define OMAP4ISS_IPIPE_CID_RGB2RGB_OFFSET	(OMAP4ISS_IPIPE_CID_BASE
-> >> + 1)
-> 
-> > Can you give some information how the values are interpreted? That should
-> > be documented anyway, but I would like to see how this compares to the
-> > adv drivers. This is something that we might want to make available as
-> > standard controls. I will have to think about that a bit more.
-> 
-> Sure.
-> 
-> http://www.ti.com/lit/pdf/swpu235, section 8.3.3.4.6, page 1863.
-> 
-> /       \   /                         \   /      \   /          \
-> | R_out |   | gain_RR gain_GR gain_BR |   | R_in |   | offset_R |
-> | G_out | = | gain_RG gain_GG gain_BG | x | G_in | + | offset_G |
-> | B_out |   | gain_RB gain_GB gain_BB |   | B_in |   | offset_B |
-> \       /   \                         /   \      /   \          /
-> 
-> The two controls correspond to the multiplication matrix and offset vector.
-> Coefficients are stored in 16 bits each and expressed as S3.8 (-4 to +3.996)
-> for the gains and S11 (-1024 to 1023) for the offsets.
-> 
-> Note that the ISS IPIPE has two RGB to RGB blending matrices as shown on
-> figure 8-132, page 1859. This patch implements support for the first one
-> only. We should probably consider how to expose the second one as well.
+Those two checks are needless/useless, as the ca_msg struct is
+declared as:
+typedef struct ca_msg {
+        unsigned int index;
+        unsigned int type;
+        unsigned int length;
+        unsigned char msg[256];
+} ca_msg_t;
 
-Have you had a chance to compare this to the ADV* drivers ?
+So, if the p_ca_message pointer is not null, msg will also be
+not null.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index c22c4ae06844..c5cc14ef8347 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -320,29 +320,27 @@ static int ca_get_message(struct dst_state *state, struct ca_msg *p_ca_message,
+ 	if (copy_from_user(p_ca_message, arg, sizeof (struct ca_msg)))
+ 		return -EFAULT;
+ 
+-	if (p_ca_message->msg) {
+-		dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%*ph]",
+-			3, p_ca_message->msg);
++	dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%*ph]",
++		3, p_ca_message->msg);
+ 
+-		for (i = 0; i < 3; i++) {
+-			command = command | p_ca_message->msg[i];
+-			if (i < 2)
+-				command = command << 8;
+-		}
+-		dprintk(verbose, DST_CA_NOTICE, 1, " Command=[0x%x]", command);
++	for (i = 0; i < 3; i++) {
++		command = command | p_ca_message->msg[i];
++		if (i < 2)
++			command = command << 8;
++	}
++	dprintk(verbose, DST_CA_NOTICE, 1, " Command=[0x%x]", command);
+ 
+-		switch (command) {
+-		case CA_APP_INFO:
+-			memcpy(p_ca_message->msg, state->messages, 128);
+-			if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
+-				return -EFAULT;
+-			break;
+-		case CA_INFO:
+-			memcpy(p_ca_message->msg, state->messages, 128);
+-			if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
+-				return -EFAULT;
+-			break;
+-		}
++	switch (command) {
++	case CA_APP_INFO:
++		memcpy(p_ca_message->msg, state->messages, 128);
++		if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
++			return -EFAULT;
++		break;
++	case CA_INFO:
++		memcpy(p_ca_message->msg, state->messages, 128);
++		if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
++			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -494,60 +492,58 @@ static int ca_send_message(struct dst_state *state, struct ca_msg *p_ca_message,
+ 		goto free_mem_and_exit;
+ 	}
+ 
++	/*	EN50221 tag	*/
++	command = 0;
+ 
+-	if (p_ca_message->msg) {
+-		/*	EN50221 tag	*/
+-		command = 0;
++	for (i = 0; i < 3; i++) {
++		command = command | p_ca_message->msg[i];
++		if (i < 2)
++			command = command << 8;
++	}
++	dprintk(verbose, DST_CA_DEBUG, 1, " Command=[0x%x]\n", command);
+ 
+-		for (i = 0; i < 3; i++) {
+-			command = command | p_ca_message->msg[i];
+-			if (i < 2)
+-				command = command << 8;
++	switch (command) {
++	case CA_PMT:
++		dprintk(verbose, DST_CA_DEBUG, 1, "Command = SEND_CA_PMT");
++		if ((ca_set_pmt(state, p_ca_message, hw_buffer, 0, 0)) < 0) {	// code simplification started
++			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT Failed !");
++			result = -1;
++			goto free_mem_and_exit;
+ 		}
+-		dprintk(verbose, DST_CA_DEBUG, 1, " Command=[0x%x]\n", command);
+-
+-		switch (command) {
+-		case CA_PMT:
+-			dprintk(verbose, DST_CA_DEBUG, 1, "Command = SEND_CA_PMT");
+-			if ((ca_set_pmt(state, p_ca_message, hw_buffer, 0, 0)) < 0) {	// code simplification started
+-				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT Failed !");
+-				result = -1;
+-				goto free_mem_and_exit;
+-			}
+-			dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT Success !");
+-			break;
+-		case CA_PMT_REPLY:
+-			dprintk(verbose, DST_CA_INFO, 1, "Command = CA_PMT_REPLY");
+-			/*      Have to handle the 2 basic types of cards here  */
+-			if ((dst_check_ca_pmt(state, p_ca_message, hw_buffer)) < 0) {
+-				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT_REPLY Failed !");
+-				result = -1;
+-				goto free_mem_and_exit;
+-			}
+-			dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT_REPLY Success !");
+-			break;
+-		case CA_APP_INFO_ENQUIRY:		// only for debugging
+-			dprintk(verbose, DST_CA_INFO, 1, " Getting Cam Application information");
++		dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT Success !");
++		break;
++	case CA_PMT_REPLY:
++		dprintk(verbose, DST_CA_INFO, 1, "Command = CA_PMT_REPLY");
++		/*      Have to handle the 2 basic types of cards here  */
++		if ((dst_check_ca_pmt(state, p_ca_message, hw_buffer)) < 0) {
++			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT_REPLY Failed !");
++			result = -1;
++			goto free_mem_and_exit;
++		}
++		dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT_REPLY Success !");
++		break;
++	case CA_APP_INFO_ENQUIRY:		// only for debugging
++		dprintk(verbose, DST_CA_INFO, 1, " Getting Cam Application information");
+ 
+-			if ((ca_get_app_info(state)) < 0) {
+-				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_APP_INFO_ENQUIRY Failed !");
+-				result = -1;
+-				goto free_mem_and_exit;
+-			}
+-			dprintk(verbose, DST_CA_INFO, 1, " -->CA_APP_INFO_ENQUIRY Success !");
+-			break;
+-		case CA_INFO_ENQUIRY:
+-			dprintk(verbose, DST_CA_INFO, 1, " Getting CA Information");
++		if ((ca_get_app_info(state)) < 0) {
++			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_APP_INFO_ENQUIRY Failed !");
++			result = -1;
++			goto free_mem_and_exit;
++		}
++		dprintk(verbose, DST_CA_INFO, 1, " -->CA_APP_INFO_ENQUIRY Success !");
++		break;
++	case CA_INFO_ENQUIRY:
++		dprintk(verbose, DST_CA_INFO, 1, " Getting CA Information");
+ 
+-			if ((ca_get_ca_info(state)) < 0) {
+-				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_INFO_ENQUIRY Failed !");
+-				result = -1;
+-				goto free_mem_and_exit;
+-			}
+-			dprintk(verbose, DST_CA_INFO, 1, " -->CA_INFO_ENQUIRY Success !");
+-			break;
++		if ((ca_get_ca_info(state)) < 0) {
++			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_INFO_ENQUIRY Failed !");
++			result = -1;
++			goto free_mem_and_exit;
+ 		}
++		dprintk(verbose, DST_CA_INFO, 1, " -->CA_INFO_ENQUIRY Success !");
++		break;
+ 	}
++
+ free_mem_and_exit:
+ 	kfree (hw_buffer);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.2
 
