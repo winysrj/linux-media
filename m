@@ -1,107 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:43327 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932111AbbFHJDA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:03:00 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	devicetree@vger.kernel.org
-Subject: [PATCH v10 4/8] DT: aat1290: Document handling external strobe sources
-Date: Mon, 08 Jun 2015 11:02:21 +0200
-Message-id: <1433754145-12765-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:8323 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285AbbFEIwm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 04:52:42 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [RFC PATCH] v4l2-dv-timings: add support for reduced blanking v2
+Date: Fri,  5 Jun 2015 14:22:38 +0530
+Message-Id: <1433494358-29050-2-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1433494358-29050-1-git-send-email-prladdha@cisco.com>
+References: <1433494358-29050-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for a pinctrl-names property.
-The property, when present, is used for switching the source
-of the strobe signal for the device.
+Added support for reduced blanking version 2 (RB v2) in cvt timings.
+Standard specifies a fixed vsync pulse of 8 lines to indicate RB v2
+timings. Vertical back porch is fixed at 6 lines and vertical front
+porch is remainder of vertical blanking time.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: devicetree@vger.kernel.org
+For Rb v2, horizontal blanking is fixed at 80 pixels. Horizontal sync
+is fixed at 32. All horizontal timing counts (active pixels, front,
+back porches) can be specified upto a precision of 1.
+
+To Do: Pass aspect ratio information to v4l2_detect_cvt()
+RB v2 allows for non standard aspect ratios. In RB v2 vsync does not
+indicate aspect ratio. In the absence of aspect ratio information,
+v4l2_detect_cvt() cannot calculate image width from image height.
+
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- .../devicetree/bindings/leds/leds-aat1290.txt      |   36 ++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 72 +++++++++++++++++++++++--------
+ 1 file changed, 54 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-index ef88b9c..c05ed91 100644
---- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-+++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
-@@ -2,7 +2,9 @@
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 0d849fc..4efc6f6 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -309,6 +309,7 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+  */
  
- The device is controlled through two pins: FL_EN and EN_SET. The pins when,
- asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
--respectively.
-+respectively. In order to add a capability of selecting the strobe signal source
-+(e.g. CPU or camera sensor) there is an additional switch required, independent
-+of the flash chip. The switch is controlled with pin control.
+ #define CVT_PXL_CLK_GRAN	250000	/* pixel clock granularity */
++#define CVT_PXL_CLK_GRAN_RB_V2 1000	/* granularity for reduced blanking v2*/
  
- Required properties:
+ /* Normal blanking */
+ #define CVT_MIN_V_BPORCH	7	/* lines */
+@@ -328,10 +329,14 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+ /* Reduced Blanking */
+ #define CVT_RB_MIN_V_BPORCH    7       /* lines  */
+ #define CVT_RB_V_FPORCH        3       /* lines  */
+-#define CVT_RB_MIN_V_BLANK   460     /* us     */
++#define CVT_RB_MIN_V_BLANK   460       /* us     */
+ #define CVT_RB_H_SYNC         32       /* pixels */
+-#define CVT_RB_H_BPORCH       80       /* pixels */
+ #define CVT_RB_H_BLANK       160       /* pixels */
++/* Reduce blanking Version 2 */
++#define CVT_RB_V2_H_BLANK     80       /* pixels */
++#define CVT_RB_MIN_V_FPORCH    3       /* lines  */
++#define CVT_RB_V2_MIN_V_FPORCH 1       /* lines  */
++#define CVT_RB_V_BPORCH        6       /* lines  */
  
-@@ -10,6 +12,13 @@ Required properties:
- - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
- - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+ /** v4l2_detect_cvt - detect if the given timings follow the CVT standard
+  * @frame_height - the total height of the frame (including blanking) in lines.
+@@ -356,9 +361,10 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 	int  v_fp, v_bp, h_fp, h_bp, hsync;
+ 	int  frame_width, image_height, image_width;
+ 	bool reduced_blanking;
++	bool rb_v2 = false;
+ 	unsigned pix_clk;
  
-+Optional properties:
-+- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
-+		"default" and "host" must refer to the same pin configuration
-+		node, which sets the host as a strobe signal provider. Entry
-+		"isp" must refer to the pin configuration node, which sets the
-+		ISP as a strobe signal provider.
+-	if (vsync < 4 || vsync > 7)
++	if (vsync < 4 || vsync > 8)
+ 		return false;
+ 
+ 	if (polarities == V4L2_DV_VSYNC_POS_POL)
+@@ -368,17 +374,32 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 	else
+ 		return false;
+ 
++	if (reduced_blanking && vsync == 8)
++		rb_v2 = true;
 +
- A discrete LED element connected to the device must be represented by a child
- node - see Documentation/devicetree/bindings/leds/common.txt.
- 
-@@ -25,13 +34,22 @@ Required properties of the LED child node:
- Optional properties of the LED child node:
- - label : see Documentation/devicetree/bindings/leds/common.txt
- 
--Example (by Ct = 220nF, Rset = 160kohm):
-+Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
-+a switch that allows for routing strobe signal either from the host or from
-+the camera sensor):
++	if (!rb_v2 && vsync > 7)
++		return false;
 +
-+#include "exynos4412.dtsi"
+ 	if (hfreq == 0)
+ 		return false;
  
- aat1290 {
- 	compatible = "skyworks,aat1290";
- 	flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
- 	enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
+ 	/* Vertical */
+ 	if (reduced_blanking) {
+-		v_fp = CVT_RB_V_FPORCH;
+-		v_bp = (CVT_RB_MIN_V_BLANK * hfreq) / 1000000 + 1;
+-		v_bp -= vsync + v_fp;
+-
+-		if (v_bp < CVT_RB_MIN_V_BPORCH)
+-			v_bp = CVT_RB_MIN_V_BPORCH;
++		if (rb_v2) {
++			v_bp = CVT_RB_V_BPORCH;
++			v_fp = (CVT_RB_MIN_V_BLANK * hfreq) / 1000000 + 1;
++			v_fp -= vsync + v_bp;
++
++			if (v_fp < CVT_RB_V2_MIN_V_FPORCH)
++				v_fp = CVT_RB_V2_MIN_V_FPORCH;
++		} else {
++			v_fp = CVT_RB_V_FPORCH;
++			v_bp = (CVT_RB_MIN_V_BLANK * hfreq) / 1000000 + 1;
++			v_bp -= vsync + v_fp;
++
++			if (v_bp < CVT_RB_MIN_V_BPORCH)
++				v_bp = CVT_RB_MIN_V_BPORCH;
++		}
+ 	} else {
+ 		v_fp = CVT_MIN_V_PORCH_RND;
+ 		v_bp = (CVT_MIN_VSYNC_BP * hfreq) / 1000000 + 1 - vsync;
+@@ -415,22 +436,40 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 		else
+ 			return false;
+ 		break;
++	case 8:
++	/* To Do:
++	 * For Reduced Blanking v2, vsync does not indicate aspect ratio and
++	 * hence can not be used to derive image width. In such a case, either
++	 * aspect ratio information or image width should be supplied to
++	 * v4l2_detect_cvt(). This would need API change. As of now assuming
++	 * 16:9 as default aspect ratio.
++	 * */
++		image_width = (image_height * 16) / 9;
++		break;
+ 	default:
+ 		return false;
+ 	}
  
-+	pinctrl-names = "default", "host", "isp";
-+	pinctrl-0 = <&camera_flash_host>;
-+	pinctrl-1 = <&camera_flash_host>;
-+	pinctrl-2 = <&camera_flash_isp>;
+-	image_width = image_width & ~7;
++	if (!rb_v2)
++		image_width = image_width & ~7;
+ 
+ 	/* Horizontal */
+ 	if (reduced_blanking) {
+-		pix_clk = (image_width + CVT_RB_H_BLANK) * hfreq;
+-		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
++		int h_blank;
+ 
+-		h_bp = CVT_RB_H_BPORCH;
++		if (rb_v2)
++			h_blank = CVT_RB_V2_H_BLANK;
++		else
++			h_blank = CVT_RB_H_BLANK;
 +
- 	camera_flash: flash-led {
- 		label = "aat1290-flash";
- 		led-max-microamp = <520833>;
-@@ -39,3 +57,17 @@ aat1290 {
- 		flash-timeout-us = <1940000>;
- 	};
- };
++		pix_clk = (image_width + h_blank) * hfreq;
++		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN_RB_V2) * CVT_PXL_CLK_GRAN_RB_V2;
 +
-+&pinctrl_0 {
-+	camera_flash_host: camera-flash-host {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <0>;
-+	};
-+
-+	camera_flash_isp: camera-flash-isp {
-+		samsung,pins = "gpj1-0";
-+		samsung,pin-function = <1>;
-+		samsung,pin-val = <1>;
-+	};
-+};
++		h_bp  = h_blank / 2;
+ 		hsync = CVT_RB_H_SYNC;
+-		h_fp = CVT_RB_H_BLANK - h_bp - hsync;
++		h_fp  = h_blank - h_bp - hsync;
+ 
+-		frame_width = image_width + CVT_RB_H_BLANK;
++		frame_width = image_width + h_blank;
+ 	} else {
+ 		unsigned ideal_duty_cycle_per_myriad =
+ 			100 * CVT_C_PRIME - (CVT_M_PRIME * 100000) / hfreq;
+@@ -438,11 +477,9 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 
+ 		if (ideal_duty_cycle_per_myriad < 2000)
+ 			ideal_duty_cycle_per_myriad = 2000;
+-
+ 		h_blank = image_width * ideal_duty_cycle_per_myriad /
+ 					(10000 - ideal_duty_cycle_per_myriad);
+ 		h_blank = (h_blank / (2 * CVT_CELL_GRAN)) * 2 * CVT_CELL_GRAN;
+-
+ 		pix_clk = (image_width + h_blank) * hfreq;
+ 		pix_clk = (pix_clk / CVT_PXL_CLK_GRAN) * CVT_PXL_CLK_GRAN;
+ 
+@@ -483,7 +520,6 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 
+ 	if (reduced_blanking)
+ 		fmt->bt.flags |= V4L2_DV_FL_REDUCED_BLANKING;
+-
+ 	return true;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_detect_cvt);
 -- 
-1.7.9.5
+1.9.1
 
