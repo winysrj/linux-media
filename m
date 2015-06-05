@@ -1,121 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56562 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751168AbbFFCt1 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51053 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932464AbbFEJu2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 22:49:27 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A1D9F2A0085
-	for <linux-media@vger.kernel.org>; Sat,  6 Jun 2015 04:49:15 +0200 (CEST)
-Date: Sat, 06 Jun 2015 04:49:15 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150606024915.A1D9F2A0085@tschai.lan>
+	Fri, 5 Jun 2015 05:50:28 -0400
+Message-ID: <557170D9.3010607@xs4all.nl>
+Date: Fri, 05 Jun 2015 11:50:17 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [ATTN 0/9] SDR transmitter API
+References: <1432660090-19574-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1432660090-19574-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Antti,
 
-Results of the daily build of media_tree:
+FYI: don't use ATTN as prefix: patchwork doesn't pick that up as a patch,
+and if it doesn't appear there, then it is likely to be forgotten.
 
-date:		Sat Jun  6 04:00:19 CEST 2015
-git branch:	test
-git hash:	c70316f2a193fcd62232cddc1b2d44997ca2c930
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Can you repost it with the correct prefix? It's so much easier to process
+for me if it ends up in patchwork...
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Thanks!
 
-Detailed results are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+On 05/26/2015 07:08 PM, Antti Palosaari wrote:
+> That patch set adds V4L2 API support for SDR transmitters, with real
+> life working example driver - HackRF.
+> 
+> It also contains small change for old SDR API as I decided to rename
+> tuner type from V4L2_TUNER_ADC to V4L2_TUNER_SDR. ADC is SDR receiver
+> and DAC is SDR transmitter, so I eventually though it is better to
+> rename ADC to common term than add new type for DAC. Old type works
+> of course, it is defined also in order to avoid API breakage.
+> 
+> Most of the V4L implementation stuff is pretty trivial, ~copy & paste
+> from the SDR receiver.
+> 
+> New capability flag V4L2_CAP_SDR_OUTPUT is added to indicate device
+> is SDR transmitter.
+> 
+> Old capability flag V4L2_CAP_MODULATOR is used to indicate there is
+> 'tuner' to set radio frequency for transmitter. That capability flag
+> name is pretty misleading in a case of SDR as SDR does not have
+> hardware modulator at all - but as it is existing flag it is hard to
+> change anymore (V4L API uses term TUNER for radio receiver and
+> MODULATOR for radio transmitter).
+> 
+> New v4l2 buffer type V4L2_BUF_TYPE_SDR_OUTPUT.
+> 
+> Transmitter format is negotiated similarly than receiver.
+> 
+> regards
+> Antti
+> 
+> 
+> Antti Palosaari (9):
+>   v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+>   v4l2: add RF gain control
+>   DocBook: document tuner RF gain control
+>   v4l2: add support for SDR transmitter
+>   DocBook: document SDR transmitter
+>   hackrf: add control for RF amplifier
+>   hackrf: switch to single function which configures everything
+>   hackrf: add support for transmitter
+>   hackrf: do not set human readable name for formats
+> 
+>  Documentation/DocBook/media/v4l/compat.xml         |   20 +
+>  Documentation/DocBook/media/v4l/controls.xml       |   19 +
+>  Documentation/DocBook/media/v4l/dev-sdr.xml        |   32 +-
+>  Documentation/DocBook/media/v4l/io.xml             |   10 +-
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +-
+>  Documentation/DocBook/media/v4l/v4l2.xml           |    9 +
+>  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |    2 +-
+>  .../DocBook/media/v4l/vidioc-querycap.xml          |    6 +
+>  drivers/media/usb/hackrf/hackrf.c                  | 1019 ++++++++++++++------
+>  drivers/media/v4l2-core/v4l2-ctrls.c               |    4 +
+>  drivers/media/v4l2-core/v4l2-dev.c                 |   14 +-
+>  drivers/media/v4l2-core/v4l2-ioctl.c               |   31 +-
+>  drivers/media/v4l2-core/videobuf-core.c            |    4 +-
+>  include/media/v4l2-ioctl.h                         |    8 +
+>  include/trace/events/v4l2.h                        |    1 +
+>  include/uapi/linux/v4l2-controls.h                 |    2 +
+>  include/uapi/linux/videodev2.h                     |   10 +-
+>  17 files changed, 898 insertions(+), 295 deletions(-)
+> 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
