@@ -1,49 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bbn0105.outbound.protection.outlook.com ([157.56.111.105]:42215
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751874AbbFASrV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 14:47:21 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <mchehab@osg.samsung.com>
-CC: <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] radio-si470x-i2c: Pass the IRQF_ONESHOT flag
-Date: Mon, 1 Jun 2015 14:14:07 -0300
-Message-ID: <1433178847-19850-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:49122 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932901AbbFEO2L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:11 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sean Young <sean@mess.org>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Himangi Saraogi <himangi774@gmail.com>,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH 08/11] [media] ir: Fix IR_MAX_DURATION enforcement
+Date: Fri,  5 Jun 2015 11:27:41 -0300
+Message-Id: <3de7135934d936e630a39a047bdf731a51713dd4.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 1c6c69525b40 ("genirq: Reject bogus threaded irq requests")
-threaded IRQs without a primary handler need to be requested with
-IRQF_ONESHOT, otherwise the request will fail.
+Don't assume that IR_MAX_DURATION is a bitmask. It isn't.
 
-So pass the IRQF_ONESHOT flag in this case.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-The semantic patch that makes this change is available
-in scripts/coccinelle/misc/irqf_oneshot.cocci.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/radio/si470x/radio-si470x-i2c.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 2a497c8..49fe845 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -421,7 +421,8 @@ static int si470x_i2c_probe(struct i2c_client *client,
- 	init_waitqueue_head(&radio->read_queue);
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index c83292ad1b34..ec74244a3853 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -322,7 +322,7 @@ static u32 redrat3_us_to_len(u32 microsec)
+ 	u32 result;
+ 	u32 divisor;
  
- 	retval = request_threaded_irq(client->irq, NULL, si470x_i2c_interrupt,
--			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
-+			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, DRIVER_NAME,
-+			radio);
- 	if (retval) {
- 		dev_err(&client->dev, "Failed to register interrupt\n");
- 		goto err_rds;
+-	microsec &= IR_MAX_DURATION;
++	microsec = (microsec > IR_MAX_DURATION) ? IR_MAX_DURATION : microsec;
+ 	divisor = (RR3_CLK_CONV_FACTOR / 1000);
+ 	result = (u32)(microsec * divisor) / 1000;
+ 
+@@ -380,7 +380,8 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
+ 		if (i == 0)
+ 			trailer = rawir.duration;
+ 		/* cap the value to IR_MAX_DURATION */
+-		rawir.duration &= IR_MAX_DURATION;
++		rawir.duration = (rawir.duration > IR_MAX_DURATION) ?
++				 IR_MAX_DURATION : rawir.duration;
+ 
+ 		dev_dbg(dev, "storing %s with duration %d (i: %d)\n",
+ 			rawir.pulse ? "pulse" : "space", rawir.duration, i);
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index bf4a44272f0e..5a17cb88ff27 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -152,7 +152,8 @@ static void sz_push_full_pulse(struct streamzap_ir *sz,
+ 				sz->signal_last.tv_usec);
+ 			rawir.duration -= sz->sum;
+ 			rawir.duration = US_TO_NS(rawir.duration);
+-			rawir.duration &= IR_MAX_DURATION;
++			rawir.duration = (rawir.duration > IR_MAX_DURATION) ?
++					 IR_MAX_DURATION : rawir.duration;
+ 		}
+ 		sz_push(sz, rawir);
+ 
+@@ -165,7 +166,8 @@ static void sz_push_full_pulse(struct streamzap_ir *sz,
+ 	rawir.duration += SZ_RESOLUTION / 2;
+ 	sz->sum += rawir.duration;
+ 	rawir.duration = US_TO_NS(rawir.duration);
+-	rawir.duration &= IR_MAX_DURATION;
++	rawir.duration = (rawir.duration > IR_MAX_DURATION) ?
++			 IR_MAX_DURATION : rawir.duration;
+ 	sz_push(sz, rawir);
+ }
+ 
 -- 
-1.9.1
+2.4.2
 
