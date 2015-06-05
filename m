@@ -1,50 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 59-100-193-174.mel.static-ipl.aapt.com.au ([59.100.193.174]:33129
-	"EHLO mail6.intellectit.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750723AbbFCECy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 00:02:54 -0400
-Received: from mail6.intellectit.com.au (localhost.localdomain [127.0.0.1])
-	by localhost (Email Security Appliance) with SMTP id 338EE43E98_56E7AC9B
-	for <linux-media@vger.kernel.org>; Wed,  3 Jun 2015 03:55:53 +0000 (GMT)
-Received: from mail.intellectit.com.au (iitmail.intellectit.local [192.168.254.230])
-	by mail6.intellectit.com.au (Sophos Email Appliance) with ESMTP id 1A87443E5F_56E7AC9F
-	for <linux-media@vger.kernel.org>; Wed,  3 Jun 2015 03:55:53 +0000 (GMT)
-From: Stephen Allan <stephena@intellectit.com.au>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Hauppauge WinTV-HVR2205 driver feedback
-Date: Wed, 3 Jun 2015 03:55:51 +0000
-Message-ID: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751688AbbFEK75 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 06:59:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 09/10] sh-vou: fix bytesperline
+Date: Fri,  5 Jun 2015 12:59:25 +0200
+Message-Id: <1433501966-30176-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am aware that there is some development going on for the saa7164 driver to support the Hauppauge WinTV-HVR2205.  I thought I would post some feedback.  I have recently compiled the driver as at 2015-05-31 using "media build tree".  I am unable to tune a channel.  When running the following w_scan command:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-w_scan -a4 -ft -cAU -t 3 -X > /tmp/tzap/channels.conf
+The bytesperline values were wrong for planar formats where bytesperline is
+the line length for the first plane.
 
-I get the following error after scanning the frequency range for Australia.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/sh_vou.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-ERROR: Sorry - i couldn't get any working frequency/transponder
- Nothing to scan!!
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 489d045..d431cb1 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -135,6 +135,7 @@ struct sh_vou_fmt {
+ 	u32		pfmt;
+ 	char		*desc;
+ 	unsigned char	bpp;
++	unsigned char	bpl;
+ 	unsigned char	rgb;
+ 	unsigned char	yf;
+ 	unsigned char	pkf;
+@@ -145,6 +146,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_NV12,
+ 		.bpp	= 12,
++		.bpl	= 1,
+ 		.desc	= "YVU420 planar",
+ 		.yf	= 0,
+ 		.rgb	= 0,
+@@ -152,6 +154,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_NV16,
+ 		.bpp	= 16,
++		.bpl	= 1,
+ 		.desc	= "YVYU planar",
+ 		.yf	= 1,
+ 		.rgb	= 0,
+@@ -159,6 +162,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB24,
+ 		.bpp	= 24,
++		.bpl	= 3,
+ 		.desc	= "RGB24",
+ 		.pkf	= 2,
+ 		.rgb	= 1,
+@@ -166,6 +170,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB565,
+ 		.bpp	= 16,
++		.bpl	= 2,
+ 		.desc	= "RGB565",
+ 		.pkf	= 3,
+ 		.rgb	= 1,
+@@ -173,6 +178,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB565X,
+ 		.bpp	= 16,
++		.bpl	= 2,
+ 		.desc	= "RGB565 byteswapped",
+ 		.pkf	= 3,
+ 		.rgb	= 1,
+@@ -703,7 +709,8 @@ static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
+ 			      &pix->height, 0, img_height_max, 1, 0);
+-	pix->bytesperline = pix->width * 2;
++	pix->bytesperline = pix->width * vou_fmt[pix_idx].bpl;
++	pix->sizeimage = pix->height * ((pix->width * vou_fmt[pix_idx].bpp) >> 3);
+ 
+ 	return 0;
+ }
+@@ -1380,7 +1387,7 @@ static int sh_vou_probe(struct platform_device *pdev)
+ 	pix->height		= 480;
+ 	pix->pixelformat	= V4L2_PIX_FMT_NV16;
+ 	pix->field		= V4L2_FIELD_NONE;
+-	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH * 2;
++	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH;
+ 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
+ 	pix->colorspace		= V4L2_COLORSPACE_SMPTE170M;
+ 
+-- 
+2.1.4
 
-At the same time I get the following messages being logged to the Linux console.
-
-dmesg
-[165512.436662] si2168 22-0066: unknown chip version Si2168-
-[165512.450315] si2157 21-0060: found a 'Silicon Labs Si2157-A30'
-[165512.480559] si2157 21-0060: firmware version: 3.0.5
-[165517.981155] si2168 22-0064: unknown chip version Si2168-
-[165517.994620] si2157 20-0060: found a 'Silicon Labs Si2157-A30'
-[165518.024867] si2157 20-0060: firmware version: 3.0.5
-[165682.334171] si2168 22-0064: unknown chip version Si2168-
-[165730.579085] si2168 22-0064: unknown chip version Si2168-
-[165838.420693] si2168 22-0064: unknown chip version Si2168-
-[166337.342437] si2168 22-0064: unknown chip version Si2168-
-[167305.393572] si2168 22-0064: unknown chip version Si2168-
-
-
-Many thanks to the developers for all of your hard work.
