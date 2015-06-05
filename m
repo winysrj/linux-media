@@ -1,103 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50787 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753983AbbFOLlE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2015 07:41:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 14/14] DocBook/media: fix bad spacing in VIDIOC_EXPBUF
-Date: Mon, 15 Jun 2015 13:33:41 +0200
-Message-Id: <1434368021-7467-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:34800 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030184AbbFEOSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 10:18:42 -0400
+Message-ID: <5571AFBE.8050509@iki.fi>
+Date: Fri, 05 Jun 2015 17:18:38 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olli Salonen <olli.salonen@iki.fi>,
+	Steven Toth <stoth@kernellabs.com>
+CC: Linux-Media <linux-media@vger.kernel.org>,
+	Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
+Subject: Re: [PATCH][media] SI2168: Resolve unknown chip version errors with
+ different HVR22x5 models
+References: <CALzAhNW=Oei7_Nziozh3Mm+X_NNHvM5EdmPVPh9ajn5Aen9O2g@mail.gmail.com>	<557048EF.3040703@iki.fi>	<CAAZRmGw7NcDo8YJtYN5gC6DM23jtgqmGhhJUAa6VaEovX+qNdA@mail.gmail.com>	<CAAZRmGy_AwJfGzfDorx_=43xNQ3cB915GFnck-YJ0gu0W64xKw@mail.gmail.com>	<CALzAhNXWsv6O23yzRAx9L6TrKRvm9o7SdApsHjMgE3dpqUYpWA@mail.gmail.com> <CAAZRmGxtzq1qX=JKusF_A+_0od8sY8LO_kN-6ZWge2E7GMoweA@mail.gmail.com>
+In-Reply-To: <CAAZRmGxtzq1qX=JKusF_A+_0od8sY8LO_kN-6ZWge2E7GMoweA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/05/2015 04:40 PM, Olli Salonen wrote:
+> Hi Steven,
+>
+> It seems to me that that part of the code is identical to your driver, no?
+>
+> The media_tree driver:
+>
+> retval = saa7164_api_i2c_read(bus,
+>                       msgs[i].addr,
+>                       0 /* reglen */,
+>                       NULL /* reg */, msgs[i].len, msgs[i].buf);
+>
+> It's exactly the same with a little bit different formatting.
 
-The VIDIOC_EXPBUF documentation had spurious spaces that made it irritating
-to read. Fix this.
+And that looks correct.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml | 38 +++++++++++------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+But the patch which does not look correct, or is at least unclear, is that
+[media] saa7164: Improvements for I2C handling
+http://permalink.gmane.org/gmane.comp.video.linuxtv.scm/22211
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-index a78c920..0ae0b6a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -62,28 +62,28 @@ buffer as a DMABUF file at any time after buffers have been allocated with the
- &VIDIOC-REQBUFS; ioctl.</para>
- 
- <para> To export a buffer, applications fill &v4l2-exportbuffer;.  The
--<structfield> type </structfield> field is set to the same buffer type as was
--previously used with  &v4l2-requestbuffers;<structfield> type </structfield>.
--Applications must also set the <structfield> index </structfield> field. Valid
-+<structfield>type</structfield> field is set to the same buffer type as was
-+previously used with &v4l2-requestbuffers; <structfield>type</structfield>.
-+Applications must also set the <structfield>index</structfield> field. Valid
- index numbers range from zero to the number of buffers allocated with
--&VIDIOC-REQBUFS; (&v4l2-requestbuffers;<structfield> count </structfield>)
--minus one.  For the multi-planar API, applications set the <structfield> plane
--</structfield> field to the index of the plane to be exported. Valid planes
-+&VIDIOC-REQBUFS; (&v4l2-requestbuffers; <structfield>count</structfield>)
-+minus one.  For the multi-planar API, applications set the <structfield>plane</structfield>
-+field to the index of the plane to be exported. Valid planes
- range from zero to the maximal number of valid planes for the currently active
--format. For the single-planar API, applications must set <structfield> plane
--</structfield> to zero.  Additional flags may be posted in the <structfield>
--flags </structfield> field.  Refer to a manual for open() for details.
-+format. For the single-planar API, applications must set <structfield>plane</structfield>
-+to zero.  Additional flags may be posted in the <structfield>flags</structfield>
-+field.  Refer to a manual for open() for details.
- Currently only O_CLOEXEC, O_RDONLY, O_WRONLY, and O_RDWR are supported.  All
- other fields must be set to zero.
- In the case of multi-planar API, every plane is exported separately using
--multiple <constant> VIDIOC_EXPBUF </constant> calls. </para>
-+multiple <constant>VIDIOC_EXPBUF</constant> calls.</para>
- 
--<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
--</structfield> field will be set by a driver.  This is a DMABUF file
-+<para>After calling <constant>VIDIOC_EXPBUF</constant> the <structfield>fd</structfield>
-+field will be set by a driver.  This is a DMABUF file
- descriptor. The application may pass it to other DMABUF-aware devices. Refer to
- <link linkend="dmabuf">DMABUF importing</link> for details about importing
- DMABUF files into V4L2 nodes. It is recommended to close a DMABUF file when it
--is no longer used to allow the associated memory to be reclaimed. </para>
-+is no longer used to allow the associated memory to be reclaimed.</para>
-   </refsect1>
- 
-   <refsect1>
-@@ -170,9 +170,9 @@ multi-planar API. Otherwise this value must be set to zero. </entry>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>flags</structfield></entry>
--	    <entry>Flags for the newly created file, currently only <constant>
--O_CLOEXEC </constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY
--</constant>, and <constant>O_RDWR</constant> are supported, refer to the manual
-+	    <entry>Flags for the newly created file, currently only
-+<constant>O_CLOEXEC</constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY</constant>,
-+and <constant>O_RDWR</constant> are supported, refer to the manual
- of open() for more details.</entry>
- 	  </row>
- 	  <row>
-@@ -200,9 +200,9 @@ set the array to zero.</entry>
- 	<term><errorcode>EINVAL</errorcode></term>
- 	<listitem>
- 	  <para>A queue is not in MMAP mode or DMABUF exporting is not
--supported or <structfield> flags </structfield> or <structfield> type
--</structfield> or <structfield> index </structfield> or <structfield> plane
--</structfield> fields are invalid.</para>
-+supported or <structfield>flags</structfield> or <structfield>type</structfield>
-+or <structfield>index</structfield> or <structfield>plane</structfield> fields
-+are invalid.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
+First change does not have any effect as len should be zero in any case 
+and memcpy() should do nothing.
+
+Second change looks something that is likely wrong. There is some hack 
+which increases data len. All that register len stuff is logically wrong 
+- I2C adapter handles just bytes and should not know nothing about 
+client register layout. OK, there is some exceptions (like af9035) where 
+I2C firmware actually knows register layout for some strange reason.
+
+So could you remove that patch and test?
+
+Antti
+
 -- 
-2.1.4
-
+http://palosaari.fi/
