@@ -1,70 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:57369 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751911AbbFGTBs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 15:01:48 -0400
-Date: Thu, 4 Jun 2015 13:20:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@intel.com>
-Subject: Re: [PATCH 4/4] media: pxa_camera: conversion to dmaengine
-In-Reply-To: <1426980085-12281-5-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.1506041318210.15142@axis700.grange>
-References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
- <1426980085-12281-5-git-send-email-robert.jarzmik@free.fr>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52519 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932204AbbFEGpu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 02:45:50 -0400
+Message-ID: <55714592.8090902@xs4all.nl>
+Date: Fri, 05 Jun 2015 08:45:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCHv2] Improve Y16 color setup
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Currently the colors for the Y16 and Y16_BE pixelformats are in the range
+0x0000-0xff00. So pure white (0xffff) is never created.
 
-Please, correct me if I am wrong, but doesn't this patch have to be 
-updates? Elgl looking at this:
+Improve this by making white really white. For other colors the lsb remains 0
+so vivid can be used to detect endian problems.
 
-On Sun, 22 Mar 2015, Robert Jarzmik wrote:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Robert Jarzmik <robert.jarzmik@intel.com>
-> 
-> Convert pxa_camera to dmaengine. This removes all DMA registers
-> manipulation in favor of the more generic dmaengine API.
-> 
-> The functional level should be the same as before. The biggest change is
-> in the videobuf_sg_splice() function, which splits a videobuf-dma into
-> several scatterlists for 3 planes captures (Y, U, V).
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/platform/soc_camera/pxa_camera.c | 428 ++++++++++++-------------
->  1 file changed, 211 insertions(+), 217 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> index 8b39f44..8644022 100644
-> --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-
-[snip]
-
-> @@ -276,41 +271,82 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
->  		return;
->  
-> -	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
-> -		if (buf->dmas[i].sg_cpu)
-> -			dma_free_coherent(ici->v4l2_dev.dev,
-> -					  buf->dmas[i].sg_size,
-> -					  buf->dmas[i].sg_cpu,
-> -					  buf->dmas[i].sg_dma);
-> -		buf->dmas[i].sg_cpu = NULL;
-> +	for (i = 0; i < 3 && buf->descs[i]; i++) {
-> +		async_tx_ack(buf->descs[i]);
-> +		dmaengine_tx_release(buf->descs[i]);
-
-hasn't the addition of your proposed dmaengine_tx_release() API been 
-rejected? I'll wait for an updated version then.
-
-Thanks
-Guennadi
+diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+index b1147f2..1b94503 100644
+--- a/drivers/media/platform/vivid/vivid-tpg.c
++++ b/drivers/media/platform/vivid/vivid-tpg.c
+@@ -900,12 +900,19 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[0][offset] = r_y;
+ 		break;
+ 	case V4L2_PIX_FMT_Y16:
+-		buf[0][offset] = 0;
++		/*
++		 * Ideally both bytes should be set to r_y, but then you won't
++		 * be able to detect endian problems. So keep it 0 except for
++		 * the corner case where r_y is 0xff so white really will be
++		 * white (0xffff).
++		 */
++		buf[0][offset] = r_y == 0xff ? r_y : 0;
+ 		buf[0][offset+1] = r_y;
+ 		break;
+ 	case V4L2_PIX_FMT_Y16_BE:
++		/* See comment for V4L2_PIX_FMT_Y16 above */
+ 		buf[0][offset] = r_y;
+-		buf[0][offset+1] = 0;
++		buf[0][offset+1] = r_y == 0xff ? r_y : 0;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+ 	case V4L2_PIX_FMT_YUV420:
