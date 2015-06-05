@@ -1,164 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:37552 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167AbbFZMXa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 08:23:30 -0400
-Received: by igblr2 with SMTP id lr2so12119382igb.0
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 05:23:29 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:58689 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422789AbbFEPl5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 11:41:57 -0400
+Date: Fri, 5 Jun 2015 12:41:52 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] vivid: don't use more than 1024 bytes of stack
+Message-ID: <20150605124152.6a721c9d@recife.lan>
+In-Reply-To: <5571BBFD.6070902@xs4all.nl>
+References: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
+	<5571BBFD.6070902@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAP3TMiFcd-sJvpRw0qtwBrjUAGaDfBB=pxHoebr33UD9q8Fu_Q@mail.gmail.com>
-References: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<5004544.CpPfGJfHMn@avalon>
-	<20150506010310.24f82a42@bones>
-	<5695336.CA8eQ67zhi@avalon>
-	<CAP3TMiFoKSYdsFrQfzx5gLqhJQv6J6HqPpPU0CrrhMyrzjvq3w@mail.gmail.com>
-	<CALi4nhrswSKVHzz4wJ2NQVK+gVWR0nHhMa-RZnZwT4R+iy-cdw@mail.gmail.com>
-	<CAP3TMiFcd-sJvpRw0qtwBrjUAGaDfBB=pxHoebr33UD9q8Fu_Q@mail.gmail.com>
-Date: Fri, 26 Jun 2015 15:23:29 +0300
-Message-ID: <CALi4nhoznAWF2p8WQSdx6vscw7+6wMnEPD+WKqievL9yOCtLUg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/1] V4L2: platform: Renesas R-Car JPEG codec driver
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	"j.anaszewski" <j.anaszewski@samsung.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-06-26 15:14 GMT+03:00 Kamil Debski <kamil@wypas.org>:
-> Hi Mikhail,
->
-> On 26 June 2015 at 12:34, Mikhail Ulyanov
-> <mikhail.ulyanov@cogentembedded.com> wrote:
->> Hi,
->>
->> Thanks everybody for comments.
->>
->> 2015-06-22 17:54 GMT+03:00 Kamil Debski <kamil@wypas.org>:
->>> Hi,
->>>
->>> I am adding Jacek Anaszewski to CC loop. He was working with the
->>> s5p-jpeg driver some time ago.
->>> I've spoken with him about questions in this email recently. Jacek,
->>> thank you for your comments :)
->>>
->>> On 18 June 2015 at 20:48, Laurent Pinchart
->>> <laurent.pinchart@ideasonboard.com> wrote:
->>>> Hi Mikhail,
->>>>
->>>> (CC'ing Kamil Debski)
->>>>
->>>> On Wednesday 06 May 2015 01:03:10 Mikhail Ulianov wrote:
->>>>> On Mon, 04 May 2015 02:32:05 +0300 Laurent Pinchart wrote:
->>>
->>> [snip]
->>>
->>>>> [snip]
->>>>>
->>>>> >> +/*
->>>>> >> + * ====================================================================
->>>>> >> + * Queue operations
->>>>> >> + * ====================================================================
->>>>> >> + */
->>>>> >> +static int jpu_queue_setup(struct vb2_queue *vq,
->>>>> >> +                     const struct v4l2_format *fmt,
->>>>> >> +                     unsigned int *nbuffers, unsigned int
->>>>> >> *nplanes,
->>>>> >> +                     unsigned int sizes[], void
->>>>> >> *alloc_ctxs[])
->>>>> >> +{
->>>>> >> +  struct jpu_ctx *ctx = vb2_get_drv_priv(vq);
->>>>> >> +  struct jpu_q_data *q_data;
->>>>> >> +  unsigned int count = *nbuffers;
->>>>> >> +  unsigned int i;
->>>>> >> +
->>>>> >> +  q_data = jpu_get_q_data(ctx, vq->type);
->>>>> >> +
->>>>> >> +  *nplanes = q_data->format.num_planes;
->>>>> >> +
->>>>> >> +  /*
->>>>> >> +   * Header is parsed during decoding and parsed information
->>>>> >> stored
->>>>> >> +   * in the context so we do not allow another buffer to
->>>>> >> overwrite it.
->>>>> >> +   * For now it works this way, but planned for alternation.
->>>>> >
->>>>> > It shouldn't be difficult to create a jpu_buffer structure that
->>>>> > inherits from vb2_buffer and store the information there instead of
->>>>> > in the context.
->>>>>
->>>>> You are absolutely right. But for this version i want to keep it
->>>>> simple and also at this moment not everything clear for me with this
->>>>> format "autodetection" feature we want to have e.g. for decoder if user
->>>>> requested 2 output buffers and then queue first with some valid JPEG
->>>>> with format -1-(so we setup queues format here), after that
->>>>> another one with format -2-... should we discard second one or just
->>>>> change format of queues? what about same situation if user already
->>>>> requested capture buffers. I mean relations with buf_prepare and
->>>>> queue_setup. AFAIU format should remain the same for all requested
->>>>> buffers. I see only one "solid" solution here - get rid of
->>>>> "autodetection" feature and rely only on format setted by user, so in
->>>>> this case we can just discard queued buffers with inappropriate
->>>>> format(kind of format validation in kernel). This solution will also
->>>>> work well with NV61, NV21, and semiplanar formats we want to add in next
->>>>> version. *But* with this solution header parsing must be done twice(in
->>>>> user and kernel spaces).
->>>>> I'm a little bit frustrated here :)
->>>>
->>>> Yes, it's a bit frustrating indeed. I'm not sure what to advise, I'm not too
->>>> familiar with the m2m API for JPEG.
->>>>
->>>> Kamil, do you have a comment on that ?
->>>
->>> I am not sure whether it is good to get rid of header parsing by the
->>> driver/hardware option. I agree that the buffers should have a
->>> consistent format and size. Maybe the way to go would be to allow
->>> header parsing by the hardware, but to stop processing when the format
->>> has changed? Other solution would be to use the
->>> V4L2_EVENT_SOURCE_CHANGE event to inform user space about the change.
->>> User space then could check whether the buffers are sufficient or
->>> reallocate them. Similar to what happens in MFC when format changes.
->>>
->>> For me implementing resolution change in JPEG seems like an overkill,
->>> but maybe you have a use case that would benefit from this. Initially
->>> the JPEG decoder was designed and written as a one shot device. Could
->>> you give an example of such use case?
->>>
->>> The possible use case I can imagine is having an M-JPEG stream where
->>> all JPEGs have the same dimensions and format. There I can see some
->>> benefits from having more than one buffer on the queues. Then there
->>> would be no change in the buffer parameters, so this should work.
->>
->> That's correct. It's exactly our use case, but we have few cameras. So
->> we serialize buffers in user space and sometimes one(or more) cameras
->> have different configuration. I think i should go with stop processing
->> option.
->
-> It could be possible to have frames from each camera decoded in
-> different contexts. This way the configuration should be consistent
-> for all frames in a context. It will require more memory (more
-> buffers) though...
+Em Fri, 05 Jun 2015 17:10:53 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Yes, that's an option. Anyway in latest (v4) version i decided to drop
-frames with different format and make driver more strict in general. I
-think it's more robust in any case. Nobody knows what user will pass
-to kernel :)
+> On 06/05/2015 12:29 PM, Mauro Carvalho Chehab wrote:
+> > Remove the following compilation warnings:
+> > 
+> > 	drivers/media/platform/vivid/vivid-tpg.c: In function 'tpg_gen_text':
+> > 	drivers/media/platform/vivid/vivid-tpg.c:1562:1: warning: the frame size of 1308 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+> > 	 }
+> > 	 ^
+> > 
+> > This seems to be due to some bad optimization done by gcc.
+> > 
+> > Moving the for() loop to happen inside the macro solves the
+> > issue.
+> > 
+> > While here, fix CodingStyle at the switch().
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
+> > index b1147f2df26c..7a3ed580626a 100644
+> > --- a/drivers/media/platform/vivid/vivid-tpg.c
+> > +++ b/drivers/media/platform/vivid/vivid-tpg.c
+> > @@ -1492,12 +1492,10 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+> >  	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
+> >  		div = 2;
+> >  
+> > -	for (p = 0; p < tpg->planes; p++) {
+> > -		unsigned vdiv = tpg->vdownsampling[p];
+> > -		unsigned hdiv = tpg->hdownsampling[p];
+> > -
+> > -		/* Print text */
+> > -#define PRINTSTR(PIXTYPE) do {	\
+> > +	/* Print text */
+> > +#define PRINTSTR(PIXTYPE) for (p = 0; p < tpg->planes; p++) {	\
+> > +	unsigned vdiv = tpg->vdownsampling[p];	\
+> > +	unsigned hdiv = tpg->hdownsampling[p];	\
+> >  	PIXTYPE fg;	\
+> >  	PIXTYPE bg;	\
+> >  	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
+> > @@ -1548,16 +1546,19 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
+> >  	}	\
+> >  } while (0)
+> >  
+> > -		switch (tpg->twopixelsize[p]) {
+> > -		case 2:
+> > -			PRINTSTR(u8); break;
+> > -		case 4:
+> > -			PRINTSTR(u16); break;
+> > -		case 6:
+> > -			PRINTSTR(x24); break;
+> > -		case 8:
+> > -			PRINTSTR(u32); break;
+> > -		}
+> > +	switch (tpg->twopixelsize[p]) {
+> 
+> This doesn't work I just discovered. Compiling gives this warning:
+> 
+> drivers/media/platform/vivid/vivid-tpg.c: In function ‘tpg_gen_text’:
+> drivers/media/platform/vivid/vivid-tpg.c:1549:27: warning: ‘p’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+>   switch (tpg->twopixelsize[p]) {
+>                            ^
+> 
 
->>>>> [snip]
->>>
->>> [snip]
->>>
->
-> Best wishes,
-> Kamil Debski
+Weird. here (gcc 5.1.1) I didn't get any warning.
 
+> And the value for tpg->twopixelsize[p] will actually differ depending on the value of p.
+> 
+> It's probably best to revert this patch.
+> 
+> The correct approach is likely to make four functions, one for case,
+> with the macro as the function body.
 
+I tried that (without the for). The result was worse.
 
--- 
-W.B.R, Mikhail.
+I'll double check it latter today.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +	case 2:
+> > +		PRINTSTR(u8);
+> > +		break;
+> > +	case 4:
+> > +		PRINTSTR(u16);
+> > +		break;
+> > +	case 6:
+> > +		PRINTSTR(x24);
+> > +		break;
+> > +	case 8:
+> > +		PRINTSTR(u32);
+> > +		break;
+> >  	}
+> >  }
+> >  
+> > 
+> 
