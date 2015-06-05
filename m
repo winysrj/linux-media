@@ -1,49 +1,75 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
- "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
- Boris BREZILLON <boris.brezillon@free-electrons.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 09/12] media/i2c/tvp7002: Remove compat control ops
-Date: Fri, 12 Jun 2015 18:31:15 +0200
-Message-id: <1434126678-7978-10-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752135AbbFEK7t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 06:59:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 04/10] sh-vou: support compulsory G/S/ENUM_OUTPUT ioctls
+Date: Fri,  5 Jun 2015 12:59:20 +0200
+Message-Id: <1433501966-30176-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-They are no longer used in old non-control-framework
-bridge drivers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Video output drivers must support these ioctls. Otherwise applications
+cannot deduce that these outputs exist and what capabilities they have.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/tvp7002.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/media/platform/sh_vou.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 05077cffd235..f617d8b745ee 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -861,13 +861,6 @@ tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cf
- /* V4L2 core operation handlers */
- static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
- 	.log_status = tvp7002_log_status,
--	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.querymenu = v4l2_subdev_querymenu,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = tvp7002_g_register,
- 	.s_register = tvp7002_s_register,
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index a75e6fa..2adf16d 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -874,6 +874,30 @@ static int sh_vou_streamoff(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int sh_vou_enum_output(struct file *file, void *fh,
++			      struct v4l2_output *a)
++{
++	struct sh_vou_device *vou_dev = video_drvdata(file);
++
++	if (a->index)
++		return -EINVAL;
++	strlcpy(a->name, "Video Out", sizeof(a->name));
++	a->type = V4L2_OUTPUT_TYPE_ANALOG;
++	a->std = vou_dev->vdev.tvnorms;
++	return 0;
++}
++
++int sh_vou_g_output(struct file *file, void *fh, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++
++int sh_vou_s_output(struct file *file, void *fh, unsigned int i)
++{
++	return i ? -EINVAL : 0;
++}
++
+ static u32 sh_vou_ntsc_mode(enum sh_vou_bus_fmt bus_fmt)
+ {
+ 	switch (bus_fmt) {
+@@ -1278,6 +1302,9 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
+ 	.vidioc_dqbuf			= sh_vou_dqbuf,
+ 	.vidioc_streamon		= sh_vou_streamon,
+ 	.vidioc_streamoff		= sh_vou_streamoff,
++	.vidioc_g_output		= sh_vou_g_output,
++	.vidioc_s_output		= sh_vou_s_output,
++	.vidioc_enum_output		= sh_vou_enum_output,
+ 	.vidioc_s_std			= sh_vou_s_std,
+ 	.vidioc_g_std			= sh_vou_g_std,
+ 	.vidioc_cropcap			= sh_vou_cropcap,
 -- 
 2.1.4
+
