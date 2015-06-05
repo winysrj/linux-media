@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:32841 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbbFEILe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 04:11:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/2] v4l2-ioctl: clear the reserved field of v4l2_create_buffers
-Date: Fri,  5 Jun 2015 10:11:14 +0200
-Message-Id: <1433491875-42608-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433491875-42608-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433491875-42608-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:49053 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957AbbFEO2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 01/11] [media] drxk: better handle errors
+Date: Fri,  5 Jun 2015 11:27:34 -0300
+Message-Id: <2f60f13c14b45b311843d2ca09b5e3ef94c16f71.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As reported by smatch:
+	drivers/media/dvb-frontends/drxk_hard.c:3277 dvbt_sc_command() warn: missing break? reassigning 'status'
 
-This field was never cleared by the kernel making future extensions
-hard to implement. Clear it now.
+This is basically because the error handling logic there was crappy.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- 1 file changed, 2 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 368bc3a..8ffc89a 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1804,6 +1804,8 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
- 	if (ret)
- 		return ret;
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index ad35264a3819..b1fc4bd44a2b 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -3262,6 +3262,7 @@ static int dvbt_sc_command(struct drxk_state *state,
+ 	}
  
-+	CLEAR_AFTER_FIELD(create, format);
-+
- 	v4l_sanitize_format(&create->format);
- 
- 	ret = ops->vidioc_create_bufs(file, fh, create);
+ 	/* Write needed parameters and the command */
++	status = 0;
+ 	switch (cmd) {
+ 		/* All commands using 5 parameters */
+ 		/* All commands using 4 parameters */
+@@ -3270,16 +3271,16 @@ static int dvbt_sc_command(struct drxk_state *state,
+ 	case OFDM_SC_RA_RAM_CMD_PROC_START:
+ 	case OFDM_SC_RA_RAM_CMD_SET_PREF_PARAM:
+ 	case OFDM_SC_RA_RAM_CMD_PROGRAM_PARAM:
+-		status = write16(state, OFDM_SC_RA_RAM_PARAM1__A, param1);
++		status |= write16(state, OFDM_SC_RA_RAM_PARAM1__A, param1);
+ 		/* All commands using 1 parameters */
+ 	case OFDM_SC_RA_RAM_CMD_SET_ECHO_TIMING:
+ 	case OFDM_SC_RA_RAM_CMD_USER_IO:
+-		status = write16(state, OFDM_SC_RA_RAM_PARAM0__A, param0);
++		status |= write16(state, OFDM_SC_RA_RAM_PARAM0__A, param0);
+ 		/* All commands using 0 parameters */
+ 	case OFDM_SC_RA_RAM_CMD_GET_OP_PARAM:
+ 	case OFDM_SC_RA_RAM_CMD_NULL:
+ 		/* Write command */
+-		status = write16(state, OFDM_SC_RA_RAM_CMD__A, cmd);
++		status |= write16(state, OFDM_SC_RA_RAM_CMD__A, cmd);
+ 		break;
+ 	default:
+ 		/* Unknown command */
 -- 
-2.1.4
+2.4.2
 
