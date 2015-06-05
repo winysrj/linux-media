@@ -1,93 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:34593 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757069AbbFCTYy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 15:24:54 -0400
-Received: by lbcmx3 with SMTP id mx3so13734043lbc.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 12:24:52 -0700 (PDT)
-MIME-Version: 1.0
-From: Nico Herpich <nico.herpich@online.de>
-Date: Wed, 3 Jun 2015 21:24:12 +0200
-Message-ID: <CABSbMOHSD1Te3rJKjkXa2asrVgFgSjTRzDB_0df4+JiCs3PONg@mail.gmail.com>
-Subject: Manjaro Linux distro-specific hint for media-build
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:49113 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932788AbbFEO2K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 10/11] [media] usbvision: cleanup the code
+Date: Fri,  5 Jun 2015 11:27:43 -0300
+Message-Id: <d81430674579026a0539e7603a7e7c2e5c69c778.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi together, I just installed my new DVR-Card. Therefor I had to clone
-the linuxtv.org/media_build.git and get a text for my distro. I can't
-write a patch, but with this part of the log I think it will be easy
-for you to extend the dependency-administration.
+There's a dead code on usbvision that makes it harder to read
+and produces a smatch warning about bad identation.
 
-Greatings!
+Improve the code readability and add a FIXME to warn about
+the current hack there.
 
-$ git clone git://linuxtv.org/media_build.git
-Klone nach 'media_build' ...
-remote: Counting objects: 2855, done.
-remote: Compressing objects: 100% (1238/1238), done.
-remote: Total 2855 (delta 2014), reused 2258 (delta 1577)
-Empfange Objekte: 100% (2855/2855), 544.18 KiB | 972.00 KiB/s, Fertig.
-Löse Unterschiede auf: 100% (2014/2014), Fertig.
-Prüfe Konnektivität ... Fertig.
-$ cd media_build
-$ ./build
-Checking if the needed tools for Manjaro Linux are available
-ERROR: please install "lsdiff", otherwise, build won't work.
-I don't know distro Manjaro Linux. So, I can't provide you a hint with
-the package names.
-Be welcome to contribute with a patch for media-build, by submitting a
-distro-specific hint
-to linux-media@vger.kernel.org
-Build can't procceed as 1 dependency is missing at ./build line 266.
-$ yaourt -S lsdiff
-Fehler: Ziel nicht gefunden: lsdiff
-$ yaourt -S patchutils
-Löse Abhängigkeiten auf...
-Suche nach in Konflikt stehenden Paketen...
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Pakete (1) patchutils-0.3.3-1
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index 12b403e78d52..1c6d31f7c1b9 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1061,13 +1061,24 @@ static ssize_t usbvision_read(struct file *file, char __user *buf,
+ 	       __func__,
+ 	       (unsigned long)count, frame->bytes_read);
+ 
+-	/* For now, forget the frame if it has not been read in one shot. */
+-/*	if (frame->bytes_read >= frame->scanlength) {*/ /* All data has been read */
++#if 1
++	/*
++	 * FIXME:
++	 * For now, forget the frame if it has not been read in one shot.
++	 */
++	frame->bytes_read = 0;
++
++	/* Mark it as available to be used again. */
++	frame->grabstate = frame_state_unused;
++#else
++	if (frame->bytes_read >= frame->scanlength) {
++		/* All data has been read */
+ 		frame->bytes_read = 0;
+ 
+ 		/* Mark it as available to be used again. */
+ 		frame->grabstate = frame_state_unused;
+-/*	} */
++	}
++#endif
+ 
+ 	return count;
+ }
+-- 
+2.4.2
 
-Gesamtgröße der zu installierenden Pakete:  0,16 MiB
-
-:: Installation fortsetzen? [J/n]
-(1/1) Prüfe Schlüssel im Schlüsselring
-
-[########################################################] 100%
-(1/1) Überprüfe Paket-Integrität
-
-[########################################################] 100%
-(1/1) Lade Paket-Dateien
-
-[########################################################] 100%
-(1/1) Prüfe auf Dateikonflikte
-
-[########################################################] 100%
-(1/1) Überprüfe verfügbaren Festplattenspeicher
-
-[########################################################] 100%
-(1/1) Installiere patchutils
-
-[########################################################] 100%
-$ ./build
-Checking if the needed tools for Manjaro Linux are available
-Needed package dependencies are met.
-
-************************************************************
-* This script will download the latest tarball and build it*
-* Assuming that your kernel is compatible with the latest  *
-* drivers. If not, you'll need to add some extra backports,*
-* ./backports/<kernel> directory.                          *
-* It will also update this tree to be sure that all compat *
-* bits are there, to avoid compilation failures            *
-************************************************************
-************************************************************
-* All drivers and build system are under GPLv2 License     *
-* Firmware files are under the license terms found at:     *
-* http://www.linuxtv.org/downloads/firmware/               *
-* Please abort in the next 5 secs if you don't agree with  *
-* the license                                              *
-************************************************************
-
-Not aborted. It means that the licence was agreed. Proceeding...
