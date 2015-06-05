@@ -1,139 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39739 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752039AbbFIW1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Jun 2015 18:27:11 -0400
-Date: Tue, 9 Jun 2015 19:27:03 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:49064 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755186AbbFEO2G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-metag@vger.kernel.org,
-	kvm-ppc@vger.kernel.org, linux-wireless@vger.kernel.org,
-	sparclinux@vger.kernel.org
-Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
-Message-ID: <20150609192703.4a8babf6@recife.lan>
-In-Reply-To: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/9] Some smatch fixups
+Date: Fri,  5 Jun 2015 11:27:33 -0300
+Message-Id: <cover.1433511345.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 27 May 2015 15:05:42 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Fix several smatch warnings.
 
-> Even though 'compatability' has a dedicated entry in the Wiktionary,
-> it's listed as 'Mispelling of compatibility'. Fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+There are still 27 smatch warnings at drivers/media:
 
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> ---
->  arch/metag/include/asm/elf.h             | 2 +-
->  arch/powerpc/kvm/book3s.c                | 2 +-
->  arch/sparc/include/uapi/asm/pstate.h     | 2 +-
->  drivers/gpu/drm/drm_atomic_helper.c      | 4 ++--
->  drivers/media/dvb-frontends/au8522_dig.c | 2 +-
->  drivers/net/wireless/ipw2x00/ipw2100.h   | 2 +-
->  6 files changed, 7 insertions(+), 7 deletions(-)
-> 
-> I can split this into one patch per subsystem, but that seems a bit overkill.
-> Can someone take it ?
+This one:
+	drivers/media/pci/cx23885/cx23885-dvb.c:2046 dvb_register() Function too hairy.  Giving up.
 
-Who? That's the problem with treewide patches ;) 
+It is just to a random memory limit at smatch that allows it to
+allocate only 50Mb of memory for name allocation. I fixed it
+locally and submitted a fix to Dan.
 
-Perhaps you should re-submit it with the acks you got to akpm.
+Those seem to be false-positives:
+	drivers/media/dvb-frontends/stv0900_core.c:1183 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
+	drivers/media/dvb-frontends/stv0900_core.c:1185 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
+	drivers/media/dvb-frontends/stv0900_core.c:1187 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
+	drivers/media/dvb-frontends/stv0900_core.c:1189 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
+	drivers/media/dvb-frontends/stv0900_core.c:1191 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
+	drivers/media/media-entity.c:238:17: warning: Variable length array is used.
+	drivers/media/media-entity.c:239:17: warning: Variable length array is used.
+	drivers/media/pci/ttpci/av7110.c:2210 frontend_init() warn: missing break? reassigning 'av7110->fe'
+	drivers/media/pci/ttpci/budget.c:631 frontend_init() warn: missing break? reassigning 'budget->dvb_frontend'
+	drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
+	drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
+	drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
+	drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
+	drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
+	drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
+	drivers/media/radio/radio-aimslab.c:73 rtrack_alloc() warn: possible memory leak of 'rt'
+	drivers/media/radio/radio-aztech.c:87 aztech_alloc() warn: possible memory leak of 'az'
+	drivers/media/radio/radio-gemtek.c:189 gemtek_alloc() warn: possible memory leak of 'gt'
+	drivers/media/radio/radio-trust.c:60 trust_alloc() warn: possible memory leak of 'tr'
+	drivers/media/radio/radio-typhoon.c:79 typhoon_alloc() warn: possible memory leak of 'ty'
+	drivers/media/radio/radio-zoltrix.c:83 zoltrix_alloc() warn: possible memory leak of 'zol'
+	drivers/media/usb/pvrusb2/pvrusb2-encoder.c:227 pvr2_encoder_cmd() error: buffer overflow 'wrData' 16 <= 16
+	drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
+	drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
 
-Regards,
-Mauro
+I didn't find an easy/worth way to remove the above.
 
-> 
-> diff --git a/arch/metag/include/asm/elf.h b/arch/metag/include/asm/elf.h
-> index d2baf6961794..87b0cf1e0acb 100644
-> --- a/arch/metag/include/asm/elf.h
-> +++ b/arch/metag/include/asm/elf.h
-> @@ -11,7 +11,7 @@
->  #define R_METAG_RELBRANCH                4
->  #define R_METAG_GETSETOFF                5
->  
-> -/* Backward compatability */
-> +/* Backward compatibility */
->  #define R_METAG_REG32OP1                 6
->  #define R_METAG_REG32OP2                 7
->  #define R_METAG_REG32OP3                 8
-> diff --git a/arch/powerpc/kvm/book3s.c b/arch/powerpc/kvm/book3s.c
-> index 453a8a47a467..cb14dd78a2e7 100644
-> --- a/arch/powerpc/kvm/book3s.c
-> +++ b/arch/powerpc/kvm/book3s.c
-> @@ -901,7 +901,7 @@ int kvmppc_core_check_processor_compat(void)
->  {
->  	/*
->  	 * We always return 0 for book3s. We check
-> -	 * for compatability while loading the HV
-> +	 * for compatibility while loading the HV
->  	 * or PR module
->  	 */
->  	return 0;
-> diff --git a/arch/sparc/include/uapi/asm/pstate.h b/arch/sparc/include/uapi/asm/pstate.h
-> index 4b6b998afd99..cf832e14aa05 100644
-> --- a/arch/sparc/include/uapi/asm/pstate.h
-> +++ b/arch/sparc/include/uapi/asm/pstate.h
-> @@ -88,7 +88,7 @@
->  #define VERS_MAXTL	_AC(0x000000000000ff00,UL) /* Max Trap Level.	*/
->  #define VERS_MAXWIN	_AC(0x000000000000001f,UL) /* Max RegWindow Idx.*/
->  
-> -/* Compatability Feature Register (%asr26), SPARC-T4 and later  */
-> +/* Compatibility Feature Register (%asr26), SPARC-T4 and later  */
->  #define CFR_AES		_AC(0x0000000000000001,UL) /* Supports AES opcodes     */
->  #define CFR_DES		_AC(0x0000000000000002,UL) /* Supports DES opcodes     */
->  #define CFR_KASUMI	_AC(0x0000000000000004,UL) /* Supports KASUMI opcodes  */
-> diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-> index b82ef6262469..12c5b79b0e8f 100644
-> --- a/drivers/gpu/drm/drm_atomic_helper.c
-> +++ b/drivers/gpu/drm/drm_atomic_helper.c
-> @@ -751,7 +751,7 @@ crtc_set_mode(struct drm_device *dev, struct drm_atomic_state *old_state)
->   * This function shuts down all the outputs that need to be shut down and
->   * prepares them (if required) with the new mode.
->   *
-> - * For compatability with legacy crtc helpers this should be called before
-> + * For compatibility with legacy crtc helpers this should be called before
->   * drm_atomic_helper_commit_planes(), which is what the default commit function
->   * does. But drivers with different needs can group the modeset commits together
->   * and do the plane commits at the end. This is useful for drivers doing runtime
-> @@ -776,7 +776,7 @@ EXPORT_SYMBOL(drm_atomic_helper_commit_modeset_disables);
->   * This function enables all the outputs with the new configuration which had to
->   * be turned off for the update.
->   *
-> - * For compatability with legacy crtc helpers this should be called after
-> + * For compatibility with legacy crtc helpers this should be called after
->   * drm_atomic_helper_commit_planes(), which is what the default commit function
->   * does. But drivers with different needs can group the modeset commits together
->   * and do the plane commits at the end. This is useful for drivers doing runtime
-> diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
-> index 5d06c99b0e97..edadcc7eea6c 100644
-> --- a/drivers/media/dvb-frontends/au8522_dig.c
-> +++ b/drivers/media/dvb-frontends/au8522_dig.c
-> @@ -922,7 +922,7 @@ module_param(debug, int, 0644);
->  MODULE_PARM_DESC(debug, "Enable verbose debug messages");
->  
->  module_param(zv_mode, int, 0644);
-> -MODULE_PARM_DESC(zv_mode, "Turn on/off ZeeVee modulator compatability mode (default:on).\n"
-> +MODULE_PARM_DESC(zv_mode, "Turn on/off ZeeVee modulator compatibility mode (default:on).\n"
->  	"\t\ton - modified AU8522 QAM256 initialization.\n"
->  	"\t\tProvides faster lock when using ZeeVee modulator based sources");
->  
-> diff --git a/drivers/net/wireless/ipw2x00/ipw2100.h b/drivers/net/wireless/ipw2x00/ipw2100.h
-> index c6d78790cb0d..193947865efd 100644
-> --- a/drivers/net/wireless/ipw2x00/ipw2100.h
-> +++ b/drivers/net/wireless/ipw2x00/ipw2100.h
-> @@ -746,7 +746,7 @@ struct ipw2100_priv {
->  #define IPW_REG_GPIO			IPW_REG_DOMAIN_0_OFFSET + 0x0030
->  #define IPW_REG_FW_TYPE                 IPW_REG_DOMAIN_1_OFFSET + 0x0188
->  #define IPW_REG_FW_VERSION 		IPW_REG_DOMAIN_1_OFFSET + 0x018C
-> -#define IPW_REG_FW_COMPATABILITY_VERSION IPW_REG_DOMAIN_1_OFFSET + 0x0190
-> +#define IPW_REG_FW_COMPATIBILITY_VERSION IPW_REG_DOMAIN_1_OFFSET + 0x0190
->  
->  #define IPW_REG_INDIRECT_ADDR_MASK	0x00FFFFFC
->  
+This one is due to a code that got commented:
+	drivers/media/usb/usbvision/usbvision-video.c:1072 usbvision_read() warn: inconsistent indenting
+
+Probably the best here is to remove the commented code and fix 
+identation.
+
+This one seems a real bug, but fixing it would require some tests with 
+the hardware, and a better understanding on what the function should be 
+expecting to do when steal is NULL:
+	drivers/media/pci/ivtv/ivtv-queue.c:145 ivtv_queue_move() error: we previously assumed 'steal' could be null (see line 138)
+
+Mauro Carvalho Chehab (9):
+  [media] drxk: better handle errors
+  [media] em28xx: remove dead code
+  [media] sh_vou: avoid going past arrays
+  dib0090: Remove a dead code
+  [media] bt8xx: remove needless check
+  [media] ivtv: fix two smatch warnings
+  tm6000: remove needless check
+  [media] ir: Fix IR_MAX_DURATION enforcement
+  rc: set IR_MAX_DURATION to 500 ms
+
+ drivers/media/dvb-frontends/dib0090.c   |   4 +-
+ drivers/media/dvb-frontends/drxk_hard.c |   7 +-
+ drivers/media/pci/bt8xx/dst_ca.c        | 132 ++++++++++++++++----------------
+ drivers/media/pci/ivtv/ivtv-driver.h    |   3 +-
+ drivers/media/platform/sh_vou.c         |  14 ++--
+ drivers/media/rc/redrat3.c              |   5 +-
+ drivers/media/rc/streamzap.c            |   6 +-
+ drivers/media/usb/em28xx/em28xx-video.c |   1 -
+ drivers/media/usb/tm6000/tm6000-video.c |   2 +-
+ include/media/rc-core.h                 |   2 +-
+ 10 files changed, 87 insertions(+), 89 deletions(-)
+
+-- 
+2.4.2
+
