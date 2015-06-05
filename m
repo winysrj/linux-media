@@ -1,82 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54775 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbbFHTyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:58627 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422712AbbFEPEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 11:04:54 -0400
+Date: Fri, 5 Jun 2015 12:04:48 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+To: Sean Young <sean@mess.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
-Subject: [PATCH 17/26] [media] DocBook: add xrefs for enum fe_type
-Date: Mon,  8 Jun 2015 16:54:01 -0300
-Message-Id: <02391cd7fc77d9a8b77cd8ca67684b73ccaffcc5.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+	David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>,
+	Himangi Saraogi <himangi774@gmail.com>,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 08/11] [media] ir: Fix IR_MAX_DURATION enforcement
+Message-ID: <20150605120448.3d385b64@recife.lan>
+In-Reply-To: <20150605150043.GA3245@gofer.mess.org>
+References: <cover.1433514004.git.mchehab@osg.samsung.com>
+	<3de7135934d936e630a39a047bdf731a51713dd4.1433514004.git.mchehab@osg.samsung.com>
+	<20150605145538.GA3076@gofer.mess.org>
+	<20150605150043.GA3245@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The only enum that was missing xrefs at frontend.h is fe_type.
-Add xrefs for them.
+Em Fri, 05 Jun 2015 16:00:43 +0100
+Sean Young <sean@mess.org> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> On Fri, Jun 05, 2015 at 03:55:38PM +0100, Sean Young wrote:
+> > On Fri, Jun 05, 2015 at 11:27:41AM -0300, Mauro Carvalho Chehab wrote:
+> > > Don't assume that IR_MAX_DURATION is a bitmask. It isn't.
+> > 
+> > The patch is right, but note that IR_MAX_DURATION is 0xffffffff, and in
+> > all these cases it is being compared to a u32, so it is always false.
+> > 
+> > Should these statements simply be removed? None of the other drivers
+> > do these checks.
+> 
+> Sorry please ignore me, I should have read the whole patch series. :(
 
-diff --git a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-index 8523caf91a2c..8fadf3a4ba44 100644
---- a/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-+++ b/Documentation/DocBook/media/dvb/frontend_legacy_api.xml
-@@ -20,22 +20,22 @@
-   </thead>
-   <tbody valign="top">
-   <row>
--     <entry id="FE_QPSK"><constant>FE_QPSK</constant></entry>
-+     <entry id="FE-QPSK"><constant>FE_QPSK</constant></entry>
-      <entry>For DVB-S standard</entry>
-      <entry><constant>SYS_DVBS</constant></entry>
-   </row>
-   <row>
--     <entry id="FE_QAM"><constant>FE_QAM</constant></entry>
-+     <entry id="FE-QAM"><constant>FE_QAM</constant></entry>
-      <entry>For DVB-C annex A standard</entry>
-      <entry><constant>SYS_DVBC_ANNEX_A</constant></entry>
-   </row>
-   <row>
--     <entry id="FE_OFDM"><constant>FE_OFDM</constant></entry>
-+     <entry id="FE-OFDM"><constant>FE_OFDM</constant></entry>
-      <entry>For DVB-T standard</entry>
-      <entry><constant>SYS_DVBT</constant></entry>
-   </row>
-   <row>
--     <entry id="FE_ATSC"><constant>FE_ATSC</constant></entry>
-+     <entry id="FE-ATSC"><constant>FE_ATSC</constant></entry>
-      <entry>For ATSC standard (terrestrial) or for DVB-C Annex B (cable) used in US.</entry>
-      <entry><constant>SYS_ATSC</constant> (terrestrial) or <constant>SYS_DVBC_ANNEX_B</constant> (cable)</entry>
-   </row>
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 66499f238204..a36d802fae0c 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -28,12 +28,14 @@
- 
- #include <linux/types.h>
- 
--typedef enum fe_type {
-+enum fe_type {
- 	FE_QPSK,
- 	FE_QAM,
- 	FE_OFDM,
- 	FE_ATSC
--} fe_type_t;
-+};
-+
-+typedef enum fe_type fe_type_t;
- 
- 
- enum fe_caps {
--- 
-2.4.2
+Yeah, patch 9/11 addresses it. We'll very likely need a check against
+a maximum value. The Y2038 patches converting several timestamps to 64 bits.
 
+Regards,
+Mauro
