@@ -1,189 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34141 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511AbbFCIlb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 04:41:31 -0400
-Date: Wed, 3 Jun 2015 09:41:15 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-Message-ID: <20150603084115.GC7557@n2100.arm.linux.org.uk>
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org>
- <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org>
- <54DB12B5.4080000@samsung.com>
- <20150211111258.GP8656@n2100.arm.linux.org.uk>
- <54DB4908.10004@samsung.com>
- <20150211162312.GR8656@n2100.arm.linux.org.uk>
- <CAO_48GHf=Zt7Ju=N=FAVfaudApSV+rSfb+Wou7L1Dh3egULm9g@mail.gmail.com>
- <556EA13B.7080306@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <556EA13B.7080306@xs4all.nl>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49820 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752055AbbFEK7z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2015 06:59:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 08/10] sh-vou: let sh_vou_s_fmt_vid_out call sh_vou_try_fmt_vid_out
+Date: Fri,  5 Jun 2015 12:59:24 +0200
+Message-Id: <1433501966-30176-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 03, 2015 at 08:39:55AM +0200, Hans Verkuil wrote:
-> Hi Sumit,
-> 
-> On 05/05/2015 04:41 PM, Sumit Semwal wrote:
-> > Hi Russell, everyone,
-> > 
-> > First up, sincere apologies for being awol for sometime; had some
-> > personal / medical things to take care of, and then I thought I'd wait
-> > for the merge window to get over before beginning to discuss this
-> > again.
-> > 
-> > On 11 February 2015 at 21:53, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> >> On Wed, Feb 11, 2015 at 01:20:24PM +0100, Marek Szyprowski wrote:
-> >>> Hello,
-> >>>
-> >>> On 2015-02-11 12:12, Russell King - ARM Linux wrote:
-> >>>> Which is a damn good reason to NAK it - by that admission, it's a half-baked
-> >>>> idea.
-> >>>>
-> >>>> If all we want to know is whether the importer can accept only contiguous
-> >>>> memory or not, make a flag to do that, and allow the exporter to test this
-> >>>> flag.  Don't over-engineer this to make it _seem_ like it can do something
-> >>>> that it actually totally fails with.
-> >>>>
-> >>>> As I've already pointed out, there's a major problem if you have already
-> >>>> had a less restrictive attachment which has an active mapping, and a new
-> >>>> more restrictive attachment comes along later.
-> >>>>
-> >>>> It seems from Rob's descriptions that we also need another flag in the
-> >>>> importer to indicate whether it wants to have a valid struct page in the
-> >>>> scatter list, or whether it (correctly) uses the DMA accessors on the
-> >>>> scatter list - so that exporters can reject importers which are buggy.
-> >>>
-> >>> Okay, but flag-based approach also have limitations.
-> >>
-> >> Yes, the flag-based approach doesn't let you describe in detail what
-> >> the importer can accept - which, given the issues that I've raised
-> >> is a *good* thing.  We won't be misleading anyone into thinking that
-> >> we can do something that's really half-baked, and which we have no
-> >> present requirement for.
-> >>
-> >> This is precisely what Linus talks about when he says "don't over-
-> >> engineer" - if we over-engineer this, we end up with something that
-> >> sort-of works, and that's a bad thing.
-> >>
-> >> The Keep It Simple approach here makes total sense - what are our
-> >> current requirements - to be able to say that an importer can only accept:
-> >>   - contiguous memory rather than a scatterlist
-> >>   - scatterlists with struct page pointers
-> >>
-> >> Does solving that need us to compare all the constraints of each and
-> >> every importer, possibly ending up with constraints which can't be
-> >> satisfied?  No.  Does the flag approach satisfy the requirements?  Yes.
-> >>
-> > 
-> > So, for basic constraint-sharing, we'll just go with the flag based
-> > approach, with a flag (best place for it is still dev->dma_params I
-> > suppose) for denoting contiguous or scatterlist. Is that agreed, then?
-> > Also, with this idea, of course, there won't be any helpers for trying
-> > to calculate constraints; it would be totally the exporter's
-> > responsibility to handle it via the attach() dma_buf_op if it wishes
-> > to.
-> 
-> What's wrong with the proposed max_segment_count? Many media devices do
-> have a limited max_segment_count and that should be taken into account.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So what happens if you have a dma_buf exporter, and several dma_buf
-importers.  One dma_buf importer attaches to the exporter, and asks
-for the buffer, and starts making use of the buffer.  This export has
-many scatterlist segments.
+This ensures that both do the same checks, and simplifies s_fmt_vid_out
+a bit.
 
-Another dma_buf importer attaches to the same buffer, and now asks for
-the buffer, but the number of scatterlist segments exceeds it's
-requirement.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/sh_vou.c | 86 +++++++++++++++++++----------------------
+ 1 file changed, 40 insertions(+), 46 deletions(-)
 
-You can't reallocate the buffer because it's in-use by another importer.
-There is no way to revoke the buffer from the other importer.  So there
-is no way to satisfy this importer's requirements.
-
-What I'm showing is that the idea that exporting these parameters fixes
-some problem is just an illusion - it may work for the single importer
-case, but doesn't for the multiple importer case.
-
-Importers really have two choices here: either they accept what the
-exporter is giving them, or they reject it.
-
-The other issue here is that DMA scatterlists are _not_ really that
-determinable in terms of number of entries when it comes to systems with
-system IOMMUs.  System IOMMUs, which should be integrated into the DMA
-API, are permitted to coalesce entries in the physical page range.  For
-example:
-
-	nsg = 128;
-	n = dma_map_sg(dev, sg, nsg, DMA_TO_DEVICE);
-
-Here, n might be 4 if the system IOMMU has been able to coalesce the 128
-entries down to 4 IOMMU entries - and that means for DMA purposes, only
-the first four scatterlist entries should be walked (this is why
-dma_map_sg() returns a positive integer when mapping.)
-
-Each struct device has a set of parameters which control how the IOMMU
-entries are coalesced:
-
-struct device_dma_parameters {
-        /*
-         * a low level driver may set these to teach IOMMU code about
-         * sg limitations.
-         */
-        unsigned int max_segment_size;
-        unsigned long segment_boundary_mask;
-};
-
-and this is independent of the dma_buf API.  This doesn't indicate the
-maximum number of segments, but as I've shown above, it's not something
-that you can say "I want a scatterlist for this memory with only 32
-segments" so it's totally unclear how an exporter would limit that.
-
-The only thing an exporter could do would be to fail the export if the
-buffer didn't end up having fewer than the requested scatterlist entries,
-which is something the importer can do too.
-
-> One of the main problems end-users are faced with today is that they do not
-> know which device should be the exporter of buffers and which should be the
-> importer. This depends on the constraints and right now applications have
-> no way of knowing this. It's nuts that this hasn't been addressed yet since
-> it is the main complaint I am getting.
-
-IT's nuts that we've ended up in this situation in the first place.  This
-was bound to happen as soon as the dma_buf sharing was introduced, because
-it immediately introduced this problem.  I don't think there is any easy
-solution to it, and what's being proposed with flags and other stuff is
-just trying to paper over the problem.
-
-What you're actually asking is that each dmabuf exporting subsystem needs
-to publish their DMA parameters to userspace, and userspace then gets to
-decide which dmabuf exporter should be used.
-
-That's not a dmabuf problem, that's a subsystem problem, but even so, we
-don't have a standardised way to export that information (and I'd suspect
-that it would be very difficult to get agreements between subsystems on
-a standard ioctl and/or data structure.)  In my experience, getting cross-
-subsystem agreement in the kernel with anything is very difficult, you
-normally end up with 60% of people agreeing, and the other 40% going off
-and doing something completely different because they object to it
-(figures vary, 90% of all statistics are made up on the spot!)
-
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 400efec..489d045 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -675,34 +675,19 @@ static void vou_adjust_output(struct sh_vou_geometry *geo, v4l2_std_id std)
+ 		 vou_scale_v_num[idx], vou_scale_v_den[idx], best);
+ }
+ 
+-static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
+-				struct v4l2_format *fmt)
++static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
++				  struct v4l2_format *fmt)
+ {
+ 	struct sh_vou_device *vou_dev = video_drvdata(file);
+ 	struct v4l2_pix_format *pix = &fmt->fmt.pix;
+ 	unsigned int img_height_max;
+ 	int pix_idx;
+-	struct sh_vou_geometry geo;
+-	struct v4l2_subdev_format format = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-		/* Revisit: is this the correct code? */
+-		.format.code = MEDIA_BUS_FMT_YUYV8_2X8,
+-		.format.field = V4L2_FIELD_INTERLACED,
+-		.format.colorspace = V4L2_COLORSPACE_SMPTE170M,
+-	};
+-	struct v4l2_mbus_framefmt *mbfmt = &format.format;
+-	int ret;
+-
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u -> %ux%u\n", __func__,
+-		vou_dev->rect.width, vou_dev->rect.height,
+-		pix->width, pix->height);
+ 
+-	if (pix->field == V4L2_FIELD_ANY)
+-		pix->field = V4L2_FIELD_NONE;
++	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+ 
+-	if (fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
+-	    pix->field != V4L2_FIELD_NONE)
+-		return -EINVAL;
++	pix->field = V4L2_FIELD_INTERLACED;
++	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	pix->ycbcr_enc = pix->quantization = 0;
+ 
+ 	for (pix_idx = 0; pix_idx < ARRAY_SIZE(vou_fmt); pix_idx++)
+ 		if (vou_fmt[pix_idx].pfmt == pix->pixelformat)
+@@ -716,9 +701,37 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
+ 	else
+ 		img_height_max = 576;
+ 
+-	/* Image width must be a multiple of 4 */
+ 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
+ 			      &pix->height, 0, img_height_max, 1, 0);
++	pix->bytesperline = pix->width * 2;
++
++	return 0;
++}
++
++static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *fmt)
++{
++	struct sh_vou_device *vou_dev = video_drvdata(file);
++	struct v4l2_pix_format *pix = &fmt->fmt.pix;
++	unsigned int img_height_max;
++	struct sh_vou_geometry geo;
++	struct v4l2_subdev_format format = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++		/* Revisit: is this the correct code? */
++		.format.code = MEDIA_BUS_FMT_YUYV8_2X8,
++		.format.field = V4L2_FIELD_INTERLACED,
++		.format.colorspace = V4L2_COLORSPACE_SMPTE170M,
++	};
++	struct v4l2_mbus_framefmt *mbfmt = &format.format;
++	int ret = sh_vou_try_fmt_vid_out(file, priv, fmt);
++	int pix_idx;
++
++	if (ret)
++		return ret;
++
++	for (pix_idx = 0; pix_idx < ARRAY_SIZE(vou_fmt); pix_idx++)
++		if (vou_fmt[pix_idx].pfmt == pix->pixelformat)
++			break;
+ 
+ 	geo.in_width = pix->width;
+ 	geo.in_height = pix->height;
+@@ -737,6 +750,11 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
+ 	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u -> %ux%u\n", __func__,
+ 		geo.output.width, geo.output.height, mbfmt->width, mbfmt->height);
+ 
++	if (vou_dev->std & V4L2_STD_525_60)
++		img_height_max = 480;
++	else
++		img_height_max = 576;
++
+ 	/* Sanity checks */
+ 	if ((unsigned)mbfmt->width > VOU_MAX_IMAGE_WIDTH ||
+ 	    (unsigned)mbfmt->height > img_height_max ||
+@@ -769,30 +787,6 @@ static int sh_vou_s_fmt_vid_out(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
+-				  struct v4l2_format *fmt)
+-{
+-	struct sh_vou_device *vou_dev = video_drvdata(file);
+-	struct v4l2_pix_format *pix = &fmt->fmt.pix;
+-	int i;
+-
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+-
+-	fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	pix->field = V4L2_FIELD_NONE;
+-
+-	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 1,
+-			      &pix->height, 0, VOU_MAX_IMAGE_HEIGHT, 1, 0);
+-
+-	for (i = 0; i < ARRAY_SIZE(vou_fmt); i++)
+-		if (vou_fmt[i].pfmt == pix->pixelformat)
+-			return 0;
+-
+-	pix->pixelformat = vou_fmt[0].pfmt;
+-
+-	return 0;
+-}
+-
+ static int sh_vou_reqbufs(struct file *file, void *priv,
+ 			  struct v4l2_requestbuffers *req)
+ {
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.1.4
+
