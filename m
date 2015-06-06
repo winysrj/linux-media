@@ -1,65 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39797 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932608AbbFEQDQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 12:03:16 -0400
-From: Laura Abbott <labbott@fedoraproject.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laura Abbott <labbott@fedoraproject.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] v4l2-ioctl: Give more information when device_caps are missing
-Date: Fri,  5 Jun 2015 09:03:11 -0700
-Message-Id: <1433520191-21800-1-git-send-email-labbott@fedoraproject.org>
-In-Reply-To: <557185AE.7080409@xs4all.nl>
+Received: from wp210.webpack.hosteurope.de ([80.237.132.217]:44962 "EHLO
+	wp210.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932491AbbFFUR5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 16:17:57 -0400
+From: =?UTF-8?q?Jan=20Kl=C3=B6tzke?= <jan@kloetzke.net>
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Cc: abraham.manu@gmail.com
+Subject: [PATCH 0/5] [media] mantis: add remote control support
+Date: Sat,  6 Jun 2015 21:58:08 +0200
+Message-Id: <1433620693-6235-1-git-send-email-jan@kloetzke.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, the warning for missing device_caps gives a backtrace like so:
+Hi Mauro,
 
-[<ffffffff8175c199>] dump_stack+0x45/0x57
-[<ffffffff8109ad5a>] warn_slowpath_common+0x8a/0xc0
-[<ffffffff8109ae8a>] warn_slowpath_null+0x1a/0x20
-[<ffffffffa0237453>] v4l_querycap+0x43/0x80 [videodev]
-[<ffffffffa0237734>] __video_do_ioctl+0x2a4/0x320 [videodev]
-[<ffffffff812207e5>] ? do_last+0x195/0x1210
-[<ffffffffa023a11e>] video_usercopy+0x22e/0x5b0 [videodev]
-[<ffffffffa0237490>] ? v4l_querycap+0x80/0x80 [videodev]
-[<ffffffffa023a4b5>] video_ioctl2+0x15/0x20 [videodev]
-[<ffffffffa0233733>] v4l2_ioctl+0x113/0x150 [videodev]
-[<ffffffff81225798>] do_vfs_ioctl+0x2f8/0x4f0
-[<ffffffff8113b2d4>] ? __audit_syscall_entry+0xb4/0x110
-[<ffffffff81022d7c>] ? do_audit_syscall_entry+0x6c/0x70
-[<ffffffff81225a11>] SyS_ioctl+0x81/0xa0
-[<ffffffff8113b526>] ? __audit_syscall_exit+0x1f6/0x2a0
-[<ffffffff81763549>] system_call_fastpath+0x12/0x17
+I am re-submitting my patch for remote control support of mantis based DVB
+cards for the 3rd time. The last submission can be found here [1]. It has been
+rebased and tested on v4.0. It has been working fine on my HTPC for almost
+three years now. Compared to the previous submission I've split the patch into
+the individual rc key tables and the actual mantis rc support.
 
-This indicates that device_caps are missing but doesn't give
-much of a clue which driver is actually at fault. Improve
-the warning output by showing the capabilities and the
-responsible driver.
+I am really hoping that the patch will be applied this time. These cards are
+still in use and people have to patch their kernel to get them fully working.
+I recently got some feedback that it is working for other too.
 
-Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+This patch has been tested on a TechniSat CableStar HD2. Other rc-maps were
+taken from Christoph Pinkl's patch [2] and the s2-liplianin repository. The
+major difference to Christoph's patch is a reworked interrupt handling of the
+UART because the RX interrupt is apparently level triggered and requires
+masking until the FIFO is read by the UART worker.
+
+Tested-by: Thomas Müller <mailaccountfueralles@gmx.de>
+
+[1] https://patchwork.linuxtv.org/patch/26321/
+[2] http://patchwork.linuxtv.org/patch/7217/
+
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index aa407cb..f7cd17d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1023,8 +1023,9 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 	 * Drivers MUST fill in device_caps, so check for this and
- 	 * warn if it was forgotten.
- 	 */
--	WARN_ON(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
--		!cap->device_caps);
-+	WARN(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
-+		!cap->device_caps, "Bad caps for driver %s, %x %x",
-+		cap->driver, cap->capabilities, cap->device_caps);
- 	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
- 
- 	return ret;
--- 
-2.4.1
+ drivers/media/pci/mantis/hopper_cards.c            |  13 ++-
+ drivers/media/pci/mantis/mantis_cards.c            |  60 +++++++++---
+ drivers/media/pci/mantis/mantis_common.h           |  33 ++++++-
+ drivers/media/pci/mantis/mantis_dma.c              |   5 +-
+ drivers/media/pci/mantis/mantis_i2c.c              |   8 +-
+ drivers/media/pci/mantis/mantis_input.c            | 106 ++++-----------------
+ drivers/media/pci/mantis/mantis_input.h            |  28 ++++++
+ drivers/media/pci/mantis/mantis_pcmcia.c           |   4 +-
+ drivers/media/pci/mantis/mantis_uart.c             |  62 ++++++------
+ drivers/media/rc/keymaps/Makefile                  |   4 +
+ drivers/media/rc/keymaps/rc-technisat-ts35.c       |  76 +++++++++++++++
+ .../media/rc/keymaps/rc-terratec-cinergy-c-pci.c   |  88 +++++++++++++++++
+ .../media/rc/keymaps/rc-terratec-cinergy-s2-hd.c   |  86 +++++++++++++++++
+ drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c   |  98 +++++++++++++++++++
+ include/media/rc-map.h                             |   4 +
+ 15 files changed, 526 insertions(+), 149 deletions(-)
 
