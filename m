@@ -1,107 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49447 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbbFSGHb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 02:07:31 -0400
-Message-ID: <5583B18C.7020303@xs4all.nl>
-Date: Fri, 19 Jun 2015 08:07:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 2/2] v4l2-utils: extend set-dv-timing options for
- RB version
-References: <1434447031-21434-1-git-send-email-prladdha@cisco.com> <1434447031-21434-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1434447031-21434-3-git-send-email-prladdha@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:42047 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736AbbFFMDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 08:03:21 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/9] v4l2: add RF gain control
+Date: Sat,  6 Jun 2015 15:03:01 +0300
+Message-Id: <1433592188-31748-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
+References: <1433592188-31748-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/16/2015 11:30 AM, Prashant Laddha wrote:
-> To support the timings calculations for reduced blanking version 2
-> (RB v2), extended the command line options to include flag indicating
-> whether to use RB V2 or not. Updated the command usage for the same.
-> 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
-> ---
->  utils/v4l2-ctl/v4l2-ctl-stds.cpp | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-> index c0e919b..9734c80 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-> @@ -41,7 +41,10 @@ void stds_usage(void)
->  	       "                     index=<index>: use the index as provided by --list-dv-timings\n"
->  	       "                     or specify timings using cvt/gtf options as follows:\n"
->  	       "                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>\n"
-> -	       "                     interlaced=<0/1>,reduced-blanking=<0/1>\n"
-> +	       "                     interlaced=<0/1>,reduced-blanking=<0/1>,use-rb-v2=<0/1>\n"
-> +	       "                     use-rb-v2 indicates whether to use reduced blanking version 2\n"
-> +	       "                     or not. This flag is relevant only for cvt timings and has\n"
-> +	       "                     effect only if reduced-blanking=1\n"
+Add new RF tuner gain control named RF gain. That is aimed for
+external LNA (amplifier) chip just right after antenna connector.
 
-Why not just allow a value of 2 for the reduced-blanking argument instead
-of introducing a new argument? For gtf 1 and 2 mean the same thing, for cvt 1
-will use the standard RB and 2 RBv2.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ include/uapi/linux/v4l2-controls.h   | 2 ++
+ 2 files changed, 6 insertions(+)
 
-Seems simpler to me. It also means that calc_cvt_modeline doesn't need a new
-argument, just that bool reduced_blanking becomes int reduced_blanking.
-
-Other than this it looks good to me.
-
-Regards,
-
-	Hans
-
->  	       "                     or give a fully specified timings:\n"
->  	       "                     width=<width>,height=<height>,interlaced=<0/1>,\n"
->  	       "                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,\n"
-> @@ -148,6 +151,7 @@ enum timing_opts {
->  	GTF,
->  	FPS,
->  	REDUCED_BLANK,
-> +	USE_RB_V2,
->  };
->  
->  static int parse_timing_subopt(char **subopt_str, int *value)
-> @@ -175,6 +179,7 @@ static int parse_timing_subopt(char **subopt_str, int *value)
->  		"gtf",
->  		"fps",
->  		"reduced-blanking",
-> +		"use-rb-v2",
->  		NULL
->  	};
->  
-> @@ -205,6 +210,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
->  	int fps = 0;
->  	int r_blank = 0;
->  	int interlaced = 0;
-> +	int use_rb_v2 = 0;
->  
->  	bool timings_valid = false;
->  
-> @@ -231,6 +237,8 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
->  		case INTERLACED:
->  			interlaced = opt_val;
->  			break;
-> +		case USE_RB_V2:
-> +			use_rb_v2 = opt_val;
->  		default:
->  			break;
->  		}
-> @@ -240,7 +248,8 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
->  		timings_valid = calc_cvt_modeline(width, height, fps,
->  			              r_blank == 1 ? true : false,
->  			              interlaced == 1 ? true : false,
-> -			              false, bt);
-> +			              use_rb_v2 == 1 ? true : false,
-> +			              bt);
->  	} else {
->  		timings_valid = calc_gtf_modeline(width, height, fps,
->  			              r_blank == 1 ? true : false,
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e3a3468..0fc34b8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+ 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
++	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
++	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
+@@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 	case V4L2_CID_RDS_RECEPTION:
++	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
+ 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
+@@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_FREQUENCY:
+ 	case V4L2_CID_TUNE_POWER_LEVEL:
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
++	case V4L2_CID_RF_TUNER_RF_GAIN:
+ 	case V4L2_CID_RF_TUNER_LNA_GAIN:
+ 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
+ 	case V4L2_CID_RF_TUNER_IF_GAIN:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 9f6e108..87539be 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -932,6 +932,8 @@ enum v4l2_deemphasis {
+ 
+ #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
+ #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
++#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
++#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
+ #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
+ #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
+ #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
+-- 
+http://palosaari.fi/
 
