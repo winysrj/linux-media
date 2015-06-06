@@ -1,73 +1,48 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v3 08/19] v4l2-subdev: Add g_def_ext_ctrls to core_ops
-Date: Fri, 12 Jun 2015 18:46:27 +0200
-Message-id: <1434127598-11719-9-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:60179 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbbFFV3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 17:29:01 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 0/4] media: pxa_camera conversion to dmaengine
+References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
+	<87oal5zvez.fsf@belgarion.home>
+Date: Sat, 06 Jun 2015 23:27:24 +0200
+In-Reply-To: <87oal5zvez.fsf@belgarion.home> (Robert Jarzmik's message of
+	"Wed, 27 May 2015 21:12:52 +0200")
+Message-ID: <87sia44jer.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function returns the default value of an extended control. Provides
-sub-devices with the same functionality as ioctl VIDIOC_G_DEF_EXT_CTRLS.
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 7 +++++++
- include/media/v4l2-ctrls.h           | 2 ++
- include/media/v4l2-subdev.h          | 2 ++
- 3 files changed, 11 insertions(+)
+> Robert Jarzmik <robert.jarzmik@free.fr> writes:
+>
+>> Hi Guennadi,
+>>
+>> I've been cooking this since 2012. At that time, I thought the dmaengine API was
+>> not rich enough to support the pxa_camera subtleties (or complexity).
+>>
+>> I was wrong. I submitted a driver to Vinod for a dma pxa driver which would
+>> support everything needed to make pxa_camera work normally.
+>>
+>> As a consequence, I wrote this serie. Should the pxa-dma driver be accepted,
+>> then this serie will be my next move towards pxa conversion to dmaengine. And to
+>> parallelize the review work, I'll submit it right away to receive a review and
+>> fix pxa_camera so that it is ready by the time pxa-dma is also reviewed.
+> Hi Guennadi,
+>
+> Any update on this serie ? The pxa-dma driver is upstreamed now.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 02ff6f573fd2..2a42b826f857 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2888,6 +2888,13 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
- }
- EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
- 
-+int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
-+				struct v4l2_ext_controls *cs)
-+{
-+	return v4l2_g_ext_ctrls(sd->ctrl_handler, cs, true);
-+}
-+EXPORT_SYMBOL(v4l2_subdev_g_def_ext_ctrls);
-+
- /* Helper function to get a single control */
- static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
- {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 16f16b67181b..61e6cd67fc10 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -823,6 +823,8 @@ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc);
- int v4l2_subdev_querymenu(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
- int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
-+int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
-+				struct v4l2_ext_controls *cs);
- int v4l2_subdev_try_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index dc20102ff600..01b3354942cf 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -158,6 +158,8 @@ struct v4l2_subdev_core_ops {
- 	int (*g_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
- 	int (*s_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
- 	int (*g_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
-+	int (*g_def_ext_ctrls)(struct v4l2_subdev *sd,
-+			       struct v4l2_ext_controls *ctrls);
- 	int (*s_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
- 	int (*try_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
- 	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+Guennadi, are you around ?
+
+Cheers.
+
 -- 
-2.1.4
+Robert
