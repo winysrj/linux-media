@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <luciano.faletti@hotmail.com>) id 1Z0GHf-0003UX-Qb
-	for linux-dvb@linuxtv.org; Wed, 03 Jun 2015 23:33:16 +0200
-Received: from blu004-omc3s24.hotmail.com ([65.55.116.99])
+	(envelope-from <severe.siberian.man@mail.ru>) id 1Z13K4-0004Yg-L3
+	for linux-dvb@linuxtv.org; Sat, 06 Jun 2015 03:54:57 +0200
+Received: from f396.i.mail.ru ([185.5.136.67])
 	by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
-	[UNKNOWN:AES256-SHA256:256] for <linux-dvb@linuxtv.org>
-	id 1Z0GHd-00058p-7I; Wed, 03 Jun 2015 23:33:10 +0200
-Message-ID: <BLU185-W6304EA5BA0F2C9BB8CEF26F5B40@phx.gbl>
-From: Luciano Faletti <luciano.faletti@hotmail.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Wed, 3 Jun 2015 18:31:41 -0300
+	[UNKNOWN:AES256-GCM-SHA384:256] for <linux-dvb@linuxtv.org>
+	id 1Z13K2-0006MV-7V; Sat, 06 Jun 2015 03:54:55 +0200
+Received: from [171.33.253.112] (ident=mail)
+	by f396.i.mail.ru with local (envelope-from
+	<severe.siberian.man@mail.ru>) id 1Z13Jz-0001bL-PV
+	for linux-dvb@linuxtv.org; Sat, 06 Jun 2015 04:54:52 +0300
+From: =?UTF-8?B?U2V2ZXJlIFNpYmVyaWFu?= <severe.siberian.man@mail.ru>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: [linux-dvb] Geniatech Mygica S2870 STK8096-PVR drivers
-Reply-To: linux-media@vger.kernel.org
+Date: Sat, 06 Jun 2015 04:54:51 +0300
+Message-ID: <1433555691.386561465@f396.i.mail.ru>
+Subject: [linux-dvb] =?utf-8?q?New_Si2168_B40_frimware=2E?=
+Reply-To: linux-media@vger.kernel.org,
+	=?UTF-8?B?U2V2ZXJlIFNpYmVyaWFu?= <severe.siberian.man@mail.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,91 +26,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0177361534=="
+Content-Type: multipart/mixed; boundary="===============1035928577=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0177361534==
+
+--===============1035928577==
 Content-Type: multipart/alternative;
-	boundary="_63f116b3-f66e-4d7e-8616-05f6352a9cfc_"
-
---_63f116b3-f66e-4d7e-8616-05f6352a9cfc_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hi folks=2C
-
-I had acquired Geniatech Mygica S2870 usb for digital TV. Installed the lat=
-est dvb drivers from http://git.linuxtv.org/media_build.git .
-However=2C it doesn't seem to load the drivers when plugged in. No /dev/dvb=
- devices are created.
-Below is the output I get when plugging in=2C which shows no module is load=
-ed:
-
-[  198.762635] usb 3-2: new high-speed USB device number 3 using xhci_hcd
-[  198.779253] usb 3-2: New USB device found=2C idVendor=3D10b8=2C idProduc=
-t=3D1faa
-[  198.779261] usb 3-2: New USB device strings: Mfr=3D1=2C Product=3D2=2C S=
-erialNumber=3D3
-[  198.779265] usb 3-2: Product: STK8096-PVR
-[  198.779267] usb 3-2: Manufacturer: Geniatech
-[  198.779270] usb 3-2: SerialNumber: 1
-
-Same issue was reported here
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/8=
-7747
-
-Do you have any update if this device would work=2C and how?
-
-I'm on Ubuntu with linux kernel 3.13.0-53-generic.
-
-Thanks in advance=2C
-Luciano
- 		 	   		  =
-
---_63f116b3-f66e-4d7e-8616-05f6352a9cfc_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style><!--
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 12pt=3B
-font-family:Calibri
-}
---></style></head>
-<body class=3D'hmmessage'><div dir=3D'ltr'>Hi folks=2C<br><br>I had acquire=
-d Geniatech Mygica S2870 usb for digital TV. Installed the latest dvb drive=
-rs from <a href=3D"http://git.linuxtv.org/media_build.git" target=3D"_blank=
-" class=3D"c_nobdr t_prs">http://git.linuxtv.org/media_build.git</a> .<br>H=
-owever=2C it doesn't seem to load the drivers when plugged in. No /dev/dvb =
-devices are created.<br>Below is the output I get when plugging in=2C which=
- shows no module is loaded:<br><br>[&nbsp=3B 198.762635] usb 3-2: new high-=
-speed USB device number 3 using xhci_hcd<br>[&nbsp=3B 198.779253] usb 3-2: =
-New USB device found=2C idVendor=3D10b8=2C idProduct=3D1faa<br>[&nbsp=3B 19=
-8.779261] usb 3-2: New USB device strings: Mfr=3D1=2C Product=3D2=2C Serial=
-Number=3D3<br>[&nbsp=3B 198.779265] usb 3-2: Product: STK8096-PVR<br>[&nbsp=
-=3B 198.779267] usb 3-2: Manufacturer: Geniatech<br>[&nbsp=3B 198.779270] u=
-sb 3-2: SerialNumber: 1<br><br>Same issue was reported here<br><a href=3D"h=
-ttp://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/87=
-747" target=3D"_blank">http://permalink.gmane.org/gmane.linux.drivers.video=
--input-infrastructure/87747</a><br><br>Do you have any update if this devic=
-e would work=2C and how?<br><br>I'm on Ubuntu with linux kernel 3.13.0-53-g=
-eneric.<br><br>Thanks in advance=2C<br>Luciano<br> 		 	   		  </div></body>
-</html>=
-
---_63f116b3-f66e-4d7e-8616-05f6352a9cfc_--
+	boundary="--ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691"
 
 
---===============0177361534==
+----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+IEhpLAoKWWVzdGVyZGF5IEkgZXh0cmFjdGVkIGEgbmV3IGZpcm13YXJlIGZvciBTaTIxNjggQjQw
+IHJldi4gZnJvbSBXaW5kb3dzIGRyaXZlci4KSXQncyBkZXNpZ25lZCBmb3IgUk9NIHZlcnNpb24g
+NC4wLjIgYW5kIGhhcyBhIHZlcnNpb24gYnVpbGQgNC4wLjE5CkhlcmUgaXMgYSBuYW1lIG9mIGZp
+bGU6ZHZiLWRlbW9kLXNpMjE2OC1iNDAtcm9tNF8wXzItcGF0Y2gtYnVpbGQ0XzBfMTkuZncudGFy
+Lmd6CkFuZCBhIGxpbmsgZm9yIGRvd25sb2FkOiAgaHR0cDovL2JlaG9sZGVyLnJ1L2JiL2Rvd25s
+b2FkL2ZpbGUucGhwP2lkPTg1NApBbnlib2R5IHdhbnQgdG8gdGVzdCBpdD8gVW5mb3J0dW5hdGVs
+eSwgSSBjYW4gbm90IGRvIGl0IG15c2VsZiwgYmVjYXVzZSBJIGRvIG5vdCBvd24gaGFyZHdhcmUg
+d2l0aCBCNDAgcmV2aXNpb24uCgpCZXN0IHJlZ2FyZHMuCg==
+
+----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+
+CjxIVE1MPjxCT0RZPkhpLDxicj4KPGJyPgpZZXN0ZXJkYXkgSSBleHRyYWN0ZWQgYSBuZXcgZmly
+bXdhcmUgZm9yIFNpMjE2OCBCNDAgcmV2LiBmcm9tIFdpbmRvd3MgZHJpdmVyLjxicj4KSXQncyBk
+ZXNpZ25lZCBmb3IgUk9NIHZlcnNpb24gNC4wLjIgYW5kIGhhcyBhIHZlcnNpb24gYnVpbGQgNC4w
+LjE5PGJyPgpIZXJlIGlzIGEgbmFtZSBvZiBmaWxlOmR2Yi1kZW1vZC1zaTIxNjgtYjQwLXJvbTRf
+MF8yLXBhdGNoLWJ1aWxkNF8wXzE5LmZ3LnRhci5nejxicj4KQW5kIGEgbGluayBmb3IgZG93bmxv
+YWQ6IDxhIGhyZWY9Imh0dHA6Ly9iZWhvbGRlci5ydS9iYi9kb3dubG9hZC9maWxlLnBocD9pZD04
+NTQiIHRhcmdldD0iX2JsYW5rIj5odHRwOi8vYmVob2xkZXIucnUvYmIvZG93bmxvYWQvZmlsZS5w
+aHA/aWQ9ODU0PC9hPjxicj4KQW55Ym9keSB3YW50IHRvIHRlc3QgaXQ/IFVuZm9ydHVuYXRlbHks
+IEkgY2FuIG5vdCBkbyBpdCBteXNlbGYsIGJlY2F1c2UgSSBkbyBub3Qgb3duIGhhcmR3YXJlIHdp
+dGggQjQwIHJldmlzaW9uLjxicj48YnI+QmVzdCByZWdhcmRzLjxicj48L0JPRFk+PC9IVE1MPgo=
+
+----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691--
+
+
+--===============1035928577==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -116,4 +79,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0177361534==--
+--===============1035928577==--
