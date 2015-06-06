@@ -1,52 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:32801 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbbFIBEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 21:04:12 -0400
-Received: by padev16 with SMTP id ev16so2884089pad.0
-        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 18:04:12 -0700 (PDT)
-Message-ID: <55763B8D.4060107@igel.co.jp>
-Date: Tue, 09 Jun 2015 10:04:13 +0900
-From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Received: from mail.kapsi.fi ([217.30.184.167]:38533 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904AbbFFRnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 13:43:18 -0400
+Message-ID: <55733133.6050502@iki.fi>
+Date: Sat, 06 Jun 2015 20:43:15 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] V4L2 codecs in user space
-References: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>	 <55751D44.6010102@igel.co.jp> <1433771439.480.2.camel@collabora.com>
-In-Reply-To: <1433771439.480.2.camel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: Unembossed Name <severe.siberian.man@mail.ru>,
+	linux-media@vger.kernel.org
+Subject: Re: Si2168 B40 frimware.
+References: <0448C37B97FE43E6A8CD61968C10E73F@unknown>
+In-Reply-To: <0448C37B97FE43E6A8CD61968C10E73F@unknown>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+On 06/06/2015 06:28 AM, Unembossed Name wrote:
+> Hi,
+>
+> Yesterday I extracted a new firmware for Si2168 B40 rev. from Windows
+> driver.
+> It's designed for ROM version 4.0.2 and has a version build 4.0.19
+> Here is a name of
+> file:dvb-demod-si2168-b40-rom4_0_2-patch-build4_0_19.fw.tar.gz
+> And a link for download: http://beholder.ru/bb/download/file.php?id=854
+> Anybody want to test it? Unfortunately, I can not do it myself, because
+> I do not own hardware with B40 revision.
 
-On 2015-06-08 10:50 PM, Nicolas Dufresne wrote:
-> Le lundi 08 juin 2015 à 13:42 +0900, Damian Hobson-Garcia a écrit
-> :
->> Also, if this method is not recommended, should there be a 1-2
->> line disclaimer on the "V4L2_Userspace_Library" wiki page that
->> mentions this?
-> 
-> I think you may have got that wrong. The V4L2 userspace library is
-> not implementing any device drivers. It allow older software to
-> work with latest V4L2 features by emulating what is possible. It
-> also implement platform specific setups (media controller) and
-> eventually will contain needed parsers that would otherwise
-> represent a security threat if ran inside the Linux Kernel.
-> 
-Just to verify that we're on the same page, but it sounds to me that
-what you're describing is the libv4l library, whereas what I was
-originally referring to was the section under "A solution" at
-http://linuxtv.org/wiki/index.php/V4L2_Userspace_Library
-that talks about a FUSE interface to a daemon running in a different
-process.  Or perhaps we're both talking about the same thing.  That
-page also seems to mention that something like libv4l would be the
-ideal solution, but that it does not exist (it's an old page).
+That does not even download. It looks like 17 byte chunk format, but it 
+does not divide by 17. Probably there is some bytes missing or too many 
+at the end of file.
 
-Thank you,
-Damian
+That is how first 16 bytes of those firmwares looks:
+4.0.4:  05 00 aa 4d 56 40 00 00  0c 6a 7e aa ef 51 da 89
+4.0.11: 08 05 00 8d fc 56 40 00  00 00 00 00 00 00 00 00
+4.0.19: 08 05 00 f0 9a 56 40 00  00 00 00 00 00 00 00 00
 
+4.0.4 is 8 byte chunks, 4.0.11 is 17 byte.
 
-> Nicolas
-> 
+regards
+Antti
+
+-- 
+http://palosaari.fi/
