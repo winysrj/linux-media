@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33583 "EHLO mail.kapsi.fi"
+Received: from hauke-m.de ([5.39.93.123]:37125 "EHLO hauke-m.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936AbbFAGOu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 02:14:50 -0400
-Message-ID: <556BF852.80202@iki.fi>
-Date: Mon, 01 Jun 2015 09:14:42 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jemma Denson <jdenson@gmail.com>, linux-media@vger.kernel.org
-CC: mchehab@osg.samsung.com, patrick.boettcher@posteo.de
-Subject: Re: [PATCH v2 1/4] b2c2: Add option to skip the first 6 pid filters
-References: <1433009409-5622-1-git-send-email-jdenson@gmail.com> <1433009409-5622-2-git-send-email-jdenson@gmail.com>
-In-Reply-To: <1433009409-5622-2-git-send-email-jdenson@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753006AbbFFUJi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 16:09:38 -0400
+From: Hauke Mehrtens <hauke@hauke-m.de>
+To: crope@iki.fi
+Cc: linux-media@vger.kernel.org, Hauke Mehrtens <hauke@hauke-m.de>
+Subject: [PATCH] [media] hackrf: add missing include of linux/mm.h
+Date: Sat,  6 Jun 2015 22:09:32 +0200
+Message-Id: <1433621372-31058-1-git-send-email-hauke@hauke-m.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2015 09:10 PM, Jemma Denson wrote:
-> The flexcop bridge chip has two banks of hardware pid filters -
-> an initial 6, and on some chip revisions an additional bank of 32.
->
-> A bug is present on the initial 6 - when changing transponders
-> one of two PAT packets from the old transponder would be included
-> in the initial packets from the new transponder. This usually
-> transpired with userspace programs complaining about services
-> missing, because they are seeing a PAT that they would not be
-> expecting. Running in full TS mode does not exhibit this problem,
-> neither does using just the additional 32.
->
-> This patch adds in an option to not use the inital 6 and solely use
-> just the additional 32, and enables this option for the SkystarS2
-> card. Other cards can be added as required if they also have
-> this bug.
+hackrf uses PAGE_ALIGN() which is defined in linux/mm.h, but this file
+is not directly included just indirectly thought some other include
+file.
 
-Why not to use strategy where 32 pid filter is used as a priority and 
-that buggy 6 pid filter is used only when 32 pid filter is not available 
-(or it is already 100% in use)?
+Signed-off-by: Hauke Mehrtens <hauke@hauke-m.de>
+---
+ drivers/media/usb/hackrf/hackrf.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-regards
-Antti
-
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index fd1fa41..2eade31 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -15,6 +15,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+ #include <media/v4l2-device.h>
 -- 
-http://palosaari.fi/
+2.1.4
+
