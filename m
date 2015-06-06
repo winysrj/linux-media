@@ -1,112 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37023 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932210AbbFRSSI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:18:08 -0400
-Message-ID: <55830B49.7080601@xs4all.nl>
-Date: Thu, 18 Jun 2015 20:17:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:54496 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752537AbbFFUO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 16:14:29 -0400
+Message-ID: <557354A2.7060900@iki.fi>
+Date: Sat, 06 Jun 2015 23:14:26 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: Re: [PATCH] [media] au0828: Cache the decoder info at au0828 dev
- structure
-References: <f1db7aa1f599caa447323f2390e7ffbde5788244.1434648469.git.mchehab@osg.samsung.com>
-In-Reply-To: <f1db7aa1f599caa447323f2390e7ffbde5788244.1434648469.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+To: Unembossed Name <severe.siberian.man@mail.ru>,
+	linux-media@vger.kernel.org
+Subject: Re: Si2168 B40 frimware.
+References: <0448C37B97FE43E6A8CD61968C10E73F@unknown> <55733133.6050502@iki.fi> <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown>
+In-Reply-To: <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/18/2015 07:27 PM, Mauro Carvalho Chehab wrote:
-> Instead of seeking for the decoder every time analog stream is
-> started, cache it.
-> 
-> Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 06/06/2015 11:02 PM, Unembossed Name wrote:
+>>> Anybody want to test it? Unfortunately, I can not do it myself, because
+>>> I do not own hardware with B40 revision.
+>>
+>> That does not even download. It looks like 17 byte chunk format, but
+>> it does not divide by 17. Probably there is some bytes missing or too
+>> many at the end of file.
+>>
+>> That is how first 16 bytes of those firmwares looks:
+>> 4.0.4:  05 00 aa 4d 56 40 00 00  0c 6a 7e aa ef 51 da 89
+>> 4.0.11: 08 05 00 8d fc 56 40 00  00 00 00 00 00 00 00 00
+>> 4.0.19: 08 05 00 f0 9a 56 40 00  00 00 00 00 00 00 00 00
+>>
+>> 4.0.4 is 8 byte chunks, 4.0.11 is 17 byte.
+>
+> Hi Antti,
+>
+> You're right. I've made a mistake with determining of the end of a
+> patch. It seems I  blindly used an obsolete information about size it
+> should be. And because of that, these version of a patch can be even
+> more recent. Like 4.0.20.
+>
+> Could you please check it again? And in case of success see which
+> version it is?
+>
+> file
+> name:dvb-demod-si2168-b40-rom4_0_2-patch-build-probably4_0_19.fw.tar.gz
+> http://beholder.ru/bb/download/file.php?id=857
+> Best regards.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+That one works, DVB-T/T2 scan tested.
 
-Regards,
+si2168 6-0064: found a 'Silicon Labs Si2168-B40'
+si2168 6-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
+si2168 6-0064: firmware version: 4.0.19
+si2157 7-0060: found a 'Silicon Labs Si2157-A30'
+si2157 7-0060: firmware version: 3.0.5
 
-	Hans
+regards
+Antti
 
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-> index 6b469e8c4c6e..f7337dbbc59f 100644
-> --- a/drivers/media/usb/au0828/au0828-cards.c
-> +++ b/drivers/media/usb/au0828/au0828-cards.c
-> @@ -228,6 +228,10 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
->  				"au8522", 0x8e >> 1, NULL);
->  		if (sd == NULL)
->  			pr_err("analog subdev registration failed\n");
-> +#if CONFIG_MEDIA_CONTROLLER
-> +		if (sd)
-> +			dev->decoder = &sd->entity;
-> +#endif
->  	}
->  
->  	/* Setup tuners */
-> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> index 4ebe13673adf..939b2ad73501 100644
-> --- a/drivers/media/usb/au0828/au0828-video.c
-> +++ b/drivers/media/usb/au0828/au0828-video.c
-> @@ -641,11 +641,11 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
->  {
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device *mdev = dev->media_dev;
-> -	struct media_entity  *entity, *decoder = NULL, *source;
-> +	struct media_entity  *entity, *source;
->  	struct media_link *link, *found_link = NULL;
->  	int i, ret, active_links = 0;
->  
-> -	if (!mdev)
-> +	if (!mdev || !dev->decoder)
->  		return 0;
->  
->  	/*
-> @@ -655,18 +655,9 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
->  	 * do DVB streaming while the DMA engine is being used for V4L2,
->  	 * this should be enough for the actual needs.
->  	 */
-> -	media_device_for_each_entity(entity, mdev) {
-> -		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-> -			decoder = entity;
-> -			break;
-> -		}
-> -	}
-> -	if (!decoder)
-> -		return 0;
-> -
-> -	for (i = 0; i < decoder->num_links; i++) {
-> -		link = &decoder->links[i];
-> -		if (link->sink->entity == decoder) {
-> +	for (i = 0; i < dev->decoder->num_links; i++) {
-> +		link = &dev->decoder->links[i];
-> +		if (link->sink->entity == dev->decoder) {
->  			found_link = link;
->  			if (link->flags & MEDIA_LNK_FL_ENABLED)
->  				active_links++;
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index 7e6a3bbc68ab..d3644b3fe6fa 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -280,6 +280,7 @@ struct au0828_dev {
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device *media_dev;
->  	struct media_pad video_pad, vbi_pad;
-> +	struct media_entity *decoder;
->  #endif
->  };
->  
-> 
-
+-- 
+http://palosaari.fi/
