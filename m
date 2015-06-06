@@ -1,90 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49628 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751898AbbFYJbN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:31:13 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 06/15] media: adv7604: ability to read default input port from DT
-Date: Thu, 25 Jun 2015 10:31:00 +0100
-Message-Id: <1435224669-23672-7-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:42695 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422AbbFFMDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 08:03:21 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/9] DocBook: document tuner RF gain control
+Date: Sat,  6 Jun 2015 15:03:02 +0300
+Message-Id: <1433592188-31748-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
+References: <1433592188-31748-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+Add brief description for tuner RF gain control.
 
-Adds support to the adv7604 driver for specifying the default input
-port in the Device tree. If no value is provided, the driver will be
-unable to select an input without help from userspace.
-
-Tested-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/devicetree/bindings/media/i2c/adv7604.txt |    3 +++
- drivers/media/i2c/adv7604.c                             |    8 +++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+ Documentation/DocBook/media/v4l/controls.xml | 19 +++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+ 3 files changed, 24 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 7eafdbc..8337f75 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -47,6 +47,7 @@ Optional Endpoint Properties:
-   If none of hsync-active, vsync-active and pclk-sample is specified the
-   endpoint will use embedded BT.656 synchronization.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index f56faf5..e8f28bf 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+ <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+ 	  </para>
+ 	</listitem>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
++<constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
++	</listitem>
+       </orderedlist>
+     </section>
  
-+  - default-input: Select which input is selected after reset.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 6e1667b..44f7a3a 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5397,6 +5397,13 @@ fulfill desired bandwidth requirement. Used when V4L2_CID_RF_TUNER_BANDWIDTH_AUT
+ set. Unit is in Hz. The range and step are driver-specific.</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables RF amplifier automatic gain control (AGC)</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant>&nbsp;</entry>
+               <entry>boolean</entry>
+             </row>
+@@ -5418,6 +5425,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">RF amplifier is very first amplifier on
++the receiver signal path, just right after antenna input. Difference between
++LNA gain and RF gain on this document and context is that LNA gain is integrated
++to tuner chip whilst RF gain is separate chip. There may be both, RF and LNA
++gain control, on same device. Used when <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> is not set.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+               <entry>integer</entry>
+             </row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index c9eedc1..b94d381 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -156,6 +156,7 @@ applications. -->
+ 	<date>2015-05-26</date>
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
+ 	</revremark>
+       </revision>
  
- Example:
- 
-@@ -60,6 +61,8 @@ Example:
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
-+		default-input = <0>;
-+
- 		port@0 {
- 			reg = <0>;
- 		};
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index ebeddd5..2a89b91 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2795,6 +2795,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
-+	u32 v;
- 
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
- 
-@@ -2804,6 +2805,12 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+
-+	if (!of_property_read_u32(endpoint, "default-input", &v))
-+		state->pdata.default_input = v;
-+	else
-+		state->pdata.default_input = -1;
-+
- 	of_node_put(endpoint);
- 
- 	flags = bus_cfg.bus.parallel.flags;
-@@ -2842,7 +2849,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	/* Hardcode the remaining platform data fields. */
- 	state->pdata.disable_pwrdnb = 0;
- 	state->pdata.disable_cable_det_rst = 0;
--	state->pdata.default_input = -1;
- 	state->pdata.blank_data = 1;
- 	state->pdata.alt_data_sat = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
 -- 
-1.7.10.4
+http://palosaari.fi/
 
