@@ -1,104 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33013 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750877AbbFEK7r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/10] sh-vou: use v4l2_fh
-Date: Fri,  5 Jun 2015 12:59:19 +0200
-Message-Id: <1433501966-30176-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp43.i.mail.ru ([94.100.177.103]:38963 "EHLO smtp43.i.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750747AbbFFFDk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 01:03:40 -0400
+Received: from [171.33.253.112] (port=39160 helo=unknown)
+	by smtp43.i.mail.ru with esmtpa (envelope-from <severe.siberian.man@mail.ru>)
+	id 1Z16Ga-0005OA-8D
+	for linux-media@vger.kernel.org; Sat, 06 Jun 2015 08:03:37 +0300
+Message-ID: <A9A450C95D0047DA969F1F370ED24FE4@unknown>
+From: "Unembossed Name" <severe.siberian.man@mail.ru>
+To: <linux-media@vger.kernel.org>
+Subject: About Si2168 Part, Revision and ROM detection.
+Date: Sat, 6 Jun 2015 12:03:29 +0700
+MIME-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="koi8-r";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-This allows us to drop the use_count and you get free G/S_PRIORITY support.
+Information below was given by a hardware vendor, who uses these demodulators on their dvb-t2 products. As an explanation on our 
+questions for Si2168 Linux driver development.
+I think it can give more clue with Part, Revision and ROM detection algorithm in Linux driver for that demodulator.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+Also, I would like to suggest a following naming method for files containing firmware patches. It's self explaining:
+dvb-demod-si2168-a30-rom3_0_2-patch-build3_0_20.fw
+dvb-demod-si2168-b40-rom4_0_2-patch-build4_0_19.fw.tar.gz
+dvb-demod-si2168-b40-rom4_0_2-startup-without-patch-stub.fw
+(Stub code to startup B40 without patch at all: 0x05,0x00,0x00,0x00,0x00,0x00,0x00,0x00)
+I think such naming scheme can help to avoid possible mess with fw patch versions.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index ba1a16c..a75e6fa 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -64,7 +64,6 @@ enum sh_vou_status {
- struct sh_vou_device {
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
--	atomic_t use_count;
- 	struct sh_vou_pdata *pdata;
- 	struct clk *clk;
- 	spinlock_t lock;
-@@ -81,6 +80,7 @@ struct sh_vou_device {
- };
- 
- struct sh_vou_file {
-+	struct v4l2_fh fh;
- 	struct videobuf_queue vbq;
- };
- 
-@@ -1175,20 +1175,24 @@ static int sh_vou_open(struct file *file)
- 
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
-+	v4l2_fh_init(&vou_file->fh, &vou_dev->vdev);
- 	if (mutex_lock_interruptible(&vou_dev->fop_lock)) {
- 		kfree(vou_file);
- 		return -ERESTARTSYS;
- 	}
--	if (atomic_inc_return(&vou_dev->use_count) == 1) {
-+	v4l2_fh_add(&vou_file->fh);
-+	if (v4l2_fh_is_singular(&vou_file->fh)) {
- 		int ret;
-+
- 		/* First open */
- 		vou_dev->status = SH_VOU_INITIALISING;
- 		pm_runtime_get_sync(vou_dev->v4l2_dev.dev);
- 		ret = sh_vou_hw_init(vou_dev);
- 		if (ret < 0) {
--			atomic_dec(&vou_dev->use_count);
- 			pm_runtime_put(vou_dev->v4l2_dev.dev);
- 			vou_dev->status = SH_VOU_IDLE;
-+			v4l2_fh_del(&vou_file->fh);
-+			v4l2_fh_exit(&vou_file->fh);
- 			mutex_unlock(&vou_dev->fop_lock);
- 			kfree(vou_file);
- 			return ret;
-@@ -1215,14 +1219,16 @@ static int sh_vou_release(struct file *file)
- 
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
--	if (!atomic_dec_return(&vou_dev->use_count)) {
--		mutex_lock(&vou_dev->fop_lock);
-+	mutex_lock(&vou_dev->fop_lock);
-+	if (v4l2_fh_is_singular(&vou_file->fh)) {
- 		/* Last close */
- 		vou_dev->status = SH_VOU_IDLE;
- 		sh_vou_reg_a_set(vou_dev, VOUER, 0, 0x101);
- 		pm_runtime_put(vou_dev->v4l2_dev.dev);
--		mutex_unlock(&vou_dev->fop_lock);
- 	}
-+	v4l2_fh_del(&vou_file->fh);
-+	v4l2_fh_exit(&vou_file->fh);
-+	mutex_unlock(&vou_dev->fop_lock);
- 
- 	file->private_data = NULL;
- 	kfree(vou_file);
-@@ -1329,7 +1335,6 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&vou_dev->queue);
- 	spin_lock_init(&vou_dev->lock);
- 	mutex_init(&vou_dev->fop_lock);
--	atomic_set(&vou_dev->use_count, 0);
- 	vou_dev->pdata = vou_pdata;
- 	vou_dev->status = SH_VOU_IDLE;
- 
--- 
-2.1.4
+Here is a detection code:
+NTSTATUS si2168_cmd_part_info(tPART_INFO *part_info)
+{
+    NTSTATUS ntStatus;
+
+    BYTE cmdBuffer[1] = {Si2168_PART_INFO_CMD};
+    BYTE rspBuffer[13] = {0};
+
+    ntStatus = si2168_cmd_rsp(cmdBuffer, sizeof(cmdBuffer), rspBuffer, sizeof(rspBuffer));
+    if (ntStatus != STATUS_SUCCESS)
+        return ntStatus;
+
+    part_info->chiprev = rspBuffer[1] & 0x0F;
+    part_info->part = rspBuffer[2];
+    part_info->pmajor = rspBuffer[3];
+    part_info->pminor = rspBuffer[4];
+    part_info->pbuild = rspBuffer[5];
+    part_info->serial = ((ULONG)rspBuffer[11] << 24) | ((ULONG)rspBuffer[10] << 16) | ((ULONG)rspBuffer[9] << 8) | 
+((ULONG)rspBuffer[8]);
+    part_info->romid = rspBuffer[12];
+
+    DBGPRINT(("CHIP REV   : %d\n", part_info->chiprev));
+    DBGPRINT(("CHIP PART  : %d\n", part_info->part));
+    DBGPRINT(("CHIP PMAJOR: %c\n", part_info->pmajor));
+    DBGPRINT(("CHIP PMINOR: %c\n", part_info->pminor));
+    DBGPRINT(("CHIP PBUILD: %d\n", part_info->pbuild));
+    DBGPRINT(("CHIP SERIAL: %08X\n", part_info->serial ));
+    DBGPRINT(("CHIP ROMID : %d\n", part_info->romid));
+
+    return STATUS_SUCCESS;
+}
+
+Best regards. 
 
