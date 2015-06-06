@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:34543 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbbFVWeK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 18:34:10 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com
-Cc: mingo@kernel.org, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [PATCH 0/2] x86/mm/pat: don't use WARN for nopat requirement
-Date: Mon, 22 Jun 2015 15:31:56 -0700
-Message-Id: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60487 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751741AbbFFLUC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 07:20:02 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] tda10071: add missing error status when probe() fails
+Date: Sat,  6 Jun 2015 14:19:38 +0300
+Message-Id: <1433589579-20611-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+We must return -ENODEV error on case probe() fails to detect chip.
 
-Mauro, Doug,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/tda10071.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-The 0-day robot found using WARN() on built-in kernels confusing. Upon
-further thought pr_warn() is better and will likely also not confuse
-humans too.
-
-Boris, provided maintainers Ack, please consider these patches.
-
-These depend on pat_enabled() exported symbol which went in through
-the x86 tree, so I suppose this also needs to go through there. This
-is an example issue of cross-tree collateral evolution follow ups,
-one reason why I punted the a RFD and proposal for a linux-oven [0].
-In that regard I suppose follow ups like these would need to go through
-that tree as well.
-
-[0] http://lkml.kernel.org/r/20150619231255.GC7487@garbanzo.do-not-panic.com
-
-Luis R. Rodriguez (2):
-  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-  x86/mm/pat, drivers/media/ivtv: replace WARN() with pr_warn()
-
- drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
- drivers/media/pci/ivtv/ivtvfb.c            | 6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index 3132854..1470a5d 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -1348,18 +1348,30 @@ static int tda10071_probe(struct i2c_client *client,
+ 
+ 	/* chip ID */
+ 	ret = tda10071_rd_reg(dev, 0xff, &u8tmp);
+-	if (ret || u8tmp != 0x0f)
++	if (ret)
++		goto err_kfree;
++	if (u8tmp != 0x0f) {
++		ret = -ENODEV;
+ 		goto err_kfree;
++	}
+ 
+ 	/* chip type */
+ 	ret = tda10071_rd_reg(dev, 0xdd, &u8tmp);
+-	if (ret || u8tmp != 0x00)
++	if (ret)
++		goto err_kfree;
++	if (u8tmp != 0x00) {
++		ret = -ENODEV;
+ 		goto err_kfree;
++	}
+ 
+ 	/* chip version */
+ 	ret = tda10071_rd_reg(dev, 0xfe, &u8tmp);
+-	if (ret || u8tmp != 0x01)
++	if (ret)
+ 		goto err_kfree;
++	if (u8tmp != 0x01) {
++		ret = -ENODEV;
++		goto err_kfree;
++	}
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &tda10071_ops, sizeof(struct dvb_frontend_ops));
 -- 
-2.3.2.209.gd67f9d5.dirty
+http://palosaari.fi/
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
