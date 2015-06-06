@@ -1,121 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33303 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753064AbbF2Cue (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2015 22:50:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1EAC62A0081
-	for <linux-media@vger.kernel.org>; Mon, 29 Jun 2015 04:49:57 +0200 (CEST)
-Date: Mon, 29 Jun 2015 04:49:57 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:54546 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752588AbbFFL7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 07:59:09 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150629024957.1EAC62A0081@tschai.lan>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 8/8] em28xx: PCTV 461e use I2C client for demod and SEC
+Date: Sat,  6 Jun 2015 14:58:48 +0300
+Message-Id: <1433591928-30915-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1433591928-30915-1-git-send-email-crope@iki.fi>
+References: <1433591928-30915-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Use I2C client binding for demod and SEC.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 136 +++++++++++++++++++++-------------
+ 1 file changed, 83 insertions(+), 53 deletions(-)
 
-date:		Mon Jun 29 04:00:15 CEST 2015
-git branch:	test
-git hash:	faebbd8f134f0c054f372982c8ddd1bbcc41b440
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index be0abca..a382483 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1521,64 +1521,94 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			}
+ 		}
+ 		break;
+-	case EM28178_BOARD_PCTV_461E:
+-		{
+-			/* demod I2C adapter */
+-			struct i2c_adapter *i2c_adapter;
+-			struct i2c_client *client;
+-			struct i2c_board_info info;
+-			struct ts2020_config ts2020_config = {
+-			};
+-			memset(&info, 0, sizeof(struct i2c_board_info));
+-
+-			/* attach demod */
+-			dvb->fe[0] = dvb_attach(m88ds3103_attach,
+-					&pctv_461e_m88ds3103_config,
+-					&dev->i2c_adap[dev->def_i2c_bus],
+-					&i2c_adapter);
+-			if (dvb->fe[0] == NULL) {
+-				result = -ENODEV;
+-				goto out_free;
+-			}
+-
+-			/* attach tuner */
+-			ts2020_config.fe = dvb->fe[0];
+-			strlcpy(info.type, "ts2022", I2C_NAME_SIZE);
+-			info.addr = 0x60;
+-			info.platform_data = &ts2020_config;
+-			request_module("ts2020");
+-			client = i2c_new_device(i2c_adapter, &info);
+-			if (client == NULL || client->dev.driver == NULL) {
+-				dvb_frontend_detach(dvb->fe[0]);
+-				result = -ENODEV;
+-				goto out_free;
+-			}
+-
+-			if (!try_module_get(client->dev.driver->owner)) {
+-				i2c_unregister_device(client);
+-				dvb_frontend_detach(dvb->fe[0]);
+-				result = -ENODEV;
+-				goto out_free;
+-			}
++	case EM28178_BOARD_PCTV_461E: {
++		struct i2c_client *client;
++		struct i2c_adapter *i2c_adapter;
++		struct i2c_board_info board_info;
++		struct m88ds3103_platform_data m88ds3103_pdata = {};
++		struct ts2020_config ts2020_config = {};
++		struct a8293_platform_data a8293_pdata = {};
+ 
+-			/* delegate signal strength measurement to tuner */
+-			dvb->fe[0]->ops.read_signal_strength =
+-					dvb->fe[0]->ops.tuner_ops.get_rf_strength;
++		/* attach demod */
++		m88ds3103_pdata.clk = 27000000;
++		m88ds3103_pdata.i2c_wr_max = 33;
++		m88ds3103_pdata.ts_mode = M88DS3103_TS_PARALLEL;
++		m88ds3103_pdata.ts_clk = 16000;
++		m88ds3103_pdata.ts_clk_pol = 1;
++		m88ds3103_pdata.agc = 0x99;
++		memset(&board_info, 0, sizeof(board_info));
++		strlcpy(board_info.type, "m88ds3103", I2C_NAME_SIZE);
++		board_info.addr = 0x68;
++		board_info.platform_data = &m88ds3103_pdata;
++		request_module("m88ds3103");
++		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
++		if (client == NULL || client->dev.driver == NULL) {
++			result = -ENODEV;
++			goto out_free;
++		}
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++		dvb->fe[0] = m88ds3103_pdata.get_dvb_frontend(client);
++		i2c_adapter = m88ds3103_pdata.get_i2c_adapter(client);
++		dvb->i2c_client_demod = client;
+ 
+-			/* attach SEC */
+-			if (!dvb_attach(a8293_attach, dvb->fe[0],
+-					&dev->i2c_adap[dev->def_i2c_bus],
+-					&em28xx_a8293_config)) {
+-				module_put(client->dev.driver->owner);
+-				i2c_unregister_device(client);
+-				dvb_frontend_detach(dvb->fe[0]);
+-				result = -ENODEV;
+-				goto out_free;
+-			}
++		/* attach tuner */
++		ts2020_config.fe = dvb->fe[0];
++		memset(&board_info, 0, sizeof(board_info));
++		strlcpy(board_info.type, "ts2022", I2C_NAME_SIZE);
++		board_info.addr = 0x60;
++		board_info.platform_data = &ts2020_config;
++		request_module("ts2020");
++		client = i2c_new_device(i2c_adapter, &board_info);
++		if (client == NULL || client->dev.driver == NULL) {
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++		dvb->i2c_client_tuner = client;
++		/* delegate signal strength measurement to tuner */
++		dvb->fe[0]->ops.read_signal_strength =
++				dvb->fe[0]->ops.tuner_ops.get_rf_strength;
+ 
+-			dvb->i2c_client_tuner = client;
++		/* attach SEC */
++		a8293_pdata.dvb_frontend = dvb->fe[0];
++		memset(&board_info, 0, sizeof(board_info));
++		strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
++		board_info.addr = 0x08;
++		board_info.platform_data = &a8293_pdata;
++		request_module("a8293");
++		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
++		if (client == NULL || client->dev.driver == NULL) {
++			module_put(dvb->i2c_client_tuner->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_tuner);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_tuner->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_tuner);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
+ 		}
++		dvb->i2c_client_sec = client;
+ 		break;
++	}
+ 	case EM28178_BOARD_PCTV_292E:
+ 		{
+ 			struct i2c_adapter *adapter;
+-- 
+http://palosaari.fi/
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
