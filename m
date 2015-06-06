@@ -1,103 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48646 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753352AbbFJU7j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 16:59:39 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Fabien Dessenne <fabien.dessenne@st.com>
-Subject: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
-Date: Wed, 10 Jun 2015 17:59:15 -0300
-Message-Id: <ec9ffbdae3dc024959c02a7f351e40f841c2d3f0.1433969944.git.mchehab@osg.samsung.com>
-In-Reply-To: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
-References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
-In-Reply-To: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
-References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:35629 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbbFFVmq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 17:42:46 -0400
+MIME-Version: 1.0
+In-Reply-To: <1433501966-30176-2-git-send-email-hverkuil@xs4all.nl>
+References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+	<1433501966-30176-2-git-send-email-hverkuil@xs4all.nl>
+Date: Sat, 6 Jun 2015 23:42:45 +0200
+Message-ID: <CAMuHMdUYA=WOnHMXLnm0kMy6-tmR1sKJDeC4F7XUW5_cJ7PWyg@mail.gmail.com>
+Subject: Re: [PATCH 01/10] sh-vou: hook up the clock correctly
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Magnus Damm <damm@opensource.se>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several warnings there, on some architectures, related
-to dividing a s32 by a s64 value:
+Hi Hans,
 
-drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: comparison of distinct pointer types lacks a cast
-drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: right shift count >= width of type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: passing argument 1 of '__div64_32' from incompatible pointer type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: comparison of distinct pointer types lacks a cast
-drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: right shift count >= width of type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: passing argument 1 of '__div64_32' from incompatible pointer type  CC [M]  drivers/media/tuners/mt2060.o
-drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: comparison of distinct pointer types lacks a cast
-drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: right shift count >= width of type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: passing argument 1 of '__div64_32' from incompatible pointer type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: comparison of distinct pointer types lacks a cast
-drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: right shift count >= width of type
-drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+On Fri, Jun 5, 2015 at 12:59 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Bitrot has set in for this driver and the sh-vou.0 clock was never enabled,
+> so this driver didn't do anything. In addition, the clock was incorrectly
+> defined in clock-sh7724.c. Fix this.
 
-That doesn't make much sense. What the driver is actually trying
-to do is to divide one second by a value. So, check the range
-before dividing. That warrants the right result and will remove
-the warnings on non-64 bits archs.
+I think the clock should be enabled automatically using Runtime PM.
+drivers/sh/pm_runtime.c should configure the "NULL" (i.e. the first) clock
+for power management, after which pm_runtime_get_sync() will enable it.
 
-Also fixes this warning:
-drivers/media/platform/sti/bdisp/bdisp-debug.c:588: warning: comparison of distinct pointer types lacks a cast
+> While we're at it: use proper resource managed calls.
 
-by using div64_s64() instead of calling do_div() directly.
+Shouldn't that be a separate patch? Especially if the real fix becomes a
+one-liner (see below).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Magnus Damm <damm@opensource.se>
+> ---
+>  arch/sh/kernel/cpu/sh4a/clock-sh7724.c |  2 +-
+>  drivers/media/platform/sh_vou.c        | 54 ++++++++++++----------------------
+>  2 files changed, 20 insertions(+), 36 deletions(-)
+>
+> diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
+> index c187b95..f1df899 100644
+> --- a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
+> +++ b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
+> @@ -343,7 +343,7 @@ static struct clk_lookup lookups[] = {
+>         CLKDEV_CON_ID("2ddmac0", &mstp_clks[HWBLK_2DDMAC]),
+>         CLKDEV_DEV_ID("sh_fsi.0", &mstp_clks[HWBLK_SPU]),
+>         CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
+> -       CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
+> +       CLKDEV_CON_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c b/drivers/media/platform/sti/bdisp/bdisp-debug.c
-index 7c3a632746ba..3f6f411aafdd 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
-@@ -572,6 +572,8 @@ static int bdisp_dbg_regs(struct seq_file *s, void *data)
- 	return 0;
- }
- 
-+#define SECOND 1000000
-+
- static int bdisp_dbg_perf(struct seq_file *s, void *data)
- {
- 	struct bdisp_dev *bdisp = s->private;
-@@ -585,16 +587,27 @@ static int bdisp_dbg_perf(struct seq_file *s, void *data)
- 	}
- 
- 	avg_time_us = bdisp->dbg.tot_duration;
--	do_div(avg_time_us, request->nb_req);
--
--	avg_fps = 1000000;
--	min_fps = 1000000;
--	max_fps = 1000000;
--	last_fps = 1000000;
--	do_div(avg_fps, avg_time_us);
--	do_div(min_fps, bdisp->dbg.min_duration);
--	do_div(max_fps, bdisp->dbg.max_duration);
--	do_div(last_fps, bdisp->dbg.last_duration);
-+	div64_s64(avg_time_us, request->nb_req);
-+
-+	if (avg_time_us > SECOND)
-+		avg_fps = 0;
-+	else
-+		avg_fps = SECOND / (s32)avg_time_us;
-+
-+	if (bdisp->dbg.min_duration > SECOND)
-+		min_fps = 0;
-+	else
-+		min_fps = SECOND / (s32)bdisp->dbg.min_duration);
-+
-+	if (bdisp->dbg.max_duration > SECOND)
-+		max_fps = 0;
-+	else
-+		max_fps = SECOND / (s32)bdisp->dbg.max_duration;
-+
-+	if (bdisp->dbg.last_duration > SECOND)
-+		last_fps = 0;
-+	else
-+		last_fps = SECOND / (s32)bdisp->dbg.last_duration;
- 
- 	seq_printf(s, "HW processing (%d requests):\n", request->nb_req);
- 	seq_printf(s, " Average: %5lld us  (%3d fps)\n",
--- 
-2.4.2
+I don't know which SH board you have, but both
+arch/sh/boards/mach-ecovec24/setup.c and
+arch/sh/boards/mach-se/7724/setup.c create the platform device as:
 
+        static struct platform_device vou_device = {
+                .name           = "sh-vou",
+                .id             = -1,
+        };
+
+so unless I'm mistaken, the platform device's name will be "sh-vou",
+not "sh-vou.0".
+
+Does it work if you just correct the name in the CLKDEV_DEV_ID() line?
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
