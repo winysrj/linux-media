@@ -1,305 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46792 "EHLO mx2.suse.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:56100 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754707AbbFROIy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 10:08:54 -0400
-From: Jan Kara <jack@suse.cz>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 9/10] drm/exynos: Convert g2d_userptr_get_dma_addr() to use get_vaddr_frames()
-Date: Thu, 18 Jun 2015 16:08:39 +0200
-Message-Id: <1434636520-25116-10-git-send-email-jack@suse.cz>
-In-Reply-To: <1434636520-25116-1-git-send-email-jack@suse.cz>
-References: <1434636520-25116-1-git-send-email-jack@suse.cz>
+	id S1752776AbbFFMDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 08:03:22 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/9] DocBook: document SDR transmitter
+Date: Sat,  6 Jun 2015 15:03:04 +0300
+Message-Id: <1433592188-31748-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
+References: <1433592188-31748-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
-This removes the knowledge about vmas and mmap_sem locking from exynos
-driver. Also it fixes a problem that the function has been mapping user
-provided address without holding mmap_sem.
+Add documentation for V4L SDR transmitter (output) devices.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/gpu/drm/exynos/exynos_drm_g2d.c | 91 ++++++++++---------------------
- drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
- 2 files changed, 29 insertions(+), 159 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml         |  4 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
+ 7 files changed, 42 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-index 81a250830808..810e1ee7c07d 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-@@ -190,10 +190,8 @@ struct g2d_cmdlist_userptr {
- 	dma_addr_t		dma_addr;
- 	unsigned long		userptr;
- 	unsigned long		size;
--	struct page		**pages;
--	unsigned int		npages;
-+	struct frame_vector	*vec;
- 	struct sg_table		*sgt;
--	struct vm_area_struct	*vma;
- 	atomic_t		refcount;
- 	bool			in_pool;
- 	bool			out_of_list;
-@@ -363,6 +361,7 @@ static void g2d_userptr_put_dma_addr(struct drm_device *drm_dev,
- {
- 	struct g2d_cmdlist_userptr *g2d_userptr =
- 					(struct g2d_cmdlist_userptr *)obj;
-+	struct page **pages;
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index e8f28bf..a237e36 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
+ 	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
+ <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
+ 	</listitem>
++	<listitem>
++	  <para>Added transmitter support for Software Defined Radio (SDR)
++Interface.</para>
++	</listitem>
+       </orderedlist>
+     </section>
  
- 	if (!obj)
- 		return;
-@@ -382,19 +381,21 @@ out:
- 	exynos_gem_unmap_sgt_from_dma(drm_dev, g2d_userptr->sgt,
- 					DMA_BIDIRECTIONAL);
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index 3344921..a659771 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
+ <structfield>capabilities</structfield> field of &v4l2-capability;
+ returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
+ Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
++    </para>
++    <para>
++Devices supporting the SDR transmitter interface set the
++<constant>V4L2_CAP_SDR_OUTPUT</constant> and
++<constant>V4L2_CAP_MODULATOR</constant> flag in the
++<structfield>capabilities</structfield> field of &v4l2-capability;
++returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
++Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
++    </para>
++    <para>
+ At least one of the read/write, streaming or asynchronous I/O methods must
+ be supported.
+     </para>
+@@ -39,14 +49,15 @@ be supported.
+     <para>
+ SDR devices can support <link linkend="control">controls</link>, and must
+ support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
+-for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
+-frequency.
++for setting the ADC/DAC sampling rate (sampling frequency) and the possible
++radio frequency (RF).
+     </para>
  
--	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
--					g2d_userptr->npages,
--					g2d_userptr->vma);
-+	pages = frame_vector_pages(g2d_userptr->vec);
-+	if (!IS_ERR(pages)) {
-+		int i;
+     <para>
+-The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+-the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
++device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
++tuner type is used for setting radio frequency.
++The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+ Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
  
--	exynos_gem_put_vma(g2d_userptr->vma);
-+		for (i = 0; i < frame_vector_count(g2d_userptr->vec); i++)
-+			set_page_dirty_lock(pages[i]);
-+	}
-+	put_vaddr_frames(g2d_userptr->vec);
-+	frame_vector_destroy(g2d_userptr->vec);
+@@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
+     <title>Data Format Negotiation</title>
  
- 	if (!g2d_userptr->out_of_list)
- 		list_del_init(&g2d_userptr->list);
+     <para>
+-The SDR capture device uses the <link linkend="format">format</link> ioctls to
+-select the capture format. Both the sampling resolution and the data streaming
+-format are bound to that selectable format. In addition to the basic
++The SDR device uses the <link linkend="format">format</link> ioctls to
++select the capture and output format. Both the sampling resolution and the data
++streaming format are bound to that selectable format. In addition to the basic
+ <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
+ must be supported as well.
+     </para>
+@@ -69,7 +80,8 @@ must be supported as well.
+     <para>
+ To use the <link linkend="format">format</link> ioctls applications set the
+ <structfield>type</structfield> field of a &v4l2-format; to
+-<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
++<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
++<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
+ <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
+ union as needed per the desired operation.
+ Currently there is two fields, <structfield>pixelformat</structfield> and
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7bbc2a4..da65403 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1006,8 +1006,14 @@ must set this to 0.</entry>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
+ 	    <entry>11</entry>
+-	    <entry>Buffer for Software Defined Radio (SDR), see <xref
+-		linkend="sdr" />.</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
++		<xref linkend="sdr" />.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
++	    <entry>12</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
++		<xref linkend="sdr" />.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 965ea91..02aac95 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1623,7 +1623,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+   <section id="sdr-formats">
+     <title>SDR Formats</title>
  
- 	sg_free_table(g2d_userptr->sgt);
- 	kfree(g2d_userptr->sgt);
--
--	drm_free_large(g2d_userptr->pages);
- 	kfree(g2d_userptr);
- }
+-    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
++    <para>These formats are used for <link linkend="sdr">SDR</link>
+ interface only.</para>
  
-@@ -408,9 +409,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
- 	struct exynos_drm_g2d_private *g2d_priv = file_priv->g2d_priv;
- 	struct g2d_cmdlist_userptr *g2d_userptr;
- 	struct g2d_data *g2d;
--	struct page **pages;
- 	struct sg_table	*sgt;
--	struct vm_area_struct *vma;
- 	unsigned long start, end;
- 	unsigned int npages, offset;
- 	int ret;
-@@ -456,65 +455,38 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
- 		return ERR_PTR(-ENOMEM);
+     &sub-sdr-cu08;
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index b94d381..6a658ac 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -157,6 +157,7 @@ applications. -->
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+ Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
++Added transmitter support for Software Defined Radio (SDR) Interface.
+ 	</revremark>
+       </revision>
  
- 	atomic_set(&g2d_userptr->refcount, 1);
-+	g2d_userptr->size = size;
- 
- 	start = userptr & PAGE_MASK;
- 	offset = userptr & ~PAGE_MASK;
- 	end = PAGE_ALIGN(userptr + size);
- 	npages = (end - start) >> PAGE_SHIFT;
--	g2d_userptr->npages = npages;
--
--	pages = drm_calloc_large(npages, sizeof(struct page *));
--	if (!pages) {
--		DRM_ERROR("failed to allocate pages.\n");
--		ret = -ENOMEM;
-+	g2d_userptr->vec = frame_vector_create(npages);
-+	if (!vec)
- 		goto err_free;
--	}
- 
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, userptr);
--	if (!vma) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to get vm region.\n");
-+	ret = get_vaddr_frames(start, npages, true, true, g2d_userptr->vec);
-+	if (ret != npages) {
-+		DRM_ERROR("failed to get user pages from userptr.\n");
-+		if (ret < 0)
-+			goto err_destroy_framevec;
- 		ret = -EFAULT;
--		goto err_free_pages;
-+		goto err_put_framevec;
- 	}
--
--	if (vma->vm_end < userptr + size) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("vma is too small.\n");
-+	if (frame_vector_to_pages(g2d_userptr->vec) < 0) {
- 		ret = -EFAULT;
--		goto err_free_pages;
-+		goto err_put_framevec;
- 	}
- 
--	g2d_userptr->vma = exynos_gem_get_vma(vma);
--	if (!g2d_userptr->vma) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to copy vma.\n");
--		ret = -ENOMEM;
--		goto err_free_pages;
--	}
--
--	g2d_userptr->size = size;
--
--	ret = exynos_gem_get_pages_from_userptr(start & PAGE_MASK,
--						npages, pages, vma);
--	if (ret < 0) {
--		up_read(&current->mm->mmap_sem);
--		DRM_ERROR("failed to get user pages from userptr.\n");
--		goto err_put_vma;
--	}
--
--	up_read(&current->mm->mmap_sem);
--	g2d_userptr->pages = pages;
--
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
- 		ret = -ENOMEM;
--		goto err_free_userptr;
-+		goto err_put_framevec;
- 	}
- 
--	ret = sg_alloc_table_from_pages(sgt, pages, npages, offset,
--					size, GFP_KERNEL);
-+	ret = sg_alloc_table_from_pages(sgt,
-+					frame_vector_pages(g2d_userptr->vec),
-+					npages, offset, size, GFP_KERNEL);
- 	if (ret < 0) {
- 		DRM_ERROR("failed to get sgt from pages.\n");
- 		goto err_free_sgt;
-@@ -549,16 +521,11 @@ err_sg_free_table:
- err_free_sgt:
- 	kfree(sgt);
- 
--err_free_userptr:
--	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
--					g2d_userptr->npages,
--					g2d_userptr->vma);
--
--err_put_vma:
--	exynos_gem_put_vma(g2d_userptr->vma);
-+err_put_framevec:
-+	put_vaddr_frames(g2d_userptr->vec);
- 
--err_free_pages:
--	drm_free_large(pages);
-+err_destroy_framevec:
-+	frame_vector_destroy(g2d_userptr->vec);
- 
- err_free:
- 	kfree(g2d_userptr);
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-index 0d5b9698d384..47068ae44ced 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-@@ -378,103 +378,6 @@ int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
- 	return 0;
- }
- 
--struct vm_area_struct *exynos_gem_get_vma(struct vm_area_struct *vma)
--{
--	struct vm_area_struct *vma_copy;
--
--	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
--	if (!vma_copy)
--		return NULL;
--
--	if (vma->vm_ops && vma->vm_ops->open)
--		vma->vm_ops->open(vma);
--
--	if (vma->vm_file)
--		get_file(vma->vm_file);
--
--	memcpy(vma_copy, vma, sizeof(*vma));
--
--	vma_copy->vm_mm = NULL;
--	vma_copy->vm_next = NULL;
--	vma_copy->vm_prev = NULL;
--
--	return vma_copy;
--}
--
--void exynos_gem_put_vma(struct vm_area_struct *vma)
--{
--	if (!vma)
--		return;
--
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--
--	kfree(vma);
--}
--
--int exynos_gem_get_pages_from_userptr(unsigned long start,
--						unsigned int npages,
--						struct page **pages,
--						struct vm_area_struct *vma)
--{
--	int get_npages;
--
--	/* the memory region mmaped with VM_PFNMAP. */
--	if (vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < npages; ++i, start += PAGE_SIZE) {
--			unsigned long pfn;
--			int ret = follow_pfn(vma, start, &pfn);
--			if (ret)
--				return ret;
--
--			pages[i] = pfn_to_page(pfn);
--		}
--
--		if (i != npages) {
--			DRM_ERROR("failed to get user_pages.\n");
--			return -EINVAL;
--		}
--
--		return 0;
--	}
--
--	get_npages = get_user_pages(current, current->mm, start,
--					npages, 1, 1, pages, NULL);
--	get_npages = max(get_npages, 0);
--	if (get_npages != npages) {
--		DRM_ERROR("failed to get user_pages.\n");
--		while (get_npages)
--			put_page(pages[--get_npages]);
--		return -EFAULT;
--	}
--
--	return 0;
--}
--
--void exynos_gem_put_pages_to_userptr(struct page **pages,
--					unsigned int npages,
--					struct vm_area_struct *vma)
--{
--	if (!vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < npages; i++) {
--			set_page_dirty_lock(pages[i]);
--
--			/*
--			 * undo the reference we took when populating
--			 * the table.
--			 */
--			put_page(pages[i]);
--		}
--	}
--}
--
- int exynos_gem_map_sgt_with_dma(struct drm_device *drm_dev,
- 				struct sg_table *sgt,
- 				enum dma_data_direction dir)
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index 4fe19a7a..ffcb448 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -175,7 +175,7 @@ capture and output devices.</entry>
+ 	    <entry>&v4l2-sdr-format;</entry>
+ 	    <entry><structfield>sdr</structfield></entry>
+ 	    <entry>Definition of a data format, see
+-<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
++<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index 20fda75..cd82148 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -308,6 +308,12 @@ modulator programming see
+ fields.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
++	    <entry>0x00400000</entry>
++	    <entry>The device supports the
++<link linkend="sdr">SDR Output</link> interface.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
+ 	    <entry>0x01000000</entry>
+ 	    <entry>The device supports the <link
 -- 
-2.1.4
+http://palosaari.fi/
 
