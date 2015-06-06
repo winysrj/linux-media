@@ -1,248 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56869 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771AbbFASmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 14:42:11 -0400
-Date: Mon, 1 Jun 2015 13:39:02 -0500
-From: Felipe Balbi <balbi@ti.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-CC: <balbi@ti.com>, Arun Ramamurthy <arun.ramamurthy@broadcom.com>,
-	Jonathan Corbet <corbet@lwn.net>, Tejun Heo <tj@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tony Prisk <linux@prisktech.co.nz>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mathias Nyman <mathias.nyman@linux.intel.com>,
-	Paul Bolle <pebolle@tiscali.nl>,
-	Thomas Pugliese <thomas.pugliese@gmail.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	David Mosberger <davidm@egauge.net>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Gregory CLEMENT <gregory.clement@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kevin Hao <haokexin@gmail.com>,
-	Jean Delvare <jdelvare@suse.de>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-ide@vger.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, Dmitry Torokhov <dtor@google.com>,
-	Anatol Pomazau <anatol@google.com>,
-	Jonathan Richardson <jonathar@broadcom.com>,
-	Scott Branden <sbranden@broadcom.com>,
-	Ray Jui <rjui@broadcom.com>,
-	<bcm-kernel-feedback-list@broadcom.com>
-Subject: Re: [PATCHv3 1/4] phy: phy-core: Make GENERIC_PHY an invisible option
-Message-ID: <20150601183902.GG26081@saruman.tx.rr.com>
-Reply-To: <balbi@ti.com>
-References: <1429743853-10254-1-git-send-email-arun.ramamurthy@broadcom.com>
- <1429743853-10254-2-git-send-email-arun.ramamurthy@broadcom.com>
- <20150515005210.GA31534@saruman.tx.rr.com>
- <556391FE.1020503@broadcom.com>
- <20150526141938.GA25686@saruman.tx.rr.com>
- <5564BD5D.1070601@broadcom.com>
- <20150526183955.GW26599@saruman.tx.rr.com>
- <55684ECE.9060003@ti.com>
- <20150529150413.GB2026@saruman.tx.rr.com>
- <556C5599.9020808@ti.com>
+Received: from wp210.webpack.hosteurope.de ([80.237.132.217]:44936 "EHLO
+	wp210.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932211AbbFFURr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2015 16:17:47 -0400
+From: =?UTF-8?q?Jan=20Kl=C3=B6tzke?= <jan@kloetzke.net>
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Cc: abraham.manu@gmail.com
+Subject: [PATCH 4/5] [media] rc/keymaps: add keytable for Twinhan DTV CAB CI
+Date: Sat,  6 Jun 2015 21:58:12 +0200
+Message-Id: <1433620693-6235-5-git-send-email-jan@kloetzke.net>
+In-Reply-To: <1433620693-6235-1-git-send-email-jan@kloetzke.net>
+References: <1433620693-6235-1-git-send-email-jan@kloetzke.net>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E69HUUNAyIJqGpVn"
-Content-Disposition: inline
-In-Reply-To: <556C5599.9020808@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---E69HUUNAyIJqGpVn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This RC map was taken from Christoph Pinkl's patch
+(http://patchwork.linuxtv.org/patch/7217/). It is used solely by the respective
+mantis based card because the encoding is not known.
 
-On Mon, Jun 01, 2015 at 06:22:41PM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
->=20
-> On Friday 29 May 2015 08:34 PM, Felipe Balbi wrote:
-> >Hi,
-> >
-> >On Fri, May 29, 2015 at 05:04:38PM +0530, Kishon Vijay Abraham I wrote:
-> >>Hi Felipe,
-> >>
-> >>On Wednesday 27 May 2015 12:09 AM, Felipe Balbi wrote:
-> >>>On Tue, May 26, 2015 at 11:37:17AM -0700, Arun Ramamurthy wrote:
-> >>>>Hi
-> >>>>
-> >>>>On 15-05-26 07:19 AM, Felipe Balbi wrote:
-> >>>>>HI,
-> >>>>>
-> >>>>>On Mon, May 25, 2015 at 02:19:58PM -0700, Arun Ramamurthy wrote:
-> >>>>>>
-> >>>>>>
-> >>>>>>On 15-05-14 05:52 PM, Felipe Balbi wrote:
-> >>>>>>>Hi,
-> >>>>>>>
-> >>>>>>>On Wed, Apr 22, 2015 at 04:04:10PM -0700, Arun Ramamurthy wrote:
-> >>>>>>>>Most of the phy providers use "select" to enable GENERIC_PHY. Sin=
-ce select
-> >>>>>>>>is only recommended when the config is not visible, GENERIC_PHY i=
-s changed
-> >>>>>>>>an invisible option. To maintain consistency, all phy providers a=
-re changed
-> >>>>>>>>to "select" GENERIC_PHY and all non-phy drivers use "depends on" =
-when the
-> >>>>>>>>phy framework is explicity required. USB_MUSB_OMAP2PLUS has a cyc=
-lic
-> >>>>>>>>dependency, so it is left as "select".
-> >>>>>>>>
-> >>>>>>>>Signed-off-by: Arun Ramamurthy <arun.ramamurthy@broadcom.com>
-> >>>>>>>>---
-> >>>>>>>>  drivers/ata/Kconfig                       | 1 -
-> >>>>>>>>  drivers/media/platform/exynos4-is/Kconfig | 2 +-
-> >>>>>>>>  drivers/phy/Kconfig                       | 4 ++--
-> >>>>>>>>  drivers/usb/host/Kconfig                  | 4 ++--
-> >>>>>>>>  drivers/video/fbdev/exynos/Kconfig        | 2 +-
-> >>>>>>>>  5 files changed, 6 insertions(+), 7 deletions(-)
-> >>>>>>>>
-> >>>>>>>>diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-> >>>>>>>>index 5f60155..6d2e881 100644
-> >>>>>>>>--- a/drivers/ata/Kconfig
-> >>>>>>>>+++ b/drivers/ata/Kconfig
-> >>>>>>>>@@ -301,7 +301,6 @@ config SATA_MV
-> >>>>>>>>  	tristate "Marvell SATA support"
-> >>>>>>>>  	depends on PCI || ARCH_DOVE || ARCH_MV78XX0 || \
-> >>>>>>>>  		   ARCH_MVEBU || ARCH_ORION5X || COMPILE_TEST
-> >>>>>>>>-	select GENERIC_PHY
-> >>>>>>>>  	help
-> >>>>>>>>  	  This option enables support for the Marvell Serial ATA famil=
-y.
-> >>>>>>>>  	  Currently supports 88SX[56]0[48][01] PCI(-X) chips,
-> >>>>>>>>diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/=
-media/platform/exynos4-is/Kconfig
-> >>>>>>>>index b7b2e47..b6f3eaa 100644
-> >>>>>>>>--- a/drivers/media/platform/exynos4-is/Kconfig
-> >>>>>>>>+++ b/drivers/media/platform/exynos4-is/Kconfig
-> >>>>>>>>@@ -31,7 +31,7 @@ config VIDEO_S5P_FIMC
-> >>>>>>>>  config VIDEO_S5P_MIPI_CSIS
-> >>>>>>>>  	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
-> >>>>>>>>  	depends on REGULATOR
-> >>>>>>>>-	select GENERIC_PHY
-> >>>>>>>>+	depends on GENERIC_PHY
-> >>>>>>>>  	help
-> >>>>>>>>  	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-C=
-SI2
-> >>>>>>>>  	  receiver (MIPI-CSIS) devices.
-> >>>>>>>>diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> >>>>>>>>index 2962de2..edecdb1 100644
-> >>>>>>>>--- a/drivers/phy/Kconfig
-> >>>>>>>>+++ b/drivers/phy/Kconfig
-> >>>>>>>>@@ -5,7 +5,7 @@
-> >>>>>>>>  menu "PHY Subsystem"
-> >>>>>>>>
-> >>>>>>>>  config GENERIC_PHY
-> >>>>>>>>-	bool "PHY Core"
-> >>>>>>>>+	bool
-> >>>>>>>>  	help
-> >>>>>>>>  	  Generic PHY support.
-> >>>>>>>>
-> >>>>>>>>@@ -72,7 +72,7 @@ config PHY_MIPHY365X
-> >>>>>>>>  config PHY_RCAR_GEN2
-> >>>>>>>>  	tristate "Renesas R-Car generation 2 USB PHY driver"
-> >>>>>>>>  	depends on ARCH_SHMOBILE
-> >>>>>>>>-	depends on GENERIC_PHY
-> >>>>>>>>+	select GENERIC_PHY
-> >>>>>>>
-> >>>>>>>so some you changed from depends to select...
-> >>>>>>>
-> >>>>>>>>  	help
-> >>>>>>>>  	  Support for USB PHY found on Renesas R-Car generation 2 SoCs.
-> >>>>>>>>
-> >>>>>>>>diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-> >>>>>>>>index 5ad60e4..e2197e2 100644
-> >>>>>>>>--- a/drivers/usb/host/Kconfig
-> >>>>>>>>+++ b/drivers/usb/host/Kconfig
-> >>>>>>>>@@ -182,7 +182,7 @@ config USB_EHCI_HCD_SPEAR
-> >>>>>>>>  config USB_EHCI_HCD_STI
-> >>>>>>>>  	tristate "Support for ST STiHxxx on-chip EHCI USB controller"
-> >>>>>>>>  	depends on ARCH_STI && OF
-> >>>>>>>>-	select GENERIC_PHY
-> >>>>>>>>+	depends on GENERIC_PHY
-> >>>>>>>
-> >>>>>>>while others you changed from select to depends.
-> >>>>>>>
-> >>>>>>>NAK.
-> >>>>>>>
-> >>>>>>Felipe, I dont understand your concern, could you please explain it=
- more
-> >>>>>>detail?  The logic behind the changes is that in cases where there =
-was an
-> >>>>>>explicit dependency, I changed it to "depends on" and in other case=
-s I
-> >>>>>>changed it to "selects". Thanks
-> >>>>>
-> >>>>>Since GENERIC_PHY is visible from Kconfig, it would be much nicer to
-> >>>>>avoid select altogether.
-> >>>>>
-> >>>>Felipe, after discussion with the maintainers, I have made GENERIC_PH=
-Y an
-> >>>>invisible option as part of this change. Thanks
-> >>>
-> >>>Then, if the option is invisible, how can you "depend" on it ? It can
-> >>>never be selected by poking around in Kconfig. IMO, it's
-> >>>counterintuitive that you need to enable a PHY driver before you can s=
-ee
-> >>>your EHCI/OHCI/whatever controller listed in Kconfig.
-> >>
-> >>If the controller requires PHY for it to be functional, it is okay to m=
-ake
-> >>the controller depend on PHY IMHO. We want to try and minimize the usag=
-e of
-> >>'select' wherever possible or else 'select' is the most intuitive way. =
-The
-> >>other option is just to leave the 'depends on' and let the user select =
-PHY.
-> >
-> >How can you 'depend' on something that the user can't select by
-> >navigating through Kconfig ?
->=20
-> hmm... Actually it's selected when the user selects the PHY driver.
+Signed-off-by: Jan Klötzke <jan@kloetzke.net>
+---
+ drivers/media/rc/keymaps/Makefile                |  1 +
+ drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c | 98 ++++++++++++++++++++++++
+ include/media/rc-map.h                           |  1 +
+ 3 files changed, 100 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c
 
-that's my point, don't you think it's a little counter-intuitive ?
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index f0c02c8..fbbd3bb 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-total-media-in-hand-02.o \
+ 			rc-trekstor.o \
+ 			rc-tt-1500.o \
++			rc-twinhan-dtv-cab-ci.o \
+ 			rc-twinhan1027.o \
+ 			rc-videomate-m1f.o \
+ 			rc-videomate-s350.o \
+diff --git a/drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c b/drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c
+new file mode 100644
+index 0000000..202500c
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c
+@@ -0,0 +1,98 @@
++/* keytable for Twinhan DTV CAB CI Remote Controller
++ *
++ * Copyright (c) 2010 by Igor M. Liplianin <liplianin@me.by>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++static struct rc_map_table twinhan_dtv_cab_ci[] = {
++	{ 0x29, KEY_POWER},
++	{ 0x28, KEY_FAVORITES},
++	{ 0x30, KEY_TEXT},
++	{ 0x17, KEY_INFO},              /* Preview */
++	{ 0x23, KEY_EPG},
++	{ 0x3b, KEY_F22},               /* Record List */
++
++	{ 0x3c, KEY_1},
++	{ 0x3e, KEY_2},
++	{ 0x39, KEY_3},
++	{ 0x36, KEY_4},
++	{ 0x22, KEY_5},
++	{ 0x20, KEY_6},
++	{ 0x32, KEY_7},
++	{ 0x26, KEY_8},
++	{ 0x24, KEY_9},
++	{ 0x2a, KEY_0},
++
++	{ 0x33, KEY_CANCEL},
++	{ 0x2c, KEY_BACK},
++	{ 0x15, KEY_CLEAR},
++	{ 0x3f, KEY_TAB},
++	{ 0x10, KEY_ENTER},
++	{ 0x14, KEY_UP},
++	{ 0x0d, KEY_RIGHT},
++	{ 0x0e, KEY_DOWN},
++	{ 0x11, KEY_LEFT},
++
++	{ 0x21, KEY_VOLUMEUP},
++	{ 0x35, KEY_VOLUMEDOWN},
++	{ 0x3d, KEY_CHANNELDOWN},
++	{ 0x3a, KEY_CHANNELUP},
++	{ 0x2e, KEY_RECORD},
++	{ 0x2b, KEY_PLAY},
++	{ 0x13, KEY_PAUSE},
++	{ 0x25, KEY_STOP},
++
++	{ 0x1f, KEY_REWIND},
++	{ 0x2d, KEY_FASTFORWARD},
++	{ 0x1e, KEY_PREVIOUS},          /* Replay |< */
++	{ 0x1d, KEY_NEXT},              /* Skip   >| */
++
++	{ 0x0b, KEY_CAMERA},            /* Capture */
++	{ 0x0f, KEY_LANGUAGE},          /* SAP */
++	{ 0x18, KEY_MODE},              /* PIP */
++	{ 0x12, KEY_ZOOM},              /* Full screen */
++	{ 0x1c, KEY_SUBTITLE},
++	{ 0x2f, KEY_MUTE},
++	{ 0x16, KEY_F20},               /* L/R */
++	{ 0x38, KEY_F21},               /* Hibernate */
++
++	{ 0x37, KEY_SWITCHVIDEOMODE},   /* A/V */
++	{ 0x31, KEY_AGAIN},             /* Recall */
++	{ 0x1a, KEY_KPPLUS},            /* Zoom+ */
++	{ 0x19, KEY_KPMINUS},           /* Zoom- */
++	{ 0x27, KEY_RED},
++	{ 0x0C, KEY_GREEN},
++	{ 0x01, KEY_YELLOW},
++	{ 0x00, KEY_BLUE},
++};
++
++static struct rc_map_list twinhan_dtv_cab_ci_map = {
++	.map = {
++		.scan    = twinhan_dtv_cab_ci,
++		.size    = ARRAY_SIZE(twinhan_dtv_cab_ci),
++		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
++		.name    = RC_MAP_TWINHAN_DTV_CAB_CI,
++	}
++};
++
++static int __init init_rc_map_twinhan_dtv_cab_ci(void)
++{
++	return rc_map_register(&twinhan_dtv_cab_ci_map);
++}
++
++static void __exit exit_rc_map_twinhan_dtv_cab_ci(void)
++{
++	rc_map_unregister(&twinhan_dtv_cab_ci_map);
++}
++
++module_init(init_rc_map_twinhan_dtv_cab_ci);
++module_exit(exit_rc_map_twinhan_dtv_cab_ci);
++
++MODULE_LICENSE("GPL");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 50ed644..27763d5 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -207,6 +207,7 @@ void rc_map_init(void);
+ #define RC_MAP_TOTAL_MEDIA_IN_HAND_02    "rc-total-media-in-hand-02"
+ #define RC_MAP_TREKSTOR                  "rc-trekstor"
+ #define RC_MAP_TT_1500                   "rc-tt-1500"
++#define RC_MAP_TWINHAN_DTV_CAB_CI        "rc-twinhan-dtv-cab-ci"
+ #define RC_MAP_TWINHAN_VP1027_DVBS       "rc-twinhan1027"
+ #define RC_MAP_VIDEOMATE_K100            "rc-videomate-k100"
+ #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
+-- 
+2.1.4
 
-> Maybe we should directly depend on the PHY driver instead of Generic
-> PHY?
-
-maybe... But then what do you do when you have different boards using
-different PHYs ?
-
---=20
-balbi
-
---E69HUUNAyIJqGpVn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVbKbGAAoJEIaOsuA1yqREsFUQAIGrVwFCpphY920lpk6CZVsf
-B1LWJ8FSsfEVmVS7GrpliW4dUMx+MQaqEz0tZrAlGOqg0FcqhkOztA4rJfbYVS9d
-2dbFE5v21YohQ2H7IYLbQ56yFIZirxg0Pc23OZNrIOsVh0Or46XLsYvH1sJ4OkAs
-uP8+d4gJCRjZoSka/Zu8h2hh7x8XN7RGaDxO5eCH3mcWnUfMR1puZnSDz59FUfpC
-GlX0PtCxNGLuswDhRXBRvK47ghPj3iIHLZ8mLRqr+qgozJA35gcM8O1C1ChzZsRW
-pfF8WJ8tzPoajA9E0MvU89LB7PCV/zVLLYqgjK7Z4FEtf5OaviJ13AWbAgEc350x
-nqd3k5ZhiXRM2qkvL/OFqcqMiihtGSzMUvxpjjzdA9eOt47vC7cFOiM0XCNwir5j
-yhCuiRwjFa+XKLSeawvVOumBtq1SxdNT1bvUf6fmc7yKzRwOZ0w5UFgAYVekDedx
-lAuAbMQaezM4UeiBF+e16vLGPejiJBf5aA7aPzl7yM4ufTDEZ5nu/YsEMaJ8lPbs
-06xBd3jZ7WNyGyN4IRMAs2ticSIJeF40/GYQ/gEdydvcgtkyRfWe7WqIOnrHJhnI
-NuHdoqV60CqLFwhTuH8iILaNwk7+kRev7+cD/8ExNJ6htFHj4Ol8nSpCR6HD5ZEr
-djisWMUAu7SU/kED905p
-=eGxF
------END PGP SIGNATURE-----
-
---E69HUUNAyIJqGpVn--
