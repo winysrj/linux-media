@@ -1,148 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54789 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753572AbbFHTye (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:34 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50953 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932413AbbFFNKX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 09:10:23 -0400
+Date: Sat, 6 Jun 2015 15:10:18 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pali Roh?r <pali.rohar@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org, Michael Ira Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 12/26] [media] DocBook: Add documentation for ATSC M/H properties
-Date: Mon,  8 Jun 2015 16:53:56 -0300
-Message-Id: <7f2a97ee8841fca092b8da7f572bdd744f2dbe79.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	maxx <maxx@spaceboyz.net>
+Subject: Re: [PATCH] radio-bcm2048: Enable access to automute and ctrl
+ registers
+Message-ID: <20150606131018.GE1329@xo-6d-61-c0.localdomain>
+References: <1431725511-7379-1-git-send-email-pali.rohar@gmail.com>
+ <55718929.6080004@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <55718929.6080004@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those data were retrieved by looking at A/153: ATSC Mobile DTV
-Standard and guessing what makes more sense to each field.
+On Fri 2015-06-05 13:34:01, Hans Verkuil wrote:
+> On 05/15/2015 11:31 PM, Pali Rohár wrote:
+> > From: maxx <maxx@spaceboyz.net>
+> > 
+> > This enables access to automute function of the chip via sysfs and
+> > gives direct access to FM_AUDIO_CTRL0/1 registers, also via sysfs. I
+> > don't think this is so important but helps in developing radio scanner
+> > apps.
+> > 
+> > Patch writen by maxx@spaceboyz.net
+> > 
+> > Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+> > Cc: maxx@spaceboyz.net
+> 
+> As Pavel mentioned, these patches need to be resend with correct Signed-off-by
+> lines.
+> 
+> Regarding this patch: I don't want to apply this since this really should be a
+> control. Or just enable it always. If someone wants to make this a control, then
+> let me know: there are two other drivers with an AUTOMUTE control: bttv and saa7134.
+> 
+> In both cases it is implemented as a private control, but it makes sense to
+> promote this to a standard user control. I can make a patch for that.
+> 
+> And for CTRL0/1: if you want direct register access, then implement
+> VIDIOC_DBG_G/S_REGISTER. This makes sure you have the right permissions etc.
+> 
+> More importantly: is anyone working on getting this driver out of staging? It's
+> been here for about a year and a half and I haven't seen any efforts to clean it up.
 
-Cc: Michael Ira Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Yes, there are. Unfortunately, this one depends on bluetooth driver, and we have some
+fun with that one. So please be patient...
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 275788875655..8d57f0c9b6aa 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -741,10 +741,13 @@ typedef enum fe_delivery_system {
- 	<tbody valign="top">
- 	<row>
- 	    <entry id="ATSCMH-RSFRAME-PRI-ONLY"><constant>ATSCMH_RSFRAME_PRI_ONLY</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Single Frame: There is only a primary RS Frame for all
-+		Group Regions.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSFRAME-PRI-SEC"><constant>ATSCMH_RSFRAME_PRI_SEC</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Dual Frame: There are two separate RS Frames: Primary RS
-+		Frame for Group Region A and B and Secondary RS Frame for Group
-+		Region C and D.</entry>
- 	</row>
-         </tbody>
-     </tgroup>
-@@ -752,7 +755,7 @@ typedef enum fe_delivery_system {
- 		</section>
- 		<section id="DTV-ATSCMH-RS-FRAME-ENSEMBLE">
- 			<title><constant>DTV_ATSCMH_RS_FRAME_ENSEMBLE</constant></title>
--			<para>RS frame ensemble.</para>
-+			<para>Reed Solomon(RS) frame ensemble.</para>
- 			<para>Possible values are:</para>
- <table pgwide="1" frame="none" id="atscmh-rs-frame-ensemble">
-     <title>enum atscmh_rs_frame_ensemble</title>
-@@ -767,13 +770,13 @@ typedef enum fe_delivery_system {
- 	<tbody valign="top">
- 	<row>
- 	    <entry id="ATSCMH-RSFRAME-ENS-PRI"><constant>ATSCMH_RSFRAME_ENS_PRI</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Primary Ensemble.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSFRAME-ENS-SEC"><constant>AATSCMH_RSFRAME_PRI_SEC</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Secondary Ensemble.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSFRAME-RES"><constant>AATSCMH_RSFRAME_RES</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reserved. Shouldn't be used.</entry>
- 	</row>
-         </tbody>
-     </tgroup>
-@@ -781,7 +784,7 @@ typedef enum fe_delivery_system {
- 		</section>
- 		<section id="DTV-ATSCMH-RS-CODE-MODE-PRI">
- 			<title><constant>DTV_ATSCMH_RS_CODE_MODE_PRI</constant></title>
--			<para>RS code mode (primary).</para>
-+			<para>Reed Solomon (RS) code mode (primary).</para>
- 			<para>Possible values are:</para>
- <table pgwide="1" frame="none" id="atscmh-rs-code-mode">
-     <title>enum atscmh_rs_code_mode</title>
-@@ -796,16 +799,16 @@ typedef enum fe_delivery_system {
- 	<tbody valign="top">
- 	<row>
- 	    <entry id="ATSCMH-RSCODE-211-187"><constant>ATSCMH_RSCODE_211_187</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reed Solomon code (211,187).</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSCODE-223-187"><constant>ATSCMH_RSCODE_223_187</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reed Solomon code (223,187).</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSCODE-235-187"><constant>ATSCMH_RSCODE_235_187</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reed Solomon code (235,187).</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-RSCODE-RES"><constant>ATSCMH_RSCODE_RES</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reserved. Shouldn't be used.</entry>
- 	</row>
-         </tbody>
-     </tgroup>
-@@ -813,7 +816,7 @@ typedef enum fe_delivery_system {
- 		</section>
- 		<section id="DTV-ATSCMH-RS-CODE-MODE-SEC">
- 			<title><constant>DTV_ATSCMH_RS_CODE_MODE_SEC</constant></title>
--			<para>RS code mode (secondary).</para>
-+			<para>Reed Solomon (RS) code mode (secondary).</para>
- 			<para>Possible values are the same as documented on
- 			    &atscmh-rs-code-mode;:</para>
- 		</section>
-@@ -834,13 +837,15 @@ typedef enum fe_delivery_system {
- 	<tbody valign="top">
- 	<row>
- 	    <entry id="ATSCMH-SCCC-BLK-SEP"><constant>ATSCMH_SCCC_BLK_SEP</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Separate SCCC: the SCCC outer code mode shall be set independently
-+		for each Group Region (A, B, C, D)</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-SCCC-BLK-COMB"><constant>ATSCMH_SCCC_BLK_COMB</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Combined SCCC: all four Regions shall have the same SCCC outer
-+		code mode.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-SCCC-BLK-RES"><constant>ATSCMH_SCCC_BLK_RES</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>Reserved. Shouldn't be used.</entry>
- 	</row>
-         </tbody>
-     </tgroup>
-@@ -863,10 +868,10 @@ typedef enum fe_delivery_system {
- 	<tbody valign="top">
- 	<row>
- 	    <entry id="ATSCMH-SCCC-CODE-HLF"><constant>ATSCMH_SCCC_CODE_HLF</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>The outer code rate of a SCCC Block is 1/2 rate.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-SCCC-CODE-QTR"><constant>ATSCMH_SCCC_CODE_QTR</constant></entry>
--	    <entry>to be documented.</entry>
-+	    <entry>The outer code rate of a SCCC Block is 1/4 rate.</entry>
- 	</row><row>
- 	    <entry id="ATSCMH-SCCC-CODE-RES"><constant>ATSCMH_SCCC_CODE_RES</constant></entry>
- 	    <entry>to be documented.</entry>
+										Pavel
+
 -- 
-2.4.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
