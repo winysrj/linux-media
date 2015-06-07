@@ -1,46 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp11.mail.ru ([94.100.179.252]:38036 "EHLO smtp11.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800AbbFZLjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 07:39:37 -0400
-Message-ID: <70768F550F7841098B5BC3E9EEDFB33C@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>
-References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan> <CAGoCfiyjRSxRrzdWVPREVaXoMK_iowu19n2+FJosg90UskumHA@mail.gmail.com>
-Subject: Re: XC5000C 0x14b4 status
-Date: Fri, 26 Jun 2015 18:39:27 +0700
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:34302 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482AbbFGMl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2015 08:41:26 -0400
+Received: by lbcmx3 with SMTP id mx3so66312781lbc.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2015 05:41:25 -0700 (PDT)
+Message-ID: <55743BF3.1080301@cogentembedded.com>
+Date: Sun, 07 Jun 2015 15:41:23 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="UTF-8";
-	reply-type=original
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 08/11] sh-vou: add support for log_status
+References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl> <1433667485-35711-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433667485-35711-9-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> IMHO, the best is to get the latest firmware licensed is the best
->> thing to do.
->>
->> Does that "new" xc5000c come with a firmware pre-loaded already?
-> 
-> I've got firmware here that is indicated as being for the xc5300 (i.e.
-> 0x14b4).  That said, I am not sure if it's the same as the original
-> 5000c firmware.  Definitely makes sense to do an I2C dump and compare
-> the firmware images since using the wrong firmware can damage the
-> part.
+Hello.
 
-As I have understood, reading Poduct ID register (together with reading 
-checksum register) is  primarily for check integrity of uploaded FW.
-It's not indicates IC's P/N which FW should belong.
+On 6/7/2015 11:58 AM, Hans Verkuil wrote:
 
-> I'm not against an additional #define for the 0x14b4 part ID, but it
-> shouldn't be accepted upstream until we have corresponding firmware
-> and have seen the tuner working.  Do you have digital signal lock
-> working with this device under Linux and the issue is strictly with
-> part identification?
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 
-With that RF tuner IC, Linux driver and public available FW for XC5000C
-(from Kernel Labs) I successfully received analog and digital transmissions
-over an air. Didn't checked it with DVC-C though.
+> Dump the VOU registers in log_status.
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>   drivers/media/platform/sh_vou.c | 29 +++++++++++++++++++++++++++++
+>   1 file changed, 29 insertions(+)
+
+> diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+> index 9479c44..cbee361 100644
+> --- a/drivers/media/platform/sh_vou.c
+> +++ b/drivers/media/platform/sh_vou.c
+> @@ -949,6 +949,34 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
+>   	return 0;
+>   }
+>
+> +static int sh_vou_log_status(struct file *file, void *priv)
+> +{
+> +	struct sh_vou_device *vou_dev = video_drvdata(file);
+> +
+> +	pr_info("PSELA:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
+
+    You forgot to remove this line. :-(
+
+> +	pr_info("VOUER:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
+> +	pr_info("VOUCR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUCR));
+> +	pr_info("VOUSTR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSTR));
+> +	pr_info("VOUVCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVCR));
+> +	pr_info("VOUISR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUISR));
+> +	pr_info("VOUBCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUBCR));
+> +	pr_info("VOUDPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDPR));
+> +	pr_info("VOUDSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDSR));
+> +	pr_info("VOUVPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVPR));
+> +	pr_info("VOUIR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUIR));
+> +	pr_info("VOUSRR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSRR));
+> +	pr_info("VOUMSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUMSR));
+> +	pr_info("VOUHIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUHIR));
+> +	pr_info("VOUDFR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDFR));
+> +	pr_info("VOUAD1R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD1R));
+> +	pr_info("VOUAD2R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD2R));
+> +	pr_info("VOUAIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAIR));
+> +	pr_info("VOUSWR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSWR));
+> +	pr_info("VOURCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURCR));
+> +	pr_info("VOURPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURPR));
+> +	return 0;
+> +}
+> +
+>   static int sh_vou_g_selection(struct file *file, void *fh,
+>   			      struct v4l2_selection *sel)
+>   {
+[...]
+
+WBR, Sergei
+
