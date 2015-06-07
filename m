@@ -1,55 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:33088 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbbFBWZc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 18:25:32 -0400
-Received: by wiwd19 with SMTP id d19so33526028wiw.0
-        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2015 15:25:31 -0700 (PDT)
-Received: from [192.168.0.3] (196.108.90.146.dyn.plus.net. [146.90.108.196])
-        by mx.google.com with ESMTPSA id r9sm28851436wjo.26.2015.06.02.15.25.30
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 02 Jun 2015 15:25:30 -0700 (PDT)
-Message-ID: <556E2D5B.5080201@gmail.com>
-Date: Tue, 02 Jun 2015 23:25:31 +0100
-From: Andy Furniss <adf.lists@gmail.com>
-MIME-Version: 1.0
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59264 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753023AbbFGI6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2015 04:58:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt to
- work when recording.
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 10/11] sh-vou: fix bytesperline
+Date: Sun,  7 Jun 2015 10:58:04 +0200
+Message-Id: <1433667485-35711-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Running kernel 3.18.14 with git master v4l-utils and a pctv290e + a 292e.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If I try to record with dvbv5-zap and include the "p" option to get
-pat/pmt I get -
+The bytesperline values were wrong for planar formats where bytesperline is
+the line length for the first plane.
 
-read_sections: read error: Resource temporarily unavailable
-couldn't find pmt-pid for sid 10bf
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/sh_vou.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-Doing this this fixes it for me (obviously not meant to be a a proper 
-patch).
-
-diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
-index 30d4eda..b520948 100644
---- a/lib/libdvbv5/dvb-demux.c
-+++ b/lib/libdvbv5/dvb-demux.c
-@@ -151,8 +151,10 @@ int dvb_get_pmt_pid(int patfd, int sid)
-                 if (((count = read(patfd, buf, sizeof(buft))) < 0) && 
-errno == EOVERFLOW)
-                 count = read(patfd, buf, sizeof(buft));
-                 if (count < 0) {
--               perror("read_sections: read error");
--               return -1;
-+                       if (errno == EAGAIN) /*ADF*/
-+                               continue;
-+                       perror("read_sections: read error");
-+                       return -1;
-                 }
-
-                 section_length = ((buf[1] & 0x0f) << 8) | buf[2];
-
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 872da9a..22b32ec 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -133,6 +133,7 @@ struct sh_vou_fmt {
+ 	u32		pfmt;
+ 	char		*desc;
+ 	unsigned char	bpp;
++	unsigned char	bpl;
+ 	unsigned char	rgb;
+ 	unsigned char	yf;
+ 	unsigned char	pkf;
+@@ -143,6 +144,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_NV12,
+ 		.bpp	= 12,
++		.bpl	= 1,
+ 		.desc	= "YVU420 planar",
+ 		.yf	= 0,
+ 		.rgb	= 0,
+@@ -150,6 +152,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_NV16,
+ 		.bpp	= 16,
++		.bpl	= 1,
+ 		.desc	= "YVYU planar",
+ 		.yf	= 1,
+ 		.rgb	= 0,
+@@ -157,6 +160,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB24,
+ 		.bpp	= 24,
++		.bpl	= 3,
+ 		.desc	= "RGB24",
+ 		.pkf	= 2,
+ 		.rgb	= 1,
+@@ -164,6 +168,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB565,
+ 		.bpp	= 16,
++		.bpl	= 2,
+ 		.desc	= "RGB565",
+ 		.pkf	= 3,
+ 		.rgb	= 1,
+@@ -171,6 +176,7 @@ static struct sh_vou_fmt vou_fmt[] = {
+ 	{
+ 		.pfmt	= V4L2_PIX_FMT_RGB565X,
+ 		.bpp	= 16,
++		.bpl	= 2,
+ 		.desc	= "RGB565 byteswapped",
+ 		.pkf	= 3,
+ 		.rgb	= 1,
+@@ -701,7 +707,8 @@ static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
+ 
+ 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
+ 			      &pix->height, 0, img_height_max, 1, 0);
+-	pix->bytesperline = pix->width * 2;
++	pix->bytesperline = pix->width * vou_fmt[pix_idx].bpl;
++	pix->sizeimage = pix->height * ((pix->width * vou_fmt[pix_idx].bpp) >> 3);
+ 
+ 	return 0;
+ }
+@@ -1372,7 +1379,7 @@ static int sh_vou_probe(struct platform_device *pdev)
+ 	pix->height		= 480;
+ 	pix->pixelformat	= V4L2_PIX_FMT_NV16;
+ 	pix->field		= V4L2_FIELD_NONE;
+-	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH * 2;
++	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH;
+ 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
+ 	pix->colorspace		= V4L2_COLORSPACE_SMPTE170M;
+ 
+-- 
+2.1.4
 
