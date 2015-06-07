@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46187 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752317AbbFAU6n (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58292 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752578AbbFGKc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 16:58:43 -0400
-Date: Mon, 1 Jun 2015 23:58:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v9 1/8] Documentation: leds: Add description of
- v4l2-flash sub-device
-Message-ID: <20150601205837.GG25595@valkosipuli.retiisi.org.uk>
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
- <1432566843-6391-2-git-send-email-j.anaszewski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1432566843-6391-2-git-send-email-j.anaszewski@samsung.com>
+	Sun, 7 Jun 2015 06:32:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/6] adv7604: fix broken saturator check
+Date: Sun,  7 Jun 2015 12:32:34 +0200
+Message-Id: <1433673155-20179-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Mon, May 25, 2015 at 05:13:56PM +0200, Jacek Anaszewski wrote:
-> +On remove the v4l2_flash_release function has to be called, which takes one
-> +argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
+The logging of the saturator status was wrong due to an incorrect
+condition.
 
-You might want to add this function can be safely called with NULL or error
-pointer argument.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 757b6b5..c04e0dd 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2292,7 +2292,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "Output color space: %s %s, saturator %s\n",
+ 			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
+ 			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
+-			((reg_io_0x02 & 0x04) ^ (reg_io_0x02 & 0x01)) ?
++			(((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
+ 				"enabled" : "disabled");
+ 	v4l2_info(sd, "Color space conversion: %s\n",
+ 			csc_coeff_sel_rb[cp_read(sd, info->cp_csc) >> 4]);
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
