@@ -1,48 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50462 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbbFFL7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 07:59:09 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54847 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752543AbbFGI6d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2015 04:58:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 5/8] ts2020: Add a comment about lifetime of on-stack pdata in ts2020_attach()
-Date: Sat,  6 Jun 2015 14:58:45 +0300
-Message-Id: <1433591928-30915-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1433591928-30915-1-git-send-email-crope@iki.fi>
-References: <1433591928-30915-1-git-send-email-crope@iki.fi>
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 07/11] sh-vou: replace g/s_crop/cropcap by g/s_selection
+Date: Sun,  7 Jun 2015 10:58:01 +0200
+Message-Id: <1433667485-35711-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: David Howells <dhowells@redhat.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-ts2020_attach() allocates a variable pdata on the stack and then passes a
-pointer to it to i2c_new_device() which stashes the pointer in persistent
-structures.
+Implement g/s_selection. The v4l2 core will emulate g/s_crop and
+cropcap on top of g/s_selection.
 
-Add a comment to the effect that this isn't actually an error because the
-contents of the variable are only used in ts2020_probe() and this is only
-called ts2020_attach()'s stack frame exists.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/ts2020.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/sh_vou.c | 71 +++++++++++++++--------------------------
+ 1 file changed, 25 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
-index 797112b..f674717 100644
---- a/drivers/media/dvb-frontends/ts2020.c
-+++ b/drivers/media/dvb-frontends/ts2020.c
-@@ -363,6 +363,8 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
- {
- 	struct i2c_client *client;
- 	struct i2c_board_info board_info;
-+
-+	/* This is only used by ts2020_probe() so can be on the stack */
- 	struct ts2020_config pdata;
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 262c244..9479c44 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -949,24 +949,36 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ 	return 0;
+ }
  
- 	memcpy(&pdata, config, sizeof(pdata));
+-static int sh_vou_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
++static int sh_vou_g_selection(struct file *file, void *fh,
++			      struct v4l2_selection *sel)
+ {
+ 	struct sh_vou_device *vou_dev = video_drvdata(file);
+ 
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+-
+-	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	a->c = vou_dev->rect;
+-
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++	switch (sel->target) {
++	case V4L2_SEL_TGT_COMPOSE:
++		sel->r = vou_dev->rect;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = VOU_MAX_IMAGE_WIDTH;
++		sel->r.height = VOU_MAX_IMAGE_HEIGHT;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+ /* Assume a dull encoder, do all the work ourselves. */
+-static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
++static int sh_vou_s_selection(struct file *file, void *fh,
++			      struct v4l2_selection *sel)
+ {
+-	struct v4l2_crop a_writable = *a;
++	struct v4l2_rect *rect = &sel->r;
+ 	struct sh_vou_device *vou_dev = video_drvdata(file);
+-	struct v4l2_rect *rect = &a_writable.c;
+ 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
+ 	struct v4l2_pix_format *pix = &vou_dev->pix;
+ 	struct sh_vou_geometry geo;
+@@ -980,10 +992,8 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ 	unsigned int img_height_max;
+ 	int ret;
+ 
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u@%u:%u\n", __func__,
+-		rect->width, rect->height, rect->left, rect->top);
+-
+-	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++	    sel->target != V4L2_SEL_TGT_COMPOSE)
+ 		return -EINVAL;
+ 
+ 	if (vou_dev->std & V4L2_STD_525_60)
+@@ -1047,36 +1057,6 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ 	return 0;
+ }
+ 
+-/*
+- * Total field: NTSC 858 x 2 * 262/263, PAL 864 x 2 * 312/313, default rectangle
+- * is the initial register values, height takes the interlaced format into
+- * account. The actual image can only go up to 720 x 2 * 240, So, VOUVPR can
+- * actually only meaningfully contain values <= 720 and <= 240 respectively, and
+- * not <= 864 and <= 312.
+- */
+-static int sh_vou_cropcap(struct file *file, void *priv,
+-			  struct v4l2_cropcap *a)
+-{
+-	struct sh_vou_device *vou_dev = video_drvdata(file);
+-
+-	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+-
+-	a->type				= V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	a->bounds.left			= 0;
+-	a->bounds.top			= 0;
+-	a->bounds.width			= VOU_MAX_IMAGE_WIDTH;
+-	a->bounds.height		= VOU_MAX_IMAGE_HEIGHT;
+-	/* Default = max, set VOUDPR = 0, which is not hardware default */
+-	a->defrect.left			= 0;
+-	a->defrect.top			= 0;
+-	a->defrect.width		= VOU_MAX_IMAGE_WIDTH;
+-	a->defrect.height		= VOU_MAX_IMAGE_HEIGHT;
+-	a->pixelaspect.numerator	= 1;
+-	a->pixelaspect.denominator	= 1;
+-
+-	return 0;
+-}
+-
+ static irqreturn_t sh_vou_isr(int irq, void *dev_id)
+ {
+ 	struct sh_vou_device *vou_dev = dev_id;
+@@ -1305,9 +1285,8 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
+ 	.vidioc_enum_output		= sh_vou_enum_output,
+ 	.vidioc_s_std			= sh_vou_s_std,
+ 	.vidioc_g_std			= sh_vou_g_std,
+-	.vidioc_cropcap			= sh_vou_cropcap,
+-	.vidioc_g_crop			= sh_vou_g_crop,
+-	.vidioc_s_crop			= sh_vou_s_crop,
++	.vidioc_g_selection		= sh_vou_g_selection,
++	.vidioc_s_selection		= sh_vou_s_selection,
+ };
+ 
+ static const struct v4l2_file_operations sh_vou_fops = {
 -- 
-http://palosaari.fi/
+2.1.4
 
