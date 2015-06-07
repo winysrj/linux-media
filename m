@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:35355 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932540AbbFVWic (ORCPT
+Received: from pmta2.delivery4.ore.mailhop.org ([54.200.247.200]:20563 "HELO
+	pmta2.delivery4.ore.mailhop.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751003AbbFGWMj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 18:38:32 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com
-Cc: mingo@kernel.org, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [PATCH 2/2] x86/mm/pat, drivers/media/ivtv: replace WARN() with pr_warn()
-Date: Mon, 22 Jun 2015 15:31:58 -0700
-Message-Id: <1435012318-381-3-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
+	Sun, 7 Jun 2015 18:12:39 -0400
+Message-ID: <5574BE16.8030906@transmitter.com>
+Date: Sun, 07 Jun 2015 14:56:38 -0700
+From: Doug Lung <dlung@transmitter.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: dlung0@gmail.com
+Subject: Obtain both Si2157 and LGDT3306A signal stats from Hauppauge HVR955Q?
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Hello! this is my first post here, although I've benefited from all
+the work of the contributors over the year. Thanks!
 
-On built-in kernels this will always splat. Fix that.
+I'm looking for help getting similar signal statistics from the new
+Hauppauge HVR955Q (Si2157, LGDT3306A, CX23102) USB ATSC tuner that
+I'm now getting from the Hauppauge Aero-M (MxL111SF, LGDT3305). I'm
+currently using DVBv3 API but am open to switching to DVBv5 API if
+necessary.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/media/pci/ivtv/ivtvfb.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I applied Antti Palosaari's "si2157: implement signal strength stats"
+patch to the media_build.  With the patch, dvb-fe-tool with dvbv5-zap
+returns relatively accurate RSSI data in dBm in 1 dB steps from the
+HVR955Q but no SNR or packet error data. dvb-fe-tool provides a full
+set of data (unformatted) from the Aero-M but only Lock and RSSI
+(formatted in dBm) from the HVR955Q.
 
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 4cb365d..6f0c364 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -38,6 +38,8 @@
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/fb.h>
-@@ -1266,8 +1268,8 @@ static int __init ivtvfb_init(void)
- 	int err;
- 
- #ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
-+	if (pat_enabled()) {
-+		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
- 		return -ENODEV;
- 	}
- #endif
--- 
-2.3.2.209.gd67f9d5.dirty
+The SNR and packet error data is available from the HVR955Q in raw
+form in DVBv3 applications like femon. The Si2157 RSSI in dBm is not.
+The DVBv3 apps show the "signal quality" data from lgdt3306a.c based
+on SNR margin above threshold.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+Any suggestions on how to modify the HVR955Q driver to provide RSSI
+(unformatted is okay) from the Si2157 in its DVBv3 statistics? That's
+preferred since it will work with the programs I wrote with ZapLib
+and pyZap bindings for use with the Aero-M.
+
+Alternatively, is there a way to obtain full DVBv5 API compliant signal
+quality data (RSSI, SNR, uncorrected packets) from the HVR955Q's
+LGDT3306A so I can modify my programs to use the linuxdvb.py API v5.1
+bindings? That would be the best long term solution, although more work
+for me and perhaps the LGDT3306A maintainer.
+
+       ...Doug
