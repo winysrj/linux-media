@@ -1,217 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38807 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754154AbbFCJhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 05:37:54 -0400
-Message-ID: <556ECACC.9000207@xs4all.nl>
-Date: Wed, 03 Jun 2015 11:37:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Sumit Semwal <sumit.semwal@linaro.org>,
-	Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
-	Tomasz Stanislawski <stanislawski.tomasz@googlemail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	Rob Clark <robdclark@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFCv3 2/2] dma-buf: add helpers for sharing
- attacher constraints with dma-parms
-References: <1422347154-15258-1-git-send-email-sumit.semwal@linaro.org> <1422347154-15258-2-git-send-email-sumit.semwal@linaro.org> <54DB12B5.4080000@samsung.com> <20150211111258.GP8656@n2100.arm.linux.org.uk> <54DB4908.10004@samsung.com> <20150211162312.GR8656@n2100.arm.linux.org.uk> <CAO_48GHf=Zt7Ju=N=FAVfaudApSV+rSfb+Wou7L1Dh3egULm9g@mail.gmail.com> <556EA13B.7080306@xs4all.nl> <20150603084115.GC7557@n2100.arm.linux.org.uk>
-In-Reply-To: <20150603084115.GC7557@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:54541 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089AbbFHJDT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:03:19 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v10 8/8] exynos4-is: Add support for v4l2-flash subdevs
+Date: Mon, 08 Jun 2015 11:02:25 +0200
+Message-id: <1433754145-12765-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/15 10:41, Russell King - ARM Linux wrote:
-> On Wed, Jun 03, 2015 at 08:39:55AM +0200, Hans Verkuil wrote:
->> Hi Sumit,
->>
->> On 05/05/2015 04:41 PM, Sumit Semwal wrote:
->>> Hi Russell, everyone,
->>>
->>> First up, sincere apologies for being awol for sometime; had some
->>> personal / medical things to take care of, and then I thought I'd wait
->>> for the merge window to get over before beginning to discuss this
->>> again.
->>>
->>> On 11 February 2015 at 21:53, Russell King - ARM Linux
->>> <linux@arm.linux.org.uk> wrote:
->>>> On Wed, Feb 11, 2015 at 01:20:24PM +0100, Marek Szyprowski wrote:
->>>>> Hello,
->>>>>
->>>>> On 2015-02-11 12:12, Russell King - ARM Linux wrote:
->>>>>> Which is a damn good reason to NAK it - by that admission, it's a half-baked
->>>>>> idea.
->>>>>>
->>>>>> If all we want to know is whether the importer can accept only contiguous
->>>>>> memory or not, make a flag to do that, and allow the exporter to test this
->>>>>> flag.  Don't over-engineer this to make it _seem_ like it can do something
->>>>>> that it actually totally fails with.
->>>>>>
->>>>>> As I've already pointed out, there's a major problem if you have already
->>>>>> had a less restrictive attachment which has an active mapping, and a new
->>>>>> more restrictive attachment comes along later.
->>>>>>
->>>>>> It seems from Rob's descriptions that we also need another flag in the
->>>>>> importer to indicate whether it wants to have a valid struct page in the
->>>>>> scatter list, or whether it (correctly) uses the DMA accessors on the
->>>>>> scatter list - so that exporters can reject importers which are buggy.
->>>>>
->>>>> Okay, but flag-based approach also have limitations.
->>>>
->>>> Yes, the flag-based approach doesn't let you describe in detail what
->>>> the importer can accept - which, given the issues that I've raised
->>>> is a *good* thing.  We won't be misleading anyone into thinking that
->>>> we can do something that's really half-baked, and which we have no
->>>> present requirement for.
->>>>
->>>> This is precisely what Linus talks about when he says "don't over-
->>>> engineer" - if we over-engineer this, we end up with something that
->>>> sort-of works, and that's a bad thing.
->>>>
->>>> The Keep It Simple approach here makes total sense - what are our
->>>> current requirements - to be able to say that an importer can only accept:
->>>>   - contiguous memory rather than a scatterlist
->>>>   - scatterlists with struct page pointers
->>>>
->>>> Does solving that need us to compare all the constraints of each and
->>>> every importer, possibly ending up with constraints which can't be
->>>> satisfied?  No.  Does the flag approach satisfy the requirements?  Yes.
->>>>
->>>
->>> So, for basic constraint-sharing, we'll just go with the flag based
->>> approach, with a flag (best place for it is still dev->dma_params I
->>> suppose) for denoting contiguous or scatterlist. Is that agreed, then?
->>> Also, with this idea, of course, there won't be any helpers for trying
->>> to calculate constraints; it would be totally the exporter's
->>> responsibility to handle it via the attach() dma_buf_op if it wishes
->>> to.
->>
->> What's wrong with the proposed max_segment_count? Many media devices do
->> have a limited max_segment_count and that should be taken into account.
-> 
-> So what happens if you have a dma_buf exporter, and several dma_buf
-> importers.  One dma_buf importer attaches to the exporter, and asks
-> for the buffer, and starts making use of the buffer.  This export has
-> many scatterlist segments.
-> 
-> Another dma_buf importer attaches to the same buffer, and now asks for
-> the buffer, but the number of scatterlist segments exceeds it's
-> requirement.
-> 
-> You can't reallocate the buffer because it's in-use by another importer.
-> There is no way to revoke the buffer from the other importer.  So there
-> is no way to satisfy this importer's requirements.
-> 
-> What I'm showing is that the idea that exporting these parameters fixes
-> some problem is just an illusion - it may work for the single importer
-> case, but doesn't for the multiple importer case.
-> 
-> Importers really have two choices here: either they accept what the
-> exporter is giving them, or they reject it.
+This patch adds support for external v4l2-flash devices.
+The support includes parsing "camera-flashes" DT property
+and asynchronous sub-device registration.
 
-I agree completely with that.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c |   75 ++++++++++++++++++++++++-
+ drivers/media/platform/exynos4-is/media-dev.h |    4 ++
+ 2 files changed, 77 insertions(+), 2 deletions(-)
 
-> The other issue here is that DMA scatterlists are _not_ really that
-> determinable in terms of number of entries when it comes to systems with
-> system IOMMUs.  System IOMMUs, which should be integrated into the DMA
-> API, are permitted to coalesce entries in the physical page range.  For
-> example:
-> 
-> 	nsg = 128;
-> 	n = dma_map_sg(dev, sg, nsg, DMA_TO_DEVICE);
-> 
-> Here, n might be 4 if the system IOMMU has been able to coalesce the 128
-> entries down to 4 IOMMU entries - and that means for DMA purposes, only
-> the first four scatterlist entries should be walked (this is why
-> dma_map_sg() returns a positive integer when mapping.)
-> 
-> Each struct device has a set of parameters which control how the IOMMU
-> entries are coalesced:
-> 
-> struct device_dma_parameters {
->         /*
->          * a low level driver may set these to teach IOMMU code about
->          * sg limitations.
->          */
->         unsigned int max_segment_size;
->         unsigned long segment_boundary_mask;
-> };
-> 
-> and this is independent of the dma_buf API.  This doesn't indicate the
-> maximum number of segments, but as I've shown above, it's not something
-> that you can say "I want a scatterlist for this memory with only 32
-> segments" so it's totally unclear how an exporter would limit that.
-> 
-> The only thing an exporter could do would be to fail the export if the
-> buffer didn't end up having fewer than the requested scatterlist entries,
-> which is something the importer can do too.
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e3d7b70..e387fd2 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -455,6 +455,63 @@ rpm_put:
+ 	return ret;
+ }
+ 
++static int fimc_md_register_flash_entities(struct fimc_md *fmd)
++{
++	struct device_node *parent = fmd->pdev->dev.of_node, *np_sensor,
++		*np_flash;
++	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
++	struct device *dev = &fmd->pdev->dev;
++	struct v4l2_async_subdev *asd;
++	int i, j, num_flashes = 0, num_elems;
++
++	num_elems = of_property_count_u32_elems(parent,
++						"samsung,camera-flashes");
++	/* samsung,camera-flashes property is optional */
++	if (num_elems < 0)
++		return 0;
++
++	/* samsung,camera-flashes array must have even number of elements */
++	if ((num_elems & 1) || (num_elems > FIMC_MAX_SENSORS * 2))
++		return -EINVAL;
++
++	for (i = 0; i < num_elems; i += 2) {
++		/*
++		 * The pair of camera sensor and flash LED phandles reflects
++		 * the physical connection on the board, which allows for the
++		 * camera sensor to strobe the flash by raising a hardware pin.
++		 * This property just describes the association.
++		 */
++		np_sensor = of_parse_phandle(parent,
++					     "samsung,camera-flashes", i);
++
++		for (j = 0; j < fmd->num_sensors; j++)
++			if (fmd->async_subdevs.sensors[j].match.of.node ==
++			    np_sensor)
++				break;
++
++		of_node_put(np_sensor);
++
++		/*
++		 * If the camera sensor phandle isn't known to the media device
++		 * controller, then raise a warning only.
++		 */
++		if (j == fmd->num_sensors)
++			dev_warn(dev, "sensor verification failed for a flash\n");
++
++		np_flash = of_parse_phandle(parent, "samsung,camera-flashes",
++						i + 1);
++
++		asd = &fmd->async_subdevs.flashes[num_flashes++];
++		asd->match_type = V4L2_ASYNC_MATCH_OF;
++		asd->match.of.node = np_flash;
++		notifier->subdevs[notifier->num_subdevs++] = asd;
++
++		of_node_put(np_flash);
++	}
++
++	return 0;
++}
++
+ static int __of_get_csis_id(struct device_node *np)
+ {
+ 	u32 reg = 0;
+@@ -1280,6 +1337,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+ 	struct fimc_sensor_info *si = NULL;
+ 	int i;
+ 
++	/*
++	 * Flash sub-devices are controlled independently of ISP, and thus
++	 * verify only that the sub-device being matched was previously
++	 * registered.
++	 */
++	for (i = 0; i < ARRAY_SIZE(async_subdevs->flashes); i++)
++		if (&async_subdevs->flashes[i] == asd)
++			return 0;
++
+ 	/* Find platform data for this sensor subdev */
+ 	for (i = 0; i < ARRAY_SIZE(async_subdevs->sensors); i++)
+ 		if (fmd->sensor[i].asd == asd)
+@@ -1326,13 +1392,18 @@ static int fimc_md_register_async_entities(struct fimc_md *fmd)
+ {
+ 	struct device *dev = fmd->media_dev.dev;
+ 	struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
++	int ret;
+ 
+-	notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_SENSORS,
++	notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_ASYNC_ENTITIES,
+ 					sizeof(*notifier->subdevs), GFP_KERNEL);
+ 	if (!notifier->subdevs)
+ 		return -ENOMEM;
+ 
+-	return fimc_md_register_sensor_entities(fmd);
++	ret = fimc_md_register_sensor_entities(fmd);
++	if (ret)
++		return -EINVAL;
++
++	return fimc_md_register_flash_entities(fmd);
+ }
+ 
+ static int fimc_md_probe(struct platform_device *pdev)
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index ff6d020..be9205c 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -33,7 +33,10 @@
+ #define PINCTRL_STATE_IDLE	"idle"
+ 
+ #define FIMC_MAX_SENSORS	4
++#define FIMC_MAX_FLASHES	4
++#define FIMC_MAX_ASYNC_ENTITIES	(FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
+ #define FIMC_MAX_CAMCLKS	2
++
+ #define DEFAULT_SENSOR_CLK_FREQ	24000000U
+ 
+ /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
+@@ -95,6 +98,7 @@ struct fimc_sensor_info {
+ 
+ struct fimc_async_subdevs {
+ 	struct v4l2_async_subdev sensors[FIMC_MAX_SENSORS];
++	struct v4l2_async_subdev flashes[FIMC_MAX_FLASHES];
+ };
+ 
+ struct cam_clk {
+-- 
+1.7.9.5
 
-Right.
-
->> One of the main problems end-users are faced with today is that they do not
->> know which device should be the exporter of buffers and which should be the
->> importer. This depends on the constraints and right now applications have
->> no way of knowing this. It's nuts that this hasn't been addressed yet since
->> it is the main complaint I am getting.
-> 
-> IT's nuts that we've ended up in this situation in the first place.  This
-> was bound to happen as soon as the dma_buf sharing was introduced, because
-> it immediately introduced this problem.  I don't think there is any easy
-> solution to it, and what's being proposed with flags and other stuff is
-> just trying to paper over the problem.
-
-This was the first thing raised in the initial discussions. My suggestion at
-the time was to give userspace limited information about the buffer restrictions:
-Physically contiguous, scatter-gather and 'weird'. But obviously you need
-segment_boundary_mask and max_segment_size as well.
-
-And the application can decide based on that info which device has the most
-restrictive requirements and make that the exporter.
-
-I am not sure whether there is any sense in exporting the max_segment_count
-to userspace (probably not), but I see no reason why we can't set it internally.
-That said, a single flag is OK for me as well.
-
-> What you're actually asking is that each dmabuf exporting subsystem needs
-> to publish their DMA parameters to userspace, and userspace then gets to
-> decide which dmabuf exporter should be used.
-
-Yes, that was the initial plan.
-
-> That's not a dmabuf problem, that's a subsystem problem,
-
-Well, yes, but it doesn't hurt to sync which DMA parameters are exposed with
-what dma-buf uses.
-
-> but even so, we
-> don't have a standardised way to export that information (and I'd suspect
-> that it would be very difficult to get agreements between subsystems on
-> a standard ioctl and/or data structure.)  In my experience, getting cross-
-> subsystem agreement in the kernel with anything is very difficult, you
-> normally end up with 60% of people agreeing, and the other 40% going off
-> and doing something completely different because they object to it
-> (figures vary, 90% of all statistics are made up on the spot!)
-
-I don't care which ioctl or other mechanism a subsystem uses to expose the
-information. Each subsystem should design their own method for that. Imposing
-a standard API for that generally doesn't work for the reasons you give.
-
-But deciding *which* minimum set of information is exposed, that is another
-matter and that should be synced. And the easiest starting point for that is
-that the device will store that information internally in device_dma_parameters.
-
-The various subsystems can then make APIs to expose that info.
-
-Regards,
-
-	Hans
