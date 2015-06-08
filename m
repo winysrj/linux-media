@@ -1,51 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33380 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:54821 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410AbbFXKtx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 06:49:53 -0400
+	with ESMTP id S1753582AbbFHTyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:35 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com
-Subject: [PATCH 3/7] [media] use CONFIG_PM_SLEEP for suspend/resume
-Date: Wed, 24 Jun 2015 07:49:07 -0300
-Message-Id: <565e229d31527f166090d0368a3c348755838899.1435142906.git.mchehab@osg.samsung.com>
-In-Reply-To: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
-References: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
-In-Reply-To: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
-References: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 04/26] [media] DocBook: add entry IDs for enum fe_status
+Date: Mon,  8 Jun 2015 16:53:48 -0300
+Message-Id: <84cb75d774eb7de36cccdc421876419523eb3a0e.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using CONFIG_PM_SLEEP suppress the warnings when the driver is
-compiled without PM sleep functions:
+enum fe_status is documented together with FE_READ_STATUS.
 
-drivers/media/rc/st_rc.c:338:12: warning: ‘st_rc_suspend’ defined but not used [-Wunused-function]
-drivers/media/rc/st_rc.c:359:12: warning: ‘st_rc_resume’ defined but not used [-Wunused-function]
+Add xrefs for each entry there. This makes the hyperlinks at
+frontend.h to go directly to the right documentation.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index 979b40561b3a..37d040158dff 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -334,7 +334,7 @@ err:
- 	return ret;
- }
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- static int st_rc_suspend(struct device *dev)
- {
- 	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
+diff --git a/Documentation/DocBook/media/dvb/fe-read-status.xml b/Documentation/DocBook/media/dvb/fe-read-status.xml
+index 3e4c794ceac3..bc0dc2a55f19 100644
+--- a/Documentation/DocBook/media/dvb/fe-read-status.xml
++++ b/Documentation/DocBook/media/dvb/fe-read-status.xml
+@@ -78,25 +78,25 @@ pointer to an integer where the status will be written.
+ 	</thead>
+ 	<tbody valign="top">
+ 	<row>
+-	    <entry align="char">FE_HAS_SIGNAL</entry>
++	    <entry align="char" id="FE-HAS-SIGNAL"><constant>FE_HAS_SIGNAL</constant></entry>
+ 	    <entry align="char">The frontend has found something above the noise level</entry>
+ 	</row><row>
+-	    <entry align="char">FE_HAS_CARRIER</entry>
++	    <entry align="char" id="FE-HAS-CARRIER"><constant>FE_HAS_CARRIER</constant></entry>
+ 	    <entry align="char">The frontend has found a DVB signal</entry>
+ 	</row><row>
+-	    <entry align="char">FE_HAS_VITERBI</entry>
++	    <entry align="char" id="FE-HAS-VITERBI"><constant>FE_HAS_VITERBI</constant></entry>
+ 	    <entry align="char">The frontend FEC inner coding (Viterbi, LDPC or other inner code) is stable</entry>
+ 	</row><row>
+-	    <entry align="char">FE_HAS_SYNC</entry>
++	    <entry align="char" id="FE-HAS-SYNC"><constant>FE_HAS_SYNC</constant></entry>
+ 	    <entry align="char">Synchronization bytes was found</entry>
+ 	</row><row>
+-	    <entry align="char">FE_HAS_LOCK</entry>
++	    <entry align="char" id="FE-HAS-LOCK"><constant>FE_HAS_LOCK</constant></entry>
+ 	    <entry align="char">The DVB were locked and everything is working</entry>
+ 	</row><row>
+-	    <entry align="char">FE_TIMEDOUT</entry>
++	    <entry align="char" id="FE-TIMEDOUT"><constant>FE_TIMEDOUT</constant></entry>
+ 	    <entry align="char">no lock within the last about 2 seconds</entry>
+ 	</row><row>
+-	    <entry align="char">FE_REINIT</entry>
++	    <entry align="char" id="FE-REINIT"><constant>FE_REINIT</constant></entry>
+ 	    <entry align="char">The frontend was reinitialized, application is
+ 	    recommended to reset DiSEqC, tone and parameters</entry>
+ 	</row>
 -- 
-2.4.3
+2.4.2
 
