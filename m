@@ -1,110 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36157 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbbFZIoo (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35325 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752768AbbFHJgn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 04:44:44 -0400
-Date: Fri, 26 Jun 2015 10:44:39 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: "Luis R. Rodriguez" <mcgrof@suse.com>
-Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>, bp@suse.de,
-	andy@silverblocksystems.net, mchehab@osg.samsung.com,
-	dledford@redhat.com, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace
- WARN() with pr_warn()
-Message-ID: <20150626084438.GC26303@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-2-git-send-email-mcgrof@do-not-panic.com>
- <20150625064922.GA5339@gmail.com>
- <20150625171549.GG3005@wotan.suse.de>
+	Mon, 8 Jun 2015 05:36:43 -0400
+Message-ID: <55756225.30108@xs4all.nl>
+Date: Mon, 08 Jun 2015 11:36:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150625171549.GG3005@wotan.suse.de>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, gjasny@googlemail.com,
+	hdegoede@redhat.com, kyungmin.park@samsung.com
+Subject: Re: [v4l-utils PATCH/RFC v5 00/14] Add a plugin for Exynos4 camera
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com> <557551D9.9090607@xs4all.nl> <55755D00.1090902@samsung.com>
+In-Reply-To: <55755D00.1090902@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-* Luis R. Rodriguez <mcgrof@suse.com> wrote:
-
-> On Thu, Jun 25, 2015 at 08:49:22AM +0200, Ingo Molnar wrote:
-> > 
-> > * Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
-> > 
-> > > From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> > > 
-> > > WARN() may confuse users, fix that. ipath_init_one() is part the
-> > > device's probe so this would only be triggered if a corresponding
-> > > device was found.
-> > > 
-> > > Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> > > ---
-> > >  drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
-> > >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-> > > index 2d7e503..871dbe5 100644
-> > > --- a/drivers/infiniband/hw/ipath/ipath_driver.c
-> > > +++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-> > > @@ -31,6 +31,8 @@
-> > >   * SOFTWARE.
-> > >   */
-> > >  
-> > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > +
-> > >  #include <linux/sched.h>
-> > >  #include <linux/spinlock.h>
-> > >  #include <linux/idr.h>
-> > > @@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
-> > >  	u32 bar0 = 0, bar1 = 0;
-> > >  
-> > >  #ifdef CONFIG_X86_64
-> > > -	if (WARN(pat_enabled(),
-> > > -		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
-> > > +	if (pat_enabled()) {
-> > > +		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
-> > >  		ret = -ENODEV;
-> > >  		goto bail;
-> > >  	}
-> > 
-> > So driver init will always fail with this on modern kernels.
+On 06/08/2015 11:14 AM, Jacek Anaszewski wrote:
+> Hi Hans,
 > 
-> Nope, I double checked this, ipath_init_one() is the PCI probe routine,
-> not the module init call. It should probably be renamed.
+> It got stuck on this version. I have some slight improvements locally
+> but haven't sent them as there hasn't been any comment to this so far.
+> AFAIR Sakari had some doubts about handling multiple pipelines within
+> one media controller. In this approach only one pipeline is allowed.
+> There has to be a new IOCTL added for locking pipelines, to handle this
+> IIRC.
+
+Sakari, is this ioctl really needed or something that can be added later?
+
+> Besides there are some v4l-utils build system dependency issues to
+> solve, I mentioned below in the cover letter.
+
+If I remember correctly the libmediactl API may still change, which is
+why it isn't in lib. So statically linking it isn't a bad idea at the
+moment. Laurent, can you confirm this?
+
+Is there anything else that blocks this patch series?
+
+Regards,
+
+	Hans
+
 > 
-> > Btw., on a second thought, ipath uses MTRRs to enable WC:
-> > 
-> >         ret = ipath_enable_wc(dd);
-> >         if (ret)
-> >                 ret = 0;
-> > 
-> > Note how it ignores any failures - the driver still works even if WC was not 
-> > enabled.
+> On 06/08/2015 10:27 AM, Hans Verkuil wrote:
+>> Hi Jacek,
+>>
+>> What is the status of this? It would be really useful to have a working plugin
+>> as an example in v4l-utils.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> On 02/26/2015 04:59 PM, Jacek Anaszewski wrote:
+>>> This is a fifth version of the patch series adding a plugin for the
+>>> Exynos4 camera.
+>>>
+>>> Temporarily the plugin doesn't link against libmediactl, but
+>>> has its sources compiled in. Currently utils are built after
+>>> the plugins, but libv4l-exynos4-camera plugin depends on the utils.
+>>> In order to link the plugin against libmediactl the build system
+>>> would have to be modified.
+>>>
+>>> ================
+>>> Changes from v4:
+>>> ================
+>>>
+>>> - removed some redundant functions for traversing media device graph
+>>>    and switched over to using existing ones
+>>> - avoided accessing struct v4l2_subdev from libmediactl
+>>> - applied various improvements
+>>>
+>>> ================
+>>> Changes from v3:
+>>> ================
+>>>
+>>> - added struct v4l2_subdev and put entity fd and
+>>>    information about supported controls to it
+>>> - improved functions for negotiating and setting
+>>>    pipeline format by using available libv4lsubdev API
+>>> - applied minor improvements and cleanups
+>>>
+>>> ================
+>>> Changes from v2:
+>>> ================
+>>>
+>>> - switched to using mediatext library for parsing
+>>>    the media device configuration
+>>> - extended libmediactl
+>>> - switched to using libmediactl
+>>>
+>>> ================
+>>> Changes from v1:
+>>> ================
+>>>
+>>> - removed redundant mbus code negotiation
+>>> - split the parser, media device helpers and ioctl wrappers
+>>>    to the separate modules
+>>> - added mechanism for querying extended controls
+>>> - applied various fixes and modifications
+>>>
+>>> The plugin was tested on linux-next_20150223 with patches for
+>>> exynos4-is that fix failing open ioctl when a sensor sub-device is not
+>>> linked [1] [2] [3].
+>>>
+>>> The plugin expects a configuration file:
+>>> /var/lib/libv4l/exynos4_capture_conf
+>>>
+>>> Exemplary configuration file:
+>>>
+>>> ==========================================
+>>>
+>>> link-conf "s5p-mipi-csis.0":1 -> "FIMC.0":0 [1]
+>>> ctrl-to-subdev-conf 0x0098091f -> "fimc.0.capture"
+>>> ctrl-to-subdev-conf 0x00980902 -> "S5C73M3"
+>>> ctrl-to-subdev-conf 0x00980922 -> "fimc.0.capture"
+>>> ctrl-to-subdev-conf 0x009a0914 -> "S5C73M3"
+>>>
+>>> ==========================================
+>>>
+>>> With this settings the plugin can be tested on the exynos4412-trats2 board
+>>> using following gstreamer pipeline:
+>>>
+>>> gst-launch-1.0 v4l2src device=/dev/video1 ! video/x-raw,width=960,height=720 ! fbdevsink
+>>>
+>>> Thanks,
+>>> Jacek Anaszewski
+>>>
+>>> [1] https://patchwork.linuxtv.org/patch/26366/
+>>> [2] https://patchwork.linuxtv.org/patch/26367/
+>>> [3] https://patchwork.linuxtv.org/patch/26368/
+>>>
+>>> Jacek Anaszewski (13):
+>>>    mediactl: Introduce v4l2_subdev structure
+>>>    mediactl: Add support for v4l2-ctrl-redir config
+>>>    mediatext: Add library
+>>>    mediactl: Add media device graph helpers
+>>>    mediactl: Add media_device creation helpers
+>>>    mediactl: libv4l2subdev: add VYUY8_2X8 mbus code
+>>>    mediactl: Add support for media device pipelines
+>>>    mediactl: libv4l2subdev: add support for comparing mbus formats
+>>>    mediactl: libv4l2subdev: add support for setting pipeline format
+>>>    mediactl: libv4l2subdev: add get_pipeline_entity_by_cid function
+>>>    mediactl: Add media device ioctl API
+>>>    mediactl: libv4l2subdev: Enable opening/closing pipelines
+>>>    Add a libv4l plugin for Exynos4 camera
+>>>
+>>> Sakari Ailus (1):
+>>>    mediactl: Separate entity and pad parsing
+>>>
+>>>   configure.ac                                      |    1 +
+>>>   lib/Makefile.am                                   |    5 +
+>>>   lib/libv4l-exynos4-camera/Makefile.am             |    7 +
+>>>   lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c |  586 +++++++++++++++++++++
+>>>   utils/media-ctl/Makefile.am                       |   12 +-
+>>>   utils/media-ctl/libmediactl.c                     |  271 +++++++++-
+>>>   utils/media-ctl/libmediatext.pc.in                |   10 +
+>>>   utils/media-ctl/libv4l2media_ioctl.c              |  369 +++++++++++++
+>>>   utils/media-ctl/libv4l2media_ioctl.h              |   40 ++
+>>>   utils/media-ctl/libv4l2subdev.c                   |  301 ++++++++++-
+>>>   utils/media-ctl/mediactl-priv.h                   |   11 +-
+>>>   utils/media-ctl/mediactl.h                        |  151 ++++++
+>>>   utils/media-ctl/mediatext-test.c                  |   64 +++
+>>>   utils/media-ctl/mediatext.c                       |  311 +++++++++++
+>>>   utils/media-ctl/mediatext.h                       |   52 ++
+>>>   utils/media-ctl/v4l2subdev.h                      |  131 +++++
+>>>   16 files changed, 2292 insertions(+), 30 deletions(-)
+>>>   create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+>>>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+>>>   create mode 100644 utils/media-ctl/libmediatext.pc.in
+>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+>>>   create mode 100644 utils/media-ctl/mediatext-test.c
+>>>   create mode 100644 utils/media-ctl/mediatext.c
+>>>   create mode 100644 utils/media-ctl/mediatext.h
+>>>
+>>
+>>
 > 
-> Ah, well WC strategy requires a split of the MMIO registers and the desired
-> WC area, right now they are combined for some type of ipath devices. There
-> are two things to consider when thinking about whether or not we want to
-> do the work required to do the split:
+> 
 
-But ... why doing the 'split'?
-
-With my suggested approach the driver will behave in two ways:
-
-  - if booted with 'nopat' it will behave as always and have the WC MTRR entries 
-    added
-
-  - if booted with a modern kernel without 'nopat' then instead of getting WC MTRR 
-    entries it will not get them - we'll fall back to UC. No 'split' or any other 
-    change is needed to the driver AFAICS: it might be slower, but it will still 
-    be functional. It will _not_ get PAT WC mappings - it will fall back to UC - 
-    which is still much better for any potential user than not working at all.
-
-Same suggestion for the other affected driver.
-
-what am I missing?
-
-Thanks,
-
-	Ingo
