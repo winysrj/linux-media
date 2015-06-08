@@ -1,188 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34487 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281AbbFHWGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 18:06:22 -0400
-Received: by wibut5 with SMTP id ut5so879346wib.1
-        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 15:06:21 -0700 (PDT)
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH v2][media] lmedm04: implement dvb v5 statistics
-Date: Mon,  8 Jun 2015 23:05:20 +0100
-Message-Id: <1433801120-1917-1-git-send-email-tvboxspy@gmail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:55105 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932162AbbFHJCw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:02:52 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v10 3/8] leds: max77693: add support for V4L2 Flash sub-device
+Date: Mon, 08 Jun 2015 11:02:20 +0200
+Message-id: <1433754145-12765-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Indroduce function lme2510_update_stats to update
-statistics directly from usb interrupt.
+Add support for V4L2 Flash sub-device to the max77693 LED Flash class
+driver. The support allows for V4L2 Flash sub-device to take the control
+of the LED Flash class device.
 
-Provide signal and snr wrap rounds for dvb v3 functions.
-
-Block and post bit are not available.
-
-When i2c_talk_onoff is on no statistics are available,
-with possible future hand over to the relevant frontend/tuner.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-v2 Correct variable size casts
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 104 ++++++++++++++++++++++++---------
- 1 file changed, 77 insertions(+), 27 deletions(-)
+ drivers/leds/leds-max77693.c |  129 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 123 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index f1983f2..726c59e 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -257,6 +257,65 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
- 	return ret;
+diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
+index eecaa92..b8b0eec 100644
+--- a/drivers/leds/leds-max77693.c
++++ b/drivers/leds/leds-max77693.c
+@@ -20,6 +20,7 @@
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
++#include <media/v4l2-flash-led-class.h>
+ 
+ #define MODE_OFF		0
+ #define MODE_FLASH(a)		(1 << (a))
+@@ -62,6 +63,8 @@ struct max77693_sub_led {
+ 	struct led_classdev_flash fled_cdev;
+ 	/* assures led-triggers compatibility */
+ 	struct work_struct work_brightness_set;
++	/* V4L2 Flash device */
++	struct v4l2_flash *v4l2_flash;
+ 
+ 	/* brightness cache */
+ 	unsigned int torch_brightness;
+@@ -627,7 +630,8 @@ static int max77693_led_flash_timeout_set(
  }
  
-+static void lme2510_update_stats(struct dvb_usb_adapter *adap)
+ static int max77693_led_parse_dt(struct max77693_led_device *led,
+-				struct max77693_led_config_data *cfg)
++				struct max77693_led_config_data *cfg,
++				struct device_node **sub_nodes)
+ {
+ 	struct device *dev = &led->pdev->dev;
+ 	struct max77693_sub_led *sub_leds = led->sub_leds;
+@@ -674,6 +678,13 @@ static int max77693_led_parse_dt(struct max77693_led_device *led,
+ 			return -EINVAL;
+ 		}
+ 
++		if (sub_nodes[fled_id]) {
++			dev_err(dev,
++				"Conflicting \"led-sources\" DT properties\n");
++			return -EINVAL;
++		}
++
++		sub_nodes[fled_id] = child_node;
+ 		sub_leds[fled_id].fled_id = fled_id;
+ 
+ 		cfg->label[fled_id] =
+@@ -786,11 +797,12 @@ static void max77693_led_validate_configuration(struct max77693_led_device *led,
+ }
+ 
+ static int max77693_led_get_configuration(struct max77693_led_device *led,
+-				struct max77693_led_config_data *cfg)
++				struct max77693_led_config_data *cfg,
++				struct device_node **sub_nodes)
+ {
+ 	int ret;
+ 
+-	ret = max77693_led_parse_dt(led, cfg);
++	ret = max77693_led_parse_dt(led, cfg, sub_nodes);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -838,6 +850,71 @@ static void max77693_init_flash_settings(struct max77693_sub_led *sub_led,
+ 	setting->val = setting->max;
+ }
+ 
++#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
++
++static int max77693_led_external_strobe_set(
++				struct v4l2_flash *v4l2_flash,
++				bool enable)
 +{
-+	struct lme2510_state *st = adap_to_priv(adap);
-+	struct dvb_frontend *fe = adap->fe[0];
-+	struct dtv_frontend_properties *c;
-+	u64 s_tmp = 0, c_tmp = 0;
++	struct max77693_sub_led *sub_led =
++				flcdev_to_sub_led(v4l2_flash->fled_cdev);
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	int fled_id = sub_led->fled_id;
++	int ret;
 +
-+	if (!fe)
-+		return;
++	mutex_lock(&led->lock);
 +
-+	c = &fe->dtv_property_cache;
++	if (enable)
++		ret = max77693_add_mode(led, MODE_FLASH_EXTERNAL(fled_id));
++	else
++		ret = max77693_clear_mode(led, MODE_FLASH_EXTERNAL(fled_id));
 +
-+	c->block_count.len = 1;
-+	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->block_error.len = 1;
-+	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_count.len = 1;
-+	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_error.len = 1;
-+	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	mutex_unlock(&led->lock);
 +
-+	if (st->i2c_talk_onoff) {
-+		c->strength.len = 1;
-+		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->cnr.len = 1;
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		return;
-+	}
-+
-+	switch (st->tuner_config) {
-+	case TUNER_LG:
-+		s_tmp = 0xff - st->signal_level;
-+		s_tmp |= s_tmp << 8;
-+
-+		c_tmp = 0xff - st->signal_sn;
-+		c_tmp |= c_tmp << 8;
-+		break;
-+	/* fall through */
-+	case TUNER_S7395:
-+	case TUNER_S0194:
-+		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
-+
-+		c_tmp = ((0xff - st->signal_sn - 0xa1) * 3) << 8;
-+		break;
-+	case TUNER_RS2000:
-+		s_tmp = st->signal_level * 0xffff / 0xff;
-+
-+		c_tmp = st->signal_sn * 0xffff / 0x7f;
-+	}
-+
-+	c->strength.len = 1;
-+	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+	c->strength.stat[0].uvalue = s_tmp;
-+
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
-+	c->cnr.stat[0].uvalue = c_tmp;
++	return ret;
 +}
 +
- static void lme2510_int_response(struct urb *lme_urb)
++static void max77693_init_v4l2_flash_config(struct max77693_sub_led *sub_led,
++				struct max77693_led_config_data *led_cfg,
++				struct v4l2_flash_config *v4l2_sd_cfg)
++{
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	struct device *dev = &led->pdev->dev;
++	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
++	struct i2c_client *i2c = iodev->i2c;
++	struct led_flash_setting *s;
++
++	snprintf(v4l2_sd_cfg->dev_name, sizeof(v4l2_sd_cfg->dev_name),
++		 "%s %d-%04x", sub_led->fled_cdev.led_cdev.name,
++		 i2c_adapter_id(i2c->adapter), i2c->addr);
++
++	s = &v4l2_sd_cfg->torch_intensity;
++	s->min = TORCH_IOUT_MIN;
++	s->max = sub_led->fled_cdev.led_cdev.max_brightness * TORCH_IOUT_STEP;
++	s->step = TORCH_IOUT_STEP;
++	s->val = s->max;
++
++	/* Init flash faults config */
++	v4l2_sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE |
++				LED_FAULT_SHORT_CIRCUIT |
++				LED_FAULT_OVER_CURRENT;
++
++	v4l2_sd_cfg->has_external_strobe = true;
++}
++
++static const struct v4l2_flash_ops v4l2_flash_ops = {
++	.external_strobe_set = max77693_led_external_strobe_set,
++};
++#else
++static inline void max77693_init_v4l2_flash_config(
++				struct max77693_sub_led *sub_led,
++				struct max77693_led_config_data *led_cfg,
++				struct v4l2_flash_config *v4l2_sd_cfg)
++{
++}
++static const struct v4l2_flash_ops v4l2_flash_ops;
++#endif
++
+ static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
+ 				struct max77693_led_config_data *led_cfg)
  {
- 	struct dvb_usb_adapter *adap = lme_urb->context;
-@@ -337,6 +396,8 @@ static void lme2510_int_response(struct urb *lme_urb)
- 			if (!signal_lock)
- 				st->lock_status &= ~FE_HAS_LOCK;
+@@ -870,12 +947,45 @@ static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
+ 	sub_led->flash_timeout = fled_cdev->timeout.val;
+ }
  
-+			lme2510_update_stats(adap);
++static int max77693_register_led(struct max77693_sub_led *sub_led,
++				 struct max77693_led_config_data *led_cfg,
++				 struct device_node *sub_node)
++{
++	struct max77693_led_device *led = sub_led_to_led(sub_led);
++	struct led_classdev_flash *fled_cdev = &sub_led->fled_cdev;
++	struct device *dev = &led->pdev->dev;
++	struct v4l2_flash_config v4l2_sd_cfg = {};
++	int ret;
 +
- 			debug_data_snipet(5, "INT Remote data snipet in", ibuf);
- 		break;
- 		case 0xcc:
-@@ -872,56 +933,45 @@ static int dm04_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	*status = st->lock_status;
- 
--	if (!(*status & FE_HAS_LOCK))
-+	if (!(*status & FE_HAS_LOCK)) {
-+		struct dvb_usb_adapter *adap = fe_to_adap(fe);
++	/* Register in the LED subsystem */
++	ret = led_classdev_flash_register(dev, fled_cdev);
++	if (ret < 0)
++		return ret;
 +
- 		st->i2c_talk_onoff = 1;
- 
-+		lme2510_update_stats(adap);
++	max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
++
++	/* Register in the V4L2 subsystem. */
++	sub_led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
++					      &v4l2_flash_ops, &v4l2_sd_cfg);
++	if (IS_ERR(sub_led->v4l2_flash)) {
++		ret = PTR_ERR(sub_led->v4l2_flash);
++		goto err_v4l2_flash_init;
 +	}
 +
- 	return ret;
- }
- 
- static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
++	return 0;
++
++err_v4l2_flash_init:
++	led_classdev_flash_unregister(fled_cdev);
++	return ret;
++}
++
+ static int max77693_led_probe(struct platform_device *pdev)
  {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct lme2510_state *st = fe_to_priv(fe);
+ 	struct device *dev = &pdev->dev;
+ 	struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
+ 	struct max77693_led_device *led;
+ 	struct max77693_sub_led *sub_leds;
++	struct device_node *sub_nodes[2] = {};
+ 	struct max77693_led_config_data led_cfg = {};
+ 	int init_fled_cdev[2], i, ret;
  
- 	if (st->fe_read_signal_strength && !st->stream_on)
- 		return st->fe_read_signal_strength(fe, strength);
+@@ -889,7 +999,7 @@ static int max77693_led_probe(struct platform_device *pdev)
+ 	sub_leds = led->sub_leds;
  
--	switch (st->tuner_config) {
--	case TUNER_LG:
--		*strength = 0xff - st->signal_level;
--		*strength |= *strength << 8;
--		break;
--	/* fall through */
--	case TUNER_S7395:
--	case TUNER_S0194:
--		*strength = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
--		break;
--	case TUNER_RS2000:
--		*strength = (u16)((u32)st->signal_level * 0xffff / 0xff);
--	}
-+	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
-+		*strength = (u16)c->strength.stat[0].uvalue;
-+	else
-+		*strength = 0;
+ 	platform_set_drvdata(pdev, led);
+-	ret = max77693_led_get_configuration(led, &led_cfg);
++	ret = max77693_led_get_configuration(led, &led_cfg, sub_nodes);
+ 	if (ret < 0)
+ 		return ret;
  
- 	return 0;
- }
+@@ -911,8 +1021,12 @@ static int max77693_led_probe(struct platform_device *pdev)
+ 		/* Initialize LED Flash class device */
+ 		max77693_init_fled_cdev(&sub_leds[i], &led_cfg);
  
- static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct lme2510_state *st = fe_to_priv(fe);
+-		/* Register LED Flash class device */
+-		ret = led_classdev_flash_register(dev, &sub_leds[i].fled_cdev);
++		/*
++		 * Register LED Flash class device and corresponding
++		 * V4L2 Flash device.
++		 */
++		ret = max77693_register_led(&sub_leds[i], &led_cfg,
++						sub_nodes[i]);
+ 		if (ret < 0) {
+ 			/*
+ 			 * At this moment FLED1 might have been already
+@@ -931,6 +1045,7 @@ err_register_led2:
+ 	/* It is possible than only FLED2 was to be registered */
+ 	if (!init_fled_cdev[FLED1])
+ 		goto err_register_led1;
++	v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
+ 	led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
+ err_register_led1:
+ 	mutex_destroy(&led->lock);
+@@ -944,11 +1059,13 @@ static int max77693_led_remove(struct platform_device *pdev)
+ 	struct max77693_sub_led *sub_leds = led->sub_leds;
  
- 	if (st->fe_read_snr && !st->stream_on)
- 		return st->fe_read_snr(fe, snr);
+ 	if (led->iout_joint || max77693_fled_used(led, FLED1)) {
++		v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
+ 		led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
+ 		cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
+ 	}
  
--	switch (st->tuner_config) {
--	case TUNER_LG:
--		*snr = 0xff - st->signal_sn;
--		*snr |= *snr << 8;
--		break;
--	/* fall through */
--	case TUNER_S7395:
--	case TUNER_S0194:
--		*snr = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
--		break;
--	case TUNER_RS2000:
--		*snr = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
--	}
-+	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
-+		*snr = (u16)c->cnr.stat[0].uvalue;
-+	else
-+		*snr = 0;
- 
- 	return 0;
- }
+ 	if (!led->iout_joint && max77693_fled_used(led, FLED2)) {
++		v4l2_flash_release(sub_leds[FLED2].v4l2_flash);
+ 		led_classdev_flash_unregister(&sub_leds[FLED2].fled_cdev);
+ 		cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
+ 	}
 -- 
-2.1.4
+1.7.9.5
 
