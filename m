@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:33954 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903AbbFMDQ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 23:16:26 -0400
-Received: by obbsn1 with SMTP id sn1so33727704obb.1
-        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 20:16:25 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 12 Jun 2015 21:16:25 -0600
-Message-ID: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
-Subject: AverMedia HD Duet (White Box) A188WB drivers
-From: David Nelson <nelson.dt@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.samsung.com ([203.254.224.25]:37891 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932407AbbFHJDZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:03:25 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
+	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v10 7/8] DT: Add documentation for exynos4-is 'flashes' property
+Date: Mon, 08 Jun 2015 11:02:24 +0200
+Message-id: <1433754145-12765-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have the AverMedia HD Duet (White Box) A188WB. Which has been
-working great for several years in Windows 7 Media Center. I just
-tried installing Mythbuntu but it does not appear to be recognized. I
-am a bit of a newbie but I managed to find some info about it.
+This patch adds a description of 'samsung,camera-flashes'
+property to the samsung-fimc.txt.
 
-Does anyone know of a driver for it? lspci says it uses the Philips
-SAA7160 which does appear to be in a few other supported devices.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: devicetree@vger.kernel.org
+---
+ .../devicetree/bindings/media/samsung-fimc.txt     |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Details follow
-
-I get the following from lspci -vvnnk
-
-03:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7160
-[1131:7160] (rev 01)
-Subsystem: Avermedia Technologies Inc Device [1461:1e55]
-Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-Latency: 0, Cache Line Size: 64 bytes
-Interrupt: pin A routed to IRQ 10
-Region 0: Memory at ef800000 (64-bit, non-prefetchable) [size=1M]
-Capabilities: <access denied>
-
-
-I can see that there is a driver for a few other devices with this
-chip at http://www.linuxtv.org/wiki/index.php/NXP_SAA716x  (i.e.
-heading "As of (2014-06-07)"
-
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 922d6f8..0554cad 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -40,6 +40,14 @@ should be inactive. For the "active-a" state the camera port A must be activated
+ and the port B deactivated and for the state "active-b" it should be the other
+ way around.
+ 
++Optional properties:
++
++- samsung,camera-flashes - Array of pairs of phandles to the camera sensor
++	devices and flash LEDs respectively. The pairs must reflect the board
++	configuration, i.e. a sensor has to be able to strobe a flash LED by
++	hardware. Flash LED is represented by a child node of a flash LED
++	device (see Documentation/devicetree/bindings/leds/common.txt).
++
+ The 'camera' node must include at least one 'fimc' child node.
+ 
+ 
+@@ -166,6 +174,8 @@ Example:
+ 		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
++		samsung,camera-flashes = <&rear_camera &rear_flash>,
++					 <&front_camera &front_flash>;
+ 		status = "okay";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
 -- 
--David Nelson
+1.7.9.5
+
