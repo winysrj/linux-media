@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59264 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751383AbbFGI61 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 04:58:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 03/11] sh-vou: fix querycap support
-Date: Sun,  7 Jun 2015 10:57:57 +0200
-Message-Id: <1433667485-35711-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ni.piap.pl ([195.187.100.4]:53638 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753712AbbFHNuY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 09:50:24 -0400
+Received: from t19.piap.pl (OSB1819.piap.pl [10.0.9.19])
+	by ni.piap.pl (Postfix) with ESMTP id A5AC5440102
+	for <linux-media@vger.kernel.org>; Mon,  8 Jun 2015 15:50:22 +0200 (CEST)
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] SOLO6x10: Remove dead code.
+References: <m3a8waxr86.fsf@t19.piap.pl>
+Date: Mon, 08 Jun 2015 15:50:22 +0200
+In-Reply-To: <m3a8waxr86.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
+ \=\?utf-8\?Q\?a\=22's\?\= message of
+	"Mon, 08 Jun 2015 15:30:17 +0200")
+Message-ID: <m3pp56wbq9.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+solo_dev and pdev cannot be NULL here. It doesn't matter if we
+initialized the PCI device or not.
 
-Fix v4l2-compliance errors due to empty driver and bus_info fields.
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 801d5ef..d7a72a9 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -396,6 +396,8 @@ static int sh_vou_querycap(struct file *file, void  *priv,
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+--- a/drivers/media/pci/solo6x10/solo6x10-core.c
++++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+@@ -134,23 +134,11 @@ static irqreturn_t solo_isr(int irq, void *data)
  
- 	strlcpy(cap->card, "SuperH VOU", sizeof(cap->card));
-+	strlcpy(cap->driver, "sh-vou", sizeof(cap->driver));
-+	strlcpy(cap->bus_info, "platform:sh-vou", sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
--- 
-2.1.4
-
+ static void free_solo_dev(struct solo_dev *solo_dev)
+ {
+-	struct pci_dev *pdev;
+-
+-	if (!solo_dev)
+-		return;
++	struct pci_dev *pdev = solo_dev->pdev;
+ 
+ 	if (solo_dev->dev.parent)
+ 		device_unregister(&solo_dev->dev);
+ 
+-	pdev = solo_dev->pdev;
+-
+-	/* If we never initialized the PCI device, then nothing else
+-	 * below here needs cleanup */
+-	if (!pdev) {
+-		kfree(solo_dev);
+-		return;
+-	}
+-
+ 	if (solo_dev->reg_base) {
+ 		/* Bring down the sub-devices first */
+ 		solo_g723_exit(solo_dev);
+@@ -164,8 +152,7 @@ static void free_solo_dev(struct solo_dev *solo_dev)
+ 
+ 		/* Now cleanup the PCI device */
+ 		solo_irq_off(solo_dev, ~0);
+-		if (pdev->irq)
+-			free_irq(pdev->irq, solo_dev);
++		free_irq(pdev->irq, solo_dev);
+ 		pci_iounmap(pdev, solo_dev->reg_base);
+ 	}
+ 
