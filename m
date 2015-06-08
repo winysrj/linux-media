@@ -1,30 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp32.i.mail.ru ([94.100.177.92]:55853 "EHLO smtp32.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513AbbF3Amq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 20:42:46 -0400
-Message-ID: <C1445BB248204236B2A601E8DA249FE5@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Cc: "Steven Toth" <stoth@kernellabs.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	<linux-media@vger.kernel.org>
-References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan> <CAGoCfiyjRSxRrzdWVPREVaXoMK_iowu19n2+FJosg90UskumHA@mail.gmail.com>
-Subject: Re: XC5000C 0x14b4 status
-Date: Tue, 30 Jun 2015 07:42:31 +0700
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="utf-8";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:54752 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753534AbbFHTyc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:32 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 06/26] [media] Docbook: add entry IDs for enum fe_sec_voltage
+Date: Mon,  8 Jun 2015 16:53:50 -0300
+Message-Id: <004c164bcfadb02cf9c5e1eadec62d9cb131c157.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just received a confirmation, that firmware in file "latest-dvb-fe-xc5000c-0.6.30.5.fw" is working.
+enum fe_sec_voltage is documented together with FE_SET_VOLTAGE.
 
-xc5000: Firmware latest-dvb-fe-xc5000c-0.6.30.5.fw loaded and running
-xc5000: *** HW: V6.0, FW: V 0.6.40990
+Add xrefs for each entry there. This makes the hyperlinks at
+frontend.h to go directly to the right documentation.
 
-So, it's has a build number 40990
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/Documentation/DocBook/media/dvb/fe-set-voltage.xml b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+index 73710f89ff1e..053c4cb0f540 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-voltage.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+@@ -80,13 +80,13 @@
+ 	</thead>
+ 	<tbody valign="top">
+ 	<row>
+-	    <entry align="char">SEC_VOLTAGE_13</entry>
++	    <entry align="char" id="SEC-VOLTAGE-13"><constant>SEC_VOLTAGE_13</constant></entry>
+ 	    <entry align="char">Set DC voltage level to 13V</entry>
+ 	</row><row>
+-	    <entry align="char">SEC_VOLTAGE_18</entry>
++	    <entry align="char" id="SEC-VOLTAGE-18"><constant>SEC_VOLTAGE_18</constant></entry>
+ 	    <entry align="char">Set DC voltage level to 18V</entry>
+ 	</row><row>
+-	    <entry align="char">SEC_VOLTAGE_OFF</entry>
++	    <entry align="char" id="SEC-VOLTAGE-OFF"><constant>SEC_VOLTAGE_OFF</constant></entry>
+ 	    <entry align="char">Don't send any voltage to the antenna</entry>
+ 	</row>
+         </tbody>
+-- 
+2.4.2
 
