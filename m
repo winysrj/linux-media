@@ -1,118 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:35625 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001AbbFDIHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 04:07:48 -0400
-Received: by igbzc4 with SMTP id zc4so2584860igb.0
-        for <linux-media@vger.kernel.org>; Thu, 04 Jun 2015 01:07:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <556F597F.1070406@iki.fi>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-	<556EB2F7.506@iki.fi>
-	<556EB4B0.8050505@iki.fi>
-	<CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
-	<556F1E70.7070507@iki.fi>
-	<CAAZRmGx9z_-_zs54+3OdEVj=H4ddwU0hh5+FaktzYYo=EabVzQ@mail.gmail.com>
-	<556F597F.1070406@iki.fi>
-Date: Thu, 4 Jun 2015 10:07:47 +0200
-Message-ID: <CAAZRmGxB5TE0j4gR9e72qw+dRhEQYmhRx9P3YXDX-VV3pLgR+w@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:43696 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197AbbFHJOo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:14:44 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NPM00FRZCCHP970@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jun 2015 10:14:41 +0100 (BST)
+Message-id: <55755D00.1090902@samsung.com>
+Date: Mon, 08 Jun 2015 11:14:40 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, gjasny@googlemail.com,
+	hdegoede@redhat.com, kyungmin.park@samsung.com
+Subject: Re: [v4l-utils PATCH/RFC v5 00/14] Add a plugin for Exynos4 camera
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+ <557551D9.9090607@xs4all.nl>
+In-reply-to: <557551D9.9090607@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My card has been always installed in a machine that does not have
-Windows, so any interference with the Windows driver should not be an
-issue. I found some old console logs from February 21 when I was
-trying to put together a driver for the board. It shows that the
-Si2168 chip on my board was at that time correctly detected as
-Si2168-B40 by the si2168 driver and the 4.0.11 firmware was loaded ok.
+Hi Hans,
 
-[   28.646668] DVB: registering new adapter (saa7164)
-[   28.646671] saa7164 0000:07:00.0: DVB: registering adapter 1
-frontend 0 (Silicon Labs Si2168)...
-[   28.648633] i2c i2c-4: Added multiplexed i2c bus 6
-[   28.648638] si2168 4-0066: Silicon Labs Si2168 successfully attached
-[   28.658000] si2157 6-0060: Silicon Labs Si2147/2148/2157/2158
-successfully attached
-[   28.658439] DVB: registering new adapter (saa7164)
-[   28.658442] saa7164 0000:07:00.0: DVB: registering adapter 2
-frontend 0 (Silicon Labs Si2168)...
-[   28.732812] init: plymouth-splash main process (1305) terminated
-with status 1
-[   35.214858] random: nonblocking pool is initialized
-[  582.391928] si2168 3-0064: found a 'Silicon Labs Si2168-B40'
-[  582.392289] si2168 3-0064: downloading firmware from file
-'dvb-demod-si2168-b40-01.fw'
-[  584.946560] si2168 3-0064: firmware version: 4.0.11
-[  584.984386] si2157 5-0060: found a 'Silicon Labs Si2157-A30'
-[  585.058396] si2157 5-0060: firmware version: 3.0.5
+It got stuck on this version. I have some slight improvements locally
+but haven't sent them as there hasn't been any comment to this so far.
+AFAIR Sakari had some doubts about handling multiple pipelines within
+one media controller. In this approach only one pipeline is allowed.
+There has to be a new IOCTL added for locking pipelines, to handle this
+IIRC.
 
-I have some w_scan logs from that day that show that the card was
-indeed working.
+Besides there are some v4l-utils build system dependency issues to
+solve, I mentioned below in the cover letter.
 
-Cheers,
--olli
-
-
-On 3 June 2015 at 21:46, Antti Palosaari <crope@iki.fi> wrote:
-> On 06/03/2015 10:08 PM, Olli Salonen wrote:
+On 06/08/2015 10:27 AM, Hans Verkuil wrote:
+> Hi Jacek,
+>
+> What is the status of this? It would be really useful to have a working plugin
+> as an example in v4l-utils.
+>
+> Regards,
+>
+> 	Hans
+>
+> On 02/26/2015 04:59 PM, Jacek Anaszewski wrote:
+>> This is a fifth version of the patch series adding a plugin for the
+>> Exynos4 camera.
 >>
->> I cold booted my number cruncher after a hiatus of a couple of weeks,
->> applied a couple of extra dev_dbg printouts in the si2168_cmd_execute
->> and installed the newly built module. The results:
+>> Temporarily the plugin doesn't link against libmediactl, but
+>> has its sources compiled in. Currently utils are built after
+>> the plugins, but libv4l-exynos4-camera plugin depends on the utils.
+>> In order to link the plugin against libmediactl the build system
+>> would have to be modified.
 >>
->> [  663.147757] si2168 2-0066: Silicon Labs Si2168 successfully attached
->> [  663.151735] si2157 1-0060: Silicon Labs Si2147/2148/2157/2158
->> successfully attached
->> [  663.152436] DVB: registering new adapter (saa7164)
->> [  663.152441] saa7164 0000:07:00.0: DVB: registering adapter 1
->> frontend 0 (Silicon Labs Si2168)...
->> [  678.690104] si2168:si2168_init: si2168 2-0064:
->> [  678.690111] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 13, rlen: 0
->> [  678.690115] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
->> 12 00 0c 00 0d 16 00 00 00 00 00 00
->> [  678.693331] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 8, rlen: 1
->> [  678.693337] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
->> 06 01 0f 00 20 20 01
->> [  678.701914] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
->> [  678.701920] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution
->> took 6 ms
->> [  678.701923] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 1, rlen: 13
->> [  678.701926] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: 02
->> [  678.708631] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
->> 00 44 34 30 02 00 00 00 00 00 00 00
->> [  678.708636] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution
->> took 2 ms
->> [  678.708639] si2168 2-0064: unknown chip version Si2168-
->> [  678.714777] si2168:si2168_init: si2168 2-0064: failed=-22
->> [  678.727424] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
->> [  678.783587] si2157 0-0060: firmware version: 3.0.5
+>> ================
+>> Changes from v4:
+>> ================
 >>
->> The answer to the 02 command seems really odd. You can see it is a
->> Si2168, version 40, but I'd expect the second octet to say 42 instead
->> of 00.
+>> - removed some redundant functions for traversing media device graph
+>>    and switched over to using existing ones
+>> - avoided accessing struct v4l2_subdev from libmediactl
+>> - applied various improvements
+>>
+>> ================
+>> Changes from v3:
+>> ================
+>>
+>> - added struct v4l2_subdev and put entity fd and
+>>    information about supported controls to it
+>> - improved functions for negotiating and setting
+>>    pipeline format by using available libv4lsubdev API
+>> - applied minor improvements and cleanups
+>>
+>> ================
+>> Changes from v2:
+>> ================
+>>
+>> - switched to using mediatext library for parsing
+>>    the media device configuration
+>> - extended libmediactl
+>> - switched to using libmediactl
+>>
+>> ================
+>> Changes from v1:
+>> ================
+>>
+>> - removed redundant mbus code negotiation
+>> - split the parser, media device helpers and ioctl wrappers
+>>    to the separate modules
+>> - added mechanism for querying extended controls
+>> - applied various fixes and modifications
+>>
+>> The plugin was tested on linux-next_20150223 with patches for
+>> exynos4-is that fix failing open ioctl when a sensor sub-device is not
+>> linked [1] [2] [3].
+>>
+>> The plugin expects a configuration file:
+>> /var/lib/libv4l/exynos4_capture_conf
+>>
+>> Exemplary configuration file:
+>>
+>> ==========================================
+>>
+>> link-conf "s5p-mipi-csis.0":1 -> "FIMC.0":0 [1]
+>> ctrl-to-subdev-conf 0x0098091f -> "fimc.0.capture"
+>> ctrl-to-subdev-conf 0x00980902 -> "S5C73M3"
+>> ctrl-to-subdev-conf 0x00980922 -> "fimc.0.capture"
+>> ctrl-to-subdev-conf 0x009a0914 -> "S5C73M3"
+>>
+>> ==========================================
+>>
+>> With this settings the plugin can be tested on the exynos4412-trats2 board
+>> using following gstreamer pipeline:
+>>
+>> gst-launch-1.0 v4l2src device=/dev/video1 ! video/x-raw,width=960,height=720 ! fbdevsink
+>>
+>> Thanks,
+>> Jacek Anaszewski
+>>
+>> [1] https://patchwork.linuxtv.org/patch/26366/
+>> [2] https://patchwork.linuxtv.org/patch/26367/
+>> [3] https://patchwork.linuxtv.org/patch/26368/
+>>
+>> Jacek Anaszewski (13):
+>>    mediactl: Introduce v4l2_subdev structure
+>>    mediactl: Add support for v4l2-ctrl-redir config
+>>    mediatext: Add library
+>>    mediactl: Add media device graph helpers
+>>    mediactl: Add media_device creation helpers
+>>    mediactl: libv4l2subdev: add VYUY8_2X8 mbus code
+>>    mediactl: Add support for media device pipelines
+>>    mediactl: libv4l2subdev: add support for comparing mbus formats
+>>    mediactl: libv4l2subdev: add support for setting pipeline format
+>>    mediactl: libv4l2subdev: add get_pipeline_entity_by_cid function
+>>    mediactl: Add media device ioctl API
+>>    mediactl: libv4l2subdev: Enable opening/closing pipelines
+>>    Add a libv4l plugin for Exynos4 camera
+>>
+>> Sakari Ailus (1):
+>>    mediactl: Separate entity and pad parsing
+>>
+>>   configure.ac                                      |    1 +
+>>   lib/Makefile.am                                   |    5 +
+>>   lib/libv4l-exynos4-camera/Makefile.am             |    7 +
+>>   lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c |  586 +++++++++++++++++++++
+>>   utils/media-ctl/Makefile.am                       |   12 +-
+>>   utils/media-ctl/libmediactl.c                     |  271 +++++++++-
+>>   utils/media-ctl/libmediatext.pc.in                |   10 +
+>>   utils/media-ctl/libv4l2media_ioctl.c              |  369 +++++++++++++
+>>   utils/media-ctl/libv4l2media_ioctl.h              |   40 ++
+>>   utils/media-ctl/libv4l2subdev.c                   |  301 ++++++++++-
+>>   utils/media-ctl/mediactl-priv.h                   |   11 +-
+>>   utils/media-ctl/mediactl.h                        |  151 ++++++
+>>   utils/media-ctl/mediatext-test.c                  |   64 +++
+>>   utils/media-ctl/mediatext.c                       |  311 +++++++++++
+>>   utils/media-ctl/mediatext.h                       |   52 ++
+>>   utils/media-ctl/v4l2subdev.h                      |  131 +++++
+>>   16 files changed, 2292 insertions(+), 30 deletions(-)
+>>   create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+>>   create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+>>   create mode 100644 utils/media-ctl/libmediatext.pc.in
+>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+>>   create mode 100644 utils/media-ctl/mediatext-test.c
+>>   create mode 100644 utils/media-ctl/mediatext.c
+>>   create mode 100644 utils/media-ctl/mediatext.h
+>>
 >
 >
-> Yeah, very odd. That byte should be letter A (0x41) or B (0x42) or likely C
-> (0x43) in future when current C revision chips are seen.
->
-> Are you really sure it has returned (and worked) 0x42 earlier? Have you used
-> Windows driver - I speculate if it could make permanent upgrade to chip to
-> change it.
->
-> Timing issues are also possible. Maybe you could test with some extra
-> sleeps, like adding 100ms delay between command request and reply.
->
-> Unfortunately value of those 3 bytes are really important as driver selects
-> firmware to download according them.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
+
+
+-- 
+Best Regards,
+Jacek Anaszewski
