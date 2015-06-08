@@ -1,51 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:37610 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147AbbF2KZh (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39592 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751896AbbFHMMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:25:37 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org
-Subject: [PATCHv7 03/15] dts: exynos4412-odroid*: enable the HDMI CEC device
-Date: Mon, 29 Jun 2015 12:14:48 +0200
-Message-Id: <1435572900-56998-4-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+	Mon, 8 Jun 2015 08:12:05 -0400
+Message-ID: <5575868D.5010908@xs4all.nl>
+Date: Mon, 08 Jun 2015 14:11:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 0/4]  Support for interlaced in cvt/gtf timings
+References: <1432272457-709-1-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1432272457-709-1-git-send-email-prladdha@cisco.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Hi Prashant,
 
-Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-family of SoCs.
+I've merged patches 1 and 2, but I'm postponing 3 and 4: I'd like to be able to
+test this before merging, ideally with the cobalt driver, but that will take time.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+They are in my todo list, so they won't be forgotten. In the meantime it is useful
+to have support for this in v4l2-dv-timings should someone want to use it.
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index d6b49e5..a97362a 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -472,6 +472,10 @@
- 		status = "okay";
- 	};
- 
-+	cec@100B0000 {
-+		status = "okay";
-+	};
-+
- 	hdmi_ddc: i2c@13880000 {
- 		status = "okay";
- 		pinctrl-names = "default";
--- 
-2.1.4
+Regards,
+
+	Hans
+
+On 05/22/2015 07:27 AM, Prashant Laddha wrote:
+> Please find version 2 of patches adding interlaced support in cvt/gtf
+> timing.
+> 
+> Changes compared to v1:
+> Incorporated the comments from review of first RFC. It was about the 
+> error calculation of vertical back porch due to rounding. (Thanks to
+> Hans for spoting this error).
+> 
+> Prashant Laddha (4):
+>   v4l2-dv-timings: add interlace support in detect cvt/gtf
+>   vivid: Use interlaced info for cvt/gtf timing detection
+>   adv7604: Use interlaced info for cvt/gtf timing detection
+>   adv7842: Use interlaced info for cvt/gtf timing detection
+> 
+>  drivers/media/i2c/adv7604.c                  |  4 +--
+>  drivers/media/i2c/adv7842.c                  |  4 +--
+>  drivers/media/platform/vivid/vivid-vid-cap.c |  5 +--
+>  drivers/media/v4l2-core/v4l2-dv-timings.c    | 53 ++++++++++++++++++++++++----
+>  include/media/v4l2-dv-timings.h              |  6 ++--
+>  5 files changed, 58 insertions(+), 14 deletions(-)
+> 
 
