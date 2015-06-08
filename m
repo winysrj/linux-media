@@ -1,121 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53211 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752187AbbFECvd (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35334 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752204AbbFHKEa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Jun 2015 22:51:33 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 88BDD2A00AF
-	for <linux-media@vger.kernel.org>; Fri,  5 Jun 2015 04:51:22 +0200 (CEST)
-Date: Fri, 05 Jun 2015 04:51:22 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150605025122.88BDD2A00AF@tschai.lan>
+	Mon, 8 Jun 2015 06:04:30 -0400
+Message-ID: <557568A8.1080409@xs4all.nl>
+Date: Mon, 08 Jun 2015 12:04:24 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Damian Hobson-Garcia <dhobsong@igel.co.jp>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC] V4L2 codecs in user space
+References: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc> <55751D44.6010102@igel.co.jp> <55755168.40108@xs4all.nl> <5575666E.90508@igel.co.jp>
+In-Reply-To: <5575666E.90508@igel.co.jp>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/08/2015 11:54 AM, Damian Hobson-Garcia wrote:
+> Hi Hans,
+> 
+> Thank you for your comments,
+> On 2015-06-08 5:25 PM, Hans Verkuil wrote:
+>> Hi Damian,
+>>
+>> On 06/08/2015 06:42 AM, Damian Hobson-Garcia wrote:
+>>> Hello again,
+>>>
+>>> On 2015-06-02 10:40 AM, Damian Hobson-Garcia wrote:
+>>>> Hello All,
+>>>>
+>>>> I would like to ask for some comments about a plan to use user space
+>>>> video codecs through the V4L interface.  I am thinking of a situation
+>>>> similar to the one described on the linuxtv.org wiki at
+>>>> http://www.linuxtv.org/wiki/index.php/V4L2_Userspace_Library
+>>>>
+>>>> The basic premise is to use a FUSE-like driver to connect the standard
+>>>> V4L2 api to a user space daemon that will work as an mem-to-mem driver
+>>>> for decoding/encoding, compression/decompression and the like.  This
+>>>> allows for codecs that are either partially or wholly implemented in
+>>>> user space to be exposed through the standard kernel interface.
+>>>>
+>>>> Before I dive in to implementing this I was hoping to get some comments
+>>>> regarding the following:
+>>>>
+>>>> 1. I haven't been able to find any implementation of the design
+>>>> described in the wiki page.  Would anyone know if I have missed it? 
+>>>> Does this exist somewhere, even in part? It seems like that might be a
+>>>> good place to start if possible.
+>>>>
+>>>> 2. I think that this could be implemented as either an extension to FUSE
+>>>> (like CUSE) or as a V4L2 device driver (that forwards requests through
+>>>> the FUSE API).  I think that the V4L2  device driver would be
+>>>> sufficient, but would the fact that there is no specific hardware tied
+>>>> to it be an issue?  Should it instead be presented as a more generic
+>>>> device?
+>>>>
+>>>> 3. And of course anything else that comes to mind.
+>>>
+>>> I've been advised that implementing kernel APIs is userspace is probably
+>>> not the most linux-friendly way to go about things and would most likely
+>>> not be accepted into the kernel.  I can see the logic of
+>>> that statement, but I was wondering if I could confirm that here. Is
+>>> this type of design a bad idea?
+>>
+>> Writing userspace drivers for hardware components is certainly not something
+>> we want to see. The kernel is the gateway between userspace and hardware, so
+>> the kernel is the one that controls the hardware. There are some exceptions
+>> (printers and scanners come to mind), but by and large this rule holds.
+>>
+> I see, thank you.
+> 
+>> But you want to do something different if I understand correctly: you want to
+>> make a V4L2 API to interface to userspace codecs. That does not affect the kernel
+>> at all, and I see no reason why this can't be done.
+>>
+>> Basically libv4l2 allows the concept of plugins where all open/close/ioctl/etc.
+>> operations go through the plugin. Today plugins interface with a kernel V4L2
+>> driver, but it is also possible to make a plugin that is completely in userspace.
+>>
+>> Nobody ever did it, but we discussed it in the past. The only problem is that
+>> since there is no actual /dev/videoX device, what do you specify here? Perhaps
+>> a predefined /dev/video-<codecname>X 'device name'?
+> 
+> I suppose that I would also need to do something for mmap buffers as
+> well, since mmap() is not part of the plugin API.  I guess I could try
+> to abuse the fake mmap used by the libv4lconvert, but that might get
+> messy if an application requests a different pixel format from what the
+> codec delivers.
 
-Results of the daily build of media_tree:
+Or just add mmap to the plugin API. It would make sense in this case.
 
-date:		Fri Jun  5 04:02:25 CEST 2015
-git branch:	test
-git hash:	c1c3c85ddf60a6d97c122d57d385b4929fcec4b3
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
