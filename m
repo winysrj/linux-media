@@ -1,131 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:45719 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932587AbbFKN2h (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42396 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751906AbbFHKsg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 09:28:37 -0400
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH 2/2] genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
-Date: Thu, 11 Jun 2015 16:28:32 +0300
-Message-ID: <1434029312-7288-1-git-send-email-vladimir_zapolskiy@mentor.com>
-In-Reply-To: <1434029192-7082-1-git-send-email-vladimir_zapolskiy@mentor.com>
-References: <1434029192-7082-1-git-send-email-vladimir_zapolskiy@mentor.com>
+	Mon, 8 Jun 2015 06:48:36 -0400
+Message-ID: <557572FD.8090303@xs4all.nl>
+Date: Mon, 08 Jun 2015 12:48:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 4/6] adv7604: log infoframes
+References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl> <1433673155-20179-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1433673155-20179-5-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To be consistent with other kernel interface namings, rename
-of_get_named_gen_pool() to of_gen_pool_get(). In the original
-function name "_named" suffix references to a device tree property,
-which contains a phandle to a device and the corresponding
-device driver is assumed to register a gen_pool object.
+On 06/07/2015 12:32 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
 
-Due to a weak relation and to avoid any confusion (e.g. in future
-possible scenario if gen_pool objects are named) the suffix is
-removed.
+Hmm, missing commit log. I'm sure I wrote it at some point in time...
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
----
- drivers/dma/mmp_tdma.c                    | 2 +-
- drivers/media/platform/coda/coda-common.c | 2 +-
- include/linux/genalloc.h                  | 4 ++--
- lib/genalloc.c                            | 6 +++---
- sound/core/memalloc.c                     | 2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+This should be:
 
-diff --git a/drivers/dma/mmp_tdma.c b/drivers/dma/mmp_tdma.c
-index 449e785..e683761 100644
---- a/drivers/dma/mmp_tdma.c
-+++ b/drivers/dma/mmp_tdma.c
-@@ -657,7 +657,7 @@ static int mmp_tdma_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&tdev->device.channels);
- 
- 	if (pdev->dev.of_node)
--		pool = of_get_named_gen_pool(pdev->dev.of_node, "asram", 0);
-+		pool = of_gen_pool_get(pdev->dev.of_node, "asram", 0);
- 	else
- 		pool = sram_get_gpool("asram");
- 	if (!pool) {
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 6e640c0..58f6548 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2155,7 +2155,7 @@ static int coda_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Get IRAM pool from device tree or platform data */
--	pool = of_get_named_gen_pool(np, "iram", 0);
-+	pool = of_gen_pool_get(np, "iram", 0);
- 	if (!pool && pdata)
- 		pool = gen_pool_get(pdata->iram_dev);
- 	if (!pool) {
-diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
-index 015d170..5383bb1 100644
---- a/include/linux/genalloc.h
-+++ b/include/linux/genalloc.h
-@@ -125,10 +125,10 @@ bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
- 			size_t size);
- 
- #ifdef CONFIG_OF
--extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+extern struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index);
- #else
--static inline struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+static inline struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index)
- {
- 	return NULL;
-diff --git a/lib/genalloc.c b/lib/genalloc.c
-index 948e92c..daf0afb 100644
---- a/lib/genalloc.c
-+++ b/lib/genalloc.c
-@@ -620,7 +620,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
- 
- #ifdef CONFIG_OF
- /**
-- * of_get_named_gen_pool - find a pool by phandle property
-+ * of_gen_pool_get - find a pool by phandle property
-  * @np: device node
-  * @propname: property name containing phandle(s)
-  * @index: index into the phandle array
-@@ -629,7 +629,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
-  * address of the device tree node pointed at by the phandle property,
-  * or NULL if not found.
-  */
--struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index)
- {
- 	struct platform_device *pdev;
-@@ -644,5 +644,5 @@ struct gen_pool *of_get_named_gen_pool(struct device_node *np,
- 		return NULL;
- 	return gen_pool_get(&pdev->dev);
- }
--EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
-+EXPORT_SYMBOL_GPL(of_gen_pool_get);
- #endif /* CONFIG_OF */
-diff --git a/sound/core/memalloc.c b/sound/core/memalloc.c
-index 082509e..f05cb6a 100644
---- a/sound/core/memalloc.c
-+++ b/sound/core/memalloc.c
-@@ -124,7 +124,7 @@ static void snd_malloc_dev_iram(struct snd_dma_buffer *dmab, size_t size)
- 	dmab->addr = 0;
- 
- 	if (dev->of_node)
--		pool = of_get_named_gen_pool(dev->of_node, "iram", 0);
-+		pool = of_gen_pool_get(dev->of_node, "iram", 0);
- 
- 	if (!pool)
- 		return;
--- 
-2.1.4
+Add support for logging the detected InfoFrames for the adv76xx. Helps in
+debugging what is actually received on the HDMI link.
+
+Regards,
+
+	Hans
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/i2c/Kconfig   |  1 +
+>  drivers/media/i2c/adv7604.c | 87 ++++++++++++++++++++++++++++++---------------
+>  2 files changed, 59 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index c92180d..71ee8f5 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -197,6 +197,7 @@ config VIDEO_ADV7183
+>  config VIDEO_ADV7604
+>  	tristate "Analog Devices ADV7604 decoder"
+>  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && GPIOLIB
+> +	select HDMI
+>  	---help---
+>  	  Support for the Analog Devices ADV7604 video decoder.
+>  
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index aaa37b0..757b6b5 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -29,6 +29,7 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/gpio/consumer.h>
+> +#include <linux/hdmi.h>
+>  #include <linux/i2c.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> @@ -95,6 +96,13 @@ struct adv76xx_format_info {
+>  	u8 op_format_sel;
+>  };
+>  
+> +struct adv76xx_cfg_read_infoframe {
+> +	const char *desc;
+> +	u8 present_mask;
+> +	u8 head_addr;
+> +	u8 payload_addr;
+> +};
+> +
+>  struct adv76xx_chip_info {
+>  	enum adv76xx_type type;
+>  
+> @@ -2127,46 +2135,67 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+>  
+>  /*********** avi info frame CEA-861-E **************/
+>  
+> -static void print_avi_infoframe(struct v4l2_subdev *sd)
+> +static const struct adv76xx_cfg_read_infoframe adv76xx_cri[] = {
+> +	{ "AVI", 0x01, 0xe0, 0x00 },
+> +	{ "Audio", 0x02, 0xe3, 0x1c },
+> +	{ "SDP", 0x04, 0xe6, 0x2a },
+> +	{ "Vendor", 0x10, 0xec, 0x54 }
+> +};
+> +
+> +static int adv76xx_read_infoframe(struct v4l2_subdev *sd, int index,
+> +				  union hdmi_infoframe *frame)
+>  {
+> +	uint8_t buffer[32];
+> +	u8 len;
+>  	int i;
+> -	u8 buf[14];
+> -	u8 avi_len;
+> -	u8 avi_ver;
+>  
+> -	if (!is_hdmi(sd)) {
+> -		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
+> -		return;
+> +	if (!(io_read(sd, 0x60) & adv76xx_cri[index].present_mask)) {
+> +		v4l2_info(sd, "%s infoframe not received\n",
+> +			  adv76xx_cri[index].desc);
+> +		return -ENOENT;
+>  	}
+> -	if (!(io_read(sd, 0x60) & 0x01)) {
+> -		v4l2_info(sd, "AVI infoframe not received\n");
+> -		return;
+> +
+> +	for (i = 0; i < 3; i++)
+> +		buffer[i] = infoframe_read(sd,
+> +					   adv76xx_cri[index].head_addr + i);
+> +
+> +	len = buffer[2] + 1;
+> +
+> +	if (len + 3 > sizeof(buffer)) {
+> +		v4l2_err(sd, "%s: invalid %s infoframe length %d\n", __func__,
+> +			 adv76xx_cri[index].desc, len);
+> +		return -ENOENT;
+>  	}
+>  
+> -	if (io_read(sd, 0x83) & 0x01) {
+> -		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
+> -		io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
+> -		if (io_read(sd, 0x83) & 0x01) {
+> -			v4l2_info(sd, "AVI infoframe checksum error still present\n");
+> -			io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
+> -		}
+> +	for (i = 0; i < len; i++)
+> +		buffer[i + 3] = infoframe_read(sd,
+> +				       adv76xx_cri[index].payload_addr + i);
+> +
+> +	if (hdmi_infoframe_unpack(frame, buffer) < 0) {
+> +		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__,
+> +			 adv76xx_cri[index].desc);
+> +		return -ENOENT;
+>  	}
+> +	return 0;
+> +}
+>  
+> -	avi_len = infoframe_read(sd, 0xe2);
+> -	avi_ver = infoframe_read(sd, 0xe1);
+> -	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
+> -			avi_ver, avi_len);
+> +static void adv76xx_log_infoframes(struct v4l2_subdev *sd)
+> +{
+> +	int i;
+>  
+> -	if (avi_ver != 0x02)
+> +	if (!is_hdmi(sd)) {
+> +		v4l2_info(sd, "receive DVI-D signal, no infoframes\n");
+>  		return;
+> +	}
+>  
+> -	for (i = 0; i < 14; i++)
+> -		buf[i] = infoframe_read(sd, i);
+> +	for (i = 0; i < ARRAY_SIZE(adv76xx_cri); i++) {
+> +		union hdmi_infoframe frame;
+> +		struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	v4l2_info(sd,
+> -		"\t%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+> -		buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
+> -		buf[8], buf[9], buf[10], buf[11], buf[12], buf[13]);
+> +		if (adv76xx_read_infoframe(sd, i, &frame))
+> +			return;
+> +		hdmi_infoframe_log(KERN_INFO, &client->dev, &frame);
+> +	}
+>  }
+>  
+>  static int adv76xx_log_status(struct v4l2_subdev *sd)
+> @@ -2302,7 +2331,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+>  
+>  		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
+>  
+> -		print_avi_infoframe(sd);
+> +		adv76xx_log_infoframes(sd);
+>  	}
+>  
+>  	return 0;
+> 
 
