@@ -1,38 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-2.cisco.com ([72.163.197.26]:34277 "EHLO
-	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965332AbbFJQvp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 12:51:45 -0400
-Received: from pla-VB.cisco.com ([10.65.58.169])
-	by bgl-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id t5AGpgOl025168
-	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 16:51:42 GMT
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH v2] Support for reduced blanking version 2
-Date: Wed, 10 Jun 2015 22:21:41 +0530
-Message-Id: <1433955102-7841-1-git-send-email-prladdha@cisco.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:47837 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841AbbFHKVG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 06:21:06 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NPM005I4FF47S90@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jun 2015 11:21:04 +0100 (BST)
+Message-id: <55756C8E.4020304@samsung.com>
+Date: Mon, 08 Jun 2015 12:21:02 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	laurent.pinchart@ideasonboard.com, gjasny@googlemail.com,
+	hdegoede@redhat.com, kyungmin.park@samsung.com
+Subject: Re: [v4l-utils PATCH/RFC v5 00/14] Add a plugin for Exynos4 camera
+References: <1424966364-3647-1-git-send-email-j.anaszewski@samsung.com>
+ <557551D9.9090607@xs4all.nl> <55755D00.1090902@samsung.com>
+ <55756225.30108@xs4all.nl>
+In-reply-to: <55756225.30108@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes compared v1:
-1. Extended v4l2_detect_cvt() api to pass active image width. This
-   solves the issue related to how to get width in the absence of
-   aspect information.
-2. Fix: Added condition to correct the clock granularity.
-3. Removed "TODO" for reduced blanking version 2.
-4. Other comments from review of v1.
+On 06/08/2015 11:36 AM, Hans Verkuil wrote:
+> On 06/08/2015 11:14 AM, Jacek Anaszewski wrote:
+>> Hi Hans,
+>>
+>> It got stuck on this version. I have some slight improvements locally
+>> but haven't sent them as there hasn't been any comment to this so far.
+>> AFAIR Sakari had some doubts about handling multiple pipelines within
+>> one media controller. In this approach only one pipeline is allowed.
+>> There has to be a new IOCTL added for locking pipelines, to handle this
+>> IIRC.
+>
+> Sakari, is this ioctl really needed or something that can be added later?
+>
+>> Besides there are some v4l-utils build system dependency issues to
+>> solve, I mentioned below in the cover letter.
+>
+> If I remember correctly the libmediactl API may still change, which is
+> why it isn't in lib. So statically linking it isn't a bad idea at the
+> moment. Laurent, can you confirm this?
+>
+> Is there anything else that blocks this patch series?
 
-Prashant Laddha (1):
-  v4l2-dv-timings: add support for reduced blanking v2
+v4l-utils side issues:
 
- drivers/media/i2c/adv7604.c                  |  2 +-
- drivers/media/i2c/adv7842.c                  |  2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c |  2 +-
- drivers/media/v4l2-core/v4l2-dv-timings.c    | 80 ++++++++++++++++++++--------
- include/media/v4l2-dv-timings.h              |  6 ++-
- 5 files changed, 67 insertions(+), 25 deletions(-)
+I'd have to apply my local bug fixes and submit the next version.
+
+Kernel side issues:
+
+There is a regression in the kernel related to FIMC-LITE
+and FIMC-IS-ISP entities. Effectively currently it is only possible
+to setup pipelines with S5C73M3 sensor to fimc.0.capture and
+fimc.1.capture entities.
+
+I would also have to rebase the patches for exynos4-is driver
+for avoiding failure on open when the device being opened
+has no connected sensor.
 
 -- 
-1.9.1
-
+Best Regards,
+Jacek Anaszewski
