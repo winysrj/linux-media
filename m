@@ -1,195 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40298 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932496AbbFHJMa (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50391 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753094AbbFHJDp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 05:12:30 -0400
-Message-ID: <55755C77.5000306@xs4all.nl>
-Date: Mon, 08 Jun 2015 11:12:23 +0200
+	Mon, 8 Jun 2015 05:03:45 -0400
+Message-ID: <55755A6A.9080300@xs4all.nl>
+Date: Mon, 08 Jun 2015 11:03:38 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/9] DocBook: document SDR transmitter
-References: <1433592188-31748-1-git-send-email-crope@iki.fi> <1433592188-31748-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-5-git-send-email-crope@iki.fi>
+Subject: Re: [PATCH 2/9] v4l2: add RF gain control
+References: <1433592188-31748-1-git-send-email-crope@iki.fi> <1433592188-31748-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-2-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 On 06/06/2015 02:03 PM, Antti Palosaari wrote:
-> Add documentation for V4L SDR transmitter (output) devices.
+> Add new RF tuner gain control named RF gain. That is aimed for
+> external LNA (amplifier) chip just right after antenna connector.
+
+I don't follow. Do you mean:
+
+This feeds into the external LNA...
+
+But if that's the case, then the LNA chip isn't right after the antenna connector,
+since there is a RF amplified in between.
+
+Remember, this is not my area of expertise, so if I don't understand it, then that's
+probably true for other non-experts as well :-)
+
+Regards,
+
+	Hans
+
 > 
 > Cc: Hans Verkuil <hverkuil@xs4all.nl>
 > Signed-off-by: Antti Palosaari <crope@iki.fi>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
 > ---
->  Documentation/DocBook/media/v4l/compat.xml         |  4 +++
->  Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
->  Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
->  Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
->  Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
->  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
->  .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
->  7 files changed, 42 insertions(+), 13 deletions(-)
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+>  include/uapi/linux/v4l2-controls.h   | 2 ++
+>  2 files changed, 6 insertions(+)
 > 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index e8f28bf..a237e36 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
->  	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
->  <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
->  	</listitem>
-> +	<listitem>
-> +	  <para>Added transmitter support for Software Defined Radio (SDR)
-> +Interface.</para>
-> +	</listitem>
->        </orderedlist>
->      </section>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index e3a3468..0fc34b8 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+>  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+>  	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
+> +	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
+> +	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
+>  	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
+>  	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
+>  	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
+> @@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+>  	case V4L2_CID_IMAGE_STABILIZATION:
+>  	case V4L2_CID_RDS_RECEPTION:
+> +	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
+>  	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
+>  	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
+>  	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
+> @@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_PILOT_TONE_FREQUENCY:
+>  	case V4L2_CID_TUNE_POWER_LEVEL:
+>  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+> +	case V4L2_CID_RF_TUNER_RF_GAIN:
+>  	case V4L2_CID_RF_TUNER_LNA_GAIN:
+>  	case V4L2_CID_RF_TUNER_MIXER_GAIN:
+>  	case V4L2_CID_RF_TUNER_IF_GAIN:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 9f6e108..87539be 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -932,6 +932,8 @@ enum v4l2_deemphasis {
 >  
-> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> index 3344921..a659771 100644
-> --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> @@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
->  <structfield>capabilities</structfield> field of &v4l2-capability;
->  returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
->  Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-> +    </para>
-> +    <para>
-> +Devices supporting the SDR transmitter interface set the
-> +<constant>V4L2_CAP_SDR_OUTPUT</constant> and
-> +<constant>V4L2_CAP_MODULATOR</constant> flag in the
-> +<structfield>capabilities</structfield> field of &v4l2-capability;
-> +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-> +Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
-> +    </para>
-> +    <para>
->  At least one of the read/write, streaming or asynchronous I/O methods must
->  be supported.
->      </para>
-> @@ -39,14 +49,15 @@ be supported.
->      <para>
->  SDR devices can support <link linkend="control">controls</link>, and must
->  support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
-> -for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
-> -frequency.
-> +for setting the ADC/DAC sampling rate (sampling frequency) and the possible
-> +radio frequency (RF).
->      </para>
->  
->      <para>
-> -The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
-> -the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
-> -tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-> +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
-> +device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
-> +tuner type is used for setting radio frequency.
-> +The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
->  Normally the SDR tuner is #0 and the RF tuner is #1.
->      </para>
->  
-> @@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
->      <title>Data Format Negotiation</title>
->  
->      <para>
-> -The SDR capture device uses the <link linkend="format">format</link> ioctls to
-> -select the capture format. Both the sampling resolution and the data streaming
-> -format are bound to that selectable format. In addition to the basic
-> +The SDR device uses the <link linkend="format">format</link> ioctls to
-> +select the capture and output format. Both the sampling resolution and the data
-> +streaming format are bound to that selectable format. In addition to the basic
->  <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
->  must be supported as well.
->      </para>
-> @@ -69,7 +80,8 @@ must be supported as well.
->      <para>
->  To use the <link linkend="format">format</link> ioctls applications set the
->  <structfield>type</structfield> field of a &v4l2-format; to
-> -<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
-> +<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
-> +<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
->  <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
->  union as needed per the desired operation.
->  Currently there is two fields, <structfield>pixelformat</structfield> and
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 7bbc2a4..da65403 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -1006,8 +1006,14 @@ must set this to 0.</entry>
->  	  <row>
->  	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
->  	    <entry>11</entry>
-> -	    <entry>Buffer for Software Defined Radio (SDR), see <xref
-> -		linkend="sdr" />.</entry>
-> +	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
-> +		<xref linkend="sdr" />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
-> +	    <entry>12</entry>
-> +	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
-> +		<xref linkend="sdr" />.</entry>
->  	  </row>
->  	</tbody>
->        </tgroup>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 965ea91..02aac95 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -1623,7 +1623,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
->    <section id="sdr-formats">
->      <title>SDR Formats</title>
->  
-> -    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
-> +    <para>These formats are used for <link linkend="sdr">SDR</link>
->  interface only.</para>
->  
->      &sub-sdr-cu08;
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index b94d381..6a658ac 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -157,6 +157,7 @@ applications. -->
->  	<authorinitials>ap</authorinitials>
->  	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
->  Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
-> +Added transmitter support for Software Defined Radio (SDR) Interface.
->  	</revremark>
->        </revision>
->  
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> index 4fe19a7a..ffcb448 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> @@ -175,7 +175,7 @@ capture and output devices.</entry>
->  	    <entry>&v4l2-sdr-format;</entry>
->  	    <entry><structfield>sdr</structfield></entry>
->  	    <entry>Definition of a data format, see
-> -<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-> +<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
->  	  </row>
->  	  <row>
->  	    <entry></entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> index 20fda75..cd82148 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -308,6 +308,12 @@ modulator programming see
->  fields.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
-> +	    <entry>0x00400000</entry>
-> +	    <entry>The device supports the
-> +<link linkend="sdr">SDR Output</link> interface.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
->  	    <entry>0x01000000</entry>
->  	    <entry>The device supports the <link
+>  #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
+>  #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
+> +#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
+> +#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
+>  #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
+>  #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
+>  #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
 > 
 
