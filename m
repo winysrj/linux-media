@@ -1,63 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35529 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752184AbbF2VSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 17:18:49 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>, <stable@vger.kernel.org>
-Subject: [Patch v3 1/1] media: am437x-vpfe: Fix a race condition during release
-Date: Mon, 29 Jun 2015 16:18:36 -0500
-Message-ID: <1435612716-3952-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:54776 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566AbbFHTyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 22/26] [media] frontend: Fix a typo at the comments
+Date: Mon,  8 Jun 2015 16:54:06 -0300
+Message-Id: <0a02f00e9330b9f14a46a7b87195f8c151ad2bcf.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a race condition where during cleanup/release operation
-on-going streaming would cause a kernel panic because the hardware
-module was disabled prematurely with IRQ still pending.
+The description of struct dtv_stats has a spmall typo:
+	FE_SCALE_DECIBELS instead of FE_SCALE_DECIBEL
 
-Fixes: 417d2e507edc ("[media] media: platform: add VPFE capture driver support for AM437X")
-Cc: <stable@vger.kernel.org> # v4.0+
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
-Changes since v2:
-- fix the stable commit reference syntax
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
- drivers/media/platform/am437x/am437x-vpfe.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index a30cc2f7e4f1..eb25c43da126 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1185,14 +1185,21 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe)
- static int vpfe_release(struct file *file)
- {
- 	struct vpfe_device *vpfe = video_drvdata(file);
-+	bool fh_singular = v4l2_fh_is_singular_file(file);
- 	int ret;
- 
- 	mutex_lock(&vpfe->lock);
- 
--	if (v4l2_fh_is_singular_file(file))
--		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
-+	/* the release helper will cleanup any on-going streaming */
- 	ret = _vb2_fop_release(file, NULL);
- 
-+	/*
-+	 * If this was the last open file.
-+	 * Then de-initialize hw module.
-+	 */
-+	if (fh_singular)
-+		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
-+
- 	mutex_unlock(&vpfe->lock);
- 
- 	return ret;
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 46c7fd1143a5..0380e62fc8b2 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -435,13 +435,13 @@ enum fecap_scale_params {
+  *
+  * In other words, for ISDB, those values should be filled like:
+  *	u.st.stat.svalue[0] = global statistics;
+- *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
++ *	u.st.stat.scale[0] = FE_SCALE_DECIBEL;
+  *	u.st.stat.value[1] = layer A statistics;
+  *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
+  *	u.st.stat.svalue[2] = layer B statistics;
+- *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
++ *	u.st.stat.scale[2] = FE_SCALE_DECIBEL;
+  *	u.st.stat.svalue[3] = layer C statistics;
+- *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
++ *	u.st.stat.scale[3] = FE_SCALE_DECIBEL;
+  *	u.st.len = 4;
+  */
+ struct dtv_stats {
 -- 
-1.8.5.1
+2.4.2
 
