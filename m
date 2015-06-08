@@ -1,77 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50786 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751634AbbFELTX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 07:19:23 -0400
-Message-ID: <557185AE.7080409@xs4all.nl>
-Date: Fri, 05 Jun 2015 13:19:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:33779 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbbFHEmq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 00:42:46 -0400
+Received: by pdjn11 with SMTP id n11so56559691pdj.0
+        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2015 21:42:46 -0700 (PDT)
+Received: from [10.16.129.137] (napt.igel.co.jp. [219.106.231.132])
+        by mx.google.com with ESMTPSA id s1sm1005566pda.54.2015.06.07.21.42.43
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 07 Jun 2015 21:42:44 -0700 (PDT)
+Message-ID: <55751D44.6010102@igel.co.jp>
+Date: Mon, 08 Jun 2015 13:42:44 +0900
+From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Reply-To: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 MIME-Version: 1.0
-To: Laura Abbott <labbott@fedoraproject.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l2-ioctl: Give more information when device_caps
- are missing
-References: <1433272042-17818-1-git-send-email-labbott@fedoraproject.org>
-In-Reply-To: <1433272042-17818-1-git-send-email-labbott@fedoraproject.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC] V4L2 codecs in user space
+References: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>
+In-Reply-To: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/2015 09:07 PM, Laura Abbott wrote:
-> Currently, the warning for missing device_caps gives a backtrace like so:
-> 
-> [<ffffffff8175c199>] dump_stack+0x45/0x57
-> [<ffffffff8109ad5a>] warn_slowpath_common+0x8a/0xc0
-> [<ffffffff8109ae8a>] warn_slowpath_null+0x1a/0x20
-> [<ffffffffa0237453>] v4l_querycap+0x43/0x80 [videodev]
-> [<ffffffffa0237734>] __video_do_ioctl+0x2a4/0x320 [videodev]
-> [<ffffffff812207e5>] ? do_last+0x195/0x1210
-> [<ffffffffa023a11e>] video_usercopy+0x22e/0x5b0 [videodev]
-> [<ffffffffa0237490>] ? v4l_querycap+0x80/0x80 [videodev]
-> [<ffffffffa023a4b5>] video_ioctl2+0x15/0x20 [videodev]
-> [<ffffffffa0233733>] v4l2_ioctl+0x113/0x150 [videodev]
-> [<ffffffff81225798>] do_vfs_ioctl+0x2f8/0x4f0
-> [<ffffffff8113b2d4>] ? __audit_syscall_entry+0xb4/0x110
-> [<ffffffff81022d7c>] ? do_audit_syscall_entry+0x6c/0x70
-> [<ffffffff81225a11>] SyS_ioctl+0x81/0xa0
-> [<ffffffff8113b526>] ? __audit_syscall_exit+0x1f6/0x2a0
-> [<ffffffff81763549>] system_call_fastpath+0x12/0x17
-> 
-> This indicates that device_caps are missing but doesn't give
-> much of a clue which driver is actually at fault. Improve
-> the warning output by showing the capabilities and which
-> operations set the capabilities.
-> 
-> Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index aa407cb..e509608 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1023,8 +1023,9 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
->  	 * Drivers MUST fill in device_caps, so check for this and
->  	 * warn if it was forgotten.
->  	 */
-> -	WARN_ON(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
-> -		!cap->device_caps);
-> +	WARN(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
-> +		!cap->device_caps, "Bad caps for ops %pS, %x %x",
-> +		ops, cap->capabilities, cap->device_caps);
+Hello again,
 
-Why not just print cap->driver? Much simpler and it always works!
-
-Regards,
-
-	Hans
-
->  	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
->  
->  	return ret;
+On 2015-06-02 10:40 AM, Damian Hobson-Garcia wrote:
+> Hello All,
 > 
+> I would like to ask for some comments about a plan to use user space
+> video codecs through the V4L interface.  I am thinking of a situation
+> similar to the one described on the linuxtv.org wiki at
+> http://www.linuxtv.org/wiki/index.php/V4L2_Userspace_Library
+> 
+> The basic premise is to use a FUSE-like driver to connect the standard
+> V4L2 api to a user space daemon that will work as an mem-to-mem driver
+> for decoding/encoding, compression/decompression and the like.  This
+> allows for codecs that are either partially or wholly implemented in
+> user space to be exposed through the standard kernel interface.
+> 
+> Before I dive in to implementing this I was hoping to get some comments
+> regarding the following:
+> 
+> 1. I haven't been able to find any implementation of the design
+> described in the wiki page.  Would anyone know if I have missed it? 
+> Does this exist somewhere, even in part? It seems like that might be a
+> good place to start if possible.
+> 
+> 2. I think that this could be implemented as either an extension to FUSE
+> (like CUSE) or as a V4L2 device driver (that forwards requests through
+> the FUSE API).  I think that the V4L2  device driver would be
+> sufficient, but would the fact that there is no specific hardware tied
+> to it be an issue?  Should it instead be presented as a more generic
+> device?
+> 
+> 3. And of course anything else that comes to mind.
 
+I've been advised that implementing kernel APIs is userspace is probably
+not the most linux-friendly way to go about things and would most likely
+not be accepted into the kernel.  I can see the logic of
+that statement, but I was wondering if I could confirm that here. Is
+this type of design a bad idea?
+
+Also, if this method is not recommended, should there be a 1-2 line
+disclaimer on the "V4L2_Userspace_Library" wiki page that mentions this?
+
+Thank you,
+Damian
