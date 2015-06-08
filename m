@@ -1,219 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:35326 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933032AbbFVJzp (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39705 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750992AbbFHHhP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 05:55:45 -0400
-Received: by wgbhy7 with SMTP id hy7so136551781wgb.2
-        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2015 02:55:44 -0700 (PDT)
-Message-ID: <5587DB9F.4020008@gmail.com>
-Date: Mon, 22 Jun 2015 11:55:43 +0200
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+	Mon, 8 Jun 2015 03:37:15 -0400
+Date: Mon, 8 Jun 2015 10:37:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v9 2/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+Message-ID: <20150608073709.GB5904@valkosipuli.retiisi.org.uk>
+References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
+ <1432566843-6391-3-git-send-email-j.anaszewski@samsung.com>
+ <20150601205921.GH25595@valkosipuli.retiisi.org.uk>
+ <556D73D2.20600@samsung.com>
+ <20150602153234.GL25595@valkosipuli.retiisi.org.uk>
+ <556EB337.4010608@samsung.com>
+ <20150603205946.GM25595@valkosipuli.retiisi.org.uk>
+ <55754266.2020709@samsung.com>
 MIME-Version: 1.0
-To: Jouni Karvo <Jouni.Karvo@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: cx23885 risc op code error with DvbSKY T982
-References: <55870014.90902@iki.fi> <5587D8A5.70905@iki.fi>
-In-Reply-To: <5587D8A5.70905@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55754266.2020709@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've got a couple of T982 cards. Running Debian Jessie, with kernel 
-4.1-rc8, I cannot reproduce your errors.
-Only difference might be:
-I synced the silabs drivers with upstream and used the patch from:
+Hi Jacek,
 
-http://git.linuxtv.org/cgit.cgi/media_tree.git/patch/drivers/media/pci/cx23885/cx23885-dvb.c?id=ee3c3e46885946cc041f08ec68e7c5b91b087cbe
+On Mon, Jun 08, 2015 at 09:21:10AM +0200, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 06/03/2015 10:59 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Wed, Jun 03, 2015 at 09:56:39AM +0200, Jacek Anaszewski wrote:
+> >>Hi Sakari,
+> >>
+> >>On 06/02/2015 05:32 PM, Sakari Ailus wrote:
+> >>>Hi, Jacek!
+> >>>
+> >>>On Tue, Jun 02, 2015 at 11:13:54AM +0200, Jacek Anaszewski wrote:
+> >>>>Hi Sakari,
+> >>>>
+> >>>>On 06/01/2015 10:59 PM, Sakari Ailus wrote:
+> >>>>>Hi Jacek,
+> >>>>>
+> >>>>>On Mon, May 25, 2015 at 05:13:57PM +0200, Jacek Anaszewski wrote:
+> >>>>>>This patch adds helper functions for registering/unregistering
+> >>>>>>LED Flash class devices as V4L2 sub-devices. The functions should
+> >>>>>>be called from the LED subsystem device driver. In case the
+> >>>>>>support for V4L2 Flash sub-devices is disabled in the kernel
+> >>>>>>config the functions' empty versions will be used.
+> >>>>>>
+> >>>>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>>>>Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> >>>>>>Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>>
+> >>>>>Thanks for adding indicator support!
+> >>>>>
+> >>>>>Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>>>>
+> >>>>
+> >>>>I missed one thing - sysfs interface of the indicator LED class
+> >>>>also has to be disabled/enabled of v4l2_flash_open/close.
+> >>>
+> >>>Good catch.
+> >>>
+> >>>>
+> >>>>I am planning to reimplement the functions as follows,
+> >>>>please let me know if you see any issues here:
+> >>>>
+> >>>>static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> >>>>*fh)
+> >>>>{
+> >>>>         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+> >>>>
+> >>>>         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+> >>>>
+> >>>>         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+> >>>>         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
+> >>>>
+> >>>>         struct led_classdev *led_cdev_ind;
+> >>>>
+> >>>>         int ret = 0;
+> >>>
+> >>>I think you could spare some newlines above (and below as well).
+> >>
+> >>There must have been some issue on thunderbird side,
+> >>originally there were no newlines above.
+> >
+> >Ok. I've used Seamonkey, I believe it uses the same editor. Some bugs were
+> >unintroduced a few years ago, and since that I've mostly used a different
+> >editor (and MUA) when replying to patches.
+> >
+> >>>>
+> >>>>
+> >>>>         mutex_lock(&led_cdev->led_access);
+> >>>>
+> >>>>
+> >>>>         if (!v4l2_fh_is_singular(&fh->vfh))
+> >>>>
+> >>>>                 goto unlock;
+> >>>>
+> >>>>
+> >>>>         led_sysfs_disable(led_cdev);
+> >>>>         led_trigger_remove(led_cdev);
+> >>>>
+> >>>>
+> >>>>         if (iled_cdev) {
+> >>>>                 led_cdev_ind = &iled_cdev->led_cdev;
+> >>>
+> >>>You can also declare led_cdev_ind here as you don't need it outside the
+> >>>basic block.
+> >>
+> >>With new approach it will be required also in error path.
+> >
+> >True.
+> >
+> >>>>
+> >>>>
+> >>>>                 mutex_lock(&led_cdev_ind->led_access);
+> >>>>
+> >>>>
+> >>>>                 led_sysfs_disable(led_cdev_ind);
+> >>>>                 led_trigger_remove(led_cdev_ind);
+> >>>>
+> >>>>
+> >>>>                 mutex_unlock(&led_cdev_ind->led_access);
+> >>>
+> >>>Please don't acquire the indicator mutex while holding the flash mutex. I
+> >>>don't think there's a need to do so, thus creating a dependency between the
+> >>>two.Just remember to check for v4l2_fh_is_singular() in both cases.
+> >>
+> >>I thought that the code would be simpler this way. Nevertheless I
+> >>produced a new version by following your advise.
+> >>
+> >>>
+> >>>>
+> >>>>         }
+> >>>>
+> >>>>
+> >>>>         ret = __sync_device_with_v4l2_controls(v4l2_flash);
+> >>>
+> >>>If ret is < 0 here, you end up disabling the sysfs interface while open()
+> >>>fails (and v4l2_flash_close() will not be run). Shouldn't you handle that?
+> >>
+> >>Good point.
+> >>
+> >>Please find the new version of v4l2_flash{open|close} functions below:
+> >>
+> >>static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> >>*fh)
+> >>{
+> >>         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+> >>         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+> >>         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+> >>         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
+> >>         struct led_classdev *led_cdev_ind = NULL;
+> >>         int ret = 0;
+> >>
+> >>         mutex_lock(&led_cdev->led_access);
+> >>
+> >>         if (!v4l2_fh_is_singular(&fh->vfh)) {
+> >
+> >Hmm. I just realised that this might be a bit broken ---
+> >v4l2_fh_is_singular() should return the same value independently of where in
+> >subdev's open() handler it is called.
+> >
+> >But adding file handles to the list and checking how many there are of them
+> >is not properly serialised, i.e. another process could change the list in
+> >between. I'll try to submit a patch for that. No need to wait for that
+> >though.
+> >
+> >So please ignore my earlier request to check for v4l2_fh_is_singular() for
+> >multiple times, it won't help. Once is enough, albeit more than that won't
+> >hurt.
+> 
+> Let's agree on the new shape of the functions then:
 
-Cheers,
-Tycho.
+Looks good to me. Could you resend once more, please?
 
-Op 22-06-15 om 11:43 schreef Jouni Karvo:
-> 21.06.2015, 21:19, Jouni Karvo kirjoitti:
->> I have dvbsky T982.  The firmware is up to date from openelec site. 
->> Nothing on the CI slot
->>
-> (actually, the empty CI-slot belongs to another card)
->
-> A couple of more of these for the same card.  Unless someone shows 
-> interest on these, this is the last one I'll send on the list on this 
-> card/error.
->
-> Jun 22 11:48:36 xpc kernel: [78360.929167] cx23885[0]: mpeg risc op 
-> code error
-> Jun 22 11:48:36 xpc kernel: [78360.929172] cx23885[0]: TS1 B - dma 
-> channel status dump
-> Jun 22 11:48:36 xpc kernel: [78360.929175] cx23885[0]:   cmds: init 
-> risc lo   : 0x06a26000
-> Jun 22 11:48:36 xpc kernel: [78360.929177] cx23885[0]:   cmds: init 
-> risc hi   : 0x00000000
-> Jun 22 11:48:36 xpc kernel: [78360.929182] cx23885[0]:   cmds: cdt 
-> base       : 0x00010580
-> Jun 22 11:48:36 xpc kernel: [78360.929184] cx23885[0]:   cmds: cdt 
-> size       : 0x0000000a
-> Jun 22 11:48:36 xpc kernel: [78360.929187] cx23885[0]:   cmds: iq 
-> base        : 0x00010400
-> Jun 22 11:48:36 xpc kernel: [78360.929189] cx23885[0]:   cmds: iq 
-> size        : 0x00000010
-> Jun 22 11:48:36 xpc kernel: [78360.929193] cx23885[0]:   cmds: risc pc 
-> lo     : 0x06a26004
-> Jun 22 11:48:36 xpc kernel: [78360.929198] cx23885[0]:   cmds: risc pc 
-> hi     : 0x00000000
-> Jun 22 11:48:36 xpc kernel: [78360.929200] cx23885[0]:   cmds: iq wr 
-> ptr      : 0x00004101
-> Jun 22 11:48:36 xpc kernel: [78360.929202] cx23885[0]:   cmds: iq rd 
-> ptr      : 0x00004100
-> Jun 22 11:48:36 xpc kernel: [78360.929204] cx23885[0]:   cmds: cdt 
-> current    : 0x00010598
-> Jun 22 11:48:36 xpc kernel: [78360.929207] cx23885[0]:   cmds: pci 
-> target lo  : 0x2e71c2f0
-> Jun 22 11:48:36 xpc kernel: [78360.929209] cx23885[0]:   cmds: pci 
-> target hi  : 0x00000000
-> Jun 22 11:48:36 xpc kernel: [78360.929211] cx23885[0]:   cmds: line / 
-> byte    : 0x01810000
-> Jun 22 11:48:36 xpc kernel: [78360.929215] cx23885[0]:   risc0: 
-> 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929220] cx23885[0]:   risc1: 
-> 0x2e71c2f0 [ skip sol eol irq2 22 21 20 cnt0 resync 14 count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929226] cx23885[0]:   risc2: 
-> 0x00000000 [ INVALID count=0 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929229] cx23885[0]:   risc3: 
-> 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929233] cx23885[0]: (0x00010400) iq 
-> 0: 0x0660d080 [ INVALID eol irq2 22 21 resync 14 12 count=128 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929238] cx23885[0]: (0x00010404) iq 
-> 1: 0x2e71c2f0 [ skip sol eol irq2 22 21 20 cnt0 resync 14 count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929243] cx23885[0]: (0x00010408) iq 
-> 2: 0x00000000 [ INVALID count=0 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929246] cx23885[0]: (0x0001040c) iq 
-> 3: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929251] cx23885[0]:   iq 4: 
-> 0x2e71c5e0 [ arg #1 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929253] cx23885[0]:   iq 5: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929256] cx23885[0]: (0x00010418) iq 
-> 6: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929260] cx23885[0]:   iq 7: 
-> 0x2e71c8d0 [ arg #1 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929264] cx23885[0]:   iq 8: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929267] cx23885[0]: (0x00010424) iq 
-> 9: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929270] cx23885[0]:   iq a: 
-> 0x2e71cbc0 [ arg #1 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929272] cx23885[0]:   iq b: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929274] cx23885[0]: (0x00010430) iq 
-> c: 0x71000000 [ jump irq1 count=0 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929278] cx23885[0]:   iq d: 
-> 0x1c0002f0 [ arg #1 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929280] cx23885[0]:   iq e: 
-> 0x2e71c000 [ arg #2 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929282] cx23885[0]: (0x0001043c) iq 
-> f: 0x00000000 [ INVALID count=0 ]
-> Jun 22 11:48:36 xpc kernel: [78360.929283] cx23885[0]: fifo: 
-> 0x00005000 -> 0x6000
-> Jun 22 11:48:36 xpc kernel: [78360.929284] cx23885[0]: ctrl: 
-> 0x00010400 -> 0x10460
-> Jun 22 11:48:36 xpc kernel: [78360.929287] cx23885[0]:   ptr1_reg: 
-> 0x00005320
-> Jun 22 11:48:36 xpc kernel: [78360.929289] cx23885[0]:   ptr2_reg: 
-> 0x00010598
-> Jun 22 11:48:36 xpc kernel: [78360.929291] cx23885[0]:   cnt1_reg: 
-> 0x00000003
-> Jun 22 11:48:36 xpc kernel: [78360.929293] cx23885[0]:   cnt2_reg: 
-> 0x00000007
->
-> Jun 22 12:28:30 xpc kernel: [80750.504214] cx23885[0]: mpeg risc op 
-> code error
-> Jun 22 12:28:30 xpc kernel: [80750.504219] cx23885[0]: TS1 B - dma 
-> channel status dump
-> Jun 22 12:28:30 xpc kernel: [80750.504221] cx23885[0]:   cmds: init 
-> risc lo   : 0x2e6d8000
-> Jun 22 12:28:30 xpc kernel: [80750.504223] cx23885[0]:   cmds: init 
-> risc hi   : 0x00000000
-> Jun 22 12:28:30 xpc kernel: [80750.504225] cx23885[0]:   cmds: cdt 
-> base       : 0x00010580
-> Jun 22 12:28:30 xpc kernel: [80750.504227] cx23885[0]:   cmds: cdt 
-> size       : 0x0000000a
-> Jun 22 12:28:30 xpc kernel: [80750.504228] cx23885[0]:   cmds: iq 
-> base        : 0x00010400
-> Jun 22 12:28:30 xpc kernel: [80750.504230] cx23885[0]:   cmds: iq 
-> size        : 0x00000010
-> Jun 22 12:28:30 xpc kernel: [80750.504232] cx23885[0]:   cmds: risc pc 
-> lo     : 0x2e6d8004
-> Jun 22 12:28:30 xpc kernel: [80750.504234] cx23885[0]:   cmds: risc pc 
-> hi     : 0x00000000
-> Jun 22 12:28:30 xpc kernel: [80750.504236] cx23885[0]:   cmds: iq wr 
-> ptr      : 0x00004101
-> Jun 22 12:28:30 xpc kernel: [80750.504237] cx23885[0]:   cmds: iq rd 
-> ptr      : 0x00004100
-> Jun 22 12:28:30 xpc kernel: [80750.504239] cx23885[0]:   cmds: cdt 
-> current    : 0x000105a8
-> Jun 22 12:28:30 xpc kernel: [80750.504241] cx23885[0]:   cmds: pci 
-> target lo  : 0x465802f0
-> Jun 22 12:28:30 xpc kernel: [80750.504243] cx23885[0]:   cmds: pci 
-> target hi  : 0x00000000
-> Jun 22 12:28:30 xpc kernel: [80750.504245] cx23885[0]:   cmds: line / 
-> byte    : 0x00c10000
-> Jun 22 12:28:30 xpc kernel: [80750.504246] cx23885[0]:   risc0: 
-> 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504250] cx23885[0]:   risc1: 
-> 0x465802f0 [ INVALID eol irq2 22 20 19 count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504253] cx23885[0]:   risc2: 
-> 0x00000000 [ INVALID count=0 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504255] cx23885[0]:   risc3: 
-> 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504258] cx23885[0]: (0x00010400) iq 
-> 0: 0x00000000 [ INVALID count=0 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504260] cx23885[0]: (0x00010404) iq 
-> 1: 0x00000000 [ INVALID count=0 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504262] cx23885[0]: (0x00010408) iq 
-> 2: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504264] cx23885[0]:   iq 3: 
-> 0x465802f0 [ arg #1 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504266] cx23885[0]:   iq 4: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504268] cx23885[0]: (0x00010414) iq 
-> 5: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504270] cx23885[0]:   iq 6: 
-> 0x465805e0 [ arg #1 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504272] cx23885[0]:   iq 7: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504274] cx23885[0]: (0x00010420) iq 
-> 8: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504276] cx23885[0]:   iq 9: 
-> 0x465808d0 [ arg #1 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504278] cx23885[0]:   iq a: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504280] cx23885[0]: (0x0001042c) iq 
-> b: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504282] cx23885[0]:   iq c: 
-> 0x46580bc0 [ arg #1 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504284] cx23885[0]:   iq d: 
-> 0x00000000 [ arg #2 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504286] cx23885[0]: (0x00010438) iq 
-> e: 0x71000000 [ jump irq1 count=0 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504288] cx23885[0]:   iq f: 
-> 0x1c0002f0 [ arg #1 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504290] cx23885[0]:   iq 10: 
-> 0x1c0002f0 [ arg #2 ]
-> Jun 22 12:28:30 xpc kernel: [80750.504291] cx23885[0]: fifo: 
-> 0x00005000 -> 0x6000
-> Jun 22 12:28:30 xpc kernel: [80750.504291] cx23885[0]: ctrl: 
-> 0x00010400 -> 0x10460
-> Jun 22 12:28:30 xpc kernel: [80750.504293] cx23885[0]:   ptr1_reg: 
-> 0x00005610
-> Jun 22 12:28:30 xpc kernel: [80750.504295] cx23885[0]:   ptr2_reg: 
-> 0x000105a8
-> Jun 22 12:28:30 xpc kernel: [80750.504296] cx23885[0]:   cnt1_reg: 
-> 0x00000003
-> Jun 22 12:28:30 xpc kernel: [80750.504298] cx23885[0]:   cnt2_reg: 
-> 0x00000005
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> tatic int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> {
+>         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+>         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+>         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+>         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
+>         struct led_classdev *led_cdev_ind = NULL;
+>         int ret = 0;
+> 
+>         if (!v4l2_fh_is_singular(&fh->vfh))
+>                 return 0;
+> 
+>         mutex_lock(&led_cdev->led_access);
+> 
+>         led_sysfs_disable(led_cdev);
+>         led_trigger_remove(led_cdev);
+> 
+>         mutex_unlock(&led_cdev->led_access);
+> 
+>         if (iled_cdev) {
+>                 led_cdev_ind = &iled_cdev->led_cdev;
+> 
+>                 mutex_lock(&led_cdev_ind->led_access);
+> 
+>                 led_sysfs_disable(led_cdev_ind);
+>                 led_trigger_remove(led_cdev_ind);
+> 
+>                 mutex_unlock(&led_cdev_ind->led_access);
+>         }
+> 
+>         ret = __sync_device_with_v4l2_controls(v4l2_flash);
+>         if (ret < 0)
+>                 goto out_sync_device;
+> 
+>         return 0;
+> out_sync_device:
+>         mutex_lock(&led_cdev->led_access);
+>         led_sysfs_enable(led_cdev);
+>         mutex_unlock(&led_cdev->led_access);
+> 
+>         if (led_cdev_ind) {
+>                 mutex_lock(&led_cdev_ind->led_access);
+>                 led_sysfs_enable(led_cdev_ind);
+>                 mutex_unlock(&led_cdev_ind->led_access);
+>         }
+> 
+>         return ret;
+> }
+> 
+> static int v4l2_flash_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> *fh)
+> {
+>         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
+>         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
+>         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
+>         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
+>         int ret = 0;
+> 
+>         if (!v4l2_fh_is_singular(&fh->vfh))
+>                 return 0;
+> 
+>         mutex_lock(&led_cdev->led_access);
+> 
+>         if (v4l2_flash->ctrls[STROBE_SOURCE])
+>                 ret = v4l2_ctrl_s_ctrl(v4l2_flash->ctrls[STROBE_SOURCE],
+>                                 V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
+>         led_sysfs_enable(led_cdev);
+> 
+>         mutex_unlock(&led_cdev->led_access);
+> 
+>         if (iled_cdev) {
+>                 struct led_classdev *led_cdev_ind = &iled_cdev->led_cdev;
+> 
+>                 mutex_lock(&led_cdev_ind->led_access);
+>                 led_sysfs_enable(led_cdev_ind);
+>                 mutex_unlock(&led_cdev_ind->led_access);
+>         }
+> 
+>         return ret;
+> }
+> 
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
