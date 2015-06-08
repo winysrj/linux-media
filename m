@@ -1,123 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44085 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753261AbbFVCtm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jun 2015 22:49:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EEE542A00C8
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2015 04:49:14 +0200 (CEST)
-Date: Mon, 22 Jun 2015 04:49:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150622024914.EEE542A00C8@tschai.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:54779 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564AbbFHTyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: [PATCH 13/26] [media] DocBook: document DVB-S2 pilot in a table
+Date: Mon,  8 Jun 2015 16:53:57 -0300
+Message-Id: <812131f645515b00d9f154f55cf7ee28f2f4cb94.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Putting it into a table allows to comment each possible
+values, with makes more clear what field means.
 
-Results of the daily build of media_tree:
+Also, it allows to do cross-references with the frontend.h.
 
-date:		Mon Jun 22 04:00:13 CEST 2015
-git branch:	test
-git hash:	6f32a8c97f11eb074027052b6b507891e5c9d8b1
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 8d57f0c9b6aa..e31d9457671f 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -417,13 +417,30 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 	<para>Sets DVB-S2 pilot</para>
+ 	<section id="fe-pilot-t">
+ 		<title>fe_pilot type</title>
+-		<programlisting>
+-typedef enum fe_pilot {
+-	PILOT_ON,
+-	PILOT_OFF,
+-	PILOT_AUTO,
+-} fe_pilot_t;
+-		</programlisting>
++<table pgwide="1" frame="none" id="fe-pilot">
++    <title>enum fe_pilot</title>
++    <tgroup cols="2">
++	&cs-def;
++	<thead>
++	<row>
++	    <entry>ID</entry>
++	    <entry>Description</entry>
++	</row>
++	</thead>
++	<tbody valign="top">
++	<row>
++	    <entry align="char" id="PILOT-ON"><constant>PILOT_ON</constant></entry>
++	    <entry align="char">Pilot tones enabled</entry>
++	</row><row>
++	    <entry align="char" id="PILOT-OFF"><constant>PILOT_OFF</constant></entry>
++	    <entry align="char">Pilot tones disabled</entry>
++	</row><row>
++	    <entry align="char" id="PILOT-AUTO"><constant>PILOT_AUTO</constant></entry>
++	    <entry align="char">Autodetect pilot tones</entry>
++	</row>
++        </tbody>
++    </tgroup>
++</table>
+ 		</section>
+ 	</section>
+ 	<section id="DTV-ROLLOFF">
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 3a7ff9002654..bb222eb04627 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -399,11 +399,13 @@ struct dvb_frontend_event {
+ 
+ #define DTV_MAX_COMMAND		DTV_STAT_TOTAL_BLOCK_COUNT
+ 
+-typedef enum fe_pilot {
++enum fe_pilot {
+ 	PILOT_ON,
+ 	PILOT_OFF,
+ 	PILOT_AUTO,
+-} fe_pilot_t;
++};
++
++typedef enum fe_pilot fe_pilot_t;
+ 
+ typedef enum fe_rolloff {
+ 	ROLLOFF_35, /* Implied value in DVB-S, default for DVB-S2 */
+-- 
+2.4.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
