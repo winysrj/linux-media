@@ -1,173 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56316 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752015AbbFHI4g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 04:56:36 -0400
-Message-ID: <557558BD.9040607@xs4all.nl>
-Date: Mon, 08 Jun 2015 10:56:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-References: <1433592188-31748-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:54760 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753513AbbFHTyc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:32 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 01/26] [media] DocBook: handle enums on frontend.h
+Date: Mon,  8 Jun 2015 16:53:45 -0300
+Message-Id: <4eacb793809d953b9eccf9840d08f9db3d8f5ee6.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+In order to be sure that all enum definitions will be documented,
+let's parse the enum values and add xref links to them.
 
-I am not so sure about this. The situation with TUNER_ADC is similar to TUNER_RADIO:
-we use TUNER_RADIO for radio modulators, even though it is clearly not a tuner type.
+Lots of missing references will be risen as we miss adding
+id's to those symbols at the documentation. Next patches will
+fix this.
 
-Basically the tuner type is interpreted as going the reverse direction for a modulator.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Calling it TUNER_SDR means its use is restricted to SDR devices, but perhaps there will
-be other non-SDR devices in the future that have an ADC.
-
-I wonder if we shouldn't introduce something like this:
-
-enum v4l2_modulator_type {
-	V4L2_MODULATOR_RADIO = V4L2_TUNER_RADIO,
-	V4L2_MODULATOR_DAC = V4L2_TUNER_ADC,
-	V4L2_MODULATOR_RF = V4L2_TUNER_RF,	/* is this correct? */
-};
-
-That way apps will have modulator aliases that make sense.
-
-Mauro, what do you think? This is your area of expertise.
-
-Regards,
-
-	Hans
-
-On 06/06/2015 02:03 PM, Antti Palosaari wrote:
-> SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
-> has DAC (Digital-to-Analog Converter) . Originally I though it could
-> be good idea to have own type for receiver and transmitter, but now I
-> feel one common type for SDR is enough. So lets rename it.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
->  Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
->  Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
->  include/uapi/linux/videodev2.h              |  5 ++++-
->  5 files changed, 29 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index a0aef85..f56faf5 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
->        </orderedlist>
->      </section>
->  
-> +    <section>
-> +      <title>V4L2 in Linux 4.2</title>
-> +      <orderedlist>
-> +	<listitem>
-> +	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
-> +<constant>V4L2_TUNER_SDR</constant>. The use of
-> +<constant>V4L2_TUNER_ADC</constant> is deprecated now.
-> +	  </para>
-> +	</listitem>
-> +      </orderedlist>
-> +    </section>
-> +
->      <section id="other">
->        <title>Relation of V4L2 to other Linux multimedia APIs</title>
->  
-> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> index f890356..3344921 100644
-> --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> @@ -44,10 +44,10 @@ frequency.
->      </para>
->  
->      <para>
-> -The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-> +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
->  the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
-> -tuner index of the RF tuner (if any) must always follow the ADC tuner index.
-> -Normally the ADC tuner is #0 and the RF tuner is #1.
-> +tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-> +Normally the SDR tuner is #0 and the RF tuner is #1.
->      </para>
->  
->      <para>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index e98caa1..c9eedc1 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
->  structs, ioctls) must be noted in more detail in the history chapter
->  (compat.xml), along with the possible impact on existing drivers and
->  applications. -->
-> +      <revision>
-> +	<revnumber>4.2</revnumber>
-> +	<date>2015-05-26</date>
-> +	<authorinitials>ap</authorinitials>
-> +	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-> +	</revremark>
-> +      </revision>
->  
->        <revision>
->  	<revnumber>3.21</revnumber>
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 85de455..ef42474 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_frequency *p = arg;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR)
-> -		p->type = V4L2_TUNER_ADC;
-> +		p->type = V4L2_TUNER_SDR;
->  	else
->  		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->  				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> @@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
->  	enum v4l2_tuner_type type;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
->  			return -EINVAL;
->  	} else {
->  		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> @@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->  	int err;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
->  			return -EINVAL;
->  		type = p->type;
->  	} else {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3d5fc72..3310ce4 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -165,10 +165,13 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> -	V4L2_TUNER_ADC               = 4,
-> +	V4L2_TUNER_SDR               = 4,
->  	V4L2_TUNER_RF                = 5,
->  };
->  
-> +/* Deprecated, do not use */
-> +#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
-> +
->  enum v4l2_memory {
->  	V4L2_MEMORY_MMAP             = 1,
->  	V4L2_MEMORY_USERPTR          = 2,
-> 
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index ae9d5a0404aa..226152952f58 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -74,16 +74,26 @@ TYPES = \
+ 	$(shell perl -ne 'print "$$1 " if /^typedef\s+.*\s+(\S+)\;/' $(srctree)/include/uapi/linux/dvb/frontend.h)
+ 
+ ENUMS = \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/videodev2.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/audio.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/ca.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/dmx.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/frontend.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/net.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/video.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/media.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-mediabus.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-subdev.h)
++	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' \
++		$(srctree)/include/uapi/linux/videodev2.h \
++		$(srctree)/include/uapi/linux/dvb/audio.h \
++		$(srctree)/include/uapi/linux/dvb/ca.h \
++		$(srctree)/include/uapi/linux/dvb/dmx.h \
++		$(srctree)/include/uapi/linux/dvb/frontend.h \
++		$(srctree)/include/uapi/linux/dvb/net.h \
++		$(srctree)/include/uapi/linux/dvb/video.h \
++		$(srctree)/include/uapi/linux/media.h \
++		$(srctree)/include/uapi/linux/v4l2-mediabus.h \
++		$(srctree)/include/uapi/linux/v4l2-subdev.h)
++
++ENUM_DEFS = \
++	$(shell perl -e 'while (<>) { if ($$enum) {print "$$1\n" if (/\s*([A-Z]\S+)\b/); } $$enum = 0 if ($enum && /^\}/); $$enum = 1 if(/^\s*enum\s/); }' \
++		$(srctree)/include/uapi/linux/dvb/audio.h \
++		$(srctree)/include/uapi/linux/dvb/ca.h \
++		$(srctree)/include/uapi/linux/dvb/dmx.h \
++		$(srctree)/include/uapi/linux/dvb/frontend.h \
++		$(srctree)/include/uapi/linux/dvb/net.h \
++		$(srctree)/include/uapi/linux/dvb/video.h)
+ 
+ STRUCTS = \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/videodev2.h) \
+@@ -252,9 +262,14 @@ $(MEDIA_OBJ_DIR)/frontend.h.xml: $(srctree)/include/uapi/linux/dvb/frontend.h $(
+ 	@(					\
+ 	echo "<programlisting>") > $@
+ 	@(					\
++	for ident in $(ENUM_DEFS) ; do		\
++	  entity=`echo $$ident | tr _ -` ;	\
++	  r="$$r s/([^\w\-])$$ident([^\w\-])/\1\&$$entity\;\2/g;";\
++	done;					\
+ 	expand --tabs=8 < $< |			\
+ 	  sed $(ESCAPE) $(DVB_DOCUMENTED) |	\
+-	  sed 's/i\.e\./&ie;/') >> $@
++	  sed 's/i\.e\./&ie;/' |		\
++	  perl -ne "$$r print $$_;") >> $@
+ 	@(					\
+ 	echo "</programlisting>") >> $@
+ 
+@@ -331,6 +346,15 @@ $(MEDIA_OBJ_DIR)/media-entities.tmpl: $(MEDIA_OBJ_DIR)/v4l2.xml
+ 	    "linkend='$$entity'>$$ident</link>\">" >>$@ ;		\
+ 	done)
+ 	@(								\
++	echo -e "\n<!-- Enum definitions -->") >>$@
++	@(								\
++	for ident in $(ENUM_DEFS) ; do					\
++	  entity=`echo $$ident | tr _ -` ;				\
++	  echo "<!ENTITY $$entity \"<link"				\
++	    "linkend='$$entity'><constant>$$ident</constant></link>\">"	\
++	  >>$@ ;							\
++	done)
++	@(								\
+ 	echo -e "\n<!-- Structures -->") >>$@
+ 	@(								\
+ 	for ident in $(STRUCTS) ; do					\
+-- 
+2.4.2
 
