@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49659 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751982AbbFYJbP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:31:15 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 15/15] media: rcar_vin: Reject videobufs that are too small for current format
-Date: Thu, 25 Jun 2015 10:31:09 +0100
-Message-Id: <1435224669-23672-16-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:54778 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753563AbbFHTyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 23/26] [media] dvb: frontend.h: improve dvb_frontent_parameters comment
+Date: Mon,  8 Jun 2015 16:54:07 -0300
+Message-Id: <a1904073e0652eb6745454df7b5a2087355980e8.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+The comment for struct dvb_frontend_parameters is weird, as it
+mixes delivery system name (ATSC) with modulation names
+(QPSK, QAM, OFDM).
 
-In videobuf_setup reject buffers that are too small for the configured
-format. Fixes v4l2-compliance issue.
+Use delivery system names there on the frequency comment, as this
+is clearer, specially after 2GEN delivery systems.
 
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Reviewed-by: William Towle <william.towle@codethink.co.uk>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c |    3 +++
- 1 file changed, 3 insertions(+)
+While here, add comments at the union, to make live easier for ones
+that may try to understand the convention used by the legacy API.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 20f690d..75f5ad0 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -541,6 +541,9 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
- 		unsigned int bytes_per_line;
- 		int ret;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 0380e62fc8b2..e764fd8b7e35 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -540,14 +540,14 @@ struct dvb_ofdm_parameters {
+ };
  
-+		if (fmt->fmt.pix.sizeimage < icd->sizeimage)
-+			return -EINVAL;
-+
- 		xlate = soc_camera_xlate_by_fourcc(icd,
- 						   fmt->fmt.pix.pixelformat);
- 		if (!xlate)
+ struct dvb_frontend_parameters {
+-	__u32 frequency;     /* (absolute) frequency in Hz for QAM/OFDM/ATSC */
+-			     /* intermediate frequency in kHz for QPSK */
++	__u32 frequency;     /* (absolute) frequency in Hz for DVB-C/DVB-T/ATSC */
++			     /* intermediate frequency in kHz for DVB-S */
+ 	fe_spectral_inversion_t inversion;
+ 	union {
+-		struct dvb_qpsk_parameters qpsk;
+-		struct dvb_qam_parameters  qam;
+-		struct dvb_ofdm_parameters ofdm;
+-		struct dvb_vsb_parameters vsb;
++		struct dvb_qpsk_parameters qpsk;	/* DVB-S */
++		struct dvb_qam_parameters  qam;		/* DVB-C */
++		struct dvb_ofdm_parameters ofdm;	/* DVB-T */
++		struct dvb_vsb_parameters vsb;		/* ATSC */
+ 	} u;
+ };
+ 
 -- 
-1.7.10.4
+2.4.2
 
