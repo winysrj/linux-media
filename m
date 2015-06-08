@@ -1,51 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp53.i.mail.ru ([94.100.177.113]:55840 "EHLO smtp53.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752843AbbFFUCi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 16:02:38 -0400
-Message-ID: <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: <linux-media@vger.kernel.org>, "Antti Palosaari" <crope@iki.fi>
-References: <0448C37B97FE43E6A8CD61968C10E73F@unknown> <55733133.6050502@iki.fi>
-Subject: Re: Si2168 B40 frimware.
-Date: Sun, 7 Jun 2015 03:02:25 +0700
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:37265 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752751AbbFHUTw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 16:19:52 -0400
+Received: by wifx6 with SMTP id x6so1521915wif.0
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 13:19:51 -0700 (PDT)
+Received: from [192.168.1.103] (188.30.130.168.threembb.co.uk. [188.30.130.168])
+        by mx.google.com with ESMTPSA id fb3sm2704466wib.21.2015.06.08.13.19.49
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 08 Jun 2015 13:19:50 -0700 (PDT)
+Message-ID: <5575F8DC.4010608@gmail.com>
+Date: Mon, 08 Jun 2015 21:19:40 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="utf-8";
-	reply-type=response
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] lmedm04: implement dvb v5 statistics
+References: <1433794008-5084-1-git-send-email-tvboxspy@gmail.com>
+In-Reply-To: <1433794008-5084-1-git-send-email-tvboxspy@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Antti Palosaari"
-To: "Unembossed Name"
-Sent: Sunday, June 07, 2015 12:43 AM
-Subject: Re: Si2168 B40 frimware.
+On 08/06/15 21:06, Malcolm Priestley wrote:
+> Indroduce function lme2510_update_stats to update
+> statistics directly from usb interrupt.
+>
+> Provide signal and snr wrap rounds for dvb v3 functions.
+>
+> Block and post bit are not available.
+>
+> When i2c_talk_onoff is on no statistics are available,
+> with possible future hand over to the relevant frontend/tuner.
+>
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>   drivers/media/usb/dvb-usb-v2/lmedm04.c | 104 ++++++++++++++++++++++++---------
+>   1 file changed, 77 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> index f1983f2..1717102 100644
+> --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+> @@ -257,6 +257,65 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
+>   	return ret;
+>   }
+>
+> +static void lme2510_update_stats(struct dvb_usb_adapter *adap)
+> +{
+> +	struct lme2510_state *st = adap_to_priv(adap);
+> +	struct dvb_frontend *fe = adap->fe[0];
+> +	struct dtv_frontend_properties *c;
+> +	u64 s_tmp = 0, c_tmp = 0;
+> +
+> +	if (!fe)
+> +		return;
+> +
+> +	c = &fe->dtv_property_cache;
+> +
+> +	c->block_count.len = 1;
+> +	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +	c->block_error.len = 1;
+> +	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +	c->post_bit_count.len = 1;
+> +	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +	c->post_bit_error.len = 1;
+> +	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +
+> +	if (st->i2c_talk_onoff) {
+> +		c->strength.len = 1;
+> +		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +		c->cnr.len = 1;
+> +		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+> +		return;
+> +	}
+> +
+> +	switch (st->tuner_config) {
+> +	case TUNER_LG:
+> +		s_tmp = 0xff - st->signal_level;
+> +		s_tmp |= s_tmp << 8;
+> +
+> +		c_tmp = 0xff - st->signal_sn;
+> +		c_tmp |= c_tmp << 8;
+> +		break;
+> +	/* fall through */
+> +	case TUNER_S7395:
+> +	case TUNER_S0194:
+> +		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
+> +
+> +		c_tmp = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
+> +		break;
+> +	case TUNER_RS2000:
+> +		s_tmp = (u16)((u32)st->signal_level * 0xffff / 0xff);
+> +
+> +		c_tmp = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
+> +	}
+I have notice a couple of mistakes with variable sizes.
 
+Will repost
 
->> Anybody want to test it? Unfortunately, I can not do it myself, because
->> I do not own hardware with B40 revision.
-> 
-> That does not even download. It looks like 17 byte chunk format, but it 
-> does not divide by 17. Probably there is some bytes missing or too many 
-> at the end of file.
-> 
-> That is how first 16 bytes of those firmwares looks:
-> 4.0.4:  05 00 aa 4d 56 40 00 00  0c 6a 7e aa ef 51 da 89
-> 4.0.11: 08 05 00 8d fc 56 40 00  00 00 00 00 00 00 00 00
-> 4.0.19: 08 05 00 f0 9a 56 40 00  00 00 00 00 00 00 00 00
-> 
-> 4.0.4 is 8 byte chunks, 4.0.11 is 17 byte.
-
-Hi Antti,
-
-You're right. I've made a mistake with determining of the end of a patch. It seems I  blindly used an obsolete information about 
-size it should be. And because of that, these version of a patch can be even more recent. Like 4.0.20.
-
-Could you please check it again? And in case of success see which version it is?
-
-file name:dvb-demod-si2168-b40-rom4_0_2-patch-build-probably4_0_19.fw.tar.gz
-http://beholder.ru/bb/download/file.php?id=857 
-
-Best regards.
