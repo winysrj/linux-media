@@ -1,73 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp210.webpack.hosteurope.de ([80.237.132.217]:57853 "EHLO
-	wp210.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751840AbbFUUC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jun 2015 16:02:26 -0400
-Date: Sun, 21 Jun 2015 22:02:21 +0200
-From: Jan =?iso-8859-1?Q?Kl=F6tzke?= <jan@kloetzke.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] mantis: cleanup a warning
-Message-ID: <20150621200221.GB28009@debian>
-References: <6fe2d69c07864eecf33373b0e4be401737e37fa4.1434648756.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6fe2d69c07864eecf33373b0e4be401737e37fa4.1434648756.git.mchehab@osg.samsung.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34487 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbbFHWGW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 18:06:22 -0400
+Received: by wibut5 with SMTP id ut5so879346wib.1
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 15:06:21 -0700 (PDT)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH v2][media] lmedm04: implement dvb v5 statistics
+Date: Mon,  8 Jun 2015 23:05:20 +0100
+Message-Id: <1433801120-1917-1-git-send-email-tvboxspy@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Indroduce function lme2510_update_stats to update
+statistics directly from usb interrupt.
 
-my bad. 
+Provide signal and snr wrap rounds for dvb v3 functions.
 
-On Thu, Jun 18, 2015 at 02:32:39PM -0300, Mauro Carvalho Chehab wrote:
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> drivers/media/pci/mantis/mantis_i2c.c: In function 'mantis_i2c_init':
-> drivers/media/pci/mantis/mantis_i2c.c:222:15: warning: variable 'intmask' set but not used [-Wunused-but-set-variable]
->   u32 intstat, intmask;
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/pci/mantis/mantis_i2c.c b/drivers/media/pci/mantis/mantis_i2c.c
-> index a93823490a43..d72ee47dc6e4 100644
-> --- a/drivers/media/pci/mantis/mantis_i2c.c
-> +++ b/drivers/media/pci/mantis/mantis_i2c.c
-> @@ -219,7 +219,7 @@ static struct i2c_algorithm mantis_algo = {
->  
->  int mantis_i2c_init(struct mantis_pci *mantis)
->  {
-> -	u32 intstat, intmask;
-> +	u32 intstat;
->  	struct i2c_adapter *i2c_adapter = &mantis->adapter;
->  	struct pci_dev *pdev		= mantis->pdev;
->  
-> @@ -242,7 +242,7 @@ int mantis_i2c_init(struct mantis_pci *mantis)
->  	dprintk(MANTIS_DEBUG, 1, "Initializing I2C ..");
->  
->  	intstat = mmread(MANTIS_INT_STAT);
-> -	intmask = mmread(MANTIS_INT_MASK);
-> +	mmread(MANTIS_INT_MASK);
+Block and post bit are not available.
 
-I'm not sure if the mmread() is still needed. But as I don't have any
-docs about the chipset I would keep it because that's how it has been
-tested. I could re-test without it but I guess nobody cares about the
-extra mmread() in the init path anyway.
+When i2c_talk_onoff is on no statistics are available,
+with possible future hand over to the relevant frontend/tuner.
 
-Acked-by: Jan Klötzke <jan@kloetzke.net>
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-Regards,
-Jan
+---
+v2 Correct variable size casts
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 104 ++++++++++++++++++++++++---------
+ 1 file changed, 77 insertions(+), 27 deletions(-)
 
->  	mmwrite(intstat, MANTIS_INT_STAT);
->  	dprintk(MANTIS_DEBUG, 1, "Disabling I2C interrupt");
->  	mantis_mask_ints(mantis, MANTIS_INT_I2CDONE);
-> -- 
-> 2.4.3
-> 
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index f1983f2..726c59e 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -257,6 +257,65 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
+ 	return ret;
+ }
+ 
++static void lme2510_update_stats(struct dvb_usb_adapter *adap)
++{
++	struct lme2510_state *st = adap_to_priv(adap);
++	struct dvb_frontend *fe = adap->fe[0];
++	struct dtv_frontend_properties *c;
++	u64 s_tmp = 0, c_tmp = 0;
++
++	if (!fe)
++		return;
++
++	c = &fe->dtv_property_cache;
++
++	c->block_count.len = 1;
++	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_error.len = 1;
++	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
++	if (st->i2c_talk_onoff) {
++		c->strength.len = 1;
++		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->cnr.len = 1;
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return;
++	}
++
++	switch (st->tuner_config) {
++	case TUNER_LG:
++		s_tmp = 0xff - st->signal_level;
++		s_tmp |= s_tmp << 8;
++
++		c_tmp = 0xff - st->signal_sn;
++		c_tmp |= c_tmp << 8;
++		break;
++	/* fall through */
++	case TUNER_S7395:
++	case TUNER_S0194:
++		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
++
++		c_tmp = ((0xff - st->signal_sn - 0xa1) * 3) << 8;
++		break;
++	case TUNER_RS2000:
++		s_tmp = st->signal_level * 0xffff / 0xff;
++
++		c_tmp = st->signal_sn * 0xffff / 0x7f;
++	}
++
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = s_tmp;
++
++	c->cnr.len = 1;
++	c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
++	c->cnr.stat[0].uvalue = c_tmp;
++}
++
+ static void lme2510_int_response(struct urb *lme_urb)
+ {
+ 	struct dvb_usb_adapter *adap = lme_urb->context;
+@@ -337,6 +396,8 @@ static void lme2510_int_response(struct urb *lme_urb)
+ 			if (!signal_lock)
+ 				st->lock_status &= ~FE_HAS_LOCK;
+ 
++			lme2510_update_stats(adap);
++
+ 			debug_data_snipet(5, "INT Remote data snipet in", ibuf);
+ 		break;
+ 		case 0xcc:
+@@ -872,56 +933,45 @@ static int dm04_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	*status = st->lock_status;
+ 
+-	if (!(*status & FE_HAS_LOCK))
++	if (!(*status & FE_HAS_LOCK)) {
++		struct dvb_usb_adapter *adap = fe_to_adap(fe);
++
+ 		st->i2c_talk_onoff = 1;
+ 
++		lme2510_update_stats(adap);
++	}
++
+ 	return ret;
+ }
+ 
+ static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct lme2510_state *st = fe_to_priv(fe);
+ 
+ 	if (st->fe_read_signal_strength && !st->stream_on)
+ 		return st->fe_read_signal_strength(fe, strength);
+ 
+-	switch (st->tuner_config) {
+-	case TUNER_LG:
+-		*strength = 0xff - st->signal_level;
+-		*strength |= *strength << 8;
+-		break;
+-	/* fall through */
+-	case TUNER_S7395:
+-	case TUNER_S0194:
+-		*strength = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
+-		break;
+-	case TUNER_RS2000:
+-		*strength = (u16)((u32)st->signal_level * 0xffff / 0xff);
+-	}
++	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
++		*strength = (u16)c->strength.stat[0].uvalue;
++	else
++		*strength = 0;
+ 
+ 	return 0;
+ }
+ 
+ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct lme2510_state *st = fe_to_priv(fe);
+ 
+ 	if (st->fe_read_snr && !st->stream_on)
+ 		return st->fe_read_snr(fe, snr);
+ 
+-	switch (st->tuner_config) {
+-	case TUNER_LG:
+-		*snr = 0xff - st->signal_sn;
+-		*snr |= *snr << 8;
+-		break;
+-	/* fall through */
+-	case TUNER_S7395:
+-	case TUNER_S0194:
+-		*snr = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
+-		break;
+-	case TUNER_RS2000:
+-		*snr = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
+-	}
++	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
++		*snr = (u16)c->cnr.stat[0].uvalue;
++	else
++		*snr = 0;
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
+
