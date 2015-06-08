@@ -1,1115 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37481 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753374AbbF2KoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:44:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux-samsung-soc@vger.kernel.org, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] cec-compliance: add new CEC compliance utility
-Date: Mon, 29 Jun 2015 12:43:15 +0200
-Message-Id: <1435574596-38029-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
-References: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:54785 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753567AbbFHTyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: [PATCH 16/26] [media] DocBook: properly document the delivery systems
+Date: Mon,  8 Jun 2015 16:54:00 -0300
+Message-Id: <1696d2ff68a7401f0ad4b613a43740edb863e033.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use a table for the delivery systems. The table is organized
+by the type (cable, satellite, terrestrial) and shows what
+standards are not fully implemented.
 
-This utility will attempt to test whether the CEC protocol was
-implemented correctly.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- configure.ac                            |   1 +
- utils/Makefile.am                       |   1 +
- utils/cec-compliance/Makefile.am        |   3 +
- utils/cec-compliance/cec-compliance.cpp | 943 ++++++++++++++++++++++++++++++++
- utils/cec-compliance/cec-compliance.h   |  87 +++
- 5 files changed, 1035 insertions(+)
- create mode 100644 utils/cec-compliance/Makefile.am
- create mode 100644 utils/cec-compliance/cec-compliance.cpp
- create mode 100644 utils/cec-compliance/cec-compliance.h
-
-diff --git a/configure.ac b/configure.ac
-index d4e312c..12c2eb9 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -26,6 +26,7 @@ AC_CONFIG_FILES([Makefile
- 	utils/keytable/Makefile
- 	utils/media-ctl/Makefile
- 	utils/rds/Makefile
-+	utils/cec-compliance/Makefile
- 	utils/v4l2-compliance/Makefile
- 	utils/v4l2-ctl/Makefile
- 	utils/v4l2-dbg/Makefile
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index 31b2979..c78e97b 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -5,6 +5,7 @@ SUBDIRS = \
- 	decode_tm6000 \
- 	keytable \
- 	media-ctl \
-+	cec-compliance \
- 	v4l2-compliance \
- 	v4l2-ctl \
- 	v4l2-dbg \
-diff --git a/utils/cec-compliance/Makefile.am b/utils/cec-compliance/Makefile.am
-new file mode 100644
-index 0000000..da4c0ef
---- /dev/null
-+++ b/utils/cec-compliance/Makefile.am
-@@ -0,0 +1,3 @@
-+bin_PROGRAMS = cec-compliance
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index c0aa1ad9eccf..08227d4e9150 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -515,31 +515,82 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 		<section id="fe-delivery-system-t">
+ 		<title>fe_delivery_system type</title>
+ 		<para>Possible values: </para>
+-<programlisting>
+ 
+-typedef enum fe_delivery_system {
+-	SYS_UNDEFINED,
+-	SYS_DVBC_ANNEX_A,
+-	SYS_DVBC_ANNEX_B,
+-	SYS_DVBT,
+-	SYS_DSS,
+-	SYS_DVBS,
+-	SYS_DVBS2,
+-	SYS_DVBH,
+-	SYS_ISDBT,
+-	SYS_ISDBS,
+-	SYS_ISDBC,
+-	SYS_ATSC,
+-	SYS_ATSCMH,
+-	SYS_DTMB,
+-	SYS_CMMB,
+-	SYS_DAB,
+-	SYS_DVBT2,
+-	SYS_TURBO,
+-	SYS_DVBC_ANNEX_C,
+-} fe_delivery_system_t;
+-</programlisting>
+-		</section>
++<table pgwide="1" frame="none" id="fe-delivery-system">
++    <title>enum fe_delivery_system</title>
++    <tgroup cols="2">
++	&cs-def;
++	<thead>
++	<row>
++	    <entry>ID</entry>
++	    <entry>Description</entry>
++	</row>
++	</thead>
++	<tbody valign="top">
++	<row>
++		<entry id="SYS-UNDEFINED"><constant>SYS_UNDEFINED</constant></entry>
++		<entry>Undefined standard. Generally, indicates an error</entry>
++	</row><row>
++		<entry id="SYS-DVBC-ANNEX-A"><constant>SYS_DVBC_ANNEX_A</constant></entry>
++		<entry>Cable TV: DVB-C following ITU-T J.83 Annex A spec</entry>
++	</row><row>
++		<entry id="SYS-DVBC-ANNEX-B"><constant>SYS_DVBC_ANNEX_B</constant></entry>
++		<entry>Cable TV: DVB-C following ITU-T J.83 Annex B spec (ClearQAM)</entry>
++	</row><row>
++		<entry id="SYS-DVBC-ANNEX-C"><constant>SYS_DVBC_ANNEX_C</constant></entry>
++		<entry>Cable TV: DVB-C following ITU-T J.83 Annex C spec</entry>
++	</row><row>
++		<entry id="SYS-ISDBC"><constant>SYS_ISDBC</constant></entry>
++		<entry>Cable TV: ISDB-C (no drivers yet)</entry>
++	</row><row>
++		<entry id="SYS-DVBT"><constant>SYS_DVBT</constant></entry>
++		<entry>Terrestral TV: DVB-T</entry>
++	</row><row>
++		<entry id="SYS-DVBT2"><constant>SYS_DVBT2</constant></entry>
++		<entry>Terrestral TV: DVB-T2</entry>
++	</row><row>
++		<entry id="SYS-ISDBT"><constant>SYS_ISDBT</constant></entry>
++		<entry>Terrestral TV: ISDB-T</entry>
++	</row><row>
++		<entry id="SYS-ATSC"><constant>SYS_ATSC</constant></entry>
++		<entry>Terrestral TV: ATSC</entry>
++	</row><row>
++		<entry id="SYS-ATSCMH"><constant>SYS_ATSCMH</constant></entry>
++		<entry>Terrestral TV (mobile): ATSC-M/H</entry>
++	</row><row>
++		<entry id="SYS-DTMB"><constant>SYS_DTMB</constant></entry>
++		<entry>Terrestrial TV: DTMB</entry>
++	</row><row>
++		<entry id="SYS-DVBS"><constant>SYS_DVBS</constant></entry>
++		<entry>Satellite TV: DVB-S</entry>
++	</row><row>
++		<entry id="SYS-DVBS2"><constant>SYS_DVBS2</constant></entry>
++		<entry>Satellite TV: DVB-S2</entry>
++	</row><row>
++		<entry id="SYS-TURBO"><constant>SYS_TURBO</constant></entry>
++		<entry>Satellite TV: DVB-S Turbo</entry>
++	</row><row>
++		<entry id="SYS-ISDBS"><constant>SYS_ISDBS</constant></entry>
++		<entry>Satellite TV: ISDB-S</entry>
++	</row><row>
++		<entry id="SYS-DAB"><constant>SYS_DAB</constant></entry>
++		<entry>Digital audio: DAB (not fully supported)</entry>
++	</row><row>
++		<entry id="SYS-DSS"><constant>SYS_DSS</constant></entry>
++		<entry>Satellite TV:"DSS (not fully supported)</entry>
++	</row><row>
++		<entry id="SYS-CMMB"><constant>SYS_CMMB</constant></entry>
++		<entry>Terrestral TV (mobile):CMMB (not fully supported)</entry>
++	</row><row>
++		<entry id="SYS-DVBH"><constant>SYS_DVBH</constant></entry>
++		<entry>Terrestral TV (mobile): DVB-H (standard deprecated)</entry>
++	</row>
++        </tbody>
++    </tgroup>
++</table>
 +
-+cec_compliance_SOURCES = cec-compliance.cpp
-diff --git a/utils/cec-compliance/cec-compliance.cpp b/utils/cec-compliance/cec-compliance.cpp
-new file mode 100644
-index 0000000..c8c51dc
---- /dev/null
-+++ b/utils/cec-compliance/cec-compliance.cpp
-@@ -0,0 +1,943 @@
-+/*
-+    Copyright 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+    Author: Hans Verkuil <hans.verkuil@cisco.com>
 +
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+ */
-+
-+#include <unistd.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <inttypes.h>
-+#include <getopt.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <ctype.h>
-+#include <errno.h>
-+#include <sys/ioctl.h>
-+#include <config.h>
-+
-+#include "cec-compliance.h"
-+
-+/* Short option list
-+
-+   Please keep in alphabetical order.
-+   That makes it easier to see which short options are still free.
-+
-+   In general the lower case is used to set something and the upper
-+   case is used to retrieve a setting. */
-+enum Option {
-+	OptPhysAddr = 'a',
-+	OptSetDevice = 'd',
-+	OptHelp = 'h',
-+	OptNoWarnings = 'n',
-+	OptTrace = 'T',
-+	OptVerbose = 'v',
-+	OptVendorID = 'V',
-+
-+	OptTV,
-+	OptRecord,
-+	OptTuner,
-+	OptPlayback,
-+	OptAudio,
-+	OptProcessor,
-+	OptSwitch,
-+	OptCDCOnly,
-+	OptUnregistered,
-+	OptLast = 256
++</section>
+ 	</section>
+ 	<section id="DTV-ISDBT-PARTIAL-RECEPTION">
+ 		<title><constant>DTV_ISDBT_PARTIAL_RECEPTION</constant></title>
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index cdd9e2fc030d..66499f238204 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -416,7 +416,7 @@ enum fe_rolloff {
+ 
+ typedef enum fe_rolloff fe_rolloff_t;
+ 
+-typedef enum fe_delivery_system {
++enum fe_delivery_system {
+ 	SYS_UNDEFINED,
+ 	SYS_DVBC_ANNEX_A,
+ 	SYS_DVBC_ANNEX_B,
+@@ -436,7 +436,9 @@ typedef enum fe_delivery_system {
+ 	SYS_DVBT2,
+ 	SYS_TURBO,
+ 	SYS_DVBC_ANNEX_C,
+-} fe_delivery_system_t;
 +};
 +
-+static char options[OptLast];
-+
-+static int app_result;
-+static int tests_total, tests_ok;
-+
-+bool show_info;
-+bool show_warnings = true;
-+unsigned warnings;
-+
-+static struct option long_options[] = {
-+	{"device", required_argument, 0, OptSetDevice},
-+	{"help", no_argument, 0, OptHelp},
-+	{"no-warnings", no_argument, 0, OptNoWarnings},
-+	{"trace", no_argument, 0, OptTrace},
-+	{"verbose", no_argument, 0, OptVerbose},
-+	{"phys-addr", required_argument, 0, OptPhysAddr},
-+	{"vendor-id", required_argument, 0, OptVendorID},
-+
-+	{"tv", no_argument, 0, OptTV},
-+	{"record", no_argument, 0, OptRecord},
-+	{"tuner", no_argument, 0, OptTuner},
-+	{"playback", no_argument, 0, OptPlayback},
-+	{"audio", no_argument, 0, OptAudio},
-+	{"processor", no_argument, 0, OptProcessor},
-+	{"switch", no_argument, 0, OptSwitch},
-+	{"cdc-only", no_argument, 0, OptCDCOnly},
-+	{"unregistered", no_argument, 0, OptUnregistered},
-+	{0, 0, 0, 0}
-+};
-+
-+static void usage(void)
-+{
-+	printf("Usage:\n"
-+	       "  -d, --device=<dev> Use device <dev> instead of /dev/cec0\n"
-+	       "                     If <dev> starts with a digit, then /dev/cec<dev> is used.\n"
-+	       "  -h, --help         Display this help message\n"
-+	       "  -n, --no-warnings  Turn off warning messages.\n"
-+	       "  -T, --trace        Trace all called ioctls.\n"
-+	       "  -v, --verbose      Turn on verbose reporting.\n"
-+	       "  -a, --phys-addr=<addr>\n"
-+	       "		     Use this physical address.\n"
-+	       "  -V, --vendor-id=<id>\n"
-+	       "		     Use this vendor ID.\n"
-+	       "  --tv               This is a TV\n"
-+	       "  --record           This is a recording device\n"
-+	       "  --tuner            This is a tuner device\n"
-+	       "  --playback         This is a playback device\n"
-+	       "  --audio            This is an audio system device\n"
-+	       "  --processor        This is a processor device\n"
-+	       "  --switch           This is a pure CEC switch\n"
-+	       "  --cdc-only         This is a CDC-only device\n"
-+	       "  --unregistered     This is an unregistered device\n"
-+	       );
-+}
-+
-+static std::string caps2s(unsigned caps)
-+{
-+	std::string s;
-+
-+	if (caps & CEC_CAP_STATE)
-+		s += "\t\tState\n";
-+	if (caps & CEC_CAP_PHYS_ADDR)
-+		s += "\t\tPhysical Address\n";
-+	if (caps & CEC_CAP_LOG_ADDRS)
-+		s += "\t\tLogical Addresses\n";
-+	if (caps & CEC_CAP_TRANSMIT)
-+		s += "\t\tTransmit\n";
-+	if (caps & CEC_CAP_RECEIVE)
-+		s += "\t\tReceive\n";
-+	if (caps & CEC_CAP_VENDOR_ID)
-+		s += "\t\tVendor ID\n";
-+	if (caps & CEC_CAP_PASSTHROUGH)
-+		s += "\t\tPassthrough\n";
-+	if (caps & CEC_CAP_RC)
-+		s += "\t\tRemote Control Support\n";
-+	if (caps & CEC_CAP_ARC)
-+		s += "\t\tAudio Return Channel\n";
-+	if (caps & CEC_CAP_CDC)
-+		s += "\t\tCapability Discovery and Control\n";
-+	return s;
-+}
-+
-+static const char *version2s(unsigned version)
-+{
-+	switch (version) {
-+	case CEC_OP_CEC_VERSION_1_3A:
-+		return "1.3a";
-+	case CEC_OP_CEC_VERSION_1_4:
-+		return "1.4";
-+	case CEC_OP_CEC_VERSION_2_0:
-+		return "2.0";
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
-+static const char *power_status2s(unsigned status)
-+{
-+	switch (status) {
-+	case CEC_OP_POWER_STATUS_ON:
-+		return "On";
-+	case CEC_OP_POWER_STATUS_STANDBY:
-+		return "Standby";
-+	case CEC_OP_POWER_STATUS_TO_ON:
-+		return "In Transition Standby to On";
-+	case CEC_OP_POWER_STATUS_TO_STANDBY:
-+		return "In Transition On to Standby";
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
-+static const char *prim_type2s(unsigned type)
-+{
-+	switch (type) {
-+	case CEC_OP_PRIM_DEVTYPE_TV:
-+		return "TV";
-+	case CEC_OP_PRIM_DEVTYPE_RECORD:
-+		return "Record";
-+	case CEC_OP_PRIM_DEVTYPE_TUNER:
-+		return "Tuner";
-+	case CEC_OP_PRIM_DEVTYPE_PLAYBACK:
-+		return "Playback";
-+	case CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM:
-+		return "Audio System";
-+	case CEC_OP_PRIM_DEVTYPE_SWITCH:
-+		return "Switch";
-+	case CEC_OP_PRIM_DEVTYPE_PROCESSOR:
-+		return "Processor";
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
-+static const char *la_type2s(unsigned type)
-+{
-+	switch (type) {
-+	case CEC_LOG_ADDR_TYPE_TV:
-+		return "TV";
-+	case CEC_LOG_ADDR_TYPE_RECORD:
-+		return "Record";
-+	case CEC_LOG_ADDR_TYPE_TUNER:
-+		return "Tuner";
-+	case CEC_LOG_ADDR_TYPE_PLAYBACK:
-+		return "Playback";
-+	case CEC_LOG_ADDR_TYPE_AUDIOSYSTEM:
-+		return "Audio System";
-+	case CEC_LOG_ADDR_TYPE_SPECIFIC:
-+		return "Specific";
-+	case CEC_LOG_ADDR_TYPE_UNREGISTERED:
-+		return "Unregistered";
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
-+static const char *la2s(unsigned la)
-+{
-+	switch (la & 0xf) {
-+	case 0:
-+		return "TV";
-+	case 1:
-+		return "Recording Device 1";
-+	case 2:
-+		return "Recording Device 2";
-+	case 3:
-+		return "Tuner 1";
-+	case 4:
-+		return "Playback Device 1";
-+	case 5:
-+		return "Audio System";
-+	case 6:
-+		return "Tuner 2";
-+	case 7:
-+		return "Tuner 3";
-+	case 8:
-+		return "Playback Device 2";
-+	case 9:
-+		return "Playback Device 3";
-+	case 10:
-+		return "Tuner 4";
-+	case 11:
-+		return "Playback Device 3";
-+	case 12:
-+		return "Reserved 1";
-+	case 13:
-+		return "Reserved 2";
-+	case 14:
-+		return "Specific";
-+	case 15:
-+	default:
-+		return "Unregistered";
-+	}
-+}
-+
-+static std::string la_flags2s(unsigned flags)
-+{
-+	std::string s;
-+
-+	if (flags & CEC_LOG_ADDRS_FL_HANDLE_MSGS)
-+		s += "Userspace Handles Messages";
-+	return s;
-+}
-+
-+static std::string status2s(unsigned stat)
-+{
-+	std::string s;
-+
-+	if (stat & CEC_TX_STATUS_ARB_LOST)
-+		s += "ArbitrationLost ";
-+	if (stat & CEC_TX_STATUS_REPLY_TIMEOUT)
-+		s += "ReplyTimeout ";
-+	if (stat & CEC_TX_STATUS_RETRY_TIMEOUT)
-+		s += "RetryTimeout ";
-+	if (stat & CEC_TX_STATUS_FEATURE_ABORT)
-+		s += "FeatureAbort ";
-+	return s;
-+}
-+
-+static std::string all_dev_types2s(unsigned types)
-+{
-+	std::string s;
-+
-+	if (types & CEC_FL_ALL_DEVTYPE_TV)
-+		s += "TV, ";
-+	if (types & CEC_FL_ALL_DEVTYPE_RECORD)
-+		s += "Record, ";
-+	if (types & CEC_FL_ALL_DEVTYPE_TUNER)
-+		s += "Tuner, ";
-+	if (types & CEC_FL_ALL_DEVTYPE_PLAYBACK)
-+		s += "Playback, ";
-+	if (types & CEC_FL_ALL_DEVTYPE_AUDIOSYSTEM)
-+		s += "Audio System, ";
-+	if (types & CEC_FL_ALL_DEVTYPE_SWITCH)
-+		s += "Switch, ";
-+	return s.erase(s.length() - 2, 2);
-+}
-+
-+static std::string rc_src_prof2s(unsigned prof)
-+{
-+	std::string s;
-+
-+	prof &= 0x1f;
-+	if (prof == 0)
-+		return "\t\tNone\n";
-+	if (prof & CEC_OP_FEAT_RC_SRC_HAS_DEV_ROOT_MENU)
-+		s += "\t\tSource Has Device Root Menu\n";
-+	if (prof & CEC_OP_FEAT_RC_SRC_HAS_DEV_SETUP_MENU)
-+		s += "\t\tSource Has Device Setup Menu\n";
-+	if (prof & CEC_OP_FEAT_RC_SRC_HAS_MEDIA_CONTEXT_MENU)
-+		s += "\t\tSource Has Contents Menu\n";
-+	if (prof & CEC_OP_FEAT_RC_SRC_HAS_MEDIA_TOP_MENU)
-+		s += "\t\tSource Has Media Top Menu\n";
-+	if (prof & CEC_OP_FEAT_RC_SRC_HAS_MEDIA_CONTEXT_MENU)
-+		s += "\t\tSource Has Media Context-Sensitive Menu\n";
-+	return s;
-+}
-+
-+static std::string dev_feat2s(unsigned feat)
-+{
-+	std::string s;
-+
-+	feat &= 0x3e;
-+	if (feat == 0)
-+		return "\t\tNone\n";
-+	if (feat & CEC_OP_FEAT_DEV_HAS_RECORD_TV_SCREEN)
-+		s += "\t\tTV Supports <Record TV Screen>\n";
-+	if (feat & CEC_OP_FEAT_DEV_HAS_SET_OSD_STRING)
-+		s += "\t\tTV Supports <Set OSD String>\n";
-+	if (feat & CEC_OP_FEAT_DEV_HAS_DECK_CONTROL)
-+		s += "\t\tSupports Deck Control\n";
-+	if (feat & CEC_OP_FEAT_DEV_HAS_SET_AUDIO_RATE)
-+		s += "\t\tSource Supports <Set Audio Rate>\n";
-+	if (feat & CEC_OP_FEAT_DEV_SINK_HAS_ARC_TX)
-+		s += "\t\tSink Supports ARC Tx\n";
-+	if (feat & CEC_OP_FEAT_DEV_SOURCE_HAS_ARC_RX)
-+		s += "\t\tSource Supports ARC Rx\n";
-+	return s;
-+}
-+
-+int cec_named_ioctl(int fd, const char *name,
-+		    unsigned long int request, void *parm)
-+{
-+	int retval = ioctl(fd, request, parm);
-+	int e;
-+
-+	e = retval == 0 ? 0 : errno;
-+	if (options[OptTrace])
-+		printf("\t\t%s returned %d (%s)\n",
-+			name, retval, strerror(e));
-+
-+	if (retval < 0)
-+		app_result = -1;
-+
-+	return retval == -1 ? e : (retval ? -1 : 0);
-+}
-+
-+const char *ok(int res)
-+{
-+	static char buf[100];
-+
-+	if (res == ENOTTY) {
-+		strcpy(buf, "OK (Not Supported)");
-+		res = 0;
-+	} else {
-+		strcpy(buf, "OK");
-+	}
-+	tests_total++;
-+	if (res) {
-+		app_result = res;
-+		sprintf(buf, "FAIL");
-+	} else {
-+		tests_ok++;
-+	}
-+	return buf;
-+}
-+
-+int check_0(const void *p, int len)
-+{
-+	const __u8 *q = (const __u8 *)p;
-+
-+	while (len--)
-+		if (*q++)
-+			return 1;
-+	return 0;
-+}
-+
-+static int testCap(struct node *node)
-+{
-+	struct cec_caps caps;
-+
-+	memset(&caps, 0xff, sizeof(caps));
-+	// Must always be there
-+	fail_on_test(doioctl(node, CEC_G_CAPS, &caps));
-+	fail_on_test(check_0(caps.reserved, sizeof(caps.reserved)));
-+	fail_on_test(caps.available_log_addrs == 0 ||
-+		     caps.available_log_addrs > CEC_MAX_LOG_ADDRS);
-+	fail_on_test((caps.capabilities & CEC_CAP_PASSTHROUGH) &&
-+		     !(caps.capabilities & CEC_CAP_RECEIVE));
-+	return 0;
-+}
-+
-+static int testAdapPhysAddr(struct node *node, __u16 set_phys_addr)
-+{
-+	__u16 pa = 0xefff;
-+
-+	fail_on_test(doioctl(node, CEC_G_ADAP_PHYS_ADDR, &pa));
-+	fail_on_test(pa == 0xefff);
-+	if (node->caps & CEC_CAP_PHYS_ADDR) {
-+		fail_on_test(doioctl(node, CEC_S_ADAP_PHYS_ADDR, &set_phys_addr));
-+		fail_on_test(doioctl(node, CEC_G_ADAP_PHYS_ADDR, &pa));
-+		fail_on_test(pa != set_phys_addr);
-+	} else {
-+		fail_on_test(doioctl(node, CEC_S_ADAP_PHYS_ADDR, &pa) != ENOTTY);
-+	}
-+	return 0;
-+}
-+
-+static int testVendorID(struct node *node, __u32 set_vendor_id)
-+{
-+	__u32 vendor_id = 0xeeeeeeee;
-+
-+	fail_on_test(doioctl(node, CEC_G_VENDOR_ID, &vendor_id));
-+	fail_on_test(vendor_id == 0xeeeeeeee);
-+	fail_on_test(vendor_id != CEC_VENDOR_ID_NONE &&
-+		     (vendor_id & 0xff000000));
-+	if (node->caps & CEC_CAP_VENDOR_ID) {
-+		vendor_id = 0x000c03; /* HDMI LLC vendor ID */
-+		fail_on_test(doioctl(node, CEC_S_VENDOR_ID, &vendor_id) != EINVAL);
-+		fail_on_test(doioctl(node, CEC_S_VENDOR_ID, &set_vendor_id));
-+		fail_on_test(doioctl(node, CEC_G_VENDOR_ID, &vendor_id));
-+		fail_on_test(vendor_id != set_vendor_id);
-+	} else {
-+		fail_on_test(doioctl(node, CEC_S_VENDOR_ID, &vendor_id) != ENOTTY);
-+	}
-+	return 0;
-+}
-+
-+static int testAdapState(struct node *node)
-+{
-+	__u32 state = 0xffffffff;
-+
-+	fail_on_test(doioctl(node, CEC_G_ADAP_STATE, &state));
-+	fail_on_test(state > CEC_STATE_ENABLED);
-+	if (node->caps & CEC_CAP_STATE) {
-+		state = CEC_STATE_DISABLED;
-+		fail_on_test(doioctl(node, CEC_S_ADAP_STATE, &state));
-+		fail_on_test(doioctl(node, CEC_G_ADAP_STATE, &state));
-+		fail_on_test(state != CEC_STATE_DISABLED);
-+		state = CEC_STATE_ENABLED;
-+		fail_on_test(doioctl(node, CEC_S_ADAP_STATE, &state));
-+		fail_on_test(doioctl(node, CEC_G_ADAP_STATE, &state));
-+		fail_on_test(state != CEC_STATE_ENABLED);
-+
-+		/*
-+		 * Do this again, thus guaranteeing that there is always
-+		 * a disabled -> enabled and an enabled -> disabled state
-+		 * transition tested.
-+		 */
-+		state = CEC_STATE_DISABLED;
-+		fail_on_test(doioctl(node, CEC_S_ADAP_STATE, &state));
-+		fail_on_test(doioctl(node, CEC_G_ADAP_STATE, &state));
-+		fail_on_test(state != CEC_STATE_DISABLED);
-+		state = CEC_STATE_ENABLED;
-+		fail_on_test(doioctl(node, CEC_S_ADAP_STATE, &state));
-+		fail_on_test(doioctl(node, CEC_G_ADAP_STATE, &state));
-+		fail_on_test(state != CEC_STATE_ENABLED);
-+	} else {
-+		fail_on_test(doioctl(node, CEC_S_ADAP_STATE, &state) != ENOTTY);
-+	}
-+	return 0;
-+}
-+
-+static int testAdapLogAddrs(struct node *node, unsigned flags,
-+			    const char *osd_name)
-+{
-+	struct cec_log_addrs laddrs;
-+
-+	memset(&laddrs, 0xff, sizeof(laddrs));
-+	fail_on_test(doioctl(node, CEC_G_ADAP_LOG_ADDRS, &laddrs));
-+	fail_on_test(check_0(laddrs.reserved, sizeof(laddrs.reserved)));
-+	fail_on_test(laddrs.cec_version != CEC_OP_CEC_VERSION_1_4 &&
-+		     laddrs.cec_version != CEC_OP_CEC_VERSION_2_0);
-+	fail_on_test(laddrs.num_log_addrs > CEC_MAX_LOG_ADDRS);
-+	if (node->caps & CEC_CAP_LOG_ADDRS) {
-+		memset(&laddrs, 0, sizeof(laddrs));
-+		fail_on_test(doioctl(node, CEC_S_ADAP_LOG_ADDRS, &laddrs));
-+		fail_on_test(laddrs.num_log_addrs != 0);
-+		fail_on_test(doioctl(node, CEC_G_ADAP_LOG_ADDRS, &laddrs));
-+		fail_on_test(laddrs.num_log_addrs != 0);
-+
-+		memset(&laddrs, 0, sizeof(laddrs));
-+		laddrs.cec_version = CEC_OP_CEC_VERSION_2_0;
-+		strcpy(laddrs.osd_name, osd_name);
-+		for (unsigned i = 0; i < 8; i++) {
-+			unsigned la_type;
-+			unsigned all_dev_type;
-+
-+			if (!(flags & (1 << i)))
-+				continue;
-+			fail_on_test(laddrs.num_log_addrs == node->available_log_addrs);
-+			switch (i) {
-+			case CEC_OP_PRIM_DEVTYPE_TV:
-+				la_type = CEC_LOG_ADDR_TYPE_TV;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_TV;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_RECORD:
-+				la_type = CEC_LOG_ADDR_TYPE_RECORD;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_RECORD;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_TUNER:
-+				la_type = CEC_LOG_ADDR_TYPE_TUNER;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_TUNER;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_PLAYBACK:
-+				la_type = CEC_LOG_ADDR_TYPE_PLAYBACK;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_PLAYBACK;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM:
-+				la_type = CEC_LOG_ADDR_TYPE_AUDIOSYSTEM;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_AUDIOSYSTEM;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_PROCESSOR:
-+				la_type = CEC_LOG_ADDR_TYPE_SPECIFIC;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_SWITCH;
-+				break;
-+			case CEC_OP_PRIM_DEVTYPE_SWITCH:
-+			default:
-+				la_type = CEC_LOG_ADDR_TYPE_UNREGISTERED;
-+				all_dev_type = CEC_FL_ALL_DEVTYPE_SWITCH;
-+				break;
-+			}
-+			laddrs.log_addr_type[laddrs.num_log_addrs] = la_type;
-+			laddrs.all_device_types[laddrs.num_log_addrs] = all_dev_type;
-+			laddrs.primary_device_type[laddrs.num_log_addrs++] = i;
-+		}
-+
-+		fail_on_test(doioctl(node, CEC_S_ADAP_LOG_ADDRS, &laddrs));
-+		fail_on_test(laddrs.num_log_addrs == 0 ||
-+			     laddrs.num_log_addrs > CEC_MAX_LOG_ADDRS);
-+		node->num_log_addrs = laddrs.num_log_addrs;
-+		memcpy(node->log_addr, laddrs.log_addr, laddrs.num_log_addrs);
-+		fail_on_test(doioctl(node, CEC_S_ADAP_LOG_ADDRS, &laddrs) != EBUSY);
-+	} else {
-+		node->num_log_addrs = laddrs.num_log_addrs;
-+		memcpy(node->log_addr, laddrs.log_addr, laddrs.num_log_addrs);
-+		fail_on_test(doioctl(node, CEC_S_ADAP_LOG_ADDRS, &laddrs) != ENOTTY);
-+	}
-+	return 0;
-+}
-+
-+static bool validMsgStatus(const struct cec_msg &msg)
-+{
-+	if (msg.status == 0)
-+		return true;
-+	std::string s = status2s(msg.status);
-+	warn("%s\n", s.c_str());
-+	return false;
-+}
-+
-+static int testTopologyDevice(struct node *node, unsigned i, unsigned la)
-+{
-+	struct cec_msg msg = { };
-+
-+	printf("\tSystem Information for device %d (%s) from device %d (%s):\n",
-+	       i, la2s(i), la, la2s(la));
-+
-+	msg.len = 2;
-+	msg.msg[0] = (la << 4) | (i & 0xf);
-+	msg.msg[1] = CEC_MSG_GET_CEC_VERSION;
-+	msg.reply = CEC_MSG_CEC_VERSION;
-+	fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+	if (validMsgStatus(msg))
-+		printf("\t\tCEC Version                : %s\n", version2s(msg.msg[2]));
-+
-+	msg.len = 2;
-+	msg.msg[0] = (la << 4) | (i & 0xf);
-+	msg.msg[1] = CEC_MSG_GIVE_PHYSICAL_ADDR;
-+	msg.reply = CEC_MSG_REPORT_PHYSICAL_ADDR;
-+	fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+	//fail_on_test(msg.status);
-+	validMsgStatus(msg);
-+	__u16 phys_addr = (msg.msg[2] << 8) | msg.msg[3];
-+	printf("\t\tPhysical Address           : %x.%x.%x.%x\n",
-+	       phys_addr >> 12, (phys_addr >> 8) & 0xf,
-+	       (phys_addr >> 4) & 0xf, phys_addr & 0xf);
-+	printf("\t\tPrimary Device Type        : %s\n",
-+	       prim_type2s(msg.msg[4]));
-+
-+	msg.len = 2;
-+	msg.msg[0] = (la << 4) | (i & 0xf);
-+	msg.msg[1] = CEC_MSG_GIVE_DEVICE_VENDOR_ID;
-+	msg.reply = CEC_MSG_DEVICE_VENDOR_ID;
-+	fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+	if (validMsgStatus(msg))
-+		printf("\t\tVendor ID                  : 0x%02x%02x%02x\n",
-+		       msg.msg[2], msg.msg[3], msg.msg[4]);
-+
-+	msg.len = 2;
-+	msg.msg[0] = (la << 4) | (i & 0xf);
-+	msg.msg[1] = CEC_MSG_GIVE_DEVICE_POWER_STATUS;
-+	msg.reply = CEC_MSG_REPORT_POWER_STATUS;
-+	fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+	if (validMsgStatus(msg))
-+		printf("\t\tPower Status               : %s\n",
-+			power_status2s(msg.msg[2]));
-+
-+	msg.len = 2;
-+	msg.msg[0] = (la << 4) | (i & 0xf);
-+	msg.msg[1] = CEC_MSG_GIVE_OSD_NAME;
-+	msg.reply = CEC_MSG_SET_OSD_NAME;
-+	fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+	if (validMsgStatus(msg)) {
-+		char s[15];
-+
-+		memset(s, 0, sizeof(s));
-+		memcpy(s, msg.msg + 2, msg.len - 2);
-+		fail_on_test(msg.status);
-+		printf("\t\tOSD Name                   : %s\n", s);
-+	}
-+	return 0;
-+}
-+
-+static int testTopology(struct node *node)
-+{
-+	struct cec_msg msg = { };
-+	struct cec_log_addrs laddrs = { };
-+
-+	fail_on_test(doioctl(node, CEC_G_ADAP_LOG_ADDRS, &laddrs));
-+
-+	if (!(node->caps & CEC_CAP_TRANSMIT)) {
-+		msg.len = 1;
-+		msg.msg[0] = 15 << 4;
-+		fail_on_test(doioctl(node, CEC_TRANSMIT, &msg) != ENOTTY);
-+		return -ENOTTY;
-+	}
-+
-+	for (unsigned i = 0; i < 15; i++) {
-+		int ret;
-+
-+		msg.len = 1;
-+		msg.msg[0] = (15 << 4) | (i & 0xf);
-+		ret = doioctl(node, CEC_TRANSMIT, &msg);
-+
-+		switch (msg.status) {
-+		case CEC_TX_STATUS_OK:
-+			fail_on_test(testTopologyDevice(node, i, laddrs.log_addr[0]));
-+			break;
-+		case CEC_TX_STATUS_ARB_LOST:
-+			warn("tx arbitration lost for addr %d\n", i);
-+			break;
-+		case CEC_TX_STATUS_RETRY_TIMEOUT:
-+			break;
-+		default:
-+			return fail("ret ? %d\n", ret);
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int testARC(struct node *node)
-+{
-+	struct cec_msg msg = { };
-+	struct cec_log_addrs laddrs = { };
-+	unsigned la;
-+	unsigned i;
-+
-+	fail_on_test(doioctl(node, CEC_G_ADAP_LOG_ADDRS, &laddrs));
-+	la = laddrs.log_addr[0];
-+
-+	for (i = 0; i < 15; i++) {
-+		if (i == la)
-+			continue;
-+		msg.len = 2;
-+		msg.msg[0] = (la << 4) | (i & 0xf);
-+		msg.msg[1] = CEC_MSG_INITIATE_ARC;
-+		msg.reply = CEC_MSG_REPORT_ARC_INITIATED;
-+		fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+		if (msg.status == 0) {
-+			msg.len = 2;
-+			msg.msg[0] = (la << 4) | (i & 0xf);
-+			msg.msg[1] = CEC_MSG_TERMINATE_ARC;
-+			msg.reply = CEC_MSG_REPORT_ARC_TERMINATED;
-+			fail_on_test(doioctl(node, CEC_TRANSMIT, &msg));
-+			fail_on_test(msg.status);
-+			printf("logical address %d supports ARC\n", i);
-+		} else {
-+			printf("logical address %d doesn't support ARC\n", i);
-+		}
-+	}
-+	return 0;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	const char *device = "/dev/cec0";	/* -d device */
-+	char short_options[26 * 2 * 2 + 1];
-+	__u32 vendor_id;
-+	__u16 phys_addr;
-+	int idx = 0;
-+	int fd = -1;
-+	int ch;
-+	int i;
-+
-+	for (i = 0; long_options[i].name; i++) {
-+		if (!isalpha(long_options[i].val))
-+			continue;
-+		short_options[idx++] = long_options[i].val;
-+		if (long_options[i].has_arg == required_argument)
-+			short_options[idx++] = ':';
-+	}
-+	while (1) {
-+		int option_index = 0;
-+
-+		short_options[idx] = 0;
-+		ch = getopt_long(argc, argv, short_options,
-+				 long_options, &option_index);
-+		if (ch == -1)
-+			break;
-+
-+		options[(int)ch] = 1;
-+		switch (ch) {
-+		case OptHelp:
-+			usage();
-+			return 0;
-+		case OptSetDevice:
-+			device = optarg;
-+			if (device[0] >= '0' && device[0] <= '9' && strlen(device) <= 3) {
-+				static char newdev[20];
-+
-+				sprintf(newdev, "/dev/cec%s", device);
-+				device = newdev;
-+			}
-+			break;
-+		case OptNoWarnings:
-+			show_warnings = false;
-+			break;
-+		case OptVerbose:
-+			show_info = true;
-+			break;
-+		case OptPhysAddr:
-+			phys_addr = strtoul(optarg, NULL, 0);
-+			break;
-+		case OptVendorID:
-+			vendor_id = strtoul(optarg, NULL, 0) & 0x00ffffff;
-+			break;
-+		case OptSwitch:
-+			if (options[OptCDCOnly] || options[OptUnregistered]) {
-+				fprintf(stderr, "--switch cannot be combined with --cdc-only or --unregistered.\n");
-+				usage();
-+				return 1;
-+			}
-+			break;
-+		case OptCDCOnly:
-+			if (options[OptSwitch] || options[OptUnregistered]) {
-+				fprintf(stderr, "--cdc-only cannot be combined with --switch or --unregistered.\n");
-+				usage();
-+				return 1;
-+			}
-+			break;
-+		case OptUnregistered:
-+			if (options[OptCDCOnly] || options[OptSwitch]) {
-+				fprintf(stderr, "--unregistered cannot be combined with --cdc-only or --switch.\n");
-+				usage();
-+				return 1;
-+			}
-+			break;
-+		case ':':
-+			fprintf(stderr, "Option '%s' requires a value\n",
-+				argv[optind]);
-+			usage();
-+			return 1;
-+		case '?':
-+			if (argv[optind])
-+				fprintf(stderr, "Unknown argument '%s'\n", argv[optind]);
-+			usage();
-+			return 1;
-+		}
-+	}
-+	if (optind < argc) {
-+		printf("unknown arguments: ");
-+		while (optind < argc)
-+			printf("%s ", argv[optind++]);
-+		printf("\n");
-+		usage();
-+		return 1;
-+	}
-+
-+	if ((fd = open(device, O_RDWR)) < 0) {
-+		fprintf(stderr, "Failed to open %s: %s\n", device,
-+			strerror(errno));
-+		exit(1);
-+	}
-+
-+	struct node node;
-+	struct cec_caps caps = { };
-+
-+	node.fd = fd;
-+	node.device = device;
-+	doioctl(&node, CEC_G_CAPS, &caps);
-+	node.caps = caps.capabilities;
-+	node.available_log_addrs = caps.available_log_addrs;
-+
-+	unsigned flags = 0;
-+	const char *osd_name;
-+
-+	if (options[OptTV])
-+		osd_name = "TV";
-+	else if (options[OptRecord])
-+		osd_name = "Record";
-+	else if (options[OptPlayback])
-+		osd_name = "Playback";
-+	else if (options[OptTuner])
-+		osd_name = "Tuner";
-+	else if (options[OptAudio])
-+		osd_name = "Audio System";
-+	else if (options[OptProcessor])
-+		osd_name = "Processor";
-+	else if (options[OptSwitch] || options[OptCDCOnly] || options[OptUnregistered])
-+		osd_name = "";
-+	else
-+		osd_name = "TV";
-+
-+	if (options[OptTV])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_TV;
-+	if (options[OptRecord])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_RECORD;
-+	if (options[OptTuner])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_TUNER;
-+	if (options[OptPlayback])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_PLAYBACK;
-+	if (options[OptAudio])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM;
-+	if (options[OptProcessor])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_PROCESSOR;
-+	if (options[OptSwitch] || options[OptCDCOnly] || options[OptUnregistered])
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_SWITCH;
-+	if (flags == 0)
-+		flags |= 1 << CEC_OP_PRIM_DEVTYPE_TV;
-+
-+	printf("Driver Info:\n");
-+	printf("\tCapabilities               : 0x%08x\n", caps.capabilities);
-+	printf("%s", caps2s(caps.capabilities).c_str());
-+	printf("\tAvailable Logical Addresses: %u\n",
-+	       caps.available_log_addrs);
-+
-+	doioctl(&node, CEC_G_ADAP_PHYS_ADDR, &phys_addr);
-+	printf("\tPhysical Address           : %x.%x.%x.%x\n",
-+	       phys_addr >> 12, (phys_addr >> 8) & 0xf,
-+	       (phys_addr >> 4) & 0xf, phys_addr & 0xf);
-+	if (!options[OptPhysAddr] && phys_addr == 0xffff &&
-+	    (node.caps & CEC_CAP_PHYS_ADDR))
-+		warn("Perhaps you should use option --phys-addr?\n");
-+
-+	doioctl(&node, CEC_G_VENDOR_ID, &vendor_id);
-+	if (vendor_id != CEC_VENDOR_ID_NONE)
-+		printf("\tVendor ID                  : 0x%06x\n", vendor_id);
-+
-+	__u32 adap_state;
-+	doioctl(&node, CEC_G_ADAP_STATE, &adap_state);
-+	printf("\tAdapter State              : %s\n", adap_state ? "Enabled" : "Disabled");
-+
-+	struct cec_log_addrs laddrs = { };
-+	doioctl(&node, CEC_G_ADAP_LOG_ADDRS, &laddrs);
-+	printf("\tCEC Version                : %s\n", version2s(laddrs.cec_version));
-+	printf("\tLogical Addresses          : %u\n", laddrs.num_log_addrs);
-+	for (unsigned i = 0; i < laddrs.num_log_addrs; i++) {
-+		printf("\t  Logical Address          : %d\n",
-+		       laddrs.log_addr[i]);
-+		printf("\t    Primary Device Type    : %s\n",
-+		       prim_type2s(laddrs.primary_device_type[i]));
-+		printf("\t    Logical Address Type   : %s\n",
-+		       la_type2s(laddrs.log_addr_type[i]));
-+		printf("\t    Flags                  : %s\n",
-+		       la_flags2s(laddrs.flags[i]).c_str());
-+		if (laddrs.cec_version < CEC_OP_CEC_VERSION_2_0)
-+			continue;
-+		printf("\t    All Device Types       : %s\n",
-+		       all_dev_types2s(laddrs.all_device_types[i]).c_str());
-+
-+		bool is_dev_feat = false;
-+		for (unsigned idx = 0; idx < sizeof(laddrs.features[0]); idx++) {
-+			__u8 byte = laddrs.features[i][idx];
-+
-+			if (!is_dev_feat) {
-+				if (byte & 0x40) {
-+					printf("\t    RC Source Profile      :\n%s\n",
-+					       rc_src_prof2s(byte).c_str());
-+				} else {
-+					const char *s = "Reserved";
-+
-+					switch (byte & 0xf) {
-+					case 0:
-+						s = "None";
-+						break;
-+					case 2:
-+						s = "RC Profile 1";
-+						break;
-+					case 6:
-+						s = "RC Profile 2";
-+						break;
-+					case 10:
-+						s = "RC Profile 3";
-+						break;
-+					case 14:
-+						s = "RC Profile 4";
-+						break;
-+					}
-+					printf("\t    RC TV Profile          : %s\n", s);
-+				}
-+			} else {
-+				printf("\t    Device Features        :\n%s\n",
-+				       dev_feat2s(byte).c_str());
-+			}
-+			if (byte & CEC_OP_FEAT_EXT)
-+				continue;
-+			if (!is_dev_feat)
-+				is_dev_feat = true;
-+			else
-+				break;
-+		}
-+	}
-+
-+	printf("\nCompliance test for device %s:\n\n", device);
-+
-+	/* Required ioctls */
-+
-+	printf("Required ioctls:\n");
-+	printf("\ttest CEC_G_CAPS: %s\n", ok(testCap(&node)));
-+	printf("\ttest CEC_G/S_ADAP_PHYS_ADDR: %s\n", ok(testAdapPhysAddr(&node, phys_addr)));
-+	printf("\ttest CEC_G/S_VENDOR_ID: %s\n", ok(testVendorID(&node, vendor_id)));
-+	printf("\ttest CEC_G/S_ADAP_STATE: %s\n", ok(testAdapState(&node)));
-+	printf("\ttest CEC_G/S_ADAP_LOG_ADDRS: %s\n", ok(testAdapLogAddrs(&node, flags, osd_name)));
-+	printf("\ttest CEC topology discovery: %s\n", ok(testTopology(&node)));
-+	printf("\ttest CEC ARC: %s\n", ok(testARC(&node)));
-+	printf("\n");
-+
-+	/* Final test report */
-+
-+	close(fd);
-+	printf("Total: %d, Succeeded: %d, Failed: %d, Warnings: %d\n",
-+			tests_total, tests_ok, tests_total - tests_ok, warnings);
-+	exit(app_result);
-+}
-diff --git a/utils/cec-compliance/cec-compliance.h b/utils/cec-compliance/cec-compliance.h
-new file mode 100644
-index 0000000..68f1bb4
---- /dev/null
-+++ b/utils/cec-compliance/cec-compliance.h
-@@ -0,0 +1,87 @@
-+/*
-+    CEC API compliance test tool.
-+
-+    Copyright 2015 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+    Author: Hans Verkuil <hans.verkuil@cisco.com>
-+
-+    This program is free software; you can redistribute it and/or modify
-+    it under the terms of the GNU General Public License as published by
-+    the Free Software Foundation; either version 2 of the License, or
-+    (at your option) any later version.
-+
-+    This program is distributed in the hope that it will be useful,
-+    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+    GNU General Public License for more details.
-+ */
-+
-+#ifndef _CEC_COMPLIANCE_H_
-+#define _CEC_COMPLIANCE_H_
-+
-+#include <stdarg.h>
-+#include <cerrno>
-+#include <string>
-+#include <linux/cec.h>
-+
-+extern bool show_info;
-+extern bool show_warnings;
-+extern unsigned warnings;
-+
-+struct node {
-+	int fd;
-+	const char *device;
-+	unsigned caps;
-+	unsigned available_log_addrs;
-+	unsigned num_log_addrs;
-+	__u8 log_addr[CEC_MAX_LOG_ADDRS];
-+};
-+
-+#define info(fmt, args...) 					\
-+	do {							\
-+		if (show_info)					\
-+ 			printf("\t\tinfo: " fmt, ##args);	\
-+	} while (0)
-+
-+#define warn(fmt, args...) 					\
-+	do {							\
-+		warnings++;					\
-+		if (show_warnings)				\
-+ 			printf("\t\twarn: %s(%d): " fmt, __FILE__, __LINE__, ##args);	\
-+	} while (0)
-+
-+#define warn_once(fmt, args...)						\
-+	do {								\
-+		static bool show;					\
-+									\
-+		if (!show) {						\
-+			show = true;					\
-+			warnings++;					\
-+			if (show_warnings)				\
-+				printf("\t\twarn: %s(%d): " fmt,	\
-+					__FILE__, __LINE__, ##args); 	\
-+		}							\
-+	} while (0)
-+
-+#define fail(fmt, args...) 						\
-+({ 									\
-+ 	printf("\t\tfail: %s(%d): " fmt, __FILE__, __LINE__, ##args);	\
-+	1;								\
-+})
-+
-+#define fail_on_test(test) 				\
-+	do {						\
-+	 	if (test)				\
-+			return fail("%s\n", #test);	\
-+	} while (0)
-+
-+int cec_named_ioctl(int fd, const char *name,
-+		    unsigned long int request, void *parm);
-+
-+#define doioctl(n, r, p) cec_named_ioctl((n)->fd, #r, r, p)
-+
-+const char *ok(int res);
-+
-+// CEC core tests
-+int testCore(struct node *node);
-+
-+#endif
++typedef enum fe_delivery_system fe_delivery_system_t;
+ 
+ /* backward compatibility */
+ #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
 -- 
-2.1.4
+2.4.2
 
