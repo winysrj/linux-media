@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43220 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbbFBTwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 15:52:51 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 2/5] DocBook: Change DTD schema to version 4.5
-Date: Tue,  2 Jun 2015 16:52:40 -0300
-Message-Id: <f3234d12cae3182fee1bee1c679cbfd32c75ad8e.1433274739.git.mchehab@osg.samsung.com>
-In-Reply-To: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-References: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-In-Reply-To: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
-References: <017aba88da8787c41eccd4d1b65506f4e6fa9a83.1433274739.git.mchehab@osg.samsung.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42497 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751737AbbFHOxv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2015 10:53:51 -0400
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 8 Jun 2015 16:52:49 +0200
+Subject: RE: [PATCH] bdisp: update MAINTAINERS
+Message-ID: <15ED7CB7B68B4D4C96C7D27A1A23941201B9EFE1AC@SAFEX1MAIL2.st.com>
+References: <5575896C.3090303@xs4all.nl>
+ <15ED7CB7B68B4D4C96C7D27A1A23941201B9EFE120@SAFEX1MAIL2.st.com>
+ <5575A7A4.3010603@xs4all.nl>
+In-Reply-To: <5575A7A4.3010603@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According with the docs at docbook.org, no backward compatible
-changes were done between 4.2 and 4.5 schemas. Some fixes were
-added, together with new features. So, let's use the latest
-4.x schema.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media_api.tmpl b/Documentation/DocBook/media_api.tmpl
-index 6591b3a37600..2e7d7692821e 100644
---- a/Documentation/DocBook/media_api.tmpl
-+++ b/Documentation/DocBook/media_api.tmpl
-@@ -1,6 +1,6 @@
- <?xml version="1.0" encoding="UTF-8"?>
--<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
--	"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
-+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-+	"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
- <!ENTITY % media-entities SYSTEM "./media-entities.tmpl"> %media-entities;
- <!ENTITY media-indices SYSTEM "./media-indices.tmpl">
- 
--- 
-2.4.1
-
+T0ssDQoNCkFja2VkLWJ5OiBGYWJpZW4gRGVzc2VubmUgPGZhYmllbi5kZXNzZW5uZUBzdC5jb20+
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogSGFucyBWZXJrdWlsIFtt
+YWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPiBTZW50OiBsdW5kaSA4IGp1aW4gMjAxNSAxNjoz
+Mw0KPiBUbzogRmFiaWVuIERFU1NFTk5FOyBMaW51eCBNZWRpYSBNYWlsaW5nIExpc3QNCj4gU3Vi
+amVjdDogUmU6IFtQQVRDSF0gYmRpc3A6IHVwZGF0ZSBNQUlOVEFJTkVSUw0KPiANCj4gT24gMDYv
+MDgvMjAxNSAwMzozNiBQTSwgRmFiaWVuIERFU1NFTk5FIHdyb3RlOg0KPiA+IE9LLCBJIHdpbGwg
+dGFrZSBjYXJlIG9mIHRoaXMgbmV3IGRyaXZlci4NCj4gDQo+IFNvcnJ5LCBidXQgSSBuZWVkIHlv
+dXIgQWNrZWQtYnkgYmVmb3JlIEkgY2FuIG1lcmdlIHRoaXMuDQo+IA0KPiBSZWdhcmRzLA0KPiAN
+Cj4gCUhhbnMNCj4gDQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4g
+RnJvbTogSGFucyBWZXJrdWlsIFttYWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPiA+PiBTZW50
+OiBsdW5kaSA4IGp1aW4gMjAxNSAxNDoyNA0KPiA+PiBUbzogTGludXggTWVkaWEgTWFpbGluZyBM
+aXN0OyBGYWJpZW4gREVTU0VOTkUNCj4gPj4gU3ViamVjdDogW1BBVENIXSBiZGlzcDogdXBkYXRl
+IE1BSU5UQUlORVJTDQo+ID4+DQo+ID4+IEFkZCBlbnRyeSBmb3IgdGhlIGJkaXNwIGRyaXZlciB0
+byB0aGUgTUFJTlRBSU5FUlMgZmlsZS4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogSGFucyBW
+ZXJrdWlsIDxoYW5zLnZlcmt1aWxAY2lzY28uY29tPg0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEv
+TUFJTlRBSU5FUlMgYi9NQUlOVEFJTkVSUyBpbmRleCAzY2ZiOTc5Li5kZTNjZjI5IDEwMDY0NA0K
+PiA+PiAtLS0gYS9NQUlOVEFJTkVSUw0KPiA+PiArKysgYi9NQUlOVEFJTkVSUw0KPiA+PiBAQCAt
+MTk2NCw2ICsxOTY0LDE0IEBAIFc6CWh0dHA6Ly9iY2FjaGUuZXZpbHBpZXBpcmF0ZS5vcmcNCj4g
+Pj4gIFM6CU1haW50YWluZWQ6DQo+ID4+ICBGOglkcml2ZXJzL21kL2JjYWNoZS8NCj4gPj4NCj4g
+Pj4gK0JESVNQIFNUIE1FRElBIERSSVZFUg0KPiA+PiArTToJRmFiaWVuIERlc3Nlbm5lIDxmYWJp
+ZW4uZGVzc2VubmVAc3QuY29tPg0KPiA+PiArTDoJbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
+DQo+ID4+ICtUOglnaXQgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfdHJlZS5naXQNCj4gPj4gK1c6
+CWh0dHA6Ly9saW51eHR2Lm9yZw0KPiA+PiArUzoJU3VwcG9ydGVkDQo+ID4+ICtGOglkcml2ZXJz
+L21lZGlhL3BsYXRmb3JtL3N0aS9iZGlzcA0KPiA+PiArDQo+ID4+ICBCRUZTIEZJTEUgU1lTVEVN
+DQo+ID4+ICBTOglPcnBoYW4NCj4gPj4gIEY6CURvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvYmVm
+cy50eHQNCg0K
