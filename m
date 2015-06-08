@@ -1,89 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41921 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753309AbbF2Kn5 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37689 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752635AbbFHJI4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:43:57 -0400
+	Mon, 8 Jun 2015 05:08:56 -0400
+Message-ID: <55755BA2.4060805@xs4all.nl>
+Date: Mon, 08 Jun 2015 11:08:50 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux-samsung-soc@vger.kernel.org, kamil@wypas.org
-Subject: [PATCH 0/4] cec-ctl/compliance: new CEC utilities
-Date: Mon, 29 Jun 2015 12:43:12 +0200
-Message-Id: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/9] DocBook: document tuner RF gain control
+References: <1433592188-31748-1-git-send-email-crope@iki.fi> <1433592188-31748-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-3-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Antti,
 
-This patch series adds two new utilities to the v4l-utils git repository
-(http://git.linuxtv.org/cgit.cgi/v4l-utils.git/). It assumes that the new
-CEC framework available in the kernel:
+Some typos:
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg90085.html
+On 06/06/2015 02:03 PM, Antti Palosaari wrote:
+> Add brief description for tuner RF gain control.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+>  Documentation/DocBook/media/v4l/controls.xml | 19 +++++++++++++++++++
+>  Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+>  3 files changed, 24 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index f56faf5..e8f28bf 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+>  <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+>  	  </para>
+>  	</listitem>
+> +	<listitem>
+> +	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
+> +<constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
+> +	</listitem>
+>        </orderedlist>
+>      </section>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 6e1667b..44f7a3a 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -5397,6 +5397,13 @@ fulfill desired bandwidth requirement. Used when V4L2_CID_RF_TUNER_BANDWIDTH_AUT
+>  set. Unit is in Hz. The range and step are driver-specific.</entry>
+>              </row>
+>              <row>
+> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant>&nbsp;</entry>
+> +              <entry>boolean</entry>
+> +            </row>
+> +            <row>
+> +              <entry spanname="descr">Enables/disables RF amplifier automatic gain control (AGC)</entry>
+> +            </row>
+> +            <row>
+>                <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant>&nbsp;</entry>
+>                <entry>boolean</entry>
+>              </row>
+> @@ -5418,6 +5425,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+>                <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+>              </row>
+>              <row>
+> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
+> +              <entry>integer</entry>
+> +            </row>
+> +            <row>
+> +              <entry spanname="descr">RF amplifier is very first amplifier on
+> +the receiver signal path, just right after antenna input. Difference between
+> +LNA gain and RF gain on this document and context is that LNA gain is integrated
+> +to tuner chip whilst RF gain is separate chip. There may be both, RF and LNA
+> +gain control, on same device. Used when <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> is not set.
+> +The range and step are driver-specific.</entry>
+> +            </row>
 
-The first patch adds the new cec headers to the 'sync-with-kernel' target,
-the second syncs with the kernel and adds the new cec headers to v4l-utils,
-the third adds the compliance utility and the last adds the cec-ctl utility.
+              <entry spanname="descr">The RF amplifier is the very first amplifier on
+the receiver signal path, just right after the antenna input. The difference between
+the LNA gain and the RF gain in this document is that the LNA gain is integrated
+in the tuner chip while the RF gain is a separate chip. There may be both RF and LNA
+gain controls in the same device. Used when <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> is not set.
+The range and step are driver-specific.</entry>
 
-The cec-compliance utility is by no means 100% coverage, in particular the
-event API and non-blocking ioctls are untested. But it is a starting point,
-and a complex protocol like CEC really needs a compliance tool.
 
-The cec-ctl utility has almost full CEC message coverage: all generated from
-the cec headers, so this is easy to keep up to date.
+> +            <row>
+>                <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
 
-The main missing feature is that there is no logging of received messages.
-This would be very useful to add. There is also no event handling/async message
-handling yet.
+This control should refer to the RF_TUNER_RF_GAIN to help understand the relationship between the two.
 
-But it is very useful to test CEC messages.
+>                <entry>integer</entry>
+>              </row>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index c9eedc1..b94d381 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -156,6 +156,7 @@ applications. -->
+>  	<date>2015-05-26</date>
+>  	<authorinitials>ap</authorinitials>
+>  	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+> +Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
+>  	</revremark>
+>        </revision>
+>  
+> 
 
 Regards,
 
 	Hans
-
-Hans Verkuil (4):
-  Makefile.am: copy cec headers with make sync-with-kernel
-  sync-with-kernel
-  cec-compliance: add new CEC compliance utility
-  cec-ctl: CEC control utility
-
- Makefile.am                                      |    4 +
- configure.ac                                     |    2 +
- contrib/freebsd/include/linux/input.h            |   13 +
- include/linux/cec-funcs.h                        | 1516 ++++++++++++++++++++++
- include/linux/cec.h                              |  709 ++++++++++
- utils/Makefile.am                                |    2 +
- utils/cec-compliance/Makefile.am                 |    3 +
- utils/cec-compliance/cec-compliance.cpp          |  943 ++++++++++++++
- utils/cec-compliance/cec-compliance.h            |   87 ++
- utils/cec-ctl/Makefile.am                        |    8 +
- utils/cec-ctl/cec-ctl.cpp                        | 1000 ++++++++++++++
- utils/cec-ctl/msg2ctl.pl                         |  330 +++++
- utils/keytable/parse.h                           |   10 +
- utils/keytable/rc_keymaps/cec                    |   77 ++
- utils/keytable/rc_keymaps/technisat_ts35         |   34 +
- utils/keytable/rc_keymaps/terratec_cinergy_c_pci |   49 +
- utils/keytable/rc_keymaps/terratec_cinergy_s2_hd |   49 +
- utils/keytable/rc_keymaps/twinhan_dtv_cab_ci     |   54 +
- utils/keytable/rc_maps.cfg                       |    1 +
- 19 files changed, 4891 insertions(+)
- create mode 100644 include/linux/cec-funcs.h
- create mode 100644 include/linux/cec.h
- create mode 100644 utils/cec-compliance/Makefile.am
- create mode 100644 utils/cec-compliance/cec-compliance.cpp
- create mode 100644 utils/cec-compliance/cec-compliance.h
- create mode 100644 utils/cec-ctl/Makefile.am
- create mode 100644 utils/cec-ctl/cec-ctl.cpp
- create mode 100755 utils/cec-ctl/msg2ctl.pl
- create mode 100644 utils/keytable/rc_keymaps/cec
- create mode 100644 utils/keytable/rc_keymaps/technisat_ts35
- create mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_c_pci
- create mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_s2_hd
- create mode 100644 utils/keytable/rc_keymaps/twinhan_dtv_cab_ci
-
--- 
-2.1.4
-
