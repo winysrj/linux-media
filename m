@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:53550 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081AbbFHNkt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 09:40:49 -0400
-Received: from t19.piap.pl (OSB1819.piap.pl [10.0.9.19])
-	by ni.piap.pl (Postfix) with ESMTP id 5FC134411A7
-	for <linux-media@vger.kernel.org>; Mon,  8 Jun 2015 15:35:05 +0200 (CEST)
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH] SOLO6x10: Fix G.723 minimum audio period count.
-References: <m3a8waxr86.fsf@t19.piap.pl>
-Date: Mon, 08 Jun 2015 15:35:05 +0200
-In-Reply-To: <m3a8waxr86.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Mon, 08 Jun 2015 15:30:17 +0200")
-Message-ID: <m33822xr06.fsf@t19.piap.pl>
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:35552 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483AbbFHQGT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 12:06:19 -0400
+Received: by lbbtu8 with SMTP id tu8so67870638lbb.2
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 09:06:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Date: Mon, 8 Jun 2015 18:06:18 +0200
+Message-ID: <CAB0z4Noe_pGszj5oOz+xfKWy4-icWTJOkE=dQ9ymzjgebBA1aA@mail.gmail.com>
+Subject: Unable to compile v4l-dvb in ubuntu 14.04
+From: CIJOML CIJOMLovic <cijoml@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The period count is fixed, don't confuse ALSA.
+Hello,
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+I am trying to compile v4l git with no success. I have kernel and
+headers installed.
+Is problem at my side or in source?
 
---- a/drivers/media/pci/solo6x10/solo6x10-g723.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
-@@ -48,10 +48,8 @@
- /* The solo writes to 1k byte pages, 32 pages, in the dma. Each 1k page
-  * is broken down to 20 * 48 byte regions (one for each channel possible)
-  * with the rest of the page being dummy data. */
--#define G723_MAX_BUFFER		(G723_PERIOD_BYTES * PERIODS_MAX)
-+#define PERIODS			G723_FDMA_PAGES
- #define G723_INTR_ORDER		4 /* 0 - 4 */
--#define PERIODS_MIN		(1 << G723_INTR_ORDER)
--#define PERIODS_MAX		G723_FDMA_PAGES
- 
- struct solo_snd_pcm {
- 	int				on;
-@@ -130,11 +128,11 @@ static const struct snd_pcm_hardware snd_solo_pcm_hw = {
- 	.rate_max		= SAMPLERATE,
- 	.channels_min		= 1,
- 	.channels_max		= 1,
--	.buffer_bytes_max	= G723_MAX_BUFFER,
-+	.buffer_bytes_max	= G723_PERIOD_BYTES * PERIODS,
- 	.period_bytes_min	= G723_PERIOD_BYTES,
- 	.period_bytes_max	= G723_PERIOD_BYTES,
--	.periods_min		= PERIODS_MIN,
--	.periods_max		= PERIODS_MAX,
-+	.periods_min		= PERIODS,
-+	.periods_max		= PERIODS,
- };
- 
- static int snd_solo_pcm_open(struct snd_pcm_substream *ss)
-@@ -340,7 +338,8 @@ static int solo_snd_pcm_init(struct solo_dev *solo_dev)
- 	ret = snd_pcm_lib_preallocate_pages_for_all(pcm,
- 					SNDRV_DMA_TYPE_CONTINUOUS,
- 					snd_dma_continuous_data(GFP_KERNEL),
--					G723_MAX_BUFFER, G723_MAX_BUFFER);
-+					G723_PERIOD_BYTES * PERIODS,
-+					G723_PERIOD_BYTES * PERIODS);
- 	if (ret < 0)
- 		return ret;
- 
+Thank you for help or solving the problem:
+
+root@Latitude-E5550:/usr/src/v4l-dvb-3724e93f7af5# make
+make -C /usr/src/v4l-dvb-3724e93f7af5/v4l
+make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+No version yet, using 3.16.0-38-generic
+make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+scripts/make_makefile.pl
+Updating/Creating .config
+Preparing to compile for kernel version 3.6.0
+
+***WARNING:*** You do not have the full kernel sources installed.
+This does not prevent you from building the v4l-dvb tree if you have the
+kernel headers, but the full kernel source may be required in order to use
+make menuconfig / xconfig / qconfig.
+
+If you are experiencing problems building the v4l-dvb tree, please try
+building against a vanilla kernel before reporting a bug.
+
+Vanilla kernels are available at http://kernel.org.
+On most distros, this will compile a newly downloaded kernel:
+
+cp /boot/config-`uname -r` <your kernel dir>/.config
+cd <your kernel dir>
+make all modules_install install
+
+Please see your distro's web site for instructions to build a new kernel.
+
+WARNING: You're using an obsolete driver! You shouldn't be using it!
+     If you want anything new, you can use:
+        http://git.linuxtv.org/media_build.git.
+     The tree is still here just to preserve the development history.
+     You've been warned.
+Created default (all yes) .config file
+./scripts/make_myconfig.pl
+make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+perl scripts/make_config_compat.pl /lib/modules/3.6.0-38-generic/build
+./.myconfig ./config-compat.h
+creating symbolic links...
+ln -sf . oss
+make -C firmware prep
+make[2]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+make[2]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+make -C firmware
+make[2]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+  CC  ihex2fw
+Generating vicam/firmware.fw
+Generating dabusb/firmware.fw
+Generating dabusb/bitstream.bin
+Generating ttusb-budget/dspbootcode.bin
+Generating cpia2/stv0672_vp4.bin
+Generating av7110/bootcode.bin
+make[2]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+Kernel build directory is /lib/modules/3.6.0-38-generic/build
+make -C /lib/modules/3.6.0-38-generic/build
+SUBDIRS=/usr/src/v4l-dvb-3724e93f7af5/v4l CFLAGS="-I../linux/include
+-D__KERNEL__ -I/include -DEXPORT_SYMTAB" modules
+make[2]: Entering directory `/usr/src/linux-headers-3.16.0-38-generic'
+  CC [M]  /usr/src/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.o
+In file included from <command-line>:0:0:
+/usr/src/v4l-dvb-3724e93f7af5/v4l/config-compat.h:1235:1: fatal error:
+include/linux/version.h: No such file or directory
+ #endif
+ ^
+compilation terminated.
+make[3]: *** [/usr/src/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.o] Error 1
+make[2]: *** [_module_/usr/src/v4l-dvb-3724e93f7af5/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-3.16.0-38-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+make: *** [all] Error 2
+
+
+Best regards
+
+Michal
