@@ -1,112 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39735 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752531AbbFSMBv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 08:01:51 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Kamil Debski <kamil@wypas.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers
-Date: Fri, 19 Jun 2015 15:02:38 +0300
-Message-Id: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54781 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753557AbbFHTyd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org, linux-api@vger.kernel.org
+Subject: [PATCH 15/26] [media] DocBook: better document the DVB-S2 rolloff factor
+Date: Mon,  8 Jun 2015 16:53:59 -0300
+Message-Id: <2f31b32afb96df41bcaaf81e33310fc5337feb92.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
-using a zero value for v4l2_buffer.bytesused.
+Instead of using a program listing, use a table and make clearer
+what each define means.
 
-However, the condition is checked incorrectly, as the v4L2_buffer
-bytesused field is supposed to be ignored for multiplanar buffers. This
-results in spurious warnings when using the multiplanar API.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
-v4l2_plane.bytesused for multiplanar buffers.
-
-Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
-
-Changes since v1:
-
-- Rename __check_once to check_once
-- Drop __read_mostly on check_once
-- Use pr_warn instead of pr_warn_once
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index d835814a24d4..4eaf2f4f0294 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
- }
- EXPORT_SYMBOL_GPL(vb2_discard_done);
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index e1d1e2469029..c0aa1ad9eccf 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -468,14 +468,33 @@ get/set up to 64 properties. The actual meaning of each property is described on
  
-+static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-+{
-+	static bool check_once;
-+
-+	if (check_once)
-+		return;
-+
-+	check_once = true;
-+	__WARN();
-+
-+	pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
-+	if (vb->vb2_queue->allow_zero_bytesused)
-+		pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
-+	else
-+		pr_warn("use the actual size instead.\n");
-+}
-+
- /**
-  * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
-  * v4l2_buffer by the userspace. The caller has already verified that struct
-@@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- {
- 	unsigned int plane;
+ 	<section id="fe-rolloff-t">
+ 		<title>fe_rolloff type</title>
+-		<programlisting>
+-typedef enum fe_rolloff {
+-	ROLLOFF_35, /* Implied value in DVB-S, default for DVB-S2 */
+-	ROLLOFF_20,
+-	ROLLOFF_25,
+-	ROLLOFF_AUTO,
+-} fe_rolloff_t;
+-		</programlisting>
++<table pgwide="1" frame="none" id="fe-rolloff">
++    <title>enum fe_rolloff</title>
++    <tgroup cols="2">
++	&cs-def;
++	<thead>
++	<row>
++	    <entry>ID</entry>
++	    <entry>Description</entry>
++	</row>
++	</thead>
++	<tbody valign="top">
++	<row>
++	    <entry align="char" id="ROLLOFF-35"><constant>ROLLOFF_35</constant></entry>
++	    <entry align="char">Roloff factor: &alpha;=35%</entry>
++	</row><row>
++	    <entry align="char" id="ROLLOFF-20"><constant>ROLLOFF_20</constant></entry>
++	    <entry align="char">Roloff factor: &alpha;=20%</entry>
++	</row><row>
++	    <entry align="char" id="ROLLOFF-25"><constant>ROLLOFF_25</constant></entry>
++	    <entry align="char">Roloff factor: &alpha;=25%</entry>
++	</row><row>
++	    <entry align="char" id="ROLLOFF-AUTO"><constant>ROLLOFF_AUTO</constant></entry>
++	    <entry align="char">Auto-detect the roloff factor.</entry>
++	</row>
++        </tbody>
++    </tgroup>
++</table>
+ 		</section>
+ 	</section>
+ 	<section id="DTV-DISEQC-SLAVE-REPLY">
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index bb222eb04627..cdd9e2fc030d 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -407,12 +407,14 @@ enum fe_pilot {
  
--	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--		if (WARN_ON_ONCE(b->bytesused == 0)) {
--			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
--			if (vb->vb2_queue->allow_zero_bytesused)
--				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
--			else
--				pr_warn_once("use the actual size instead.\n");
--		}
--	}
--
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
- 			for (plane = 0; plane < vb->num_planes; ++plane) {
-@@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 				struct v4l2_plane *pdst = &v4l2_planes[plane];
- 				struct v4l2_plane *psrc = &b->m.planes[plane];
+ typedef enum fe_pilot fe_pilot_t;
  
-+				if (psrc->bytesused == 0)
-+					vb2_warn_zero_bytesused(vb);
+-typedef enum fe_rolloff {
++enum fe_rolloff {
+ 	ROLLOFF_35, /* Implied value in DVB-S, default for DVB-S2 */
+ 	ROLLOFF_20,
+ 	ROLLOFF_25,
+ 	ROLLOFF_AUTO,
+-} fe_rolloff_t;
++};
 +
- 				if (vb->vb2_queue->allow_zero_bytesused)
- 					pdst->bytesused = psrc->bytesused;
- 				else
-@@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		}
++typedef enum fe_rolloff fe_rolloff_t;
  
- 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			if (b->bytesused == 0)
-+				vb2_warn_zero_bytesused(vb);
-+
- 			if (vb->vb2_queue->allow_zero_bytesused)
- 				v4l2_planes[0].bytesused = b->bytesused;
- 			else
+ typedef enum fe_delivery_system {
+ 	SYS_UNDEFINED,
 -- 
-Regards,
+2.4.2
 
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
