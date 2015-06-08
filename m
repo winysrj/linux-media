@@ -1,79 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:53147 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752030AbbFTLjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2015 07:39:04 -0400
-Date: Sat, 20 Jun 2015 13:38:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct
- pad number in try_fmt
-In-Reply-To: <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1506201323020.31977@axis700.grange>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
- <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:37131 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752751AbbFHUHU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 16:07:20 -0400
+Received: by wifx6 with SMTP id x6so1199125wif.0
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 13:07:19 -0700 (PDT)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH] [media] lmedm04: implement dvb v5 statistics
+Date: Mon,  8 Jun 2015 21:06:48 +0100
+Message-Id: <1433794008-5084-1-git-send-email-tvboxspy@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Jun 2015, William Towle wrote:
+Indroduce function lme2510_update_stats to update
+statistics directly from usb interrupt.
 
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
-> 
-> Fix calls to subdev try_fmt to use correct pad. Fixes failures with
-> subdevs that care about having the right pad number set.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> ---
->  drivers/media/platform/soc_camera/soc_scale_crop.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> index bda29bc..90e2769 100644
-> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> @@ -225,6 +225,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
->  	bool host_1to1;
->  	int ret;
->  
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	format->pad = icd->src_pad_idx;
-> +#endif
-> +
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  					 soc_camera_grp_id(icd), pad,
->  					 set_fmt, NULL, format);
-> @@ -261,10 +265,16 @@ static int client_set_fmt(struct soc_camera_device *icd,
->  	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
->  	while ((width > tmp_w || height > tmp_h) &&
->  	       tmp_w < max_width && tmp_h < max_height) {
-> +
+Provide signal and snr wrap rounds for dvb v3 functions.
 
-I usually don't use an empty line directly after an opening brace. Please, 
-drop.
+Block and post bit are not available.
 
-Thanks
-Guennadi
+When i2c_talk_onoff is on no statistics are available,
+with possible future hand over to the relevant frontend/tuner.
 
->  		tmp_w = min(2 * tmp_w, max_width);
->  		tmp_h = min(2 * tmp_h, max_height);
->  		mf->width = tmp_w;
->  		mf->height = tmp_h;
-> +
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		format->pad = icd->src_pad_idx;
-> +#endif
-> +
->  		ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  					soc_camera_grp_id(icd), pad,
->  					set_fmt, NULL, format);
-> -- 
-> 1.7.10.4
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 104 ++++++++++++++++++++++++---------
+ 1 file changed, 77 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index f1983f2..1717102 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -257,6 +257,65 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
+ 	return ret;
+ }
+ 
++static void lme2510_update_stats(struct dvb_usb_adapter *adap)
++{
++	struct lme2510_state *st = adap_to_priv(adap);
++	struct dvb_frontend *fe = adap->fe[0];
++	struct dtv_frontend_properties *c;
++	u64 s_tmp = 0, c_tmp = 0;
++
++	if (!fe)
++		return;
++
++	c = &fe->dtv_property_cache;
++
++	c->block_count.len = 1;
++	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_error.len = 1;
++	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
++	if (st->i2c_talk_onoff) {
++		c->strength.len = 1;
++		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->cnr.len = 1;
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return;
++	}
++
++	switch (st->tuner_config) {
++	case TUNER_LG:
++		s_tmp = 0xff - st->signal_level;
++		s_tmp |= s_tmp << 8;
++
++		c_tmp = 0xff - st->signal_sn;
++		c_tmp |= c_tmp << 8;
++		break;
++	/* fall through */
++	case TUNER_S7395:
++	case TUNER_S0194:
++		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
++
++		c_tmp = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
++		break;
++	case TUNER_RS2000:
++		s_tmp = (u16)((u32)st->signal_level * 0xffff / 0xff);
++
++		c_tmp = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
++	}
++
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = s_tmp;
++
++	c->cnr.len = 1;
++	c->cnr.stat[0].scale = FE_SCALE_RELATIVE;
++	c->cnr.stat[0].uvalue = c_tmp;
++}
++
+ static void lme2510_int_response(struct urb *lme_urb)
+ {
+ 	struct dvb_usb_adapter *adap = lme_urb->context;
+@@ -337,6 +396,8 @@ static void lme2510_int_response(struct urb *lme_urb)
+ 			if (!signal_lock)
+ 				st->lock_status &= ~FE_HAS_LOCK;
+ 
++			lme2510_update_stats(adap);
++
+ 			debug_data_snipet(5, "INT Remote data snipet in", ibuf);
+ 		break;
+ 		case 0xcc:
+@@ -872,56 +933,45 @@ static int dm04_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	*status = st->lock_status;
+ 
+-	if (!(*status & FE_HAS_LOCK))
++	if (!(*status & FE_HAS_LOCK)) {
++		struct dvb_usb_adapter *adap = fe_to_adap(fe);
++
+ 		st->i2c_talk_onoff = 1;
+ 
++		lme2510_update_stats(adap);
++	}
++
+ 	return ret;
+ }
+ 
+ static int dm04_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct lme2510_state *st = fe_to_priv(fe);
+ 
+ 	if (st->fe_read_signal_strength && !st->stream_on)
+ 		return st->fe_read_signal_strength(fe, strength);
+ 
+-	switch (st->tuner_config) {
+-	case TUNER_LG:
+-		*strength = 0xff - st->signal_level;
+-		*strength |= *strength << 8;
+-		break;
+-	/* fall through */
+-	case TUNER_S7395:
+-	case TUNER_S0194:
+-		*strength = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
+-		break;
+-	case TUNER_RS2000:
+-		*strength = (u16)((u32)st->signal_level * 0xffff / 0xff);
+-	}
++	if (c->strength.stat[0].scale == FE_SCALE_RELATIVE)
++		*strength = c->strength.stat[0].uvalue;
++	else
++		*strength = 0;
+ 
+ 	return 0;
+ }
+ 
+ static int dm04_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct lme2510_state *st = fe_to_priv(fe);
+ 
+ 	if (st->fe_read_snr && !st->stream_on)
+ 		return st->fe_read_snr(fe, snr);
+ 
+-	switch (st->tuner_config) {
+-	case TUNER_LG:
+-		*snr = 0xff - st->signal_sn;
+-		*snr |= *snr << 8;
+-		break;
+-	/* fall through */
+-	case TUNER_S7395:
+-	case TUNER_S0194:
+-		*snr = (u16)((0xff - st->signal_sn - 0xa1) * 3) << 8;
+-		break;
+-	case TUNER_RS2000:
+-		*snr = (u16)((u32)st->signal_sn * 0xffff / 0x7f);
+-	}
++	if (c->cnr.stat[0].scale == FE_SCALE_RELATIVE)
++		*snr = c->cnr.stat[0].uvalue;
++	else
++		*snr = 0;
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
+
