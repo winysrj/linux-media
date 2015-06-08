@@ -1,54 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:32998 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447AbbF3OfG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2015 10:35:06 -0400
-Received: by pdjd13 with SMTP id d13so7313682pdj.0
-        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2015 07:35:04 -0700 (PDT)
-From: tskd08@gmail.com
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, Akihiro Tsukada <tskd08@gmail.com>
-Subject: [PATCH] v4l-utils/contrib/gconv: fix wrong conversion to ARIB-STD-B24
-Date: Tue, 30 Jun 2015 23:34:00 +0900
-Message-Id: <1435674840-27470-1-git-send-email-tskd08@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54817 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbbFHTyh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:37 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 14/26] [media] DocBook: Remove duplicated documentation for SEC_VOLTAGE_*
+Date: Mon,  8 Jun 2015 16:53:58 -0300
+Message-Id: <4adeb80b377c2408df51e2658ac758367cc244b8.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
+References: <cover.1433792665.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd08@gmail.com>
+The table were documented at the legacy ioctl call. Move it
+to the DVBv5 ioctl, and add a cross ref link on the legacy
+section.
 
-Some symbol characters were not encoded correctly, though decoding was OK.
-Since v4l-utils/libdvbv5 does not use encoding into ARIB-STD-B24,
-the bug should not affect libdvbv5,
-but this fix supports some other applications.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Akihiro Tsukada <tskd08@gmail.com>
----
- contrib/gconv/arib-std-b24.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/contrib/gconv/arib-std-b24.c b/contrib/gconv/arib-std-b24.c
-index fa3ced4..b9d7588 100644
---- a/contrib/gconv/arib-std-b24.c
-+++ b/contrib/gconv/arib-std-b24.c
-@@ -1555,15 +1555,12 @@ find_extsym_idx (uint32_t ch)
- 	goto next;							      \
-       }									      \
- 									      \
--    /* prefer KANJI(>= 0x7521) or EXTRA_SYMBOLS over JISX0213_{1,2} */	      \
-+    /* KANJI shares some chars with EXTRA_SYMBOLS, but prefer extra symbols*/ \
-     r = find_extsym_idx (ch);						      \
-     if (r >= 0)								      \
-       {									      \
- 	ch = ucs4_to_extsym[r][1];					      \
--	if ((ch & 0xff00) >= 0x7a00)					      \
--	  r = out_kanji (&st, ch, &outptr, outend);			      \
--	else								      \
--	  r = out_extsym (&st, ch, &outptr, outend);			      \
-+	r = out_extsym (&st, ch, &outptr, outend);			      \
- 	goto next;							      \
-       }									      \
- 									      \
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index e31d9457671f..e1d1e2469029 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -401,12 +401,31 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 	the polarzation (horizontal/vertical). When using DiSEqC epuipment this
+ 	voltage has to be switched consistently to the DiSEqC commands as
+ 	described in the DiSEqC spec.</para>
+-	<programlisting>
+-		typedef enum fe_sec_voltage {
+-		SEC_VOLTAGE_13,
+-		SEC_VOLTAGE_18
+-		} fe_sec_voltage_t;
+-	</programlisting>
++
++<table pgwide="1" frame="none" id="fe-sec-voltage">
++    <title id="fe-sec-voltage-t">enum fe_sec_voltage</title>
++    <tgroup cols="2">
++	&cs-def;
++	<thead>
++	<row>
++	    <entry>ID</entry>
++	    <entry>Description</entry>
++	</row>
++	</thead>
++	<tbody valign="top">
++	<row>
++	    <entry align="char" id="SEC-VOLTAGE-13"><constant>SEC_VOLTAGE_13</constant></entry>
++	    <entry align="char">Set DC voltage level to 13V</entry>
++	</row><row>
++	    <entry align="char" id="SEC-VOLTAGE-18"><constant>SEC_VOLTAGE_18</constant></entry>
++	    <entry align="char">Set DC voltage level to 18V</entry>
++	</row><row>
++	    <entry align="char" id="SEC-VOLTAGE-OFF"><constant>SEC_VOLTAGE_OFF</constant></entry>
++	    <entry align="char">Don't send any voltage to the antenna</entry>
++	</row>
++        </tbody>
++    </tgroup>
++</table>
+ 	</section>
+ 	<section id="DTV-TONE">
+ 	<title><constant>DTV_TONE</constant></title>
+diff --git a/Documentation/DocBook/media/dvb/fe-set-voltage.xml b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+index 053c4cb0f540..c89a6f79b5af 100644
+--- a/Documentation/DocBook/media/dvb/fe-set-voltage.xml
++++ b/Documentation/DocBook/media/dvb/fe-set-voltage.xml
+@@ -39,6 +39,7 @@
+ 	<term><parameter>voltage</parameter></term>
+ 	<listitem>
+ 	  <para>pointer to &fe-sec-voltage;</para>
++	  <para>Valid values are described at &fe-sec-voltage;.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
+@@ -65,33 +66,4 @@
+ &return-value-dvb;
+ </refsect1>
+ 
+-<refsect1 id="fe-sec-voltage-t">
+-<title>enum fe_sec_voltage</title>
+-
+-<table pgwide="1" frame="none" id="fe-sec-voltage">
+-    <title>enum fe_status</title>
+-    <tgroup cols="2">
+-	&cs-def;
+-	<thead>
+-	<row>
+-	    <entry>ID</entry>
+-	    <entry>Description</entry>
+-	</row>
+-	</thead>
+-	<tbody valign="top">
+-	<row>
+-	    <entry align="char" id="SEC-VOLTAGE-13"><constant>SEC_VOLTAGE_13</constant></entry>
+-	    <entry align="char">Set DC voltage level to 13V</entry>
+-	</row><row>
+-	    <entry align="char" id="SEC-VOLTAGE-18"><constant>SEC_VOLTAGE_18</constant></entry>
+-	    <entry align="char">Set DC voltage level to 18V</entry>
+-	</row><row>
+-	    <entry align="char" id="SEC-VOLTAGE-OFF"><constant>SEC_VOLTAGE_OFF</constant></entry>
+-	    <entry align="char">Don't send any voltage to the antenna</entry>
+-	</row>
+-        </tbody>
+-    </tgroup>
+-</table>
+-</refsect1>
+-
+ </refentry>
 -- 
-2.4.4
+2.4.2
 
