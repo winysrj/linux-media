@@ -1,110 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52052 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422961AbbFEPLK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:11:10 -0400
-Message-ID: <5571BBFD.6070902@xs4all.nl>
-Date: Fri, 05 Jun 2015 17:10:53 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:44861 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751125AbbFHI7c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2015 04:59:32 -0400
+Message-ID: <55755971.3050002@iki.fi>
+Date: Mon, 08 Jun 2015 11:59:29 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] vivid: don't use more than 1024 bytes of stack
-References: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
-In-Reply-To: <9b65bac2413275a234ab904bedd08fdc4b03845e.1433500152.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: Doug Lung <dlung0@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Obtain Si2157 and LGDT3306A signal stats from HVR955Q?
+References: <CAAT-iuuO1L=ft+Mw27T156JfY1j+-Xdr42TVSxjdGNA9yowYZA@mail.gmail.com>
+In-Reply-To: <CAAT-iuuO1L=ft+Mw27T156JfY1j+-Xdr42TVSxjdGNA9yowYZA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2015 12:29 PM, Mauro Carvalho Chehab wrote:
-> Remove the following compilation warnings:
-> 
-> 	drivers/media/platform/vivid/vivid-tpg.c: In function 'tpg_gen_text':
-> 	drivers/media/platform/vivid/vivid-tpg.c:1562:1: warning: the frame size of 1308 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-> 	 }
-> 	 ^
-> 
-> This seems to be due to some bad optimization done by gcc.
-> 
-> Moving the for() loop to happen inside the macro solves the
-> issue.
-> 
-> While here, fix CodingStyle at the switch().
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-tpg.c b/drivers/media/platform/vivid/vivid-tpg.c
-> index b1147f2df26c..7a3ed580626a 100644
-> --- a/drivers/media/platform/vivid/vivid-tpg.c
-> +++ b/drivers/media/platform/vivid/vivid-tpg.c
-> @@ -1492,12 +1492,10 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
->  	else if (tpg->field == V4L2_FIELD_SEQ_TB || tpg->field == V4L2_FIELD_SEQ_BT)
->  		div = 2;
->  
-> -	for (p = 0; p < tpg->planes; p++) {
-> -		unsigned vdiv = tpg->vdownsampling[p];
-> -		unsigned hdiv = tpg->hdownsampling[p];
-> -
-> -		/* Print text */
-> -#define PRINTSTR(PIXTYPE) do {	\
-> +	/* Print text */
-> +#define PRINTSTR(PIXTYPE) for (p = 0; p < tpg->planes; p++) {	\
-> +	unsigned vdiv = tpg->vdownsampling[p];	\
-> +	unsigned hdiv = tpg->hdownsampling[p];	\
->  	PIXTYPE fg;	\
->  	PIXTYPE bg;	\
->  	memcpy(&fg, tpg->textfg[p], sizeof(PIXTYPE));	\
-> @@ -1548,16 +1546,19 @@ void tpg_gen_text(const struct tpg_data *tpg, u8 *basep[TPG_MAX_PLANES][2],
->  	}	\
->  } while (0)
->  
-> -		switch (tpg->twopixelsize[p]) {
-> -		case 2:
-> -			PRINTSTR(u8); break;
-> -		case 4:
-> -			PRINTSTR(u16); break;
-> -		case 6:
-> -			PRINTSTR(x24); break;
-> -		case 8:
-> -			PRINTSTR(u32); break;
-> -		}
-> +	switch (tpg->twopixelsize[p]) {
+Moikka!
 
-This doesn't work I just discovered. Compiling gives this warning:
+On 06/08/2015 01:21 AM, Doug Lung wrote:
+> Hello! this is my first post here, although I've benefited from all
+> the work of the contributors over the year. Thanks!
+>
+> I'm looking for help getting similar signal statistics from the new
+> Hauppauge HVR955Q (Si2157, LGDT3306A, CX23102) USB ATSC tuner that I'm
+> now getting from the Hauppauge Aero-M (MxL111SF, LGDT3305).  I'm
+> currently using DVBv3 API in my programs but am open to switching to
+> the DVBv5 API if necessary.
+>
+> I applied Antti Palosaari's "si2157: implement signal strength stats"
+> patch to the media_build and dvb-fe-tool with dvbv5-zap now returns
+> relatively accurate RSSI data in dBm from the HVR955Q but no SNR or
+> packet error data. dvb-fe-tool provides a full set of data
+> (unformatted) from the Aero-M but only Lock and RSSI (formatted in
+> dBm) from the HVR955Q.
+>
+> The SNR and packet error data is available from the HVR955Q in raw
+> form in DVBv3 applications like femon. The Si2157 RSSI in dBm is not.
+> The DVBv3 apps show the "signal quality" based on SNR margin above
+> threshold from the LGDT3306A.
+>
+> Any suggestions on modifying the HVR955Q driver to provide RSSI
+> (unformatted is okay) from the Si2157 with the DVBv3 API? That's
+> preferred since it will work with my existing Aero-M signal testing
+> programs.
+>
+> Alternatively, is there a way to obtain full DVBv5 API compliant
+> signal quality data (RSSI, SNR, uncorrected packets) from the
+> HVR955Q's LGDT3306A so I can modify my programs to use the linuxdvb.py
+> API v5.1 bindings?
 
-drivers/media/platform/vivid/vivid-tpg.c: In function ‘tpg_gen_text’:
-drivers/media/platform/vivid/vivid-tpg.c:1549:27: warning: ‘p’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  switch (tpg->twopixelsize[p]) {
-                           ^
+Looking the LGDT3306A code reveals it already calculates SNR as dB, so 
+returning it via DVBv5 is easy.
 
-And the value for tpg->twopixelsize[p] will actually differ depending on the value of p.
+BER and UCB are returned as a raw error values from registers. You could 
+return those also as a error values by counter type easily (numerator of 
+fraction). But getting some useful values you will need also total 
+number of packets too (denominator) (error fraction = error count / 
+total count). Total count is not mandatory, but very recommend, you have 
+to find it some how, calculate from stream parameters for example.
 
-It's probably best to revert this patch.
 
-The correct approach is likely to make four functions, one for case,
-with the macro as the function body.
+regards
+Antti
 
-Regards,
-
-	Hans
-
-> +	case 2:
-> +		PRINTSTR(u8);
-> +		break;
-> +	case 4:
-> +		PRINTSTR(u16);
-> +		break;
-> +	case 6:
-> +		PRINTSTR(x24);
-> +		break;
-> +	case 8:
-> +		PRINTSTR(u32);
-> +		break;
->  	}
->  }
->  
-> 
-
+-- 
+http://palosaari.fi/
