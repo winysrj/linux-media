@@ -1,353 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37106 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754260AbbFJJVW (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56316 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752015AbbFHI4g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:21:22 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mon, 8 Jun 2015 04:56:36 -0400
+Message-ID: <557558BD.9040607@xs4all.nl>
+Date: Mon, 08 Jun 2015 10:56:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 6/9] [media] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
-Date: Wed, 10 Jun 2015 06:20:49 -0300
-Message-Id: <a9192bf20f8d29e912414455c476abf2af9b5387.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+References: <1433592188-31748-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+Hi Antti,
 
-Convert vb2_dc_get_userptr() to use frame vector infrastructure. When we
-are doing that there's no need to allocate page array and some code can
-be simplified.
+I am not so sure about this. The situation with TUNER_ADC is similar to TUNER_RADIO:
+we use TUNER_RADIO for radio modulators, even though it is clearly not a tuner type.
 
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Basically the tuner type is interpreted as going the reverse direction for a modulator.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 369df95af5c7..2397ceb1dc6b 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -32,15 +32,13 @@ struct vb2_dc_buf {
- 	dma_addr_t			dma_addr;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
-+	struct frame_vector		*vec;
- 
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
- 	struct sg_table			*sgt_base;
- 
--	/* USERPTR related */
--	struct vm_area_struct		*vma;
--
- 	/* DMABUF related */
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -49,24 +47,6 @@ struct vb2_dc_buf {
- /*        scatterlist table functions        */
- /*********************************************/
- 
--
--static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
--	void (*cb)(struct page *pg))
--{
--	struct scatterlist *s;
--	unsigned int i;
--
--	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
--		struct page *page = sg_page(s);
--		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
--			>> PAGE_SHIFT;
--		unsigned int j;
--
--		for (j = 0; j < n_pages; ++j, ++page)
--			cb(page);
--	}
--}
--
- static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- {
- 	struct scatterlist *s;
-@@ -429,92 +409,12 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
--static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
--	struct vm_area_struct *vma, unsigned long *res)
--{
--	unsigned long pfn, start_pfn, prev_pfn;
--	unsigned int i;
--	int ret;
--
--	if (!vma_is_io(vma))
--		return -EFAULT;
--
--	ret = follow_pfn(vma, start, &pfn);
--	if (ret)
--		return ret;
--
--	start_pfn = pfn;
--	start += PAGE_SIZE;
--
--	for (i = 1; i < n_pages; ++i, start += PAGE_SIZE) {
--		prev_pfn = pfn;
--		ret = follow_pfn(vma, start, &pfn);
--
--		if (ret) {
--			pr_err("no page for address %lu\n", start);
--			return ret;
--		}
--		if (pfn != prev_pfn + 1)
--			return -EINVAL;
--	}
--
--	*res = start_pfn;
--	return 0;
--}
--
--static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
--	int n_pages, struct vm_area_struct *vma,
--	enum dma_data_direction dma_dir)
--{
--	if (vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
--			unsigned long pfn;
--			int ret = follow_pfn(vma, start, &pfn);
--
--			if (!pfn_valid(pfn))
--				return -EINVAL;
--
--			if (ret) {
--				pr_err("no page for address %lu\n", start);
--				return ret;
--			}
--			pages[i] = pfn_to_page(pfn);
--		}
--	} else {
--		int n;
--
--		n = get_user_pages(current, current->mm, start & PAGE_MASK,
--			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
--		/* negative error means that no page was pinned */
--		n = max(n, 0);
--		if (n != n_pages) {
--			pr_err("got only %d of %d user pages\n", n, n_pages);
--			while (n)
--				put_page(pages[--n]);
--			return -EFAULT;
--		}
--	}
--
--	return 0;
--}
--
--static void vb2_dc_put_dirty_page(struct page *page)
--{
--	set_page_dirty_lock(page);
--	put_page(page);
--}
--
- static void vb2_dc_put_userptr(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
-+	int i;
-+	struct page **pages;
- 
- 	if (sgt) {
- 		DEFINE_DMA_ATTRS(attrs);
-@@ -526,15 +426,15 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 		 */
- 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
- 				   buf->dma_dir, &attrs);
--		if (!vma_is_io(buf->vma))
--			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
--
-+		pages = frame_vector_pages(buf->vec);
-+		/* sgt should exist only if vector contains pages... */
-+		BUG_ON(IS_ERR(pages));
-+		for (i = 0; i < frame_vector_count(buf->vec); i++)
-+			set_page_dirty_lock(pages[i]);
- 		sg_free_table(sgt);
- 		kfree(sgt);
- 	}
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
-@@ -574,13 +474,10 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
--	unsigned long start;
--	unsigned long end;
-+	struct frame_vector *vec;
- 	unsigned long offset;
--	struct page **pages;
--	int n_pages;
-+	int n_pages, i;
- 	int ret = 0;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
- 	unsigned long dma_align = dma_get_cache_alignment();
-@@ -606,75 +503,43 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->dev = conf->dev;
- 	buf->dma_dir = dma_dir;
- 
--	start = vaddr & PAGE_MASK;
- 	offset = vaddr & ~PAGE_MASK;
--	end = PAGE_ALIGN(vaddr + size);
--	n_pages = (end - start) >> PAGE_SHIFT;
--
--	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
--	if (!pages) {
--		ret = -ENOMEM;
--		pr_err("failed to allocate pages table\n");
-+	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec)) {
-+		ret = PTR_ERR(vec);
- 		goto fail_buf;
- 	}
-+	buf->vec = vec;
-+	n_pages = frame_vector_count(vec);
-+	ret = frame_vector_to_pages(vec);
-+	if (ret < 0) {
-+		unsigned long *nums = frame_vector_pfns(vec);
- 
--	down_read(&current->mm->mmap_sem);
--	/* current->mm->mmap_sem is taken by videobuf2 core */
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		pr_err("no vma for address %lu\n", vaddr);
--		ret = -EFAULT;
--		goto fail_pages;
-+		/*
-+		 * Failed to convert to pages... Check the memory is physically
-+		 * contiguous and use direct mapping
-+		 */
-+		for (i = 1; i < n_pages; i++)
-+			if (nums[i-1] + 1 != nums[i])
-+				goto fail_pfnvec;
-+		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
-+		goto out;
- 	}
- 
--	if (vma->vm_end < vaddr + size) {
--		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
--		ret = -EFAULT;
--		goto fail_pages;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		pr_err("failed to copy vma\n");
--		ret = -ENOMEM;
--		goto fail_pages;
--	}
--
--	/* extract page list from userspace mapping */
--	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, dma_dir);
--	if (ret) {
--		unsigned long pfn;
--		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
--			up_read(&current->mm->mmap_sem);
--			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
--			buf->size = size;
--			kfree(pages);
--			return buf;
--		}
--
--		pr_err("failed to get user pages\n");
--		goto fail_vma;
--	}
--	up_read(&current->mm->mmap_sem);
--
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
- 		pr_err("failed to allocate sg table\n");
- 		ret = -ENOMEM;
--		goto fail_get_user_pages;
-+		goto fail_pfnvec;
- 	}
- 
--	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
-+	ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), n_pages,
- 		offset, size, GFP_KERNEL);
- 	if (ret) {
- 		pr_err("failed to initialize sg table\n");
- 		goto fail_sgt;
- 	}
- 
--	/* pages are no longer needed */
--	kfree(pages);
--	pages = NULL;
--
- 	/*
- 	 * No need to sync to the device, this will happen later when the
- 	 * prepare() memop is called.
-@@ -696,8 +561,9 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	}
- 
- 	buf->dma_addr = sg_dma_address(sgt->sgl);
--	buf->size = size;
- 	buf->dma_sgt = sgt;
-+out:
-+	buf->size = size;
- 
- 	return buf;
- 
-@@ -706,25 +572,13 @@ fail_map_sg:
- 			   buf->dma_dir, &attrs);
- 
- fail_sgt_init:
--	if (!vma_is_io(buf->vma))
--		vb2_dc_sgt_foreach_page(sgt, put_page);
- 	sg_free_table(sgt);
- 
- fail_sgt:
- 	kfree(sgt);
- 
--fail_get_user_pages:
--	if (pages && !vma_is_io(buf->vma))
--		while (n_pages)
--			put_page(pages[--n_pages]);
--
--	down_read(&current->mm->mmap_sem);
--fail_vma:
--	vb2_put_vma(buf->vma);
--
--fail_pages:
--	up_read(&current->mm->mmap_sem);
--	kfree(pages); /* kfree is NULL-proof */
-+fail_pfnvec:
-+	vb2_destroy_framevec(vec);
- 
- fail_buf:
- 	kfree(buf);
--- 
-2.4.2
+Calling it TUNER_SDR means its use is restricted to SDR devices, but perhaps there will
+be other non-SDR devices in the future that have an ADC.
+
+I wonder if we shouldn't introduce something like this:
+
+enum v4l2_modulator_type {
+	V4L2_MODULATOR_RADIO = V4L2_TUNER_RADIO,
+	V4L2_MODULATOR_DAC = V4L2_TUNER_ADC,
+	V4L2_MODULATOR_RF = V4L2_TUNER_RF,	/* is this correct? */
+};
+
+That way apps will have modulator aliases that make sense.
+
+Mauro, what do you think? This is your area of expertise.
+
+Regards,
+
+	Hans
+
+On 06/06/2015 02:03 PM, Antti Palosaari wrote:
+> SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+> has DAC (Digital-to-Analog Converter) . Originally I though it could
+> be good idea to have own type for receiver and transmitter, but now I
+> feel one common type for SDR is enough. So lets rename it.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+>  Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+>  Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+>  include/uapi/linux/videodev2.h              |  5 ++++-
+>  5 files changed, 29 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index a0aef85..f56faf5 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+>        </orderedlist>
+>      </section>
+>  
+> +    <section>
+> +      <title>V4L2 in Linux 4.2</title>
+> +      <orderedlist>
+> +	<listitem>
+> +	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
+> +<constant>V4L2_TUNER_SDR</constant>. The use of
+> +<constant>V4L2_TUNER_ADC</constant> is deprecated now.
+> +	  </para>
+> +	</listitem>
+> +      </orderedlist>
+> +    </section>
+> +
+>      <section id="other">
+>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> index f890356..3344921 100644
+> --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> @@ -44,10 +44,10 @@ frequency.
+>      </para>
+>  
+>      <para>
+> -The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
+> +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+>  the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+> -tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+> -Normally the ADC tuner is #0 and the RF tuner is #1.
+> +tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+> +Normally the SDR tuner is #0 and the RF tuner is #1.
+>      </para>
+>  
+>      <para>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index e98caa1..c9eedc1 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+>  structs, ioctls) must be noted in more detail in the history chapter
+>  (compat.xml), along with the possible impact on existing drivers and
+>  applications. -->
+> +      <revision>
+> +	<revnumber>4.2</revnumber>
+> +	<date>2015-05-26</date>
+> +	<authorinitials>ap</authorinitials>
+> +	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+> +	</revremark>
+> +      </revision>
+>  
+>        <revision>
+>  	<revnumber>3.21</revnumber>
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 85de455..ef42474 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>  	struct v4l2_frequency *p = arg;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR)
+> -		p->type = V4L2_TUNER_ADC;
+> +		p->type = V4L2_TUNER_SDR;
+>  	else
+>  		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>  				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> @@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+>  	enum v4l2_tuner_type type;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+>  			return -EINVAL;
+>  	} else {
+>  		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> @@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+>  	int err;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+>  			return -EINVAL;
+>  		type = p->type;
+>  	} else {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 3d5fc72..3310ce4 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+>  	V4L2_TUNER_RADIO	     = 1,
+>  	V4L2_TUNER_ANALOG_TV	     = 2,
+>  	V4L2_TUNER_DIGITAL_TV	     = 3,
+> -	V4L2_TUNER_ADC               = 4,
+> +	V4L2_TUNER_SDR               = 4,
+>  	V4L2_TUNER_RF                = 5,
+>  };
+>  
+> +/* Deprecated, do not use */
+> +#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
+> +
+>  enum v4l2_memory {
+>  	V4L2_MEMORY_MMAP             = 1,
+>  	V4L2_MEMORY_USERPTR          = 2,
+> 
 
