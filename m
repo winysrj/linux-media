@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48472 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764AbbFXFx5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 01:53:57 -0400
-Message-id: <558A45F0.2010601@samsung.com>
-Date: Wed, 24 Jun 2015 07:53:52 +0200
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:31088 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917AbbFHGA5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 02:00:57 -0400
+Message-id: <55752F7A.1000709@samsung.com>
+Date: Mon, 08 Jun 2015 08:00:26 +0200
 From: Andrzej Hajda <a.hajda@samsung.com>
 MIME-version: 1.0
-To: Antonio Borneo <borneo.antonio@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6/6] [media] s5c73m3: Remove redundant spi driver bus
- initialization
-References: <1435070714-24174-1-git-send-email-borneo.antonio@gmail.com>
- <1435071199-24630-1-git-send-email-borneo.antonio@gmail.com>
-In-reply-to: <1435071199-24630-1-git-send-email-borneo.antonio@gmail.com>
+To: Vaishali Thakkar <vthakkar1994@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH] [media] s5k5baf: Convert use of __constant_cpu_to_be16 to
+ cpu_to_be16
+References: <20150606015327.GA15272@vaishali-Ideapad-Z570>
+In-reply-to: <20150606015327.GA15272@vaishali-Ideapad-Z570>
 Content-type: text/plain; charset=windows-1252
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/23/2015 04:53 PM, Antonio Borneo wrote:
-> In ancient times it was necessary to manually initialize the bus
-> field of an spi_driver to spi_bus_type. These days this is done in
-> spi_register_driver(), so we can drop the manual assignment.
+On 06/06/2015 03:53 AM, Vaishali Thakkar wrote:
+> In little endian cases, macro cpu_to_be16 unfolds to __swab16 which
+> provides special case for constants. In big endian cases,
+> __constant_cpu_to_be16 and cpu_to_be16 expand directly to the
+> same expression. So, replace __constant_cpu_to_be16 with
+> cpu_to_be16 with the goal of getting rid of the definition of
+> __constant_cpu_to_be16 completely.
 >
-> Signed-off-by: Antonio Borneo <borneo.antonio@gmail.com>
-> To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> To: Kyungmin Park <kyungmin.park@samsung.com>
-> To: Andrzej Hajda <a.hajda@samsung.com>
-> To: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-
+> The semantic patch that performs this transformation is as follows:
+>
+> @@expression x;@@
+>
+> - __constant_cpu_to_be16(x)
+> + cpu_to_be16(x)
+>
+> Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
 Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 
-Regards
-Andrzej
 > ---
->  drivers/media/i2c/s5c73m3/s5c73m3-spi.c | 1 -
->  1 file changed, 1 deletion(-)
+>  drivers/media/i2c/s5k5baf.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> index 63eb190..fa4a5eb 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-> @@ -149,7 +149,6 @@ int s5c73m3_register_spi_driver(struct s5c73m3 *state)
->  	spidrv->remove = s5c73m3_spi_remove;
->  	spidrv->probe = s5c73m3_spi_probe;
->  	spidrv->driver.name = S5C73M3_SPI_DRV_NAME;
-> -	spidrv->driver.bus = &spi_bus_type;
->  	spidrv->driver.owner = THIS_MODULE;
->  	spidrv->driver.of_match_table = s5c73m3_spi_ids;
+> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> index 297ef04..7a43b55 100644
+> --- a/drivers/media/i2c/s5k5baf.c
+> +++ b/drivers/media/i2c/s5k5baf.c
+> @@ -491,7 +491,7 @@ static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
+>  	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
+>  		 min(2 * count, 64), seq);
 >  
+> -	buf[0] = __constant_cpu_to_be16(REG_CMD_BUF);
+> +	buf[0] = cpu_to_be16(REG_CMD_BUF);
+>  
+>  	while (count > 0) {
+>  		int n = min_t(int, count, ARRAY_SIZE(buf) - 1);
 
