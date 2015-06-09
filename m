@@ -1,99 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48418 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751949AbbFBLvo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jun 2015 07:51:44 -0400
-Date: Tue, 2 Jun 2015 08:51:38 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH 04/35] DocBook: fix emphasis at the DVB documentation
-Message-ID: <20150602085138.72d453e3@recife.lan>
-In-Reply-To: <20150602115604.54302981@lwn.net>
-References: <cover.1432844837.git.mchehab@osg.samsung.com>
-	<6674a17160ba2f80a4537d4dc9e501149c308706.1432844837.git.mchehab@osg.samsung.com>
-	<20150602115604.54302981@lwn.net>
+Received: from mail-qk0-f179.google.com ([209.85.220.179]:32846 "EHLO
+	mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753200AbbFIAWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 20:22:44 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: mchehab@osg.samsung.com, bp@suse.de
+Cc: tomi.valkeinen@ti.com, bhelgaas@google.com,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: [PATCH v6 0/3] linux: address broken PAT drivers
+Date: Mon,  8 Jun 2015 17:20:19 -0700
+Message-Id: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 02 Jun 2015 11:56:04 +0900
-Jonathan Corbet <corbet@lwn.net> escreveu:
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-> On Thu, 28 May 2015 18:49:07 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> 
-> > Currently, it is using 'role="tt"', but this is not defined at
-> > the DocBook 4.5 spec. The net result is that no emphasis happens.
-> > 
-> > So, replace them to bold emphasis.
-> 
-> Nit: I suspect the intent of the "emphasis" here was to get the code in a
-> monospace font, which "bold" is unlikely to do.  Isn't there a
-> role="code" or something useful like that to use?  I'd have to go look.
+Mauro,
 
-Good point! I think that emphasis only does italic (with is the default,
-and don't need role option) or bold on DocBook 4.5. 
+since the ivtv patch is already acked by the driver maintainer
+and depends on an x86 symbol that went through Boris' tree are you
+OK in it going through Boris' tree?
 
-We're using <constant> on the places where we want a monospace font.
-That's probably the right tag there.
+Boris,
 
-For the record: this document was produced by merging two different
-documents: the V4L docbook (that used a legacy DocBook version - 3.x or
-2.x) and the DVB LaTex documentation, which was converted by some
-tool to docbook 3.x (or 2.x) to match the same DocBook spec that
-V4L were using. The 'role="tt"' came from such conversion. This
-were maintained together with the legacy Mercurial tree that was 
-used to contain the media drivers.
+provided the outcome of the above maintainer's preference for you
+to merge these please consider these patches for your tree. The
+maintainer path is the only thing pending for the 1 ivtv patch.
+The Infiniband subsystem maintainer, Doug, already provided his
+ACK for the ipath driver and for this to go through you.
 
-When we moved to git, the DocBook got merged in the Kernel and
-another conversion was taken to allow compiling it using DocBook 4.x.
-We only checked the tags that didn't compile, but options with
-invalid arguments like 'role="tt"' where xmllint doesn't complain
-weren't touched.
+Luis R. Rodriguez (3):
+  ivtv: use arch_phys_wc_add() and require PAT disabled
+  IB/ipath: add counting for MTRR
+  IB/ipath: use arch_phys_wc_add() and require PAT disabled
 
-One question: any plans to update the documentation to DocBook schema?
+ drivers/infiniband/hw/ipath/Kconfig           |  3 ++
+ drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
+ drivers/media/pci/ivtv/Kconfig                |  3 ++
+ drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
+ 6 files changed, 52 insertions(+), 77 deletions(-)
 
-We're using either schema 4.1 or 4.2, with are both very old. The
-latest 4.x is 4.5, with was written back on 2006. So, except for historic
-reasons, are there any reason why keeping them at version 4.2? 
-I did a quick look at the DocBook specs (for 4.3, 4.4 and 4.5), 
-and they say that no backward compatible changes were done. So, using
-version 4.5 should be straightforward.
+-- 
+2.3.2.209.gd67f9d5.dirty
 
-I applied this patch here:
-
---- a/Documentation/DocBook/media_api.tmpl
-+++ b/Documentation/DocBook/media_api.tmpl
-@@ -2,2 +2,2 @@
--<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
--       "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
-+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-+       "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-
-and compiled the media documentation with:
-
-make cleanmediadocs
-make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID 
-.* already defined"
-xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
-xmllint --noent --postvalid --noout /tmp/x.xml
-xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
-
-In order to try to produce errors. Everything seemed to work. On a quick
-look, the documentation looked fine, and no errors (except for some
-crappy element validity errors, with seems to be due to a bug on recent
-versions of the xml tools present on Fedora 22).
-
-Maybe 5.x would provide nicer documents, but converting to it doesn't
-seem too easy, although there are some semi-auto way of doing it,
-at least according with:
-	http://doccookbook.sourceforge.net/html/en/dbc.structure.db4-to-db5.html
-Not sure if worth the efforts to convert to 5.x.
-
-Regards,
-Mauro
