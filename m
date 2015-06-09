@@ -1,195 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54768 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753542AbbFHTyc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:32 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 02/26] [media] DocBook: Add entry IDs for enum fe_caps
-Date: Mon,  8 Jun 2015 16:53:46 -0300
-Message-Id: <d71d4fe86435f957cb310ad933a16372f9fa2f58.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59594 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753187AbbFIGYM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Jun 2015 02:24:12 -0400
+Message-ID: <5576867F.8000003@xs4all.nl>
+Date: Tue, 09 Jun 2015 08:23:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+CC: bp@suse.de, tomi.valkeinen@ti.com, bhelgaas@google.com,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Doug Ledford <dledford@redhat.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Juergen Gross <jgross@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Dave Airlie <airlied@redhat.com>,
+	Antonino Daplas <adaplas@gmail.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Stefan Bader <stefan.bader@canonical.com>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
+	Davidlohr Bueso <dbueso@suse.de>, konrad.wilk@oracle.com,
+	ville.syrjala@linux.intel.com, david.vrabel@citrix.com,
+	jbeulich@suse.com, toshi.kani@hp.com,
+	=?UTF-8?B?Um9nZXIgUGF1IE1vbm7DqQ==?= <roger.pau@citrix.com>,
+	linux-fbdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	xen-devel@lists.xensource.com
+Subject: Re: [PATCH v6 1/3] ivtv: use arch_phys_wc_add() and require PAT disabled
+References: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>	<1433809222-28261-2-git-send-email-mcgrof@do-not-panic.com> <20150608215625.39544c82@recife.lan>
+In-Reply-To: <20150608215625.39544c82@recife.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-enum fe_caps is documented at FE_GET_INFO ioctl. Add xrefs
-for each entry there. This makes the hyperlinks at frontend.h
-to go directly to the right documentation.
+On 06/09/2015 02:56 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 08 Jun 2015 17:20:20 -0700
+> "Luis R. Rodriguez" <mcgrof@do-not-panic.com> escreveu:
+> 
+>> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+>>
+>> We are burrying direct access to MTRR code support on
+>> x86 in order to take advantage of PAT. In the future we
+>> also want to make the default behaviour of ioremap_nocache()
+>> to use strong UC, use of mtrr_add() on those systems
+>> would make write-combining void.
+>>
+>> In order to help both enable us to later make strong
+>> UC default and in order to phase out direct MTRR access
+>> code port the driver over to arch_phys_wc_add() and
+>> annotate that the device driver requires systems to
+>> boot with PAT disabled, with the nopat kernel parameter.
+>>
+>> This is a worthy comprmise given that the hardware is
+>> really rare these days, and perhaps only some lost souls
+>> in some third world country are expected to be using this
+>> feature of the device driver.
+>>
+>> Acked-by: Andy Walls <awalls@md.metrocast.net>
+>> Cc: Andy Walls <awalls@md.metrocast.net>
+>> Cc: Doug Ledford <dledford@redhat.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Provided that you fix the issues below:
+> Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+>> Cc: Andy Lutomirski <luto@amacapital.net>
+>> Cc: Suresh Siddha <sbsiddha@gmail.com>
+>> Cc: Ingo Molnar <mingo@elte.hu>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Juergen Gross <jgross@suse.com>
+>> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+>> Cc: Dave Airlie <airlied@redhat.com>
+>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>> Cc: Antonino Daplas <adaplas@gmail.com>
+>> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Cc: Michael S. Tsirkin <mst@redhat.com>
+>> Cc: Stefan Bader <stefan.bader@canonical.com>
+>> Cc: Ville Syrjälä <syrjala@sci.fi>
+>> Cc: Mel Gorman <mgorman@suse.de>
+>> Cc: Vlastimil Babka <vbabka@suse.cz>
+>> Cc: Borislav Petkov <bp@suse.de>
+>> Cc: Davidlohr Bueso <dbueso@suse.de>
+>> Cc: konrad.wilk@oracle.com
+>> Cc: ville.syrjala@linux.intel.com
+>> Cc: david.vrabel@citrix.com
+>> Cc: jbeulich@suse.com
+>> Cc: toshi.kani@hp.com
+>> Cc: Roger Pau Monné <roger.pau@citrix.com>
+>> Cc: linux-fbdev@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: ivtv-devel@ivtvdriver.org
+>> Cc: linux-media@vger.kernel.org
+>> Cc: xen-devel@lists.xensource.com
+>> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+>> ---
+>>  drivers/media/pci/ivtv/Kconfig  |  3 +++
+>>  drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++-------------------------
+>>  2 files changed, 26 insertions(+), 35 deletions(-)
+>>
+>> diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
+>> index dd6ee57e..b2a7f88 100644
+>> --- a/drivers/media/pci/ivtv/Kconfig
+>> +++ b/drivers/media/pci/ivtv/Kconfig
+>> @@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
+>>  	  This is used in the Hauppauge PVR-350 card. There is a driver
+>>  	  homepage at <http://www.ivtvdriver.org>.
+>>  
+>> +	  If you have this hardware you will need to boot with PAT disabled
+>> +	  on your x86 systems, use the nopat kernel parameter.
+>> +
+> 
+> Hmm... FB_IVTV is not hardware... it is framebuffer support for IVTV.
+> It is optional to use FB API for the video output port of this board,
+> instead of using V4L2 API.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+That's not true. It is hardware: it drives the video output OSD which overlays
+the video output. The reason it is optional is that it is hard to unload a
+framebuffer module and most people don't need it.
 
-diff --git a/Documentation/DocBook/media/dvb/fe-get-info.xml b/Documentation/DocBook/media/dvb/fe-get-info.xml
-index 0e0245e45d26..ed0eeb29dd65 100644
---- a/Documentation/DocBook/media/dvb/fe-get-info.xml
-+++ b/Documentation/DocBook/media/dvb/fe-get-info.xml
-@@ -135,128 +135,128 @@ driver is not compatible with this specification the ioctl returns an error.
- 	</thead>
- 	<tbody valign="top">
- 	<row>
--	<entry><constant>FE_IS_STUPID</constant></entry>
-+	<entry id="FE-IS-STUPID"><constant>FE_IS_STUPID</constant></entry>
- 	<entry>There's something wrong at the frontend, and it can't
- 	    report its capabilities</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_INVERSION_AUTO</constant></entry>
-+	<entry id="FE-CAN-INVERSION-AUTO"><constant>FE_CAN_INVERSION_AUTO</constant></entry>
- 	<entry>The frontend is capable of auto-detecting inversion</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_1_2</constant></entry>
-+	<entry id="FE-CAN-FEC-1-2"><constant>FE_CAN_FEC_1_2</constant></entry>
- 	<entry>The frontend supports FEC 1/2</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_2_3</constant></entry>
-+	<entry id="FE-CAN-FEC-2-3"><constant>FE_CAN_FEC_2_3</constant></entry>
- 	<entry>The frontend supports FEC 2/3</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_3_4</constant></entry>
-+	<entry id="FE-CAN-FEC-3-4"><constant>FE_CAN_FEC_3_4</constant></entry>
- 	<entry>The frontend supports FEC 3/4</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_4_5</constant></entry>
-+	<entry id="FE-CAN-FEC-4-5"><constant>FE_CAN_FEC_4_5</constant></entry>
- 	<entry>The frontend supports FEC 4/5</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_5_6</constant></entry>
-+	<entry id="FE-CAN-FEC-5-6"><constant>FE_CAN_FEC_5_6</constant></entry>
- 	<entry>The frontend supports FEC 5/6</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_6_7</constant></entry>
-+	<entry id="FE-CAN-FEC-6-7"><constant>FE_CAN_FEC_6_7</constant></entry>
- 	<entry>The frontend supports FEC 6/7</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_7_8</constant></entry>
-+	<entry id="FE-CAN-FEC-7-8"><constant>FE_CAN_FEC_7_8</constant></entry>
- 	<entry>The frontend supports FEC 7/8</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_8_9</constant></entry>
-+	<entry id="FE-CAN-FEC-8-9"><constant>FE_CAN_FEC_8_9</constant></entry>
- 	<entry>The frontend supports FEC 8/9</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_FEC_AUTO</constant></entry>
-+	<entry id="FE-CAN-FEC-AUTO"><constant>FE_CAN_FEC_AUTO</constant></entry>
- 	<entry>The frontend can autodetect FEC.</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QPSK</constant></entry>
-+	<entry id="FE-CAN-QPSK"><constant>FE_CAN_QPSK</constant></entry>
- 	<entry>The frontend supports QPSK modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_16</constant></entry>
-+	<entry id="FE-CAN-QAM-16"><constant>FE_CAN_QAM_16</constant></entry>
- 	<entry>The frontend supports 16-QAM modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_32</constant></entry>
-+	<entry id="FE-CAN-QAM-32"><constant>FE_CAN_QAM_32</constant></entry>
- 	<entry>The frontend supports 32-QAM modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_64</constant></entry>
-+	<entry id="FE-CAN-QAM-64"><constant>FE_CAN_QAM_64</constant></entry>
- 	<entry>The frontend supports 64-QAM modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_128</constant></entry>
-+	<entry id="FE-CAN-QAM-128"><constant>FE_CAN_QAM_128</constant></entry>
- 	<entry>The frontend supports 128-QAM modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_256</constant></entry>
-+	<entry id="FE-CAN-QAM-256"><constant>FE_CAN_QAM_256</constant></entry>
- 	<entry>The frontend supports 256-QAM modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_QAM_AUTO</constant></entry>
-+	<entry id="FE-CAN-QAM-AUTO"><constant>FE_CAN_QAM_AUTO</constant></entry>
- 	<entry>The frontend can autodetect modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_TRANSMISSION_MODE_AUTO</constant></entry>
-+	<entry id="FE-CAN-TRANSMISSION-MODE-AUTO"><constant>FE_CAN_TRANSMISSION_MODE_AUTO</constant></entry>
- 	<entry>The frontend can autodetect the transmission mode</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_BANDWIDTH_AUTO</constant></entry>
-+	<entry id="FE-CAN-BANDWIDTH-AUTO"><constant>FE_CAN_BANDWIDTH_AUTO</constant></entry>
- 	<entry>The frontend can autodetect the bandwidth</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_GUARD_INTERVAL_AUTO</constant></entry>
-+	<entry id="FE-CAN-GUARD-INTERVAL-AUTO"><constant>FE_CAN_GUARD_INTERVAL_AUTO</constant></entry>
- 	<entry>The frontend can autodetect the guard interval</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_HIERARCHY_AUTO</constant></entry>
-+	<entry id="FE-CAN-HIERARCHY-AUTO"><constant>FE_CAN_HIERARCHY_AUTO</constant></entry>
- 	<entry>The frontend can autodetect hierarch</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_8VSB</constant></entry>
-+	<entry id="FE-CAN-8VSB"><constant>FE_CAN_8VSB</constant></entry>
- 	<entry>The frontend supports 8-VSB modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_16VSB</constant></entry>
-+	<entry id="FE-CAN-16VSB"><constant>FE_CAN_16VSB</constant></entry>
- 	<entry>The frontend supports 16-VSB modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_HAS_EXTENDED_CAPS</constant></entry>
-+	<entry id="FE-HAS-EXTENDED-CAPS"><constant>FE_HAS_EXTENDED_CAPS</constant></entry>
- 	<entry>Currently, unused</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_MULTISTREAM</constant></entry>
-+	<entry id="FE-CAN-MULTISTREAM"><constant>FE_CAN_MULTISTREAM</constant></entry>
- 	<entry>The frontend supports multistream filtering</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_TURBO_FEC</constant></entry>
-+	<entry id="FE-CAN-TURBO-FEC"><constant>FE_CAN_TURBO_FEC</constant></entry>
- 	<entry>The frontend supports turbo FEC modulation</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_2G_MODULATION</constant></entry>
-+	<entry id="FE-CAN-2G-MODULATION"><constant>FE_CAN_2G_MODULATION</constant></entry>
- 	<entry>The frontend supports "2nd generation modulation" (DVB-S2/T2)></entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_NEEDS_BENDING</constant></entry>
-+	<entry id="FE-NEEDS-BENDING"><constant>FE_NEEDS_BENDING</constant></entry>
- 	<entry>Not supported anymore, don't use it</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_RECOVER</constant></entry>
-+	<entry id="FE-CAN-RECOVER"><constant>FE_CAN_RECOVER</constant></entry>
- 	<entry>The frontend can recover from a cable unplug automatically</entry>
- 	</row>
- 	<row>
--	<entry><constant>FE_CAN_MUTE_TS</constant></entry>
-+	<entry id="FE-CAN-MUTE-TS"><constant>FE_CAN_MUTE_TS</constant></entry>
- 	<entry>The frontend can stop spurious TS data output</entry>
- 	</row>
-         </tbody>
--- 
-2.4.2
+So V4L2 drives the video output and ivtvfb drives the OSD overlay. So it is
+not a case of 'instead of'.
+
+> 
+> I would say, instead, something like: 
+> 
+> 	"In order to use this module, you will need to boot with PAT disabled
+> 	  on x86 systems, using the nopat kernel parameter."
+
+I do agree with this change, but that's because this module is optional and
+not for the reasons you mentioned above.
+
+Regards,
+
+	Hans
+
+> 
+>>  	  To compile this driver as a module, choose M here: the
+>>  	  module will be called ivtvfb.
+>> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+>> index 9ff1230..7685ae3 100644
+>> --- a/drivers/media/pci/ivtv/ivtvfb.c
+>> +++ b/drivers/media/pci/ivtv/ivtvfb.c
+>> @@ -44,8 +44,8 @@
+>>  #include <linux/ivtvfb.h>
+>>  #include <linux/slab.h>
+>>  
+>> -#ifdef CONFIG_MTRR
+>> -#include <asm/mtrr.h>
+>> +#ifdef CONFIG_X86_64
+>> +#include <asm/pat.h>
+>>  #endif
+>>  
+>>  #include "ivtv-driver.h"
+>> @@ -155,12 +155,11 @@ struct osd_info {
+>>  	/* Buffer size */
+>>  	u32 video_buffer_size;
+>>  
+>> -#ifdef CONFIG_MTRR
+>>  	/* video_base rounded down as required by hardware MTRRs */
+>>  	unsigned long fb_start_aligned_physaddr;
+>>  	/* video_base rounded up as required by hardware MTRRs */
+>>  	unsigned long fb_end_aligned_physaddr;
+>> -#endif
+>> +	int wc_cookie;
+>>  
+>>  	/* Store the buffer offset */
+>>  	int set_osd_coords_x;
+>> @@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
+>>  static int ivtvfb_init_io(struct ivtv *itv)
+>>  {
+>>  	struct osd_info *oi = itv->osd_info;
+>> +	/* Find the largest power of two that maps the whole buffer */
+>> +	int size_shift = 31;
+>>  
+>>  	mutex_lock(&itv->serialize_lock);
+>>  	if (ivtv_init_on_first_open(itv)) {
+>> @@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
+>>  			oi->video_pbase, oi->video_vbase,
+>>  			oi->video_buffer_size / 1024);
+>>  
+>> -#ifdef CONFIG_MTRR
+>> -	{
+>> -		/* Find the largest power of two that maps the whole buffer */
+>> -		int size_shift = 31;
+>> -
+>> -		while (!(oi->video_buffer_size & (1 << size_shift))) {
+>> -			size_shift--;
+>> -		}
+>> -		size_shift++;
+>> -		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
+>> -		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
+>> -		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
+>> -		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
+>> -		if (mtrr_add(oi->fb_start_aligned_physaddr,
+>> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
+>> -			     MTRR_TYPE_WRCOMB, 1) < 0) {
+>> -			IVTVFB_INFO("disabled mttr\n");
+>> -			oi->fb_start_aligned_physaddr = 0;
+>> -			oi->fb_end_aligned_physaddr = 0;
+>> -		}
+>> -	}
+>> -#endif
+>> -
+>> +	while (!(oi->video_buffer_size & (1 << size_shift)))
+>> +		size_shift--;
+>> +	size_shift++;
+>> +	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
+>> +	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
+>> +	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
+>> +	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
+>> +	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
+>> +					 oi->fb_end_aligned_physaddr -
+>> +					 oi->fb_start_aligned_physaddr);
+>>  	/* Blank the entire osd. */
+>>  	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
+>>  
+>> @@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
+>>  
+>>  	/* Release pseudo palette */
+>>  	kfree(oi->ivtvfb_info.pseudo_palette);
+>> -
+>> -#ifdef CONFIG_MTRR
+>> -	if (oi->fb_end_aligned_physaddr) {
+>> -		mtrr_del(-1, oi->fb_start_aligned_physaddr,
+>> -			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
+>> -	}
+>> -#endif
+>> -
+>> +	arch_phys_wc_del(oi->wc_cookie);
+>>  	kfree(oi);
+>>  	itv->osd_info = NULL;
+>>  }
+>> @@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
+>>  	int registered = 0;
+>>  	int err;
+>>  
+>> +#ifdef CONFIG_X86_64
+>> +	if (WARN(pat_enabled(),
+>> +		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
+>> +		return EINVAL;
+> 
+> Errors are always negative. So: 
+> 		return -EINVAL
+> 
+> Or, perhaps, -ENODEV.
+> 
+>> +	}
+>> +#endif
+>> +
+>>  	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+>>  		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+>>  		     IVTV_MAX_CARDS - 1);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
