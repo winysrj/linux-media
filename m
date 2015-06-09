@@ -1,116 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44512 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752259AbbFAQiV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 12:38:21 -0400
-Date: Mon, 1 Jun 2015 19:37:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Export alignment requirements for buffers
-Message-ID: <20150601163746.GF25595@valkosipuli.retiisi.org.uk>
-References: <556C2993.4030708@xs4all.nl>
- <20150601104428.GE25595@valkosipuli.retiisi.org.uk>
- <556C3BC2.2050500@xs4all.nl>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:35166 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbbFIK4k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2015 06:56:40 -0400
+Received: by labko7 with SMTP id ko7so9276661lab.2
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2015 03:56:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <556C3BC2.2050500@xs4all.nl>
+In-Reply-To: <CAAZRmGyWP-67SzQsg1DF8qsKJzmK3SsKqPsdB8aM9VBDq37nYA@mail.gmail.com>
+References: <CAB0z4Noe_pGszj5oOz+xfKWy4-icWTJOkE=dQ9ymzjgebBA1aA@mail.gmail.com>
+	<CAAZRmGyWP-67SzQsg1DF8qsKJzmK3SsKqPsdB8aM9VBDq37nYA@mail.gmail.com>
+Date: Tue, 9 Jun 2015 12:56:39 +0200
+Message-ID: <CAB0z4Nr9=f34S9rjxbZsBXrxs6XmqMRtuScKKv6COfL4XW11Dg@mail.gmail.com>
+Subject: Re: Unable to compile v4l-dvb in ubuntu 14.04
+From: CIJOML CIJOMLovic <cijoml@gmail.com>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello Olli,
 
-On Mon, Jun 01, 2015 at 01:02:26PM +0200, Hans Verkuil wrote:
-> On 06/01/2015 12:44 PM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > Thanks for the RFC.
-> > 
-> > On Mon, Jun 01, 2015 at 11:44:51AM +0200, Hans Verkuil wrote:
-> >> One of the things that is really irritating is the fact that drivers that
-> >> use contig-dma sometimes want to support USERPTR, allowing applications to
-> >> pass pointers to the driver that point to physically contiguous memory that
-> >> was somehow obtained, and that userspace has no way of knowing whether the
-> >> driver has this requirement or not.
-> >>
-> >> A related issue is that, depending on the DMA engine, the user pointer might
-> >> have some alignment requirements (page aligned, or at minimum 16 bytes aligned)
-> >> that userspace has no way of knowing.
-> >>
-> >> The same alignment issue is present also for dma-buf.
-> >>
-> >> I propose to take one reserved field from struct v4l2_create_buffers and
-> >> from struct v4l2_requestbuffers and change it to this:
-> >>
-> >> 	__u32 flags;
-> >>
-> >> #define V4L2_REQBUFS_FL_ALIGNMENT_MSK	0x3f
-> > 
-> > How about V4L2_REQBUFS_FL_ALIGN_MASK instead? It's shorter, and that msk
-> > part looks odd to me.
-> 
-> Hmm, how to do this. Currently it masks out 6 bits which form the power-of-two
-> that determines the alignment. How about this:
-> 
-> #define V4L2_REQBUFS_FL_ALIGN_EXP(flags) ((flags) & 0x3f)
-> #define V4L2_REQBUFS_FL_ALIGN_MASK(flags) ((1ULL << (flags & 0x3f)) - 1)
-> 
-> That gives you both mask and the exponent. Better names are welcome :-)
-> ALIGN_PWR? PWR2? ALIGN_AT_BIT?
+I think tar.bz2 generated fromhttp://linuxtv.org/hg/v4l-dvb are
+current snaphots from git. Or Am I wrong?
+But back to my problem YES I have kernel 3.16.0-38 and also headers
+3.16.0-38. I also realized that compiler claims 3.6.0, but it is
+wrong. I don't have such kernel.
 
-I think ALIGN_EXP and ALIGN_MASK are good.
+Thank you for fix
 
-> 
-> > 
-> >> #define V4L2_REQBUFS_FL_PHYS_CONTIG	(1 << 31)
-> >>
-> >> Where the alignment is a power of 2 (and if 0 the alignment is unknown). The max
-> >> is 2^63, which should be enough for the foreseeable future :-)
-> >>
-> >> If the physically contiguous flag is set, then the buffer must be physically
-> >> contiguous.
-> > 
-> > Both only apply to userptr buffers. I guess saying this in documentation
-> > only is enough.
-> 
-> I don't follow you. Perhaps there is some confusion here? The flags field is set
-> by the driver, not by userspace. So PHYS_CONTIG applies to any type of buffer if
-> the driver uses dma-contig. And the alignment is valid for all drivers as well.
+Michal
 
-What I meant was that this is mostly relevant for userptr buffers, mmap
-buffers are allocated by the driver as well as dma-buf buffers are, so the
-user has no (or little?) use for this information on those buffer types.
-
-> 
-> > 
-> > The approach looks good to me.
-> > 
-> >> dma-contig: the PHYS_CONTIG flag is always set and the alignment is (unless overridden
-> >> by the driver) page aligned.
-> >>
-> >> dma-sg: the PHYS_CONTIG flag is 0 and the alignment will depend on the driver DMA
-> >> implementation. Note: malloc will align the buffer to 8 bytes on a 32 bit OS and 16 bytes
-> >> on a 64 bit OS.
-> >>
-> >> vmalloc: PHYS_CONFIG is 0 and the alignment should be 3 (2^3 == 8) for 32 bit and
-> >> 4 (2^4=16) for 64 bit OS. This matches malloc() which will align the buffer to
-> >> 8 bytes on a 32 bit OS and 16 bytes on a 64 bit OS.
-> > 
-> > Ack. Many dma-sg drivers actually can handle physically contiguous memory
-> > since they're behind an IOMMU; the drivers can then set the flag if needed.
-> 
-> All dma-sg drivers can handle phys contig memory since that's just one DMA descriptor.
-> 
-> The flag is meant to say that the buffer *has* to be phys contig, not that it might
-> be. So dma-sg drivers will not set it, since they don't have that requirement.
-
-I meant to say drivers using dma-contig, not dma-sg.
-
--- 
-regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2015-06-09 12:08 GMT+02:00 Olli Salonen <olli.salonen@iki.fi>:
+> Hi,
+>
+> Do you have a specific reason for not using the media_build? You're
+> getting the following warning:
+>
+> WARNING: You're using an obsolete driver! You shouldn't be using it!
+>      If you want anything new, you can use:
+>         http://git.linuxtv.org/media_build.git.
+>      The tree is still here just to preserve the development history.
+>      You've been warned.
+>
+> Also, check the kernel and linux-header versions you have installed.
+> Is it 3.16 or 3.6?
+>
+> Cheers,
+> -olli
+>
+> On 8 June 2015 at 18:06, CIJOML CIJOMLovic <cijoml@gmail.com> wrote:
+>> Hello,
+>>
+>> I am trying to compile v4l git with no success. I have kernel and
+>> headers installed.
+>> Is problem at my side or in source?
+>>
+>> Thank you for help or solving the problem:
+>>
+>> root@Latitude-E5550:/usr/src/v4l-dvb-3724e93f7af5# make
+>> make -C /usr/src/v4l-dvb-3724e93f7af5/v4l
+>> make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> No version yet, using 3.16.0-38-generic
+>> make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> scripts/make_makefile.pl
+>> Updating/Creating .config
+>> Preparing to compile for kernel version 3.6.0
+>>
+>> ***WARNING:*** You do not have the full kernel sources installed.
+>> This does not prevent you from building the v4l-dvb tree if you have the
+>> kernel headers, but the full kernel source may be required in order to use
+>> make menuconfig / xconfig / qconfig.
+>>
+>> If you are experiencing problems building the v4l-dvb tree, please try
+>> building against a vanilla kernel before reporting a bug.
+>>
+>> Vanilla kernels are available at http://kernel.org.
+>> On most distros, this will compile a newly downloaded kernel:
+>>
+>> cp /boot/config-`uname -r` <your kernel dir>/.config
+>> cd <your kernel dir>
+>> make all modules_install install
+>>
+>> Please see your distro's web site for instructions to build a new kernel.
+>>
+>> WARNING: You're using an obsolete driver! You shouldn't be using it!
+>>      If you want anything new, you can use:
+>>         http://git.linuxtv.org/media_build.git.
+>>      The tree is still here just to preserve the development history.
+>>      You've been warned.
+>> Created default (all yes) .config file
+>> ./scripts/make_myconfig.pl
+>> make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> make[1]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> perl scripts/make_config_compat.pl /lib/modules/3.6.0-38-generic/build
+>> ./.myconfig ./config-compat.h
+>> creating symbolic links...
+>> ln -sf . oss
+>> make -C firmware prep
+>> make[2]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+>> make[2]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+>> make -C firmware
+>> make[2]: Entering directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+>>   CC  ihex2fw
+>> Generating vicam/firmware.fw
+>> Generating dabusb/firmware.fw
+>> Generating dabusb/bitstream.bin
+>> Generating ttusb-budget/dspbootcode.bin
+>> Generating cpia2/stv0672_vp4.bin
+>> Generating av7110/bootcode.bin
+>> make[2]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l/firmware'
+>> Kernel build directory is /lib/modules/3.6.0-38-generic/build
+>> make -C /lib/modules/3.6.0-38-generic/build
+>> SUBDIRS=/usr/src/v4l-dvb-3724e93f7af5/v4l CFLAGS="-I../linux/include
+>> -D__KERNEL__ -I/include -DEXPORT_SYMTAB" modules
+>> make[2]: Entering directory `/usr/src/linux-headers-3.16.0-38-generic'
+>>   CC [M]  /usr/src/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.o
+>> In file included from <command-line>:0:0:
+>> /usr/src/v4l-dvb-3724e93f7af5/v4l/config-compat.h:1235:1: fatal error:
+>> include/linux/version.h: No such file or directory
+>>  #endif
+>>  ^
+>> compilation terminated.
+>> make[3]: *** [/usr/src/v4l-dvb-3724e93f7af5/v4l/tuner-xc2028.o] Error 1
+>> make[2]: *** [_module_/usr/src/v4l-dvb-3724e93f7af5/v4l] Error 2
+>> make[2]: Leaving directory `/usr/src/linux-headers-3.16.0-38-generic'
+>> make[1]: *** [default] Error 2
+>> make[1]: Leaving directory `/usr/src/v4l-dvb-3724e93f7af5/v4l'
+>> make: *** [all] Error 2
+>>
+>>
+>> Best regards
+>>
+>> Michal
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
