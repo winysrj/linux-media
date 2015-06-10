@@ -1,47 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.webstorie.hu ([94.199.178.116]:51740 "EHLO
-	mail.webstorie.hu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750821AbbF2PEF (ORCPT
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:34277 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965332AbbFJQvp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 11:04:05 -0400
-Message-ID: <893a73852ae06fa6c5e515beab7b862f.squirrel@webmail.lakitelek.hu>
-Date: Mon, 29 Jun 2015 13:54:56 +0200
-Subject: Kedves Email =?iso-8859-1?Q?felhaszn=E1l=F3i;?=
-From: =?iso-8859-1?Q?=22rendszer_Administrator=AE=22?=
-	<height22@mynet.com>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 10 Jun 2015 12:51:45 -0400
+Received: from pla-VB.cisco.com ([10.65.58.169])
+	by bgl-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id t5AGpgOl025168
+	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 16:51:42 GMT
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH v2] Support for reduced blanking version 2
+Date: Wed, 10 Jun 2015 22:21:41 +0530
+Message-Id: <1433955102-7841-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Changes compared v1:
+1. Extended v4l2_detect_cvt() api to pass active image width. This
+   solves the issue related to how to get width in the absence of
+   aspect information.
+2. Fix: Added condition to correct the clock granularity.
+3. Removed "TODO" for reduced blanking version 2.
+4. Other comments from review of v1.
 
+Prashant Laddha (1):
+  v4l2-dv-timings: add support for reduced blanking v2
 
+ drivers/media/i2c/adv7604.c                  |  2 +-
+ drivers/media/i2c/adv7842.c                  |  2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c |  2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c    | 80 ++++++++++++++++++++--------
+ include/media/v4l2-dv-timings.h              |  6 ++-
+ 5 files changed, 67 insertions(+), 25 deletions(-)
 
-
-Kedves Email felhasználói;
-
-Túllépte a határt 23432 tárolása e-mail fiókkal által beállított
-Web Service / adminisztrátor, és akkor sikerül a küld&#337;
-és a bejöv&#337; üzenetek, amíg meg újból érvényesíti az e-mail címre. A
-szükséges eljárások
-nyújtottak be az alábbiakban a nézetet, ellen&#337;rizze kattintva
-Az alábbi linkre és töltse ki az adatokat, hogy érvényesítse az e-mail
-címre.
-
-Kérjük kattintson ide
-
-http://mailhsjsyhun.jigsy.com/
-
-Hogy növelje az e-mail kvóta az e-mail.
-Figyelem !!!
-Ennek elmulasztása azt eredményezi, hogy korlátozott hozzáférés a
-postaládába.
-elmulasztotta frissíteni fiókját számított három napon belül a
-frissítés
-értesítést, akkor figyelembe kell végleg.
-
-Üdvözlettel,
-Rendszergazda © 2014-2015
+-- 
+1.9.1
 
