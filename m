@@ -1,91 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42666 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422832AbbFEOhq (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48144 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933359AbbFJS3F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 10:37:46 -0400
-Message-ID: <5571B42C.9010203@xs4all.nl>
-Date: Fri, 05 Jun 2015 16:37:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 10 Jun 2015 14:29:05 -0400
+Date: Wed, 10 Jun 2015 20:29:03 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Bryan Wu <cooloney@gmail.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v10 2/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+Message-ID: <20150610182902.GA21761@amd>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+ <1433754145-12765-3-git-send-email-j.anaszewski@samsung.com>
+ <CAK5ve-+FojRu1Ti3doEUJrf+QF-=Hb7ku_wZZEP2TEnS0PK=2g@mail.gmail.com>
+ <CAK5ve-L6MJ0RfE+9Spp1YCu3MZAJSNnK8pBX0bc_G_4dL6812w@mail.gmail.com>
+ <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
 MIME-Version: 1.0
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 07/10] sh-vou: add support for log_status
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl> <1433501966-30176-8-git-send-email-hverkuil@xs4all.nl> <5571A3E3.6070805@cogentembedded.com>
-In-Reply-To: <5571A3E3.6070805@cogentembedded.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2015 03:28 PM, Sergei Shtylyov wrote:
-> Hello.
+On Wed 2015-06-10 11:12:50, Bryan Wu wrote:
+> On Wed, Jun 10, 2015 at 11:01 AM, Bryan Wu <cooloney@gmail.com> wrote:
+> > On Wed, Jun 10, 2015 at 10:57 AM, Bryan Wu <cooloney@gmail.com> wrote:
+> >> On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
+> >> <j.anaszewski@samsung.com> wrote:
+> >>> This patch adds helper functions for registering/unregistering
+> >>> LED Flash class devices as V4L2 sub-devices. The functions should
+> >>> be called from the LED subsystem device driver. In case the
+> >>> support for V4L2 Flash sub-devices is disabled in the kernel
+> >>> config the functions' empty versions will be used.
+> >>>
+> >>
+> >> Please go ahead with my Ack
+> >>
+> >> Acked-by: Bryan Wu <cooloney@gmail.com>
+> >>
+> >
+> > I found the rest of LED patches depend on this one. What about merging
+> > this through my tree?
+> >
+> > -Bryan
+> >
+> >
 > 
-> On 6/5/2015 1:59 PM, Hans Verkuil wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> Dump the VOU registers in log_status.
-> 
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/platform/sh_vou.c | 29 +++++++++++++++++++++++++++++
->>   1 file changed, 29 insertions(+)
-> 
->> diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
->> index 7ed5a8b..400efec 100644
->> --- a/drivers/media/platform/sh_vou.c
->> +++ b/drivers/media/platform/sh_vou.c
->> @@ -951,6 +951,34 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
->>   	return 0;
->>   }
->>
->> +static int sh_vou_log_status(struct file *file, void *priv)
->> +{
->> +	struct sh_vou_device *vou_dev = video_drvdata(file);
->> +
->> +	pr_info("PSELA:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
->> +	pr_info("VOUER:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
-> 
->     You're dumping the same register twice, under different names?
+> Merged into my -devel branch and it won't be merged into 4.2.0 merge
+> window but wait for one more cycle, since now it's quite late in 4.1.0
+> cycle.
 
-Oops, PSELA doesn't belong here. I'll remove that line. Thanks for spotting this.
+Actually... as this code will not be used (so it can't break
+anything), it would make some sense to merge it to 4.2.
 
-Regards,
-
-	Hans
-
-> 
->> +	pr_info("VOUCR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUCR));
->> +	pr_info("VOUSTR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSTR));
->> +	pr_info("VOUVCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVCR));
->> +	pr_info("VOUISR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUISR));
->> +	pr_info("VOUBCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUBCR));
->> +	pr_info("VOUDPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDPR));
->> +	pr_info("VOUDSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDSR));
->> +	pr_info("VOUVPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVPR));
->> +	pr_info("VOUIR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUIR));
->> +	pr_info("VOUSRR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSRR));
->> +	pr_info("VOUMSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUMSR));
->> +	pr_info("VOUHIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUHIR));
->> +	pr_info("VOUDFR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDFR));
->> +	pr_info("VOUAD1R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD1R));
->> +	pr_info("VOUAD2R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD2R));
->> +	pr_info("VOUAIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAIR));
->> +	pr_info("VOUSWR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSWR));
->> +	pr_info("VOURCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURCR));
->> +	pr_info("VOURPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURPR));
->> +	return 0;
->> +}
->> +
-> [...]
-> 
-> WBR, Sergei
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
