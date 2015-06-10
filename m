@@ -1,80 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:34302 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482AbbFGMl0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2015 08:41:26 -0400
-Received: by lbcmx3 with SMTP id mx3so66312781lbc.1
-        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2015 05:41:25 -0700 (PDT)
-Message-ID: <55743BF3.1080301@cogentembedded.com>
-Date: Sun, 07 Jun 2015 15:41:23 +0300
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from lists.s-osg.org ([54.187.51.154]:41126 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964834AbbFJNbF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:31:05 -0400
+Date: Wed, 10 Jun 2015 10:31:00 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+Message-ID: <20150610103100.7d88239f@recife.lan>
+In-Reply-To: <557558BD.9040607@xs4all.nl>
+References: <1433592188-31748-1-git-send-email-crope@iki.fi>
+	<557558BD.9040607@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 08/11] sh-vou: add support for log_status
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl> <1433667485-35711-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-9-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Em Mon, 08 Jun 2015 10:56:29 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 6/7/2015 11:58 AM, Hans Verkuil wrote:
+> Hi Antti,
+> 
+> I am not so sure about this. The situation with TUNER_ADC is similar to TUNER_RADIO:
+> we use TUNER_RADIO for radio modulators, even though it is clearly not a tuner type.
+> 
+> Basically the tuner type is interpreted as going the reverse direction for a modulator.
+> 
+> Calling it TUNER_SDR means its use is restricted to SDR devices, but perhaps there will
+> be other non-SDR devices in the future that have an ADC.
+> 
+> I wonder if we shouldn't introduce something like this:
+> 
+> enum v4l2_modulator_type {
+> 	V4L2_MODULATOR_RADIO = V4L2_TUNER_RADIO,
+> 	V4L2_MODULATOR_DAC = V4L2_TUNER_ADC,
+> 	V4L2_MODULATOR_RF = V4L2_TUNER_RF,	/* is this correct? */
+> };
+> 
+> That way apps will have modulator aliases that make sense.
+> 
+> Mauro, what do you think? This is your area of expertise.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+I think that TUNER_SDR is good enough, provided that the caps
+are properly filled for devices with RX (capture) or 
+TX (output).
 
-> Dump the VOU registers in log_status.
+I don't think we'll have other "tuner" ADC or DAC devices.
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->   drivers/media/platform/sh_vou.c | 29 +++++++++++++++++++++++++++++
->   1 file changed, 29 insertions(+)
+IMHO, the worse case is that we might need to map ADC and DAC
+as subdevs in some (likely distant) future.
 
-> diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-> index 9479c44..cbee361 100644
-> --- a/drivers/media/platform/sh_vou.c
-> +++ b/drivers/media/platform/sh_vou.c
-> @@ -949,6 +949,34 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
->   	return 0;
->   }
->
-> +static int sh_vou_log_status(struct file *file, void *priv)
-> +{
-> +	struct sh_vou_device *vou_dev = video_drvdata(file);
-> +
-> +	pr_info("PSELA:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
+So,
 
-    You forgot to remove this line. :-(
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> +	pr_info("VOUER:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
-> +	pr_info("VOUCR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUCR));
-> +	pr_info("VOUSTR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSTR));
-> +	pr_info("VOUVCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVCR));
-> +	pr_info("VOUISR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUISR));
-> +	pr_info("VOUBCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUBCR));
-> +	pr_info("VOUDPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDPR));
-> +	pr_info("VOUDSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDSR));
-> +	pr_info("VOUVPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVPR));
-> +	pr_info("VOUIR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUIR));
-> +	pr_info("VOUSRR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSRR));
-> +	pr_info("VOUMSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUMSR));
-> +	pr_info("VOUHIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUHIR));
-> +	pr_info("VOUDFR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDFR));
-> +	pr_info("VOUAD1R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD1R));
-> +	pr_info("VOUAD2R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD2R));
-> +	pr_info("VOUAIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAIR));
-> +	pr_info("VOUSWR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSWR));
-> +	pr_info("VOURCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURCR));
-> +	pr_info("VOURPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURPR));
-> +	return 0;
-> +}
-> +
->   static int sh_vou_g_selection(struct file *file, void *fh,
->   			      struct v4l2_selection *sel)
->   {
-[...]
-
-WBR, Sergei
-
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 06/06/2015 02:03 PM, Antti Palosaari wrote:
+> > SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+> > has DAC (Digital-to-Analog Converter) . Originally I though it could
+> > be good idea to have own type for receiver and transmitter, but now I
+> > feel one common type for SDR is enough. So lets rename it.
+> > 
+> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > Signed-off-by: Antti Palosaari <crope@iki.fi>
+> > ---
+> >  Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+> >  Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+> >  Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+> >  drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+> >  include/uapi/linux/videodev2.h              |  5 ++++-
+> >  5 files changed, 29 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> > index a0aef85..f56faf5 100644
+> > --- a/Documentation/DocBook/media/v4l/compat.xml
+> > +++ b/Documentation/DocBook/media/v4l/compat.xml
+> > @@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+> >        </orderedlist>
+> >      </section>
+> >  
+> > +    <section>
+> > +      <title>V4L2 in Linux 4.2</title>
+> > +      <orderedlist>
+> > +	<listitem>
+> > +	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
+> > +<constant>V4L2_TUNER_SDR</constant>. The use of
+> > +<constant>V4L2_TUNER_ADC</constant> is deprecated now.
+> > +	  </para>
+> > +	</listitem>
+> > +      </orderedlist>
+> > +    </section>
+> > +
+> >      <section id="other">
+> >        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+> >  
+> > diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> > index f890356..3344921 100644
+> > --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
+> > +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> > @@ -44,10 +44,10 @@ frequency.
+> >      </para>
+> >  
+> >      <para>
+> > -The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
+> > +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+> >  the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+> > -tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+> > -Normally the ADC tuner is #0 and the RF tuner is #1.
+> > +tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+> > +Normally the SDR tuner is #0 and the RF tuner is #1.
+> >      </para>
+> >  
+> >      <para>
+> > diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> > index e98caa1..c9eedc1 100644
+> > --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> > +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> > @@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+> >  structs, ioctls) must be noted in more detail in the history chapter
+> >  (compat.xml), along with the possible impact on existing drivers and
+> >  applications. -->
+> > +      <revision>
+> > +	<revnumber>4.2</revnumber>
+> > +	<date>2015-05-26</date>
+> > +	<authorinitials>ap</authorinitials>
+> > +	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+> > +	</revremark>
+> > +      </revision>
+> >  
+> >        <revision>
+> >  	<revnumber>3.21</revnumber>
+> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > index 85de455..ef42474 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > @@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+> >  	struct v4l2_frequency *p = arg;
+> >  
+> >  	if (vfd->vfl_type == VFL_TYPE_SDR)
+> > -		p->type = V4L2_TUNER_ADC;
+> > +		p->type = V4L2_TUNER_SDR;
+> >  	else
+> >  		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> >  				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> > @@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+> >  	enum v4l2_tuner_type type;
+> >  
+> >  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> > -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> > +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+> >  			return -EINVAL;
+> >  	} else {
+> >  		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> > @@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+> >  	int err;
+> >  
+> >  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> > -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> > +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+> >  			return -EINVAL;
+> >  		type = p->type;
+> >  	} else {
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 3d5fc72..3310ce4 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+> >  	V4L2_TUNER_RADIO	     = 1,
+> >  	V4L2_TUNER_ANALOG_TV	     = 2,
+> >  	V4L2_TUNER_DIGITAL_TV	     = 3,
+> > -	V4L2_TUNER_ADC               = 4,
+> > +	V4L2_TUNER_SDR               = 4,
+> >  	V4L2_TUNER_RF                = 5,
+> >  };
+> >  
+> > +/* Deprecated, do not use */
+> > +#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
+> > +
+> >  enum v4l2_memory {
+> >  	V4L2_MEMORY_MMAP             = 1,
+> >  	V4L2_MEMORY_USERPTR          = 2,
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
