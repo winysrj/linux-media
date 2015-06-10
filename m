@@ -1,39 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback2.mail.ru ([94.100.179.22]:53732 "EHLO
-	fallback2.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbbFFDfY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 23:35:24 -0400
-Received: from smtp30.i.mail.ru (smtp30.i.mail.ru [94.100.177.90])
-	by fallback2.mail.ru (mPOP.Fallback_MX) with ESMTP id D30035CCFEA1
-	for <linux-media@vger.kernel.org>; Sat,  6 Jun 2015 06:28:51 +0300 (MSK)
-Received: from [171.33.253.112] (port=39160 helo=unknown)
-	by smtp30.i.mail.ru with esmtpa (envelope-from <severe.siberian.man@mail.ru>)
-	id 1Z14mq-0002Ou-NG
-	for linux-media@vger.kernel.org; Sat, 06 Jun 2015 06:28:50 +0300
-Message-ID: <0448C37B97FE43E6A8CD61968C10E73F@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: <linux-media@vger.kernel.org>
-Subject: Si2168 B40 frimware.
-Date: Sat, 6 Jun 2015 10:28:41 +0700
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="koi8-r";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Received: from www.osadl.org ([62.245.132.105]:32964 "EHLO www.osadl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933233AbbFJHsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 03:48:31 -0400
+From: Nicholas Mc Guire <hofrat@osadl.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Christopher Reimer <linux@creimer.net>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH] [media] ddbridge: fix wait_event_timeout return handling
+Date: Wed, 10 Jun 2015 09:40:02 +0200
+Message-Id: <1433922002-22971-1-git-send-email-hofrat@osadl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+API conformance testing for completions with coccinelle spatches are being
+used to locate API usage inconsistencies:
+./drivers/media/pci/ddbridge/ddbridge-core.c:89 
+        incorrect check for negative return
 
-Yesterday I extracted a new firmware for Si2168 B40 rev. from Windows 
-driver.
-It's designed for ROM version 4.0.2 and has a version build 4.0.19
-Here is a name of 
-file:dvb-demod-si2168-b40-rom4_0_2-patch-build4_0_19.fw.tar.gz
-And a link for download: http://beholder.ru/bb/download/file.php?id=854
-Anybody want to test it? Unfortunately, I can not do it myself, because I do 
-not own hardware with B40 revision.
+Return type of wait_event_timeout is signed long not int and the 
+return type is >=0 always thus the negative check is unnecessary..
+As stat is used here exclusively its type is simply changed and the
+negative return check dropped.
 
-Best regards. 
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
+
+Patch was compile tested with x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m,
+MEDIA_DIGITAL_TV_SUPPORT=y, CONFIG_MEDIA_PCI_SUPPORT=y, 
+CONFIG_DVB_DDBRIDGE=m
+
+Patch is against 4.1-rc7 (localversion-next is -next-20150609)
+
+ drivers/media/pci/ddbridge/ddbridge-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 9e3492e..7f1b3b3 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -81,13 +81,13 @@ static int i2c_read_reg16(struct i2c_adapter *adapter, u8 adr,
+ static int ddb_i2c_cmd(struct ddb_i2c *i2c, u32 adr, u32 cmd)
+ {
+ 	struct ddb *dev = i2c->dev;
+-	int stat;
++	long stat;
+ 	u32 val;
+ 
+ 	i2c->done = 0;
+ 	ddbwritel((adr << 9) | cmd, i2c->regs + I2C_COMMAND);
+ 	stat = wait_event_timeout(i2c->wq, i2c->done == 1, HZ);
+-	if (stat <= 0) {
++	if (stat == 0) {
+ 		printk(KERN_ERR "I2C timeout\n");
+ 		{ /* MSI debugging*/
+ 			u32 istat = ddbreadl(INTERRUPT_STATUS);
+-- 
+1.7.10.4
 
