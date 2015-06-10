@@ -1,367 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:33537 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707AbbFXPLr (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59978 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754129AbbFJJIG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 11:11:47 -0400
-Received: by wiwl6 with SMTP id l6so98341220wiw.0
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:46 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 09/12] [media] tsin: c8sectpfe: Add support for various ST NIM cards.
-Date: Wed, 24 Jun 2015 16:11:07 +0100
-Message-Id: <1435158670-7195-10-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	Wed, 10 Jun 2015 05:08:06 -0400
+Message-ID: <5577FE47.5090807@xs4all.nl>
+Date: Wed, 10 Jun 2015 11:07:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jan Kara <jack@suse.cz>, linux-mm@kvack.org
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 9/9] drm/exynos: Convert g2d_userptr_get_dma_addr() to
+ use get_vaddr_frames()
+References: <1431522495-4692-1-git-send-email-jack@suse.cz> <1431522495-4692-10-git-send-email-jack@suse.cz>
+In-Reply-To: <1431522495-4692-10-git-send-email-jack@suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the following 3 NIM cards: -
-1) STV0367-NIM (stv0367 demod with Thompson PLL)
-2) B2100A (2x stv0367 demods & 2x NXP tda18212 tuners)
-3) STV0903-6110NIM (stv0903 demod + 6110 tuner, lnb24)
+For unclear reasons my SoB was missing in my pull request. So add it now:
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c | 296 +++++++++++++++++++++++++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h |  20 ++
- 2 files changed, 316 insertions(+)
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c b/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c
-new file mode 100644
-index 0000000..5c4ecb4
---- /dev/null
-+++ b/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c
-@@ -0,0 +1,296 @@
-+/*
-+ *  c8sectpfe-dvb.c - C8SECTPFE STi DVB driver
-+ *
-+ * Copyright (c) STMicroelectronics 2015
-+ *
-+ *  Author Peter Griffin <peter.griffin@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ */
-+#include <linux/completion.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/interrupt.h>
-+#include <linux/version.h>
-+
-+#include <dt-bindings/media/c8sectpfe.h>
-+
-+#include "c8sectpfe-common.h"
-+#include "c8sectpfe-core.h"
-+#include "c8sectpfe-dvb.h"
-+
-+#include "dvb-pll.h"
-+#include "lnbh24.h"
-+#include "stv0367.h"
-+#include "stv0367_priv.h"
-+#include "stv6110x.h"
-+#include "stv090x.h"
-+#include "tda18212.h"
-+
-+static inline const char *dvb_card_str(unsigned int c)
-+{
-+	switch (c) {
-+	case STV0367_PLL_BOARD_NIMA:	return "STV0367_PLL_BOARD_NIMA";
-+	case STV0367_PLL_BOARD_NIMB:	return "STV0367_PLL_BOARD_NIMB";
-+	case STV0367_TDA18212_NIMA_1:	return "STV0367_TDA18212_NIMA_1";
-+	case STV0367_TDA18212_NIMA_2:	return "STV0367_TDA18212_NIMA_2";
-+	case STV0367_TDA18212_NIMB_1:	return "STV0367_TDA18212_NIMB_1";
-+	case STV0367_TDA18212_NIMB_2:	return "STV0367_TDA18212_NIMB_2";
-+	case STV0903_6110_LNB24_NIMA:	return "STV0903_6110_LNB24_NIMA";
-+	case STV0903_6110_LNB24_NIMB:	return "STV0903_6110_LNB24_NIMB";
-+	default:			return "unknown dvb frontend card";
-+	}
-+}
-+
-+static struct stv090x_config stv090x_config = {
-+	.device                 = STV0903,
-+	.demod_mode             = STV090x_SINGLE,
-+	.clk_mode               = STV090x_CLK_EXT,
-+	.xtal                   = 16000000,
-+	.address                = 0x69,
-+
-+	.ts1_mode               = STV090x_TSMODE_SERIAL_CONTINUOUS,
-+	.ts2_mode               = STV090x_TSMODE_SERIAL_CONTINUOUS,
-+
-+	.repeater_level         = STV090x_RPTLEVEL_64,
-+
-+	.tuner_init             = NULL,
-+	.tuner_set_mode         = NULL,
-+	.tuner_set_frequency    = NULL,
-+	.tuner_get_frequency    = NULL,
-+	.tuner_set_bandwidth    = NULL,
-+	.tuner_get_bandwidth    = NULL,
-+	.tuner_set_bbgain       = NULL,
-+	.tuner_get_bbgain       = NULL,
-+	.tuner_set_refclk       = NULL,
-+	.tuner_get_status       = NULL,
-+};
-+
-+static struct stv6110x_config stv6110x_config = {
-+	.addr                   = 0x60,
-+	.refclk                 = 16000000,
-+};
-+
-+#define NIMA 0
-+#define NIMB 1
-+
-+static struct stv0367_config stv0367_pll_config[] = {
-+	{
-+		.demod_address = 0x1c,
-+		.xtal = 27000000,
-+		.if_khz = 36166,
-+		.if_iq_mode = FE_TER_NORMAL_IF_TUNER,
-+		.ts_mode = STV0367_SERIAL_PUNCT_CLOCK,
-+		.clk_pol = STV0367_CLOCKPOLARITY_DEFAULT,
-+	}, {
-+		.demod_address = 0x1d,
-+		.xtal = 27000000,
-+		.if_khz = 36166,
-+		.if_iq_mode = FE_TER_NORMAL_IF_TUNER,
-+		.ts_mode = STV0367_SERIAL_PUNCT_CLOCK,
-+		.clk_pol = STV0367_CLOCKPOLARITY_DEFAULT,
-+	},
-+};
-+
-+static struct stv0367_config stv0367_tda18212_config[] = {
-+	{
-+		.demod_address = 0x1c,
-+		.xtal = 16000000,
-+		.if_khz = 4500,
-+		.if_iq_mode = FE_TER_NORMAL_IF_TUNER,
-+		.ts_mode = STV0367_SERIAL_PUNCT_CLOCK,
-+		.clk_pol = STV0367_CLOCKPOLARITY_DEFAULT,
-+	}, {
-+		.demod_address = 0x1d,
-+		.xtal = 16000000,
-+		.if_khz = 4500,
-+		.if_iq_mode = FE_TER_NORMAL_IF_TUNER,
-+		.ts_mode = STV0367_SERIAL_PUNCT_CLOCK,
-+		.clk_pol = STV0367_CLOCKPOLARITY_DEFAULT,
-+	}, {
-+		.demod_address = 0x1e,
-+		.xtal = 16000000,
-+		.if_khz = 4500,
-+		.if_iq_mode = FE_TER_NORMAL_IF_TUNER,
-+		.ts_mode = STV0367_SERIAL_PUNCT_CLOCK,
-+		.clk_pol = STV0367_CLOCKPOLARITY_DEFAULT,
-+	},
-+};
-+
-+static struct tda18212_config tda18212_conf = {
-+	.if_dvbt_6 = 4150,
-+	.if_dvbt_7 = 4150,
-+	.if_dvbt_8 = 4500,
-+	.if_dvbc = 5000,
-+};
-+
-+int c8sectpfe_frontend_attach(struct dvb_frontend **fe,
-+		struct c8sectpfe *c8sectpfe,
-+		struct channel_info *tsin, int chan_num)
-+{
-+	struct tda18212_config *tda18212;
-+	struct stv6110x_devctl *fe2;
-+	struct i2c_client *client;
-+	struct i2c_board_info tda18212_info = {
-+		.type = "tda18212",
-+		.addr = 0x60,
-+	};
-+
-+	BUG_ON(!tsin);
-+
-+	switch (tsin->dvb_card) {
-+
-+	case STV0367_PLL_BOARD_NIMA:
-+	case STV0367_PLL_BOARD_NIMB:
-+		if (tsin->dvb_card == STV0367_PLL_BOARD_NIMA)
-+			*fe = dvb_attach(stv0367ter_attach,
-+				 &stv0367_pll_config[NIMA], tsin->i2c_adapter);
-+		else
-+			*fe = dvb_attach(stv0367ter_attach,
-+				 &stv0367_pll_config[NIMB], tsin->i2c_adapter);
-+
-+		if (!*fe) {
-+			dev_err(c8sectpfe->device,
-+				"%s: stv0367ter_attach failed for NIM card %s\n"
-+				, __func__, dvb_card_str(tsin->dvb_card));
-+			return -ENODEV;
-+		};
-+
-+		/*
-+		 * init the demod so that i2c gate_ctrl
-+		 * to the tuner works correctly
-+		 */
-+		(*fe)->ops.init(*fe);
-+
-+		if (!dvb_attach(dvb_pll_attach, *fe, 0x60,
-+			tsin->i2c_adapter, DVB_PLL_THOMSON_DTT7546X)) {
-+
-+			dev_err(c8sectpfe->device,
-+				"%s: DVB_PLL_THOMSON_DTT7546X attach failed\n\t"
-+				"for NIM card %s\n",
-+				__func__, dvb_card_str(tsin->dvb_card));
-+			return -ENODEV;
-+		}
-+		break;
-+
-+	case STV0367_TDA18212_NIMA_1:
-+	case STV0367_TDA18212_NIMA_2:
-+	case STV0367_TDA18212_NIMB_1:
-+	case STV0367_TDA18212_NIMB_2:
-+		if (tsin->dvb_card == STV0367_TDA18212_NIMA_1)
-+			*fe = dvb_attach(stv0367ter_attach,
-+				 &stv0367_tda18212_config[0],
-+					tsin->i2c_adapter);
-+		else if (tsin->dvb_card == STV0367_TDA18212_NIMB_1)
-+			*fe = dvb_attach(stv0367ter_attach,
-+				 &stv0367_tda18212_config[1],
-+					tsin->i2c_adapter);
-+		else
-+			*fe = dvb_attach(stv0367ter_attach,
-+				 &stv0367_tda18212_config[2],
-+					tsin->i2c_adapter);
-+
-+		if (!*fe) {
-+			dev_err(c8sectpfe->device,
-+				"%s: stv0367ter_attach failed for NIM card %s\n"
-+				, __func__, dvb_card_str(tsin->dvb_card));
-+			return -ENODEV;
-+		};
-+
-+		/*
-+		 * init the demod so that i2c gate_ctrl
-+		 * to the tuner works correctly
-+		 */
-+		(*fe)->ops.init(*fe);
-+
-+		/* Allocate the tda18212 structure */
-+		tda18212 = devm_kzalloc(c8sectpfe->device,
-+					sizeof(struct tda18212_config),
-+					GFP_KERNEL);
-+		if (!tda18212) {
-+			dev_err(c8sectpfe->device,
-+				"%s: devm_kzalloc failed\n", __func__);
-+			return -ENOMEM;
-+		}
-+
-+		memcpy(tda18212, &tda18212_conf,
-+			sizeof(struct tda18212_config));
-+
-+		tda18212->fe = (*fe);
-+
-+		tda18212_info.platform_data = tda18212;
-+
-+		/* attach tuner */
-+		request_module("tda18212");
-+		client = i2c_new_device(tsin->i2c_adapter, &tda18212_info);
-+		if (!client || !client->dev.driver) {
-+			dvb_frontend_detach(*fe);
-+			return -ENODEV;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			dvb_frontend_detach(*fe);
-+			return -ENODEV;
-+		}
-+
-+		tsin->i2c_client = client;
-+
-+		break;
-+
-+	case STV0903_6110_LNB24_NIMA:
-+		*fe = dvb_attach(stv090x_attach,	&stv090x_config,
-+				tsin->i2c_adapter, STV090x_DEMODULATOR_0);
-+		if (!*fe) {
-+			dev_err(c8sectpfe->device, "%s: stv090x_attach failed\n"
-+				"\tfor NIM card %s\n",
-+				__func__, dvb_card_str(tsin->dvb_card));
-+			return -ENODEV;
-+		}
-+
-+		fe2 = dvb_attach(stv6110x_attach, *fe,
-+					&stv6110x_config, tsin->i2c_adapter);
-+		if (!fe2) {
-+			dev_err(c8sectpfe->device,
-+				"%s: stv6110x_attach failed for NIM card %s\n"
-+				, __func__, dvb_card_str(tsin->dvb_card));
-+			return -ENODEV;
-+		};
-+
-+		stv090x_config.tuner_init = fe2->tuner_init;
-+		stv090x_config.tuner_set_mode = fe2->tuner_set_mode;
-+		stv090x_config.tuner_set_frequency = fe2->tuner_set_frequency;
-+		stv090x_config.tuner_get_frequency = fe2->tuner_get_frequency;
-+		stv090x_config.tuner_set_bandwidth = fe2->tuner_set_bandwidth;
-+		stv090x_config.tuner_get_bandwidth = fe2->tuner_get_bandwidth;
-+		stv090x_config.tuner_set_bbgain = fe2->tuner_set_bbgain;
-+		stv090x_config.tuner_get_bbgain = fe2->tuner_get_bbgain;
-+		stv090x_config.tuner_set_refclk = fe2->tuner_set_refclk;
-+		stv090x_config.tuner_get_status = fe2->tuner_get_status;
-+
-+		dvb_attach(lnbh24_attach, *fe, tsin->i2c_adapter, 0, 0, 0x9);
-+		break;
-+
-+	default:
-+		dev_err(c8sectpfe->device,
-+			"%s: DVB frontend card %s not yet supported\n",
-+			__func__, dvb_card_str(tsin->dvb_card));
-+		return -ENODEV;
-+	}
-+
-+	(*fe)->id = chan_num;
-+
-+	dev_info(c8sectpfe->device,
-+			"DVB frontend card %s successfully attached",
-+			dvb_card_str(tsin->dvb_card));
-+	return 0;
-+}
-diff --git a/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h b/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h
-new file mode 100644
-index 0000000..bd366db
---- /dev/null
-+++ b/drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h
-@@ -0,0 +1,20 @@
-+/*
-+ * c8sectpfe-common.h - C8SECTPFE STi DVB driver
-+ *
-+ * Copyright (c) STMicroelectronics 2015
-+ *
-+ *   Author: Peter Griffin <peter.griffin@linaro.org>
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License as
-+ *      published by the Free Software Foundation; either version 2 of
-+ *      the License, or (at your option) any later version.
-+ */
-+#ifndef _C8SECTPFE_DVB_H_
-+#define _C8SECTPFE_DVB_H_
-+
-+int c8sectpfe_frontend_attach(struct dvb_frontend **fe,
-+			struct c8sectpfe *c8sectpfe, struct channel_info *tsin,
-+			int chan_num);
-+
-+#endif
--- 
-1.9.1
+Regards,
 
+	Hans
+
+On 05/13/15 15:08, Jan Kara wrote:
+> Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
+> This removes the knowledge about vmas and mmap_sem locking from exynos
+> driver. Also it fixes a problem that the function has been mapping user
+> provided address without holding mmap_sem.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_g2d.c | 89 ++++++++++--------------------
+>  drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
+>  2 files changed, 29 insertions(+), 157 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> index 81a250830808..265519c0fe2d 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> @@ -190,10 +190,8 @@ struct g2d_cmdlist_userptr {
+>  	dma_addr_t		dma_addr;
+>  	unsigned long		userptr;
+>  	unsigned long		size;
+> -	struct page		**pages;
+> -	unsigned int		npages;
+> +	struct frame_vector	*vec;
+>  	struct sg_table		*sgt;
+> -	struct vm_area_struct	*vma;
+>  	atomic_t		refcount;
+>  	bool			in_pool;
+>  	bool			out_of_list;
+> @@ -363,6 +361,7 @@ static void g2d_userptr_put_dma_addr(struct drm_device *drm_dev,
+>  {
+>  	struct g2d_cmdlist_userptr *g2d_userptr =
+>  					(struct g2d_cmdlist_userptr *)obj;
+> +	struct page **pages;
+>  
+>  	if (!obj)
+>  		return;
+> @@ -382,19 +381,21 @@ out:
+>  	exynos_gem_unmap_sgt_from_dma(drm_dev, g2d_userptr->sgt,
+>  					DMA_BIDIRECTIONAL);
+>  
+> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
+> -					g2d_userptr->npages,
+> -					g2d_userptr->vma);
+> +	pages = frame_vector_pages(g2d_userptr->vec);
+> +	if (!IS_ERR(pages)) {
+> +		int i;
+>  
+> -	exynos_gem_put_vma(g2d_userptr->vma);
+> +		for (i = 0; i < frame_vector_count(g2d_userptr->vec); i++)
+> +			set_page_dirty_lock(pages[i]);
+> +	}
+> +	put_vaddr_frames(g2d_userptr->vec);
+> +	frame_vector_destroy(g2d_userptr->vec);
+>  
+>  	if (!g2d_userptr->out_of_list)
+>  		list_del_init(&g2d_userptr->list);
+>  
+>  	sg_free_table(g2d_userptr->sgt);
+>  	kfree(g2d_userptr->sgt);
+> -
+> -	drm_free_large(g2d_userptr->pages);
+>  	kfree(g2d_userptr);
+>  }
+>  
+> @@ -413,6 +414,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
+>  	struct vm_area_struct *vma;
+>  	unsigned long start, end;
+>  	unsigned int npages, offset;
+> +	struct frame_vector *vec;
+>  	int ret;
+>  
+>  	if (!size) {
+> @@ -456,65 +458,37 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
+>  		return ERR_PTR(-ENOMEM);
+>  
+>  	atomic_set(&g2d_userptr->refcount, 1);
+> +	g2d_userptr->size = size;
+>  
+>  	start = userptr & PAGE_MASK;
+>  	offset = userptr & ~PAGE_MASK;
+>  	end = PAGE_ALIGN(userptr + size);
+>  	npages = (end - start) >> PAGE_SHIFT;
+> -	g2d_userptr->npages = npages;
+> -
+> -	pages = drm_calloc_large(npages, sizeof(struct page *));
+> -	if (!pages) {
+> -		DRM_ERROR("failed to allocate pages.\n");
+> -		ret = -ENOMEM;
+> +	vec = g2d_userptr->vec = frame_vector_create(npages);
+> +	if (!vec)
+>  		goto err_free;
+> -	}
+>  
+> -	down_read(&current->mm->mmap_sem);
+> -	vma = find_vma(current->mm, userptr);
+> -	if (!vma) {
+> -		up_read(&current->mm->mmap_sem);
+> -		DRM_ERROR("failed to get vm region.\n");
+> +	ret = get_vaddr_frames(start, npages, 1, 1, vec);
+> +	if (ret != npages) {
+> +		DRM_ERROR("failed to get user pages from userptr.\n");
+> +		if (ret < 0)
+> +			goto err_destroy_framevec;
+>  		ret = -EFAULT;
+> -		goto err_free_pages;
+> +		goto err_put_framevec;
+>  	}
+> -
+> -	if (vma->vm_end < userptr + size) {
+> -		up_read(&current->mm->mmap_sem);
+> -		DRM_ERROR("vma is too small.\n");
+> +	if (frame_vector_to_pages(vec) < 0) {
+>  		ret = -EFAULT;
+> -		goto err_free_pages;
+> +		goto err_put_framevec;
+>  	}
+>  
+> -	g2d_userptr->vma = exynos_gem_get_vma(vma);
+> -	if (!g2d_userptr->vma) {
+> -		up_read(&current->mm->mmap_sem);
+> -		DRM_ERROR("failed to copy vma.\n");
+> -		ret = -ENOMEM;
+> -		goto err_free_pages;
+> -	}
+> -
+> -	g2d_userptr->size = size;
+> -
+> -	ret = exynos_gem_get_pages_from_userptr(start & PAGE_MASK,
+> -						npages, pages, vma);
+> -	if (ret < 0) {
+> -		up_read(&current->mm->mmap_sem);
+> -		DRM_ERROR("failed to get user pages from userptr.\n");
+> -		goto err_put_vma;
+> -	}
+> -
+> -	up_read(&current->mm->mmap_sem);
+> -	g2d_userptr->pages = pages;
+> -
+>  	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+>  	if (!sgt) {
+>  		ret = -ENOMEM;
+> -		goto err_free_userptr;
+> +		goto err_put_framevec;
+>  	}
+>  
+> -	ret = sg_alloc_table_from_pages(sgt, pages, npages, offset,
+> -					size, GFP_KERNEL);
+> +	ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), npages,
+> +					offset, size, GFP_KERNEL);
+>  	if (ret < 0) {
+>  		DRM_ERROR("failed to get sgt from pages.\n");
+>  		goto err_free_sgt;
+> @@ -549,16 +523,11 @@ err_sg_free_table:
+>  err_free_sgt:
+>  	kfree(sgt);
+>  
+> -err_free_userptr:
+> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
+> -					g2d_userptr->npages,
+> -					g2d_userptr->vma);
+> -
+> -err_put_vma:
+> -	exynos_gem_put_vma(g2d_userptr->vma);
+> +err_put_framevec:
+> +	put_vaddr_frames(vec);
+>  
+> -err_free_pages:
+> -	drm_free_large(pages);
+> +err_destroy_framevec:
+> +	frame_vector_destroy(vec);
+>  
+>  err_free:
+>  	kfree(g2d_userptr);
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+> index 0d5b9698d384..47068ae44ced 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+> @@ -378,103 +378,6 @@ int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
+>  	return 0;
+>  }
+>  
+> -struct vm_area_struct *exynos_gem_get_vma(struct vm_area_struct *vma)
+> -{
+> -	struct vm_area_struct *vma_copy;
+> -
+> -	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
+> -	if (!vma_copy)
+> -		return NULL;
+> -
+> -	if (vma->vm_ops && vma->vm_ops->open)
+> -		vma->vm_ops->open(vma);
+> -
+> -	if (vma->vm_file)
+> -		get_file(vma->vm_file);
+> -
+> -	memcpy(vma_copy, vma, sizeof(*vma));
+> -
+> -	vma_copy->vm_mm = NULL;
+> -	vma_copy->vm_next = NULL;
+> -	vma_copy->vm_prev = NULL;
+> -
+> -	return vma_copy;
+> -}
+> -
+> -void exynos_gem_put_vma(struct vm_area_struct *vma)
+> -{
+> -	if (!vma)
+> -		return;
+> -
+> -	if (vma->vm_ops && vma->vm_ops->close)
+> -		vma->vm_ops->close(vma);
+> -
+> -	if (vma->vm_file)
+> -		fput(vma->vm_file);
+> -
+> -	kfree(vma);
+> -}
+> -
+> -int exynos_gem_get_pages_from_userptr(unsigned long start,
+> -						unsigned int npages,
+> -						struct page **pages,
+> -						struct vm_area_struct *vma)
+> -{
+> -	int get_npages;
+> -
+> -	/* the memory region mmaped with VM_PFNMAP. */
+> -	if (vma_is_io(vma)) {
+> -		unsigned int i;
+> -
+> -		for (i = 0; i < npages; ++i, start += PAGE_SIZE) {
+> -			unsigned long pfn;
+> -			int ret = follow_pfn(vma, start, &pfn);
+> -			if (ret)
+> -				return ret;
+> -
+> -			pages[i] = pfn_to_page(pfn);
+> -		}
+> -
+> -		if (i != npages) {
+> -			DRM_ERROR("failed to get user_pages.\n");
+> -			return -EINVAL;
+> -		}
+> -
+> -		return 0;
+> -	}
+> -
+> -	get_npages = get_user_pages(current, current->mm, start,
+> -					npages, 1, 1, pages, NULL);
+> -	get_npages = max(get_npages, 0);
+> -	if (get_npages != npages) {
+> -		DRM_ERROR("failed to get user_pages.\n");
+> -		while (get_npages)
+> -			put_page(pages[--get_npages]);
+> -		return -EFAULT;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> -void exynos_gem_put_pages_to_userptr(struct page **pages,
+> -					unsigned int npages,
+> -					struct vm_area_struct *vma)
+> -{
+> -	if (!vma_is_io(vma)) {
+> -		unsigned int i;
+> -
+> -		for (i = 0; i < npages; i++) {
+> -			set_page_dirty_lock(pages[i]);
+> -
+> -			/*
+> -			 * undo the reference we took when populating
+> -			 * the table.
+> -			 */
+> -			put_page(pages[i]);
+> -		}
+> -	}
+> -}
+> -
+>  int exynos_gem_map_sgt_with_dma(struct drm_device *drm_dev,
+>  				struct sg_table *sgt,
+>  				enum dma_data_direction dir)
+> 
