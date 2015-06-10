@@ -1,177 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:35099 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965238AbbFJSTK (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48646 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753352AbbFJU7j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:19:10 -0400
-MIME-Version: 1.0
-In-Reply-To: <1433754145-12765-9-git-send-email-j.anaszewski@samsung.com>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com> <1433754145-12765-9-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Wed, 10 Jun 2015 11:18:49 -0700
-Message-ID: <CAK5ve-+U97T7UNVHgyiNP42PGKnXeLmAEiyosRTjdZN2UfHe8A@mail.gmail.com>
-Subject: Re: [PATCH v10 8/8] exynos4-is: Add support for v4l2-flash subdevs
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 10 Jun 2015 16:59:39 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Fabien Dessenne <fabien.dessenne@st.com>
+Subject: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
+Date: Wed, 10 Jun 2015 17:59:15 -0300
+Message-Id: <ec9ffbdae3dc024959c02a7f351e40f841c2d3f0.1433969944.git.mchehab@osg.samsung.com>
+In-Reply-To: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+In-Reply-To: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> This patch adds support for external v4l2-flash devices.
-> The support includes parsing "camera-flashes" DT property
-> and asynchronous sub-device registration.
->
+There are several warnings there, on some architectures, related
+to dividing a s32 by a s64 value:
 
-Please go ahead with my Ack
-Acked-by: Bryan Wu <cooloney@gmail.com>
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: passing argument 1 of '__div64_32' from incompatible pointer type  CC [M]  drivers/media/tuners/mt2060.o
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: passing argument 1 of '__div64_32' from incompatible pointer type
 
-Thanks,
--Bryan
+That doesn't make much sense. What the driver is actually trying
+to do is to divide one second by a value. So, check the range
+before dividing. That warrants the right result and will remove
+the warnings on non-64 bits archs.
 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c |   75 ++++++++++++++++++++++++-
->  drivers/media/platform/exynos4-is/media-dev.h |    4 ++
->  2 files changed, 77 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index e3d7b70..e387fd2 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -455,6 +455,63 @@ rpm_put:
->         return ret;
->  }
->
-> +static int fimc_md_register_flash_entities(struct fimc_md *fmd)
-> +{
-> +       struct device_node *parent = fmd->pdev->dev.of_node, *np_sensor,
-> +               *np_flash;
-> +       struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
-> +       struct device *dev = &fmd->pdev->dev;
-> +       struct v4l2_async_subdev *asd;
-> +       int i, j, num_flashes = 0, num_elems;
-> +
-> +       num_elems = of_property_count_u32_elems(parent,
-> +                                               "samsung,camera-flashes");
-> +       /* samsung,camera-flashes property is optional */
-> +       if (num_elems < 0)
-> +               return 0;
-> +
-> +       /* samsung,camera-flashes array must have even number of elements */
-> +       if ((num_elems & 1) || (num_elems > FIMC_MAX_SENSORS * 2))
-> +               return -EINVAL;
-> +
-> +       for (i = 0; i < num_elems; i += 2) {
-> +               /*
-> +                * The pair of camera sensor and flash LED phandles reflects
-> +                * the physical connection on the board, which allows for the
-> +                * camera sensor to strobe the flash by raising a hardware pin.
-> +                * This property just describes the association.
-> +                */
-> +               np_sensor = of_parse_phandle(parent,
-> +                                            "samsung,camera-flashes", i);
-> +
-> +               for (j = 0; j < fmd->num_sensors; j++)
-> +                       if (fmd->async_subdevs.sensors[j].match.of.node ==
-> +                           np_sensor)
-> +                               break;
-> +
-> +               of_node_put(np_sensor);
-> +
-> +               /*
-> +                * If the camera sensor phandle isn't known to the media device
-> +                * controller, then raise a warning only.
-> +                */
-> +               if (j == fmd->num_sensors)
-> +                       dev_warn(dev, "sensor verification failed for a flash\n");
-> +
-> +               np_flash = of_parse_phandle(parent, "samsung,camera-flashes",
-> +                                               i + 1);
-> +
-> +               asd = &fmd->async_subdevs.flashes[num_flashes++];
-> +               asd->match_type = V4L2_ASYNC_MATCH_OF;
-> +               asd->match.of.node = np_flash;
-> +               notifier->subdevs[notifier->num_subdevs++] = asd;
-> +
-> +               of_node_put(np_flash);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static int __of_get_csis_id(struct device_node *np)
->  {
->         u32 reg = 0;
-> @@ -1280,6 +1337,15 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
->         struct fimc_sensor_info *si = NULL;
->         int i;
->
-> +       /*
-> +        * Flash sub-devices are controlled independently of ISP, and thus
-> +        * verify only that the sub-device being matched was previously
-> +        * registered.
-> +        */
-> +       for (i = 0; i < ARRAY_SIZE(async_subdevs->flashes); i++)
-> +               if (&async_subdevs->flashes[i] == asd)
-> +                       return 0;
-> +
->         /* Find platform data for this sensor subdev */
->         for (i = 0; i < ARRAY_SIZE(async_subdevs->sensors); i++)
->                 if (fmd->sensor[i].asd == asd)
-> @@ -1326,13 +1392,18 @@ static int fimc_md_register_async_entities(struct fimc_md *fmd)
->  {
->         struct device *dev = fmd->media_dev.dev;
->         struct v4l2_async_notifier *notifier = &fmd->subdev_notifier;
-> +       int ret;
->
-> -       notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_SENSORS,
-> +       notifier->subdevs = devm_kcalloc(dev, FIMC_MAX_ASYNC_ENTITIES,
->                                         sizeof(*notifier->subdevs), GFP_KERNEL);
->         if (!notifier->subdevs)
->                 return -ENOMEM;
->
-> -       return fimc_md_register_sensor_entities(fmd);
-> +       ret = fimc_md_register_sensor_entities(fmd);
-> +       if (ret)
-> +               return -EINVAL;
-> +
-> +       return fimc_md_register_flash_entities(fmd);
->  }
->
->  static int fimc_md_probe(struct platform_device *pdev)
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-> index ff6d020..be9205c 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.h
-> +++ b/drivers/media/platform/exynos4-is/media-dev.h
-> @@ -33,7 +33,10 @@
->  #define PINCTRL_STATE_IDLE     "idle"
->
->  #define FIMC_MAX_SENSORS       4
-> +#define FIMC_MAX_FLASHES       4
-> +#define FIMC_MAX_ASYNC_ENTITIES        (FIMC_MAX_SENSORS + FIMC_MAX_FLASHES)
->  #define FIMC_MAX_CAMCLKS       2
-> +
->  #define DEFAULT_SENSOR_CLK_FREQ        24000000U
->
->  /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-> @@ -95,6 +98,7 @@ struct fimc_sensor_info {
->
->  struct fimc_async_subdevs {
->         struct v4l2_async_subdev sensors[FIMC_MAX_SENSORS];
-> +       struct v4l2_async_subdev flashes[FIMC_MAX_FLASHES];
->  };
->
->  struct cam_clk {
-> --
-> 1.7.9.5
->
+Also fixes this warning:
+drivers/media/platform/sti/bdisp/bdisp-debug.c:588: warning: comparison of distinct pointer types lacks a cast
+
+by using div64_s64() instead of calling do_div() directly.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+index 7c3a632746ba..3f6f411aafdd 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+@@ -572,6 +572,8 @@ static int bdisp_dbg_regs(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
++#define SECOND 1000000
++
+ static int bdisp_dbg_perf(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+@@ -585,16 +587,27 @@ static int bdisp_dbg_perf(struct seq_file *s, void *data)
+ 	}
+ 
+ 	avg_time_us = bdisp->dbg.tot_duration;
+-	do_div(avg_time_us, request->nb_req);
+-
+-	avg_fps = 1000000;
+-	min_fps = 1000000;
+-	max_fps = 1000000;
+-	last_fps = 1000000;
+-	do_div(avg_fps, avg_time_us);
+-	do_div(min_fps, bdisp->dbg.min_duration);
+-	do_div(max_fps, bdisp->dbg.max_duration);
+-	do_div(last_fps, bdisp->dbg.last_duration);
++	div64_s64(avg_time_us, request->nb_req);
++
++	if (avg_time_us > SECOND)
++		avg_fps = 0;
++	else
++		avg_fps = SECOND / (s32)avg_time_us;
++
++	if (bdisp->dbg.min_duration > SECOND)
++		min_fps = 0;
++	else
++		min_fps = SECOND / (s32)bdisp->dbg.min_duration);
++
++	if (bdisp->dbg.max_duration > SECOND)
++		max_fps = 0;
++	else
++		max_fps = SECOND / (s32)bdisp->dbg.max_duration;
++
++	if (bdisp->dbg.last_duration > SECOND)
++		last_fps = 0;
++	else
++		last_fps = SECOND / (s32)bdisp->dbg.last_duration;
+ 
+ 	seq_printf(s, "HW processing (%d requests):\n", request->nb_req);
+ 	seq_printf(s, " Average: %5lld us  (%3d fps)\n",
+-- 
+2.4.2
+
