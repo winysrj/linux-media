@@ -1,97 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48368 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbbFBCqq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2015 22:46:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	j.anaszewski@samsung.com, cooloney@gmail.com,
-	s.nawrocki@samsung.com, mchehab@osg.samsung.com,
-	g.liakhovetski@gmx.de
-Subject: Re: [PATCH v1.1 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
-Date: Tue, 02 Jun 2015 05:47:12 +0300
-Message-ID: <1668366.2mMvbSMUnT@avalon>
-In-Reply-To: <1433111079-22457-1-git-send-email-sakari.ailus@iki.fi>
-References: <4071589.mUaJIGvIJX@avalon> <1433111079-22457-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38216 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752529AbbFJVf0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 17:35:26 -0400
+Received: by wibdq8 with SMTP id dq8so59130463wib.1
+        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 14:35:24 -0700 (PDT)
+Message-ID: <5578AD9C.7090208@gmail.com>
+Date: Wed, 10 Jun 2015 22:35:24 +0100
+From: Andy Furniss <adf.lists@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt
+ to work when recording.
+References: <556E2D5B.5080201@gmail.com>	<20150610095215.79e5e77e@recife.lan>	<55787382.5010607@gmail.com> <20150610155047.25b92662@recife.lan>
+In-Reply-To: <20150610155047.25b92662@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Mauro Carvalho Chehab wrote:
+> Em Wed, 10 Jun 2015 18:27:30 +0100
+> Andy Furniss <adf.lists@gmail.com> escreveu:
+>
+>> Mauro Carvalho Chehab wrote:
+>>
+>>> Just applied a fix for it:
+>>> 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=c7c9af17163f282a147ea76f1a3c0e9a0a86e7fa
+>>>
+>>> It will retry up to 10 times. This should very likely be enough if the
+>>> driver doesn't have any bug.
+>>>
+>>> Please let me know if this fixes the issue.
+>>
+>> No, it doesn't, so I reverted the above and added back my hack + a
+>> counter as below and it seems to be retrying > a million times.
+>
+> Hmm.... that's likely a bug at the demod driver. It doesn't make much
+> sense to keep a mutex hold for that long.
+>
+> Anyway, I modified the patch to use a timeout of 1 second, instead of
+> trying 10 times. It is still a hack, as IMHO this is a driver bug,
+> but it should produce a better result.
+>
+> Please check if the patch below works for you.
+>
+> You may change the MAX_TIME there if 1 second is not enough.
+>
+> It could be interesting if you add a printf with the difference
+> between start and end time, for us to have an idea about how
+> much time the driver is kept on such unreliable state.
+>
+> Thanks!
+> Mauro
+>
+>
+> [PATCH] libdvbv5: use a timeout for ioctl
+>
+> Some frontends don't play nice: they return -EAGAIN if the
+> device doesn't lock. That actually means that it may take
+> some time for some ioctl's to succeed. On experimental tests,
+> the loop may happen ~2 million times!
+>
+> Well, better to waste power on a loop than to fail. So, let's
+> change the code that detects EAGAIN by a loop that waits up
+> to 1 second.
+>
+> This is not the right thing to do, but the Kernel drivers
+> require fixes. We can do it only for newer versions of the
+> Kernel.
 
-Thank you for the patch. Please see below for one small comment.
+I can't get this to work - it instantly bails -
 
-On Monday 01 June 2015 01:24:39 Sakari Ailus wrote:
-> V4L2 async sub-devices are currently matched (OF case) based on the struct
-> device_node pointer in struct device. LED devices may have more than one
-> LED, and in that case the OF node to match is not directly the device's
-> node, but a LED's node.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> since v1:
-> 
-> - Move conditional setting of struct v4l2_subdev.of_node from
->   v4l2_device_register_subdev() to v4l2_async_register_subdev.
-> 
-> - Remove the check for NULL struct v4l2_subdev.of_node from match_of() as
->   it's no longer needed.
-> 
-> - Unconditionally state in the struct v4l2_subdev.of_node field comment that
-> the field contains (a pointer to) the sub-device's of_node.
-> 
->  drivers/media/v4l2-core/v4l2-async.c | 34 +++++++++++++++++++++------------
->  include/media/v4l2-subdev.h          |  2 ++
->  2 files changed, 24 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> b/drivers/media/v4l2-core/v4l2-async.c index 85a6a34..b0badac 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
+read_sections: read error: Resource temporarily unavailable
+couldn't find pmt-pid for sid 10bf
 
-[snip]
+will try more later/tomorrow.
 
-> @@ -266,6 +273,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  {
->  	struct v4l2_async_notifier *notifier;
-> 
-> +	if (!sd->of_node && sd->dev)
-> +		sd->of_node = sd->dev->of_node;
+I notice there are a couple of suspect bitwise | but changing to || 
+didn't help.
+
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
+> index 867d7b9dddde..af124ae3a7cc 100644
+> --- a/lib/libdvbv5/dvb-demux.c
+> +++ b/lib/libdvbv5/dvb-demux.c
+> @@ -30,6 +30,7 @@
+>   #include <string.h>
+>   #include <unistd.h>
+>   #include <stdio.h>
+> +#include <time.h>
+>   #include <errno.h>
+>
+>   #include <sys/ioctl.h>
+> @@ -40,12 +41,25 @@
+>
+>   #include <libdvbv5/dvb-demux.h>
+>
+> +#define MAX_TIME		10	/* 1.0 seconds */
 > +
-
-I think we don't need to take a reference to of_node here, as we assume 
-there's a reference to dev through the whole life of the subdev, and dev 
-should have a reference to of_node, but could you double-check ?
-
-If that's indeed not a problem,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-(and maybe a small comment in the source code would be useful)
-
->  	mutex_lock(&list_lock);
-> 
->  	INIT_LIST_HEAD(&sd->async_list);
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 8f5da73..8a17c24 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -603,6 +603,8 @@ struct v4l2_subdev {
->  	struct video_device *devnode;
->  	/* pointer to the physical device, if any */
->  	struct device *dev;
-> +	/* A device_node of the subdev, usually the same as dev->of_node. */
-> +	struct device_node *of_node;
->  	/* Links this subdev to a global subdev_list or @notifier->done list. */
->  	struct list_head async_list;
->  	/* Pointer to respective struct v4l2_async_subdev. */
-
--- 
-Regards,
-
-Laurent Pinchart
+>   #define xioctl(fh, request, arg...) ({					\
+> -	int __rc, __retry;						\
+> +	int __rc;							\
+> +	struct timespec __start, __end;					\
+>   									\
+> -	for (__retry = 0; __retry < 10; __retry++) {			\
+> +	clock_gettime(CLOCK_MONOTONIC, &__start);			\
+> +	do {								\
+>   		__rc = ioctl(fh, request, ##arg);			\
+> -	} while (__rc == -1 && ((errno == EINTR) || (errno == EAGAIN)));\
+> +		if (__rc != -1)						\
+> +			break;						\
+> +		if (!((errno == EINTR) | (errno == EAGAIN)))		\
+> +			break;						\
+> +		clock_gettime(CLOCK_MONOTONIC, &__end);			\
+> +		if (__end.tv_sec * 10 + __end.tv_nsec / 100000000 >	\
+> +		    __start.tv_sec * 10 + __start.tv_nsec / 100000000 +	\
+> +		    MAX_TIME)						\
+> +			break;						\
+> +	} while (1);							\
+>   									\
+>   	__rc;								\
+>   })
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index 48b09cd9ceaa..8607401841f2 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -26,6 +26,7 @@
+>   #include <inttypes.h>
+>   #include <math.h>
+>   #include <stddef.h>
+> +#include <time.h>
+>   #include <unistd.h>
+>
+>   #include <config.h>
+> @@ -43,12 +44,25 @@ static int libdvbv5_initialized = 0;
+>
+>   # define N_(string) string
+>
+> +#define MAX_TIME		10	/* 1.0 seconds */
+> +
+>   #define xioctl(fh, request, arg...) ({					\
+> -	int __rc, __retry;						\
+> +	int __rc;							\
+> +	struct timespec __start, __end;					\
+>   									\
+> -	for (__retry = 0; __retry < 10; __retry++) {			\
+> +	clock_gettime(CLOCK_MONOTONIC, &__start);			\
+> +	do {								\
+>   		__rc = ioctl(fh, request, ##arg);			\
+> -	} while (__rc == -1 && ((errno == EINTR) || (errno == EAGAIN)));\
+> +		if (__rc != -1)						\
+> +			break;						\
+> +		if (!((errno == EINTR) | (errno == EAGAIN)))		\
+> +			break;						\
+> +		clock_gettime(CLOCK_MONOTONIC, &__end);			\
+> +		if (__end.tv_sec * 10 + __end.tv_nsec / 100000000 >	\
+> +		    __start.tv_sec * 10 + __start.tv_nsec / 100000000 +	\
+> +		    MAX_TIME)						\
+> +			break;						\
+> +	} while (1);							\
+>   									\
+>   	__rc;								\
+>   })
+>
+>
 
