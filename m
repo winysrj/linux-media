@@ -1,118 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:36547 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbbFHJyy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:54:54 -0400
-Received: by pabqy3 with SMTP id qy3so93758709pab.3
-        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2015 02:54:54 -0700 (PDT)
-Message-ID: <5575666E.90508@igel.co.jp>
-Date: Mon, 08 Jun 2015 18:54:54 +0900
-From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54150 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752015AbbFJVfB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 17:35:01 -0400
+Date: Thu, 11 Jun 2015 00:34:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Bryan Wu <cooloney@gmail.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>, mchehab@osg.samsung.com
+Subject: Re: [PATCH v10 2/8] media: Add registration helpers for V4L2 flash
+ sub-devices
+Message-ID: <20150610213458.GQ5904@valkosipuli.retiisi.org.uk>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+ <1433754145-12765-3-git-send-email-j.anaszewski@samsung.com>
+ <CAK5ve-+FojRu1Ti3doEUJrf+QF-=Hb7ku_wZZEP2TEnS0PK=2g@mail.gmail.com>
+ <CAK5ve-L6MJ0RfE+9Spp1YCu3MZAJSNnK8pBX0bc_G_4dL6812w@mail.gmail.com>
+ <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] V4L2 codecs in user space
-References: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc> <55751D44.6010102@igel.co.jp> <55755168.40108@xs4all.nl>
-In-Reply-To: <55755168.40108@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK5ve-+Yni0P2ZrS-boF9iRs2aqJGB73x87KZdmKckfe650N0Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Bryan,
 
-Thank you for your comments,
-On 2015-06-08 5:25 PM, Hans Verkuil wrote:
-> Hi Damian,
+On Wed, Jun 10, 2015 at 11:12:50AM -0700, Bryan Wu wrote:
+> On Wed, Jun 10, 2015 at 11:01 AM, Bryan Wu <cooloney@gmail.com> wrote:
+> > On Wed, Jun 10, 2015 at 10:57 AM, Bryan Wu <cooloney@gmail.com> wrote:
+> >> On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
+> >> <j.anaszewski@samsung.com> wrote:
+> >>> This patch adds helper functions for registering/unregistering
+> >>> LED Flash class devices as V4L2 sub-devices. The functions should
+> >>> be called from the LED subsystem device driver. In case the
+> >>> support for V4L2 Flash sub-devices is disabled in the kernel
+> >>> config the functions' empty versions will be used.
+> >>>
+> >>
+> >> Please go ahead with my Ack
+> >>
+> >> Acked-by: Bryan Wu <cooloney@gmail.com>
+> >>
+> >
+> > I found the rest of LED patches depend on this one. What about merging
+> > this through my tree?
+> >
+> > -Bryan
+> >
+> >
 > 
-> On 06/08/2015 06:42 AM, Damian Hobson-Garcia wrote:
->> Hello again,
->>
->> On 2015-06-02 10:40 AM, Damian Hobson-Garcia wrote:
->>> Hello All,
->>>
->>> I would like to ask for some comments about a plan to use user space
->>> video codecs through the V4L interface.  I am thinking of a situation
->>> similar to the one described on the linuxtv.org wiki at
->>> http://www.linuxtv.org/wiki/index.php/V4L2_Userspace_Library
->>>
->>> The basic premise is to use a FUSE-like driver to connect the standard
->>> V4L2 api to a user space daemon that will work as an mem-to-mem driver
->>> for decoding/encoding, compression/decompression and the like.  This
->>> allows for codecs that are either partially or wholly implemented in
->>> user space to be exposed through the standard kernel interface.
->>>
->>> Before I dive in to implementing this I was hoping to get some comments
->>> regarding the following:
->>>
->>> 1. I haven't been able to find any implementation of the design
->>> described in the wiki page.  Would anyone know if I have missed it? 
->>> Does this exist somewhere, even in part? It seems like that might be a
->>> good place to start if possible.
->>>
->>> 2. I think that this could be implemented as either an extension to FUSE
->>> (like CUSE) or as a V4L2 device driver (that forwards requests through
->>> the FUSE API).  I think that the V4L2  device driver would be
->>> sufficient, but would the fact that there is no specific hardware tied
->>> to it be an issue?  Should it instead be presented as a more generic
->>> device?
->>>
->>> 3. And of course anything else that comes to mind.
->>
->> I've been advised that implementing kernel APIs is userspace is probably
->> not the most linux-friendly way to go about things and would most likely
->> not be accepted into the kernel.  I can see the logic of
->> that statement, but I was wondering if I could confirm that here. Is
->> this type of design a bad idea?
-> 
-> Writing userspace drivers for hardware components is certainly not something
-> we want to see. The kernel is the gateway between userspace and hardware, so
-> the kernel is the one that controls the hardware. There are some exceptions
-> (printers and scanners come to mind), but by and large this rule holds.
-> 
-I see, thank you.
+> Merged into my -devel branch and it won't be merged into 4.2.0 merge
+> window but wait for one more cycle, since now it's quite late in 4.1.0
+> cycle.
 
-> But you want to do something different if I understand correctly: you want to
-> make a V4L2 API to interface to userspace codecs. That does not affect the kernel
-> at all, and I see no reason why this can't be done.
-> 
-> Basically libv4l2 allows the concept of plugins where all open/close/ioctl/etc.
-> operations go through the plugin. Today plugins interface with a kernel V4L2
-> driver, but it is also possible to make a plugin that is completely in userspace.
-> 
-> Nobody ever did it, but we discussed it in the past. The only problem is that
-> since there is no actual /dev/videoX device, what do you specify here? Perhaps
-> a predefined /dev/video-<codecname>X 'device name'?
+Thanks!!
 
-I suppose that I would also need to do something for mmap buffers as
-well, since mmap() is not part of the plugin API.  I guess I could try
-to abuse the fake mmap used by the libv4lconvert, but that might get
-messy if an application requests a different pixel format from what the
-codec delivers.
+I briefly discussed this with Mauro (cc'd), this should be fine indeed.
 
-Thank you,
-Damian
+-- 
+Kind regards,
 
-> 
-> There is currently only one plugin that is part of v4l-utils:
-> v4l-utils/lib/libv4l-mplane
-> 
-> That might be a good starting point.
-> 
-> Hope this helps,
-> 
-> Regards,
-> 
-> 	Hans
-> 
->> Also, if this method is not recommended, should there be a 1-2 line
->> disclaimer on the "V4L2_Userspace_Library" wiki page that mentions this?
->>
->> Thank you,
->> Damian
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
