@@ -1,44 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vssvalzbety.sk ([109.74.156.59]:59510 "EHLO vssvalzbety.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932755AbbFRRyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 13:54:04 -0400
-Message-ID: <20c798e0b14abd05551913484c60fdb3.squirrel@webmail.vssvalzbety.sk>
-Date: Thu, 18 Jun 2015 16:34:30 +0200
-Subject: Kedves Email =?iso-8859-1?Q?felhaszn=E1l=F3i;?=
-From: =?iso-8859-1?Q?=22rendszer_Administrator=AE=22?=
-	<fizik@vssvalzbety.sk>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from bombadil.infradead.org ([198.137.202.9]:37069 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933562AbbFJJVV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 05:21:21 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/9] Helper to abstract vma handling in media layer
+Date: Wed, 10 Jun 2015 06:20:43 -0300
+Message-Id: <cover.1433927458.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Andrew,
 
+I received this patch series with a new set of helper functions for
+mm, together with changes for media and DRM drivers.
 
+As this stuff is actually mm code, I prefer if this got merged via
+your tree.
 
-	Kedves Email felhasználói;
+Could you please handle it? Please notice that patch 8 actually changes
+the exynos DRM driver, but it misses ack from DRM people.
 
-Túllépte a határt 23432 tárolása a megadott e-mail fiókkal által beállított
-Web Service / Administrator, és akkor sikerül a küldo
-és a bejövo üzenetek, amíg meg újból érvényesíti az e-mail címre. A
-szükséges eljárások
-nyújtottak be az alábbiakban a nézetet, ellenorizze kattintva
-Az alábbi linkre és töltse ki az információt, hogy érvényesítse az e-mail
-címre.
+Regards,
+Mauro
 
-Kérjük, kattintson ide
+Jan Kara (9):
+  mm: Provide new get_vaddr_frames() helper
+  [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use
+    get_vaddr_pfns()
+  [media] vb2: Provide helpers for mapping virtual addresses
+  [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame
+    vector
+  [media] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame
+    vector
+  [media] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
+  [media] media: vb2: Remove unused functions
+  [media] drm/exynos: Convert g2d_userptr_get_dma_addr() to use
+    get_vaddr_frames()
+  [media] mm: Move get_vaddr_frames() behind a config option
 
-http://mailupopsteyq.jigsy.com/
+ drivers/gpu/drm/exynos/Kconfig                 |   1 +
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  95 ++++------
+ drivers/gpu/drm/exynos/exynos_drm_gem.c        |  97 -----------
+ drivers/media/platform/omap/Kconfig            |   1 +
+ drivers/media/platform/omap/omap_vout.c        |  69 ++++----
+ drivers/media/v4l2-core/Kconfig                |   1 +
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 214 ++++-------------------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |  99 ++---------
+ drivers/media/v4l2-core/videobuf2-memops.c     | 156 ++++++-----------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |  92 ++++------
+ include/linux/mm.h                             |  44 +++++
+ include/media/videobuf2-memops.h               |  11 +-
+ mm/Kconfig                                     |   3 +
+ mm/Makefile                                    |   1 +
+ mm/frame_vector.c                              | 232 +++++++++++++++++++++++++
+ mm/gup.c                                       |   1 +
+ 16 files changed, 486 insertions(+), 631 deletions(-)
+ create mode 100644 mm/frame_vector.c
 
-
-Hogy növelje az e-mail kvóta az e-mail.
-Figyelem !!!
-Ennek elmulasztása azt hozzáférés a postaládába.
-Ha nem frissíti véve három napon belül a frissítés
-értesítést, akkor figyelembe kell végleg.
-
-Üdvözlettel,
-rendszer Administrator®
+-- 
+2.4.2
 
