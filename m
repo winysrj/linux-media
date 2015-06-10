@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51466 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751256AbbFYJMj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:12:39 -0400
-Date: Thu, 25 Jun 2015 12:12:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] v4l2-event: v4l2_event_queue: do nothing if vdev == NULL
-Message-ID: <20150625091236.GH5904@valkosipuli.retiisi.org.uk>
-References: <558924D7.4010904@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:41051 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933244AbbFJMwU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2015 08:52:20 -0400
+Date: Wed, 10 Jun 2015 09:52:15 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Andy Furniss <adf.lists@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt to work
+ when recording.
+Message-ID: <20150610095215.79e5e77e@recife.lan>
+In-Reply-To: <556E2D5B.5080201@gmail.com>
+References: <556E2D5B.5080201@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <558924D7.4010904@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Tue, 02 Jun 2015 23:25:31 +0100
+Andy Furniss <adf.lists@gmail.com> escreveu:
 
-On Tue, Jun 23, 2015 at 11:20:23AM +0200, Hans Verkuil wrote:
-> If the vdev pointer == NULL, then just return.
+> Running kernel 3.18.14 with git master v4l-utils and a pctv290e + a 292e.
 > 
-> This makes it easier for subdev drivers to use this function without having to
-> check if the sd->devnode pointer is NULL or not.
+> If I try to record with dvbv5-zap and include the "p" option to get
+> pat/pmt I get -
+> 
+> read_sections: read error: Resource temporarily unavailable
+> couldn't find pmt-pid for sid 10bf
+> 
+> Doing this this fixes it for me (obviously not meant to be a a proper 
+> patch).
 
-Do you have an example of when this would be useful? Isn't it a rather
-fundamental question to a driver whether or not it exposes a device node,
-i.e. why would a driver use v4l2_event_queue() in the first place if it does
-not expose a device node, and so the event interface?
+You forgot to send your Signed-off-by on this patch ;)
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 8761aab..8d3171c 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -172,6 +172,9 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
->  	unsigned long flags;
->  	struct timespec timestamp;
-> 
-> +	if (vdev == NULL)
-> +		return;
-> +
->  	ktime_get_ts(&timestamp);
-> 
->  	spin_lock_irqsave(&vdev->fh_lock, flags);
+Anyway, there are other places where EAGAIN may happen. So, the best
+is to fix it globally.
 
--- 
+Just applied a fix for it:
+	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=c7c9af17163f282a147ea76f1a3c0e9a0a86e7fa
+
+It will retry up to 10 times. This should very likely be enough if the
+driver doesn't have any bug.
+
+Please let me know if this fixes the issue.
+
 Regards,
+Mauro
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
+> diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
+> index 30d4eda..b520948 100644
+> --- a/lib/libdvbv5/dvb-demux.c
+> +++ b/lib/libdvbv5/dvb-demux.c
+> @@ -151,8 +151,10 @@ int dvb_get_pmt_pid(int patfd, int sid)
+>                  if (((count = read(patfd, buf, sizeof(buft))) < 0) && 
+> errno == EOVERFLOW)
+>                  count = read(patfd, buf, sizeof(buft));
+>                  if (count < 0) {
+> -               perror("read_sections: read error");
+> -               return -1;
+> +                       if (errno == EAGAIN) /*ADF*/
+> +                               continue;
+> +                       perror("read_sections: read error");
+> +                       return -1;
+>                  }
+> 
+>                  section_length = ((buf[1] & 0x0f) << 8) | buf[2];
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
