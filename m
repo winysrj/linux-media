@@ -1,72 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:33943 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbbFWHjR (ORCPT
+Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:41589 "EHLO
+	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932711AbbFJOWD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2015 03:39:17 -0400
-Date: Tue, 23 Jun 2015 09:39:12 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com,
-	fengguang.wu@intel.com, linux-media@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: [PATCH 2/2] x86/mm/pat, drivers/media/ivtv: replace WARN() with
- pr_warn()
-Message-ID: <20150623073911.GB21872@gmail.com>
-References: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
- <1435012318-381-3-git-send-email-mcgrof@do-not-panic.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435012318-381-3-git-send-email-mcgrof@do-not-panic.com>
+	Wed, 10 Jun 2015 10:22:03 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
+	damien@zamaudio.com, chris.j.arges@canonical.com,
+	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
+	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
+	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 1/2] media: media controller entity framework enhancements for ALSA
+Date: Wed, 10 Jun 2015 08:21:56 -0600
+Message-Id: <3f740931e63a551c75aeed1c36955c468d448ef2.1433904553.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1433904553.git.shuahkh@osg.samsung.com>
+References: <cover.1433904553.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1433904553.git.shuahkh@osg.samsung.com>
+References: <cover.1433904553.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a new media entity operation register_notify is added
+to media_entity_operations structure. This hook is called
+from media_device_register_entity() whenever a new entity
+is registered to notify other entities attached to that
+media device of the newly created entity. Entity owners
+can register the hook to create links and take any other
+action when a new entity is registered. A new field is
+added to the struct media_entity for entity owners to save
+their private data that is used in the register_notify hook.
 
-* Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 7 +++++++
+ include/media/media-entity.h | 4 ++++
+ 2 files changed, 11 insertions(+)
 
-> From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> 
-> On built-in kernels this will always splat. Fix that.
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> ---
->  drivers/media/pci/ivtv/ivtvfb.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> index 4cb365d..6f0c364 100644
-> --- a/drivers/media/pci/ivtv/ivtvfb.c
-> +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> @@ -38,6 +38,8 @@
->      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/kernel.h>
->  #include <linux/fb.h>
-> @@ -1266,8 +1268,8 @@ static int __init ivtvfb_init(void)
->  	int err;
->  
->  #ifdef CONFIG_X86_64
-> -	if (WARN(pat_enabled(),
-> -		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
-> +	if (pat_enabled()) {
-> +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
->  		return -ENODEV;
->  	}
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c55ab50..76590ba 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -428,6 +428,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity *eptr;
++
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->parent != NULL);
+ 	entity->parent = mdev;
+@@ -440,6 +442,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	list_add_tail(&entity->list, &mdev->entities);
+ 	spin_unlock(&mdev->lock);
+ 
++	media_device_for_each_entity(eptr, mdev) {
++		if (eptr != entity)
++			media_entity_call(eptr, register_notify);
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0c003d8..0bc4c2f 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -46,6 +46,7 @@ struct media_pad {
+ 
+ /**
+  * struct media_entity_operations - Media entity operations
++ * @register_notify	Notify entity of newly registered entity
+  * @link_setup:		Notify the entity of link changes. The operation can
+  *			return an error, in which case link setup will be
+  *			cancelled. Optional.
+@@ -54,6 +55,7 @@ struct media_pad {
+  *			validates all links by calling this operation. Optional.
+  */
+ struct media_entity_operations {
++	int (*register_notify)(struct media_entity *entity);
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+ 			  const struct media_pad *remote, u32 flags);
+@@ -101,6 +103,8 @@ struct media_entity {
+ 		/* Sub-device specifications */
+ 		/* Nothing needed yet */
+ 	} info;
++
++	void *private;			/* private data for the entity */
+ };
+ 
+ static inline u32 media_entity_type(struct media_entity *entity)
+-- 
+2.1.4
 
-So why should a built-in kernel bzImage with this driver enabled but the driver 
-not present print this warning?
-
-Why not only print in a code path where we know the hardware is present? 
-
-allyesconfig bootups are noisy enough as-is ...
-
-Thanks,
-
-	Ingo
