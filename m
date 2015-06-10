@@ -1,98 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50761 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755981AbbFCOAL (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37102 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754232AbbFJJVW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:11 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 10/15] media: rcar_vin: Use correct pad number in try_fmt
-Date: Wed,  3 Jun 2015 14:59:57 +0100
-Message-Id: <1433340002-1691-11-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Wed, 10 Jun 2015 05:21:22 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabian Frederick <fabf@skynet.be>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 2/9] [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
+Date: Wed, 10 Jun 2015 06:20:45 -0300
+Message-Id: <0bec810973e08df0e66260e84d2dcea055a3fad7.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix rcar_vin_try_fmt to use the correct pad number when calling the
-subdev set_fmt. Previously pad number 0 was always used, resulting in
-EINVAL if the subdev cares about the pad number (e.g. ADV7612).
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+hand made mapping of virtual address to physical address. Also the
+function leaked page reference from get_user_pages() so fix that by
+properly release the reference when omap_vout_buffer_release() is
+called.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 00c1034..cc993bc 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1697,7 +1697,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct v4l2_subdev_pad_config pad_cfg;
-+	struct v4l2_subdev_pad_config *pad_cfg;
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_TRY,
- 	};
-@@ -1706,6 +1706,8 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	int width, height;
- 	int ret;
- 
-+	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (!xlate) {
- 		xlate = icd->current_fmt;
-@@ -1734,10 +1736,15 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	mf->code = xlate->code;
- 	mf->colorspace = pix->colorspace;
- 
--	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
--					 pad, set_fmt, &pad_cfg, &format);
--	if (ret < 0)
-+	format.pad = icd->src_pad_idx;
-+	ret = v4l2_device_call_until_err(sd->v4l2_dev,
-+					soc_camera_grp_id(icd), pad,
-+					set_fmt, pad_cfg,
-+					&format);
-+	if (ret < 0) {
-+		v4l2_subdev_free_pad_config(pad_cfg);
- 		return ret;
-+	}
- 
- 	/* Adjust only if VIN cannot scale */
- 	if (pix->width > mf->width * 2)
-@@ -1759,13 +1766,15 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			 */
- 			mf->width = VIN_MAX_WIDTH;
- 			mf->height = VIN_MAX_HEIGHT;
-+			format.pad = icd->src_pad_idx;
- 			ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 							 soc_camera_grp_id(icd),
--							 pad, set_fmt, &pad_cfg,
-+							 pad, set_fmt, pad_cfg,
- 							 &format);
- 			if (ret < 0) {
- 				dev_err(icd->parent,
- 					"client try_fmt() = %d\n", ret);
-+				v4l2_subdev_free_pad_config(pad_cfg);
- 				return ret;
- 			}
- 		}
-@@ -1776,6 +1785,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			pix->height = height;
- 	}
- 
-+	v4l2_subdev_free_pad_config(pad_cfg);
- 	return ret;
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[hans.verkuil@cisco.com: remove unused struct omap_vout_device *vout variable]
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index f09c5f17a42f..7feb6394f111 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
  }
  
+ /*
+- * omap_vout_uservirt_to_phys: This inline function is used to convert user
+- * space virtual address to physical address.
++ * omap_vout_get_userptr: Convert user space virtual address to physical
++ * address.
+  */
+-static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
++static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
++				 u32 *physp)
+ {
+-	unsigned long physp = 0;
+-	struct vm_area_struct *vma;
+-	struct mm_struct *mm = current->mm;
++	struct frame_vector *vec;
++	int ret;
+ 
+ 	/* For kernel direct-mapped memory, take the easy way */
+-	if (virtp >= PAGE_OFFSET)
+-		return virt_to_phys((void *) virtp);
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(mm, virtp);
+-	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+-		/* this will catch, kernel-allocated, mmaped-to-usermode
+-		   addresses */
+-		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+-		up_read(&current->mm->mmap_sem);
+-	} else {
+-		/* otherwise, use get_user_pages() for general userland pages */
+-		int res, nr_pages = 1;
+-		struct page *pages;
++	if (virtp >= PAGE_OFFSET) {
++		*physp = virt_to_phys((void *)virtp);
++		return 0;
++	}
+ 
+-		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+-				0, &pages, NULL);
+-		up_read(&current->mm->mmap_sem);
++	vec = frame_vector_create(1);
++	if (!vec)
++		return -ENOMEM;
+ 
+-		if (res == nr_pages) {
+-			physp =  __pa(page_address(&pages[0]) +
+-					(virtp & ~PAGE_MASK));
+-		} else {
+-			printk(KERN_WARNING VOUT_NAME
+-					"get_user_pages failed\n");
+-			return 0;
+-		}
++	ret = get_vaddr_frames(virtp, 1, true, false, vec);
++	if (ret != 1) {
++		frame_vector_destroy(vec);
++		return -EINVAL;
+ 	}
++	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
++	vb->priv = vec;
+ 
+-	return physp;
++	return 0;
+ }
+ 
+ /*
+@@ -784,11 +772,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 	 * address of the buffer
+ 	 */
+ 	if (V4L2_MEMORY_USERPTR == vb->memory) {
++		int ret;
++
+ 		if (0 == vb->baddr)
+ 			return -EINVAL;
+ 		/* Physical address */
+-		vout->queued_buf_addr[vb->i] = (u8 *)
+-			omap_vout_uservirt_to_phys(vb->baddr);
++		ret = omap_vout_get_userptr(vb, vb->baddr,
++				(u32 *)&vout->queued_buf_addr[vb->i]);
++		if (ret < 0)
++			return ret;
+ 	} else {
+ 		unsigned long addr, dma_addr;
+ 		unsigned long size;
+@@ -834,12 +826,13 @@ static void omap_vout_buffer_queue(struct videobuf_queue *q,
+ static void omap_vout_buffer_release(struct videobuf_queue *q,
+ 			    struct videobuf_buffer *vb)
+ {
+-	struct omap_vout_device *vout = q->priv_data;
+-
+ 	vb->state = VIDEOBUF_NEEDS_INIT;
++	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
++		struct frame_vector *vec = vb->priv;
+ 
+-	if (V4L2_MEMORY_MMAP != vout->memory)
+-		return;
++		put_vaddr_frames(vec);
++		frame_vector_destroy(vec);
++	}
+ }
+ 
+ /*
 -- 
-1.7.10.4
+2.4.2
 
