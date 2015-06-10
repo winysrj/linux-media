@@ -1,90 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:61074 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756696AbbFPJho (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:33939 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751681AbbFJWQ3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 05:37:44 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC PATCH 2/2] v4l2-utils: extend set-dv-timing options for RB version
-Date: Tue, 16 Jun 2015 15:00:31 +0530
-Message-Id: <1434447031-21434-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1434447031-21434-1-git-send-email-prladdha@cisco.com>
-References: <1434447031-21434-1-git-send-email-prladdha@cisco.com>
+	Wed, 10 Jun 2015 18:16:29 -0400
+Received: by wibut5 with SMTP id ut5so60400110wib.1
+        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 15:16:28 -0700 (PDT)
+Message-ID: <5578B73C.2070608@gmail.com>
+Date: Wed, 10 Jun 2015 23:16:28 +0100
+From: Andy Furniss <adf.lists@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt
+ to work when recording.
+References: <556E2D5B.5080201@gmail.com>	<20150610095215.79e5e77e@recife.lan>	<55787382.5010607@gmail.com>	<20150610155047.25b92662@recife.lan> <20150610171732.49e60671@recife.lan>
+In-Reply-To: <20150610171732.49e60671@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support the timings calculations for reduced blanking version 2
-(RB v2), extended the command line options to include flag indicating
-whether to use RB V2 or not. Updated the command usage for the same.
+Mauro Carvalho Chehab wrote:
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- utils/v4l2-ctl/v4l2-ctl-stds.cpp | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+> Actually, there was an error on that patch. I did some tests here
+> with a PCTV 292e. While I was not able to reproduce the issue you're
+> reporting, I forced some errors. The patch should be working. The
+> only question is if 1 second is enough or not.
+>
+> So, please test.
+>
+> PS.: the patch was already merged upstream.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-index c0e919b..9734c80 100644
---- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-@@ -41,7 +41,10 @@ void stds_usage(void)
- 	       "                     index=<index>: use the index as provided by --list-dv-timings\n"
- 	       "                     or specify timings using cvt/gtf options as follows:\n"
- 	       "                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>\n"
--	       "                     interlaced=<0/1>,reduced-blanking=<0/1>\n"
-+	       "                     interlaced=<0/1>,reduced-blanking=<0/1>,use-rb-v2=<0/1>\n"
-+	       "                     use-rb-v2 indicates whether to use reduced blanking version 2\n"
-+	       "                     or not. This flag is relevant only for cvt timings and has\n"
-+	       "                     effect only if reduced-blanking=1\n"
- 	       "                     or give a fully specified timings:\n"
- 	       "                     width=<width>,height=<height>,interlaced=<0/1>,\n"
- 	       "                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,\n"
-@@ -148,6 +151,7 @@ enum timing_opts {
- 	GTF,
- 	FPS,
- 	REDUCED_BLANK,
-+	USE_RB_V2,
- };
- 
- static int parse_timing_subopt(char **subopt_str, int *value)
-@@ -175,6 +179,7 @@ static int parse_timing_subopt(char **subopt_str, int *value)
- 		"gtf",
- 		"fps",
- 		"reduced-blanking",
-+		"use-rb-v2",
- 		NULL
- 	};
- 
-@@ -205,6 +210,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 	int fps = 0;
- 	int r_blank = 0;
- 	int interlaced = 0;
-+	int use_rb_v2 = 0;
- 
- 	bool timings_valid = false;
- 
-@@ -231,6 +237,8 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 		case INTERLACED:
- 			interlaced = opt_val;
- 			break;
-+		case USE_RB_V2:
-+			use_rb_v2 = opt_val;
- 		default:
- 			break;
- 		}
-@@ -240,7 +248,8 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 		timings_valid = calc_cvt_modeline(width, height, fps,
- 			              r_blank == 1 ? true : false,
- 			              interlaced == 1 ? true : false,
--			              false, bt);
-+			              use_rb_v2 == 1 ? true : false,
-+			              bt);
- 	} else {
- 		timings_valid = calc_gtf_modeline(width, height, fps,
- 			              r_blank == 1 ? true : false,
--- 
-1.9.1
+OK testing clean updated tree - it still instantly bails.
+
+I am a bit confused how these patches would help - I am getting the
+EAGAIN on the data read in dvb_get_pmt_pid not the ioctl.
+
+Maybe this read should be delayed until lock is stable like the actual
+recording seems to be?
 
