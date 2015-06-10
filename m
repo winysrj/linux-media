@@ -1,81 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54754 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531AbbFHTyc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:32 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 08/26] [media] DocBook: Better document DTMB time interleaving
-Date: Mon,  8 Jun 2015 16:53:52 -0300
-Message-Id: <a1c2c681e86953471925aa57f0a6f80e920f92f9.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56683 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbbFJBSt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2015 21:18:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dennis Chen <barracks510@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] USB: uvc: add support for the Microsoft Surface Pro 3 Cameras
+Date: Wed, 10 Jun 2015 04:19:24 +0300
+Message-ID: <2450709.nghA4lNjjK@avalon>
+In-Reply-To: <1433898546.11979.6.camel@gmail.com>
+References: <1433879614.3036.3.camel@gmail.com> <3765742.rat6LA2JPE@avalon> <1433898546.11979.6.camel@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DTMB time interleaving was not properly documented. Add
-a documentation for it.
+Hi Dennis,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thank you for the patch.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 816d5ac56164..33f2313aca07 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -1068,15 +1068,37 @@ typedef enum atscmh_sccc_code_mode {
- 	</section>
- 	<section id="DTV-INTERLEAVING">
- 	<title><constant>DTV_INTERLEAVING</constant></title>
--	<para id="fe-interleaving">Interleaving mode</para>
--	<programlisting>
--enum fe_interleaving {
--	INTERLEAVING_NONE,
--	INTERLEAVING_AUTO,
--	INTERLEAVING_240,
--	INTERLEAVING_720,
--};
--	</programlisting>
-+
-+<para>Time interleaving to be used. Currently, used only on DTMB.</para>
-+
-+<table pgwide="1" frame="none" id="fe-interleaving">
-+    <title>enum fe_interleaving</title>
-+    <tgroup cols="2">
-+	&cs-def;
-+	<thead>
-+	<row>
-+	    <entry>ID</entry>
-+	    <entry>Description</entry>
-+	</row>
-+	</thead>
-+	<tbody valign="top">
-+	<row>
-+	    <entry id="INTERLEAVING-NONE"><constant>INTERLEAVING_NONE</constant></entry>
-+	    <entry>No interleaving.</entry>
-+	</row><row>
-+	    <entry id="INTERLEAVING-AUTO"><constant>INTERLEAVING_AUTO</constant></entry>
-+	    <entry>Auto-detect interleaving.</entry>
-+	</row><row>
-+	    <entry id="INTERLEAVING-240"><constant>INTERLEAVING_240</constant></entry>
-+	    <entry>Interleaving of 240 symbols.</entry>
-+	</row><row>
-+	    <entry id="INTERLEAVING-720"><constant>INTERLEAVING_720</constant></entry>
-+	    <entry>Interleaving of 720 symbols.</entry>
-+	</row>
-+        </tbody>
-+    </tgroup>
-+</table>
-+
- 	</section>
- 	<section id="DTV-LNA">
- 	<title><constant>DTV_LNA</constant></title>
+On Tuesday 09 June 2015 18:09:06 Dennis Chen wrote:
+> Add support for the Microsoft Surface Pro 3 Cameras.
+
+Is this needed ? Looking at the patch your cameras are UVC-compliant and 
+should thus be picked by the uvcvideo driver without any change to the code.
+
+> Signed-off-by: Dennis Chen <barracks510@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 5970dd6..ec5a407 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -2538,6 +2538,22 @@ static struct usb_device_id uvc_ids[] = {
+>           .bInterfaceSubClass   = 1,
+>           .bInterfaceProtocol   = 0,
+>           .driver_info          = UVC_QUIRK_FORCE_Y8 },
+> +       /*Microsoft Surface Pro 3 Front Camera*/
+> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
+> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
+> +         .idVendor             = 0x045e,
+> +         .idProduct            = 0x07be,
+> +         .bInterfaceClass      = USB_CLASS_VIDEO,
+> +         .bInterfaceSubClass   = 1,
+> +         .bInterfaceProtocol   = 1 },
+> +       /* Microsoft Surface Pro 3 Rear */
+> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
+> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
+> +         .idVendor             = 0x045e,
+> +         .idProduct            = 0x07bf,
+> +         .bInterfaceClass      = USB_CLASS_VIDEO,
+> +         .bInterfaceSubClass   = 1,
+> +         .bInterfaceProtocol   = 1 },
+>         /* Generic USB Video Class */
+>         { USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
+>         {}
+
 -- 
-2.4.2
+Regards,
+
+Laurent Pinchart
 
