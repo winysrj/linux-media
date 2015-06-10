@@ -1,112 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:37287 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732AbbFXPLu (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:36304 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbbFJSV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 11:11:50 -0400
-Received: by wicgi11 with SMTP id gi11so49608718wic.0
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:49 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 11/12] [media] tsin: c8sectpfe: Add Kconfig and Makefile for the driver.
-Date: Wed, 24 Jun 2015 16:11:09 +0100
-Message-Id: <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	Wed, 10 Jun 2015 14:21:28 -0400
+MIME-Version: 1.0
+In-Reply-To: <1433754145-12765-2-git-send-email-j.anaszewski@samsung.com>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com> <1433754145-12765-2-git-send-email-j.anaszewski@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Wed, 10 Jun 2015 11:21:07 -0700
+Message-ID: <CAK5ve-JDncP+f89svGw-yugaJb1o-Ywr-ngf0ejnw7FS1amrag@mail.gmail.com>
+Subject: Re: [PATCH v10 1/8] Documentation: leds: Add description of
+ v4l2-flash sub-device
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the Kconfig and Makefile for the c8sectpfe driver
-so it will be built. It also selects additional demodulator and tuners
-which are required by the supported NIM cards.
+On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> This patch extends LED Flash class documention by
+> the description of interactions with v4l2-flash sub-device.
+>
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- drivers/media/Kconfig                 |  1 +
- drivers/media/Makefile                |  1 +
- drivers/media/tsin/c8sectpfe/Kconfig  | 26 ++++++++++++++++++++++++++
- drivers/media/tsin/c8sectpfe/Makefile | 11 +++++++++++
- 4 files changed, 39 insertions(+)
- create mode 100644 drivers/media/tsin/c8sectpfe/Kconfig
- create mode 100644 drivers/media/tsin/c8sectpfe/Makefile
+Merged into my -devel branch and it won't be merged into 4.2.0 merge
+window but wait for one more cycle, since now it's quite late in 4.1.0
+cycle.
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 1570992..82bc1dc 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -170,6 +170,7 @@ source "drivers/media/pci/Kconfig"
- source "drivers/media/platform/Kconfig"
- source "drivers/media/mmc/Kconfig"
- source "drivers/media/radio/Kconfig"
-+source "drivers/media/tsin/c8sectpfe/Kconfig"
- 
- comment "Supported FireWire (IEEE 1394) Adapters"
- 	depends on DVB_CORE && FIREWIRE
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..0a567b8 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -29,5 +29,6 @@ obj-y += rc/
- #
- 
- obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
-+obj-$(CONFIG_DVB_C8SECTPFE) += tsin/c8sectpfe/
- obj-$(CONFIG_VIDEO_DEV) += radio/
- 
-diff --git a/drivers/media/tsin/c8sectpfe/Kconfig b/drivers/media/tsin/c8sectpfe/Kconfig
-new file mode 100644
-index 0000000..8d99a87
---- /dev/null
-+++ b/drivers/media/tsin/c8sectpfe/Kconfig
-@@ -0,0 +1,26 @@
-+config DVB_C8SECTPFE
-+	tristate "STMicroelectronics C8SECTPFE DVB support"
-+	depends on DVB_CORE && I2C && (ARCH_STI || ARCH_MULTIPLATFORM)
-+	select DVB_LNBP21 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV090x if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STB6100 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV6110 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV0900 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_STV0367 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_PLL if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_TDA18212 if MEDIA_SUBDRV_AUTOSELECT
-+
-+	---help---
-+	  This adds support for DVB front-end cards connected
-+	  to TS inputs of STiH407/410 SoC.
-+
-+	  The driver currently supports C8SECTPFE's TS input block,
-+	  memdma engine, and HW PID filtering.
-+
-+	  Supported DVB front-end cards are:
-+	  - STMicroelectronics DVB-T B2100A (STV0367 + TDA18212)
-+	  - STMicroelectronics DVB-T STV0367 PLL board (STV0367 + DTT7546X)
-+	  - STMicroelectronics DVB-S/S2 STV0903 + STV6110 + LNBP24 board
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called c8sectpfe.
-diff --git a/drivers/media/tsin/c8sectpfe/Makefile b/drivers/media/tsin/c8sectpfe/Makefile
-new file mode 100644
-index 0000000..777f06d
---- /dev/null
-+++ b/drivers/media/tsin/c8sectpfe/Makefile
-@@ -0,0 +1,11 @@
-+c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o
-+
-+obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
-+
-+ifneq ($(CONFIG_DVB_C8SECTPFE),)
-+	c8sectpfe-y += c8sectpfe-debugfs.o
-+endif
-+
-+ccflags-y += -Idrivers/media/i2c
-+ccflags-y += -Idrivers/media/common
-+ccflags-y += -Idrivers/media/dvb-core/ -Idrivers/media/dvb-frontends/ -Idrivers/media/tuners/
--- 
-1.9.1
+Thanks,
+-Bryan
 
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> ---
+>  Documentation/leds/leds-class-flash.txt |   51 +++++++++++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>
+> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
+> index 19bb673..8da3c6f 100644
+> --- a/Documentation/leds/leds-class-flash.txt
+> +++ b/Documentation/leds/leds-class-flash.txt
+> @@ -20,3 +20,54 @@ Following sysfs attributes are exposed for controlling flash LED devices:
+>         - max_flash_timeout
+>         - flash_strobe
+>         - flash_fault
+> +
+> +
+> +V4L2 flash wrapper for flash LEDs
+> +=================================
+> +
+> +A LED subsystem driver can be controlled also from the level of VideoForLinux2
+> +subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
+> +be defined in the kernel config.
+> +
+> +The driver must call the v4l2_flash_init function to get registered in the
+> +V4L2 subsystem. The function takes six arguments:
+> +- dev       : flash device, e.g. an I2C device
+> +- of_node   : of_node of the LED, may be NULL if the same as device's
+> +- fled_cdev : LED flash class device to wrap
+> +- iled_cdev : LED flash class device representing indicator LED associated with
+> +             fled_cdev, may be NULL
+> +- ops : V4L2 specific ops
+> +       * external_strobe_set - defines the source of the flash LED strobe -
+> +               V4L2_CID_FLASH_STROBE control or external source, typically
+> +               a sensor, which makes it possible to synchronise the flash
+> +               strobe start with exposure start,
+> +       * intensity_to_led_brightness and led_brightness_to_intensity - perform
+> +               enum led_brightness <-> V4L2 intensity conversion in a device
+> +               specific manner - they can be used for devices with non-linear
+> +               LED current scale.
+> +- config : configuration for V4L2 Flash sub-device
+> +       * dev_name - the name of the media entity, unique in the system,
+> +       * flash_faults - bitmask of flash faults that the LED flash class
+> +               device can report; corresponding LED_FAULT* bit definitions are
+> +               available in <linux/led-class-flash.h>,
+> +       * torch_intensity - constraints for the LED in TORCH mode
+> +               in microamperes,
+> +       * indicator_intensity - constraints for the indicator LED
+> +               in microamperes,
+> +       * has_external_strobe - determines whether the flash strobe source
+> +               can be switched to external,
+> +
+> +On remove the v4l2_flash_release function has to be called, which takes one
+> +argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
+> +This function can be safely called with NULL or error pointer argument.
+> +
+> +Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
+> +v4l2 flash wrapper.
+> +
+> +Once the V4L2 sub-device is registered by the driver which created the Media
+> +controller device, the sub-device node acts just as a node of a native V4L2
+> +flash API device would. The calls are simply routed to the LED flash API.
+> +
+> +Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
+> +unavailable. The interface is re-enabled after the V4L2 flash sub-device
+> +is closed.
+> --
+> 1.7.9.5
+>
