@@ -1,59 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp210.webpack.hosteurope.de ([80.237.132.217]:44962 "EHLO
-	wp210.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932491AbbFFUR5 (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:34553 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934030AbbFJSMm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 16:17:57 -0400
-From: =?UTF-8?q?Jan=20Kl=C3=B6tzke?= <jan@kloetzke.net>
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Cc: abraham.manu@gmail.com
-Subject: [PATCH 0/5] [media] mantis: add remote control support
-Date: Sat,  6 Jun 2015 21:58:08 +0200
-Message-Id: <1433620693-6235-1-git-send-email-jan@kloetzke.net>
+	Wed, 10 Jun 2015 14:12:42 -0400
 MIME-Version: 1.0
+In-Reply-To: <1433754145-12765-5-git-send-email-j.anaszewski@samsung.com>
+References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com> <1433754145-12765-5-git-send-email-j.anaszewski@samsung.com>
+From: Bryan Wu <cooloney@gmail.com>
+Date: Wed, 10 Jun 2015 11:12:20 -0700
+Message-ID: <CAK5ve-JjLuYqOP2dzQCV0w-5eV0XnuVkiDOXD58FugXfrNYc0w@mail.gmail.com>
+Subject: Re: [PATCH v10 4/8] DT: aat1290: Document handling external strobe sources
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pavel Machek <pavel@ucw.cz>,
+	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> This patch adds documentation for a pinctrl-names property.
+> The property, when present, is used for switching the source
+> of the strobe signal for the device.
+>
 
-I am re-submitting my patch for remote control support of mantis based DVB
-cards for the 3rd time. The last submission can be found here [1]. It has been
-rebased and tested on v4.0. It has been working fine on my HTPC for almost
-three years now. Compared to the previous submission I've split the patch into
-the individual rc key tables and the actual mantis rc support.
+Merged into my -devel branch and it won't be merged into 4.2.0 merge
+window but wait for one more cycle, since now it's quite late in 4.1.0
+cycle.
 
-I am really hoping that the patch will be applied this time. These cards are
-still in use and people have to patch their kernel to get them fully working.
-I recently got some feedback that it is working for other too.
+Thanks,
+-Bryan
 
-This patch has been tested on a TechniSat CableStar HD2. Other rc-maps were
-taken from Christoph Pinkl's patch [2] and the s2-liplianin repository. The
-major difference to Christoph's patch is a reworked interrupt handling of the
-UART because the RX interrupt is apparently level triggered and requires
-masking until the FIFO is read by the UART worker.
-
-Tested-by: Thomas Müller <mailaccountfueralles@gmx.de>
-
-[1] https://patchwork.linuxtv.org/patch/26321/
-[2] http://patchwork.linuxtv.org/patch/7217/
-
----
- drivers/media/pci/mantis/hopper_cards.c            |  13 ++-
- drivers/media/pci/mantis/mantis_cards.c            |  60 +++++++++---
- drivers/media/pci/mantis/mantis_common.h           |  33 ++++++-
- drivers/media/pci/mantis/mantis_dma.c              |   5 +-
- drivers/media/pci/mantis/mantis_i2c.c              |   8 +-
- drivers/media/pci/mantis/mantis_input.c            | 106 ++++-----------------
- drivers/media/pci/mantis/mantis_input.h            |  28 ++++++
- drivers/media/pci/mantis/mantis_pcmcia.c           |   4 +-
- drivers/media/pci/mantis/mantis_uart.c             |  62 ++++++------
- drivers/media/rc/keymaps/Makefile                  |   4 +
- drivers/media/rc/keymaps/rc-technisat-ts35.c       |  76 +++++++++++++++
- .../media/rc/keymaps/rc-terratec-cinergy-c-pci.c   |  88 +++++++++++++++++
- .../media/rc/keymaps/rc-terratec-cinergy-s2-hd.c   |  86 +++++++++++++++++
- drivers/media/rc/keymaps/rc-twinhan-dtv-cab-ci.c   |  98 +++++++++++++++++++
- include/media/rc-map.h                             |   4 +
- 15 files changed, 526 insertions(+), 149 deletions(-)
-
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Bryan Wu <cooloney@gmail.com>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: devicetree@vger.kernel.org
+> ---
+>  .../devicetree/bindings/leds/leds-aat1290.txt      |   36 ++++++++++++++++++--
+>  1 file changed, 34 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/leds/leds-aat1290.txt b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+> index ef88b9c..c05ed91 100644
+> --- a/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+> +++ b/Documentation/devicetree/bindings/leds/leds-aat1290.txt
+> @@ -2,7 +2,9 @@
+>
+>  The device is controlled through two pins: FL_EN and EN_SET. The pins when,
+>  asserted high, enable flash strobe and movie mode (max 1/2 of flash current)
+> -respectively.
+> +respectively. In order to add a capability of selecting the strobe signal source
+> +(e.g. CPU or camera sensor) there is an additional switch required, independent
+> +of the flash chip. The switch is controlled with pin control.
+>
+>  Required properties:
+>
+> @@ -10,6 +12,13 @@ Required properties:
+>  - flen-gpios : Must be device tree identifier of the flash device FL_EN pin.
+>  - enset-gpios : Must be device tree identifier of the flash device EN_SET pin.
+>
+> +Optional properties:
+> +- pinctrl-names : Must contain entries: "default", "host", "isp". Entries
+> +               "default" and "host" must refer to the same pin configuration
+> +               node, which sets the host as a strobe signal provider. Entry
+> +               "isp" must refer to the pin configuration node, which sets the
+> +               ISP as a strobe signal provider.
+> +
+>  A discrete LED element connected to the device must be represented by a child
+>  node - see Documentation/devicetree/bindings/leds/common.txt.
+>
+> @@ -25,13 +34,22 @@ Required properties of the LED child node:
+>  Optional properties of the LED child node:
+>  - label : see Documentation/devicetree/bindings/leds/common.txt
+>
+> -Example (by Ct = 220nF, Rset = 160kohm):
+> +Example (by Ct = 220nF, Rset = 160kohm and exynos4412-trats2 board with
+> +a switch that allows for routing strobe signal either from the host or from
+> +the camera sensor):
+> +
+> +#include "exynos4412.dtsi"
+>
+>  aat1290 {
+>         compatible = "skyworks,aat1290";
+>         flen-gpios = <&gpj1 1 GPIO_ACTIVE_HIGH>;
+>         enset-gpios = <&gpj1 2 GPIO_ACTIVE_HIGH>;
+>
+> +       pinctrl-names = "default", "host", "isp";
+> +       pinctrl-0 = <&camera_flash_host>;
+> +       pinctrl-1 = <&camera_flash_host>;
+> +       pinctrl-2 = <&camera_flash_isp>;
+> +
+>         camera_flash: flash-led {
+>                 label = "aat1290-flash";
+>                 led-max-microamp = <520833>;
+> @@ -39,3 +57,17 @@ aat1290 {
+>                 flash-timeout-us = <1940000>;
+>         };
+>  };
+> +
+> +&pinctrl_0 {
+> +       camera_flash_host: camera-flash-host {
+> +               samsung,pins = "gpj1-0";
+> +               samsung,pin-function = <1>;
+> +               samsung,pin-val = <0>;
+> +       };
+> +
+> +       camera_flash_isp: camera-flash-isp {
+> +               samsung,pins = "gpj1-0";
+> +               samsung,pin-function = <1>;
+> +               samsung,pin-val = <1>;
+> +       };
+> +};
+> --
+> 1.7.9.5
+>
