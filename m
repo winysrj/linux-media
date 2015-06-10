@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50703 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754953AbbFCOAL (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50906 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933886AbbFJP1x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:11 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 02/15] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
-Date: Wed,  3 Jun 2015 14:59:49 +0100
-Message-Id: <1433340002-1691-3-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Wed, 10 Jun 2015 11:27:53 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] ts2020: fix compilation on i386
+Date: Wed, 10 Jun 2015 12:27:25 -0300
+Message-Id: <1433950045-4807-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-which is used by the ADV7612 chip.
+drivers/built-in.o: In function `ts2020_read_signal_strength':
+ts2020.c:(.text+0x298ff94): undefined reference to `__divdi3'
+ts2020.c:(.text+0x298ffd4): undefined reference to `__divdi3'
+ts2020.c:(.text+0x298fffd): undefined reference to `__divdi3'
+Makefile:921: recipe for target 'vmlinux' failed
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-
-Modified to use MEDIA_BUS_FMT_* constants
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/ts2020.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index db7700b..16352a8 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -98,6 +98,7 @@
- #define VNMC_INF_YUV10_BT656	(2 << 16)
- #define VNMC_INF_YUV10_BT601	(3 << 16)
- #define VNMC_INF_YUV16		(5 << 16)
-+#define VNMC_INF_RGB888		(6 << 16)
- #define VNMC_VUP		(1 << 10)
- #define VNMC_IM_ODD		(0 << 3)
- #define VNMC_IM_ODD_EVEN	(1 << 3)
-@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	struct soc_camera_device *icd = priv->ici.icd;
- 	struct rcar_vin_cam *cam = icd->host_priv;
- 	u32 vnmc, dmr, interrupts;
--	bool progressive = false, output_is_yuv = false;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index 946d8e9502fd..f61b143a0052 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -22,6 +22,7 @@
+ #include "dvb_frontend.h"
+ #include "ts2020.h"
+ #include <linux/regmap.h>
++#include <linux/math64.h>
  
- 	switch (priv->field) {
- 	case V4L2_FIELD_TOP:
-@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-+		input_is_yuv = true;
- 		break;
- 	default:
- 		break;
-@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	vnmc |= VNMC_VUP;
+ #define TS2020_XTAL_FREQ   27000 /* in kHz */
+ #define FREQ_OFFSET_LOW_SYM_RATE 3000
+@@ -483,13 +484,13 @@ static int ts2020_read_signal_strength(struct dvb_frontend *fe,
+ 		strength = 0;
+ 	else if (gain < -65000)
+ 		/* 0% - 60%: weak signal */
+-		strength = 0 + (85000 + gain) * 3 / 1000;
++		strength = 0 + div64_s64((85000 + gain) * 3, 1000);
+ 	else if (gain < -45000)
+ 		/* 60% - 90%: normal signal */
+-		strength = 60 + (65000 + gain) * 3 / 2000;
++		strength = 60 + div64_s64((65000 + gain) * 3, 2000);
+ 	else
+ 		/* 90% - 99%: strong signal */
+-		strength = 90 + (45000 + gain) / 5000;
++		strength = 90 + div64_s64((45000 + gain), 5000);
  
- 	/* If input and output use the same colorspace, use bypass mode */
--	if (output_is_yuv)
-+	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
- 	/* progressive or interlaced mode */
-@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
- 		if (cam->extra_fmt)
- 			break;
- 
+ 	*_signal_strength = strength * 65535 / 100;
+ 	return 0;
 -- 
-1.7.10.4
+2.4.2
 
