@@ -1,195 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:33236 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752098AbbF3Q0F (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37127 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264AbbFJJVX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2015 12:26:05 -0400
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v2 2/2] v4l: vsp1: Fix Suspend-to-RAM
-Date: Wed,  1 Jul 2015 01:25:06 +0900
-Message-Id: <1435681506-24296-3-git-send-email-ykaneko0929@gmail.com>
-In-Reply-To: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
-References: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
+	Wed, 10 Jun 2015 05:21:23 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 4/9] [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
+Date: Wed, 10 Jun 2015 06:20:47 -0300
+Message-Id: <abb00c355248d495dba1da8fb0d9398503f503cc.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
+From: Jan Kara <jack@suse.cz>
 
-Fix Suspend-to-RAM
-so that VSP1 driver continues to work after resuming.
+Simplify the VMA code by using frame_vector_pages() & friends on VB2.
 
-Add stopping VSP1 during suspend.
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
-Signed-off-by: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
-[Kaneko: Moved correction of vsp1_pm_resume() logic to separate patch]
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-
----
-
-This patch is based on the master branch of linuxtv.org/media_tree.git.
-
-v2 [Yoshihiro Kaneko]
-* compile tested only
-* As suggested by Laurent Pinchart
-  - separate a patch into two patches
-  - add stop/restart the video stream code to vsp1_pipelines_suspend() and
-    vsp1_pipelines_resume() function in vsp1_video.c.
-
- drivers/media/platform/vsp1/vsp1_drv.c   |  9 ++++-
- drivers/media/platform/vsp1/vsp1_video.c | 69 +++++++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_video.h |  5 ++-
- 3 files changed, 79 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index a7dfbb0..caf55e4 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -1,7 +1,7 @@
- /*
-  * vsp1_drv.c  --  R-Car VSP1 Driver
-  *
-- * Copyright (C) 2013-2014 Renesas Electronics Corporation
-+ * Copyright (C) 2013-2015 Renesas Electronics Corporation
-  *
-  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-  *
-@@ -403,7 +403,9 @@ static int vsp1_pm_suspend(struct device *dev)
- 	if (vsp1->ref_count == 0)
- 		return 0;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index d7bcb05c7058..be7bd6535c9d 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
++	struct frame_vector		*vec;
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+-	struct vm_area_struct		*vma;
  
-+	vsp1_pipelines_suspend(vsp1);
- 	clk_disable_unprepare(vsp1->clock);
-+
- 	return 0;
+ 	struct dma_buf_attachment	*db_attach;
+ };
+@@ -225,25 +225,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
  }
  
-@@ -416,7 +418,10 @@ static int vsp1_pm_resume(struct device *dev)
- 	if (vsp1->ref_count == 0)
- 		return 0;
+-static inline int vma_is_io(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+-}
+-
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size,
+ 				    enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+-	unsigned long first, last;
+-	int num_pages_from_user;
+-	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	DEFINE_DMA_ATTRS(attrs);
++	struct frame_vector *vec;
  
--	return clk_prepare_enable(vsp1->clock);
-+	clk_prepare_enable(vsp1->clock);
-+	vsp1_pipelines_resume(vsp1);
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+-
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+@@ -254,63 +246,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_sgt = &buf->sg_table;
+-
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+-	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+-	buf->num_pages = last - first + 1;
+-
+-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+-			     GFP_KERNEL);
+-	if (!buf->pages)
+-		goto userptr_fail_alloc_pages;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (!vma) {
+-		dprintk(1, "no vma for address %lu\n", vaddr);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma->vm_end < vaddr + size) {
+-		dprintk(1, "vma at %lu is too small for %lu bytes\n",
+-			vaddr, size);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	buf->vma = vb2_get_vma(vma);
+-	if (!buf->vma) {
+-		dprintk(1, "failed to copy vma\n");
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma_is_io(buf->vma)) {
+-		for (num_pages_from_user = 0;
+-		     num_pages_from_user < buf->num_pages;
+-		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
+-			unsigned long pfn;
+-
+-			if (follow_pfn(vma, vaddr, &pfn)) {
+-				dprintk(1, "no page for address %lu\n", vaddr);
+-				break;
+-			}
+-			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+-		}
+-	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
+-					     vaddr & PAGE_MASK,
+-					     buf->num_pages,
+-					     buf->dma_dir == DMA_FROM_DEVICE,
+-					     1, /* force */
+-					     buf->pages,
+-					     NULL);
+-	up_read(&current->mm->mmap_sem);
+-
+-	if (num_pages_from_user != buf->num_pages)
+-		goto userptr_fail_get_user_pages;
++	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto userptr_fail_pfnvec;
++	buf->vec = vec;
 +
-+	return 0;
++	buf->pages = frame_vector_pages(vec);
++	if (IS_ERR(buf->pages))
++		goto userptr_fail_sgtable;
++	buf->num_pages = frame_vector_count(vec);
+ 
+ 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+-		goto userptr_fail_alloc_table_from_pages;
++		goto userptr_fail_sgtable;
+ 
+ 	sgt = &buf->sg_table;
+ 	/*
+@@ -326,19 +274,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 
+ userptr_fail_map:
+ 	sg_free_table(&buf->sg_table);
+-userptr_fail_alloc_table_from_pages:
+-userptr_fail_get_user_pages:
+-	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+-		buf->num_pages, num_pages_from_user);
+-	if (!vma_is_io(buf->vma))
+-		while (--num_pages_from_user >= 0)
+-			put_page(buf->pages[num_pages_from_user]);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-userptr_fail_find_vma:
+-	up_read(&current->mm->mmap_sem);
+-	kfree(buf->pages);
+-userptr_fail_alloc_pages:
++userptr_fail_sgtable:
++	vb2_destroy_framevec(vec);
++userptr_fail_pfnvec:
+ 	kfree(buf);
+ 	return NULL;
  }
- #endif
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index d91f19a..2be96cd 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1,7 +1,7 @@
- /*
-  * vsp1_video.c  --  R-Car VSP1 Video Node
-  *
-- * Copyright (C) 2013-2014 Renesas Electronics Corporation
-+ * Copyright (C) 2013-2015 Renesas Electronics Corporation
-  *
-  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-  *
-@@ -662,6 +662,73 @@ done:
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+@@ -366,13 +304,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	while (--i >= 0) {
+ 		if (buf->dma_dir == DMA_FROM_DEVICE)
+ 			set_page_dirty_lock(buf->pages[i]);
+-		if (!vma_is_io(buf->vma))
+-			put_page(buf->pages[i]);
+ 	}
+-	kfree(buf->pages);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
  }
  
-+void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
-+{
-+	unsigned int i;
-+	unsigned long flags;
-+	int ret;
-+
-+	/* To avoid increasing the system suspend time needlessly, loop over
-+	 * the pipelines twice, first to set them all to the stopping state,
-+	 * and then to wait for the stop to complete.
-+	 */
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+		if (pipe->state == VSP1_PIPELINE_RUNNING)
-+			pipe->state = VSP1_PIPELINE_STOPPING;
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
-+	}
-+
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		ret = wait_event_timeout(pipe->wq,
-+					 pipe->state == VSP1_PIPELINE_STOPPED,
-+					 msecs_to_jiffies(500));
-+		if (ret == 0)
-+			dev_warn(vsp1->dev, "pipeline stop timeout\n");
-+	}
-+}
-+
-+void vsp1_pipelines_resume(struct vsp1_device *vsp1)
-+{
-+	unsigned int i;
-+
-+	/* Resume pipeline */
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		if (vsp1_pipeline_ready(pipe))
-+			vsp1_pipeline_run(pipe);
-+	}
-+}
-+
- /*
-  * Propagate the alpha value through the pipeline.
-  *
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index fd2851a..0887a4d 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -1,7 +1,7 @@
- /*
-  * vsp1_video.h  --  R-Car VSP1 Video Node
-  *
-- * Copyright (C) 2013-2014 Renesas Electronics Corporation
-+ * Copyright (C) 2013-2015 Renesas Electronics Corporation
-  *
-  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-  *
-@@ -149,4 +149,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 				   struct vsp1_entity *input,
- 				   unsigned int alpha);
- 
-+void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
-+void vsp1_pipelines_resume(struct vsp1_device *vsp1);
-+
- #endif /* __VSP1_VIDEO_H__ */
 -- 
-1.9.1
+2.4.2
 
