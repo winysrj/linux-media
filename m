@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:32841 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751748AbbFEILa (ORCPT
+Received: from mailrelay110.isp.belgacom.be ([195.238.20.137]:7347 "EHLO
+	mailrelay110.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965830AbbFJQc4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 04:11:30 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C7D032A0085
-	for <linux-media@vger.kernel.org>; Fri,  5 Jun 2015 10:11:16 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] Reserved field handling fixes
-Date: Fri,  5 Jun 2015 10:11:13 +0200
-Message-Id: <1433491875-42608-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Jun 2015 12:32:56 -0400
+From: Fabian Frederick <fabf@skynet.be>
+To: linux-kernel@vger.kernel.org
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>,
+	Fabian Frederick <fabf@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/1 linux-next] wl128x: use swap() in fm_rdsparse_swapbytes()
+Date: Wed, 10 Jun 2015 18:32:39 +0200
+Message-Id: <1433953959-24221-1-git-send-email-fabf@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use kernel.h macro definition.
 
-VIDIOC_CREATE_BUFS didn't clear the reserved field in the kernel.
+Thanks to Julia Lawall for Coccinelle scripting support.
 
-Update the documentation so that it is in sync with what v4l2-compliance
-checks and what valgrind checks.
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Hans Verkuil (2):
-  v4l2-ioctl: clear the reserved field of v4l2_create_buffers
-  DocBook media: correct description of reserved fields
-
- Documentation/DocBook/media/v4l/io.xml                       | 12 ++++++------
- Documentation/DocBook/media/v4l/pixfmt.xml                   |  8 ++++----
- Documentation/DocBook/media/v4l/vidioc-create-bufs.xml       |  3 ++-
- .../DocBook/media/v4l/vidioc-enum-frameintervals.xml         |  3 ++-
- Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml   |  3 ++-
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml            |  3 ++-
- Documentation/DocBook/media/v4l/vidioc-g-selection.xml       |  2 +-
- Documentation/DocBook/media/v4l/vidioc-querybuf.xml          |  3 ++-
- Documentation/DocBook/media/v4l/vidioc-reqbufs.xml           |  4 ++--
- drivers/media/v4l2-core/v4l2-ioctl.c                         |  2 ++
- 10 files changed, 25 insertions(+), 18 deletions(-)
-
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index 704397f..ebc73b0 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -689,7 +689,6 @@ static void fm_rx_update_af_cache(struct fmdev *fmdev, u8 af)
+ static void fm_rdsparse_swapbytes(struct fmdev *fmdev,
+ 		struct fm_rdsdata_format *rds_format)
+ {
+-	u8 byte1;
+ 	u8 index = 0;
+ 	u8 *rds_buff;
+ 
+@@ -701,9 +700,7 @@ static void fm_rdsparse_swapbytes(struct fmdev *fmdev,
+ 	if (fmdev->asci_id != 0x6350) {
+ 		rds_buff = &rds_format->data.groupdatabuff.buff[0];
+ 		while (index + 1 < FM_RX_RDS_INFO_FIELD_MAX) {
+-			byte1 = rds_buff[index];
+-			rds_buff[index] = rds_buff[index + 1];
+-			rds_buff[index + 1] = byte1;
++			swap(rds_buff[index], rds_buff[index + 1]);
+ 			index += 2;
+ 		}
+ 	}
 -- 
-2.1.4
+2.4.2
 
