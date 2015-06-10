@@ -1,171 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41162 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752522AbbFGKc6 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44023 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752115AbbFJCs7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 06:32:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 9 Jun 2015 22:48:59 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 02CC92A008D
+	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 04:48:51 +0200 (CEST)
+Date: Wed, 10 Jun 2015 04:48:50 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/6] adv7604: log infoframes
-Date: Sun,  7 Jun 2015 12:32:33 +0200
-Message-Id: <1433673155-20179-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150610024851.02CC92A008D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig   |  1 +
- drivers/media/i2c/adv7604.c | 87 ++++++++++++++++++++++++++++++---------------
- 2 files changed, 59 insertions(+), 29 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index c92180d..71ee8f5 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -197,6 +197,7 @@ config VIDEO_ADV7183
- config VIDEO_ADV7604
- 	tristate "Analog Devices ADV7604 decoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && GPIOLIB
-+	select HDMI
- 	---help---
- 	  Support for the Analog Devices ADV7604 video decoder.
- 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index aaa37b0..757b6b5 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -29,6 +29,7 @@
- 
- #include <linux/delay.h>
- #include <linux/gpio/consumer.h>
-+#include <linux/hdmi.h>
- #include <linux/i2c.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -95,6 +96,13 @@ struct adv76xx_format_info {
- 	u8 op_format_sel;
- };
- 
-+struct adv76xx_cfg_read_infoframe {
-+	const char *desc;
-+	u8 present_mask;
-+	u8 head_addr;
-+	u8 payload_addr;
-+};
-+
- struct adv76xx_chip_info {
- 	enum adv76xx_type type;
- 
-@@ -2127,46 +2135,67 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 
- /*********** avi info frame CEA-861-E **************/
- 
--static void print_avi_infoframe(struct v4l2_subdev *sd)
-+static const struct adv76xx_cfg_read_infoframe adv76xx_cri[] = {
-+	{ "AVI", 0x01, 0xe0, 0x00 },
-+	{ "Audio", 0x02, 0xe3, 0x1c },
-+	{ "SDP", 0x04, 0xe6, 0x2a },
-+	{ "Vendor", 0x10, 0xec, 0x54 }
-+};
-+
-+static int adv76xx_read_infoframe(struct v4l2_subdev *sd, int index,
-+				  union hdmi_infoframe *frame)
- {
-+	uint8_t buffer[32];
-+	u8 len;
- 	int i;
--	u8 buf[14];
--	u8 avi_len;
--	u8 avi_ver;
- 
--	if (!is_hdmi(sd)) {
--		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
--		return;
-+	if (!(io_read(sd, 0x60) & adv76xx_cri[index].present_mask)) {
-+		v4l2_info(sd, "%s infoframe not received\n",
-+			  adv76xx_cri[index].desc);
-+		return -ENOENT;
- 	}
--	if (!(io_read(sd, 0x60) & 0x01)) {
--		v4l2_info(sd, "AVI infoframe not received\n");
--		return;
-+
-+	for (i = 0; i < 3; i++)
-+		buffer[i] = infoframe_read(sd,
-+					   adv76xx_cri[index].head_addr + i);
-+
-+	len = buffer[2] + 1;
-+
-+	if (len + 3 > sizeof(buffer)) {
-+		v4l2_err(sd, "%s: invalid %s infoframe length %d\n", __func__,
-+			 adv76xx_cri[index].desc, len);
-+		return -ENOENT;
- 	}
- 
--	if (io_read(sd, 0x83) & 0x01) {
--		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
--		io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
--		if (io_read(sd, 0x83) & 0x01) {
--			v4l2_info(sd, "AVI infoframe checksum error still present\n");
--			io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
--		}
-+	for (i = 0; i < len; i++)
-+		buffer[i + 3] = infoframe_read(sd,
-+				       adv76xx_cri[index].payload_addr + i);
-+
-+	if (hdmi_infoframe_unpack(frame, buffer) < 0) {
-+		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__,
-+			 adv76xx_cri[index].desc);
-+		return -ENOENT;
- 	}
-+	return 0;
-+}
- 
--	avi_len = infoframe_read(sd, 0xe2);
--	avi_ver = infoframe_read(sd, 0xe1);
--	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
--			avi_ver, avi_len);
-+static void adv76xx_log_infoframes(struct v4l2_subdev *sd)
-+{
-+	int i;
- 
--	if (avi_ver != 0x02)
-+	if (!is_hdmi(sd)) {
-+		v4l2_info(sd, "receive DVI-D signal, no infoframes\n");
- 		return;
-+	}
- 
--	for (i = 0; i < 14; i++)
--		buf[i] = infoframe_read(sd, i);
-+	for (i = 0; i < ARRAY_SIZE(adv76xx_cri); i++) {
-+		union hdmi_infoframe frame;
-+		struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	v4l2_info(sd,
--		"\t%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
--		buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
--		buf[8], buf[9], buf[10], buf[11], buf[12], buf[13]);
-+		if (adv76xx_read_infoframe(sd, i, &frame))
-+			return;
-+		hdmi_infoframe_log(KERN_INFO, &client->dev, &frame);
-+	}
- }
- 
- static int adv76xx_log_status(struct v4l2_subdev *sd)
-@@ -2302,7 +2331,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 
- 		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
- 
--		print_avi_infoframe(sd);
-+		adv76xx_log_infoframes(sd);
- 	}
- 
- 	return 0;
--- 
-2.1.4
+date:		Wed Jun 10 04:00:17 CEST 2015
+git branch:	test
+git hash:	25e057fdde3b33c0d18605ed27b59336a3441925
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
