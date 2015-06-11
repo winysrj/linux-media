@@ -1,46 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44945 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386AbbFZT2Q (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:20090 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753127AbbFKTvm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 15:28:16 -0400
-Message-ID: <558DA7CD.60708@infradead.org>
-Date: Fri, 26 Jun 2015 12:28:13 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+	Thu, 11 Jun 2015 15:51:42 -0400
+Message-ID: <5579E686.1010205@atmel.com>
+Date: Thu, 11 Jun 2015 21:50:30 +0200
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Subject: [PATCH -next] media/dvb: fix ts2020.c Kconfig and build
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/2] genalloc: rename dev_get_gen_pool() to gen_pool_get()
+References: <1434029192-7082-1-git-send-email-vladimir_zapolskiy@mentor.com> <1434029302-7239-1-git-send-email-vladimir_zapolskiy@mentor.com>
+In-Reply-To: <1434029302-7239-1-git-send-email-vladimir_zapolskiy@mentor.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Le 11/06/2015 15:28, Vladimir Zapolskiy a écrit :
+> To be consistent with other genalloc interface namings, rename
+> dev_get_gen_pool() to gen_pool_get(). The original omitted "dev_"
+> prefix is removed, since it points to argument type of the function,
+> and so it does not bring any useful information.
+> 
+> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> ---
+>  arch/arm/mach-at91/pm.c                   | 2 +-
+>  arch/arm/mach-imx/pm-imx5.c               | 2 +-
+>  arch/arm/mach-imx/pm-imx6.c               | 2 +-
+>  drivers/media/platform/coda/coda-common.c | 2 +-
+>  include/linux/genalloc.h                  | 2 +-
+>  lib/genalloc.c                            | 8 ++++----
+>  6 files changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/arch/arm/mach-at91/pm.c b/arch/arm/mach-at91/pm.c
+> index 1e18476..e24df77 100644
+> --- a/arch/arm/mach-at91/pm.c
+> +++ b/arch/arm/mach-at91/pm.c
+> @@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(void)
+>  		return;
+>  	}
+>  
+> -	sram_pool = dev_get_gen_pool(&pdev->dev);
+> +	sram_pool = gen_pool_get(&pdev->dev);
+>  	if (!sram_pool) {
+>  		pr_warn("%s: sram pool unavailable!\n", __func__);
+>  		return;
 
-Fix kconfig warning that is caused by DVB_TS2020:
+No blocked on my side. For AT91:
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-warning: (DVB_TS2020 && SND_SOC_ADAU1761_I2C && SND_SOC_ADAU1781_I2C && SND_SOC_ADAU1977_I2C && SND_SOC_RT5677 && EXTCON_MAX14577 && EXTCON_MAX77693 && EXTCON_MAX77843) selects REGMAP_I2C which has unmet direct dependencies (I2C)
+> diff --git a/arch/arm/mach-imx/pm-imx5.c b/arch/arm/mach-imx/pm-imx5.c
+> index 0309ccd..1885676 100644
+> --- a/arch/arm/mach-imx/pm-imx5.c
+> +++ b/arch/arm/mach-imx/pm-imx5.c
+> @@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocram(
+>  		goto put_node;
+>  	}
+>  
+> -	ocram_pool = dev_get_gen_pool(&pdev->dev);
+> +	ocram_pool = gen_pool_get(&pdev->dev);
+>  	if (!ocram_pool) {
+>  		pr_warn("%s: ocram pool unavailable!\n", __func__);
+>  		ret = -ENODEV;
+> diff --git a/arch/arm/mach-imx/pm-imx6.c b/arch/arm/mach-imx/pm-imx6.c
+> index b01650d..93ecf55 100644
+> --- a/arch/arm/mach-imx/pm-imx6.c
+> +++ b/arch/arm/mach-imx/pm-imx6.c
+> @@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(const struct imx6_pm_socdata *socdata)
+>  		goto put_node;
+>  	}
+>  
+> -	ocram_pool = dev_get_gen_pool(&pdev->dev);
+> +	ocram_pool = gen_pool_get(&pdev->dev);
+>  	if (!ocram_pool) {
+>  		pr_warn("%s: ocram pool unavailable!\n", __func__);
+>  		ret = -ENODEV;
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 6d6e0ca..6e640c0 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_device *pdev)
+>  	/* Get IRAM pool from device tree or platform data */
+>  	pool = of_get_named_gen_pool(np, "iram", 0);
+>  	if (!pool && pdata)
+> -		pool = dev_get_gen_pool(pdata->iram_dev);
+> +		pool = gen_pool_get(pdata->iram_dev);
+>  	if (!pool) {
+>  		dev_err(&pdev->dev, "iram pool not available\n");
+>  		return -ENOMEM;
+> diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
+> index 1ccaab4..015d170 100644
+> --- a/include/linux/genalloc.h
+> +++ b/include/linux/genalloc.h
+> @@ -119,7 +119,7 @@ extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
+>  
+>  extern struct gen_pool *devm_gen_pool_create(struct device *dev,
+>  		int min_alloc_order, int nid);
+> -extern struct gen_pool *dev_get_gen_pool(struct device *dev);
+> +extern struct gen_pool *gen_pool_get(struct device *dev);
+>  
+>  bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
+>  			size_t size);
+> diff --git a/lib/genalloc.c b/lib/genalloc.c
+> index d214866..948e92c 100644
+> --- a/lib/genalloc.c
+> +++ b/lib/genalloc.c
+> @@ -602,12 +602,12 @@ struct gen_pool *devm_gen_pool_create(struct device *dev, int min_alloc_order,
+>  EXPORT_SYMBOL(devm_gen_pool_create);
+>  
+>  /**
+> - * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
+> + * gen_pool_get - Obtain the gen_pool (if any) for a device
+>   * @dev: device to retrieve the gen_pool from
+>   *
+>   * Returns the gen_pool for the device if one is present, or NULL.
+>   */
+> -struct gen_pool *dev_get_gen_pool(struct device *dev)
+> +struct gen_pool *gen_pool_get(struct device *dev)
+>  {
+>  	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
+>  					NULL);
+> @@ -616,7 +616,7 @@ struct gen_pool *dev_get_gen_pool(struct device *dev)
+>  		return NULL;
+>  	return *p;
+>  }
+> -EXPORT_SYMBOL_GPL(dev_get_gen_pool);
+> +EXPORT_SYMBOL_GPL(gen_pool_get);
+>  
+>  #ifdef CONFIG_OF
+>  /**
+> @@ -642,7 +642,7 @@ struct gen_pool *of_get_named_gen_pool(struct device_node *np,
+>  	of_node_put(np_pool);
+>  	if (!pdev)
+>  		return NULL;
+> -	return dev_get_gen_pool(&pdev->dev);
+> +	return gen_pool_get(&pdev->dev);
+>  }
+>  EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
+>  #endif /* CONFIG_OF */
+> 
 
-This fixes many subsequent build errors.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
----
- drivers/media/dvb-frontends/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20150626.orig/drivers/media/dvb-frontends/Kconfig
-+++ linux-next-20150626/drivers/media/dvb-frontends/Kconfig
-@@ -240,7 +240,7 @@ config DVB_SI21XX
- 
- config DVB_TS2020
- 	tristate "Montage Tehnology TS2020 based tuners"
--	depends on DVB_CORE
-+	depends on DVB_CORE && I2C
- 	select REGMAP_I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
+-- 
+Nicolas Ferre
