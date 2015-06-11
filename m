@@ -1,36 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:35761 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102AbbFDLxP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2015 07:53:15 -0400
+Received: from cantor2.suse.de ([195.135.220.15]:50354 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751767AbbFKUHb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 16:07:31 -0400
+Date: Thu, 11 Jun 2015 22:07:28 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Cc: bp@suse.de, mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
+	bhelgaas@google.com, luto@amacapital.net,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 0/3] linux: address broken PAT drivers
+Message-ID: <20150611200728.GC23057@wotan.suse.de>
+References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
 MIME-Version: 1.0
-In-Reply-To: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Date: Thu, 4 Jun 2015 15:53:12 +0400
-Message-ID: <CA++WF2Ne88btDrWHVoLNfiqMPc9sR73zifZ50JVGHP8_h1R9OA@mail.gmail.com>
-Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
-From: Stanislav Yakovlev <stas.yakovlev@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-metag@vger.kernel.org,
-	kvm-ppc@vger.kernel.org, wireless <linux-wireless@vger.kernel.org>,
-	sparclinux@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 May 2015 at 16:05, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Even though 'compatability' has a dedicated entry in the Wiktionary,
-> it's listed as 'Mispelling of compatibility'. Fix it.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/net/wireless/ipw2x00/ipw2100.h   | 2 +-
->
+On Thu, Jun 11, 2015 at 10:49:59AM -0700, Luis R. Rodriguez wrote:
+> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+> 
+> Mauro,
+> 
+> since the ivtv patch is already acked by the driver maintainer
+> and depends on an x86 symbol that went through Boris' tree are you
+> OK in it going through Boris' tree?
 
-Acked-by: Stanislav Yakovlev <stas.yakovlev@gmail.com>
+Sorry I resent v6 by mistake, will send the v7 with the fix you requested.
 
-for ipw2100 part.
-
-Stanislav.
+ Luis
