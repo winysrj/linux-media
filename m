@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44768 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751362AbbFLXHk (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53212 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755103AbbFKTvx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 19:07:40 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v1.1 1/1] omap3isp: Fix sub-device power management code
-Date: Sat, 13 Jun 2015 02:06:23 +0300
-Message-Id: <1434150390-25898-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1434096127.3f3fQLryEJ@avalon>
-References: <1434096127.3f3fQLryEJ@avalon>
+	Thu, 11 Jun 2015 15:51:53 -0400
+Message-ID: <5579E6CE.9080808@xs4all.nl>
+Date: Thu, 11 Jun 2015 21:51:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Andrew Morton <akpm@linux-foundation.org>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
+References: <cover.1433927458.git.mchehab@osg.samsung.com>	<5579501F.6080000@xs4all.nl> <20150611115407.6da5d331edaa263269e50350@linux-foundation.org>
+In-Reply-To: <20150611115407.6da5d331edaa263269e50350@linux-foundation.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 813f5c0ac5cc ("media: Change media device link_notify behaviour")
-modified the media controller link setup notification API and updated the
-OMAP3 ISP driver accordingly. As a side effect it introduced a bug by
-turning power on after setting the link instead of before. This results in
-sub-devices not being powered down in some cases when they should be. Fix
-it.
+On 06/11/2015 08:54 PM, Andrew Morton wrote:
+> On Thu, 11 Jun 2015 11:08:47 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>> I discovered a regression on a prerequisite patch merged in the media
+>> tree that until solved prevents parts of this patch series from going in.
+>>
+>> See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg89538.html
+>>
+>> Jan is on vacation, and I don't know if I have time this weekend to dig
+>> into this, so the patch that caused the regression may have to be reverted
+>> for 4.2 and the vb2 patches in this series postponed until the regression
+>> problem is fixed.
+>>
+>> Note that this is all v4l/vb2 related, the get_vaddr_frames helper is actually
+>> fine and could be merged, it's just the vb2 patches in this patch series that
+>> cannot be merged for now due to deadlocks.
+> 
+> OK, thanks.  I'll just keep these patches on hold (in -next) until
+> advised otherwise?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Fixes: 813f5c0ac5cc [media] media: Change media device link_notify behaviour
-Cc: stable@vger.kernel.org # since v3.10
----
-Hi Laurent,
+Yes, that would be great.
 
-I amended the commit message a bit. Let me know if you're ok with it.
+Thanks,
 
- drivers/media/platform/omap3isp/isp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 6bcab28..ce0556c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -829,14 +829,14 @@ static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
- 	int ret;
- 
- 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
--	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
-+	    !(flags & MEDIA_LNK_FL_ENABLED)) {
- 		/* Powering off entities is assumed to never fail. */
- 		isp_pipeline_pm_power(source, -sink_use);
- 		isp_pipeline_pm_power(sink, -source_use);
- 		return 0;
- 	}
- 
--	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-+	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
- 		(flags & MEDIA_LNK_FL_ENABLED)) {
- 
- 		ret = isp_pipeline_pm_power(source, sink_use);
--- 
-2.1.4
+	Hans
 
