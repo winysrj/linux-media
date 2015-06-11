@@ -1,185 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44091 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933347AbbFWWfH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2015 18:35:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers
-Date: Wed, 24 Jun 2015 01:35:04 +0300
-Message-ID: <1670891.xNAi0XVAL4@avalon>
-In-Reply-To: <CAP3TMiHyy7oVr447ubJzDU1Yw=Lwz=vkFVwB9pmdWGjtj9UzGw@mail.gmail.com>
-References: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAP3TMiGz4Gwd_SnkaPkj0PwuDdZZtPOp2foWn+9gY-khuqgSeA@mail.gmail.com> <CAP3TMiHyy7oVr447ubJzDU1Yw=Lwz=vkFVwB9pmdWGjtj9UzGw@mail.gmail.com>
+Received: from odpn1.odpn.net ([212.40.96.53]:60696 "EHLO odpn1.odpn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750883AbbFKIaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 04:30:01 -0400
+Received: from odpn1.odpn.net [212.40.96.53]
+	by odpn1.odpn.net for linux-media@vger.kernel.org
+	id 1Z2xZt-0005CU-06; Thu, 11 Jun 2015 10:11:09 +0200
+From: "Gabor Z. Papp" <gzpapp.lists@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: em28xx problem with 3.10-4.0
+Date: Thu, 11 Jun 2015 10:11:08 +0200
+Message-ID: <x6d212hdgj@gzp>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/mixed; boundary="=-=-="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+--=-=-=
+Content-Type: text/plain
 
-On Tuesday 23 June 2015 13:51:37 Kamil Debski wrote:
-> Hi,
-> 
-> Just to let you know - the patch that is applied to media_tree/master
-> [1] and media_tree/fixes [2] is v1 and not v2. I think it should be
-> v2.
+lo lo,
 
-Thank you for noticing that.
+I would like to use my Pinnacle Dazzle DVC usb encoder with kernels
+3.10-4.0, but I'm getting the same error all the time.
 
-Mauro, is rebasing an option ? Otherwise I can send a fix to fix the fix :)-
+Latest working kernel is the 3.4 line.
 
-> [1]
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=77a3c6fd90c94f635
-> edb00d4a65f485687538791 [2]
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?h=fixes&id=2c7e2e565
-> 651c930387effb16ecb8f2f4b42bd45
-> On 19 June 2015 at 13:05, Kamil Debski <kamil@wypas.org> wrote:
-> > Hi Laurent,
-> > 
-> > First - thank you so much for the patch. I had a look into the code
-> > and it looks good. You have my Ack.
-> > 
-> > Thank and best wishes,
-> > Kamil Debski
-> > 
-> > On 19 June 2015 at 13:04, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >> On 06/19/2015 02:02 PM, Laurent Pinchart wrote:
-> >>> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-> >>> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
-> >>> using a zero value for v4l2_buffer.bytesused.
-> >>> 
-> >>> However, the condition is checked incorrectly, as the v4L2_buffer
-> >>> bytesused field is supposed to be ignored for multiplanar buffers. This
-> >>> results in spurious warnings when using the multiplanar API.
-> >>> 
-> >>> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
-> >>> v4l2_plane.bytesused for multiplanar buffers.
-> >>> 
-> >>> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-> >>> vb2_queue struct") Signed-off-by: Laurent Pinchart
-> >>> <laurent.pinchart+renesas@ideasonboard.com>>> 
-> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Acked-by: Kamil Debski <kamil@wypas.org>
-> > 
-> >> Thanks!
-> >> 
-> >>         Hans
-> >>> 
-> >>> ---
-> >>> 
-> >>>  drivers/media/v4l2-core/videobuf2-core.c | 33
-> >>>  ++++++++++++++++++++++---------- 1 file changed, 23 insertions(+), 10
-> >>>  deletions(-)
-> >>> 
-> >>> Changes since v1:
-> >>> 
-> >>> - Rename __check_once to check_once
-> >>> - Drop __read_mostly on check_once
-> >>> - Use pr_warn instead of pr_warn_once
-> >>> 
-> >>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >>> b/drivers/media/v4l2-core/videobuf2-core.c index
-> >>> d835814a24d4..4eaf2f4f0294 100644
-> >>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
-> >>> 
-> >>>  }
-> >>>  EXPORT_SYMBOL_GPL(vb2_discard_done);
-> >>> 
-> >>> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-> >>> +{
-> >>> +     static bool check_once;
-> >>> +
-> >>> +     if (check_once)
-> >>> +             return;
-> >>> +
-> >>> +     check_once = true;
-> >>> +     __WARN();
-> >>> +
-> >>> +     pr_warn("use of bytesused == 0 is deprecated and will be removed
-> >>> in the future,\n"); +     if (vb->vb2_queue->allow_zero_bytesused)
-> >>> +             pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
-> >>> instead.\n"); +     else
-> >>> +             pr_warn("use the actual size instead.\n");
-> >>> +}
-> >>> +
-> >>> 
-> >>>  /**
-> >>>  
-> >>>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in
-> >>>   a
-> >>>   * v4l2_buffer by the userspace. The caller has already verified that
-> >>>   struct
-> >>> 
-> >>> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer
-> >>> *vb, const struct v4l2_buffer *b>>> 
-> >>>  {
-> >>>  
-> >>>       unsigned int plane;
-> >>> 
-> >>> -     if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> >>> -             if (WARN_ON_ONCE(b->bytesused == 0)) {
-> >>> -                     pr_warn_once("use of bytesused == 0 is deprecated
-> >>> and will be removed in the future,\n"); -                     if
-> >>> (vb->vb2_queue->allow_zero_bytesused)
-> >>> -                             pr_warn_once("use
-> >>> VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n"); -                  
-> >>>   else
-> >>> -                             pr_warn_once("use the actual size
-> >>> instead.\n"); -             }
-> >>> -     }
-> >>> -
-> >>> 
-> >>>       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> >>>       
-> >>>               if (b->memory == V4L2_MEMORY_USERPTR) {
-> >>>               
-> >>>                       for (plane = 0; plane < vb->num_planes; ++plane) {
-> >>> 
-> >>> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer
-> >>> *vb, const struct v4l2_buffer *b>>> 
-> >>>                               struct v4l2_plane *pdst =
-> >>>                               &v4l2_planes[plane];
-> >>>                               struct v4l2_plane *psrc =
-> >>>                               &b->m.planes[plane];
-> >>> 
-> >>> +                             if (psrc->bytesused == 0)
-> >>> +                                     vb2_warn_zero_bytesused(vb);
-> >>> +
-> >>> 
-> >>>                               if (vb->vb2_queue->allow_zero_bytesused)
-> >>>                               
-> >>>                                       pdst->bytesused = psrc->bytesused;
-> >>>                               
-> >>>                               else
-> >>> 
-> >>> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer
-> >>> *vb, const struct v4l2_buffer *b>>> 
-> >>>               }
-> >>>               
-> >>>               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> >>> 
-> >>> +                     if (b->bytesused == 0)
-> >>> +                             vb2_warn_zero_bytesused(vb);
-> >>> +
-> >>> 
-> >>>                       if (vb->vb2_queue->allow_zero_bytesused)
-> >>>                       
-> >>>                               v4l2_planes[0].bytesused = b->bytesused;
-> >>>                       
-> >>>                       else
+What happend with the driver?
 
--- 
-Regards,
 
-Laurent Pinchart
+--=-=-=
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=dmesg
+Content-Transfer-Encoding: base64
 
+TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCmVtMjh4eDogTmV3IGRldmljZSBQ
+aW5uYWNsZSBTeXN0ZW1zIEdtYkggRFZDMTAwIEAgNDgwIE1icHMgKDIzMDQ6MDIxYSwgaW50ZXJm
+YWNlIDAsIGNsYXNzIDApCmVtMjh4eDogVmlkZW8gaW50ZXJmYWNlIDAgZm91bmQ6IGJ1bGsgaXNv
+YwplbTI4eHg6IGNoaXAgSUQgaXMgZW0yNzEwLzI4MjAKZW0yNzEwLzI4MjAgIzA6IEVFUFJPTSBJ
+RCA9IDFhIGViIDY3IDk1LCBFRVBST00gaGFzaCA9IDB4ZTJhYzc2ODAKZW0yNzEwLzI4MjAgIzA6
+IEVFUFJPTSBpbmZvOgplbTI3MTAvMjgyMCAjMDogICAgICAgICBBQzk3IGF1ZGlvICg1IHNhbXBs
+ZSByYXRlcykKZW0yNzEwLzI4MjAgIzA6ICAgICAgICAgMzAwbUEgbWF4IHBvd2VyCmVtMjcxMC8y
+ODIwICMwOiAgICAgICAgIFRhYmxlIGF0IG9mZnNldCAweDA2LCBzdHJpbmdzPTB4MTA5OCwgMHgy
+ZTZhLCAweDAwMDAKZW0yNzEwLzI4MjAgIzA6IElkZW50aWZpZWQgYXMgUGlubmFjbGUgRGF6emxl
+IERWQyA5MC8xMDAvMTAxLzEwNyAvIEthaXNlciBCYWFzIFZpZGVvIHRvIERWRCBtYWtlciAvIEt3
+b3JsZCBEVkQgTWFrZXIgMiAvIFBsZXh0b3IgQ29udmVydFggUFgtQVYxMDBVIChjYXJkPTkpCmVt
+MjcxMC8yODIwICMwOiBhbmFsb2cgc2V0IHRvIGlzb2MgbW9kZS4KZW0yOHh4IGF1ZGlvIGRldmlj
+ZSAoMjMwNDowMjFhKTogaW50ZXJmYWNlIDEsIGNsYXNzIDEKZW0yOHh4IGF1ZGlvIGRldmljZSAo
+MjMwNDowMjFhKTogaW50ZXJmYWNlIDIsIGNsYXNzIDEKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcg
+aW50ZXJmYWNlIGRyaXZlciBlbTI4eHgKZW0yNzEwLzI4MjAgIzA6IFJlZ2lzdGVyaW5nIFY0TDIg
+ZXh0ZW5zaW9uCnNhYTcxMTUgMS0wMDI1OiBzYWE3MTEzIGZvdW5kIEAgMHg0YSAoZW0yNzEwLzI4
+MjAgIzApCmVtMjcxMC8yODIwICMwOiBDb25maWcgcmVnaXN0ZXIgcmF3IGRhdGE6IDB4MTIKZW0y
+NzEwLzI4MjAgIzA6IEFDOTcgdmVuZG9yIElEID0gMHg4Mzg0NzY1MAplbTI3MTAvMjgyMCAjMDog
+QUM5NyBmZWF0dXJlcyA9IDB4NmE5MAplbTI3MTAvMjgyMCAjMDogRW1waWEgMjAyIEFDOTcgYXVk
+aW8gcHJvY2Vzc29yIGRldGVjdGVkCmVtMjcxMC8yODIwICMwOiBWNEwyIHZpZGVvIGRldmljZSBy
+ZWdpc3RlcmVkIGFzIHZpZGVvMAplbTI3MTAvMjgyMCAjMDogVjRMMiBleHRlbnNpb24gc3VjY2Vz
+c2Z1bGx5IGluaXRpYWxpemVkCmVtMjh4eDogUmVnaXN0ZXJlZCAoRW0yOHh4IHY0bDIgRXh0ZW5z
+aW9uKSBleHRlbnNpb24KTGludXggYWdwZ2FydCBpbnRlcmZhY2UgdjAuMTAzCnR1bjogVW5pdmVy
+c2FsIFRVTi9UQVAgZGV2aWNlIGRyaXZlciwgMS42CnR1bjogKEMpIDE5OTktMjAwNCBNYXggS3Jh
+c255YW5za3kgPG1heGtAcXVhbGNvbW0uY29tPgpmZm1wZWc6IHBhZ2UgYWxsb2NhdGlvbiBmYWls
+dXJlOiBvcmRlcjo2LCBtb2RlOjB4ZDAKQ1BVOiAwIFBJRDogMzcyMSBDb21tOiBmZm1wZWcgNC4w
+LjUtZ3pwMSAjMQpIYXJkd2FyZSBuYW1lOiBTeXN0ZW0gbWFudWZhY3R1cmVyIFN5c3RlbSBQcm9k
+dWN0IE5hbWUvUDVXNjQgV1MgUHJvLCBCSU9TIDEyMDEgICAgMTAvMDEvMjAwOAogMDAwMDAwMDAg
+YzEyZTIxNGUgMDAwMDAwMDEgYzEwOTIyMWYgYzEzNzM4MmMgZjUxZmY0NzggMDAwMDAwMDYgMDAw
+MDAwZDAKIDAwMDAwMDAxIDAwMDAwMGQwIDAwMDAwMDQwIDAwMDAwMGQwIGMxMDk0MTlmIDAwMDAw
+MGQwIDAwMDAwMDA2IDAwMDAwMDAwCiAwMDAwMDAyOCAwMDAwMDA0MCAwMDAwMDAxMCAwMDAwMDAy
+OCAwMDAwMDA0MCAwMDAwMDAwMCAwMDAwMDA1MCBmNTFmZjFjMApDYWxsIFRyYWNlOgogWzxjMTJl
+MjE0ZT5dID8gZHVtcF9zdGFjaysweDNlLzB4NGUKIFs8YzEwOTIyMWY+XSA/IHdhcm5fYWxsb2Nf
+ZmFpbGVkKzB4YWYvMHhmMAogWzxjMTA5NDE5Zj5dID8gX19hbGxvY19wYWdlc19ub2RlbWFzaysw
+eDM5Zi8weDVhMAogWzxjMTAwNjVmZj5dID8gZG1hX2dlbmVyaWNfYWxsb2NfY29oZXJlbnQrMHg4
+Zi8weGQwCiBbPGMxMDA2NTcwPl0gPyB2aWFfbm9fZGFjKzB4NDAvMHg0MAogWzxmODE0OWEyYj5d
+ID8gaGNkX2J1ZmZlcl9hbGxvYysweGJiLzB4MTQwIFt1c2Jjb3JlXQogWzxmODYxZjRlMT5dID8g
+ZW0yOHh4X2FsbG9jX3VyYnMrMHgxOTEvMHg0MTAgW2VtMjh4eF0KIFs8Zjg2NzZjZTY+XSA/IHNh
+YTcxMXhfd3JpdGVyZWdzKzB4MzYvMHg5MCBbc2FhNzExNV0KIFs8Zjg2MWY4NDI+XSA/IGVtMjh4
+eF9pbml0X3VzYl94ZmVyKzB4NTIvMHgxNjAgW2VtMjh4eF0KIFs8Zjg2NjY0ZjA+XSA/IGVtMjh4
+eF9zdGFydF9hbmFsb2dfc3RyZWFtaW5nKzB4MjMwLzB4NDEwIFtlbTI4eHhfdjRsXQogWzxmODY2
+NDBjMD5dID8gZW0yOHh4X3dha2VfaTJjKzB4YzAvMHhjMCBbZW0yOHh4X3Y0bF0KIFs8Zjg2NjYx
+MjM+XSA/IGJ1ZmZlcl9xdWV1ZSsweDUzLzB4YjAgW2VtMjh4eF92NGxdCiBbPGY4NjRlZTNlPl0g
+PyBfX2J1Zl9wcmVwYXJlKzB4MjhlLzB4MzAwIFt2aWRlb2J1ZjJfY29yZV0KIFs8Zjg2NGQxYjI+
+XSA/IHZiMl9zdGFydF9zdHJlYW1pbmcrMHg1Mi8weDEzMCBbdmlkZW9idWYyX2NvcmVdCiBbPGY4
+NjRmOWZkPl0gPyB2YjJfaW50ZXJuYWxfcWJ1ZisweGNkLzB4MjAwIFt2aWRlb2J1ZjJfY29yZV0K
+IFs8Zjg2NGY3MmY+XSA/IHZiMl9pbnRlcm5hbF9zdHJlYW1vbisweDEwZi8weDE1MCBbdmlkZW9i
+dWYyX2NvcmVdCiBbPGY4NjRmN2NjPl0gPyB2YjJfaW9jdGxfc3RyZWFtb24rMHhjLzB4NDAgW3Zp
+ZGVvYnVmMl9jb3JlXQogWzxmODVlMTZlMz5dID8gdjRsX3N0cmVhbW9uKzB4MTMvMHgyMCBbdmlk
+ZW9kZXZdCiBbPGY4NWUzZWEwPl0gPyBfX3ZpZGVvX2RvX2lvY3RsKzB4MjMwLzB4MmQwIFt2aWRl
+b2Rldl0KIFs8YzEwYTc0OGU+XSA/IF9fcHRlX2FsbG9jKzB4MWUvMHg4MAogWzxmODVlM2ExZj5d
+ID8gdmlkZW9fdXNlcmNvcHkrMHgxOWYvMHgzZDAgW3ZpZGVvZGV2XQogWzxjMTBkZTZmMj5dID8g
+aW5vZGVfdG9fYmRpKzB4MTIvMHg0MAogWzxjMTBhYzRkYT5dID8gdm1hX3dhbnRzX3dyaXRlbm90
+aWZ5KzB4NmEvMHg4MAogWzxjMTBhYzUxNT5dID8gdm1hX3NldF9wYWdlX3Byb3QrMHgyNS8weDUw
+CiBbPGMxMGFkNGM4Pl0gPyBtbWFwX3JlZ2lvbisweDEzOC8weDRmMAogWzxmODVlM2M1Zj5dID8g
+dmlkZW9faW9jdGwyKzB4Zi8weDIwIFt2aWRlb2Rldl0KIFs8Zjg1ZTNjNzA+XSA/IHZpZGVvX2lv
+Y3RsMisweDIwLzB4MjAgW3ZpZGVvZGV2XQogWzxmODVlMDY4ZD5dID8gdjRsMl9pb2N0bCsweGRk
+LzB4MTIwIFt2aWRlb2Rldl0KIFs8Zjg1ZTA1YjA+XSA/IHY0bDJfb3BlbisweGUwLzB4ZTAgW3Zp
+ZGVvZGV2XQogWzxjMTBjZGQzZj5dID8gZG9fdmZzX2lvY3RsKzB4MzFmLzB4NTQwCiBbPGMxMGFk
+YjI2Pl0gPyBkb19tbWFwX3Bnb2ZmKzB4MmE2LzB4MzMwCiBbPGMxMGEwNzY2Pl0gPyB2bV9tbWFw
+X3Bnb2ZmKzB4NTYvMHg4MAogWzxjMTBjZGY5Yz5dID8gU3lTX2lvY3RsKzB4M2MvMHg3MAogWzxj
+MTJlNWVjYz5dID8gc3lzZW50ZXJfZG9fY2FsbCsweDEyLzB4MTIKTWVtLUluZm86CkRNQSBwZXIt
+Y3B1OgpDUFUgICAgMDogaGk6ICAgIDAsIGJ0Y2g6ICAgMSB1c2Q6ICAgMApDUFUgICAgMTogaGk6
+ICAgIDAsIGJ0Y2g6ICAgMSB1c2Q6ICAgMApDUFUgICAgMjogaGk6ICAgIDAsIGJ0Y2g6ICAgMSB1
+c2Q6ICAgMApDUFUgICAgMzogaGk6ICAgIDAsIGJ0Y2g6ICAgMSB1c2Q6ICAgMApOb3JtYWwgcGVy
+LWNwdToKQ1BVICAgIDA6IGhpOiAgMTg2LCBidGNoOiAgMzEgdXNkOiAgIDAKQ1BVICAgIDE6IGhp
+OiAgMTg2LCBidGNoOiAgMzEgdXNkOiAgIDAKQ1BVICAgIDI6IGhpOiAgMTg2LCBidGNoOiAgMzEg
+dXNkOiAxNjcKQ1BVICAgIDM6IGhpOiAgMTg2LCBidGNoOiAgMzEgdXNkOiAgIDAKSGlnaE1lbSBw
+ZXItY3B1OgpDUFUgICAgMDogaGk6ICAxODYsIGJ0Y2g6ICAzMSB1c2Q6ICAgMApDUFUgICAgMTog
+aGk6ICAxODYsIGJ0Y2g6ICAzMSB1c2Q6ICAgMApDUFUgICAgMjogaGk6ICAxODYsIGJ0Y2g6ICAz
+MSB1c2Q6ICAgMApDUFUgICAgMzogaGk6ICAxODYsIGJ0Y2g6ICAzMSB1c2Q6ICAgMAphY3RpdmVf
+YW5vbjo4Njc2NiBpbmFjdGl2ZV9hbm9uOjUzNjczIGlzb2xhdGVkX2Fub246MAogYWN0aXZlX2Zp
+bGU6Njc4NjQgaW5hY3RpdmVfZmlsZToxNDUyMTEgaXNvbGF0ZWRfZmlsZTowCiB1bmV2aWN0YWJs
+ZTowIGRpcnR5OjMgd3JpdGViYWNrOjAgdW5zdGFibGU6MAogZnJlZToxMDk4NDkgc2xhYl9yZWNs
+YWltYWJsZTozNzU2NyBzbGFiX3VucmVjbGFpbWFibGU6NDM0NgogbWFwcGVkOjIwMzI3IHNobWVt
+OjI1NiBwYWdldGFibGVzOjc0OCBib3VuY2U6MAogZnJlZV9jbWE6MApETUEgZnJlZTozNTA0a0Ig
+bWluOjY0a0IgbG93Ojgwa0IgaGlnaDo5NmtCIGFjdGl2ZV9hbm9uOjE0NDhrQiBpbmFjdGl2ZV9h
+bm9uOjE1OTZrQiBhY3RpdmVfZmlsZTo1NjAwa0IgaW5hY3RpdmVfZmlsZToyMjk2a0IgdW5ldmlj
+dGFibGU6MGtCIGlzb2xhdGVkKGFub24pOjBrQiBpc29sYXRlZChmaWxlKTowa0IgcHJlc2VudDox
+NTk5MmtCIG1hbmFnZWQ6MTU5MTZrQiBtbG9ja2VkOjBrQiBkaXJ0eTowa0Igd3JpdGViYWNrOjBr
+QiBtYXBwZWQ6ODI0a0Igc2htZW06MGtCIHNsYWJfcmVjbGFpbWFibGU6ODE2a0Igc2xhYl91bnJl
+Y2xhaW1hYmxlOjE2NGtCIGtlcm5lbF9zdGFjazowa0IgcGFnZXRhYmxlczoyNGtCIHVuc3RhYmxl
+OjBrQiBib3VuY2U6MGtCIGZyZWVfY21hOjBrQiB3cml0ZWJhY2tfdG1wOjBrQiBwYWdlc19zY2Fu
+bmVkOjIwIGFsbF91bnJlY2xhaW1hYmxlPyBubwpsb3dtZW1fcmVzZXJ2ZVtdOiAwIDg0OSAyMDA5
+IDIwMDkKTm9ybWFsIGZyZWU6NDQ1OTJrQiBtaW46MzY5NmtCIGxvdzo0NjIwa0IgaGlnaDo1NTQ0
+a0IgYWN0aXZlX2Fub246OTMwNDhrQiBpbmFjdGl2ZV9hbm9uOjk4MTcya0IgYWN0aXZlX2ZpbGU6
+MjA5NTIwa0IgaW5hY3RpdmVfZmlsZToyMjcyNTJrQiB1bmV2aWN0YWJsZTowa0IgaXNvbGF0ZWQo
+YW5vbik6MGtCIGlzb2xhdGVkKGZpbGUpOjEyOGtCIHByZXNlbnQ6ODkyOTIwa0IgbWFuYWdlZDo4
+NzA2NjBrQiBtbG9ja2VkOjBrQiBkaXJ0eToxMmtCIHdyaXRlYmFjazowa0IgbWFwcGVkOjMxNTE2
+a0Igc2htZW06NjQwa0Igc2xhYl9yZWNsYWltYWJsZToxNDk0NTJrQiBzbGFiX3VucmVjbGFpbWFi
+bGU6MTcyMjBrQiBrZXJuZWxfc3RhY2s6MTgzMmtCIHBhZ2V0YWJsZXM6MTA4NGtCIHVuc3RhYmxl
+OjBrQiBib3VuY2U6MGtCIGZyZWVfY21hOjBrQiB3cml0ZWJhY2tfdG1wOjBrQiBwYWdlc19zY2Fu
+bmVkOjEyOCBhbGxfdW5yZWNsYWltYWJsZT8gbm8KbG93bWVtX3Jlc2VydmVbXTogMCAwIDkyNzQg
+OTI3NApIaWdoTWVtIGZyZWU6MzkxMzAwa0IgbWluOjUxMmtCIGxvdzoxNzcya0IgaGlnaDozMDMy
+a0IgYWN0aXZlX2Fub246MjUyNTY4a0IgaW5hY3RpdmVfYW5vbjoxMTQ5MjRrQiBhY3RpdmVfZmls
+ZTo1NjMzNmtCIGluYWN0aXZlX2ZpbGU6MzUxMTY4a0IgdW5ldmljdGFibGU6MGtCIGlzb2xhdGVk
+KGFub24pOjBrQiBpc29sYXRlZChmaWxlKTowa0IgcHJlc2VudDoxMTg3MDgwa0IgbWFuYWdlZDox
+MTg3MDgwa0IgbWxvY2tlZDowa0IgZGlydHk6MGtCIHdyaXRlYmFjazowa0IgbWFwcGVkOjQ4OTY4
+a0Igc2htZW06Mzg0a0Igc2xhYl9yZWNsYWltYWJsZTowa0Igc2xhYl91bnJlY2xhaW1hYmxlOjBr
+QiBrZXJuZWxfc3RhY2s6MGtCIHBhZ2V0YWJsZXM6MTg4NGtCIHVuc3RhYmxlOjBrQiBib3VuY2U6
+MGtCIGZyZWVfY21hOjBrQiB3cml0ZWJhY2tfdG1wOjBrQiBwYWdlc19zY2FubmVkOjAgYWxsX3Vu
+cmVjbGFpbWFibGU/IG5vCmxvd21lbV9yZXNlcnZlW106IDAgMCAwIDAKRE1BOiAxMCo0a0IgKFVF
+TSkgMyo4a0IgKEVNKSAxKjE2a0IgKFIpIDEqMzJrQiAoUikgMSo2NGtCIChSKSAwKjEyOGtCIDEq
+MjU2a0IgKFIpIDAqNTEya0IgMSoxMDI0a0IgKFIpIDEqMjA0OGtCIChSKSAwKjQwOTZrQiA9IDM1
+MDRrQgpOb3JtYWw6IDEyODcqNGtCIChVRU0pIDE0NzkqOGtCIChVRU0pIDgwMCoxNmtCIChFTVIp
+IDIxNyozMmtCIChVRU1SKSA2Mio2NGtCIChVRU1SKSAzMSoxMjhrQiAoVUVSKSAxKjI1NmtCIChS
+KSAwKjUxMmtCIDAqMTAyNGtCIDAqMjA0OGtCIDAqNDA5NmtCID0gNDQ5MTZrQgpIaWdoTWVtOiA1
+MTk2KjRrQiAoVU1SKSA3MDU2KjhrQiAoVU1SKSA0MTM1KjE2a0IgKE1SKSAzMjc4KjMya0IgKE1S
+KSAxNDIwKjY0a0IgKFVNUikgMzAwKjEyOGtCIChVTVIpIDUwKjI1NmtCIChVTVIpIDAqNTEya0Ig
+MSoxMDI0a0IgKFIpIDAqMjA0OGtCIDAqNDA5NmtCID0gMzkxMzkya0IKMjEzMjg3IHRvdGFsIHBh
+Z2VjYWNoZSBwYWdlcwoxMSBwYWdlcyBpbiBzd2FwIGNhY2hlClN3YXAgY2FjaGUgc3RhdHM6IGFk
+ZCAzMjMsIGRlbGV0ZSAzMTIsIGZpbmQgMi80CkZyZWUgc3dhcCAgPSAxMDAyODEya0IKVG90YWwg
+c3dhcCA9IDEwMDQwNTZrQgo1MjM5OTggcGFnZXMgUkFNCjI5Njc3MCBwYWdlcyBIaWdoTWVtL01v
+dmFibGVPbmx5CjU1ODQgcGFnZXMgcmVzZXJ2ZWQKdW5hYmxlIHRvIGFsbG9jYXRlIDE2NTEyMCBi
+eXRlcyBmb3IgdHJhbnNmZXIgYnVmZmVyIDMKLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0t
+LS0tLS0tCldBUk5JTkc6IENQVTogMCBQSUQ6IDM3MjEgYXQgZHJpdmVycy9tZWRpYS92NGwyLWNv
+cmUvdmlkZW9idWYyLWNvcmUuYzoxNzY1IHZiMl9zdGFydF9zdHJlYW1pbmcrMHhiYi8weDEzMCBb
+dmlkZW9idWYyX2NvcmVdKCkKTW9kdWxlcyBsaW5rZWQgaW46IHR1biBhZ3BnYXJ0IHNhYTcxMTUg
+ZW0yOHh4X3Y0bCB2aWRlb2J1ZjJfY29yZSB2aWRlb2J1ZjJfdm1hbGxvYyB2aWRlb2J1ZjJfbWVt
+b3BzIGVtMjh4eCB2NGwyX2NvbW1vbiB2aWRlb2RldiB0dmVlcHJvbSBjb3JldGVtcCB3ODM2Mjdl
+aGYgaHdtb25fdmlkIGh3bW9uIGkyY19pODAxIGkyY19jb3JlIG5mc2QgZXhwb3J0ZnMgbmZzIGxv
+Y2tkIHN1bnJwYyBncmFjZSBzbmRfaGRhX2NvZGVjX2FuYWxvZyBzbmRfaGRhX2NvZGVjX2dlbmVy
+aWMgZTEwMDBlIHB0cCBwcHNfY29yZSBzbmRfaGRhX2ludGVsIHNuZF9oZGFfY29udHJvbGxlciBz
+bmRfaGRhX2NvZGVjIHNuZF9wY21fb3NzIHNuZF9wY20gc25kX3RpbWVyIHNuZF9taXhlcl9vc3Mg
+c25kIHNvdW5kY29yZSB1c2Jfc3RvcmFnZSB1aGNpX2hjZCBlaGNpX3BjaSBlaGNpX2hjZCBwc21v
+dXNlIGhpZF9nZW5lcmljIHVzYmhpZCBoaWQgdXNiY29yZSB1c2JfY29tbW9uCkNQVTogMCBQSUQ6
+IDM3MjEgQ29tbTogZmZtcGVnIDQuMC41LWd6cDEgIzEKSGFyZHdhcmUgbmFtZTogU3lzdGVtIG1h
+bnVmYWN0dXJlciBTeXN0ZW0gUHJvZHVjdCBOYW1lL1A1VzY0IFdTIFBybywgQklPUyAxMjAxICAg
+IDEwLzAxLzIwMDgKIGY4NjUxOWMwIGMxMmUyMTRlIDAwMDAwMDAwIGMxMDMzZjkyIGMxMzZmYmRj
+IDAwMDAwMDAwIDAwMDAwZTg5IGY4NjUxOWMwCiAwMDAwMDZlNSBmODY0ZDIxYiBmODY0ZDIxYiBm
+ZmZmZmZmNCBmNTlmZWQ5OCBmNTlmZWNjOCBmODY2OGE4MCBjMTAzNDA1YgogMDAwMDAwMDkgMDAw
+MDAwMDAgZjg2NGQyMWIgZGYwNDY4MDAgZjg2NGY5ZmQgZjU5ZmVjYzggNDAwNDU2MTIgZjg1ZjMz
+MDgKQ2FsbCBUcmFjZToKIFs8YzEyZTIxNGU+XSA/IGR1bXBfc3RhY2srMHgzZS8weDRlCiBbPGMx
+MDMzZjkyPl0gPyB3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDgyLzB4YjAKIFs8Zjg2NGQyMWI+XSA/
+IHZiMl9zdGFydF9zdHJlYW1pbmcrMHhiYi8weDEzMCBbdmlkZW9idWYyX2NvcmVdCiBbPGY4NjRk
+MjFiPl0gPyB2YjJfc3RhcnRfc3RyZWFtaW5nKzB4YmIvMHgxMzAgW3ZpZGVvYnVmMl9jb3JlXQog
+WzxjMTAzNDA1Yj5dID8gd2Fybl9zbG93cGF0aF9udWxsKzB4MWIvMHgyMAogWzxmODY0ZDIxYj5d
+ID8gdmIyX3N0YXJ0X3N0cmVhbWluZysweGJiLzB4MTMwIFt2aWRlb2J1ZjJfY29yZV0KIFs8Zjg2
+NGY5ZmQ+XSA/IHZiMl9pbnRlcm5hbF9xYnVmKzB4Y2QvMHgyMDAgW3ZpZGVvYnVmMl9jb3JlXQog
+WzxmODY0ZjcyZj5dID8gdmIyX2ludGVybmFsX3N0cmVhbW9uKzB4MTBmLzB4MTUwIFt2aWRlb2J1
+ZjJfY29yZV0KIFs8Zjg2NGY3Y2M+XSA/IHZiMl9pb2N0bF9zdHJlYW1vbisweGMvMHg0MCBbdmlk
+ZW9idWYyX2NvcmVdCiBbPGY4NWUxNmUzPl0gPyB2NGxfc3RyZWFtb24rMHgxMy8weDIwIFt2aWRl
+b2Rldl0KIFs8Zjg1ZTNlYTA+XSA/IF9fdmlkZW9fZG9faW9jdGwrMHgyMzAvMHgyZDAgW3ZpZGVv
+ZGV2XQogWzxjMTBhNzQ4ZT5dID8gX19wdGVfYWxsb2MrMHgxZS8weDgwCiBbPGY4NWUzYTFmPl0g
+PyB2aWRlb191c2VyY29weSsweDE5Zi8weDNkMCBbdmlkZW9kZXZdCiBbPGMxMGRlNmYyPl0gPyBp
+bm9kZV90b19iZGkrMHgxMi8weDQwCiBbPGMxMGFjNGRhPl0gPyB2bWFfd2FudHNfd3JpdGVub3Rp
+ZnkrMHg2YS8weDgwCiBbPGMxMGFjNTE1Pl0gPyB2bWFfc2V0X3BhZ2VfcHJvdCsweDI1LzB4NTAK
+IFs8YzEwYWQ0Yzg+XSA/IG1tYXBfcmVnaW9uKzB4MTM4LzB4NGYwCiBbPGY4NWUzYzVmPl0gPyB2
+aWRlb19pb2N0bDIrMHhmLzB4MjAgW3ZpZGVvZGV2XQogWzxmODVlM2M3MD5dID8gdmlkZW9faW9j
+dGwyKzB4MjAvMHgyMCBbdmlkZW9kZXZdCiBbPGY4NWUwNjhkPl0gPyB2NGwyX2lvY3RsKzB4ZGQv
+MHgxMjAgW3ZpZGVvZGV2XQogWzxmODVlMDViMD5dID8gdjRsMl9vcGVuKzB4ZTAvMHhlMCBbdmlk
+ZW9kZXZdCiBbPGMxMGNkZDNmPl0gPyBkb192ZnNfaW9jdGwrMHgzMWYvMHg1NDAKIFs8YzEwYWRi
+MjY+XSA/IGRvX21tYXBfcGdvZmYrMHgyYTYvMHgzMzAKIFs8YzEwYTA3NjY+XSA/IHZtX21tYXBf
+cGdvZmYrMHg1Ni8weDgwCiBbPGMxMGNkZjljPl0gPyBTeVNfaW9jdGwrMHgzYy8weDcwCiBbPGMx
+MmU1ZWNjPl0gPyBzeXNlbnRlcl9kb19jYWxsKzB4MTIvMHgxMgotLS1bIGVuZCB0cmFjZSBjYTdh
+MjMyYmI1ZDFlYTkwIF0tLS0KLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tCg==
+--=-=-=--
