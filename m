@@ -1,199 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49062 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190AbbFEO2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 05/11] [media] bt8xx: remove needless check
-Date: Fri,  5 Jun 2015 11:27:38 -0300
-Message-Id: <e445af95ff02b82de88636f302d322c37721f103.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
+Received: from cantor2.suse.de ([195.135.220.15]:49620 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752469AbbFKTyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 15:54:40 -0400
+Date: Thu, 11 Jun 2015 21:54:24 +0200
+From: Borislav Petkov <bp@suse.de>
+To: Doug Ledford <dledford@redhat.com>
+Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
+	bhelgaas@google.com, luto@amacapital.net,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	Roland Dreier <roland@kernel.org>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Juergen Gross <jgross@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Dave Airlie <airlied@redhat.com>,
+	Antonino Daplas <adaplas@gmail.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	infinipath@intel.com, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH v6 2/3] IB/ipath: add counting for MTRR
+Message-ID: <20150611195424.GG30391@pd.tnic>
+References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
+ <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/pci/bt8xx/dst_ca.c:323 ca_get_message() warn: this array is probably non-NULL. 'p_ca_message->msg'
-	drivers/media/pci/bt8xx/dst_ca.c:498 ca_send_message() warn: this array is probably non-NULL. 'p_ca_message->msg'
+On Thu, Jun 11, 2015 at 10:50:01AM -0700, Luis R. Rodriguez wrote:
+> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+> 
+> There is no good reason not to, we eventually delete it as well.
+> 
+> Cc: Toshi Kani <toshi.kani@hp.com>
+> Cc: Roland Dreier <roland@kernel.org>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: Suresh Siddha <sbsiddha@gmail.com>
+> Cc: Ingo Molnar <mingo@elte.hu>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Juergen Gross <jgross@suse.com>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: Andy Lutomirski <luto@amacapital.net>
+> Cc: Dave Airlie <airlied@redhat.com>
+> Cc: Antonino Daplas <adaplas@gmail.com>
+> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: infinipath@intel.com
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-fbdev@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+> ---
+>  drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+> index 4ad0b93..70c1f3a 100644
+> --- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+> +++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+> @@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+>  			   "(addr %llx, len=0x%llx)\n",
+>  			   (unsigned long long) pioaddr,
+>  			   (unsigned long long) piolen);
+> -		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
+> +		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+>  		if (cookie < 0) {
+>  			{
+>  				dev_info(&dd->pcidev->dev,
+> --
 
-Those two checks are needless/useless, as the ca_msg struct is
-declared as:
-typedef struct ca_msg {
-        unsigned int index;
-        unsigned int type;
-        unsigned int length;
-        unsigned char msg[256];
-} ca_msg_t;
+Doug, ack?
 
-So, if the p_ca_message pointer is not null, msg will also be
-not null.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-index c22c4ae06844..c5cc14ef8347 100644
---- a/drivers/media/pci/bt8xx/dst_ca.c
-+++ b/drivers/media/pci/bt8xx/dst_ca.c
-@@ -320,29 +320,27 @@ static int ca_get_message(struct dst_state *state, struct ca_msg *p_ca_message,
- 	if (copy_from_user(p_ca_message, arg, sizeof (struct ca_msg)))
- 		return -EFAULT;
- 
--	if (p_ca_message->msg) {
--		dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%*ph]",
--			3, p_ca_message->msg);
-+	dprintk(verbose, DST_CA_NOTICE, 1, " Message = [%*ph]",
-+		3, p_ca_message->msg);
- 
--		for (i = 0; i < 3; i++) {
--			command = command | p_ca_message->msg[i];
--			if (i < 2)
--				command = command << 8;
--		}
--		dprintk(verbose, DST_CA_NOTICE, 1, " Command=[0x%x]", command);
-+	for (i = 0; i < 3; i++) {
-+		command = command | p_ca_message->msg[i];
-+		if (i < 2)
-+			command = command << 8;
-+	}
-+	dprintk(verbose, DST_CA_NOTICE, 1, " Command=[0x%x]", command);
- 
--		switch (command) {
--		case CA_APP_INFO:
--			memcpy(p_ca_message->msg, state->messages, 128);
--			if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
--				return -EFAULT;
--			break;
--		case CA_INFO:
--			memcpy(p_ca_message->msg, state->messages, 128);
--			if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
--				return -EFAULT;
--			break;
--		}
-+	switch (command) {
-+	case CA_APP_INFO:
-+		memcpy(p_ca_message->msg, state->messages, 128);
-+		if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
-+			return -EFAULT;
-+		break;
-+	case CA_INFO:
-+		memcpy(p_ca_message->msg, state->messages, 128);
-+		if (copy_to_user(arg, p_ca_message, sizeof (struct ca_msg)) )
-+			return -EFAULT;
-+		break;
- 	}
- 
- 	return 0;
-@@ -494,60 +492,58 @@ static int ca_send_message(struct dst_state *state, struct ca_msg *p_ca_message,
- 		goto free_mem_and_exit;
- 	}
- 
-+	/*	EN50221 tag	*/
-+	command = 0;
- 
--	if (p_ca_message->msg) {
--		/*	EN50221 tag	*/
--		command = 0;
-+	for (i = 0; i < 3; i++) {
-+		command = command | p_ca_message->msg[i];
-+		if (i < 2)
-+			command = command << 8;
-+	}
-+	dprintk(verbose, DST_CA_DEBUG, 1, " Command=[0x%x]\n", command);
- 
--		for (i = 0; i < 3; i++) {
--			command = command | p_ca_message->msg[i];
--			if (i < 2)
--				command = command << 8;
-+	switch (command) {
-+	case CA_PMT:
-+		dprintk(verbose, DST_CA_DEBUG, 1, "Command = SEND_CA_PMT");
-+		if ((ca_set_pmt(state, p_ca_message, hw_buffer, 0, 0)) < 0) {	// code simplification started
-+			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT Failed !");
-+			result = -1;
-+			goto free_mem_and_exit;
- 		}
--		dprintk(verbose, DST_CA_DEBUG, 1, " Command=[0x%x]\n", command);
--
--		switch (command) {
--		case CA_PMT:
--			dprintk(verbose, DST_CA_DEBUG, 1, "Command = SEND_CA_PMT");
--			if ((ca_set_pmt(state, p_ca_message, hw_buffer, 0, 0)) < 0) {	// code simplification started
--				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT Failed !");
--				result = -1;
--				goto free_mem_and_exit;
--			}
--			dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT Success !");
--			break;
--		case CA_PMT_REPLY:
--			dprintk(verbose, DST_CA_INFO, 1, "Command = CA_PMT_REPLY");
--			/*      Have to handle the 2 basic types of cards here  */
--			if ((dst_check_ca_pmt(state, p_ca_message, hw_buffer)) < 0) {
--				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT_REPLY Failed !");
--				result = -1;
--				goto free_mem_and_exit;
--			}
--			dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT_REPLY Success !");
--			break;
--		case CA_APP_INFO_ENQUIRY:		// only for debugging
--			dprintk(verbose, DST_CA_INFO, 1, " Getting Cam Application information");
-+		dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT Success !");
-+		break;
-+	case CA_PMT_REPLY:
-+		dprintk(verbose, DST_CA_INFO, 1, "Command = CA_PMT_REPLY");
-+		/*      Have to handle the 2 basic types of cards here  */
-+		if ((dst_check_ca_pmt(state, p_ca_message, hw_buffer)) < 0) {
-+			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_PMT_REPLY Failed !");
-+			result = -1;
-+			goto free_mem_and_exit;
-+		}
-+		dprintk(verbose, DST_CA_INFO, 1, " -->CA_PMT_REPLY Success !");
-+		break;
-+	case CA_APP_INFO_ENQUIRY:		// only for debugging
-+		dprintk(verbose, DST_CA_INFO, 1, " Getting Cam Application information");
- 
--			if ((ca_get_app_info(state)) < 0) {
--				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_APP_INFO_ENQUIRY Failed !");
--				result = -1;
--				goto free_mem_and_exit;
--			}
--			dprintk(verbose, DST_CA_INFO, 1, " -->CA_APP_INFO_ENQUIRY Success !");
--			break;
--		case CA_INFO_ENQUIRY:
--			dprintk(verbose, DST_CA_INFO, 1, " Getting CA Information");
-+		if ((ca_get_app_info(state)) < 0) {
-+			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_APP_INFO_ENQUIRY Failed !");
-+			result = -1;
-+			goto free_mem_and_exit;
-+		}
-+		dprintk(verbose, DST_CA_INFO, 1, " -->CA_APP_INFO_ENQUIRY Success !");
-+		break;
-+	case CA_INFO_ENQUIRY:
-+		dprintk(verbose, DST_CA_INFO, 1, " Getting CA Information");
- 
--			if ((ca_get_ca_info(state)) < 0) {
--				dprintk(verbose, DST_CA_ERROR, 1, " -->CA_INFO_ENQUIRY Failed !");
--				result = -1;
--				goto free_mem_and_exit;
--			}
--			dprintk(verbose, DST_CA_INFO, 1, " -->CA_INFO_ENQUIRY Success !");
--			break;
-+		if ((ca_get_ca_info(state)) < 0) {
-+			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_INFO_ENQUIRY Failed !");
-+			result = -1;
-+			goto free_mem_and_exit;
- 		}
-+		dprintk(verbose, DST_CA_INFO, 1, " -->CA_INFO_ENQUIRY Success !");
-+		break;
- 	}
-+
- free_mem_and_exit:
- 	kfree (hw_buffer);
- 
 -- 
-2.4.2
+Regards/Gruss,
+    Boris.
 
+ECO tip #101: Trim your mails when you reply.
+--
