@@ -1,73 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:33834 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786AbbFYOKa (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59136 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbbFKOkr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 10:10:30 -0400
-Received: by lagx9 with SMTP id x9so45830445lag.1
-        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2015 07:10:29 -0700 (PDT)
+	Thu, 11 Jun 2015 10:40:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Masanari Iida <standby24x7@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-metag@vger.kernel.org, kvm-ppc@vger.kernel.org,
+	linux-wireless@vger.kernel.org, sparclinux@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
+Date: Thu, 11 Jun 2015 07:23:46 +0300
+Message-ID: <5648670.yvOusp8qsY@avalon>
+In-Reply-To: <CALLJCT38g36pxj1xjHbJYgd+JTx5fUHKnXvOwCnChHGU69g4UQ@mail.gmail.com>
+References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150609192703.4a8babf6@recife.lan> <CALLJCT38g36pxj1xjHbJYgd+JTx5fUHKnXvOwCnChHGU69g4UQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
-References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
-Date: Thu, 25 Jun 2015 15:10:28 +0100
-Message-ID: <CAP3TMiEByap-vb_1CjEmSYFKwwhVOarccgU+qDj=S8vPWqujDw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field just
- as vb2_ioctl_reqbufs does
-From: Kamil Debski <kamil@wypas.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hello,
 
-On 25 June 2015 at 11:01, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On Wednesday 10 June 2015 13:00:20 Masanari Iida wrote:
+> On Wed, Jun 10, 2015 at 7:27 AM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 27 May 2015 15:05:42 +0300
+> > 
+> > Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> >> Even though 'compatability' has a dedicated entry in the Wiktionary,
+> >> it's listed as 'Mispelling of compatibility'. Fix it.
+> >> 
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> >> ---
+> >> 
+> >>  arch/metag/include/asm/elf.h             | 2 +-
+> >>  arch/powerpc/kvm/book3s.c                | 2 +-
+> >>  arch/sparc/include/uapi/asm/pstate.h     | 2 +-
+> >>  drivers/gpu/drm/drm_atomic_helper.c      | 4 ++--
+> >>  drivers/media/dvb-frontends/au8522_dig.c | 2 +-
+> >>  drivers/net/wireless/ipw2x00/ipw2100.h   | 2 +-
+> >>  6 files changed, 7 insertions(+), 7 deletions(-)
+> >> 
+> >> I can split this into one patch per subsystem, but that seems a bit
+> >> overkill. Can someone take it ?
+> > 
+> > Who? That's the problem with treewide patches ;)
+> > 
+> > Perhaps you should re-submit it with the acks you got to akpm.
+> 
+> Laurent,
+> Please re-submit your patch to  trivial@kernel.org  with [trivial] in the
+> title.
+> 
+> Ex.
+> [PATCH] [trivial]  treewide: Fix typo compatability -> compatibility
 
-Please add the patch description no matter how simple it is and how
-well the subject covers the content of the patch.
+Done, thank you.
 
-Best wishes,
-Kamil
+-- 
+Regards,
 
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 9 ++++++++-
->  1 file changed, 8 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index dc853e5..511caaa 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -357,9 +357,16 @@ int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->                      struct v4l2_requestbuffers *reqbufs)
->  {
->         struct vb2_queue *vq;
-> +       int ret;
->
->         vq = v4l2_m2m_get_vq(m2m_ctx, reqbufs->type);
-> -       return vb2_reqbufs(vq, reqbufs);
-> +       ret = vb2_reqbufs(vq, reqbufs);
-> +       /* If count == 0, then the owner has released all buffers and he
-> +          is no longer owner of the queue. Otherwise we have a new owner. */
-> +       if (ret == 0)
-> +               vq->owner = reqbufs->count ? file->private_data : NULL;
-> +
-> +       return ret;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_m2m_reqbufs);
->
-> --
-> 2.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
+
