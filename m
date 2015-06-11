@@ -1,80 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f175.google.com ([209.85.160.175]:34847 "EHLO
-	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725AbbFMFVe (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59482 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462AbbFKT07 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2015 01:21:34 -0400
-Received: by ykar6 with SMTP id r6so552361yka.2
-        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 22:21:33 -0700 (PDT)
+	Thu, 11 Jun 2015 15:26:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	j.anaszewski@samsung.com, cooloney@gmail.com,
+	g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v1.3 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
+Date: Thu, 11 Jun 2015 22:27:30 +0300
+Message-ID: <4041793.jETg7P3oYY@avalon>
+In-Reply-To: <1434050281-27861-1-git-send-email-sakari.ailus@iki.fi>
+References: <1433971645-32304-1-git-send-email-sakari.ailus@iki.fi> <1434050281-27861-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
-References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
-Date: Sat, 13 Jun 2015 10:51:33 +0530
-Message-ID: <CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
-Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
-From: Manu Abraham <abraham.manu@gmail.com>
-To: David Nelson <nelson.dt@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+Hi Sakari,
 
-The saa7160 chipset is supported by the saa716x driver.
-I wrote a driver for it, which is over here.
-http://git.linuxtv.org/cgit.cgi/manu/saa716x_new.git
+Thank you for the patch.
 
-I do have the A188 card and documentation also with me,
-thanks to Avermedia.
+On Thursday 11 June 2015 22:18:01 Sakari Ailus wrote:
+> V4L2 async sub-devices are currently matched (OF case) based on the struct
+> device_node pointer in struct device. LED devices may have more than one
+> LED, and in that case the OF node to match is not directly the device's
+> node, but a LED's node.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-The card is not yet supported in the above tree, so cloning
-that tree will not help much in your case. Though I have
-some code related to that, it is only on my local testbox
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I've been with an accident and my other hand is in a restrictive
-state with minimal movements. It will be a few weeks, before
-I can do something in this area. It's not much help to you at
-this point right now, but just fyi
+> ---
+> since v1.2:
+> 
+> - "A" -> "The" in the of_node field comment in struct v4l2_subdev.
+> 
+> - A better reason for not taking a reference to the of_node is that a
+>   reference is already there for struct device, pointed to by the dev field
+>   of struct v4l2_subdev. The async sub-device never exists without a device.
+> 
+>  drivers/media/v4l2-core/v4l2-async.c | 39 ++++++++++++++++++++++-----------
+>  include/media/v4l2-subdev.h          |  2 ++
+>  2 files changed, 29 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> b/drivers/media/v4l2-core/v4l2-async.c index 85a6a34..5bada20 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -22,10 +22,10 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
+> 
+> -static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
+> +static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) {
+>  #if IS_ENABLED(CONFIG_I2C)
+> -	struct i2c_client *client = i2c_verify_client(dev);
+> +	struct i2c_client *client = i2c_verify_client(sd->dev);
+>  	return client &&
+>  		asd->match.i2c.adapter_id == client->adapter->nr &&
+>  		asd->match.i2c.address == client->addr;
+> @@ -34,14 +34,24 @@ static bool match_i2c(struct device *dev, struct
+> v4l2_async_subdev *asd) #endif
+>  }
+> 
+> -static bool match_devname(struct device *dev, struct v4l2_async_subdev
+> *asd) +static bool match_devname(struct v4l2_subdev *sd,
+> +			  struct v4l2_async_subdev *asd)
+>  {
+> -	return !strcmp(asd->match.device_name.name, dev_name(dev));
+> +	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>  }
+> 
+> -static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
+> +static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> {
+> -	return dev->of_node == asd->match.of.node;
+> +	return sd->of_node == asd->match.of.node;
+> +}
+> +
+> +static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev
+> *asd) +{
+> +	if (!asd->match.custom.match)
+> +		/* Match always */
+> +		return true;
+> +
+> +	return asd->match.custom.match(sd->dev, asd);
+>  }
+> 
+>  static LIST_HEAD(subdev_list);
+> @@ -51,17 +61,14 @@ static DEFINE_MUTEX(list_lock);
+>  static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
+>  {
+> +	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+>  	struct v4l2_async_subdev *asd;
+> -	bool (*match)(struct device *, struct v4l2_async_subdev *);
+> 
+>  	list_for_each_entry(asd, &notifier->waiting, list) {
+>  		/* bus_type has been verified valid before */
+>  		switch (asd->match_type) {
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+> -			match = asd->match.custom.match;
+> -			if (!match)
+> -				/* Match always */
+> -				return asd;
+> +			match = match_custom;
+>  			break;
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  			match = match_devname;
+> @@ -79,7 +86,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct
+> v4l2_async_notifier * }
+> 
+>  		/* match cannot be NULL here */
+> -		if (match(sd->dev, asd))
+> +		if (match(sd, asd))
+>  			return asd;
+>  	}
+> 
+> @@ -266,6 +273,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  {
+>  	struct v4l2_async_notifier *notifier;
+> 
+> +	/*
+> +	 * No reference taken. The reference is held by the device
+> +	 * (struct v4l2_subdev.dev), and async sub-device does not
+> +	 * exist independently of the device at any point of time.
+> +	 */
+> +	if (!sd->of_node && sd->dev)
+> +		sd->of_node = sd->dev->of_node;
+> +
+>  	mutex_lock(&list_lock);
+> 
+>  	INIT_LIST_HEAD(&sd->async_list);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 8f5da73..cdd534b 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -603,6 +603,8 @@ struct v4l2_subdev {
+>  	struct video_device *devnode;
+>  	/* pointer to the physical device, if any */
+>  	struct device *dev;
+> +	/* The device_node of the subdev, usually the same as dev->of_node. */
+> +	struct device_node *of_node;
+>  	/* Links this subdev to a global subdev_list or @notifier->done list. */
+>  	struct list_head async_list;
+>  	/* Pointer to respective struct v4l2_async_subdev. */
 
-Manu
+-- 
+Regards,
 
+Laurent Pinchart
 
-
-On Sat, Jun 13, 2015 at 8:46 AM, David Nelson <nelson.dt@gmail.com> wrote:
-> I have the AverMedia HD Duet (White Box) A188WB. Which has been
-> working great for several years in Windows 7 Media Center. I just
-> tried installing Mythbuntu but it does not appear to be recognized. I
-> am a bit of a newbie but I managed to find some info about it.
->
-> Does anyone know of a driver for it? lspci says it uses the Philips
-> SAA7160 which does appear to be in a few other supported devices.
->
-> Details follow
->
-> I get the following from lspci -vvnnk
->
-> 03:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7160
-> [1131:7160] (rev 01)
-> Subsystem: Avermedia Technologies Inc Device [1461:1e55]
-> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
-> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
-> Latency: 0, Cache Line Size: 64 bytes
-> Interrupt: pin A routed to IRQ 10
-> Region 0: Memory at ef800000 (64-bit, non-prefetchable) [size=1M]
-> Capabilities: <access denied>
->
->
-> I can see that there is a driver for a few other devices with this
-> chip at http://www.linuxtv.org/wiki/index.php/NXP_SAA716x  (i.e.
-> heading "As of (2014-06-07)"
->
->
-> --
-> -David Nelson
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
