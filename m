@@ -1,49 +1,39 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
- "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
- Boris BREZILLON <boris.brezillon@free-electrons.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 06/12] media/i2c/tda7432: Remove compat control ops
-Date: Fri, 12 Jun 2015 18:31:12 +0200
-Message-id: <1434126678-7978-7-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59152 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643AbbFKOks (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 10:40:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dennis Chen <barracks510@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] USB: uvc: add support for the Microsoft Surface Pro 3 Cameras
+Date: Thu, 11 Jun 2015 07:04:49 +0300
+Message-ID: <6864236.zlxWyD7sh8@avalon>
+In-Reply-To: <1433900441.11979.11.camel@gmail.com>
+References: <1433879614.3036.3.camel@gmail.com> <2450709.nghA4lNjjK@avalon> <1433900441.11979.11.camel@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-They are no longer used in old non-control-framework
-bridge drivers.
+Hi Dennis,
 
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/tda7432.c | 7 -------
- 1 file changed, 7 deletions(-)
+On Tuesday 09 June 2015 18:40:41 Dennis Chen wrote:
+> > Is this needed ? Looking at the patch your cameras are UVC-compliant
+> > and should thus be picked by the uvcvideo driver without any change to
+> > the code.
+> 
+> The cameras are UVC-compliant but are not recognized by the uvc driver.
+> The patch forces the uvc driver to pick up the camera if present.
 
-diff --git a/drivers/media/i2c/tda7432.c b/drivers/media/i2c/tda7432.c
-index cf93021a6500..d3834a4c48da 100644
---- a/drivers/media/i2c/tda7432.c
-+++ b/drivers/media/i2c/tda7432.c
-@@ -331,13 +331,6 @@ static const struct v4l2_ctrl_ops tda7432_ctrl_ops = {
- 
- static const struct v4l2_subdev_core_ops tda7432_core_ops = {
- 	.log_status = tda7432_log_status,
--	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_ops tda7432_ops = {
+Could you please send me the output of 'lsusb -v -d 045e:07be' and 'lsusb -v -
+d 045e:07bf' (running as root if possible) ?
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
+
