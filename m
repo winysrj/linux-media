@@ -1,67 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48415 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbbFHJyF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 05:54:05 -0400
-Message-ID: <55756637.80607@xs4all.nl>
-Date: Mon, 08 Jun 2015 11:53:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51962 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750763AbbFKJ15 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 05:27:57 -0400
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Thu, 11 Jun 2015 11:26:22 +0200
+Subject: RE: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
+Message-ID: <15ED7CB7B68B4D4C96C7D27A1A23941201B9F8D862@SAFEX1MAIL2.st.com>
+References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+ <ec9ffbdae3dc024959c02a7f351e40f841c2d3f0.1433969944.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec9ffbdae3dc024959c02a7f351e40f841c2d3f0.1433969944.git.mchehab@osg.samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH] stk1160: fix sequence handling
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the sequence counter: we're counting frames, not fields.
+Hi Mauro,
 
-Also remove the unused 'field' field. That would only be needed if this driver
-would support V4L2_FIELD_ALTERNATE.
+Please check my comments below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
+> Sent: mercredi 10 juin 2015 22:59
+> To: Linux Media Mailing List
+> Cc: Mauro Carvalho Chehab; Mauro Carvalho Chehab; Fabien DESSENNE
+> Subject: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
+> 
+> There are several warnings there, on some architectures, related to dividing
+> a s32 by a s64 value:
+> 
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: comparison
+> of distinct pointer types lacks a cast
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: right shift
+> count >= width of type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: passing
+> argument 1 of '__div64_32' from incompatible pointer type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: comparison
+> of distinct pointer types lacks a cast
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: right shift
+> count >= width of type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: passing
+> argument 1 of '__div64_32' from incompatible pointer type  CC [M]
+> drivers/media/tuners/mt2060.o
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: comparison
+> of distinct pointer types lacks a cast
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: right shift
+> count >= width of type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: passing
+> argument 1 of '__div64_32' from incompatible pointer type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: comparison
+> of distinct pointer types lacks a cast
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: right shift
+> count >= width of type
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: passing
+> argument 1 of '__div64_32' from incompatible pointer type
+> 
+> That doesn't make much sense. What the driver is actually trying to do is to
+> divide one second by a value. So, check the range before dividing. That
+> warrants the right result and will remove the warnings on non-64 bits archs.
+> 
+> Also fixes this warning:
+> drivers/media/platform/sti/bdisp/bdisp-debug.c:588: warning: comparison
+> of distinct pointer types lacks a cast
+> 
+> by using div64_s64() instead of calling do_div() directly.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> index 7c3a632746ba..3f6f411aafdd 100644
+> --- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> +++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> @@ -572,6 +572,8 @@ static int bdisp_dbg_regs(struct seq_file *s, void
+> *data)
+>  	return 0;
+>  }
+> 
+> +#define SECOND 1000000
+> +
+>  static int bdisp_dbg_perf(struct seq_file *s, void *data)  {
+>  	struct bdisp_dev *bdisp = s->private;
+> @@ -585,16 +587,27 @@ static int bdisp_dbg_perf(struct seq_file *s, void
+> *data)
+>  	}
+> 
+>  	avg_time_us = bdisp->dbg.tot_duration;
 
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index 4d313ed..7291cca 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -194,6 +194,8 @@ static int stk1160_start_streaming(struct stk1160 *dev)
- 	/* Start saa711x */
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 1);
- 
-+	dev->sequence = 0;
-+
- 	/* Start stk1160 */
- 	stk1160_write_reg(dev, STK1160_DCTRL, 0xb3);
- 	stk1160_write_reg(dev, STK1160_DCTRL+3, 0x00);
-diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
-index 39f1aae..940c3ea 100644
---- a/drivers/media/usb/stk1160/stk1160-video.c
-+++ b/drivers/media/usb/stk1160/stk1160-video.c
-@@ -96,9 +96,7 @@ void stk1160_buffer_done(struct stk1160 *dev)
- {
- 	struct stk1160_buffer *buf = dev->isoc_ctl.buf;
- 
--	dev->field_count++;
--
--	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
-+	buf->vb.v4l2_buf.sequence = dev->sequence++;
- 	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
- 	buf->vb.v4l2_buf.bytesused = buf->bytesused;
- 	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index abdea48..3922a6c 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -151,8 +151,7 @@ struct stk1160 {
- 	v4l2_std_id norm;	  /* current norm */
- 	struct stk1160_fmt *fmt;  /* selected format */
- 
--	unsigned int field_count; /* not sure ??? */
--	enum v4l2_field field;    /* also not sure :/ */
-+	unsigned int sequence;
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap;
+When using div64_s64 the above line can be deleted, see my next comment.
+
+> -	do_div(avg_time_us, request->nb_req);
+> -
+> -	avg_fps = 1000000;
+> -	min_fps = 1000000;
+> -	max_fps = 1000000;
+> -	last_fps = 1000000;
+> -	do_div(avg_fps, avg_time_us);
+> -	do_div(min_fps, bdisp->dbg.min_duration);
+> -	do_div(max_fps, bdisp->dbg.max_duration);
+> -	do_div(last_fps, bdisp->dbg.last_duration);
+> +	div64_s64(avg_time_us, request->nb_req);
+
+The operation result is returned by div64_s64(different from do_div that updates the 1st parameter).
+The expected syntax is:
+avg_time_us = div64_s64(bdisp->dbg.tot_duration, request->nb_req);
+
+> +
+> +	if (avg_time_us > SECOND)
+> +		avg_fps = 0;
+> +	else
+> +		avg_fps = SECOND / (s32)avg_time_us;
+> +
+> +	if (bdisp->dbg.min_duration > SECOND)
+> +		min_fps = 0;
+> +	else
+> +		min_fps = SECOND / (s32)bdisp->dbg.min_duration);
+
+It probably builds better without the last unexpected parenthesis ;)
+
+> +
+> +	if (bdisp->dbg.max_duration > SECOND)
+> +		max_fps = 0;
+> +	else
+> +		max_fps = SECOND / (s32)bdisp->dbg.max_duration;
+> +
+> +	if (bdisp->dbg.last_duration > SECOND)
+> +		last_fps = 0;
+> +	else
+> +		last_fps = SECOND / (s32)bdisp->dbg.last_duration;
+> 
+>  	seq_printf(s, "HW processing (%d requests):\n", request->nb_req);
+>  	seq_printf(s, " Average: %5lld us  (%3d fps)\n",
+> --
+> 2.4.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
