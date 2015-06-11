@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f175.google.com ([209.85.160.175]:33002 "EHLO
-	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083AbbFOMvx (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:45706 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753056AbbFKN2g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2015 08:51:53 -0400
+	Thu, 11 Jun 2015 09:28:36 -0400
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>,
+	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<alsa-devel@alsa-project.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH 0/2] genalloc: rename dev_get_gen_pool() and of_get_named_gen_pool()
+Date: Thu, 11 Jun 2015 16:26:32 +0300
+Message-ID: <1434029192-7082-1-git-send-email-vladimir_zapolskiy@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <1434126678-7978-2-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com> <1434126678-7978-2-git-send-email-ricardo.ribalda@gmail.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Mon, 15 Jun 2015 13:51:22 +0100
-Message-ID: <CA+V-a8sMOXOX4MzoT4dQNNGS_GAwKM3Nxf4_=jX7Hjb2TCDz4g@mail.gmail.com>
-Subject: Re: [PATCH 01/12] media/i2c/adv7343: Remove compat control ops
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Axel Lin <axel.lin@ingics.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 12, 2015 at 5:31 PM, Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
-> They are no longer used in old non-control-framework
-> bridge drivers.
->
-> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Trivial nonfunctional change initially based on discussion
+https://lkml.org/lkml/2015/6/8/588
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Worth to mention that instead of the assumed new name
+dev_gen_pool_get(), this change attempts to be more close to other
+in-kernel interfaces and new function name is just gen_pool_get().
 
-Cheers,
---Prabhakar Lad
+The change is based and tested on linux-next.
 
-> ---
->  drivers/media/i2c/adv7343.c | 7 -------
->  1 file changed, 7 deletions(-)
->
-> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-> index 7c50833e7d17..d27283135490 100644
-> --- a/drivers/media/i2c/adv7343.c
-> +++ b/drivers/media/i2c/adv7343.c
-> @@ -319,13 +319,6 @@ static const struct v4l2_ctrl_ops adv7343_ctrl_ops = {
->
->  static const struct v4l2_subdev_core_ops adv7343_core_ops = {
->         .log_status = adv7343_log_status,
-> -       .g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-> -       .try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-> -       .s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-> -       .g_ctrl = v4l2_subdev_g_ctrl,
-> -       .s_ctrl = v4l2_subdev_s_ctrl,
-> -       .queryctrl = v4l2_subdev_queryctrl,
-> -       .querymenu = v4l2_subdev_querymenu,
->  };
->
->  static int adv7343_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
-> --
-> 2.1.4
->
+Vladimir Zapolskiy (2):
+  genalloc: rename dev_get_gen_pool() to gen_pool_get()
+  genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
+
+ arch/arm/mach-at91/pm.c                   |  2 +-
+ arch/arm/mach-imx/pm-imx5.c               |  2 +-
+ arch/arm/mach-imx/pm-imx6.c               |  2 +-
+ drivers/dma/mmp_tdma.c                    |  2 +-
+ drivers/media/platform/coda/coda-common.c |  4 ++--
+ include/linux/genalloc.h                  |  6 +++---
+ lib/genalloc.c                            | 14 +++++++-------
+ sound/core/memalloc.c                     |  2 +-
+ 8 files changed, 17 insertions(+), 17 deletions(-)
+
+-- 
+2.1.4
+
