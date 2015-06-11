@@ -1,265 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35585 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbbFHHVb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 03:21:31 -0400
-Message-id: <55754266.2020709@samsung.com>
-Date: Mon, 08 Jun 2015 09:21:10 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kyungmin.park@samsung.com,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	s.nawrocki@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v9 2/8] media: Add registration helpers for V4L2 flash
- sub-devices
-References: <1432566843-6391-1-git-send-email-j.anaszewski@samsung.com>
- <1432566843-6391-3-git-send-email-j.anaszewski@samsung.com>
- <20150601205921.GH25595@valkosipuli.retiisi.org.uk>
- <556D73D2.20600@samsung.com>
- <20150602153234.GL25595@valkosipuli.retiisi.org.uk>
- <556EB337.4010608@samsung.com>
- <20150603205946.GM25595@valkosipuli.retiisi.org.uk>
-In-reply-to: <20150603205946.GM25595@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34221 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755251AbbFKTTO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 15:19:14 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: linux-leds@vger.kernel.org, j.anaszewski@samsung.com,
+	cooloney@gmail.com, g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
+Subject: [PATCH v1.3 1/5] v4l: async: Add a pointer to of_node to struct v4l2_subdev, match it
+Date: Thu, 11 Jun 2015 22:18:01 +0300
+Message-Id: <1434050281-27861-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1433971645-32304-1-git-send-email-sakari.ailus@iki.fi>
+References: <1433971645-32304-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+V4L2 async sub-devices are currently matched (OF case) based on the struct
+device_node pointer in struct device. LED devices may have more than one
+LED, and in that case the OF node to match is not directly the device's
+node, but a LED's node.
 
-On 06/03/2015 10:59 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Wed, Jun 03, 2015 at 09:56:39AM +0200, Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> On 06/02/2015 05:32 PM, Sakari Ailus wrote:
->>> Hi, Jacek!
->>>
->>> On Tue, Jun 02, 2015 at 11:13:54AM +0200, Jacek Anaszewski wrote:
->>>> Hi Sakari,
->>>>
->>>> On 06/01/2015 10:59 PM, Sakari Ailus wrote:
->>>>> Hi Jacek,
->>>>>
->>>>> On Mon, May 25, 2015 at 05:13:57PM +0200, Jacek Anaszewski wrote:
->>>>>> This patch adds helper functions for registering/unregistering
->>>>>> LED Flash class devices as V4L2 sub-devices. The functions should
->>>>>> be called from the LED subsystem device driver. In case the
->>>>>> support for V4L2 Flash sub-devices is disabled in the kernel
->>>>>> config the functions' empty versions will be used.
->>>>>>
->>>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>>>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->>>>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> Thanks for adding indicator support!
->>>>>
->>>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>>
->>>>
->>>> I missed one thing - sysfs interface of the indicator LED class
->>>> also has to be disabled/enabled of v4l2_flash_open/close.
->>>
->>> Good catch.
->>>
->>>>
->>>> I am planning to reimplement the functions as follows,
->>>> please let me know if you see any issues here:
->>>>
->>>> static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
->>>> *fh)
->>>> {
->>>>          struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
->>>>
->>>>          struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->>>>
->>>>          struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->>>>          struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
->>>>
->>>>          struct led_classdev *led_cdev_ind;
->>>>
->>>>          int ret = 0;
->>>
->>> I think you could spare some newlines above (and below as well).
->>
->> There must have been some issue on thunderbird side,
->> originally there were no newlines above.
->
-> Ok. I've used Seamonkey, I believe it uses the same editor. Some bugs were
-> unintroduced a few years ago, and since that I've mostly used a different
-> editor (and MUA) when replying to patches.
->
->>>>
->>>>
->>>>          mutex_lock(&led_cdev->led_access);
->>>>
->>>>
->>>>          if (!v4l2_fh_is_singular(&fh->vfh))
->>>>
->>>>                  goto unlock;
->>>>
->>>>
->>>>          led_sysfs_disable(led_cdev);
->>>>          led_trigger_remove(led_cdev);
->>>>
->>>>
->>>>          if (iled_cdev) {
->>>>                  led_cdev_ind = &iled_cdev->led_cdev;
->>>
->>> You can also declare led_cdev_ind here as you don't need it outside the
->>> basic block.
->>
->> With new approach it will be required also in error path.
->
-> True.
->
->>>>
->>>>
->>>>                  mutex_lock(&led_cdev_ind->led_access);
->>>>
->>>>
->>>>                  led_sysfs_disable(led_cdev_ind);
->>>>                  led_trigger_remove(led_cdev_ind);
->>>>
->>>>
->>>>                  mutex_unlock(&led_cdev_ind->led_access);
->>>
->>> Please don't acquire the indicator mutex while holding the flash mutex. I
->>> don't think there's a need to do so, thus creating a dependency between the
->>> two.Just remember to check for v4l2_fh_is_singular() in both cases.
->>
->> I thought that the code would be simpler this way. Nevertheless I
->> produced a new version by following your advise.
->>
->>>
->>>>
->>>>          }
->>>>
->>>>
->>>>          ret = __sync_device_with_v4l2_controls(v4l2_flash);
->>>
->>> If ret is < 0 here, you end up disabling the sysfs interface while open()
->>> fails (and v4l2_flash_close() will not be run). Shouldn't you handle that?
->>
->> Good point.
->>
->> Please find the new version of v4l2_flash{open|close} functions below:
->>
->> static int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
->> *fh)
->> {
->>          struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
->>          struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
->>          struct led_classdev *led_cdev = &fled_cdev->led_cdev;
->>          struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
->>          struct led_classdev *led_cdev_ind = NULL;
->>          int ret = 0;
->>
->>          mutex_lock(&led_cdev->led_access);
->>
->>          if (!v4l2_fh_is_singular(&fh->vfh)) {
->
-> Hmm. I just realised that this might be a bit broken ---
-> v4l2_fh_is_singular() should return the same value independently of where in
-> subdev's open() handler it is called.
->
-> But adding file handles to the list and checking how many there are of them
-> is not properly serialised, i.e. another process could change the list in
-> between. I'll try to submit a patch for that. No need to wait for that
-> though.
->
-> So please ignore my earlier request to check for v4l2_fh_is_singular() for
-> multiple times, it won't help. Once is enough, albeit more than that won't
-> hurt.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+since v1.2:
 
-Let's agree on the new shape of the functions then:
+- "A" -> "The" in the of_node field comment in struct v4l2_subdev.
 
-tatic int v4l2_flash_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-{
-         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
-         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
-         struct led_classdev *led_cdev_ind = NULL;
-         int ret = 0;
+- A better reason for not taking a reference to the of_node is that a
+  reference is already there for struct device, pointed to by the dev field
+  of struct v4l2_subdev. The async sub-device never exists without a device.
 
-         if (!v4l2_fh_is_singular(&fh->vfh))
-                 return 0;
+ drivers/media/v4l2-core/v4l2-async.c | 39 +++++++++++++++++++++++++-----------
+ include/media/v4l2-subdev.h          |  2 ++
+ 2 files changed, 29 insertions(+), 12 deletions(-)
 
-         mutex_lock(&led_cdev->led_access);
-
-         led_sysfs_disable(led_cdev);
-         led_trigger_remove(led_cdev);
-
-         mutex_unlock(&led_cdev->led_access);
-
-         if (iled_cdev) {
-                 led_cdev_ind = &iled_cdev->led_cdev;
-
-                 mutex_lock(&led_cdev_ind->led_access);
-
-                 led_sysfs_disable(led_cdev_ind);
-                 led_trigger_remove(led_cdev_ind);
-
-                 mutex_unlock(&led_cdev_ind->led_access);
-         }
-
-         ret = __sync_device_with_v4l2_controls(v4l2_flash);
-         if (ret < 0)
-                 goto out_sync_device;
-
-         return 0;
-out_sync_device:
-         mutex_lock(&led_cdev->led_access);
-         led_sysfs_enable(led_cdev);
-         mutex_unlock(&led_cdev->led_access);
-
-         if (led_cdev_ind) {
-                 mutex_lock(&led_cdev_ind->led_access);
-                 led_sysfs_enable(led_cdev_ind);
-                 mutex_unlock(&led_cdev_ind->led_access);
-         }
-
-         return ret;
-}
-
-static int v4l2_flash_close(struct v4l2_subdev *sd, struct 
-v4l2_subdev_fh *fh)
-{
-         struct v4l2_flash *v4l2_flash = v4l2_subdev_to_v4l2_flash(sd);
-         struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-         struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-         struct led_classdev_flash *iled_cdev = v4l2_flash->iled_cdev;
-         int ret = 0;
-
-         if (!v4l2_fh_is_singular(&fh->vfh))
-                 return 0;
-
-         mutex_lock(&led_cdev->led_access);
-
-         if (v4l2_flash->ctrls[STROBE_SOURCE])
-                 ret = v4l2_ctrl_s_ctrl(v4l2_flash->ctrls[STROBE_SOURCE],
-                                 V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-         led_sysfs_enable(led_cdev);
-
-         mutex_unlock(&led_cdev->led_access);
-
-         if (iled_cdev) {
-                 struct led_classdev *led_cdev_ind = &iled_cdev->led_cdev;
-
-                 mutex_lock(&led_cdev_ind->led_access);
-                 led_sysfs_enable(led_cdev_ind);
-                 mutex_unlock(&led_cdev_ind->led_access);
-         }
-
-         return ret;
-}
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 85a6a34..5bada20 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -22,10 +22,10 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ 
+-static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+-	struct i2c_client *client = i2c_verify_client(dev);
++	struct i2c_client *client = i2c_verify_client(sd->dev);
+ 	return client &&
+ 		asd->match.i2c.adapter_id == client->adapter->nr &&
+ 		asd->match.i2c.address == client->addr;
+@@ -34,14 +34,24 @@ static bool match_i2c(struct device *dev, struct v4l2_async_subdev *asd)
+ #endif
+ }
+ 
+-static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_devname(struct v4l2_subdev *sd,
++			  struct v4l2_async_subdev *asd)
+ {
+-	return !strcmp(asd->match.device_name.name, dev_name(dev));
++	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+ }
+ 
+-static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
++static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return dev->of_node == asd->match.of.node;
++	return sd->of_node == asd->match.of.node;
++}
++
++static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
++{
++	if (!asd->match.custom.match)
++		/* Match always */
++		return true;
++
++	return asd->match.custom.match(sd->dev, asd);
+ }
+ 
+ static LIST_HEAD(subdev_list);
+@@ -51,17 +61,14 @@ static DEFINE_MUTEX(list_lock);
+ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+ 						    struct v4l2_subdev *sd)
+ {
++	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
+ 	struct v4l2_async_subdev *asd;
+-	bool (*match)(struct device *, struct v4l2_async_subdev *);
+ 
+ 	list_for_each_entry(asd, &notifier->waiting, list) {
+ 		/* bus_type has been verified valid before */
+ 		switch (asd->match_type) {
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+-			match = asd->match.custom.match;
+-			if (!match)
+-				/* Match always */
+-				return asd;
++			match = match_custom;
+ 			break;
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 			match = match_devname;
+@@ -79,7 +86,7 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		}
+ 
+ 		/* match cannot be NULL here */
+-		if (match(sd->dev, asd))
++		if (match(sd, asd))
+ 			return asd;
+ 	}
+ 
+@@ -266,6 +273,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier;
+ 
++	/*
++	 * No reference taken. The reference is held by the device
++	 * (struct v4l2_subdev.dev), and async sub-device does not
++	 * exist independently of the device at any point of time.
++	 */
++	if (!sd->of_node && sd->dev)
++		sd->of_node = sd->dev->of_node;
++
+ 	mutex_lock(&list_lock);
+ 
+ 	INIT_LIST_HEAD(&sd->async_list);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 8f5da73..cdd534b 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -603,6 +603,8 @@ struct v4l2_subdev {
+ 	struct video_device *devnode;
+ 	/* pointer to the physical device, if any */
+ 	struct device *dev;
++	/* The device_node of the subdev, usually the same as dev->of_node. */
++	struct device_node *of_node;
+ 	/* Links this subdev to a global subdev_list or @notifier->done list. */
+ 	struct list_head async_list;
+ 	/* Pointer to respective struct v4l2_async_subdev. */
 -- 
-Best Regards,
-Jacek Anaszewski
+2.1.4
+
