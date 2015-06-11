@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:33779 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbbFHEmq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 00:42:46 -0400
-Received: by pdjn11 with SMTP id n11so56559691pdj.0
-        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2015 21:42:46 -0700 (PDT)
-Received: from [10.16.129.137] (napt.igel.co.jp. [219.106.231.132])
-        by mx.google.com with ESMTPSA id s1sm1005566pda.54.2015.06.07.21.42.43
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 07 Jun 2015 21:42:44 -0700 (PDT)
-Message-ID: <55751D44.6010102@igel.co.jp>
-Date: Mon, 08 Jun 2015 13:42:44 +0900
-From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
-Reply-To: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42552 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751697AbbFKJJb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 05:09:31 -0400
+Message-ID: <5579501F.6080000@xs4all.nl>
+Date: Thu, 11 Jun 2015 11:08:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] V4L2 codecs in user space
-References: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>
-In-Reply-To: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again,
+Hi Andrew,
 
-On 2015-06-02 10:40 AM, Damian Hobson-Garcia wrote:
-> Hello All,
-> 
-> I would like to ask for some comments about a plan to use user space
-> video codecs through the V4L interface.  I am thinking of a situation
-> similar to the one described on the linuxtv.org wiki at
-> http://www.linuxtv.org/wiki/index.php/V4L2_Userspace_Library
-> 
-> The basic premise is to use a FUSE-like driver to connect the standard
-> V4L2 api to a user space daemon that will work as an mem-to-mem driver
-> for decoding/encoding, compression/decompression and the like.  This
-> allows for codecs that are either partially or wholly implemented in
-> user space to be exposed through the standard kernel interface.
-> 
-> Before I dive in to implementing this I was hoping to get some comments
-> regarding the following:
-> 
-> 1. I haven't been able to find any implementation of the design
-> described in the wiki page.  Would anyone know if I have missed it? 
-> Does this exist somewhere, even in part? It seems like that might be a
-> good place to start if possible.
-> 
-> 2. I think that this could be implemented as either an extension to FUSE
-> (like CUSE) or as a V4L2 device driver (that forwards requests through
-> the FUSE API).  I think that the V4L2  device driver would be
-> sufficient, but would the fact that there is no specific hardware tied
-> to it be an issue?  Should it instead be presented as a more generic
-> device?
-> 
-> 3. And of course anything else that comes to mind.
+I discovered a regression on a prerequisite patch merged in the media
+tree that until solved prevents parts of this patch series from going in.
 
-I've been advised that implementing kernel APIs is userspace is probably
-not the most linux-friendly way to go about things and would most likely
-not be accepted into the kernel.  I can see the logic of
-that statement, but I was wondering if I could confirm that here. Is
-this type of design a bad idea?
+See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg89538.html
 
-Also, if this method is not recommended, should there be a 1-2 line
-disclaimer on the "V4L2_Userspace_Library" wiki page that mentions this?
+Jan is on vacation, and I don't know if I have time this weekend to dig
+into this, so the patch that caused the regression may have to be reverted
+for 4.2 and the vb2 patches in this series postponed until the regression
+problem is fixed.
 
-Thank you,
-Damian
+Note that this is all v4l/vb2 related, the get_vaddr_frames helper is actually
+fine and could be merged, it's just the vb2 patches in this patch series that
+cannot be merged for now due to deadlocks.
+
+Regards,
+
+	Hans
+
+On 06/10/15 11:20, Mauro Carvalho Chehab wrote:
+> Hi Andrew,
+> 
+> I received this patch series with a new set of helper functions for
+> mm, together with changes for media and DRM drivers.
+> 
+> As this stuff is actually mm code, I prefer if this got merged via
+> your tree.
+> 
+> Could you please handle it? Please notice that patch 8 actually changes
+> the exynos DRM driver, but it misses ack from DRM people.
+> 
+> Regards,
+> Mauro
+> 
+> Jan Kara (9):
+>   mm: Provide new get_vaddr_frames() helper
+>   [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use
+>     get_vaddr_pfns()
+>   [media] vb2: Provide helpers for mapping virtual addresses
+>   [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame
+>     vector
+>   [media] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame
+>     vector
+>   [media] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
+>   [media] media: vb2: Remove unused functions
+>   [media] drm/exynos: Convert g2d_userptr_get_dma_addr() to use
+>     get_vaddr_frames()
+>   [media] mm: Move get_vaddr_frames() behind a config option
+> 
+>  drivers/gpu/drm/exynos/Kconfig                 |   1 +
+>  drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  95 ++++------
+>  drivers/gpu/drm/exynos/exynos_drm_gem.c        |  97 -----------
+>  drivers/media/platform/omap/Kconfig            |   1 +
+>  drivers/media/platform/omap/omap_vout.c        |  69 ++++----
+>  drivers/media/v4l2-core/Kconfig                |   1 +
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 214 ++++-------------------
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  99 ++---------
+>  drivers/media/v4l2-core/videobuf2-memops.c     | 156 ++++++-----------
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  92 ++++------
+>  include/linux/mm.h                             |  44 +++++
+>  include/media/videobuf2-memops.h               |  11 +-
+>  mm/Kconfig                                     |   3 +
+>  mm/Makefile                                    |   1 +
+>  mm/frame_vector.c                              | 232 +++++++++++++++++++++++++
+>  mm/gup.c                                       |   1 +
+>  16 files changed, 486 insertions(+), 631 deletions(-)
+>  create mode 100644 mm/frame_vector.c
+> 
