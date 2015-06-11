@@ -1,267 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:36092 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753200AbbFIA3Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 20:29:25 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: mchehab@osg.samsung.com, bp@suse.de
-Cc: tomi.valkeinen@ti.com, bhelgaas@google.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Hal Rosenstock <hal.rosenstock@gmail.com>,
-	Sean Hefty <sean.hefty@intel.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>,
-	Mike Marciniszyn <mike.marciniszyn@intel.com>,
-	Roland Dreier <roland@purestorage.com>,
-	Andy Lutomirski <luto@amacapital.net>,
-	Ingo Molnar <mingo@elte.hu>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	=?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <syrjala@sci.fi>,
-	Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
-	Davidlohr Bueso <dbueso@suse.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Stefan Bader <stefan.bader@canonical.com>,
-	konrad.wilk@oracle.com, ville.syrjala@linux.intel.com,
-	david.vrabel@citrix.com, jbeulich@suse.com, toshi.kani@hp.com,
-	=?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>,
-	infinipath@intel.com, linux-fbdev@vger.kernel.org,
-	xen-devel@lists.xensource.com
-Subject: [PATCH v6 3/3] IB/ipath: use arch_phys_wc_add() and require PAT disabled
-Date: Mon,  8 Jun 2015 17:20:22 -0700
-Message-Id: <1433809222-28261-4-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1433809222-28261-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59151 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752411AbbFKOks (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 10:40:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabian Frederick <fabf@skynet.be>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/9] [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
+Date: Thu, 11 Jun 2015 07:21:16 +0300
+Message-ID: <1439884.SWlnxou8Xt@avalon>
+In-Reply-To: <0bec810973e08df0e66260e84d2dcea055a3fad7.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com> <0bec810973e08df0e66260e84d2dcea055a3fad7.1433927458.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+Hello,
 
-We are burrying direct access to MTRR code support on
-x86 in order to take advantage of PAT. In the future we
-also want to make the default behaviour of ioremap_nocache()
-to use strong UC, use of mtrr_add() on those systems
-would make write-combining void.
+(CC'ing Tomi Valkeinen)
 
-In order to help both enable us to later make strong
-UC default and in order to phase out direct MTRR access
-code port the driver over to arch_phys_wc_add() and
-annotate that the device driver requires systems to
-boot with PAT disabled, with the nopat kernel parameter.
+On Wednesday 10 June 2015 06:20:45 Mauro Carvalho Chehab wrote:
+> From: Jan Kara <jack@suse.cz>
+> 
+> Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+> hand made mapping of virtual address to physical address. Also the
+> function leaked page reference from get_user_pages() so fix that by
+> properly release the reference when omap_vout_buffer_release() is
+> called.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> [hans.verkuil@cisco.com: remove unused struct omap_vout_device *vout
+> variable]
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/platform/omap/omap_vout.c
+> b/drivers/media/platform/omap/omap_vout.c index f09c5f17a42f..7feb6394f111
+> 100644
+> --- a/drivers/media/platform/omap/omap_vout.c
+> +++ b/drivers/media/platform/omap/omap_vout.c
+> @@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format
+> *pix) }
+> 
+>  /*
+> - * omap_vout_uservirt_to_phys: This inline function is used to convert user
+> - * space virtual address to physical address.
+> + * omap_vout_get_userptr: Convert user space virtual address to physical
+> + * address.
+>   */
+> -static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
+> +static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
+> +				 u32 *physp)
+>  {
+> -	unsigned long physp = 0;
+> -	struct vm_area_struct *vma;
+> -	struct mm_struct *mm = current->mm;
+> +	struct frame_vector *vec;
+> +	int ret;
+> 
+>  	/* For kernel direct-mapped memory, take the easy way */
+> -	if (virtp >= PAGE_OFFSET)
+> -		return virt_to_phys((void *) virtp);
+> -
+> -	down_read(&current->mm->mmap_sem);
+> -	vma = find_vma(mm, virtp);
+> -	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+> -		/* this will catch, kernel-allocated, mmaped-to-usermode
+> -		   addresses */
+> -		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+> -		up_read(&current->mm->mmap_sem);
+> -	} else {
+> -		/* otherwise, use get_user_pages() for general userland pages */
+> -		int res, nr_pages = 1;
+> -		struct page *pages;
+> +	if (virtp >= PAGE_OFFSET) {
+> +		*physp = virt_to_phys((void *)virtp);
 
-This is a worthy compromise given that the ipath device
-driver powers the old HTX bus cards that only work in
-AMD systems, while the newer IB/qib device driver
-powers all PCI-e cards. The ipath device driver is
-obsolete, hardware hard to find and because of this
-this its a reasonable compromise to make to require
-users of ipath to boot with nopat.
+Lovely. virtp comes from userspace and as far as I know it arrives here 
+completely unchecked. The problem isn't introduced by this patch, but 
+omap_vout buffer management seems completely broken to me, and nobody seems to 
+care about the driver. Given that omapdrm should now provide the video output 
+capabilities that are missing from omapfb and resulted in the development of 
+omap_vout, shouldn't we drop the omap_vout driver ?
 
-Acked-by: Doug Ledford <dledford@redhat.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: Roland Dreier <roland@purestorage.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ville Syrjälä <syrjala@sci.fi>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: konrad.wilk@oracle.com
-Cc: ville.syrjala@linux.intel.com
-Cc: david.vrabel@citrix.com
-Cc: jbeulich@suse.com
-Cc: toshi.kani@hp.com
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: infinipath@intel.com
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: xen-devel@lists.xensource.com
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/infiniband/hw/ipath/Kconfig           |  3 ++
- drivers/infiniband/hw/ipath/ipath_driver.c    | 18 +++++++----
- drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +--
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 ++++++---------------------
- 4 files changed, 26 insertions(+), 42 deletions(-)
+Tomi, any opinion on this ? Do you see any omap_vout capability missing from 
+omapdrm ?
 
-diff --git a/drivers/infiniband/hw/ipath/Kconfig b/drivers/infiniband/hw/ipath/Kconfig
-index 1d9bb11..8fe54ff 100644
---- a/drivers/infiniband/hw/ipath/Kconfig
-+++ b/drivers/infiniband/hw/ipath/Kconfig
-@@ -9,3 +9,6 @@ config INFINIBAND_IPATH
- 	as IP-over-InfiniBand as well as with userspace applications
- 	(in conjunction with InfiniBand userspace access).
- 	For QLogic PCIe QLE based cards, use the QIB driver instead.
-+
-+	If you have this hardware you will need to boot with PAT disabled
-+	on your x86-64 systems, use the nopat kernel parameter.
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index bd0caed..441cfe5 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -42,6 +42,9 @@
- #include <linux/bitmap.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#ifdef CONFIG_X86_64
-+#include <asm/pat.h>
-+#endif
- 
- #include "ipath_kernel.h"
- #include "ipath_verbs.h"
-@@ -395,6 +398,14 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	unsigned long long addr;
- 	u32 bar0 = 0, bar1 = 0;
- 
-+#ifdef CONFIG_X86_64
-+	if (WARN(pat_enabled(),
-+		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
-+		ret = EINVAL;
-+		goto bail;
-+	}
-+#endif
-+
- 	dd = ipath_alloc_devdata(pdev);
- 	if (IS_ERR(dd)) {
- 		ret = PTR_ERR(dd);
-@@ -542,6 +553,7 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	dd->ipath_kregbase = __ioremap(addr, len,
- 		(_PAGE_NO_CACHE|_PAGE_WRITETHRU));
- #else
-+	/* XXX: split this properly to enable on PAT */
- 	dd->ipath_kregbase = ioremap_nocache(addr, len);
- #endif
- 
-@@ -587,12 +599,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	ret = ipath_enable_wc(dd);
- 
--	if (ret) {
--		ipath_dev_err(dd, "Write combining not enabled "
--			      "(err %d): performance may be poor\n",
--			      -ret);
-+	if (ret)
- 		ret = 0;
--	}
- 
- 	ipath_verify_pioperf(dd);
- 
-diff --git a/drivers/infiniband/hw/ipath/ipath_kernel.h b/drivers/infiniband/hw/ipath/ipath_kernel.h
-index e08db70..f0f9471 100644
---- a/drivers/infiniband/hw/ipath/ipath_kernel.h
-+++ b/drivers/infiniband/hw/ipath/ipath_kernel.h
-@@ -463,9 +463,7 @@ struct ipath_devdata {
- 	/* offset in HT config space of slave/primary interface block */
- 	u8 ipath_ht_slave_off;
- 	/* for write combining settings */
--	unsigned long ipath_wc_cookie;
--	unsigned long ipath_wc_base;
--	unsigned long ipath_wc_len;
-+	int wc_cookie;
- 	/* ref count for each pkey */
- 	atomic_t ipath_pkeyrefs[4];
- 	/* shadow copy of struct page *'s for exp tid pages */
-diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-index 70c1f3a..7b6e4c8 100644
---- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-+++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
-@@ -37,7 +37,6 @@
-  */
- 
- #include <linux/pci.h>
--#include <asm/mtrr.h>
- #include <asm/processor.h>
- 
- #include "ipath_kernel.h"
-@@ -122,27 +121,14 @@ int ipath_enable_wc(struct ipath_devdata *dd)
- 	}
- 
- 	if (!ret) {
--		int cookie;
--		ipath_cdbg(VERBOSE, "Setting mtrr for chip to WC "
--			   "(addr %llx, len=0x%llx)\n",
--			   (unsigned long long) pioaddr,
--			   (unsigned long long) piolen);
--		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
--		if (cookie < 0) {
--			{
--				dev_info(&dd->pcidev->dev,
--					 "mtrr_add()  WC for PIO bufs "
--					 "failed (%d)\n",
--					 cookie);
--				ret = -EINVAL;
--			}
--		} else {
--			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC, "
--				   "cookie is %d\n", cookie);
--			dd->ipath_wc_cookie = cookie;
--			dd->ipath_wc_base = (unsigned long) pioaddr;
--			dd->ipath_wc_len = (unsigned long) piolen;
--		}
-+		dd->wc_cookie = arch_phys_wc_add(pioaddr, piolen);
-+		if (dd->wc_cookie < 0) {
-+			ipath_dev_err(dd, "Seting mtrr failed on PIO buffers\n");
-+			ret = -ENODEV;
-+		} else if (dd->wc_cookie == 0)
-+			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC not needed\n");
-+		else
-+			ipath_cdbg(VERBOSE, "Set mtrr for chip to WC\n");
- 	}
- 
- 	return ret;
-@@ -154,16 +140,5 @@ int ipath_enable_wc(struct ipath_devdata *dd)
-  */
- void ipath_disable_wc(struct ipath_devdata *dd)
- {
--	if (dd->ipath_wc_cookie) {
--		int r;
--		ipath_cdbg(VERBOSE, "undoing WCCOMB on pio buffers\n");
--		r = mtrr_del(dd->ipath_wc_cookie, dd->ipath_wc_base,
--			     dd->ipath_wc_len);
--		if (r < 0)
--			dev_info(&dd->pcidev->dev,
--				 "mtrr_del(%lx, %lx, %lx) failed: %d\n",
--				 dd->ipath_wc_cookie, dd->ipath_wc_base,
--				 dd->ipath_wc_len, r);
--		dd->ipath_wc_cookie = 0; /* even on failure */
--	}
-+	arch_phys_wc_del(dd->wc_cookie);
- }
+> +		return 0;
+> +	}
+> 
+> -		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+> -				0, &pages, NULL);
+> -		up_read(&current->mm->mmap_sem);
+> +	vec = frame_vector_create(1);
+> +	if (!vec)
+> +		return -ENOMEM;
+> 
+> -		if (res == nr_pages) {
+> -			physp =  __pa(page_address(&pages[0]) +
+> -					(virtp & ~PAGE_MASK));
+> -		} else {
+> -			printk(KERN_WARNING VOUT_NAME
+> -					"get_user_pages failed\n");
+> -			return 0;
+> -		}
+> +	ret = get_vaddr_frames(virtp, 1, true, false, vec);
+> +	if (ret != 1) {
+> +		frame_vector_destroy(vec);
+> +		return -EINVAL;
+>  	}
+> +	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
+> +	vb->priv = vec;
+> 
+> -	return physp;
+> +	return 0;
+>  }
+> 
+>  /*
+> @@ -784,11 +772,15 @@ static int omap_vout_buffer_prepare(struct
+> videobuf_queue *q, * address of the buffer
+>  	 */
+>  	if (V4L2_MEMORY_USERPTR == vb->memory) {
+> +		int ret;
+> +
+>  		if (0 == vb->baddr)
+>  			return -EINVAL;
+>  		/* Physical address */
+> -		vout->queued_buf_addr[vb->i] = (u8 *)
+> -			omap_vout_uservirt_to_phys(vb->baddr);
+> +		ret = omap_vout_get_userptr(vb, vb->baddr,
+> +				(u32 *)&vout->queued_buf_addr[vb->i]);
+> +		if (ret < 0)
+> +			return ret;
+>  	} else {
+>  		unsigned long addr, dma_addr;
+>  		unsigned long size;
+> @@ -834,12 +826,13 @@ static void omap_vout_buffer_queue(struct
+> videobuf_queue *q, static void omap_vout_buffer_release(struct
+> videobuf_queue *q,
+>  			    struct videobuf_buffer *vb)
+>  {
+> -	struct omap_vout_device *vout = q->priv_data;
+> -
+>  	vb->state = VIDEOBUF_NEEDS_INIT;
+> +	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
+> +		struct frame_vector *vec = vb->priv;
+> 
+> -	if (V4L2_MEMORY_MMAP != vout->memory)
+> -		return;
+> +		put_vaddr_frames(vec);
+> +		frame_vector_destroy(vec);
+> +	}
+>  }
+> 
+>  /*
+
 -- 
-2.3.2.209.gd67f9d5.dirty
+Regards,
+
+Laurent Pinchart
 
