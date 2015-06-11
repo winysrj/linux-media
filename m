@@ -1,186 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42396 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751906AbbFHKsg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 06:48:36 -0400
-Message-ID: <557572FD.8090303@xs4all.nl>
-Date: Mon, 08 Jun 2015 12:48:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:43102 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752282AbbFKKhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 06:37:31 -0400
+Date: Thu, 11 Jun 2015 07:37:25 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Fabien DESSENNE <fabien.dessenne@st.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
+Message-ID: <20150611073725.7282c63a@recife.lan>
+In-Reply-To: <15ED7CB7B68B4D4C96C7D27A1A23941201B9F8D862@SAFEX1MAIL2.st.com>
+References: <bc5e66bd2591424f0e08d5478a36a8074fe739f5.1433969944.git.mchehab@osg.samsung.com>
+	<ec9ffbdae3dc024959c02a7f351e40f841c2d3f0.1433969944.git.mchehab@osg.samsung.com>
+	<15ED7CB7B68B4D4C96C7D27A1A23941201B9F8D862@SAFEX1MAIL2.st.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 4/6] adv7604: log infoframes
-References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl> <1433673155-20179-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433673155-20179-5-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/07/2015 12:32 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Fabien,
+
+Em Thu, 11 Jun 2015 11:26:22 +0200
+Fabien DESSENNE <fabien.dessenne@st.com> escreveu:
+
+> Hi Mauro,
 > 
-
-Hmm, missing commit log. I'm sure I wrote it at some point in time...
-
-This should be:
-
-Add support for logging the detected InfoFrames for the adv76xx. Helps in
-debugging what is actually received on the HDMI link.
-
-Regards,
-
-	Hans
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/Kconfig   |  1 +
->  drivers/media/i2c/adv7604.c | 87 ++++++++++++++++++++++++++++++---------------
->  2 files changed, 59 insertions(+), 29 deletions(-)
+> Please check my comments below.
 > 
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index c92180d..71ee8f5 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -197,6 +197,7 @@ config VIDEO_ADV7183
->  config VIDEO_ADV7604
->  	tristate "Analog Devices ADV7604 decoder"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && GPIOLIB
-> +	select HDMI
->  	---help---
->  	  Support for the Analog Devices ADV7604 video decoder.
->  
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index aaa37b0..757b6b5 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -29,6 +29,7 @@
->  
->  #include <linux/delay.h>
->  #include <linux/gpio/consumer.h>
-> +#include <linux/hdmi.h>
->  #include <linux/i2c.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> @@ -95,6 +96,13 @@ struct adv76xx_format_info {
->  	u8 op_format_sel;
->  };
->  
-> +struct adv76xx_cfg_read_infoframe {
-> +	const char *desc;
-> +	u8 present_mask;
-> +	u8 head_addr;
-> +	u8 payload_addr;
-> +};
-> +
->  struct adv76xx_chip_info {
->  	enum adv76xx_type type;
->  
-> @@ -2127,46 +2135,67 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
->  
->  /*********** avi info frame CEA-861-E **************/
->  
-> -static void print_avi_infoframe(struct v4l2_subdev *sd)
-> +static const struct adv76xx_cfg_read_infoframe adv76xx_cri[] = {
-> +	{ "AVI", 0x01, 0xe0, 0x00 },
-> +	{ "Audio", 0x02, 0xe3, 0x1c },
-> +	{ "SDP", 0x04, 0xe6, 0x2a },
-> +	{ "Vendor", 0x10, 0xec, 0x54 }
-> +};
-> +
-> +static int adv76xx_read_infoframe(struct v4l2_subdev *sd, int index,
-> +				  union hdmi_infoframe *frame)
->  {
-> +	uint8_t buffer[32];
-> +	u8 len;
->  	int i;
-> -	u8 buf[14];
-> -	u8 avi_len;
-> -	u8 avi_ver;
->  
-> -	if (!is_hdmi(sd)) {
-> -		v4l2_info(sd, "receive DVI-D signal (AVI infoframe not supported)\n");
-> -		return;
-> +	if (!(io_read(sd, 0x60) & adv76xx_cri[index].present_mask)) {
-> +		v4l2_info(sd, "%s infoframe not received\n",
-> +			  adv76xx_cri[index].desc);
-> +		return -ENOENT;
->  	}
-> -	if (!(io_read(sd, 0x60) & 0x01)) {
-> -		v4l2_info(sd, "AVI infoframe not received\n");
-> -		return;
-> +
-> +	for (i = 0; i < 3; i++)
-> +		buffer[i] = infoframe_read(sd,
-> +					   adv76xx_cri[index].head_addr + i);
-> +
-> +	len = buffer[2] + 1;
-> +
-> +	if (len + 3 > sizeof(buffer)) {
-> +		v4l2_err(sd, "%s: invalid %s infoframe length %d\n", __func__,
-> +			 adv76xx_cri[index].desc, len);
-> +		return -ENOENT;
->  	}
->  
-> -	if (io_read(sd, 0x83) & 0x01) {
-> -		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
-> -		io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
-> -		if (io_read(sd, 0x83) & 0x01) {
-> -			v4l2_info(sd, "AVI infoframe checksum error still present\n");
-> -			io_write(sd, 0x85, 0x01); /* clear AVI_INF_CKS_ERR_RAW */
-> -		}
-> +	for (i = 0; i < len; i++)
-> +		buffer[i + 3] = infoframe_read(sd,
-> +				       adv76xx_cri[index].payload_addr + i);
-> +
-> +	if (hdmi_infoframe_unpack(frame, buffer) < 0) {
-> +		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__,
-> +			 adv76xx_cri[index].desc);
-> +		return -ENOENT;
->  	}
-> +	return 0;
-> +}
->  
-> -	avi_len = infoframe_read(sd, 0xe2);
-> -	avi_ver = infoframe_read(sd, 0xe1);
-> -	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
-> -			avi_ver, avi_len);
-> +static void adv76xx_log_infoframes(struct v4l2_subdev *sd)
-> +{
-> +	int i;
->  
-> -	if (avi_ver != 0x02)
-> +	if (!is_hdmi(sd)) {
-> +		v4l2_info(sd, "receive DVI-D signal, no infoframes\n");
->  		return;
-> +	}
->  
-> -	for (i = 0; i < 14; i++)
-> -		buf[i] = infoframe_read(sd, i);
-> +	for (i = 0; i < ARRAY_SIZE(adv76xx_cri); i++) {
-> +		union hdmi_infoframe frame;
-> +		struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	v4l2_info(sd,
-> -		"\t%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-> -		buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
-> -		buf[8], buf[9], buf[10], buf[11], buf[12], buf[13]);
-> +		if (adv76xx_read_infoframe(sd, i, &frame))
-> +			return;
-> +		hdmi_infoframe_log(KERN_INFO, &client->dev, &frame);
-> +	}
->  }
->  
->  static int adv76xx_log_status(struct v4l2_subdev *sd)
-> @@ -2302,7 +2331,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
->  
->  		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
->  
-> -		print_avi_infoframe(sd);
-> +		adv76xx_log_infoframes(sd);
->  	}
->  
->  	return 0;
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
+> > Sent: mercredi 10 juin 2015 22:59
+> > To: Linux Media Mailing List
+> > Cc: Mauro Carvalho Chehab; Mauro Carvalho Chehab; Fabien DESSENNE
+> > Subject: [PATCH 2/2] [media] bdisp-debug: don't try to divide by s64
+> > 
+> > There are several warnings there, on some architectures, related to dividing
+> > a s32 by a s64 value:
+> > 
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: comparison
+> > of distinct pointer types lacks a cast
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: right shift
+> > count >= width of type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: passing
+> > argument 1 of '__div64_32' from incompatible pointer type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: comparison
+> > of distinct pointer types lacks a cast
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: right shift
+> > count >= width of type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: passing
+> > argument 1 of '__div64_32' from incompatible pointer type  CC [M]
+> > drivers/media/tuners/mt2060.o
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: comparison
+> > of distinct pointer types lacks a cast
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: right shift
+> > count >= width of type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: passing
+> > argument 1 of '__div64_32' from incompatible pointer type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: comparison
+> > of distinct pointer types lacks a cast
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: right shift
+> > count >= width of type
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: passing
+> > argument 1 of '__div64_32' from incompatible pointer type
+> > 
+> > That doesn't make much sense. What the driver is actually trying to do is to
+> > divide one second by a value. So, check the range before dividing. That
+> > warrants the right result and will remove the warnings on non-64 bits archs.
+> > 
+> > Also fixes this warning:
+> > drivers/media/platform/sti/bdisp/bdisp-debug.c:588: warning: comparison
+> > of distinct pointer types lacks a cast
+> > 
+> > by using div64_s64() instead of calling do_div() directly.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> > b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> > index 7c3a632746ba..3f6f411aafdd 100644
+> > --- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> > +++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+> > @@ -572,6 +572,8 @@ static int bdisp_dbg_regs(struct seq_file *s, void
+> > *data)
+> >  	return 0;
+> >  }
+> > 
+> > +#define SECOND 1000000
+> > +
+> >  static int bdisp_dbg_perf(struct seq_file *s, void *data)  {
+> >  	struct bdisp_dev *bdisp = s->private;
+> > @@ -585,16 +587,27 @@ static int bdisp_dbg_perf(struct seq_file *s, void
+> > *data)
+> >  	}
+> > 
+> >  	avg_time_us = bdisp->dbg.tot_duration;
 > 
+> When using div64_s64 the above line can be deleted, see my next comment.
+> 
+> > -	do_div(avg_time_us, request->nb_req);
+> > -
+> > -	avg_fps = 1000000;
+> > -	min_fps = 1000000;
+> > -	max_fps = 1000000;
+> > -	last_fps = 1000000;
+> > -	do_div(avg_fps, avg_time_us);
+> > -	do_div(min_fps, bdisp->dbg.min_duration);
+> > -	do_div(max_fps, bdisp->dbg.max_duration);
+> > -	do_div(last_fps, bdisp->dbg.last_duration);
+> > +	div64_s64(avg_time_us, request->nb_req);
+> 
+> The operation result is returned by div64_s64(different from do_div that updates the 1st parameter).
+> The expected syntax is:
+> avg_time_us = div64_s64(bdisp->dbg.tot_duration, request->nb_req);
+> 
+> > +
+> > +	if (avg_time_us > SECOND)
+> > +		avg_fps = 0;
+> > +	else
+> > +		avg_fps = SECOND / (s32)avg_time_us;
+> > +
+> > +	if (bdisp->dbg.min_duration > SECOND)
+> > +		min_fps = 0;
+> > +	else
+> > +		min_fps = SECOND / (s32)bdisp->dbg.min_duration);
+> 
+> It probably builds better without the last unexpected parenthesis ;)
+
+Gah, a left-over... I did a first version using a different syntax.
+
+See version 2 below.
+
+> > +
+> > +	if (bdisp->dbg.max_duration > SECOND)
+> > +		max_fps = 0;
+> > +	else
+> > +		max_fps = SECOND / (s32)bdisp->dbg.max_duration;
+> > +
+> > +	if (bdisp->dbg.last_duration > SECOND)
+> > +		last_fps = 0;
+> > +	else
+> > +		last_fps = SECOND / (s32)bdisp->dbg.last_duration;
+> > 
+> >  	seq_printf(s, "HW processing (%d requests):\n", request->nb_req);
+> >  	seq_printf(s, " Average: %5lld us  (%3d fps)\n",
+> > --
+> > 2.4.2
+
+[PATCHv2] [media] bdisp-debug: don't try to divide by s64
+
+There are several warnings there, on some architectures, related
+to dividing a s32 by a s64 value:
+
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:594: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:595: warning: passing argument 1 of '__div64_32' from incompatible pointer type  CC [M]  drivers/media/tuners/mt2060.o
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:596: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: comparison of distinct pointer types lacks a cast
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: right shift count >= width of type
+drivers/media/platform/sti/bdisp/bdisp-debug.c:597: warning: passing argument 1 of '__div64_32' from incompatible pointer type
+
+That doesn't make much sense. What the driver is actually trying
+to do is to divide one second by a value. So, check the range
+before dividing. That warrants the right result and will remove
+the warnings on non-64 bits archs.
+
+Also fixes this warning:
+drivers/media/platform/sti/bdisp/bdisp-debug.c:588: warning: comparison of distinct pointer types lacks a cast
+
+by using div64_s64() instead of calling do_div() directly.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+index 7c3a632746ba..18282a0f80c9 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+@@ -572,6 +572,8 @@ static int bdisp_dbg_regs(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
++#define SECOND 1000000
++
+ static int bdisp_dbg_perf(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+@@ -584,17 +586,26 @@ static int bdisp_dbg_perf(struct seq_file *s, void *data)
+ 		return 0;
+ 	}
+ 
+-	avg_time_us = bdisp->dbg.tot_duration;
+-	do_div(avg_time_us, request->nb_req);
+-
+-	avg_fps = 1000000;
+-	min_fps = 1000000;
+-	max_fps = 1000000;
+-	last_fps = 1000000;
+-	do_div(avg_fps, avg_time_us);
+-	do_div(min_fps, bdisp->dbg.min_duration);
+-	do_div(max_fps, bdisp->dbg.max_duration);
+-	do_div(last_fps, bdisp->dbg.last_duration);
++	avg_time_us = div64_s64(bdisp->dbg.tot_duration, request->nb_req);
++	if (avg_time_us > SECOND)
++		avg_fps = 0;
++	else
++		avg_fps = SECOND / (s32)avg_time_us;
++
++	if (bdisp->dbg.min_duration > SECOND)
++		min_fps = 0;
++	else
++		min_fps = SECOND / (s32)bdisp->dbg.min_duration;
++
++	if (bdisp->dbg.max_duration > SECOND)
++		max_fps = 0;
++	else
++		max_fps = SECOND / (s32)bdisp->dbg.max_duration;
++
++	if (bdisp->dbg.last_duration > SECOND)
++		last_fps = 0;
++	else
++		last_fps = SECOND / (s32)bdisp->dbg.last_duration;
+ 
+ 	seq_printf(s, "HW processing (%d requests):\n", request->nb_req);
+ 	seq_printf(s, " Average: %5lld us  (%3d fps)\n",
 
