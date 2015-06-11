@@ -1,69 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35146 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752385AbbFJJxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:53:44 -0400
-Message-ID: <55780923.5060106@iki.fi>
-Date: Wed, 10 Jun 2015 12:53:39 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: David Howells <dhowells@redhat.com>,
-	Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [GIT PULL] ts2020 changes (+few more)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qg0-f66.google.com ([209.85.192.66]:35825 "EHLO
+	mail-qg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbbFKSNY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 14:13:24 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: bp@suse.de
+Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
+	bhelgaas@google.com, luto@amacapital.net,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	Roland Dreier <roland@kernel.org>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Juergen Gross <jgross@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Dave Airlie <airlied@redhat.com>,
+	Antonino Daplas <adaplas@gmail.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	infinipath@intel.com, linux-fbdev@vger.kernel.org
+Subject: [PATCH v6 2/3] IB/ipath: add counting for MTRR
+Date: Thu, 11 Jun 2015 10:50:01 -0700
+Message-Id: <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com>
+In-Reply-To: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
+References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 9056a23ba19d911d4a079b8ca543fb8ebffa7c56:
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-   [media] dvb-frontend: Replace timeval with ktime_t (2015-06-09 
-21:09:51 -0300)
+There is no good reason not to, we eventually delete it as well.
 
-are available in the git repository at:
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Suresh Siddha <sbsiddha@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: infinipath@intel.com
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+---
+ drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-   git://linuxtv.org/anttip/media_tree.git ts2020_pull
-
-for you to fetch changes up to 66baf807b9d4bfe2b7c246058bbffd8592e0abb8:
-
-   lmedm04: Enable dont_poll for TS2020 tuner. (2015-06-10 12:38:58 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (7):
-       ts2020: re-implement PLL calculations
-       ts2020: improve filter limit calc
-       ts2020: register I2C driver from legacy media attach
-       ts2020: convert to regmap I2C API
-       m88ds3103: rename variables and correct logging
-       m88ds3103: use regmap for I2C register access
-       em28xx: PCTV 461e use I2C client for demod and SEC
-
-David Howells (5):
-       ts2020: Add a comment about lifetime of on-stack pdata in 
-ts2020_attach()
-       TS2020: Calculate tuner gain correctly
-       ts2020: Provide DVBv5 API signal strength
-       ts2020: Copy loop_through from the config to the internal data
-       ts2020: Allow stats polling to be suppressed
-
-Malcolm Priestley (1):
-       lmedm04: Enable dont_poll for TS2020 tuner.
-
-  drivers/media/dvb-frontends/Kconfig          |   6 +-
-  drivers/media/dvb-frontends/m88ds3103.c      | 753 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------------------------------
-  drivers/media/dvb-frontends/m88ds3103.h      |   4 +-
-  drivers/media/dvb-frontends/m88ds3103_priv.h |  10 +-
-  drivers/media/dvb-frontends/ts2020.c         | 590 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------
-  drivers/media/dvb-frontends/ts2020.h         |  17 +++-
-  drivers/media/pci/cx23885/cx23885-dvb.c      |   3 +
-  drivers/media/usb/dvb-usb-v2/dvbsky.c        |   2 +
-  drivers/media/usb/dvb-usb-v2/lmedm04.c       |   1 +
-  drivers/media/usb/em28xx/em28xx-dvb.c        | 136 
-+++++++++++++++----------
-  10 files changed, 779 insertions(+), 743 deletions(-)
-
+diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+index 4ad0b93..70c1f3a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
++++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+@@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+ 			   "(addr %llx, len=0x%llx)\n",
+ 			   (unsigned long long) pioaddr,
+ 			   (unsigned long long) piolen);
+-		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
++		cookie = mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+ 		if (cookie < 0) {
+ 			{
+ 				dev_info(&dd->pcidev->dev,
 -- 
-http://palosaari.fi/
+2.3.2.209.gd67f9d5.dirty
+
