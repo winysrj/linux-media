@@ -1,45 +1,49 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:32934 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616AbbFSIwC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 04:52:02 -0400
-From: Sunil Shahu <shshahu@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
-	hamohammed.sa@gmail.com, tapaswenipathak@gmail.com, arnd@arndb.de,
-	gulsah.1004@gmail.com, aybuke.147@gmail.com,
-	dan.carpenter@oracle.com, mahfouz.saif.elyazal@gmail.com,
-	amber.rose.thrall@gmail.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: lirc: fix coding style error
-Date: Fri, 19 Jun 2015 14:22:02 +0530
-Message-Id: <1434703922-1655-1-git-send-email-shshahu@gmail.com>
-In-Reply-To: <20150619080232.GN28762@mwanda>
-References: <20150619080232.GN28762@mwanda>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
+ "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+ Boris BREZILLON <boris.brezillon@free-electrons.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+ Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 11/12] pci/ivtv/ivtv-gpio: Remove compat control ops
+Date: Fri, 12 Jun 2015 18:31:17 +0200
+Message-id: <1434126678-7978-12-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Fix code indentation error by replacing tab in place of spaces.
+They are no longer used in old non-control-framework
+bridge drivers.
 
-Signed-off-by: Sunil Shahu <shshahu@gmail.com>
+Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_sasem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/ivtv/ivtv-gpio.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index 8ebee96..c14ca7e 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
- 		       __func__, retval);
- 	else
- 		dev_info(&context->dev->dev,
--		         "Deregistered Sasem driver (minor:%d)\n", minor);
-+			 "Deregistered Sasem driver (minor:%d)\n", minor);
+diff --git a/drivers/media/pci/ivtv/ivtv-gpio.c b/drivers/media/pci/ivtv/ivtv-gpio.c
+index af52def700cc..f752f3993687 100644
+--- a/drivers/media/pci/ivtv/ivtv-gpio.c
++++ b/drivers/media/pci/ivtv/ivtv-gpio.c
+@@ -313,13 +313,6 @@ static const struct v4l2_ctrl_ops gpio_ctrl_ops = {
  
- }
+ static const struct v4l2_subdev_core_ops subdev_core_ops = {
+ 	.log_status = subdev_log_status,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ };
  
+ static const struct v4l2_subdev_tuner_ops subdev_tuner_ops = {
 -- 
-1.9.1
-
+2.1.4
