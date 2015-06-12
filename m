@@ -1,41 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp47.i.mail.ru ([94.100.177.107]:51721 "EHLO smtp47.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317AbbFGUzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 16:55:16 -0400
-Message-ID: <C6841AEECECB40A2A9A6CDB7320309F9@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: <linux-media@vger.kernel.org>, "Hurda" <hurda@chello.at>
-References: <0448C37B97FE43E6A8CD61968C10E73F@unknown> <55733133.6050502@iki.fi> <CFB6F14A3740441FB49C6FF2FC3CAD56@unknown> <557354A2.7060900@iki.fi> <D91B54BF334446CEAB709731EE051752@unknown> <557494E1.3060403@chello.at>
-Subject: Re: Si2168 B40 frimware.
-Date: Mon, 8 Jun 2015 03:55:08 +0700
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="UTF-8";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 14/19] media/i2c/saa7115: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 18:46:33 +0200
+Message-id: <1434127598-11719-15-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hurda,
+Via control framework.
 
-> What's new with that firmware?
-> It's twice as big as 4.0.11, so there got to be a lot of changes and fixes.
-I can't tell exactly what 4.0.19 does. May be I'm wrong, but I suppose, patch 4.0.19
-for B40 has so big size, because most likely it resolves the same issues as patch 3.0.20 for A30:
-Here, in Russia, TV broadcasters actively using Multi PLP in DVB-T2 transmissions.
-In some cities, were problems with switching to PLP#1 or PLP#2 without A30 3.0.20 patch.
-(Different cities in different time zones lead to a separate mux transport streams for them.)
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/saa7115.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-What I can tell exactly, is that A30 3.0.20 contains an update for Si2168, which allows
-demodulator to lock PLP#2 with an "old" type OFDM frame encoding. Also it speed up locking
-for low bitrates PLP.
-In short: it fixes a serious issue with Multi PLP locking.
- 
-> I assume the info originates from 
-> http://beholder.ru/bb/viewtopic.php?f=11&t=14101 , but I don't understand 
-> Russian at all.
-Yes, you are right.
-
-Best regards.
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 0eae5f4471e2..c227dc11b136 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1582,6 +1582,7 @@ static const struct v4l2_ctrl_ops saa711x_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops saa711x_core_ops = {
+ 	.log_status = saa711x_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
+-- 
+2.1.4
