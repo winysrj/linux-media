@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:37495 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937AbbF2K0B (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44749 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751567AbbFLXCQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:26:01 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org, Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv7 10/15] v4l2-subdev: add HDMI CEC ops
-Date: Mon, 29 Jun 2015 12:14:55 +0200
-Message-Id: <1435572900-56998-11-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+	Fri, 12 Jun 2015 19:02:16 -0400
+Date: Sat, 13 Jun 2015 02:01:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] omap3isp: Fix sub-device power management code
+Message-ID: <20150612230143.GV5904@valkosipuli.retiisi.org.uk>
+References: <1432855083-25969-1-git-send-email-sakari.ailus@iki.fi>
+ <2107807.pFBTyZhm9E@avalon>
+ <20150610213811.GR5904@valkosipuli.retiisi.org.uk>
+ <1434096127.3f3fQLryEJ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1434096127.3f3fQLryEJ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add CEC callbacks to the v4l2_subdev_video_ops. These are the low-level CEC
-ops that subdevs that support CEC have to implement.
+Hi Laurent,
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-subdev.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On Fri, Jun 12, 2015 at 10:24:28AM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Thursday 11 June 2015 00:38:11 Sakari Ailus wrote:
+> > On Wed, Jun 10, 2015 at 03:52:50AM +0300, Laurent Pinchart wrote:
+> > > On Friday 29 May 2015 02:17:47 Sakari Ailus wrote:
+> > > > The power management code was reworked a little due to interface changes
+> > > > in the MC. Due to those changes the power management broke a bit, fix it
+> > > > so the functionality is reverted to old behaviour.
+> > > 
+> > > I found the commit message a bit vague. How about
+> > > 
+> > > "Commit 813f5c0ac5cc ("media: Change media device link_notify behaviour")
+> > > modified the media controller link setup notification API and updated the
+> > > OMAP3 ISP driver accordingly. As a side effect it introduced a bug by
+> > > turning power on after setting the link instead of before. This results
+> > > in powered off entities being accessed. Fix it."
+> > > 
+> > > Or have I misunderstood the problem ?
+> > 
+> > Not entirely, but it's not just that: depending on the order in which the
+> > links are changed and the video nodes opened or closed, the use counts may
+> > end up being too high or too low (even negative).
+> 
+> OK. Could you please update the commit message accordingly ?
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index dc20102..53e220d 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -42,6 +42,9 @@
- 
- #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
- 
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 2, u32)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 3, struct cec_msg)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event_subscription;
-@@ -50,6 +53,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
- 
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -338,6 +342,11 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	unsigned (*cec_available_log_addrs)(struct v4l2_subdev *sd);
-+	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*cec_transmit)(struct v4l2_subdev *sd, struct cec_msg *msg);
-+	void (*cec_transmit_timed_out)(struct v4l2_subdev *sd);
- };
- 
- /*
+Hmm. I'm still not fully certain how did I manage to reproduce that, but in
+a few occasions the sensor was powered down when it shouldn't have been and
+the power count was decreased more than it was first increased.
+
+What's indeed easy to see is that in post notification of enabling the links
+the use counts of the partial pipelines are in fact not those of the
+partial, but the complete one, and thus end up being twice as much they
+should be.
+
+I'm fine with using the commit message you suggested, the bottom line still
+is that it was broken, and the patch fixes it.
+
 -- 
-2.1.4
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
