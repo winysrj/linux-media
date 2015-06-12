@@ -1,45 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55979 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbbFYQeM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 12:34:12 -0400
-Message-ID: <1435250043.3761.56.camel@pengutronix.de>
-Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field
- just as vb2_ioctl_reqbufs does
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Thu, 25 Jun 2015 18:34:03 +0200
-In-Reply-To: <CAP3TMiEByap-vb_1CjEmSYFKwwhVOarccgU+qDj=S8vPWqujDw@mail.gmail.com>
-References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
-	 <CAP3TMiEByap-vb_1CjEmSYFKwwhVOarccgU+qDj=S8vPWqujDw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 09/27] media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:03 +0200
+Message-id: <1434114742-7420-10-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Via control framework.
 
-Am Donnerstag, den 25.06.2015, 15:10 +0100 schrieb Kamil Debski:
-> Hi Philipp,
-> 
-> On 25 June 2015 at 11:01, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> Please add the patch description no matter how simple it is and how
-> well the subject covers the content of the patch.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/cs53l32a.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Will do in the next round.
-
-thanks
-Philipp
-
+diff --git a/drivers/media/i2c/cs53l32a.c b/drivers/media/i2c/cs53l32a.c
+index 27400c16ef9a..9358350278cc 100644
+--- a/drivers/media/i2c/cs53l32a.c
++++ b/drivers/media/i2c/cs53l32a.c
+@@ -122,6 +122,7 @@ static const struct v4l2_ctrl_ops cs53l32a_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops cs53l32a_core_ops = {
+ 	.log_status = cs53l32a_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
+-- 
+2.1.4
