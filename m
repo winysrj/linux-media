@@ -1,95 +1,116 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49645 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751862AbbFYJbO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:31:14 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 10/15] media: rcar_vin: Use correct pad number in try_fmt
-Date: Thu, 25 Jun 2015 10:31:04 +0100
-Message-Id: <1435224669-23672-11-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 00/27]  New ioct VIDIOC_G_DEF_EXT_CTRLS
+Date: Fri, 12 Jun 2015 15:11:54 +0200
+Message-id: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+Integer controls provide a way to get their default/initial value, but
+any other control (p_u32, p_u8.....) provide no other way to get the
+initial value than unloading the module and loading it back.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+*What is the actual problem?
+I have a custom control with WIDTH integer values. Every value
+represents the calibrated FPN (fixed pattern noise) correction value for that
+column
+-Application A changes the FPN correction value
+-Application B wants to restore the calibrated value but it cant :(
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 00c1034..1023c5b 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1697,14 +1697,18 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct v4l2_subdev_pad_config pad_cfg;
-+	struct v4l2_subdev_pad_config *pad_cfg;
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_TRY,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &format.format;
- 	__u32 pixfmt = pix->pixelformat;
- 	int width, height;
--	int ret;
-+	int ret= -ENOMEM;
-+
-+	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-+	if (pad_cfg == NULL)
-+		goto out;
- 
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (!xlate) {
-@@ -1734,10 +1738,11 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	mf->code = xlate->code;
- 	mf->colorspace = pix->colorspace;
- 
-+	format.pad = icd->src_pad_idx;
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
--					 pad, set_fmt, &pad_cfg, &format);
-+					 pad, set_fmt, pad_cfg, &format);
- 	if (ret < 0)
--		return ret;
-+		goto cleanup;
- 
- 	/* Adjust only if VIN cannot scale */
- 	if (pix->width > mf->width * 2)
-@@ -1761,12 +1766,12 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			mf->height = VIN_MAX_HEIGHT;
- 			ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 							 soc_camera_grp_id(icd),
--							 pad, set_fmt, &pad_cfg,
-+							 pad, set_fmt, pad_cfg,
- 							 &format);
- 			if (ret < 0) {
- 				dev_err(icd->parent,
- 					"client try_fmt() = %d\n", ret);
--				return ret;
-+				goto cleanup;
- 			}
- 		}
- 		/* We will scale exactly */
-@@ -1776,6 +1781,9 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			pix->height = height;
- 	}
- 
-+cleanup:
-+	v4l2_subdev_free_pad_config(pad_cfg);
-+out:
- 	return ret;
- }
- 
+*What is the proposed solution?
+-Add a new ioctl VIDIOC_G_DEF_EXT_CTRLS, with the same API as
+G_EXT_CTRLS, but that returns the initial value of a given control.
+
+
+I have posted a copy of my working tree to
+
+https://github.com/ribalda/linux/tree/g_def_ext
+
+It has been tested with a hacked version of yavta (for normal controls) and a
+custom program for the array control.
+
+Changelog v2:
+-Add documentation
+-Split in multiple patches
+-Comments by Hans:
+  -Rename ioctl to G_DEF_EXT_CTRL
+  -Much! better implementation of def_to_user
+
+
+THANKS!
+
+Ricardo Ribalda Delgado (27):
+  media/v4l2-core: Add argument def_value to g_ext_ctrl
+  media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
+  videodev2.h: Fix typo in comment
+  v4l2-subdev: Add g_def_ext_ctrls to core_ops
+  media/i2c/adv7343: Implement g_def_ext_ctrls core_op
+  media/i2c/adv7393: Implement g_def_ext_ctrls core_op
+  media/i2c/bt819: Implement g_def_ext_ctrls core_op
+  media/i2c/cs5345: Implement g_def_ext_ctrls core_op
+  media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
+  media/i2c/cx25840/cx25840-core: Implement g_def_ext_ctrls core_op
+  media/i2c/msp3400-driver: Implement g_def_ext_ctrls core_op
+  media/i2c/saa7110: Implement g_def_ext_ctrls core_op
+  media/i2c/saa7115: Implement g_def_ext_ctrls core_op
+  media/i2c/saa717x: Implement g_def_ext_ctrls core_op
+  media/i2c/sr030pc30: Implement g_def_ext_ctrls core_op
+  media/i2c/tda7432: Implement g_def_ext_ctrls core_op
+  media/i2c/tlv320aic23b: Implement g_def_ext_ctrls core_op
+  media/i2c/tvaudio: Implement g_def_ext_ctrls core_op
+  media/i2c/tvp514x: Implement g_def_ext_ctrls core_op
+  media/i2c/tvp7002: Implement g_def_ext_ctrls core_op
+  media/i2c/vpx3220: Implement g_def_ext_ctrls core_op
+  media/i2c/wm8739: Implement g_def_ext_ctrls core_op
+  media/i2c/wm8775: Implement g_def_ext_ctrls core_op
+  media/pci/ivtv/ivtv-gpio: Implement g_def_ext_ctrls core_op
+  media/radio/saa7706h: Implement g_def_ext_ctrls core_op
+  Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
+  Documentation: media: Fix code sample
+
+ Documentation/DocBook/media/v4l/v4l2.xml           |  8 ++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 13 ++++++---
+ Documentation/video4linux/v4l2-controls.txt        |  4 ++-
+ Documentation/video4linux/v4l2-framework.txt       |  1 +
+ Documentation/zh_CN/video4linux/v4l2-framework.txt |  1 +
+ drivers/media/i2c/adv7343.c                        |  1 +
+ drivers/media/i2c/adv7393.c                        |  1 +
+ drivers/media/i2c/bt819.c                          |  1 +
+ drivers/media/i2c/cs5345.c                         |  1 +
+ drivers/media/i2c/cs53l32a.c                       |  1 +
+ drivers/media/i2c/cx25840/cx25840-core.c           |  1 +
+ drivers/media/i2c/msp3400-driver.c                 |  1 +
+ drivers/media/i2c/saa7110.c                        |  1 +
+ drivers/media/i2c/saa7115.c                        |  1 +
+ drivers/media/i2c/saa717x.c                        |  1 +
+ drivers/media/i2c/sr030pc30.c                      |  1 +
+ drivers/media/i2c/tda7432.c                        |  1 +
+ drivers/media/i2c/tlv320aic23b.c                   |  1 +
+ drivers/media/i2c/tvaudio.c                        |  1 +
+ drivers/media/i2c/tvp514x.c                        |  1 +
+ drivers/media/i2c/tvp7002.c                        |  1 +
+ drivers/media/i2c/vpx3220.c                        |  1 +
+ drivers/media/i2c/wm8739.c                         |  1 +
+ drivers/media/i2c/wm8775.c                         |  1 +
+ drivers/media/pci/ivtv/ivtv-gpio.c                 |  1 +
+ drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
+ drivers/media/radio/saa7706h.c                     |  1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  4 +++
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 32 ++++++++++++++++++----
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 25 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-subdev.c              |  5 +++-
+ include/media/v4l2-ctrls.h                         |  5 +++-
+ include/media/v4l2-ioctl.h                         |  2 ++
+ include/media/v4l2-subdev.h                        |  2 ++
+ include/uapi/linux/videodev2.h                     |  3 +-
+ 35 files changed, 112 insertions(+), 16 deletions(-)
+
 -- 
-1.7.10.4
-
+2.1.4
