@@ -1,49 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42497 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751737AbbFHOxv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 10:53:51 -0400
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 8 Jun 2015 16:52:49 +0200
-Subject: RE: [PATCH] bdisp: update MAINTAINERS
-Message-ID: <15ED7CB7B68B4D4C96C7D27A1A23941201B9EFE1AC@SAFEX1MAIL2.st.com>
-References: <5575896C.3090303@xs4all.nl>
- <15ED7CB7B68B4D4C96C7D27A1A23941201B9EFE120@SAFEX1MAIL2.st.com>
- <5575A7A4.3010603@xs4all.nl>
-In-Reply-To: <5575A7A4.3010603@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 23/27] media/i2c/wm8775: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:17 +0200
+Message-id: <1434114742-7420-24-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-T0ssDQoNCkFja2VkLWJ5OiBGYWJpZW4gRGVzc2VubmUgPGZhYmllbi5kZXNzZW5uZUBzdC5jb20+
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogSGFucyBWZXJrdWlsIFtt
-YWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPiBTZW50OiBsdW5kaSA4IGp1aW4gMjAxNSAxNjoz
-Mw0KPiBUbzogRmFiaWVuIERFU1NFTk5FOyBMaW51eCBNZWRpYSBNYWlsaW5nIExpc3QNCj4gU3Vi
-amVjdDogUmU6IFtQQVRDSF0gYmRpc3A6IHVwZGF0ZSBNQUlOVEFJTkVSUw0KPiANCj4gT24gMDYv
-MDgvMjAxNSAwMzozNiBQTSwgRmFiaWVuIERFU1NFTk5FIHdyb3RlOg0KPiA+IE9LLCBJIHdpbGwg
-dGFrZSBjYXJlIG9mIHRoaXMgbmV3IGRyaXZlci4NCj4gDQo+IFNvcnJ5LCBidXQgSSBuZWVkIHlv
-dXIgQWNrZWQtYnkgYmVmb3JlIEkgY2FuIG1lcmdlIHRoaXMuDQo+IA0KPiBSZWdhcmRzLA0KPiAN
-Cj4gCUhhbnMNCj4gDQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4g
-RnJvbTogSGFucyBWZXJrdWlsIFttYWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPiA+PiBTZW50
-OiBsdW5kaSA4IGp1aW4gMjAxNSAxNDoyNA0KPiA+PiBUbzogTGludXggTWVkaWEgTWFpbGluZyBM
-aXN0OyBGYWJpZW4gREVTU0VOTkUNCj4gPj4gU3ViamVjdDogW1BBVENIXSBiZGlzcDogdXBkYXRl
-IE1BSU5UQUlORVJTDQo+ID4+DQo+ID4+IEFkZCBlbnRyeSBmb3IgdGhlIGJkaXNwIGRyaXZlciB0
-byB0aGUgTUFJTlRBSU5FUlMgZmlsZS4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogSGFucyBW
-ZXJrdWlsIDxoYW5zLnZlcmt1aWxAY2lzY28uY29tPg0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEv
-TUFJTlRBSU5FUlMgYi9NQUlOVEFJTkVSUyBpbmRleCAzY2ZiOTc5Li5kZTNjZjI5IDEwMDY0NA0K
-PiA+PiAtLS0gYS9NQUlOVEFJTkVSUw0KPiA+PiArKysgYi9NQUlOVEFJTkVSUw0KPiA+PiBAQCAt
-MTk2NCw2ICsxOTY0LDE0IEBAIFc6CWh0dHA6Ly9iY2FjaGUuZXZpbHBpZXBpcmF0ZS5vcmcNCj4g
-Pj4gIFM6CU1haW50YWluZWQ6DQo+ID4+ICBGOglkcml2ZXJzL21kL2JjYWNoZS8NCj4gPj4NCj4g
-Pj4gK0JESVNQIFNUIE1FRElBIERSSVZFUg0KPiA+PiArTToJRmFiaWVuIERlc3Nlbm5lIDxmYWJp
-ZW4uZGVzc2VubmVAc3QuY29tPg0KPiA+PiArTDoJbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
-DQo+ID4+ICtUOglnaXQgZ2l0Oi8vbGludXh0di5vcmcvbWVkaWFfdHJlZS5naXQNCj4gPj4gK1c6
-CWh0dHA6Ly9saW51eHR2Lm9yZw0KPiA+PiArUzoJU3VwcG9ydGVkDQo+ID4+ICtGOglkcml2ZXJz
-L21lZGlhL3BsYXRmb3JtL3N0aS9iZGlzcA0KPiA+PiArDQo+ID4+ICBCRUZTIEZJTEUgU1lTVEVN
-DQo+ID4+ICBTOglPcnBoYW4NCj4gPj4gIEY6CURvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvYmVm
-cy50eHQNCg0K
+Via control framework.
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/wm8775.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/wm8775.c b/drivers/media/i2c/wm8775.c
+index bee7946faa7c..45d4873aca74 100644
+--- a/drivers/media/i2c/wm8775.c
++++ b/drivers/media/i2c/wm8775.c
+@@ -179,6 +179,7 @@ static const struct v4l2_ctrl_ops wm8775_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops wm8775_core_ops = {
+ 	.log_status = wm8775_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
+-- 
+2.1.4
