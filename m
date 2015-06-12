@@ -1,48 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35557 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752919AbbF2VTP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 17:19:15 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>, <stable@vger.kernel.org>
-Subject: [Patch v3 1/1] media: am437x-vpfe: Requested frame size and fmt overwritten by current sensor setting
-Date: Mon, 29 Jun 2015 16:19:06 -0500
-Message-ID: <1435612746-3999-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 13/27] media/i2c/saa7115: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:07 +0200
+Message-id: <1434114742-7420-14-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Upon a S_FMT the input/requested frame size and pixel format is
-overwritten by the current sub-device settings.
-Fix this so application can actually set the frame size and format.
+Via control framework.
 
-Fixes: 417d2e507edc ("[media] media: platform: add VPFE capture driver support for AM437X")
-Cc: <stable@vger.kernel.org> # v4.0+
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
-Changes since v2:
-- fix the stable commit reference syntax
+ drivers/media/i2c/saa7115.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/platform/am437x/am437x-vpfe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index eb25c43da126..0fa62c50f62d 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1584,7 +1584,7 @@ static int vpfe_s_fmt(struct file *file, void *priv,
- 		return -EBUSY;
- 	}
- 
--	ret = vpfe_try_fmt(file, priv, fmt);
-+	ret = vpfe_try_fmt(file, priv, &format);
- 	if (ret)
- 		return ret;
- 
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 0eae5f4471e2..c227dc11b136 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1582,6 +1582,7 @@ static const struct v4l2_ctrl_ops saa711x_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops saa711x_core_ops = {
+ 	.log_status = saa711x_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-1.8.5.1
-
+2.1.4
