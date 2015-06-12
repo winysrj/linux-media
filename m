@@ -1,116 +1,65 @@
 Return-Path: <ricardo.ribalda@gmail.com>
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
+ "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+ Boris BREZILLON <boris.brezillon@free-electrons.com>,
  Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+ Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v2 00/27]  New ioct VIDIOC_G_DEF_EXT_CTRLS
-Date: Fri, 12 Jun 2015 15:11:54 +0200
-Message-id: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+Subject: [PATCH 12/12] media/radio/saa7706h: Remove compat control ops
+Date: Fri, 12 Jun 2015 18:31:18 +0200
+Message-id: <1434126678-7978-13-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
 MIME-version: 1.0
 Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Integer controls provide a way to get their default/initial value, but
-any other control (p_u32, p_u8.....) provide no other way to get the
-initial value than unloading the module and loading it back.
+They are no longer used in old non-control-framework
+bridge drivers.
 
-*What is the actual problem?
-I have a custom control with WIDTH integer values. Every value
-represents the calibrated FPN (fixed pattern noise) correction value for that
-column
--Application A changes the FPN correction value
--Application B wants to restore the calibrated value but it cant :(
+Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/radio/saa7706h.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-*What is the proposed solution?
--Add a new ioctl VIDIOC_G_DEF_EXT_CTRLS, with the same API as
-G_EXT_CTRLS, but that returns the initial value of a given control.
-
-
-I have posted a copy of my working tree to
-
-https://github.com/ribalda/linux/tree/g_def_ext
-
-It has been tested with a hacked version of yavta (for normal controls) and a
-custom program for the array control.
-
-Changelog v2:
--Add documentation
--Split in multiple patches
--Comments by Hans:
-  -Rename ioctl to G_DEF_EXT_CTRL
-  -Much! better implementation of def_to_user
-
-
-THANKS!
-
-Ricardo Ribalda Delgado (27):
-  media/v4l2-core: Add argument def_value to g_ext_ctrl
-  media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
-  videodev2.h: Fix typo in comment
-  v4l2-subdev: Add g_def_ext_ctrls to core_ops
-  media/i2c/adv7343: Implement g_def_ext_ctrls core_op
-  media/i2c/adv7393: Implement g_def_ext_ctrls core_op
-  media/i2c/bt819: Implement g_def_ext_ctrls core_op
-  media/i2c/cs5345: Implement g_def_ext_ctrls core_op
-  media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
-  media/i2c/cx25840/cx25840-core: Implement g_def_ext_ctrls core_op
-  media/i2c/msp3400-driver: Implement g_def_ext_ctrls core_op
-  media/i2c/saa7110: Implement g_def_ext_ctrls core_op
-  media/i2c/saa7115: Implement g_def_ext_ctrls core_op
-  media/i2c/saa717x: Implement g_def_ext_ctrls core_op
-  media/i2c/sr030pc30: Implement g_def_ext_ctrls core_op
-  media/i2c/tda7432: Implement g_def_ext_ctrls core_op
-  media/i2c/tlv320aic23b: Implement g_def_ext_ctrls core_op
-  media/i2c/tvaudio: Implement g_def_ext_ctrls core_op
-  media/i2c/tvp514x: Implement g_def_ext_ctrls core_op
-  media/i2c/tvp7002: Implement g_def_ext_ctrls core_op
-  media/i2c/vpx3220: Implement g_def_ext_ctrls core_op
-  media/i2c/wm8739: Implement g_def_ext_ctrls core_op
-  media/i2c/wm8775: Implement g_def_ext_ctrls core_op
-  media/pci/ivtv/ivtv-gpio: Implement g_def_ext_ctrls core_op
-  media/radio/saa7706h: Implement g_def_ext_ctrls core_op
-  Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
-  Documentation: media: Fix code sample
-
- Documentation/DocBook/media/v4l/v4l2.xml           |  8 ++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 13 ++++++---
- Documentation/video4linux/v4l2-controls.txt        |  4 ++-
- Documentation/video4linux/v4l2-framework.txt       |  1 +
- Documentation/zh_CN/video4linux/v4l2-framework.txt |  1 +
- drivers/media/i2c/adv7343.c                        |  1 +
- drivers/media/i2c/adv7393.c                        |  1 +
- drivers/media/i2c/bt819.c                          |  1 +
- drivers/media/i2c/cs5345.c                         |  1 +
- drivers/media/i2c/cs53l32a.c                       |  1 +
- drivers/media/i2c/cx25840/cx25840-core.c           |  1 +
- drivers/media/i2c/msp3400-driver.c                 |  1 +
- drivers/media/i2c/saa7110.c                        |  1 +
- drivers/media/i2c/saa7115.c                        |  1 +
- drivers/media/i2c/saa717x.c                        |  1 +
- drivers/media/i2c/sr030pc30.c                      |  1 +
- drivers/media/i2c/tda7432.c                        |  1 +
- drivers/media/i2c/tlv320aic23b.c                   |  1 +
- drivers/media/i2c/tvaudio.c                        |  1 +
- drivers/media/i2c/tvp514x.c                        |  1 +
- drivers/media/i2c/tvp7002.c                        |  1 +
- drivers/media/i2c/vpx3220.c                        |  1 +
- drivers/media/i2c/wm8739.c                         |  1 +
- drivers/media/i2c/wm8775.c                         |  1 +
- drivers/media/pci/ivtv/ivtv-gpio.c                 |  1 +
- drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
- drivers/media/radio/saa7706h.c                     |  1 +
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  4 +++
- drivers/media/v4l2-core/v4l2-ctrls.c               | 32 ++++++++++++++++++----
- drivers/media/v4l2-core/v4l2-ioctl.c               | 25 +++++++++++++++--
- drivers/media/v4l2-core/v4l2-subdev.c              |  5 +++-
- include/media/v4l2-ctrls.h                         |  5 +++-
- include/media/v4l2-ioctl.h                         |  2 ++
- include/media/v4l2-subdev.h                        |  2 ++
- include/uapi/linux/videodev2.h                     |  3 +-
- 35 files changed, 112 insertions(+), 16 deletions(-)
-
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index ec805b09c608..183e92719140 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -336,19 +336,7 @@ static const struct v4l2_ctrl_ops saa7706h_ctrl_ops = {
+ 	.s_ctrl = saa7706h_s_ctrl,
+ };
+ 
+-static const struct v4l2_subdev_core_ops saa7706h_core_ops = {
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+-};
+-
+-static const struct v4l2_subdev_ops saa7706h_ops = {
+-	.core = &saa7706h_core_ops,
+-};
++static const struct v4l2_subdev_ops empty_ops = {};
+ 
+ /*
+  * Generic i2c probe
+@@ -373,7 +361,7 @@ static int saa7706h_probe(struct i2c_client *client,
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+-	v4l2_i2c_subdev_init(sd, client, &saa7706h_ops);
++	v4l2_i2c_subdev_init(sd, client, &empty_ops);
+ 
+ 	v4l2_ctrl_handler_init(&state->hdl, 4);
+ 	v4l2_ctrl_new_std(&state->hdl, &saa7706h_ctrl_ops,
 -- 
 2.1.4
