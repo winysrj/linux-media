@@ -1,23 +1,73 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [204.151.240.160] ([204.151.240.160]:43674 "EHLO mail.bbc.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751831AbbFPXul (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 19:50:41 -0400
-Message-ID: <b9606a86c3ea526f3a13901e0d1f17cd.squirrel@204.151.240.160>
-Date: Tue, 16 Jun 2015 18:05:19 -0000
-Subject: Hello!!!
-From: "chang" <admin@bbc.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: undisclosed-recipients:;
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 04/27] v4l2-subdev: Add g_def_ext_ctrls to core_ops
+Date: Fri, 12 Jun 2015 15:11:58 +0200
+Message-id: <1434114742-7420-5-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
+This function returns the default value of an extended control. Provides
+sub-devices with the same functionality as ioctl VIDIOC_G_DEF_EXT_CTRLS.
 
-Hello,
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 7 +++++++
+ include/media/v4l2-ctrls.h           | 2 ++
+ include/media/v4l2-subdev.h          | 2 ++
+ 3 files changed, 11 insertions(+)
 
-Mrs. Liliane picked you. For details email her
-directly: lilbetencout45@hotmail.com
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 02ff6f573fd2..2a42b826f857 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2888,6 +2888,13 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ }
+ EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+ 
++int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
++				struct v4l2_ext_controls *cs)
++{
++	return v4l2_g_ext_ctrls(sd->ctrl_handler, cs, true);
++}
++EXPORT_SYMBOL(v4l2_subdev_g_def_ext_ctrls);
++
+ /* Helper function to get a single control */
+ static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+ {
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 16f16b67181b..61e6cd67fc10 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -823,6 +823,8 @@ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc);
+ int v4l2_subdev_querymenu(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
++int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
++				struct v4l2_ext_controls *cs);
+ int v4l2_subdev_try_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
+ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
+ int v4l2_subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index dc20102ff600..01b3354942cf 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -158,6 +158,8 @@ struct v4l2_subdev_core_ops {
+ 	int (*g_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
+ 	int (*s_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
+ 	int (*g_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
++	int (*g_def_ext_ctrls)(struct v4l2_subdev *sd,
++			       struct v4l2_ext_controls *ctrls);
+ 	int (*s_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+ 	int (*try_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+ 	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+-- 
+2.1.4
