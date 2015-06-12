@@ -1,38 +1,64 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v2 05/27] media/i2c/adv7343: Implement g_def_ext_ctrls core_op
-Date: Fri, 12 Jun 2015 15:11:59 +0200
-Message-id: <1434114742-7420-6-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:34771 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753AbbFLXPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2015 19:15:23 -0400
+Received: by laew7 with SMTP id w7so28557676lae.1
+        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 16:15:21 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <557AAD910200007800084014@mail.emea.novell.com>
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+ <1434064996.11808.64.camel@misato.fc.hp.com> <557AAD910200007800084014@mail.emea.novell.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Fri, 12 Jun 2015 16:15:00 -0700
+Message-ID: <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+To: Jan Beulich <JBeulich@suse.com>
+Cc: Juergen Gross <jgross@suse.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Dave Airlie <airlied@redhat.com>,
+	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	X86 ML <x86@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jej B <James.Bottomley@hansenpartnership.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	linux-media@vger.kernel.org, Luis Rodriguez <Mcgrof@suse.com>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	Toshi Kani <toshi.kani@hp.com>, Borislav Petkov <bp@suse.de>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	ville.syrjala@linux.intel.com
+Content-Type: text/plain; charset=UTF-8
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Via control framework
+On Jun 12, 2015 12:59 AM, "Jan Beulich" <JBeulich@suse.com> wrote:
+>
+> >>> On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
+> > There are two usages on MTRRs:
+> >  1) MTRR entries set by firmware
+> >  2) MTRR entries set by OS drivers
+> >
+> > We can obsolete 2), but we have no control over 1).  As UEFI firmwares
+> > also set this up, this usage will continue to stay.  So, we should not
+> > get rid of the MTRR code that looks up the MTRR entries, while we have
+> > no need to modify them.
+> >
+> > Such MTRR entries provide safe guard to /dev/mem, which allows
+> > privileged user to access a range that may require UC mapping while
+> > the /dev/mem driver blindly maps it with WB.  MTRRs converts WB to UC in
+> > such a case.
+>
+> But it wouldn't be impossible to simply read the MTRRs upon boot,
+> store the information, disable MTRRs, and correctly use PAT to
+> achieve the same effect (i.e. the "blindly maps" part of course
+> would need fixing).
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/adv7343.c | 1 +
- 1 file changed, 1 insertion(+)
+This may crash and burn badly when we call a UEFI function or an SMI
+happens.  I think we should just leave the MTRRs alone.
 
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index 7c50833e7d17..9753fb545f17 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -320,6 +320,7 @@ static const struct v4l2_ctrl_ops adv7343_ctrl_ops = {
- static const struct v4l2_subdev_core_ops adv7343_core_ops = {
- 	.log_status = adv7343_log_status,
- 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
- 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
- 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
- 	.g_ctrl = v4l2_subdev_g_ctrl,
--- 
-2.1.4
+--Andy
