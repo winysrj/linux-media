@@ -1,196 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33805 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbbFNKhm (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57665 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750870AbbFLG2M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 06:37:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tim Nordell <tim.nordell@logicpd.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH] OMAP3 ISP: Support top and bottom fields
-Date: Sun, 14 Jun 2015 13:38:18 +0300
-Message-ID: <5314376.y6Ue9GTEeB@avalon>
-In-Reply-To: <2312602.P25xv5l4XT@avalon>
-References: <1426883540-19936-1-git-send-email-tim.nordell@logicpd.com> <2312602.P25xv5l4XT@avalon>
+	Fri, 12 Jun 2015 02:28:12 -0400
+Message-ID: <557A7BEF.7010502@xs4all.nl>
+Date: Fri, 12 Jun 2015 08:27:59 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+CC: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 04/15] media: adv7604: chip info and formats for ADV7612
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk> <1433340002-1691-5-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-5-git-send-email-william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tim,
+Hi William,
 
-On Monday 13 April 2015 23:39:28 Laurent Pinchart wrote:
-> On Friday 20 March 2015 15:32:20 Tim Nordell wrote:
-> > The OMAP3ISP can selectively stream either the top or bottom
-> > field by setting the start line vertical field to a high value
-> > for the field that one doesn't want to stream.  The driver
-> > can switch between these utilizing the vertical start feature
-> > of the CCDC.
-> > 
-> > Additionally, we need to ensure that the FLDMODE bit is set
-> > when we're doing this as we need to differentiate between
-> > the two frames.
+Two comments, see below.
 
-Do you plan to resubmit this patch with the comments below taken into account 
-?
+On 06/03/2015 03:59 PM, William Towle wrote:
+> Add support for the ADV7612 chip as implemented on Renesas' Lager
+> board to adv7604.c, including lists for formats/colourspace/timing
+> selection and an IRQ handler.
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> ---
+>  drivers/media/i2c/adv7604.c |   91 +++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 87 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index aaa37b0..16646517 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -80,6 +80,7 @@ MODULE_LICENSE("GPL");
+>  enum adv76xx_type {
+>  	ADV7604,
+>  	ADV7611,
+> +	ADV7612,
+>  };
+>  
+>  struct adv76xx_reg_seq {
+> @@ -758,6 +759,23 @@ static const struct adv76xx_format_info adv7611_formats[] = {
+>  	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_12BIT },
+>  };
+>  
+> +static const struct adv76xx_format_info adv7612_formats[] = {
+> +	{ MEDIA_BUS_FMT_RGB888_1X24, ADV76XX_OP_CH_SEL_RGB, true, false,
+> +	  ADV76XX_OP_MODE_SEL_SDR_444 | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_YUYV8_2X8, ADV76XX_OP_CH_SEL_RGB, false, false,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_YVYU8_2X8, ADV76XX_OP_CH_SEL_RGB, false, true,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_UYVY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, false,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_VYUY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, true,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_YUYV8_1X16, ADV76XX_OP_CH_SEL_RGB, false, false,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +	{ MEDIA_BUS_FMT_YVYU8_1X16, ADV76XX_OP_CH_SEL_RGB, false, true,
+> +	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
+> +};
+> +
+>  static const struct adv76xx_format_info *
+>  adv76xx_format_info(struct adv76xx_state *state, u32 code)
+>  {
+> @@ -2471,6 +2489,11 @@ static void adv7611_setup_irqs(struct v4l2_subdev *sd)
+>  	io_write(sd, 0x41, 0xd0); /* STDI irq for any change, disable INT2 */
+>  }
+>  
+> +static void adv7612_setup_irqs(struct v4l2_subdev *sd)
+> +{
+> +	io_write(sd, 0x41, 0xd0); /* disable INT2 */
+> +}
+> +
+>  static void adv76xx_unregister_clients(struct adv76xx_state *state)
+>  {
+>  	unsigned int i;
+> @@ -2558,6 +2581,19 @@ static const struct adv76xx_reg_seq adv7611_recommended_settings_hdmi[] = {
+>  	{ ADV76XX_REG_SEQ_TERM, 0 },
+>  };
+>  
+> +static const struct adv76xx_reg_seq adv7612_recommended_settings_hdmi[] = {
+> +	{ ADV76XX_REG(ADV76XX_PAGE_CP, 0x6c), 0x00 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x9b), 0x03 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x6f), 0x08 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x85), 0x1f },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x87), 0x70 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x57), 0xda },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x58), 0x01 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x03), 0x98 },
+> +	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x4c), 0x44 },
+> +	{ ADV76XX_REG_SEQ_TERM, 0 },
+> +};
+> +
+>  static const struct adv76xx_chip_info adv76xx_chip_info[] = {
+>  	[ADV7604] = {
+>  		.type = ADV7604,
+> @@ -2646,17 +2682,59 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
+>  		.field1_vsync_mask = 0x3fff,
+>  		.field1_vbackporch_mask = 0x3fff,
+>  	},
+> +	[ADV7612] = {
+> +		.type = ADV7612,
+> +		.has_afe = false,
+> +		.max_port = ADV7604_PAD_HDMI_PORT_B,
+> +		.num_dv_ports = 2,
+> +		.edid_enable_reg = 0x74,
+> +		.edid_status_reg = 0x76,
+> +		.lcf_reg = 0xa3,
+> +		.tdms_lock_mask = 0x43,
 
-> > Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
-> > ---
-> > 
-> >  drivers/media/platform/omap3isp/ispccdc.c  | 29 +++++++++++++++++++++++--
-> >  drivers/media/platform/omap3isp/ispvideo.c |  4 ++--
-> >  2 files changed, 29 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> > b/drivers/media/platform/omap3isp/ispccdc.c index 882ebde..beb8d96 100644
-> > --- a/drivers/media/platform/omap3isp/ispccdc.c
-> > +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> > @@ -1131,6 +1131,7 @@ static void ccdc_configure(struct isp_ccdc_device
-> > *ccdc) unsigned int sph;
-> > 
-> >  	u32 syn_mode;
-> >  	u32 ccdc_pattern;
-> > 
-> > +	int slv0, slv1;
-> 
-> slv0 and slv1 are positive integers, you can use unsigned int. Could you
-> please declare one variable per line to match the coding style of the
-> driver, and move them right after the declaration of sph ?
-> 
-> >  	ccdc->bt656 = false;
-> >  	ccdc->fields = 0;
-> > 
-> > @@ -1237,11 +1238,27 @@ static void ccdc_configure(struct isp_ccdc_device
-> > *ccdc) nph = crop->width - 1;
-> > 
-> >  	}
-> > 
-> > +	/* Default the start vertical line offset to the crop point */
-> > +	slv0 = slv1 = crop->top;
-> > +
-> > +	/* When streaming just the top or bottom field, enable processing
-> > +	 * of the field input signal so that SLV1 is processed.
-> > +	 */
-> 
-> The slv[01] trick below doesn't seem trivial to me, it would make sense to
-> document it. How about
-> 
-> /* When capturing only the top or bottom field, enable processing of the
->  * field input signal and reject the unneeded field by setting its start
->  * line to a value larger than the frame height.
->  */
-> 
-> > +	if (ccdc->formats[CCDC_PAD_SINK].field == V4L2_FIELD_ALTERNATE) {
-> > +		if (format->field == V4L2_FIELD_TOP) {
-> > +			slv1 = 0x7FFF;
-> 
-> Could you please use lowercase for hex constants ?
-> 
-> > +			syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-> > +		} else if (format->field == V4L2_FIELD_BOTTOM) {
-> 
-> Can format->field be equal to V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM if ccdc-
-> 
-> >formats[CCDC_PAD_SINK].field is not equal to V4L2_FIELD_ALTERNATE ? If not
-> 
-> you can remove the outer condition check.
-> 
-> > +			slv0 = 0x7FFF;
-> > +			syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-> > +		}
-> > +	}
-> > +
-> > 
-> >  	isp_reg_writel(isp, (sph << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
-> >  	
-> >  		       (nph << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-> >  		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
-> > 
-> > -	isp_reg_writel(isp, (crop->top << ISPCCDC_VERT_START_SLV0_SHIFT) |
-> > -		       (crop->top << ISPCCDC_VERT_START_SLV1_SHIFT),
-> > +	isp_reg_writel(isp, (slv0 << ISPCCDC_VERT_START_SLV0_SHIFT) |
-> > +		       (slv1 << ISPCCDC_VERT_START_SLV1_SHIFT),
-> > 
-> >  		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
-> >  	
-> >  	isp_reg_writel(isp, (crop->height - 1)
-> >  	
-> >  			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
-> > 
-> > @@ -2064,6 +2081,14 @@ ccdc_try_format(struct isp_ccdc_device *ccdc,
-> > struct
-> > v4l2_subdev_fh *fh, fmt->height *= 2;
-> > 
-> >  		}
-> > 
-> > +		/* When input format is interlaced with alternating fields the
-> > +		 * CCDC can pick out just the top or bottom field.
-> > +		 */
-> > +		 if (fmt->field == V4L2_FIELD_ALTERNATE &&
-> > +		   (field == V4L2_FIELD_TOP ||
-> > +		    field == V4L2_FIELD_BOTTOM))
-> 
-> You could combine this check with the one right above into something like
-> the following (untested).
-> 
->         /* When the input format is interlaced with alternating fields
->          * the CCDC can interleave the fields or selectively capture the
->          * top or bottom field.
->          */
->         if (fmt->field == V4L2_FIELD_ALTERNATE) {
->                 switch (field) {
->                 case V4L2_FIELD_INTERLACED_TB:
->                 case V4L2_FIELD_INTERLACED_BT:
->                         fmt->height *= 2;
->                         /* Fall-through */
->                 case V4L2_FIELD_TOP:
->                 case V4L2_FIELD_BOTTOM:
->                         fmt->field = field;
->                         break;
->                 }
->         }
-> 
-> (an empty default case might be needed to silence compiler warnings)
-> 
-> > +			fmt->field = field;
-> > +
-> > 
-> >  		break;
-> >  	
-> >  	case CCDC_PAD_SOURCE_VP:
->
-> There's something else that bothers me. If I'm not mistaken, the CCDC will
-> generate VD0 and VD1 interrupts for both fields, and the
-> ccdc_has_all_fields() logic will wait until both fields have been captured
-> before returning the buffer to userspace. This seems to work by chance, and
-> will possibly delay the buffer by one field. Shouldn't the function be
-> modified to return true when the captured field corresponds to the desired
-> field and false otherwise ?
->
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> > b/drivers/media/platform/omap3isp/ispvideo.c index bbbe55d..e636168 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.c
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> > @@ -797,12 +797,12 @@ isp_video_set_format(struct file *file, void *fh,
-> > struct v4l2_format *format) /* Fall-through */
-> >  	case V4L2_FIELD_INTERLACED_TB:
-> >  	case V4L2_FIELD_INTERLACED_BT:
-> > +	case V4L2_FIELD_TOP:
-> > +	case V4L2_FIELD_BOTTOM:
-> >  		/* Interlaced orders are only supported at the CCDC output. */
-> >  		if (video != &video->isp->isp_ccdc.video_out)
-> >  			format->fmt.pix.field = V4L2_FIELD_NONE;
-> >  		break;
-> > 
-> > -	case V4L2_FIELD_TOP:
-> > -	case V4L2_FIELD_BOTTOM:
-> >  	case V4L2_FIELD_SEQ_TB:
-> >  	case V4L2_FIELD_SEQ_BT:
-> >  	default:
+This looks strange: with two inputs I expect two bits set in the mask, not three.
 
--- 
+> +		.cable_det_mask = 0x01,
+
+Same here: I expect to see two bits set, not one.
+
+> +		.fmt_change_digital_mask = 0x03,
+> +		.formats = adv7612_formats,
+> +		.nformats = ARRAY_SIZE(adv7612_formats),
+> +		.set_termination = adv7611_set_termination,
+> +		.setup_irqs = adv7612_setup_irqs,
+> +		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
+> +		.read_cable_det = adv7611_read_cable_det,
+> +		.recommended_settings = {
+> +		    [1] = adv7612_recommended_settings_hdmi,
+> +		},
+> +		.num_recommended_settings = {
+> +		    [1] = ARRAY_SIZE(adv7612_recommended_settings_hdmi),
+> +		},
+> +		.page_mask = BIT(ADV76XX_PAGE_IO) | BIT(ADV76XX_PAGE_CEC) |
+> +			BIT(ADV76XX_PAGE_INFOFRAME) | BIT(ADV76XX_PAGE_AFE) |
+> +			BIT(ADV76XX_PAGE_REP) |  BIT(ADV76XX_PAGE_EDID) |
+> +			BIT(ADV76XX_PAGE_HDMI) | BIT(ADV76XX_PAGE_CP),
+> +		.linewidth_mask = 0x1fff,
+> +		.field0_height_mask = 0x1fff,
+> +		.field1_height_mask = 0x1fff,
+> +		.hfrontporch_mask = 0x1fff,
+> +		.hsync_mask = 0x1fff,
+> +		.hbackporch_mask = 0x1fff,
+> +		.field0_vfrontporch_mask = 0x3fff,
+> +		.field0_vsync_mask = 0x3fff,
+> +		.field0_vbackporch_mask = 0x3fff,
+> +		.field1_vfrontporch_mask = 0x3fff,
+> +		.field1_vsync_mask = 0x3fff,
+> +		.field1_vbackporch_mask = 0x3fff,
+> +	},
+>  };
+>  
+>  static const struct i2c_device_id adv76xx_i2c_id[] = {
+>  	{ "adv7604", (kernel_ulong_t)&adv76xx_chip_info[ADV7604] },
+>  	{ "adv7611", (kernel_ulong_t)&adv76xx_chip_info[ADV7611] },
+> +	{ "adv7612", (kernel_ulong_t)&adv76xx_chip_info[ADV7612] },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(i2c, adv76xx_i2c_id);
+>  
+>  static const struct of_device_id adv76xx_of_id[] __maybe_unused = {
+>  	{ .compatible = "adi,adv7611", .data = &adv76xx_chip_info[ADV7611] },
+> +	{ .compatible = "adi,adv7612", .data = &adv76xx_chip_info[ADV7612] },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(of, adv76xx_of_id);
+> @@ -2801,21 +2879,26 @@ static int adv76xx_probe(struct i2c_client *client,
+>  	 * identifies the revision, while on ADV7611 it identifies the model as
+>  	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
+>  	 */
+> -	if (state->info->type == ADV7604) {
+> +	switch (state->info->type) {
+> +	case ADV7604:
+>  		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
+>  		if (val != 0x68) {
+>  			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
+>  					client->addr << 1);
+>  			return -ENODEV;
+>  		}
+> -	} else {
+> +		break;
+> +	case ADV7611:
+> +	case ADV7612:
+>  		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
+>  		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
+> -		if (val != 0x2051) {
+> -			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
+> +		if ((state->info->type == ADV7611 && val != 0x2051) ||
+> +			(state->info->type == ADV7612 && val != 0x2041)) {
+> +			v4l2_info(sd, "not an adv761x on address 0x%x\n",
+>  					client->addr << 1);
+>  			return -ENODEV;
+>  		}
+> +		break;
+>  	}
+>  
+>  	/* control handlers */
+> 
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
