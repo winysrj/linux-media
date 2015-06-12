@@ -1,101 +1,49 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751688AbbFEK75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 09/10] sh-vou: fix bytesperline
-Date: Fri,  5 Jun 2015 12:59:25 +0200
-Message-Id: <1433501966-30176-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
+ "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+ Boris BREZILLON <boris.brezillon@free-electrons.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+ Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 03/12] media/i2c/cs5345: Remove compat control ops
+Date: Fri, 12 Jun 2015 18:31:09 +0200
+Message-id: <1434126678-7978-4-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+They are no longer used in old non-control-framework
+bridge drivers.
 
-The bytesperline values were wrong for planar formats where bytesperline is
-the line length for the first plane.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/platform/sh_vou.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/i2c/cs5345.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 489d045..d431cb1 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -135,6 +135,7 @@ struct sh_vou_fmt {
- 	u32		pfmt;
- 	char		*desc;
- 	unsigned char	bpp;
-+	unsigned char	bpl;
- 	unsigned char	rgb;
- 	unsigned char	yf;
- 	unsigned char	pkf;
-@@ -145,6 +146,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_NV12,
- 		.bpp	= 12,
-+		.bpl	= 1,
- 		.desc	= "YVU420 planar",
- 		.yf	= 0,
- 		.rgb	= 0,
-@@ -152,6 +154,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_NV16,
- 		.bpp	= 16,
-+		.bpl	= 1,
- 		.desc	= "YVYU planar",
- 		.yf	= 1,
- 		.rgb	= 0,
-@@ -159,6 +162,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB24,
- 		.bpp	= 24,
-+		.bpl	= 3,
- 		.desc	= "RGB24",
- 		.pkf	= 2,
- 		.rgb	= 1,
-@@ -166,6 +170,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB565,
- 		.bpp	= 16,
-+		.bpl	= 2,
- 		.desc	= "RGB565",
- 		.pkf	= 3,
- 		.rgb	= 1,
-@@ -173,6 +178,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB565X,
- 		.bpp	= 16,
-+		.bpl	= 2,
- 		.desc	= "RGB565 byteswapped",
- 		.pkf	= 3,
- 		.rgb	= 1,
-@@ -703,7 +709,8 @@ static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
+diff --git a/drivers/media/i2c/cs5345.c b/drivers/media/i2c/cs5345.c
+index 34b76a9e7515..8cebf9cc8007 100644
+--- a/drivers/media/i2c/cs5345.c
++++ b/drivers/media/i2c/cs5345.c
+@@ -132,13 +132,6 @@ static const struct v4l2_ctrl_ops cs5345_ctrl_ops = {
  
- 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
- 			      &pix->height, 0, img_height_max, 1, 0);
--	pix->bytesperline = pix->width * 2;
-+	pix->bytesperline = pix->width * vou_fmt[pix_idx].bpl;
-+	pix->sizeimage = pix->height * ((pix->width * vou_fmt[pix_idx].bpp) >> 3);
- 
- 	return 0;
- }
-@@ -1380,7 +1387,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	pix->height		= 480;
- 	pix->pixelformat	= V4L2_PIX_FMT_NV16;
- 	pix->field		= V4L2_FIELD_NONE;
--	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH * 2;
-+	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH;
- 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
- 	pix->colorspace		= V4L2_COLORSPACE_SMPTE170M;
- 
+ static const struct v4l2_subdev_core_ops cs5345_core_ops = {
+ 	.log_status = cs5345_log_status,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = cs5345_g_register,
+ 	.s_register = cs5345_s_register,
 -- 
 2.1.4
-
