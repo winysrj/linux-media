@@ -1,65 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:57263 "EHLO
-	andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191AbbF2Npz (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56260 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750898AbbFLGxH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 09:45:55 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] [media] adv7604/cobalt: Allow compile test if !GPIOLIB
-Date: Mon, 29 Jun 2015 15:45:56 +0200
-Message-Id: <1435585556-13584-1-git-send-email-geert@linux-m68k.org>
+	Fri, 12 Jun 2015 02:53:07 -0400
+Message-ID: <557A81C6.60604@xs4all.nl>
+Date: Fri, 12 Jun 2015 08:52:54 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: "Prashant Laddha (prladdha)" <prladdha@cisco.com>
+Subject: [PATCH] v4l2-dv-timings: log if the timing is reduced blanking V2
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The GPIO subsystem provides dummy GPIO consumer functions if GPIOLIB is
-not enabled. Hence drivers that depend on GPIOLIB, but use GPIO consumer
-functionality only, can still be compiled if GPIOLIB is not enabled.
+The last CVT standard introduced reduced blanking version 2 which is signaled by
+a vsync of 8. Log this.
 
-Relax the dependency of VIDEO_ADV7604 and VIDEO_COBALT (the latter
-selects the former) on GPIOLIB if COMPILE_TEST is enabled.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
-The VIDEO_COBALT part was untested, but I assume it's OK given the
-dependency was added because of the select, cfr. commit 29fba6a84bc73b92
-("[media] adv7604/cobalt: missing GPIOLIB dependency").
----
- drivers/media/i2c/Kconfig        | 3 ++-
- drivers/media/pci/cobalt/Kconfig | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 71ee8f586430991f..8d1268648fe0b291 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -196,7 +196,8 @@ config VIDEO_ADV7183
- 
- config VIDEO_ADV7604
- 	tristate "Analog Devices ADV7604 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && GPIOLIB
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on GPIOLIB || COMPILE_TEST
- 	select HDMI
- 	---help---
- 	  Support for the Analog Devices ADV7604 video decoder.
-diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
-index 3be1b2c3c3860ec4..9beef39a7303cf6c 100644
---- a/drivers/media/pci/cobalt/Kconfig
-+++ b/drivers/media/pci/cobalt/Kconfig
-@@ -1,7 +1,8 @@
- config VIDEO_COBALT
- 	tristate "Cisco Cobalt support"
- 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
--	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS && GPIOLIB
-+	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
-+	depends on GPIOLIB || COMPILE_TEST
- 	select I2C_ALGOBIT
- 	select VIDEO_ADV7604
- 	select VIDEO_ADV7511
--- 
-1.9.1
-
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index eefad4f..5d9e896 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -290,9 +290,11 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->il_vsync, bt->il_vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
++			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
++			 bt->vsync == 8) ? " (V2)" : "",
+ 			(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS) ?
+ 			" CAN_REDUCE_FPS" : "",
+ 			(bt->flags & V4L2_DV_FL_REDUCED_FPS) ?
