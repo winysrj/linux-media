@@ -1,130 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48222 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107AbbFSL4q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 07:56:46 -0400
-Message-ID: <55840367.3010700@xs4all.nl>
-Date: Fri, 19 Jun 2015 13:56:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Kamil Debski <kamil@wypas.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [URGENT] [PATCH] vb2: Don't WARN when v4l2_buffer.bytesused is
- 0 for multiplanar buffers
-References: <1434714607-31447-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1434714607-31447-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 19/19] Documentation: media: Fix code sample
+Date: Fri, 12 Jun 2015 18:46:38 +0200
+Message-id: <1434127598-11719-20-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2015 01:50 PM, Laurent Pinchart wrote:
-> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
-> using a zero value for v4l2_buffer.bytesused.
-> 
-> However, the condition is checked incorrectly, as the v4L2_buffer
-> bytesused field is supposed to be ignored for multiplanar buffers. This
-> results in spurious warnings when using the multiplanar API.
-> 
-> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
-> v4l2_plane.bytesused for multiplanar buffers.
-> 
-> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
->  1 file changed, 23 insertions(+), 10 deletions(-)
-> 
-> The bug was introduced in v4.1-rc1. It would be quite bad if it made it to
-> v4.1 as many users will start complaining.
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index d835814a24d4..93b315459098 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
->  }
->  EXPORT_SYMBOL_GPL(vb2_discard_done);
->  
-> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-> +{
-> +	static bool __check_once __read_mostly;
+Add newly created core op to the example.
 
-Why the underscores? Why the __read_mostly?
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/video4linux/v4l2-controls.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-Just say: 'static bool check_once;'
-
-Much more readable, and there really is no benefit whatsoever for adding
-a __read_mostly attribute here.
-
-> +
-> +	if (__check_once)
-> +		return;
-> +
-> +	__check_once = true;
-> +	__WARN();
-> +
-> +	pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
-
-This can be pr_warn now. pr_warn_once will implicitly only do another 'check_once' check
-with its own 'check_once' variable.
-
-> +	if (vb->vb2_queue->allow_zero_bytesused)
-> +		pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
-> +	else
-> +		pr_warn_once("use the actual size instead.\n");
-> +}
-
-Regards,
-
-	Hans
-
-> +
->  /**
->   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->   * v4l2_buffer by the userspace. The caller has already verified that struct
-> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  {
->  	unsigned int plane;
->  
-> -	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> -		if (WARN_ON_ONCE(b->bytesused == 0)) {
-> -			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
-> -			if (vb->vb2_queue->allow_zero_bytesused)
-> -				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
-> -			else
-> -				pr_warn_once("use the actual size instead.\n");
-> -		}
-> -	}
-> -
->  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->  		if (b->memory == V4L2_MEMORY_USERPTR) {
->  			for (plane = 0; plane < vb->num_planes; ++plane) {
-> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  				struct v4l2_plane *pdst = &v4l2_planes[plane];
->  				struct v4l2_plane *psrc = &b->m.planes[plane];
->  
-> +				if (psrc->bytesused == 0)
-> +					vb2_warn_zero_bytesused(vb);
-> +
->  				if (vb->vb2_queue->allow_zero_bytesused)
->  					pdst->bytesused = psrc->bytesused;
->  				else
-> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  		}
->  
->  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +			if (b->bytesused == 0)
-> +				vb2_warn_zero_bytesused(vb);
-> +
->  			if (vb->vb2_queue->allow_zero_bytesused)
->  				v4l2_planes[0].bytesused = b->bytesused;
->  			else
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 7e3dfcacdbee..1d25de0199c4 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -105,6 +105,7 @@ Basic usage for V4L2 and sub-device drivers
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
+ 	.s_ctrl = v4l2_subdev_s_ctrl,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 
+-- 
+2.1.4
