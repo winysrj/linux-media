@@ -1,163 +1,117 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50757 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756010AbbFCOAN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:13 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 09/15] media: soc_camera pad-aware driver initialisation
-Date: Wed,  3 Jun 2015 14:59:56 +0100
-Message-Id: <1433340002-1691-10-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 00/19] New ioct VIDIOC_G_DEF_EXT_CTRLS
+Date: Fri, 12 Jun 2015 18:46:19 +0200
+Message-id: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media
-controller API, so that the combination of soc_camera and rcar_vin
-can create device nodes to support modern drivers such as adv7604.c
-(for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+Integer controls provide a way to get their default/initial value, but
+any other control (p_u32, p_u8.....) provide no other way to get the
+initial value than unloading the module and loading it back.
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
+*What is the actual problem?
+I have a custom control with WIDTH integer values. Every value
+represents the calibrated FPN (fixed pattern noise) correction value for that
+column
+-Application A changes the FPN correction value
+-Application B wants to restore the calibrated value but it cant :(
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/Kconfig      |    1 +
- drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
- drivers/media/platform/soc_camera/soc_camera.c |   46 ++++++++++++++++++++++++
- include/media/soc_camera.h                     |    1 +
- 4 files changed, 49 insertions(+)
+*What is the proposed solution?
+-Add a new ioctl VIDIOC_G_DEF_EXT_CTRLS, with the same API as
+G_EXT_CTRLS, but that returns the initial value of a given control.
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index f2776cd..5c45c83 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
- 	depends on VIDEO_DEV && SOC_CAMERA
- 	depends on ARCH_SHMOBILE || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on MEDIA_CONTROLLER
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SOC_CAMERA_SCALE_CROP
- 	---help---
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 16352a8..00c1034 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 		struct device *dev = icd->parent;
- 		int shift;
- 
-+		fmt.pad = icd->src_pad_idx;
- 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d708df4..c4952c8 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1293,6 +1293,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad pad;
-+#endif
- 	int ret;
- 
- 	sd->grp_id = soc_camera_grp_id(icd);
-@@ -1310,8 +1313,40 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
-+	icd->src_pad_idx = -1;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
- 	/* At this point client .probe() should have run already */
-+	ret = media_entity_init(&icd->vdev->entity, 1, &pad, 0);
-+	if (ret < 0) {
-+		goto eusrfmt;
-+	} else {
-+		int pad_idx;
-+
-+		for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+			if (sd->entity.pads[pad_idx].flags
-+					== MEDIA_PAD_FL_SOURCE)
-+				break;
-+		if (pad_idx >= sd->entity.num_pads)
-+			goto eusrfmt;
-+
-+		ret = media_entity_create_link(&icd->vdev->entity, 0,
-+						&sd->entity, pad_idx,
-+						MEDIA_LNK_FL_IMMUTABLE |
-+						MEDIA_LNK_FL_ENABLED);
-+		if (ret < 0)
-+			goto eusrfmt;
-+
-+		icd->src_pad_idx = pad_idx;
-+		ret = soc_camera_init_user_formats(icd);
-+		if (ret < 0) {
-+			icd->src_pad_idx = -1;
-+			goto eusrfmt;
-+		}
-+	}
-+#else
- 	ret = soc_camera_init_user_formats(icd);
-+#endif
-+
- 	if (ret < 0)
- 		goto eusrfmt;
- 
-@@ -1322,6 +1357,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		goto evidstart;
- 
- 	/* Try to improve our guess of a reasonable window format */
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	fmt.pad = icd->src_pad_idx;
-+#endif
- 	if (!v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt)) {
- 		icd->user_width		= mf->width;
- 		icd->user_height	= mf->height;
-@@ -1335,6 +1373,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- evidstart:
- 	soc_camera_free_user_formats(icd);
- eusrfmt:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&icd->vdev->entity);
-+#endif
- 	soc_camera_remove_device(icd);
- 
- 	return ret;
-@@ -1856,6 +1897,11 @@ static int soc_camera_remove(struct soc_camera_device *icd)
- 	if (icd->num_user_formats)
- 		soc_camera_free_user_formats(icd);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (icd->vdev->entity.num_pads)
-+		media_entity_cleanup(&icd->vdev->entity);
-+#endif
-+
- 	if (icd->clk) {
- 		/* For the synchronous case */
- 		v4l2_clk_unregister(icd->clk);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..30193cf 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -42,6 +42,7 @@ struct soc_camera_device {
- 	unsigned char devnum;		/* Device number per host */
- 	struct soc_camera_sense *sense;	/* See comment in struct definition */
- 	struct video_device *vdev;
-+	int src_pad_idx;		/* For media-controller drivers */
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	const struct soc_camera_format_xlate *current_fmt;
- 	struct soc_camera_format_xlate *user_formats;
+
+I have posted a copy of my working tree to
+
+https://github.com/ribalda/linux/tree/g_def_ext-rfc3
+
+It has been tested with a hacked version of yavta (for normal controls) and a
+custom program for the array control.
+
+Changelog v3:
+-Comments by Hans Verkuil:
+-Remove the control ops from the following drivers
+saa7706
+ivtv-gpio
+wm8739
+tvp7002
+tvp514x
+tvl320aic23b
+tda7432
+sr030pc30
+saa717x
+cs5345
+adv7393
+adv7343
+
+Changelog v2:
+-Add documentation
+-Split in multiple patches
+-Comments by Hans Verkuil:
+-Rename ioctl to G_DEF_EXT_CTRL
+-Much! better implementation of def_to_user
+
+
+THANKS!
+
+
+Ricardo Ribalda Delgado (19):
+  media/v4l2-core: Add argument def_value to g_ext_ctrl
+  media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
+  videodev2.h: Fix typo in comment
+  media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+  media/pci/saa7164-encoder: Implement vivioc_g_def_ext_ctrls
+  media/pci/saa7164-vbi: Implement vivioc_g_def_ext_ctrls
+  media/usb/prusb2: Implement vivioc_g_def_ext_ctrls
+  v4l2-subdev: Add g_def_ext_ctrls to core_ops
+  media/i2c/bt819: Implement g_def_ext_ctrls core_op
+  media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
+  media/i2c/cx25840/cx25840-core: Implement g_def_ext_ctrls core_op
+  media/i2c/msp3400-driver: Implement g_def_ext_ctrls core_op
+  media/i2c/saa7110: Implement g_def_ext_ctrls core_op
+  media/i2c/saa7115: Implement g_def_ext_ctrls core_op
+  media/i2c/tlv320aic23b: Implement g_def_ext_ctrls core_op
+  media/i2c/vpx3220: Implement g_def_ext_ctrls core_op
+  media/i2c/wm8775: Implement g_def_ext_ctrls core_op
+  Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
+  Documentation: media: Fix code sample
+
+ Documentation/DocBook/media/v4l/v4l2.xml           |  8 ++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 13 ++++++---
+ Documentation/video4linux/v4l2-controls.txt        |  4 ++-
+ Documentation/video4linux/v4l2-framework.txt       |  1 +
+ Documentation/zh_CN/video4linux/v4l2-framework.txt |  1 +
+ drivers/media/i2c/bt819.c                          |  1 +
+ drivers/media/i2c/cs53l32a.c                       |  1 +
+ drivers/media/i2c/cx25840/cx25840-core.c           |  1 +
+ drivers/media/i2c/msp3400-driver.c                 |  1 +
+ drivers/media/i2c/saa7110.c                        |  1 +
+ drivers/media/i2c/saa7115.c                        |  1 +
+ drivers/media/i2c/tlv320aic23b.c                   |  1 +
+ drivers/media/i2c/vpx3220.c                        |  1 +
+ drivers/media/i2c/wm8775.c                         |  1 +
+ drivers/media/pci/saa7164/saa7164-encoder.c        | 28 +++++++++++++++++++
+ drivers/media/pci/saa7164/saa7164-vbi.c            | 28 +++++++++++++++++++
+ drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 28 +++++++++++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c                   | 30 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  4 +++
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 32 ++++++++++++++++++----
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 25 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-subdev.c              |  5 +++-
+ include/media/v4l2-ctrls.h                         |  5 +++-
+ include/media/v4l2-ioctl.h                         |  2 ++
+ include/media/v4l2-subdev.h                        |  2 ++
+ include/uapi/linux/videodev2.h                     |  3 +-
+ 27 files changed, 214 insertions(+), 16 deletions(-)
+
 -- 
-1.7.10.4
-
+2.1.4
