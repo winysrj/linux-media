@@ -1,172 +1,49 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:38216 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752529AbbFJVf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 17:35:26 -0400
-Received: by wibdq8 with SMTP id dq8so59130463wib.1
-        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 14:35:24 -0700 (PDT)
-Message-ID: <5578AD9C.7090208@gmail.com>
-Date: Wed, 10 Jun 2015 22:35:24 +0100
-From: Andy Furniss <adf.lists@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt
- to work when recording.
-References: <556E2D5B.5080201@gmail.com>	<20150610095215.79e5e77e@recife.lan>	<55787382.5010607@gmail.com> <20150610155047.25b92662@recife.lan>
-In-Reply-To: <20150610155047.25b92662@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
+ "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+ Boris BREZILLON <boris.brezillon@free-electrons.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+ Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
+ linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 09/12] media/i2c/tvp7002: Remove compat control ops
+Date: Fri, 12 Jun 2015 18:31:15 +0200
+Message-id: <1434126678-7978-10-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Jun 2015 18:27:30 +0100
-> Andy Furniss <adf.lists@gmail.com> escreveu:
->
->> Mauro Carvalho Chehab wrote:
->>
->>> Just applied a fix for it:
->>> 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=c7c9af17163f282a147ea76f1a3c0e9a0a86e7fa
->>>
->>> It will retry up to 10 times. This should very likely be enough if the
->>> driver doesn't have any bug.
->>>
->>> Please let me know if this fixes the issue.
->>
->> No, it doesn't, so I reverted the above and added back my hack + a
->> counter as below and it seems to be retrying > a million times.
->
-> Hmm.... that's likely a bug at the demod driver. It doesn't make much
-> sense to keep a mutex hold for that long.
->
-> Anyway, I modified the patch to use a timeout of 1 second, instead of
-> trying 10 times. It is still a hack, as IMHO this is a driver bug,
-> but it should produce a better result.
->
-> Please check if the patch below works for you.
->
-> You may change the MAX_TIME there if 1 second is not enough.
->
-> It could be interesting if you add a printf with the difference
-> between start and end time, for us to have an idea about how
-> much time the driver is kept on such unreliable state.
->
-> Thanks!
-> Mauro
->
->
-> [PATCH] libdvbv5: use a timeout for ioctl
->
-> Some frontends don't play nice: they return -EAGAIN if the
-> device doesn't lock. That actually means that it may take
-> some time for some ioctl's to succeed. On experimental tests,
-> the loop may happen ~2 million times!
->
-> Well, better to waste power on a loop than to fail. So, let's
-> change the code that detects EAGAIN by a loop that waits up
-> to 1 second.
->
-> This is not the right thing to do, but the Kernel drivers
-> require fixes. We can do it only for newer versions of the
-> Kernel.
+They are no longer used in old non-control-framework
+bridge drivers.
 
-I can't get this to work - it instantly bails -
+Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/tvp7002.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-read_sections: read error: Resource temporarily unavailable
-couldn't find pmt-pid for sid 10bf
-
-will try more later/tomorrow.
-
-I notice there are a couple of suspect bitwise | but changing to || 
-didn't help.
-
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
-> index 867d7b9dddde..af124ae3a7cc 100644
-> --- a/lib/libdvbv5/dvb-demux.c
-> +++ b/lib/libdvbv5/dvb-demux.c
-> @@ -30,6 +30,7 @@
->   #include <string.h>
->   #include <unistd.h>
->   #include <stdio.h>
-> +#include <time.h>
->   #include <errno.h>
->
->   #include <sys/ioctl.h>
-> @@ -40,12 +41,25 @@
->
->   #include <libdvbv5/dvb-demux.h>
->
-> +#define MAX_TIME		10	/* 1.0 seconds */
-> +
->   #define xioctl(fh, request, arg...) ({					\
-> -	int __rc, __retry;						\
-> +	int __rc;							\
-> +	struct timespec __start, __end;					\
->   									\
-> -	for (__retry = 0; __retry < 10; __retry++) {			\
-> +	clock_gettime(CLOCK_MONOTONIC, &__start);			\
-> +	do {								\
->   		__rc = ioctl(fh, request, ##arg);			\
-> -	} while (__rc == -1 && ((errno == EINTR) || (errno == EAGAIN)));\
-> +		if (__rc != -1)						\
-> +			break;						\
-> +		if (!((errno == EINTR) | (errno == EAGAIN)))		\
-> +			break;						\
-> +		clock_gettime(CLOCK_MONOTONIC, &__end);			\
-> +		if (__end.tv_sec * 10 + __end.tv_nsec / 100000000 >	\
-> +		    __start.tv_sec * 10 + __start.tv_nsec / 100000000 +	\
-> +		    MAX_TIME)						\
-> +			break;						\
-> +	} while (1);							\
->   									\
->   	__rc;								\
->   })
-> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-> index 48b09cd9ceaa..8607401841f2 100644
-> --- a/lib/libdvbv5/dvb-fe.c
-> +++ b/lib/libdvbv5/dvb-fe.c
-> @@ -26,6 +26,7 @@
->   #include <inttypes.h>
->   #include <math.h>
->   #include <stddef.h>
-> +#include <time.h>
->   #include <unistd.h>
->
->   #include <config.h>
-> @@ -43,12 +44,25 @@ static int libdvbv5_initialized = 0;
->
->   # define N_(string) string
->
-> +#define MAX_TIME		10	/* 1.0 seconds */
-> +
->   #define xioctl(fh, request, arg...) ({					\
-> -	int __rc, __retry;						\
-> +	int __rc;							\
-> +	struct timespec __start, __end;					\
->   									\
-> -	for (__retry = 0; __retry < 10; __retry++) {			\
-> +	clock_gettime(CLOCK_MONOTONIC, &__start);			\
-> +	do {								\
->   		__rc = ioctl(fh, request, ##arg);			\
-> -	} while (__rc == -1 && ((errno == EINTR) || (errno == EAGAIN)));\
-> +		if (__rc != -1)						\
-> +			break;						\
-> +		if (!((errno == EINTR) | (errno == EAGAIN)))		\
-> +			break;						\
-> +		clock_gettime(CLOCK_MONOTONIC, &__end);			\
-> +		if (__end.tv_sec * 10 + __end.tv_nsec / 100000000 >	\
-> +		    __start.tv_sec * 10 + __start.tv_nsec / 100000000 +	\
-> +		    MAX_TIME)						\
-> +			break;						\
-> +	} while (1);							\
->   									\
->   	__rc;								\
->   })
->
->
-
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 05077cffd235..f617d8b745ee 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -861,13 +861,6 @@ tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cf
+ /* V4L2 core operation handlers */
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.log_status = tvp7002_log_status,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = tvp7002_g_register,
+ 	.s_register = tvp7002_s_register,
+-- 
+2.1.4
