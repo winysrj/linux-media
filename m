@@ -1,32 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32818 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbbFAI22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:28:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Adam Baker <linux@baker-net.org.uk>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 0/2] si2157 rssi and si2168 I2C adapter locking
-Date: Mon,  1 Jun 2015 11:28:05 +0300
-Message-Id: <1433147287-29932-1-git-send-email-crope@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 16/27] media/i2c/tda7432: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:10 +0200
+Message-id: <1434114742-7420-17-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-v2:
-* si2168 declare functions as static
-* i2157 set FE_SCALE_NOT_AVAILABLE if stats polling stopped due to IO error
+Via control framework.
 
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/tda7432.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Antti Palosaari (2):
-  si2168: Implement own I2C adapter locking
-  si2157: implement signal strength stats
-
- drivers/media/dvb-frontends/si2168.c      | 135 +++++++++++++++++-------------
- drivers/media/dvb-frontends/si2168_priv.h |   1 -
- drivers/media/tuners/si2157.c             |  40 ++++++++-
- drivers/media/tuners/si2157_priv.h        |   1 +
- 4 files changed, 119 insertions(+), 58 deletions(-)
-
+diff --git a/drivers/media/i2c/tda7432.c b/drivers/media/i2c/tda7432.c
+index cf93021a6500..efff7d48ce9e 100644
+--- a/drivers/media/i2c/tda7432.c
++++ b/drivers/media/i2c/tda7432.c
+@@ -332,6 +332,7 @@ static const struct v4l2_ctrl_ops tda7432_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops tda7432_core_ops = {
+ 	.log_status = tda7432_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-http://palosaari.fi/
-
+2.1.4
