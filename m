@@ -1,60 +1,137 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60210 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753534AbbFMBvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 21:51:50 -0400
-Date: Sat, 13 Jun 2015 09:50:27 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: drivers/media/dvb-frontends/rtl2832_sdr.c:1435:3-8: No need to set
- .owner here. The core will do it.
-Message-ID: <201506130925.Yk1cM7D4%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 18/19] Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
+Date: Fri, 12 Jun 2015 18:46:37 +0200
+Message-id: <1434127598-11719-19-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-head:   b85dfd30cb37318587018ee430c2c1cfabf3dabc
-commit: 63bdab5d31b987c5ccb81c3c6662016d07cbb5b7 [media] rtl2832_sdr: convert to platform driver
-date:   4 months ago
+Add documentation for new ioctl.
 
-
-coccinelle warnings: (new ones prefixed by >>)
-
->> drivers/media/dvb-frontends/rtl2832_sdr.c:1435:3-8: No need to set .owner here. The core will do it.
-
-vim +1435 drivers/media/dvb-frontends/rtl2832_sdr.c
-
-  1419		mutex_lock(&dev->v4l2_lock);
-  1420		/* No need to keep the urbs around after disconnection */
-  1421		dev->udev = NULL;
-  1422		v4l2_device_disconnect(&dev->v4l2_dev);
-  1423		video_unregister_device(&dev->vdev);
-  1424		mutex_unlock(&dev->v4l2_lock);
-  1425		mutex_unlock(&dev->vb_queue_lock);
-  1426	
-  1427		v4l2_device_put(&dev->v4l2_dev);
-  1428	
-  1429		return 0;
-  1430	}
-  1431	
-  1432	static struct platform_driver rtl2832_sdr_driver = {
-  1433		.driver = {
-  1434			.name   = "rtl2832_sdr",
-> 1435			.owner  = THIS_MODULE,
-  1436		},
-  1437		.probe          = rtl2832_sdr_probe,
-  1438		.remove         = rtl2832_sdr_remove,
-  1439	};
-  1440	module_platform_driver(rtl2832_sdr_driver);
-  1441	
-  1442	MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-  1443	MODULE_DESCRIPTION("Realtek RTL2832 SDR driver");
-
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ Documentation/DocBook/media/v4l/v4l2.xml               |  8 ++++++++
+ Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 13 +++++++++----
+ Documentation/video4linux/v4l2-controls.txt            |  3 ++-
+ Documentation/video4linux/v4l2-framework.txt           |  1 +
+ Documentation/zh_CN/video4linux/v4l2-framework.txt     |  1 +
+ 5 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1c39bd..027cf8408382 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -153,6 +153,14 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>4.2</revnumber>
++	<date>2015-06-12</date>
++	<authorinitials>rr</authorinitials>
++	<revremark>Extend &vidioc-g-ext-ctrls;. Add ioctl <constant>VIDIOC_G_DEF_EXT_CTRLS</constant>
++to get the default value of multiple controls.
++	</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.21</revnumber>
+ 	<date>2015-02-13</date>
+ 	<authorinitials>mcc</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index c5bdbfcc42b3..5f8283a7e288 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -1,12 +1,13 @@
+ <refentry id="vidioc-g-ext-ctrls">
+   <refmeta>
+     <refentrytitle>ioctl VIDIOC_G_EXT_CTRLS, VIDIOC_S_EXT_CTRLS,
+-VIDIOC_TRY_EXT_CTRLS</refentrytitle>
++VIDIOC_TRY_EXT_CTRLS, VIDIOC_G_DEF_EXT_CTRLS</refentrytitle>
+     &manvol;
+   </refmeta>
+ 
+   <refnamediv>
+     <refname>VIDIOC_G_EXT_CTRLS</refname>
++    <refname>VIDIOC_G_DEF_EXT_CTRLS</refname>
+     <refname>VIDIOC_S_EXT_CTRLS</refname>
+     <refname>VIDIOC_TRY_EXT_CTRLS</refname>
+     <refpurpose>Get or set the value of several controls, try control
+@@ -39,7 +40,7 @@ values</refpurpose>
+ 	<term><parameter>request</parameter></term>
+ 	<listitem>
+ 	  <para>VIDIOC_G_EXT_CTRLS, VIDIOC_S_EXT_CTRLS,
+-VIDIOC_TRY_EXT_CTRLS</para>
++VIDIOC_TRY_EXT_CTRLS, VIDIOC_G_DEF_EXT_CTRLS</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+@@ -74,7 +75,10 @@ of each &v4l2-ext-control; and call the
+ <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+ must also set the <structfield>string</structfield> field. Controls
+ of compound types (<constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set)
+-must set the <structfield>ptr</structfield> field.</para>
++must set the <structfield>ptr</structfield> field. To get the default value
++instead of the current value, call the
++<constant>VIDIOC_G_DEF_EXT_CTRLS</constant> ioctl with the same arguments.
++</para>
+ 
+     <para>If the <structfield>size</structfield> is too small to
+ receive the control result (only relevant for pointer-type controls
+@@ -141,7 +145,8 @@ application.</entry>
+ 	    <entry>The total size in bytes of the payload of this
+ control. This is normally 0, but for pointer controls this should be
+ set to the size of the memory containing the payload, or that will
+-receive the payload. If <constant>VIDIOC_G_EXT_CTRLS</constant> finds
++receive the payload. If <constant>VIDIOC_G_EXT_CTRLS</constant>
++or <constant>VIDIOC_G_DEF_EXT_CTRLS</constant> finds
+ that this value is less than is required to store
+ the payload result, then it is set to a value large enough to store the
+ payload result and ENOSPC is returned. Note that for string controls
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 5517db602f37..7e3dfcacdbee 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -79,7 +79,8 @@ Basic usage for V4L2 and sub-device drivers
+ 
+   Finally, remove all control functions from your v4l2_ioctl_ops (if any):
+   vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
+-  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls,
++  vidioc_g_def_ext_ctrls, and vidioc_s_ext_ctrls.
+   Those are now no longer needed.
+ 
+ 1.3.2) For sub-device drivers do this:
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 75d5c18d689a..4672396f48b1 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -462,6 +462,7 @@ VIDIOC_QUERYMENU
+ VIDIOC_G_CTRL
+ VIDIOC_S_CTRL
+ VIDIOC_G_EXT_CTRLS
++VIDIOC_G_DEF_EXT_CTRLS
+ VIDIOC_S_EXT_CTRLS
+ VIDIOC_TRY_EXT_CTRLS
+ 
+diff --git a/Documentation/zh_CN/video4linux/v4l2-framework.txt b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+index 2b828e631e31..b8c0d6fb6595 100644
+--- a/Documentation/zh_CN/video4linux/v4l2-framework.txt
++++ b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+@@ -401,6 +401,7 @@ VIDIOC_QUERYMENU
+ VIDIOC_G_CTRL
+ VIDIOC_S_CTRL
+ VIDIOC_G_EXT_CTRLS
++VIDIOC_G_DEF_EXT_CTRLS
+ VIDIOC_S_EXT_CTRLS
+ VIDIOC_TRY_EXT_CTRLS
+ 
+-- 
+2.1.4
