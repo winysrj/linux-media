@@ -1,74 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:35149 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbbFMGhi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2015 02:37:38 -0400
-Date: Sat, 13 Jun 2015 08:37:32 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Jan Beulich <JBeulich@suse.com>, Juergen Gross <jgross@suse.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
-	Dave Airlie <airlied@redhat.com>,
-	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	X86 ML <x86@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jej B <James.Bottomley@hansenpartnership.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	linux-media@vger.kernel.org, Luis Rodriguez <Mcgrof@suse.com>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	Toshi Kani <toshi.kani@hp.com>, Borislav Petkov <bp@suse.de>,
-	Julia Lawall <julia.lawall@lip6.fr>,
+Received: from mga02.intel.com ([134.134.136.20]:63649 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752275AbbFLM5S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2015 08:57:18 -0400
+Date: Fri, 12 Jun 2015 18:28:37 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	ville.syrjala@linux.intel.com
-Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
-Message-ID: <20150613063731.GB12612@gmail.com>
-References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
- <1434064996.11808.64.camel@misato.fc.hp.com>
- <557AAD910200007800084014@mail.emea.novell.com>
- <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Message-ID: <20150612125837.GJ28601@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+ <20150529093317.GF3140@localhost>
+ <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
+ <20150529101846.GG3140@localhost>
+ <55687892.7050606@ti.com>
+ <20150602125535.GS3140@localhost>
+ <5570758E.6030302@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+In-Reply-To: <5570758E.6030302@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-* Andy Lutomirski <luto@amacapital.net> wrote:
-
-> On Jun 12, 2015 12:59 AM, "Jan Beulich" <JBeulich@suse.com> wrote:
-> >
-> > >>> On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
-> > > There are two usages on MTRRs:
-> > >  1) MTRR entries set by firmware
-> > >  2) MTRR entries set by OS drivers
-> > >
-> > > We can obsolete 2), but we have no control over 1).  As UEFI firmwares
-> > > also set this up, this usage will continue to stay.  So, we should not
-> > > get rid of the MTRR code that looks up the MTRR entries, while we have
-> > > no need to modify them.
-> > >
-> > > Such MTRR entries provide safe guard to /dev/mem, which allows privileged 
-> > > user to access a range that may require UC mapping while the /dev/mem driver 
-> > > blindly maps it with WB.  MTRRs converts WB to UC in such a case.
-> >
-> > But it wouldn't be impossible to simply read the MTRRs upon boot, store the 
-> > information, disable MTRRs, and correctly use PAT to achieve the same effect 
-> > (i.e. the "blindly maps" part of course would need fixing).
+On Thu, Jun 04, 2015 at 06:58:06PM +0300, Peter Ujfalusi wrote:
+> Vinod,
 > 
-> This may crash and burn badly when we call a UEFI function or an SMI happens.  I 
-> think we should just leave the MTRRs alone.
+> On 06/02/2015 03:55 PM, Vinod Koul wrote:
+> > On Fri, May 29, 2015 at 05:32:50PM +0300, Peter Ujfalusi wrote:
+> >> On 05/29/2015 01:18 PM, Vinod Koul wrote:
+> >>> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
+> >>>> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+> >>>>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
+> >>>>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
+> >>>>>> prevents drivers using the compat call to be able to do deferred probing.
+> >>>>>>
+> >>>>>> The new wrapper is identical in functionality but it will return with error
+> >>>>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
+> >>>>>> case dma_request_slave_channel_reason() returned with it.
+> >>>>> This is okay but am worried about one more warpper, how about fixing
+> >>>>> dma_request_slave_channel_compat()
+> >>>>
+> >>>> Then all callers of dma_request_slave_channel_compat() have to be
+> >>>> modified to handle ERR_PTR first.
+> >>>>
+> >>>> The same is true for (the existing) dma_request_slave_channel_reason()
+> >>>> vs. dma_request_slave_channel().
+> >>> Good point, looking again, I think we should rather fix
+> >>> dma_request_slave_channel_reason() as it was expected to return err code and
+> >>> add new users. Anyway users of this API do expect the reason...
+> >>
+> >> Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
+> >> drivers only working via DT or ACPI while
+> >> dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
+> >> DT/ACPI or legacy mode as well.
+> >>
+> >> I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
+> >> drivers are using this to request channels - they need to support DT and
+> >> legacy mode.
+> > I think we should hide these things behind the API and do this behind the
+> > hood for ACPI/DT systems.
+> > 
+> > Also it makes sense to use right API and mark rest as depricated
+> 
+> So to convert the dma_request_slave_channel_compat() and not to create _reason
+> variant?
+> 
+> Or to have single API to request channel? The problem with that is that we
+> need different parameters for legacy and DT for example.
+Sorry this slipped thru
 
-Not to mention suspend/resume, reboot and other goodies where the firmware might 
-pop up expecting intact MTRRs.
+Thinking about it again, I think we should coverge to two APIs and mark the
+legacy depracuated and look to convert folks and phase that out
 
-Btw., doesn't a lack of MTRRs imply UC? So is 'crash and burn' possible in most 
-cases? Isn't it just 'executes slower than before'?
 
-Thanks,
-
-	Ingo
+-- 
+~Vinod
