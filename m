@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from baptiste.telenet-ops.be ([195.130.132.51]:49877 "EHLO
-	baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752944AbbF2Nqu (ORCPT
+Received: from mail-wg0-f67.google.com ([74.125.82.67]:33279 "EHLO
+	mail-wg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755803AbbFLSU7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 09:46:50 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 3/3] [media] tuners: Make all TV tuners visible if COMPILE_TEST=y
-Date: Mon, 29 Jun 2015 15:46:49 +0200
-Message-Id: <1435585609-13784-3-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1435585609-13784-1-git-send-email-geert@linux-m68k.org>
-References: <1435585609-13784-1-git-send-email-geert@linux-m68k.org>
+	Fri, 12 Jun 2015 14:20:59 -0400
+Received: by wggy19 with SMTP id y19so8089768wgg.0
+        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 11:20:57 -0700 (PDT)
+Received: from [192.168.1.5] (52484E89.cm-4-1b.dynamic.ziggo.nl. [82.72.78.137])
+        by mx.google.com with ESMTPSA id cd9sm6948052wjc.34.2015.06.12.11.20.57
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 12 Jun 2015 11:20:57 -0700 (PDT)
+Message-ID: <557B2308.3010004@gmail.com>
+Date: Fri, 12 Jun 2015 20:20:56 +0200
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: media_tree log has not been updated for about a month
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com> <557AE172.7070408@xs4all.nl>
+In-Reply-To: <557AE172.7070408@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the TV tuners menu visible when compile-testing, to allow
-selecting additional drivers on top of the drivers that are already
-automatically selected if MEDIA_SUBDRV_AUTOSELECT is enabled.
+Hi all,
+I don't know who is responsible for a functioning web frontend of your 
+development tree in git.
+The thing is: http://git.linuxtv.org/cgit.cgi/media_tree.git/log/ has 
+not been updated for about a month.
+It still shows   356484cabe44984d2dc66a90bd5e3465ba1f64fb ([media] 
+dw2102: resync fifo when demod locks) as the last commit.
+That is very inconvenient to me.
+Can anyone fix this, please?
 
-Without this, many drivers stay disabled during e.g. allmodconfig.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/tuners/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 8294af9091747558..05998f0254c6cb8a 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -15,7 +15,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_MC44S803 if MEDIA_SUBDRV_AUTOSELECT
- 
- menu "Customize TV tuners"
--	visible if !MEDIA_SUBDRV_AUTOSELECT
-+	visible if !MEDIA_SUBDRV_AUTOSELECT || COMPILE_TEST
- 	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
- 
- config MEDIA_TUNER_SIMPLE
--- 
-1.9.1
-
+Kind regards,
+Tycho.
