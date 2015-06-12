@@ -1,153 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:38497 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230AbbFXPLj (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43666 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751248AbbFLHvK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 11:11:39 -0400
-Received: by wibdq8 with SMTP id dq8so49721968wib.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:37 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 05/12] [media] tsin: c8sectpfe: Add DT bindings documentation for c8sectpfe driver.
-Date: Wed, 24 Jun 2015 16:11:03 +0100
-Message-Id: <1435158670-7195-6-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	Fri, 12 Jun 2015 03:51:10 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F31AA2A00AA
+	for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 09:50:58 +0200 (CEST)
+Message-ID: <557A8F62.3000902@xs4all.nl>
+Date: Fri, 12 Jun 2015 09:50:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Various fixes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the DT bindings documentation for the c8sectpfe LinuxDVB
-demux driver whose IP is in the STiH407 family silicon SoC's.
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- .../bindings/media/stih407-c8sectpfe.txt           | 90 ++++++++++++++++++++++
- include/dt-bindings/media/c8sectpfe.h              | 14 ++++
- 2 files changed, 104 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
- create mode 100644 include/dt-bindings/media/c8sectpfe.h
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
 
-diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-new file mode 100644
-index 0000000..1ed4b12
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-@@ -0,0 +1,90 @@
-+STMicroelectronics STi c8sectpfe binding
-+============================================
-+
-+This document describes the c8sectpfe device bindings that is used to get transport
-+stream data into the SoC on the TS pins, and into DDR for further processing.
-+
-+It is typically used in conjunction with one or more demodulator and tuner devices
-+which converts from the RF to digital domain. Demodulators and tuners are usually
-+located on an external DVB frontend card connected to SoC TS input pins.
-+
-+Currently 7 TS input (tsin) channels are supported on the stih407 family SoC.
-+
-+Required properties (controller (parent) node):
-+- compatible	: Should be "stih407-c8sectpfe"
-+
-+- reg		: Address and length of register sets for each device in
-+		  "reg-names"
-+
-+- reg-names	: The names of the register addresses corresponding to the
-+		  registers filled in "reg":
-+			- c8sectpfe: c8sectpfe registers
-+			- c8sectpfe-ram: c8sectpfe internal sram
-+
-+- clocks	: phandle list of c8sectpfe clocks
-+- clock-names	: should be "c8sectpfe"
-+See: Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+- pinctrl-names	: a pinctrl state named tsin%d-serial or tsin%d-parallel (where %d is tsin-num)
-+		   must be defined for each tsin child node.
-+- pinctrl-0	: phandle referencing pin configuration for this tsin configuration
-+See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
-+
-+
-+Required properties (tsin (child) node):
-+
-+- tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
-+- i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
-+- rst-gpio	: reset gpio for this tsin channel.
-+
-+Optional properties (tsin (child) node):
-+
-+- invert-ts-clk		: Bool property to control sense of ts input clock (data stored on falling edge of clk).
-+- serial-not-parallel	: Bool property to configure input bus width (serial on ts_data<7>).
-+- async-not-sync	: Bool property to control if data is received in asynchronous mode
-+			   (all bits/bytes with ts_valid or ts_packet asserted are valid).
-+
-+- dvb-card		: Describes the NIM card connected to this tsin channel.
-+
-+Example:
-+
-+/* stih410 SoC b2120 + b2004a + stv0367-pll(NIMB) + stv0367-tda18212 (NIMA) DT example) */
-+
-+	c8sectpfe@08a20000 {
-+		compatible = "st,stih407-c8sectpfe";
-+		status = "okay";
-+		reg = <0x08a20000 0x10000>, <0x08a00000 0x4000>;
-+		reg-names = "stfe", "stfe-ram";
-+		interrupts = <0 34 0>, <0 35 0>;
-+		interrupt-names = "stfe-error-irq", "stfe-idle-irq";
-+
-+		pinctrl-names	= "tsin0-serial", "tsin0-parallel", "tsin3-serial",
-+				"tsin4-serial", "tsin5-serial";
-+
-+		pinctrl-0	= <&pinctrl_tsin0_serial>;
-+		pinctrl-1	= <&pinctrl_tsin0_parallel>;
-+		pinctrl-2	= <&pinctrl_tsin3_serial>;
-+		pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
-+		pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
-+
-+		clocks = <&clk_s_c0_flexgen CLK_PROC_STFE>;
-+		clock-names = "stfe";
-+
-+		/* tsin0 is TSA on NIMA */
-+		tsin0: port@0 {
-+			tsin-num		= <0>;
-+			serial-not-parallel;
-+			i2c-bus			= <&ssc2>;
-+			rst-gpio		= <&pio15 4 0>;
-+			dvb-card		= <STV0367_TDA18212_NIMA_1>;
-+		};
-+
-+		/* tsin3 is TSB on NIMB */
-+		tsin3: port@3 {
-+			tsin-num		= <3>;
-+			serial-not-parallel;
-+			i2c-bus			= <&ssc3>;
-+			rst-gpio		= <&pio15 7 0>;
-+			dvb-card		= <STV0367_PLL_BOARD_NIMB>;
-+		};
-+	};
-diff --git a/include/dt-bindings/media/c8sectpfe.h b/include/dt-bindings/media/c8sectpfe.h
-new file mode 100644
-index 0000000..45ad009
---- /dev/null
-+++ b/include/dt-bindings/media/c8sectpfe.h
-@@ -0,0 +1,14 @@
-+#ifndef __DT_C8SECTPFE_H
-+#define __DT_C8SECTPFE_H
-+
-+#define STV0367_PLL_BOARD_NIMA	0
-+#define STV0367_PLL_BOARD_NIMB	1
-+#define STV0367_TDA18212_NIMA_1	2
-+#define STV0367_TDA18212_NIMA_2	3
-+#define STV0367_TDA18212_NIMB_1	4
-+#define STV0367_TDA18212_NIMB_2	5
-+
-+#define STV0903_6110_LNB24_NIMA	6
-+#define STV0903_6110_LNB24_NIMB	7
-+
-+#endif /* __DT_C8SECTPFE_H */
--- 
-1.9.1
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2n
+
+for you to fetch changes up to 5361c68bdc76a5cf8beaaa19d7b18000bd4bbc34:
+
+  v4l2-dv-timings: log if the timing is reduced blanking V2 (2015-06-12 09:39:40 +0200)
+
+----------------------------------------------------------------
+Fabian Frederick (5):
+      v4l2-dv-timings: use swap() in v4l2_calc_aspect_ratio()
+      wl128x: use swap() in fm_rdsparse_swapbytes()
+      saa7146: use swap() in sort_and_eliminate()
+      saa6588: use swap() in saa6588_i2c_poll()
+      btcx-risc: use swap() in btcx_sort_clips()
+
+Hans Verkuil (4):
+      stk1160: fix sequence handling
+      rc/Kconfig: fix indentation problem
+      mantis: fix unused variable compiler warning
+      v4l2-dv-timings: log if the timing is reduced blanking V2
+
+Jan Roemisch (1):
+      radio-bcm2048: Fix region selection
+
+Krzysztof Hałasa (4):
+      SOLO6x10: Fix G.723 minimum audio period count.
+      SOLO6x10: unmap registers only after free_irq().
+      SOLO6x10: remove unneeded register locking and barriers.
+      SOLO6x10: Remove dead code.
+
+Prashant Laddha (1):
+      v4l2-dv-timings: add support for reduced blanking v2
+
+ drivers/media/common/saa7146/saa7146_hlp.c    |  9 +++-----
+ drivers/media/i2c/adv7604.c                   |  2 +-
+ drivers/media/i2c/adv7842.c                   |  2 +-
+ drivers/media/i2c/saa6588.c                   |  4 +---
+ drivers/media/pci/bt8xx/btcx-risc.c           |  5 +----
+ drivers/media/pci/mantis/mantis_i2c.c         |  3 +--
+ drivers/media/pci/solo6x10/solo6x10-core.c    | 18 ++--------------
+ drivers/media/pci/solo6x10/solo6x10-g723.c    | 13 ++++++------
+ drivers/media/pci/solo6x10/solo6x10.h         | 26 +----------------------
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  2 +-
+ drivers/media/radio/wl128x/fmdrv_common.c     |  5 +----
+ drivers/media/rc/Kconfig                      | 26 +++++++++++------------
+ drivers/media/usb/stk1160/stk1160-v4l.c       |  2 ++
+ drivers/media/usb/stk1160/stk1160-video.c     |  4 +---
+ drivers/media/usb/stk1160/stk1160.h           |  3 +--
+ drivers/media/v4l2-core/v4l2-dv-timings.c     | 89 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 20 ++++++++++--------
+ include/media/v4l2-dv-timings.h               |  6 +++++-
+ 18 files changed, 116 insertions(+), 123 deletions(-)
