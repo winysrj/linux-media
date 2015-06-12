@@ -1,53 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay110.isp.belgacom.be ([195.238.20.137]:7620 "EHLO
-	mailrelay110.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933968AbbFJQdv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 12:33:51 -0400
-From: Fabian Frederick <fabf@skynet.be>
-To: linux-kernel@vger.kernel.org
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>,
-	Fabian Frederick <fabf@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/1 linux-next] [media] btcx-risc: use swap() in btcx_sort_clips()
-Date: Wed, 10 Jun 2015 18:33:45 +0200
-Message-Id: <1433954026-24981-1-git-send-email-fabf@skynet.be>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 20/27] media/i2c/tvp7002: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:14 +0200
+Message-id: <1434114742-7420-21-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Use kernel.h macro definition.
+Via control framework.
 
-Thanks to Julia Lawall for Coccinelle scripting support.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/pci/bt8xx/btcx-risc.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/i2c/tvp7002.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/bt8xx/btcx-risc.c b/drivers/media/pci/bt8xx/btcx-risc.c
-index 00f0880..57c7f58 100644
---- a/drivers/media/pci/bt8xx/btcx-risc.c
-+++ b/drivers/media/pci/bt8xx/btcx-risc.c
-@@ -160,7 +160,6 @@ btcx_align(struct v4l2_rect *win, struct v4l2_clip *clips, unsigned int n, int m
- void
- btcx_sort_clips(struct v4l2_clip *clips, unsigned int nclips)
- {
--	struct v4l2_clip swap;
- 	int i,j,n;
- 
- 	if (nclips < 2)
-@@ -168,9 +167,7 @@ btcx_sort_clips(struct v4l2_clip *clips, unsigned int nclips)
- 	for (i = nclips-2; i >= 0; i--) {
- 		for (n = 0, j = 0; j <= i; j++) {
- 			if (clips[j].c.left > clips[j+1].c.left) {
--				swap = clips[j];
--				clips[j] = clips[j+1];
--				clips[j+1] = swap;
-+				swap(clips[j], clips[j + 1]);
- 				n++;
- 			}
- 		}
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 05077cffd235..006170ebe3da 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -862,6 +862,7 @@ tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cf
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.log_status = tvp7002_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-2.4.2
-
+2.1.4
