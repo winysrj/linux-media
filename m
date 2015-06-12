@@ -1,251 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:54192 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752272AbbFHNfr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 09:35:47 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NPM01NG5OFD1B10@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jun 2015 22:35:37 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, sangbae90.lee@samsung.com,
-	inki.dae@samsung.com, nenggun.kim@samsung.com,
-	sw0312.kim@samsung.com, jh1009.sung@samsung.com
-Subject: [RFC PATCH 0/3] Refactoring Videobuf2 for common use
-Date: Mon, 08 Jun 2015 22:35:32 +0900
-Message-id: <1433770535-21143-1-git-send-email-jh1009.sung@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52487 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750808AbbFLDgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2015 23:36:53 -0400
+Message-ID: <557A53CA.8030607@redhat.com>
+Date: Thu, 11 Jun 2015 23:36:42 -0400
+From: Doug Ledford <dledford@redhat.com>
+MIME-Version: 1.0
+To: Borislav Petkov <bp@suse.de>
+CC: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
+	bhelgaas@google.com, luto@amacapital.net,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	Roland Dreier <roland@kernel.org>,
+	Sean Hefty <sean.hefty@intel.com>,
+	Hal Rosenstock <hal.rosenstock@gmail.com>,
+	Suresh Siddha <sbsiddha@gmail.com>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Juergen Gross <jgross@suse.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Dave Airlie <airlied@redhat.com>,
+	Antonino Daplas <adaplas@gmail.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	infinipath@intel.com, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH v6 2/3] IB/ipath: add counting for MTRR
+References: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com> <1434045002-31575-3-git-send-email-mcgrof@do-not-panic.com> <20150611195424.GG30391@pd.tnic>
+In-Reply-To: <20150611195424.GG30391@pd.tnic>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="TjKokMuvLWFTs6vss1j9T2rV73fUmrJvX"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--TjKokMuvLWFTs6vss1j9T2rV73fUmrJvX
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-This patch series refactories exsiting Videobuf2, so that not only V4L2
-but also other frameworks can use it to manage buffer and utilize
-queue.
+On 06/11/2015 03:54 PM, Borislav Petkov wrote:
+> On Thu, Jun 11, 2015 at 10:50:01AM -0700, Luis R. Rodriguez wrote:
+>> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+>>
+>> There is no good reason not to, we eventually delete it as well.
+>>
+>> Cc: Toshi Kani <toshi.kani@hp.com>
+>> Cc: Roland Dreier <roland@kernel.org>
+>> Cc: Sean Hefty <sean.hefty@intel.com>
+>> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+>> Cc: Suresh Siddha <sbsiddha@gmail.com>
+>> Cc: Ingo Molnar <mingo@elte.hu>
+>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>> Cc: Juergen Gross <jgross@suse.com>
+>> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+>> Cc: Andy Lutomirski <luto@amacapital.net>
+>> Cc: Dave Airlie <airlied@redhat.com>
+>> Cc: Antonino Daplas <adaplas@gmail.com>
+>> Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+>> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> Cc: infinipath@intel.com
+>> Cc: linux-rdma@vger.kernel.org
+>> Cc: linux-fbdev@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+>> ---
+>>  drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c b/drivers/i=
+nfiniband/hw/ipath/ipath_wc_x86_64.c
+>> index 4ad0b93..70c1f3a 100644
+>> --- a/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+>> +++ b/drivers/infiniband/hw/ipath/ipath_wc_x86_64.c
+>> @@ -127,7 +127,7 @@ int ipath_enable_wc(struct ipath_devdata *dd)
+>>  			   "(addr %llx, len=3D0x%llx)\n",
+>>  			   (unsigned long long) pioaddr,
+>>  			   (unsigned long long) piolen);
+>> -		cookie =3D mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 0);
+>> +		cookie =3D mtrr_add(pioaddr, piolen, MTRR_TYPE_WRCOMB, 1);
+>>  		if (cookie < 0) {
+>>  			{
+>>  				dev_info(&dd->pcidev->dev,
+>> --
+>=20
+> Doug, ack?
+>=20
 
-I would separate existing Videobuf2-core framework into two parts - common
-and v4l2-specific part. This work is as follows :
+Ack.
 
-1. Separate existing vb2_buffer structure into common buffer and
-   v4l2-specific parts by removing v4l2-specific members and
-   embedding it into vb2_v4l2_buffer structure like this:
 
-    struct vb2_v4l2_buffer {
-        struct vb2_buffer    vb2;
-        struct v4l2_buffer   v4l2_buf;
-        struct v4l2_plane    v4l2_planes[VIDEO_MAX_PLANES];
-    };
 
-2. Abstract the v4l2-specific elements, and specify them when the device
-   drives use them. For example, vb2_v4l2_buffer structure can be abstracted
-   by vb2_buffer structure, and device drivers can get framework-specific
-   object such as vb2_v4l2_buffer by using container_of().
+--TjKokMuvLWFTs6vss1j9T2rV73fUmrJvX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-3. Separate VB2-core framework into real VB2-core and v4l2-specific part.
-   This means that it moves V4L2-specific parts of VB2-core to v4l2-specific
-   part because current VB2-core framework has some codes dependent of V4L2.
-   As a result, we will have two VB2 files - videobuf2-core.c and
-   videobuf2-v4l2.c.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Why do we try to make the VB2 framework to be common?
+iQIcBAEBCAAGBQJVelPLAAoJELgmozMOVy/dhN4P+wSfNLyRQ9hda9uQfjQS5eDK
+VrFc32VnqudghW4diOrN2mi3yOFZ6bD0MVoM4LlBCRxdTB6tFt8o6mmfIMZhzQnr
+SO2P3taBPJHyPJJ4n8IggNdbsZJzrws9TU5PxlSFGrq6qEG25w/fCCwxYUocpZlS
+3Ux3lLj/5LcJxiukiEVOwH9aUS/LyzCoQK5m6aqB+bGpQGZN+ypM6Xv6aWElFHCt
+1CXI02toYztImpoliozpr+OS/pkXFlopct774ckw0w/DlqgDgU/H2QbRadDPIaDy
+iuifQB1scnFvoxfzR6ZstPkQfAKcoKJM+s1TOAjUP4YzcOd1jBJ7QXDRa0AcaTrG
+TaA/Xu08uUrteUolmV85o3bnxGBIjrbLThNkiIsmlA70kTVoSctxskpiIQ+qeyV0
+PrrWfHIGS9scFwLz+YcxHc98g9891u6cS4OLy+R8ovQu7osGGshgaCmMB2pRXx1H
+fT4h238bFbF9/tCLy7XcWxA5QzaKnzNH/zzNi8JE1cgzrD7QJceJ4KGwtCnZXD/a
+lGF/0SnctcQo3FVJYkifn9lL28iyKRPuADxnsCDDD5k3AmvvzDuOjX6VSrUqkD0m
+yGEuVIGUph2uyMg27GserInmgvoN2+hnQt0hd0DVobOOuTU2g+XImgc1cPsaE4KZ
+xVmBwq+6mVMXYItcFLyC
+=hDOz
+-----END PGP SIGNATURE-----
 
-As you may know, current DVB framework uses ringbuffer mechanism to demux
-MPEG-2 TS data and pass it to userspace. However, this mechanism requires
-extra memory copy because DVB framework provides only read() system call for
-application - read() system call copies the kernel data to user-space buffer.
-
-So if we can use VB2 framework which supports streaming I/O and buffer
-sharing mechanism, then we could enhance existing DVB framework by removing
-the extra memory copy - with VB2 framework, application can access the kernel
-data directly through mmap system call.
-
-This patch series is the first step for it.
-
-We have a plan for this work as follows:
-
-1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2,
-   and VB2-dvb. Of course, this change should not affect other v4l2-based
-   device drivers. This patch series includes some parts of this step.
-
-2. Add new APIs for DVB streaming I/O. These APIs will be implemented
-   in VB2-dvb framework. So, we can remove unnecessary memory copy between
-   kernel-space and user-space by using these new APIs.
-   However, we leaves legacy interfaces as-is for backward compatibility.
-
-We are working on this project with Mauro and have a discussion with him
-on IRC channel weekly. Nowaday, we are discussing more detailed DVB user
-scenario for streaming I/O.
-
-The final goal of this project is to enhance current DVB framework.
-The first mission is to achieve zero-copy functionality between kernel-space
-and user-space with mmap system call. More missions are under consideration:
-i.e., we could share the buffer not only between kernel-space and user-space
-but also between devices - demux, hw video codec - by exporting a buffer
-to dmabuf fd with VB2 framework.
-
-Any suggestions and comments are welcome.
-
-Best regards,
-Junghak
-
-Junghak Sung (3):
-  modify the vb2_buffer structure for common video buffer     and make
-    struct vb2_v4l2_buffer
-  move struct vb2_queue to common and apply the changes related with
-    that     Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-  make vb2-core part with not v4l2-specific elements
-
- Documentation/video4linux/v4l2-pci-skeleton.c      |   16 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c          |   13 +-
- drivers/media/pci/cx23885/cx23885-417.c            |   13 +-
- drivers/media/pci/cx23885/cx23885-core.c           |    4 +-
- drivers/media/pci/cx23885/cx23885-dvb.c            |   12 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |   17 +-
- drivers/media/pci/cx23885/cx23885-video.c          |   19 +-
- drivers/media/pci/cx23885/cx23885.h                |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |   20 +-
- drivers/media/pci/cx25821/cx25821.h                |    2 +-
- drivers/media/pci/cx88/cx88-blackbird.c            |   15 +-
- drivers/media/pci/cx88/cx88-core.c                 |    2 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |   13 +-
- drivers/media/pci/cx88/cx88-mpeg.c                 |    2 +-
- drivers/media/pci/cx88/cx88-vbi.c                  |   17 +-
- drivers/media/pci/cx88/cx88-video.c                |   17 +-
- drivers/media/pci/cx88/cx88.h                      |    2 +-
- drivers/media/pci/saa7134/saa7134-core.c           |    4 +-
- drivers/media/pci/saa7134/saa7134-ts.c             |   28 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |   22 +-
- drivers/media/pci/saa7134/saa7134-video.c          |   17 +-
- drivers/media/pci/saa7134/saa7134.h                |    8 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   19 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   11 +-
- drivers/media/pci/solo6x10/solo6x10.h              |    4 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |   24 +-
- drivers/media/pci/tw68/tw68-video.c                |   20 +-
- drivers/media/pci/tw68/tw68.h                      |    2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   33 +-
- drivers/media/platform/am437x/am437x-vpfe.h        |    2 +-
- drivers/media/platform/blackfin/bfin_capture.c     |   30 +-
- drivers/media/platform/coda/coda-bit.c             |   20 +-
- drivers/media/platform/coda/coda-common.c          |   28 +-
- drivers/media/platform/coda/coda-jpeg.c            |    2 +-
- drivers/media/platform/coda/coda.h                 |    6 +-
- drivers/media/platform/davinci/vpbe_display.c      |   25 +-
- drivers/media/platform/davinci/vpif_capture.c      |   30 +-
- drivers/media/platform/davinci/vpif_capture.h      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |   34 +-
- drivers/media/platform/davinci/vpif_display.h      |    6 +-
- drivers/media/platform/exynos-gsc/gsc-core.c       |    2 +-
- drivers/media/platform/exynos-gsc/gsc-core.h       |    6 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |   12 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |   23 +-
- drivers/media/platform/exynos4-is/fimc-core.c      |    4 +-
- drivers/media/platform/exynos4-is/fimc-core.h      |    6 +-
- drivers/media/platform/exynos4-is/fimc-is.h        |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |   25 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.h |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |    4 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |   25 +-
- drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |   14 +-
- drivers/media/platform/m2m-deinterlace.c           |   16 +-
- drivers/media/platform/marvell-ccic/mcam-core.c    |   26 +-
- drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
- drivers/media/platform/mx2_emmaprp.c               |   16 +-
- drivers/media/platform/omap3isp/ispvideo.c         |   24 +-
- drivers/media/platform/omap3isp/ispvideo.h         |    4 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |   23 +-
- drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
- drivers/media/platform/s3c-camif/camif-core.h      |    4 +-
- drivers/media/platform/s5p-g2d/g2d.c               |   14 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |   34 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   14 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   36 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   57 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |    4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    4 +-
- drivers/media/platform/s5p-tv/mixer.h              |    4 +-
- drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c        |   11 +-
- drivers/media/platform/sh_veu.c                    |   25 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |   26 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |   34 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |   30 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   47 +-
- drivers/media/platform/soc_camera/soc_camera.c     |    2 +-
- drivers/media/platform/ti-vpe/vpe.c                |   30 +-
- drivers/media/platform/vim2m.c                     |   28 +-
- drivers/media/platform/vivid/vivid-core.h          |    4 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c   |    8 +-
- drivers/media/platform/vivid/vivid-kthread-out.c   |    8 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c       |   18 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |   14 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |   14 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |   24 +-
- drivers/media/platform/vivid/vivid-vid-out.c       |   21 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |    4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |   20 +-
- drivers/media/platform/vsp1/vsp1_video.h           |    6 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |    4 +-
- drivers/media/usb/airspy/airspy.c                  |   15 +-
- drivers/media/usb/au0828/au0828-vbi.c              |   17 +-
- drivers/media/usb/au0828/au0828-video.c            |   29 +-
- drivers/media/usb/au0828/au0828.h                  |    2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |   15 +-
- drivers/media/usb/em28xx/em28xx-video.c            |   30 +-
- drivers/media/usb/em28xx/em28xx.h                  |    2 +-
- drivers/media/usb/go7007/go7007-driver.c           |    2 +-
- drivers/media/usb/go7007/go7007-priv.h             |    4 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |   15 +-
- drivers/media/usb/hackrf/hackrf.c                  |   13 +-
- drivers/media/usb/msi2500/msi2500.c                |   13 +-
- drivers/media/usb/pwc/pwc-if.c                     |   26 +-
- drivers/media/usb/pwc/pwc.h                        |    2 +-
- drivers/media/usb/s2255/s2255drv.c                 |   16 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |   15 +-
- drivers/media/usb/stk1160/stk1160-video.c          |    2 +-
- drivers/media/usb/stk1160/stk1160.h                |    4 +-
- drivers/media/usb/usbtv/usbtv-video.c              |   11 +-
- drivers/media/usb/usbtv/usbtv.h                    |    2 +-
- drivers/media/usb/uvc/uvc_queue.c                  |   32 +-
- drivers/media/usb/uvc/uvcvideo.h                   |    4 +-
- drivers/media/v4l2-core/Makefile                   |    2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c             |    8 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 1888 ++------------------
- drivers/media/v4l2-core/videobuf2-dma-contig.c     |    2 +-
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |    2 +-
- drivers/media/v4l2-core/videobuf2-dvb.c            |    2 +-
- drivers/media/v4l2-core/videobuf2-memops.c         |    2 +-
- drivers/media/v4l2-core/videobuf2-v4l2.c           | 1878 +++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |    2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |   30 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.h    |    2 +-
- drivers/staging/media/dt3155v4l/dt3155v4l.c        |   14 +-
- drivers/staging/media/dt3155v4l/dt3155v4l.h        |    2 +-
- drivers/staging/media/omap4iss/iss_video.c         |   16 +-
- drivers/staging/media/omap4iss/iss_video.h         |    4 +-
- drivers/usb/gadget/function/uvc_queue.c            |   14 +-
- drivers/usb/gadget/function/uvc_queue.h            |    4 +-
- include/media/davinci/vpbe_display.h               |    2 +-
- include/media/soc_camera.h                         |    2 +-
- include/media/v4l2-mem2mem.h                       |   10 +-
- include/media/videobuf2-core.h                     |  235 ++-
- include/media/videobuf2-dma-contig.h               |    6 +-
- include/media/videobuf2-dma-sg.h                   |    6 +-
- include/media/videobuf2-dvb.h                      |    2 +-
- include/media/videobuf2-memops.h                   |    2 +-
- include/media/videobuf2-v4l2.h                     |  139 ++
- include/media/videobuf2-vmalloc.h                  |    2 +-
- 144 files changed, 3290 insertions(+), 2662 deletions(-)
- create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
- create mode 100644 include/media/videobuf2-v4l2.h
-
--- 
-1.7.9.5
-
+--TjKokMuvLWFTs6vss1j9T2rV73fUmrJvX--
