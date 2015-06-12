@@ -1,104 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41402 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752300AbbFGI63 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 04:58:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 04/11] sh-vou: use v4l2_fh
-Date: Sun,  7 Jun 2015 10:57:58 +0200
-Message-Id: <1433667485-35711-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:45466 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751472AbbFLLdr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2015 07:33:47 -0400
+Date: Fri, 12 Jun 2015 08:33:23 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Kconfig: disable Media Controller for DVB
+Message-ID: <20150612083323.79562d10@recife.lan>
+In-Reply-To: <557ABC28.2020101@xs4all.nl>
+References: <f146ea68c1a5db7a17bdbc0a4f32ebb220c5913e.1434106648.git.mchehab@osg.samsung.com>
+	<557ABC28.2020101@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 12 Jun 2015 13:02:00 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-This allows us to drop the use_count and you get free G/S_PRIORITY support.
+> On 06/12/2015 12:57 PM, Mauro Carvalho Chehab wrote:
+> > Since when we start discussions about the usage Media Controller
+> > for complex hardware, one thing become clear: the way it is, MC
+> > fails to map anything more complex than a webcam.
+> > 
+> > The point is that MC has entities named as devnodes, but the only
+> > devnode used (before the DVB patches) is MEDIA_ENT_T_DEVNODE_V4L.
+> > Due to the way MC got implemented, however, this entity actually
+> > doesn't represent the devnode, but the hardware I/O engine that
+> > receives data via DMA.
+> > 
+> > By coincidence, such DMA is associated with the V4L device node
+> > on webcam hardware, but this is not true even for other V4L2
+> > devices. For example, on USB hardware, the DMA is done via the
+> > USB controller. The data passes though a in-kernel filter that
+> > strips off the URB headers. Other V4L2 devices like radio may not
+> > even have DMA. When it have, the DMA is done via ALSA, and not
+> > via the V4L devnode.
+> > 
+> > In other words, MC is broken as a hole, but tagging it as BROKEN
+> 
+> hole -> whole
+> 
+> One of these days you'll have retrained your brain for this :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+Heh ;)
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index d7a72a9..4994b7b 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -63,7 +63,6 @@ enum sh_vou_status {
- struct sh_vou_device {
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
--	atomic_t use_count;
- 	struct sh_vou_pdata *pdata;
- 	spinlock_t lock;
- 	void __iomem *base;
-@@ -79,6 +78,7 @@ struct sh_vou_device {
- };
- 
- struct sh_vou_file {
-+	struct v4l2_fh fh;
- 	struct videobuf_queue vbq;
- };
- 
-@@ -1173,20 +1173,24 @@ static int sh_vou_open(struct file *file)
- 
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
-+	v4l2_fh_init(&vou_file->fh, &vou_dev->vdev);
- 	if (mutex_lock_interruptible(&vou_dev->fop_lock)) {
- 		kfree(vou_file);
- 		return -ERESTARTSYS;
- 	}
--	if (atomic_inc_return(&vou_dev->use_count) == 1) {
-+	v4l2_fh_add(&vou_file->fh);
-+	if (v4l2_fh_is_singular(&vou_file->fh)) {
- 		int ret;
-+
- 		/* First open */
- 		vou_dev->status = SH_VOU_INITIALISING;
- 		pm_runtime_get_sync(vou_dev->v4l2_dev.dev);
- 		ret = sh_vou_hw_init(vou_dev);
- 		if (ret < 0) {
--			atomic_dec(&vou_dev->use_count);
- 			pm_runtime_put(vou_dev->v4l2_dev.dev);
- 			vou_dev->status = SH_VOU_IDLE;
-+			v4l2_fh_del(&vou_file->fh);
-+			v4l2_fh_exit(&vou_file->fh);
- 			mutex_unlock(&vou_dev->fop_lock);
- 			kfree(vou_file);
- 			return ret;
-@@ -1213,14 +1217,16 @@ static int sh_vou_release(struct file *file)
- 
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
--	if (!atomic_dec_return(&vou_dev->use_count)) {
--		mutex_lock(&vou_dev->fop_lock);
-+	mutex_lock(&vou_dev->fop_lock);
-+	if (v4l2_fh_is_singular(&vou_file->fh)) {
- 		/* Last close */
- 		vou_dev->status = SH_VOU_IDLE;
- 		sh_vou_reg_a_set(vou_dev, VOUER, 0, 0x101);
- 		pm_runtime_put(vou_dev->v4l2_dev.dev);
--		mutex_unlock(&vou_dev->fop_lock);
- 	}
-+	v4l2_fh_del(&vou_file->fh);
-+	v4l2_fh_exit(&vou_file->fh);
-+	mutex_unlock(&vou_dev->fop_lock);
- 
- 	file->private_data = NULL;
- 	kfree(vou_file);
-@@ -1321,7 +1327,6 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&vou_dev->queue);
- 	spin_lock_init(&vou_dev->lock);
- 	mutex_init(&vou_dev->fop_lock);
--	atomic_set(&vou_dev->use_count, 0);
- 	vou_dev->pdata = vou_pdata;
- 	vou_dev->status = SH_VOU_IDLE;
- 
--- 
-2.1.4
+> 
+> > right now would do more harm than good.
+> > 
+> > So, instead, let's mark, for now, the DVB part as broken and
+> > block all new changes to it while we don't fix this mess, with
+> 
+> "while we fix this mess, which"
 
+Changed to:
+   "block all new changes to MC while we fix this mess, which"
+
+
+Sending version 2.
+
+Regards,
+Mauro
