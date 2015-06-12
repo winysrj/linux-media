@@ -1,43 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:34218 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754970AbbFQMbn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2015 08:31:43 -0400
-From: Sunil Shahu <shshahu@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: jarod@wilsonet.com, gregkh@linuxfoundation.org,
-	hamohammed.sa@gmail.com, tapaswenipathak@gmail.com, arnd@arndb.de,
-	gulsah.1004@gmail.com, aybuke.147@gmail.com,
-	dan.carpenter@oracle.com, mahfouz.saif.elyazal@gmail.com,
-	amber.rose.thrall@gmail.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: media: lirc: fix coding style error
-Date: Wed, 17 Jun 2015 18:01:32 +0530
-Message-Id: <1434544292-32742-1-git-send-email-shshahu@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 21/27] media/i2c/vpx3220: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:15 +0200
+Message-id: <1434114742-7420-22-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Fix code indentation error by replacing tab in place of spaces.
+Via control framework.
 
-Signed-off-by: Sunil Shahu <shshahu@gmail.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_sasem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/vpx3220.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index 8ebee96..12aae72 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
- 		       __func__, retval);
- 	else
- 		dev_info(&context->dev->dev,
--		         "Deregistered Sasem driver (minor:%d)\n", minor);
-+			"Deregistered Sasem driver (minor:%d)\n", minor);
- 
- }
- 
+diff --git a/drivers/media/i2c/vpx3220.c b/drivers/media/i2c/vpx3220.c
+index 016e766e72ba..60d635250b19 100644
+--- a/drivers/media/i2c/vpx3220.c
++++ b/drivers/media/i2c/vpx3220.c
+@@ -451,6 +451,7 @@ static const struct v4l2_ctrl_ops vpx3220_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops vpx3220_core_ops = {
+ 	.init = vpx3220_init,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-1.9.1
-
+2.1.4
