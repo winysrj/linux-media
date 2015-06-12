@@ -1,74 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep18.mx.upcmail.net ([62.179.121.38]:40650 "EHLO
-	fep18.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754666AbbFPNRt (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41904 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752319AbbFLGbV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 09:17:49 -0400
-Message-ID: <558021FA.5010509@chello.at>
-Date: Tue, 16 Jun 2015 15:17:46 +0200
-From: Hurda <hurda@chello.at>
+	Fri, 12 Jun 2015 02:31:21 -0400
+Message-ID: <557A7CAD.20700@xs4all.nl>
+Date: Fri, 12 Jun 2015 08:31:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: si2168/dvbsky - blind-scan for DVB-T2 with PLP fails
-References: <556644C7.8040701@chello.at> <5566A70A.1090805@iki.fi> <55708CB2.8090502@chello.at> <5570A6F9.1030004@iki.fi> <5572FE86.9010707@chello.at> <5573010C.6000402@iki.fi>
-In-Reply-To: <5573010C.6000402@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+CC: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 03/15] media: adv7180: add of match table
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk> <1433340002-1691-4-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-4-git-send-email-william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Resending as the first try apparently hasn't made it onto the mailing-list)
+On 06/03/2015 03:59 PM, William Towle wrote:
+> From: Ben Dooks <ben.dooks@codethink.co.uk>
+> 
+> Add a proper of match id for use when the device is being bound via
+> device tree, to avoid having to use the i2c old-style binding of the
+> device.
+> 
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> Signed-off-by: William.Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 06.06.2015 16:17, Antti Palosaari wrote:
-> On 06/06/2015 05:07 PM, Hurda wrote:
->> Thanks, this worked.
->> The kernel of Ubuntu 15.04 already was compiled with dynamic debug,
->> which saved
->> me a lot of time.
->> The driver is properly setting stream_id to 1 when needed.
->>
->> I tried again with the vanilla source and "cmd.args[2] = 0;".
->> With the vanilla source, it doesn't find any T2-transponders.
->
-> You mean with vanilla source, but without that "cmd.args[2] = 0;" hack it does
-> not find any transponders?
->
+> ---
+>  drivers/media/i2c/adv7180.c |   11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index a493c0b..09a96df 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/i2c.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+>  #include <media/v4l2-ioctl.h>
+>  #include <linux/videodev2.h>
+>  #include <media/v4l2-device.h>
+> @@ -1324,11 +1325,21 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
+>  #define ADV7180_PM_OPS NULL
+>  #endif
+>  
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id adv7180_of_id[] = {
+> +	{ .compatible = "adi,adv7180", },
+> +	{ },
+> +};
+> +
+> +MODULE_DEVICE_TABLE(of, adv7180_of_id);
+> +#endif
+> +
+>  static struct i2c_driver adv7180_driver = {
+>  	.driver = {
+>  		   .owner = THIS_MODULE,
+>  		   .name = KBUILD_MODNAME,
+>  		   .pm = ADV7180_PM_OPS,
+> +		   .of_match_table = of_match_ptr(adv7180_of_id),
+>  		   },
+>  	.probe = adv7180_probe,
+>  	.remove = adv7180_remove,
+> 
 
-No T2-transponders, no.
-With "cmd.args[2] = 0;" the number of found T2-transponders is changing with 
-every scan.
-Using the dvbsky-driver, the scan always finds all four T2-transponders.
-
->
->> With the modified source, the number of found transponders changes every
->> time
->
-> You mean with source, modified with that "cmd.args[2] = 0;" hack it finds
-> transponders, but not always?
->
-> If that is difference, then it sounds just like application is requesting some
-> PLP, probably 0, and it will not work as your network delivers channels using
-> PLP 1.
->
-> "cmd.args[2] = 0;" disables PLP filtering - it sets auto mode. Why it likely
-> does not find all channels is too short timeout.
->
-> Increase timeout value to 3 second, 900 => 3000, in funtion
-> si2168_get_tune_settings()
-
-No difference, even with 10000. Tried that timeout with "cmd.args[2] = 0;" and 
-"cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;"
-
-> You didn't provide any debugs to see what PLP ID your application is
-> requesting. It is the most important thing I would like to know, as I suspect
-> it is wrong.
->
-> regards
-> Antti
->
-
-Debug-logs:
-http://www.mediafire.com/download/8j4s9oytsfv9s40/si2168-dvbsky_debug_logs.zip
-Made with the vanilla tree and "cmd.args[2] = 0;", and timeout 900 (default) and 
-3000msec.
