@@ -1,54 +1,61 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:49954 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514AbbFNT5X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2015 15:57:23 -0400
-Received: from axis700.grange ([78.35.93.193]) by mail.gmx.com (mrgmx003) with
- ESMTPSA (Nemesis) id 0MaZrd-1Yk4ka1vxZ-00K5yk for
- <linux-media@vger.kernel.org>; Sun, 14 Jun 2015 21:57:21 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 3CB0140BD9
-	for <linux-media@vger.kernel.org>; Sun, 14 Jun 2015 21:57:18 +0200 (CEST)
-Date: Sun, 14 Jun 2015 21:57:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera: 3 more atmel-isi patches for 4.2
-Message-ID: <alpine.DEB.2.00.1506142152320.14350@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <hverkuil@xs4all.nl>
+Message-id: <557A9A97.8020103@xs4all.nl>
+Date: Fri, 12 Jun 2015 10:38:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Hans Verkuil <hans.verkuil@cisco.com>,
+ Sylwester Nawrocki <s.nawrocki@samsung.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media/v4l2-ctrls: Code cleanout validate_new()
+References: <1433943509-8782-1-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1433943509-8782-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 06/10/2015 03:38 PM, Ricardo Ribalda Delgado wrote:
+> We can simplify the code removing the if().
+> 
+> v4l2_ctr_new sets ctrls->elems to 1 when !ctrl->is_ptr.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-Please pull 3 atmel-isi patches for 4.2. I've got two more patch series 
-under review currently: pxa and rcar_vin, but they will need some more 
-time. I'll try to review them next weekend, but I don't think we'll manage 
-to push them for 4.2. Even if the PXA series will not produce any 
-comments, it still will have to be resubmitted by the author, at least to 
-remove one invalid function call, so it's only after that, that I would be 
-able to apply and push them out.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
+Thanks!
 
-  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
+	Hans
 
-are available in the git repository at:
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.2-2
-
-for you to fetch changes up to 08764c7fd4772337b0258c7cd2ce21e068b72b10:
-
-  atmel-isi: remove mck backward compatibility code (2015-06-14 21:48:55 +0200)
-
-----------------------------------------------------------------
-Josh Wu (3):
-      atmel-isi: disable ISI even if it has codec request
-      atmel-isi: add runtime pm support
-      atmel-isi: remove mck backward compatibility code
-
- drivers/media/platform/soc_camera/atmel-isi.c | 105 ++++++++++++--------------
- 1 file changed, 48 insertions(+), 57 deletions(-)
-
-Thanks
-Guennadi
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 15 ---------------
+>  1 file changed, 15 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index e3a3468002e6..b6b7dcc1b77d 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1678,21 +1678,6 @@ static int validate_new(const struct v4l2_ctrl *ctrl, union v4l2_ctrl_ptr p_new)
+>  	unsigned idx;
+>  	int err = 0;
+>  
+> -	if (!ctrl->is_ptr) {
+> -		switch (ctrl->type) {
+> -		case V4L2_CTRL_TYPE_INTEGER:
+> -		case V4L2_CTRL_TYPE_INTEGER_MENU:
+> -		case V4L2_CTRL_TYPE_MENU:
+> -		case V4L2_CTRL_TYPE_BITMASK:
+> -		case V4L2_CTRL_TYPE_BOOLEAN:
+> -		case V4L2_CTRL_TYPE_BUTTON:
+> -		case V4L2_CTRL_TYPE_CTRL_CLASS:
+> -		case V4L2_CTRL_TYPE_INTEGER64:
+> -			return ctrl->type_ops->validate(ctrl, 0, p_new);
+> -		default:
+> -			break;
+> -		}
+> -	}
+>  	for (idx = 0; !err && idx < ctrl->elems; idx++)
+>  		err = ctrl->type_ops->validate(ctrl, idx, p_new);
+>  	return err;
+> 
