@@ -1,62 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54770 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549AbbFHTyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 25/26] [media] dvb: dmx.h: don't use anonymous enums
-Date: Mon,  8 Jun 2015 16:54:09 -0300
-Message-Id: <457fb3301bb84d4c87d395e8d3783684e3acffc8.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41904 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750949AbbFLGcG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2015 02:32:06 -0400
+Message-ID: <557A7CDB.1010306@xs4all.nl>
+Date: Fri, 12 Jun 2015 08:31:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+CC: guennadi liakhovetski <g.liakhovetski@gmx.de>,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 02/15] media: soc_camera: rcar_vin: Add BT.709 24-bit
+ RGB888 input support
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk> <1433340002-1691-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1433340002-1691-3-git-send-email-william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several anonymous enums here, used via a typedef.
+On 06/03/2015 03:59 PM, William Towle wrote:
+> This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+> which is used by the ADV7612 chip.
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> 
+> Modified to use MEDIA_BUS_FMT_* constants
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
 
-Well, we don't like typedefs on Kernel, so let's de-anonimize
-those enums. Then, latter, we may be able to get rid of the
-typedefs, at least from Kernelspace.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index b4fb650d9d4f..ece3661a3cac 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -32,7 +32,7 @@
- 
- #define DMX_FILTER_SIZE 16
- 
--typedef enum
-+typedef enum dmx_output
- {
- 	DMX_OUT_DECODER, /* Streaming directly to decoder. */
- 	DMX_OUT_TAP,     /* Output going to a memory buffer */
-@@ -44,7 +44,7 @@ typedef enum
- } dmx_output_t;
- 
- 
--typedef enum
-+typedef enum dmx_input
- {
- 	DMX_IN_FRONTEND, /* Input from a front-end device.  */
- 	DMX_IN_DVR       /* Input from the logical DVR device.  */
-@@ -122,7 +122,7 @@ typedef struct dmx_caps {
- 	int num_decoders;
- } dmx_caps_t;
- 
--typedef enum {
-+typedef enum dmx_source {
- 	DMX_SOURCE_FRONT0 = 0,
- 	DMX_SOURCE_FRONT1,
- 	DMX_SOURCE_FRONT2,
--- 
-2.4.2
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index db7700b..16352a8 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -98,6 +98,7 @@
+>  #define VNMC_INF_YUV10_BT656	(2 << 16)
+>  #define VNMC_INF_YUV10_BT601	(3 << 16)
+>  #define VNMC_INF_YUV16		(5 << 16)
+> +#define VNMC_INF_RGB888		(6 << 16)
+>  #define VNMC_VUP		(1 << 10)
+>  #define VNMC_IM_ODD		(0 << 3)
+>  #define VNMC_IM_ODD_EVEN	(1 << 3)
+> @@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	struct soc_camera_device *icd = priv->ici.icd;
+>  	struct rcar_vin_cam *cam = icd->host_priv;
+>  	u32 vnmc, dmr, interrupts;
+> -	bool progressive = false, output_is_yuv = false;
+> +	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+>  
+>  	switch (priv->field) {
+>  	case V4L2_FIELD_TOP:
+> @@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  		/* BT.601/BT.1358 16bit YCbCr422 */
+>  		vnmc |= VNMC_INF_YUV16;
+> +		input_is_yuv = true;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>  		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> +		input_is_yuv = true;
+> +		break;
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+> +		vnmc |= VNMC_INF_RGB888;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV10_2X10:
+>  		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+>  		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+>  			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> +		input_is_yuv = true;
+>  		break;
+>  	default:
+>  		break;
+> @@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  	vnmc |= VNMC_VUP;
+>  
+>  	/* If input and output use the same colorspace, use bypass mode */
+> -	if (output_is_yuv)
+> +	if (input_is_yuv == output_is_yuv)
+>  		vnmc |= VNMC_BPS;
+>  
+>  	/* progressive or interlaced mode */
+> @@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>  	case MEDIA_BUS_FMT_YUYV8_1X16:
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+>  	case MEDIA_BUS_FMT_YUYV10_2X10:
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+>  		if (cam->extra_fmt)
+>  			break;
+>  
+> 
 
