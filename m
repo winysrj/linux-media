@@ -1,38 +1,51 @@
 Return-Path: <ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+In-reply-to: <557AE172.7070408@xs4all.nl>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+ <557AE172.7070408@xs4all.nl>
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
+Date: Fri, 12 Jun 2015 15:55:17 +0200
+Message-id: <CAPybu_2HzHxCK1z9--v7c8MMJ_S1K2Gvr5WLoZye3Gikf0atTA@mail.gmail.com>
+Subject: Re: [RFC v2 00/27] New ioct VIDIOC_G_DEF_EXT_CTRLS
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
  Sakari Ailus <sakari.ailus@linux.intel.com>,
  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
  Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v2 20/27] media/i2c/tvp7002: Implement g_def_ext_ctrls core_op
-Date: Fri, 12 Jun 2015 15:12:14 +0200
-Message-id: <1434114742-7420-21-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+ linux-media <linux-media@vger.kernel.org>
+Content-type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 
-Via control framework.
+Hello Hans
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/tvp7002.c | 1 +
- 1 file changed, 1 insertion(+)
+On Fri, Jun 12, 2015 at 3:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 05077cffd235..006170ebe3da 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -862,6 +862,7 @@ tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cf
- static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
- 	.log_status = tvp7002_log_status,
- 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
- 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
- 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
- 	.g_ctrl = v4l2_subdev_g_ctrl,
--- 
-2.1.4
+>
+> I did a quick analysis and for the following i2c modules you can just remove the
+> compat control ops altogether since they are no longer used in old non-control-framework
+> bridge drivers:
+>
+> saa7706
+> ivtv-gpio
+> wm8739
+> tvp7002
+> tvp514x
+> tvl320aic23b
+> tda7432
+> sr030pc30
+> saa717x
+> cs5345
+> adv7393
+> adv7343
+>
+> Also note that the uvc driver needs to be adapted manually since it can't use
+> the control framework. The ioctls are implemented in the driver itself.
+
+Would it make sense to split this patchset in two?
+
+1) This patchset - all i2c modules that dont need compat control ops +
+uvc driver
+2) A new patchset removing compat control ops on the list that you provided
+
+Thanks
