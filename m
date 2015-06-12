@@ -1,72 +1,155 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59259 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754052AbbFCTqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 15:46:10 -0400
-Message-ID: <556F597F.1070406@iki.fi>
-Date: Wed, 03 Jun 2015 22:46:07 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>
-CC: Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>	<556EB2F7.506@iki.fi>	<556EB4B0.8050505@iki.fi>	<CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>	<556F1E70.7070507@iki.fi> <CAAZRmGx9z_-_zs54+3OdEVj=H4ddwU0hh5+FaktzYYo=EabVzQ@mail.gmail.com>
-In-Reply-To: <CAAZRmGx9z_-_zs54+3OdEVj=H4ddwU0hh5+FaktzYYo=EabVzQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 01/19] media/v4l2-core: Add argument def_value to g_ext_ctrl
+Date: Fri, 12 Jun 2015 18:46:20 +0200
+Message-id: <1434127598-11719-2-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2015 10:08 PM, Olli Salonen wrote:
-> I cold booted my number cruncher after a hiatus of a couple of weeks,
-> applied a couple of extra dev_dbg printouts in the si2168_cmd_execute
-> and installed the newly built module. The results:
->
-> [  663.147757] si2168 2-0066: Silicon Labs Si2168 successfully attached
-> [  663.151735] si2157 1-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [  663.152436] DVB: registering new adapter (saa7164)
-> [  663.152441] saa7164 0000:07:00.0: DVB: registering adapter 1
-> frontend 0 (Silicon Labs Si2168)...
-> [  678.690104] si2168:si2168_init: si2168 2-0064:
-> [  678.690111] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 13, rlen: 0
-> [  678.690115] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
-> 12 00 0c 00 0d 16 00 00 00 00 00 00
-> [  678.693331] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 8, rlen: 1
-> [  678.693337] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
-> 06 01 0f 00 20 20 01
-> [  678.701914] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
-> [  678.701920] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution took 6 ms
-> [  678.701923] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 1, rlen: 13
-> [  678.701926] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: 02
-> [  678.708631] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
-> 00 44 34 30 02 00 00 00 00 00 00 00
-> [  678.708636] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution took 2 ms
-> [  678.708639] si2168 2-0064: unknown chip version Si2168-
-> [  678.714777] si2168:si2168_init: si2168 2-0064: failed=-22
-> [  678.727424] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
-> [  678.783587] si2157 0-0060: firmware version: 3.0.5
->
-> The answer to the 02 command seems really odd. You can see it is a
-> Si2168, version 40, but I'd expect the second octet to say 42 instead
-> of 00.
+If def_value is set, the default value for the controls is returned.
 
-Yeah, very odd. That byte should be letter A (0x41) or B (0x42) or 
-likely C (0x43) in future when current C revision chips are seen.
+Helper function def_to_user is also added with the same interface as
+cur_to_user or new_to_user.
 
-Are you really sure it has returned (and worked) 0x42 earlier? Have you 
-used Windows driver - I speculate if it could make permanent upgrade to 
-chip to change it.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c |  2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c       | 25 ++++++++++++++++++++-----
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  4 ++--
+ drivers/media/v4l2-core/v4l2-subdev.c      |  2 +-
+ include/media/v4l2-ctrls.h                 |  3 ++-
+ 5 files changed, 26 insertions(+), 10 deletions(-)
 
-Timing issues are also possible. Maybe you could test with some extra 
-sleeps, like adding 100ms delay between command request and reply.
-
-Unfortunately value of those 3 bytes are really important as driver 
-selects firmware to download according them.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index d285af18df7f..cdcc51ff6fa7 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -941,7 +941,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	ctrls.count = 1;
+ 	ctrls.controls = &ctrl;
+ 
+-	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls, false);
+ 	if (ret < 0) {
+ 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+ 			 pipe->external->name);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6b7dcc1b77d..02ff6f573fd2 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1489,6 +1489,17 @@ static int new_to_user(struct v4l2_ext_control *c,
+ 	return ptr_to_user(c, ctrl, ctrl->p_new);
+ }
+ 
++/* Helper function: copy the initial control value back to the caller */
++static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
++{
++	int idx;
++
++	for (idx = 0; idx < ctrl->elems; idx++)
++		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
++
++	return ptr_to_user(c, ctrl, ctrl->p_new);
++}
++
+ /* Helper function: copy the caller-provider value to the given control value */
+ static int user_to_ptr(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl,
+@@ -2795,7 +2806,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
+ 
+ 
+ /* Get extended controls. Allocates the helpers array if needed. */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		     struct v4l2_ext_controls *cs, bool def_value)
+ {
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -2827,9 +2839,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+ 		int (*ctrl_to_user)(struct v4l2_ext_control *c,
+-				    struct v4l2_ctrl *ctrl) = cur_to_user;
++				    struct v4l2_ctrl *ctrl);
+ 		struct v4l2_ctrl *master;
+ 
++		ctrl_to_user = def_value ? def_to_user : cur_to_user;
++
+ 		if (helpers[i].mref == NULL)
+ 			continue;
+ 
+@@ -2839,8 +2853,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		v4l2_ctrl_lock(master);
+ 
+ 		/* g_volatile_ctrl will update the new control values */
+-		if ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
+-			(master->has_volatiles && !is_cur_manual(master))) {
++		if (!def_value &&
++		    ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
++		    (master->has_volatiles && !is_cur_manual(master)))) {
+ 			for (j = 0; j < master->ncontrols; j++)
+ 				cur_to_new(master->cluster[j]);
+ 			ret = call_op(master, g_volatile_ctrl);
+@@ -2869,7 +2884,7 @@ EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+ 
+ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs)
+ {
+-	return v4l2_g_ext_ctrls(sd->ctrl_handler, cs);
++	return v4l2_g_ext_ctrls(sd->ctrl_handler, cs, false);
+ }
+ EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 85de4557f696..a675ccc8f27a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1982,9 +1982,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p, false);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p, false);
+ 	if (ops->vidioc_g_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 63596063b213..90ed61e6df34 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -203,7 +203,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
+ 
+ 	case VIDIOC_G_EXT_CTRLS:
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg, false);
+ 
+ 	case VIDIOC_S_EXT_CTRLS:
+ 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 911f3e542834..16f16b67181b 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -812,7 +812,8 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm);
+ int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *ctrl);
+ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 						struct v4l2_control *ctrl);
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c);
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c,
++		     bool def_value);
+ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c);
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 						struct v4l2_ext_controls *c);
 -- 
-http://palosaari.fi/
+2.1.4
