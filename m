@@ -1,59 +1,39 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44217 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750840AbbFLVOH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 17:14:07 -0400
-Date: Sat, 13 Jun 2015 00:13:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Cc: Pavel Machek <pavel@ucw.cz>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	kernel@pengutronix.de, Alexandre Courbot <gnurou@gmail.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c/adp1653: set enable gpio to output
-Message-ID: <20150612211358.GU5904@valkosipuli.retiisi.org.uk>
-References: <1434095248-31057-1-git-send-email-u.kleine-koenig@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1434095248-31057-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 24/27] media/pci/ivtv/ivtv-gpio: Implement g_def_ext_ctrls
+ core_op
+Date: Fri, 12 Jun 2015 15:12:18 +0200
+Message-id: <1434114742-7420-25-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hallo Uwe,
+Via control framework.
 
-Thanks for the patch!
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/pci/ivtv/ivtv-gpio.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Fri, Jun 12, 2015 at 09:47:28AM +0200, Uwe Kleine-König wrote:
-> Without setting the direction of a gpio to output a call to
-> gpiod_set_value doesn't have a defined outcome.
-> 
-> Furthermore this is one caller less that stops us making the flags
-> argument to gpiod_get*() mandatory.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-> ---
-> Hello,
-> 
-> this patch applies to next and is only necessary on top of 074c57a25fa2
-> ([media] media: i2c/adp1653: Devicetree support for adp1653).
-> 
-> Note I plan to make the flags parameter mandatory for 4.3. So unless
-> this change gets into 4.2, would it be ok to let it go in via the gpio
-> tree?
-
-Fine for me.
-
-For the patch,
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
+diff --git a/drivers/media/pci/ivtv/ivtv-gpio.c b/drivers/media/pci/ivtv/ivtv-gpio.c
+index af52def700cc..d16f210670e2 100644
+--- a/drivers/media/pci/ivtv/ivtv-gpio.c
++++ b/drivers/media/pci/ivtv/ivtv-gpio.c
+@@ -314,6 +314,7 @@ static const struct v4l2_ctrl_ops gpio_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops subdev_core_ops = {
+ 	.log_status = subdev_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-Freundliche hilsen,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
