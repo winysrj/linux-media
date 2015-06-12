@@ -1,47 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43039 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750983AbbFYHX0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 03:23:26 -0400
-Message-ID: <1435216998.4528.100.camel@tiscali.nl>
-Subject: Re: [PATCH 11/12] [media] tsin: c8sectpfe: Add Kconfig and Makefile
- for the driver.
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Peter Griffin <peter.griffin@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: lee.jones@linaro.org, hugues.fruchet@st.com,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Date: Thu, 25 Jun 2015 09:23:18 +0200
-In-Reply-To: <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-	 <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 22/27] media/i2c/wm8739: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 15:12:16 +0200
+Message-id: <1434114742-7420-23-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
-> --- /dev/null
-> +++ b/drivers/media/tsin/c8sectpfe/Makefile
+Via control framework.
 
-> +c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o
-> +
-> +obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
-> +
-> +ifneq ($(CONFIG_DVB_C8SECTPFE),)
-> +	c8sectpfe-y += c8sectpfe-debugfs.o
-> +endif
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/wm8739.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Isn't the above equivalent to
-    c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o c8sectpfe-debugfs.o
-
-    obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
-
-Or am I missing something subtle here?
-
-
-Paul Bolle
+diff --git a/drivers/media/i2c/wm8739.c b/drivers/media/i2c/wm8739.c
+index 3be73f6a40e9..003c07bee16f 100644
+--- a/drivers/media/i2c/wm8739.c
++++ b/drivers/media/i2c/wm8739.c
+@@ -177,6 +177,7 @@ static const struct v4l2_ctrl_ops wm8739_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops wm8739_core_ops = {
+ 	.log_status = wm8739_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
+-- 
+2.1.4
