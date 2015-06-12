@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.CARNet.hr ([161.53.123.6]:49303 "EHLO mail.carnet.hr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566AbbFAMWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 08:22:18 -0400
-Received: from cnzgrivvl3.carpriv.carnet.hr ([161.53.12.131]:39210 helo=gavran.carpriv.carnet.hr)
-	by mail.carnet.hr with esmtps (TLS1.2:DHE_RSA_AES_256_CBC_SHA256:256)
-	(Exim 4.80)
-	(envelope-from <Valentin.Vidic@CARNet.hr>)
-	id 1YzOjQ-0002j3-3h
-	for linux-media@vger.kernel.org; Mon, 01 Jun 2015 14:22:16 +0200
-Date: Mon, 1 Jun 2015 14:22:15 +0200
-From: Valentin Vidic <Valentin.Vidic@CARNet.hr>
-To: linux-media@vger.kernel.org
-Message-ID: <20150601122215.GD1807@gavran.carpriv.carnet.hr>
-References: <20150528144117.GP1807@gavran.carpriv.carnet.hr>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37592 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750949AbbFLGln (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2015 02:41:43 -0400
+Date: Fri, 12 Jun 2015 09:41:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	j.anaszewski@samsung.com, cooloney@gmail.com,
+	g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v1.3 1/5] v4l: async: Add a pointer to of_node to struct
+ v4l2_subdev, match it
+Message-ID: <20150612064109.GT5904@valkosipuli.retiisi.org.uk>
+References: <1433971645-32304-1-git-send-email-sakari.ailus@iki.fi>
+ <1434050281-27861-1-git-send-email-sakari.ailus@iki.fi>
+ <4041793.jETg7P3oYY@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20150528144117.GP1807@gavran.carpriv.carnet.hr>
-Subject: Re: Issues with Geniatech MyGica T230
+In-Reply-To: <4041793.jETg7P3oYY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 28, 2015 at 04:41:17PM +0200, Valentin Vidic wrote:
-> I recently bought this card after seeing on the LinuxTV wiki
-> that it's supported since kernel v3.19, but now I can't get
-> it working properly with Debian.  The modules load without
-> errors but scanning for channels or watching TV does not
-> work reliably: some channels work but others just hang the
-> player or return a lot of "frame out of order erorrs". 
+On Thu, Jun 11, 2015 at 10:27:30PM +0300, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> In order to rule out hardware problems I tested the card
-> using OpenELEC (RPi and x86_64) and Windows Media Player
-> and it works there without a glich.  So I assumed this is
-> a software problem somewhere I tried several different
-> kernel versions without success:
+> Thank you for the patch.
 > 
-> 3.16.7-ckt9-3~deb8u1 + media_build drivers
-> 4.0.2-1
-> 3.19.0
-> 3.19.8
+> On Thursday 11 June 2015 22:18:01 Sakari Ailus wrote:
+> > V4L2 async sub-devices are currently matched (OF case) based on the struct
+> > device_node pointer in struct device. LED devices may have more than one
+> > LED, and in that case the OF node to match is not directly the device's
+> > node, but a LED's node.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Any suggestions what could be wrong or what more to try? 
+Bryan, could you apply the patch to your tree? It's required by Jacek's
+patchset you attempted to apply a few days back.
+
+Thanks!
 
 -- 
-Valentin
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
