@@ -1,97 +1,137 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51902 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751105AbbFYJsV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:48:21 -0400
-Date: Thu, 25 Jun 2015 12:47:48 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] [media] Add helper function for subdev event
- notifications
-Message-ID: <20150625094748.GJ5904@valkosipuli.retiisi.org.uk>
-References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
- <1435164631-19924-3-git-send-email-lars@metafoo.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435164631-19924-3-git-send-email-lars@metafoo.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v2 26/27] Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
+Date: Fri, 12 Jun 2015 15:12:20 +0200
+Message-id: <1434114742-7420-27-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lars-Peter,
+Add documentation for new ioctl.
 
-On Wed, Jun 24, 2015 at 06:50:29PM +0200, Lars-Peter Clausen wrote:
-> Add a new helper function called v4l2_subdev_notify_event() which will
-> deliver the specified event to both the v4l2 subdev event queue as well as
-> to the notify callback. The former is typically used by userspace
-> applications to listen to notification events while the later is used by
-> bridge drivers. Combining both into the same function avoids boilerplate
-> code in subdev drivers.
-> 
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 18 ++++++++++++++++++
->  include/media/v4l2-subdev.h           |  4 ++++
->  2 files changed, 22 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 6359606..83615b8 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -588,3 +588,21 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->  #endif
->  }
->  EXPORT_SYMBOL(v4l2_subdev_init);
-> +
-> +/**
-> + * v4l2_subdev_notify_event() - Delivers event notification for subdevice
-> + * @sd: The subdev for which to deliver the event
-> + * @ev: The event to deliver
-> + *
-> + * Will deliver the specified event to all userspace event listeners which are
-> + * subscribed to the v42l subdev event queue as well as to the bridge driver
-> + * using the notify callback. The notification type for the notify callback
-> + * will be V4L2_DEVICE_NOTIFY_EVENT.
-> + */
-> +void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
-> +			      const struct v4l2_event *ev)
-> +{
-> +	v4l2_event_queue(sd->devnode, ev);
-> +	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT, (void *)ev);
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/DocBook/media/v4l/v4l2.xml               |  8 ++++++++
+ Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 13 +++++++++----
+ Documentation/video4linux/v4l2-controls.txt            |  3 ++-
+ Documentation/video4linux/v4l2-framework.txt           |  1 +
+ Documentation/zh_CN/video4linux/v4l2-framework.txt     |  1 +
+ 5 files changed, 21 insertions(+), 5 deletions(-)
 
-This is ugly. The casting avoids a warning for passing a const variable as
-non-const.
-
-Could v4l2_subdev_notify() be changed to take the third argument as const?
-Alternatively I'd just leave it out from v4l2_subdev_notify_event().
-
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_subdev_notify_event);
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index dc20102..65d4a5f 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -44,6 +44,7 @@
->  
->  struct v4l2_device;
->  struct v4l2_ctrl_handler;
-> +struct v4l2_event;
->  struct v4l2_event_subscription;
->  struct v4l2_fh;
->  struct v4l2_subdev;
-> @@ -693,4 +694,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
->  #define v4l2_subdev_has_op(sd, o, f) \
->  	((sd)->ops->o && (sd)->ops->o->f)
->  
-> +void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
-> +			      const struct v4l2_event *ev);
-> +
->  #endif
-
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1c39bd..027cf8408382 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -153,6 +153,14 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>4.2</revnumber>
++	<date>2015-06-12</date>
++	<authorinitials>rr</authorinitials>
++	<revremark>Extend &vidioc-g-ext-ctrls;. Add ioctl <constant>VIDIOC_G_DEF_EXT_CTRLS</constant>
++to get the default value of multiple controls.
++	</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.21</revnumber>
+ 	<date>2015-02-13</date>
+ 	<authorinitials>mcc</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index c5bdbfcc42b3..5f8283a7e288 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -1,12 +1,13 @@
+ <refentry id="vidioc-g-ext-ctrls">
+   <refmeta>
+     <refentrytitle>ioctl VIDIOC_G_EXT_CTRLS, VIDIOC_S_EXT_CTRLS,
+-VIDIOC_TRY_EXT_CTRLS</refentrytitle>
++VIDIOC_TRY_EXT_CTRLS, VIDIOC_G_DEF_EXT_CTRLS</refentrytitle>
+     &manvol;
+   </refmeta>
+ 
+   <refnamediv>
+     <refname>VIDIOC_G_EXT_CTRLS</refname>
++    <refname>VIDIOC_G_DEF_EXT_CTRLS</refname>
+     <refname>VIDIOC_S_EXT_CTRLS</refname>
+     <refname>VIDIOC_TRY_EXT_CTRLS</refname>
+     <refpurpose>Get or set the value of several controls, try control
+@@ -39,7 +40,7 @@ values</refpurpose>
+ 	<term><parameter>request</parameter></term>
+ 	<listitem>
+ 	  <para>VIDIOC_G_EXT_CTRLS, VIDIOC_S_EXT_CTRLS,
+-VIDIOC_TRY_EXT_CTRLS</para>
++VIDIOC_TRY_EXT_CTRLS, VIDIOC_G_DEF_EXT_CTRLS</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+@@ -74,7 +75,10 @@ of each &v4l2-ext-control; and call the
+ <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+ must also set the <structfield>string</structfield> field. Controls
+ of compound types (<constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set)
+-must set the <structfield>ptr</structfield> field.</para>
++must set the <structfield>ptr</structfield> field. To get the default value
++instead of the current value, call the
++<constant>VIDIOC_G_DEF_EXT_CTRLS</constant> ioctl with the same arguments.
++</para>
+ 
+     <para>If the <structfield>size</structfield> is too small to
+ receive the control result (only relevant for pointer-type controls
+@@ -141,7 +145,8 @@ application.</entry>
+ 	    <entry>The total size in bytes of the payload of this
+ control. This is normally 0, but for pointer controls this should be
+ set to the size of the memory containing the payload, or that will
+-receive the payload. If <constant>VIDIOC_G_EXT_CTRLS</constant> finds
++receive the payload. If <constant>VIDIOC_G_EXT_CTRLS</constant>
++or <constant>VIDIOC_G_DEF_EXT_CTRLS</constant> finds
+ that this value is less than is required to store
+ the payload result, then it is set to a value large enough to store the
+ payload result and ENOSPC is returned. Note that for string controls
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 5517db602f37..7e3dfcacdbee 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -79,7 +79,8 @@ Basic usage for V4L2 and sub-device drivers
+ 
+   Finally, remove all control functions from your v4l2_ioctl_ops (if any):
+   vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
+-  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls,
++  vidioc_g_def_ext_ctrls, and vidioc_s_ext_ctrls.
+   Those are now no longer needed.
+ 
+ 1.3.2) For sub-device drivers do this:
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 75d5c18d689a..4672396f48b1 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -462,6 +462,7 @@ VIDIOC_QUERYMENU
+ VIDIOC_G_CTRL
+ VIDIOC_S_CTRL
+ VIDIOC_G_EXT_CTRLS
++VIDIOC_G_DEF_EXT_CTRLS
+ VIDIOC_S_EXT_CTRLS
+ VIDIOC_TRY_EXT_CTRLS
+ 
+diff --git a/Documentation/zh_CN/video4linux/v4l2-framework.txt b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+index 2b828e631e31..b8c0d6fb6595 100644
+--- a/Documentation/zh_CN/video4linux/v4l2-framework.txt
++++ b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+@@ -401,6 +401,7 @@ VIDIOC_QUERYMENU
+ VIDIOC_G_CTRL
+ VIDIOC_S_CTRL
+ VIDIOC_G_EXT_CTRLS
++VIDIOC_G_DEF_EXT_CTRLS
+ VIDIOC_S_EXT_CTRLS
+ VIDIOC_TRY_EXT_CTRLS
+ 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
