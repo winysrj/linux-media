@@ -1,89 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49054 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755188AbbFEO2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 00/11] Some smatch fixups
-Date: Fri,  5 Jun 2015 11:27:31 -0300
-Message-Id: <cover.1433514004.git.mchehab@osg.samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-Path: <ricardo.ribalda@gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+ Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v3 10/19] media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
+Date: Fri, 12 Jun 2015 18:46:29 +0200
+Message-id: <1434127598-11719-11-git-send-email-ricardo.ribalda@gmail.com>
+In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 
-Fix several smatch warnings.
+Via control framework.
 
-There are only 26 smatch warnings now:
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/cs53l32a.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-drivers/media/pci/cx23885/cx23885-dvb.c:2046 dvb_register() Function too hairy.  Giving up.
-
-	This is actually a memory allocation limit of 50MB at smatch.
-	I sent a patch changing such limit to 200MB to Dan.
-
-drivers/media/dvb-frontends/stv0900_core.c:1183 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-drivers/media/dvb-frontends/stv0900_core.c:1185 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-drivers/media/dvb-frontends/stv0900_core.c:1187 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-drivers/media/dvb-frontends/stv0900_core.c:1189 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-drivers/media/dvb-frontends/stv0900_core.c:1191 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-drivers/media/media-entity.c:238:17: warning: Variable length array is used.
-drivers/media/media-entity.c:239:17: warning: Variable length array is used.
-drivers/media/pci/ttpci/av7110.c:2210 frontend_init() warn: missing break? reassigning 'av7110->fe'
-drivers/media/pci/ttpci/budget.c:631 frontend_init() warn: missing break? reassigning 'budget->dvb_frontend'
-drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
-drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
-drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
-drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
-drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
-drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
-drivers/media/radio/radio-aimslab.c:73 rtrack_alloc() warn: possible memory leak of 'rt'
-drivers/media/radio/radio-aztech.c:87 aztech_alloc() warn: possible memory leak of 'az'
-drivers/media/radio/radio-gemtek.c:189 gemtek_alloc() warn: possible memory leak of 'gt'
-drivers/media/radio/radio-trust.c:60 trust_alloc() warn: possible memory leak of 'tr'
-drivers/media/radio/radio-typhoon.c:79 typhoon_alloc() warn: possible memory leak of 'ty'
-drivers/media/radio/radio-zoltrix.c:83 zoltrix_alloc() warn: possible memory leak of 'zol'
-drivers/media/usb/pvrusb2/pvrusb2-encoder.c:227 pvr2_encoder_cmd() error: buffer overflow 'wrData' 16 <= 16
-drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
-drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
-
-  Those seem to be false positives that would require a bigger logic
-  change (or some change at smatch side). Probably not worth to touch
-  the driver code.
-
-drivers/media/pci/ivtv/ivtv-queue.c:145 ivtv_queue_move() error: we previously assumed 'steal' could be null (see line 138)
-  I suspect that this is a real bug and should be addressed.
-  Fixing it would require some tests with the hardware, and a better
-  understanding on what the function should be expecting to do when 
-  "steal" is NULL.
-
-Mauro Carvalho Chehab (11):
-  [media] drxk: better handle errors
-  [media] em28xx: remove dead code
-  [media] sh_vou: avoid going past arrays
-  [media] dib0090: Remove a dead code
-  [media] bt8xx: remove needless check
-  [media] ivtv: fix two smatch warnings
-  [media] tm6000: remove needless check
-  [media] ir: Fix IR_MAX_DURATION enforcement
-  [media] rc: set IR_MAX_DURATION to 500 ms
-  [media] usbvision: cleanup the code
-  [media] lirc_imon: simplify error handling code
-
- drivers/media/dvb-frontends/dib0090.c         |   4 +-
- drivers/media/dvb-frontends/drxk_hard.c       |   7 +-
- drivers/media/pci/bt8xx/dst_ca.c              | 132 +++++++++++++-------------
- drivers/media/pci/ivtv/ivtv-driver.h          |   3 +-
- drivers/media/platform/sh_vou.c               |  14 +--
- drivers/media/rc/redrat3.c                    |   5 +-
- drivers/media/rc/streamzap.c                  |   6 +-
- drivers/media/usb/em28xx/em28xx-video.c       |   1 -
- drivers/media/usb/tm6000/tm6000-video.c       |   2 +-
- drivers/media/usb/usbvision/usbvision-video.c |  17 +++-
- drivers/staging/media/lirc/lirc_imon.c        |  95 ++++++++----------
- include/media/rc-core.h                       |   2 +-
- 12 files changed, 139 insertions(+), 149 deletions(-)
-
+diff --git a/drivers/media/i2c/cs53l32a.c b/drivers/media/i2c/cs53l32a.c
+index 27400c16ef9a..9358350278cc 100644
+--- a/drivers/media/i2c/cs53l32a.c
++++ b/drivers/media/i2c/cs53l32a.c
+@@ -122,6 +122,7 @@ static const struct v4l2_ctrl_ops cs53l32a_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops cs53l32a_core_ops = {
+ 	.log_status = cs53l32a_log_status,
+ 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
+ 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+ 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+ 	.g_ctrl = v4l2_subdev_g_ctrl,
 -- 
-2.4.2
-
+2.1.4
