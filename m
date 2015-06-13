@@ -1,107 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34885 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753374AbbFOKZy (ORCPT
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:34847 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725AbbFMFVe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2015 06:25:54 -0400
-Message-ID: <557EA821.2010208@xs4all.nl>
-Date: Mon, 15 Jun 2015 12:25:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 13 Jun 2015 01:21:34 -0400
+Received: by ykar6 with SMTP id r6so552361yka.2
+        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2015 22:21:33 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 2/7] v4l2: replace video op g_mbus_fmt by pad op get_fmt
-References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl> <1428574888-46407-3-git-send-email-hverkuil@xs4all.nl> <1988961.x4zUjgPhSL@avalon>
-In-Reply-To: <1988961.x4zUjgPhSL@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
+References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
+Date: Sat, 13 Jun 2015 10:51:33 +0530
+Message-ID: <CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
+Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
+From: Manu Abraham <abraham.manu@gmail.com>
+To: David Nelson <nelson.dt@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2015 12:08 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> (CC'ing Javier Martin)
-> 
-> On Thursday 09 April 2015 12:21:23 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The g_mbus_fmt video op is a duplicate of the pad op. Replace all uses
->> by the get_fmt pad op and remove the video op.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
->> Cc: Kamil Debski <k.debski@samsung.com>
-> 
-> [snip]
-> 
->> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
->> index f2f87b7..e4fa074 100644
->> --- a/drivers/media/i2c/tvp5150.c
->> +++ b/drivers/media/i2c/tvp5150.c
->> @@ -828,14 +828,18 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev
->> *sd, return 0;
->>  }
->>
->> -static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
->> -			    struct v4l2_mbus_framefmt *f)
->> +static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
->> +		struct v4l2_subdev_pad_config *cfg,
->> +		struct v4l2_subdev_format *format)
->>  {
->> +	struct v4l2_mbus_framefmt *f;
->>  	struct tvp5150 *decoder = to_tvp5150(sd);
->>
->> -	if (f == NULL)
->> +	if (!format || format->pad)
->>  		return -EINVAL;
->>
->> +	f = &format->format;
->> +
->>  	tvp5150_reset(sd, 0);
-> 
-> This resets the device every time a get or set format is issued, even for TRY 
-> formats. I don't think that's right.
-> 
-> Do you have any idea why this is needed ? The code was introduced in commit 
-> ec2c4f3f93cb ("[media] media: tvp5150: Add mbus_fmt callbacks"), with Javier 
-> listed as the author but Mauro being the only SoB.
+Hi David,
 
-I have no idea why this would be needed. I agree with you that it seems
-unnecessary. Note that I don't think this is ever used with TRY formats today,
-but still it doesn't look right for SET formats either.
+The saa7160 chipset is supported by the saa716x driver.
+I wrote a driver for it, which is over here.
+http://git.linuxtv.org/cgit.cgi/manu/saa716x_new.git
 
-Regards,
+I do have the A188 card and documentation also with me,
+thanks to Avermedia.
 
-	Hans
+The card is not yet supported in the above tree, so cloning
+that tree will not help much in your case. Though I have
+some code related to that, it is only on my local testbox
 
-> 
->>  	f->width = decoder->rect.width;
->> @@ -1069,9 +1073,6 @@ static const struct v4l2_subdev_tuner_ops
->> tvp5150_tuner_ops = { static const struct v4l2_subdev_video_ops
->> tvp5150_video_ops = {
->>  	.s_std = tvp5150_s_std,
->>  	.s_routing = tvp5150_s_routing,
->> -	.s_mbus_fmt = tvp5150_mbus_fmt,
->> -	.try_mbus_fmt = tvp5150_mbus_fmt,
->> -	.g_mbus_fmt = tvp5150_mbus_fmt,
->>  	.s_crop = tvp5150_s_crop,
->>  	.g_crop = tvp5150_g_crop,
->>  	.cropcap = tvp5150_cropcap,
->> @@ -1086,6 +1087,8 @@ static const struct v4l2_subdev_vbi_ops
->> tvp5150_vbi_ops = {
->>
->>  static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
->>  	.enum_mbus_code = tvp5150_enum_mbus_code,
->> +	.set_fmt = tvp5150_fill_fmt,
->> +	.get_fmt = tvp5150_fill_fmt,
->>  };
->>
->>  static const struct v4l2_subdev_ops tvp5150_ops = {
-> 
+I've been with an accident and my other hand is in a restrictive
+state with minimal movements. It will be a few weeks, before
+I can do something in this area. It's not much help to you at
+this point right now, but just fyi
 
+Manu
+
+
+
+On Sat, Jun 13, 2015 at 8:46 AM, David Nelson <nelson.dt@gmail.com> wrote:
+> I have the AverMedia HD Duet (White Box) A188WB. Which has been
+> working great for several years in Windows 7 Media Center. I just
+> tried installing Mythbuntu but it does not appear to be recognized. I
+> am a bit of a newbie but I managed to find some info about it.
+>
+> Does anyone know of a driver for it? lspci says it uses the Philips
+> SAA7160 which does appear to be in a few other supported devices.
+>
+> Details follow
+>
+> I get the following from lspci -vvnnk
+>
+> 03:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7160
+> [1131:7160] (rev 01)
+> Subsystem: Avermedia Technologies Inc Device [1461:1e55]
+> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+> Latency: 0, Cache Line Size: 64 bytes
+> Interrupt: pin A routed to IRQ 10
+> Region 0: Memory at ef800000 (64-bit, non-prefetchable) [size=1M]
+> Capabilities: <access denied>
+>
+>
+> I can see that there is a driver for a few other devices with this
+> chip at http://www.linuxtv.org/wiki/index.php/NXP_SAA716x  (i.e.
+> heading "As of (2014-06-07)"
+>
+>
+> --
+> -David Nelson
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
