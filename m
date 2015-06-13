@@ -1,83 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50508 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753987AbbFOLeI (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:35149 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728AbbFMGhi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2015 07:34:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/14] tw9910: init priv->scale and update standard
-Date: Mon, 15 Jun 2015 13:33:31 +0200
-Message-Id: <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 13 Jun 2015 02:37:38 -0400
+Date: Sat, 13 Jun 2015 08:37:32 +0200
+From: Ingo Molnar <mingo@kernel.org>
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Jan Beulich <JBeulich@suse.com>, Juergen Gross <jgross@suse.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Dave Airlie <airlied@redhat.com>,
+	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	X86 ML <x86@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jej B <James.Bottomley@hansenpartnership.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	linux-media@vger.kernel.org, Luis Rodriguez <Mcgrof@suse.com>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	Toshi Kani <toshi.kani@hp.com>, Borislav Petkov <bp@suse.de>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	ville.syrjala@linux.intel.com
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+Message-ID: <20150613063731.GB12612@gmail.com>
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+ <1434064996.11808.64.camel@misato.fc.hp.com>
+ <557AAD910200007800084014@mail.emea.novell.com>
+ <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-When the standard changes the VACTIVE and VDELAY values need to be updated.
+* Andy Lutomirski <luto@amacapital.net> wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+> On Jun 12, 2015 12:59 AM, "Jan Beulich" <JBeulich@suse.com> wrote:
+> >
+> > >>> On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
+> > > There are two usages on MTRRs:
+> > >  1) MTRR entries set by firmware
+> > >  2) MTRR entries set by OS drivers
+> > >
+> > > We can obsolete 2), but we have no control over 1).  As UEFI firmwares
+> > > also set this up, this usage will continue to stay.  So, we should not
+> > > get rid of the MTRR code that looks up the MTRR entries, while we have
+> > > no need to modify them.
+> > >
+> > > Such MTRR entries provide safe guard to /dev/mem, which allows privileged 
+> > > user to access a range that may require UC mapping while the /dev/mem driver 
+> > > blindly maps it with WB.  MTRRs converts WB to UC in such a case.
+> >
+> > But it wouldn't be impossible to simply read the MTRRs upon boot, store the 
+> > information, disable MTRRs, and correctly use PAT to achieve the same effect 
+> > (i.e. the "blindly maps" part of course would need fixing).
+> 
+> This may crash and burn badly when we call a UEFI function or an SMI happens.  I 
+> think we should just leave the MTRRs alone.
 
-diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-index df66417..e939c24 100644
---- a/drivers/media/i2c/soc_camera/tw9910.c
-+++ b/drivers/media/i2c/soc_camera/tw9910.c
-@@ -510,13 +510,39 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct tw9910_priv *priv = to_tw9910(client);
-+	const unsigned hact = 720;
-+	const unsigned hdelay = 15;
-+	unsigned vact;
-+	unsigned vdelay;
-+	int ret;
- 
- 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
- 		return -EINVAL;
- 
- 	priv->norm = norm;
-+	if (norm & V4L2_STD_525_60) {
-+		vact = 240;
-+		vdelay = 18;
-+		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
-+	} else {
-+		vact = 288;
-+		vdelay = 24;
-+		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
-+	}
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, CROP_HI,
-+			((vdelay >> 2) & 0xc0) |
-+			((vact >> 4) & 0x30) |
-+			((hdelay >> 6) & 0x0c) |
-+			((hact >> 8) & 0x03));
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
-+			vdelay & 0xff);
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
-+			vact & 0xff);
- 
--	return 0;
-+	return ret;
- }
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
- 		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
- 
- 	priv->norm = V4L2_STD_NTSC;
-+	priv->scale = &tw9910_ntsc_scales[0];
- 
- done:
- 	tw9910_s_power(&priv->subdev, 0);
--- 
-2.1.4
+Not to mention suspend/resume, reboot and other goodies where the firmware might 
+pop up expecting intact MTRRs.
 
+Btw., doesn't a lack of MTRRs imply UC? So is 'crash and burn' possible in most 
+cases? Isn't it just 'executes slower than before'?
+
+Thanks,
+
+	Ingo
