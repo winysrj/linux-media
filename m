@@ -1,241 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51381 "EHLO mail.kapsi.fi"
+Received: from vader.hardeman.nu ([95.142.160.32]:34138 "EHLO hardeman.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804AbbFFORx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 10:17:53 -0400
-Message-ID: <5573010C.6000402@iki.fi>
-Date: Sat, 06 Jun 2015 17:17:48 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751198AbbFMXtQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Jun 2015 19:49:16 -0400
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/2] rc-core: use the full 32 bits for NEC scancodes
 MIME-Version: 1.0
-To: Hurda <hurda@chello.at>, linux-media@vger.kernel.org
-Subject: Re: si2168/dvbsky - blind-scan for DVB-T2 with PLP fails
-References: <556644C7.8040701@chello.at> <5566A70A.1090805@iki.fi> <55708CB2.8090502@chello.at> <5570A6F9.1030004@iki.fi> <5572FE86.9010707@chello.at>
-In-Reply-To: <5572FE86.9010707@chello.at>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Sun, 14 Jun 2015 01:49:15 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20150520202411.GA15223@hardeman.nu>
+References: <20150406112204.23209.27664.stgit@zeus.muc.hardeman.nu>
+ <20150406112308.23209.85627.stgit@zeus.muc.hardeman.nu>
+ <20150514175739.45ee6fd7@recife.lan> <20150520202411.GA15223@hardeman.nu>
+Message-ID: <85c7ca29abcc18a8e5fbefb4838e21ab@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2015 05:07 PM, Hurda wrote:
-> Thanks, this worked.
-> The kernel of Ubuntu 15.04 already was compiled with dynamic debug,
-> which saved
-> me a lot of time.
-> The driver is properly setting stream_id to 1 when needed.
->
-> I tried again with the vanilla source and "cmd.args[2] = 0;".
-> With the vanilla source, it doesn't find any T2-transponders.
+On 2015-05-20 22:24, David Härdeman wrote:
+> On Thu, May 14, 2015 at 05:57:39PM -0300, Mauro Carvalho Chehab wrote:
+>> Em Mon, 06 Apr 2015 13:23:08 +0200
+>> David Härdeman <david@hardeman.nu> escreveu:
+....
+>>> +static inline enum rc_type guess_protocol(struct rc_dev *rdev)
+>>> +{
+>>> +	struct rc_map *rc_map = &rdev->rc_map;
+>>> +
+>>> +	if (hweight64(rdev->enabled_protocols) == 1)
+>>> +		return rc_bitmap_to_type(rdev->enabled_protocols);
+>>> +	else if (hweight64(rdev->allowed_protocols) == 1)
+>>> +		return rc_bitmap_to_type(rdev->allowed_protocols);
+>>> +	else
+>>> +		return rc_map->rc_type;
+>>> +}
+> 
+> ^^^^
+> This function is the most important one to understand in order to
+> understand how the heuristics work...
+> 
+>>> +
+>>> +/**
+>>> + * to_nec32() - helper function to try to convert misc NEC scancodes 
+>>> to NEC32
+>>> + * @orig:	original scancode
+>>> + * @return:	NEC32 scancode
+>>> + *
+>>> + * This helper routine is used to provide backwards compatibility.
+>>> + */
+>>> +static u64 to_nec32(u64 orig)
+>>> +{
+>>> +	u8 b3 = (u8)(orig >> 16);
+>>> +	u8 b2 = (u8)(orig >>  8);
+>>> +	u8 b1 = (u8)(orig >>  0);
+>>> +
+>>> +	if (orig <= 0xffff)
+>>> +		/* Plain old NEC */
+>>> +		return b2 << 24 | ((u8)~b2) << 16 |  b1 << 8 | ((u8)~b1);
+>>> +	else if (orig <= 0xffffff)
+>>> +		/* NEC extended */
+>>> +		return b3 << 24 | b2 << 16 |  b1 << 8 | ((u8)~b1);
+>>> +	else
+>>> +		/* NEC32 */
+>>> +		return orig;
+>>> +}
+>>> +
+>>> +/**
+>>>   * ir_setkeycode() - set a keycode in the scancode->keycode table
+>>>   * @idev:	the struct input_dev device descriptor
+>>>   * @scancode:	the desired scancode
+>>> @@ -349,6 +392,9 @@ static int ir_setkeycode(struct input_dev *idev,
+>>>  		if (retval)
+>>>  			goto out;
+>>> 
+>>> +		if (guess_protocol(rdev) == 0
+>>> +			scancode = to_nec32(scancode);
+>> 
+>> This function can be called from userspace. I can't see how this would 
+>> do
+>> the right thing if more than one protocol is enabled.
+>> 
+>>> +
+>>>  		index = ir_establish_scancode(rdev, rc_map, scancode, true);
+>>>  		if (index >= rc_map->len) {
+>>>  			retval = -ENOMEM;
+>>> @@ -389,7 +435,10 @@ static int ir_setkeytable(struct rc_dev *dev,
+>>> 
+>>>  	for (i = 0; i < from->size; i++) {
+>>>  		index = ir_establish_scancode(dev, rc_map,
+>>> -					      from->scan[i].scancode, false);
+>>> +					      from->rc_type == RC_TYPE_NEC ?
+>>> +					      to_nec32(from->scan[i].scancode) :
+>>> +					      from->scan[i].scancode,
+>>> +					      false);
+>>>  		if (index >= rc_map->len) {
+>>>  			rc = -ENOMEM;
+>>>  			break;
+>>> @@ -463,6 +512,8 @@ static int ir_getkeycode(struct input_dev *idev,
+>>>  		if (retval)
+>>>  			goto out;
+>>> 
+>>> +		if (guess_protocol(rdev) == RC_TYPE_NEC)
+>>> +			scancode = to_nec32(scancode);
+>> 
+>> This also can be called from userspace. It should not return different
+>> scancodes for the same mapping if just NEC is enabled or if more 
+>> protocols
+>> are enabled.
+> 
+> There is no way to do this in a 100% backwards compatible way, that's
+> why the patch description uses the word "heuristics".
+> 
+> I've tried different approaches (such as introducing and using a
+> kernel-internal RC_TYPE_ANY protocol for legacy ioctl() calls) but none
+> of them solve the problem 100%.
+> 
+> The current API is also broken, but in a different way. If you set a
+> scancode <-> keycode mapping right now using the current ioctl()s, you
+> can get different results with the exact same mapping but with 
+> different
+> RX hardware (which defeats the whole idea of having a kernel API for
+> remote controls...) even though there is enough information to do the
+> right thing (one example is already given in the patch comments)...that
+> is BAD.
+> 
+> The heuristics can also get it wrong...in slightly different situations
+> (e.g. if you load a hardware driver that supports nec and rc-5, but has
+> a rc-5 default keymap, then enable both nec and rc-5 from userspace, 
+> and
+> finally set keymap entries using nec scancodes...in which case they'll
+> be interpreted as rc-5 keymap scancodes).
+> 
+> So, we trade one kind of breakage for another...but the alternative 
+> kind
+> that I'm proposing here at least paves the way for the updated ioctls
+> which solve the ambiguity.
+> 
+> And distributions can make sure to ship updated userspace tools 
+> together
+> with an updated kernel (configuration tool updates together with kernel
+> updates is one of those "special" cases that e.g. LWN covers every now
+> and then).
+> 
+> I'm not saying the situation is ideal. But at least I'm trying to fix 
+> it
+> once and for all.
+> 
+> Do you have a better solution in mind other than to simply keep 
+> throwing
+> away all protocol information and ignoring scancode overlaps and
+> inconsistencies?
 
-You mean with vanilla source, but without that "cmd.args[2] = 0;" hack 
-it does not find any transponders?
+It wasn't a rhetorical question...this is an issue that needs to be 
+fixed one way or another...do you have a better solution in mind?
 
 
-> With the modified source, the number of found transponders changes every
-> time
-
-You mean with source, modified with that "cmd.args[2] = 0;" hack it 
-finds transponders, but not always?
-
-If that is difference, then it sounds just like application is 
-requesting some PLP, probably 0, and it will not work as your network 
-delivers channels using PLP 1.
-
-"cmd.args[2] = 0;" disables PLP filtering - it sets auto mode. Why it 
-likely does not find all channels is too short timeout.
-
-Increase timeout value to 3 second, 900 => 3000, in funtion 
-si2168_get_tune_settings()
-
-
-You didn't provide any debugs to see what PLP ID your application is 
-requesting. It is the most important thing I would like to know, as I 
-suspect it is wrong.
-
-regards
-Antti
-
-
-
-> I'm scanning.
-> I did four runs: twice it found one mux, once it found two and once it
-> found
-> three, but never all four.
-> I even tried with w_scan-options for longer tuner- and demux-timeouts.
->
-> Without changing the position of the antenna or the stick, after
-> reinstalling
-> the dvbsky-driver, it found all four T2-muxes on the first try.
->
->
-> On 04.06.2015 21:28, Antti Palosaari wrote:
->>
->>
->> On 06/04/2015 08:36 PM, Hurda wrote:
->>> How can I enable debug-output to get the log-messages like
->>> http://git.linuxtv.org/cgit.cgi/media_tree.git/tree/drivers/media/dvb-frontends/si2168.c#n164
->>>
->>> ?
->>
->> Compile kernel with dynamic debugs. After that you could enable debugs:
->> modprobe si2168; echo -n 'module si2168 =pft' >
->> /sys/kernel/debug/dynamic_debug/control
->>
->> Antti
->>
->>
->>>
->>> Am 28.05.2015 07:26, schrieb Antti Palosaari:
->>>> On 05/28/2015 01:27 AM, Hurda wrote:
->>>>> Hello.
->>>>>
->>>>> I think I came across a bug in either of the drivers si2168 and dvbsky
->>>>> regarding
->>>>> blind-scanning DVB-T2-frequencies.
->>>>>
->>>>> HW: Technotrend CT2-4400v2 (afaik based on or the same as DVBSky T330)
->>>>>      demod: Si2168-B40
->>>>>      tuner: Si2158-A20
->>>>> OS: Ubuntu 15.04 (kernel 3.19)
->>>>>
->>>>> In Austria, the DVB-T2-service "SimpliTV" is currently airing up to
->>>>> four
->>>>> muxes, next to one or two DVB-T-muxes.
->>>>> In my region, the frequencies are 490MHz, 546MHz, 690MHz, 714MHz for
->>>>> DVB-T2,
->>>>> and 498MHz for DVB-T.
->>>>> These numbers might be of interest when reading the logs.
->>>>>
->>>>> The peculiar aspect of these T2-muxes is that they're aired on PLP 1
->>>>> without
->>>>> there being a PLP 0. I think this is also the root of my problem.
->>>>
->>>> dvbv5-scan is working, but w_scan not?
->>>>
->>>> Could you hack si2168.c file and test?
->>>>
->>>> if (c->delivery_system == SYS_DVBT2) {
->>>>     /* select PLP */
->>>>     cmd.args[0] = 0x52;
->>>>     cmd.args[1] = c->stream_id & 0xff;
->>>> //    cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;
->>>>     cmd.args[2] = 0;
->>>>     cmd.wlen = 3;
->>>>     cmd.rlen = 1;
->>>>     ret = si2168_cmd_execute(client, &cmd);
->>>>     if (ret)
->>>>         goto err;
->>>> }
->>>>
->>>> Antti
->>>>
->>>>>
->>>>>
->>>>> When doing a blind-scan using w_scan 20140727 on Ubuntu 15.04 (kernel
->>>>> 3.19),
->>>>> w_scan does not find any of these four DVB-T2-muxes.
->>>>> It just finds the DVB-T-mux.
->>>>>
->>>>> Logs:
->>>>> media-tree_dmesg_lsusb.txt http://pastebin.com/0ixFPMSA
->>>>> media-tree_w_scan.txt http://pastebin.com/yyG3jSwj
->>>>>
->>>>> The found transponder:
->>>>> initial_v3_media_build_trunk.conf http://pastebin.com/LmFQavpy
->>>>> initial_v5.conf http://pastebin.com/Jx6kymVt
->>>>>
->>>>> I also tried a fresh checkout from git.linuxtv.org as of last weekend
->>>>> and the
->>>>> most recent w_scan version (20141122).
->>>>>
->>>>> As you can see, w_scan tries to tune(?) the DVB-T2-frequencies, but
->>>>> ultimately doesn't find anything on them.
->>>>>
->>>>>
->>>>> Then I tried the DVBSky-linux-driver[1]
->>>>> (media_build-bst-20150322.tar.gz)[2]
->>>>> from their site, which is using a binary called sit2 for this card.
->>>>> Using this driver, w_scan found all four DVB-T2-muxes and the
->>>>> DVB-T-mux.
->>>>> Additionally, it found the DVB-T2-muxes during the DVB-T-scan.
->>>>>
->>>>> Logs:
->>>>> media_build-bst_dmesg_lsusb.txt http://pastebin.com/vJeDMxtu
->>>>> media_build-bst_w_scan.txt http://pastebin.com/yhwAYjen
->>>>>
->>>>> Found transponders:
->>>>> initial_v3_bst.conf http://pastebin.com/ECKQvRWX
->>>>> initial_v5_bst.conf http://pastebin.com/CbhY6Hpz
->>>>>
->>>>> Of course, doing a channel-scan using dvbv5-scan on these transponders
->>>>> worked
->>>>> too:
->>>>>
->>>>> dvbv5_sit2.conf http://pastebin.com/3W52bbhv
->>>>> dvbv5_sit2.log http://pastebin.com/nc66PTkt
->>>>>
->>>>> Afterwards, I tried to do a channel-scan with the same initial
->>>>> tuning-file
->>>>> using the opensource-driver, which also worked:
->>>>>
->>>>> dvbv5_si2168.conf http://pastebin.com/A6FbqUL1
->>>>> dvbv5_si2168.log http://pastebin.com/ewyVPJR2
->>>>>
->>>>> This should verify that tuning PLP 1 without there being PLP 0 is not
->>>>> the issue.
->>>>>
->>>>>
->>>>> Additionally, if you compare the two channel-lists, you find
->>>>> interesting
->>>>> differences:
->>>>>
->>>>> The scan with si2168 has AUTO for "MODULATION" and "INVERSION" for
->>>>> DVB-T2-channels, and for "CODE_RATE_LP" and "INVERSION" for
->>>>> DVB-T-channels.
->>>>>
->>>>> The scan with sit2 has the respective values in the channel-list.
->>>>>
->>>>> The dvbv5-scan-logs also differ, as using sit2 also displays the
->>>>> signal
->>>>> quality
->>>>> during tuning.
->>>>>
->>>>>
->>>>> I know that there were changes regarding DVB-T2-scanning[3], but as
->>>>> the
->>>>> blog-
->>>>> article specifically mentions si2168 and w_scan to be fully
->>>>> dvbv5-compliant
->>>>> and good for using with DVB-T2, I thought you should know about this
->>>>> particular problem.
->>>>>
->>>>>
->>>>> In the attachment I've packed the previously linked logs, for archival
->>>>> reasons.
->>>>>
->>>>>
->>>>> Thank you for your attention.
->>>>>
->>>>> [1] http://www.dvbsky.net/Support_linux.html
->>>>> [2] http://www.dvbsky.net/download/linux/media_build-bst-150322.tar.gz
->>>>> [3] http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html
->>>>>
->>>>> PS: Interesting comments regarding auto-detection for si2168:
->>>>> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html?showComment=1427233615765#c8591459871945922951
->>>>>
->>>>>
->>>>>
->>>>> http://blog.palosaari.fi/2014/09/linux-dvb-t2-tuning-problems.html?showComment=1427234034259#c6500661729983566638
->>>>>
->>>>>
->>>>>
->>>>
->>>
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-http://palosaari.fi/
