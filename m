@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50773 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756015AbbFCOAN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33811 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320AbbFNKkG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:13 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct pad number in try_fmt
-Date: Wed,  3 Jun 2015 14:59:58 +0100
-Message-Id: <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Sun, 14 Jun 2015 06:40:06 -0400
+Received: from avalon.localnet (a91-152-136-245.elisa-laajakaista.fi [91.152.136.245])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id CB5A4203AA
+	for <linux-media@vger.kernel.org>; Sun, 14 Jun 2015 12:39:13 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.2] OMAP3 ISP and OMAP4 ISS fixes
+Date: Sun, 14 Jun 2015 13:40:49 +0300
+Message-ID: <1775137.WdU9NR7h8G@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+Hi Mauro,
 
-Fix calls to subdev try_fmt to use correct pad. Fixes failures with
-subdevs that care about having the right pad number set.
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/soc_scale_crop.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 
+12:39:35 -0300)
 
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index bda29bc..90e2769 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -225,6 +225,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	bool host_1to1;
- 	int ret;
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	format->pad = icd->src_pad_idx;
-+#endif
-+
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					 soc_camera_grp_id(icd), pad,
- 					 set_fmt, NULL, format);
-@@ -261,10 +265,16 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
- 	while ((width > tmp_w || height > tmp_h) &&
- 	       tmp_w < max_width && tmp_h < max_height) {
-+
- 		tmp_w = min(2 * tmp_w, max_width);
- 		tmp_h = min(2 * tmp_h, max_height);
- 		mf->width = tmp_w;
- 		mf->height = tmp_h;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		format->pad = icd->src_pad_idx;
-+#endif
-+
- 		ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					soc_camera_grp_id(icd), pad,
- 					set_fmt, NULL, format);
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to 09601442b10db8b5dab4fc3e5782d343a1d5c99a:
+
+  v4l: omap4iss: Remove video node crop support (2015-06-14 13:38:43 +0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (2):
+      v4l: omap4iss: Enable driver compilation as a module
+      v4l: omap4iss: Remove video node crop support
+
+Sakari Ailus (2):
+      v4l: omap3isp: Fix async notifier registration order
+      v4l: omap3isp: Fix sub-device power management code
+
+ drivers/media/platform/omap3isp/isp.c      | 27 +++++++-------
+ drivers/staging/media/omap4iss/Kconfig     |  2 +-
+ drivers/staging/media/omap4iss/TODO        |  1 -
+ drivers/staging/media/omap4iss/iss_video.c | 73 -----------------------------
+ 4 files changed, 16 insertions(+), 87 deletions(-)
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
