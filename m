@@ -1,189 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56100 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.15.18]:49954 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752776AbbFFMDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 08:03:22 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 5/9] DocBook: document SDR transmitter
-Date: Sat,  6 Jun 2015 15:03:04 +0300
-Message-Id: <1433592188-31748-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
-References: <1433592188-31748-1-git-send-email-crope@iki.fi>
+	id S1751514AbbFNT5X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2015 15:57:23 -0400
+Received: from axis700.grange ([78.35.93.193]) by mail.gmx.com (mrgmx003) with
+ ESMTPSA (Nemesis) id 0MaZrd-1Yk4ka1vxZ-00K5yk for
+ <linux-media@vger.kernel.org>; Sun, 14 Jun 2015 21:57:21 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 3CB0140BD9
+	for <linux-media@vger.kernel.org>; Sun, 14 Jun 2015 21:57:18 +0200 (CEST)
+Date: Sun, 14 Jun 2015 21:57:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: 3 more atmel-isi patches for 4.2
+Message-ID: <alpine.DEB.2.00.1506142152320.14350@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L SDR transmitter (output) devices.
+Hi Mauro,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |  4 +++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
- Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
- Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
- Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
- .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
- 7 files changed, 42 insertions(+), 13 deletions(-)
+Please pull 3 atmel-isi patches for 4.2. I've got two more patch series 
+under review currently: pxa and rcar_vin, but they will need some more 
+time. I'll try to review them next weekend, but I don't think we'll manage 
+to push them for 4.2. Even if the PXA series will not produce any 
+comments, it still will have to be resubmitted by the author, at least to 
+remove one invalid function call, so it's only after that, that I would be 
+able to apply and push them out.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index e8f28bf..a237e36 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
- 	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN_AUTO</constant> and
- <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> RF Tuner controls.</para>
- 	</listitem>
-+	<listitem>
-+	  <para>Added transmitter support for Software Defined Radio (SDR)
-+Interface.</para>
-+	</listitem>
-       </orderedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index 3344921..a659771 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
- <structfield>capabilities</structfield> field of &v4l2-capability;
- returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
- Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-+    </para>
-+    <para>
-+Devices supporting the SDR transmitter interface set the
-+<constant>V4L2_CAP_SDR_OUTPUT</constant> and
-+<constant>V4L2_CAP_MODULATOR</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability;
-+returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-+Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
-+    </para>
-+    <para>
- At least one of the read/write, streaming or asynchronous I/O methods must
- be supported.
-     </para>
-@@ -39,14 +49,15 @@ be supported.
-     <para>
- SDR devices can support <link linkend="control">controls</link>, and must
- support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
--for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
--frequency.
-+for setting the ADC/DAC sampling rate (sampling frequency) and the possible
-+radio frequency (RF).
-     </para>
- 
-     <para>
--The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
--the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
--tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-+The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
-+device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
-+tuner type is used for setting radio frequency.
-+The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
- Normally the SDR tuner is #0 and the RF tuner is #1.
-     </para>
- 
-@@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
-     <title>Data Format Negotiation</title>
- 
-     <para>
--The SDR capture device uses the <link linkend="format">format</link> ioctls to
--select the capture format. Both the sampling resolution and the data streaming
--format are bound to that selectable format. In addition to the basic
-+The SDR device uses the <link linkend="format">format</link> ioctls to
-+select the capture and output format. Both the sampling resolution and the data
-+streaming format are bound to that selectable format. In addition to the basic
- <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
- must be supported as well.
-     </para>
-@@ -69,7 +80,8 @@ must be supported as well.
-     <para>
- To use the <link linkend="format">format</link> ioctls applications set the
- <structfield>type</structfield> field of a &v4l2-format; to
--<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
-+<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
-+<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
- <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
- union as needed per the desired operation.
- Currently there is two fields, <structfield>pixelformat</structfield> and
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 7bbc2a4..da65403 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1006,8 +1006,14 @@ must set this to 0.</entry>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
- 	    <entry>11</entry>
--	    <entry>Buffer for Software Defined Radio (SDR), see <xref
--		linkend="sdr" />.</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
-+		<xref linkend="sdr" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
-+	    <entry>12</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
-+		<xref linkend="sdr" />.</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 965ea91..02aac95 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1623,7 +1623,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
-   <section id="sdr-formats">
-     <title>SDR Formats</title>
- 
--    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
-+    <para>These formats are used for <link linkend="sdr">SDR</link>
- interface only.</para>
- 
-     &sub-sdr-cu08;
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index b94d381..6a658ac 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -157,6 +157,7 @@ applications. -->
- 	<authorinitials>ap</authorinitials>
- 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
- Added V4L2_CID_RF_TUNER_RF_GAIN_AUTO and V4L2_CID_RF_TUNER_RF_GAIN controls.
-+Added transmitter support for Software Defined Radio (SDR) Interface.
- 	</revremark>
-       </revision>
- 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-index 4fe19a7a..ffcb448 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-@@ -175,7 +175,7 @@ capture and output devices.</entry>
- 	    <entry>&v4l2-sdr-format;</entry>
- 	    <entry><structfield>sdr</structfield></entry>
- 	    <entry>Definition of a data format, see
--<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-+<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index 20fda75..cd82148 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -308,6 +308,12 @@ modulator programming see
- fields.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
-+	    <entry>0x00400000</entry>
-+	    <entry>The device supports the
-+<link linkend="sdr">SDR Output</link> interface.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
- 	    <entry>0x01000000</entry>
- 	    <entry>The device supports the <link
--- 
-http://palosaari.fi/
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
 
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.2-2
+
+for you to fetch changes up to 08764c7fd4772337b0258c7cd2ce21e068b72b10:
+
+  atmel-isi: remove mck backward compatibility code (2015-06-14 21:48:55 +0200)
+
+----------------------------------------------------------------
+Josh Wu (3):
+      atmel-isi: disable ISI even if it has codec request
+      atmel-isi: add runtime pm support
+      atmel-isi: remove mck backward compatibility code
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 105 ++++++++++++--------------
+ 1 file changed, 48 insertions(+), 57 deletions(-)
+
+Thanks
+Guennadi
