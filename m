@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39065 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297AbbFRUap (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 16:30:45 -0400
-Received: from avalon.localnet (a91-152-136-245.elisa-laajakaista.fi [91.152.136.245])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 031942039D
-	for <linux-media@vger.kernel.org>; Thu, 18 Jun 2015 22:29:44 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.2] VSP1 miscellaneous fixes
-Date: Thu, 18 Jun 2015 23:31:33 +0300
-Message-ID: <1526864.UJrODxtOuG@avalon>
+Received: from iodev.co.uk ([82.211.30.53]:56597 "EHLO iodev.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752117AbbFNWEH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2015 18:04:07 -0400
+Date: Sun, 14 Jun 2015 18:53:47 -0300
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] SOLO6x10: remove unneeded register locking and
+ barriers.
+Message-ID: <20150614185347.5c12ccf0@pirotess>
+In-Reply-To: <m3twuiwc3j.fsf@t19.piap.pl>
+References: <m3a8waxr86.fsf@t19.piap.pl>
+	<m3twuiwc3j.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 08 Jun 2015 15:42:24 +0200
+khalasa@piap.pl (Krzysztof Hałasa) wrote:
+> readl() and writel() are atomic, we don't need the spin lock.
+> Also, flushing posted write buffer isn't required. Especially on
+> read :-)
+> 
+> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+> 
+> --- a/drivers/media/pci/solo6x10/solo6x10-core.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+> @@ -483,7 +483,6 @@ static int solo_pci_probe(struct pci_dev *pdev,
+> const struct pci_device_id *id) 
+>  	solo_dev->type = id->driver_data;
+>  	solo_dev->pdev = pdev;
+> -	spin_lock_init(&solo_dev->reg_io_lock);
+>  	ret = v4l2_device_register(&pdev->dev, &solo_dev->v4l2_dev);
+>  	if (ret)
+>  		goto fail_probe;
+> --- a/drivers/media/pci/solo6x10/solo6x10.h
+> +++ b/drivers/media/pci/solo6x10/solo6x10.h
+> @@ -201,7 +201,6 @@ struct solo_dev {
+>  	int			nr_ext;
+>  	u32			irq_mask;
+>  	u32			motion_mask;
+> -	spinlock_t		reg_io_lock;
+>  	struct v4l2_device	v4l2_dev;
+>  
+>  	/* tw28xx accounting */
+> @@ -283,36 +282,13 @@ struct solo_dev {
+>  
+>  static inline u32 solo_reg_read(struct solo_dev *solo_dev, int reg)
+>  {
+> -	unsigned long flags;
+> -	u32 ret;
+> -	u16 val;
+> -
+> -	spin_lock_irqsave(&solo_dev->reg_io_lock, flags);
+> -
+> -	ret = readl(solo_dev->reg_base + reg);
+> -	rmb();
+> -	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
+> -	rmb();
+> -
+> -	spin_unlock_irqrestore(&solo_dev->reg_io_lock, flags);
+> -
+> -	return ret;
+> +	return readl(solo_dev->reg_base + reg);
+>  }
+>  
+>  static inline void solo_reg_write(struct solo_dev *solo_dev, int reg,
+>  				  u32 data)
+>  {
+> -	unsigned long flags;
+> -	u16 val;
+> -
+> -	spin_lock_irqsave(&solo_dev->reg_io_lock, flags);
+> -
+>  	writel(data, solo_dev->reg_base + reg);
+> -	wmb();
+> -	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
+> -	rmb();
+> -
+> -	spin_unlock_irqrestore(&solo_dev->reg_io_lock, flags);
+>  }
+>  
+>  static inline void solo_irq_on(struct solo_dev *dev, u32 mask)
 
-I suppose it's too late for v4.2, but who knows :-) If it is, v4.3 is fine as 
-well.
-
-The following changes since commit f8d5556fa9dbf6b88e1a8fe88e47ad1b8ddb4742:
-
-  [media] videodev2.h: fix copy-and-paste error in V4L2_MAP_XFER_FUNC_DEFAULT 
-(2015-06-18 14:34:46 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/next2
-
-for you to fetch changes up to 2a2d600528e8d7c26fef1dc077c74057c1586702:
-
-  v4l: vsp1: Align crop rectangle to even boundary for YUV formats (2015-06-18 
-23:27:36 +0300)
-
-----------------------------------------------------------------
-Damian Hobson-Garcia (1):
-      v4l: vsp1: Align crop rectangle to even boundary for YUV formats
-
-Laurent Pinchart (1):
-      v4l: vsp1: Fix race condition when stopping pipeline
-
-Nobuhiro Iwamatsu (3):
-      v4l: vsp1: Fix VI6_WPF_SZCLIP_SIZE_MASK macro
-      v4l: vsp1: Fix VI6_DPR_ROUTE_FP_MASK macro
-      v4l: vsp1: Fix VI6_DPR_ROUTE_FXA_MASK macro
-
-Sei Fumizono (1):
-      v4l: vsp1: Fix Suspend-to-RAM
-
- drivers/media/platform/vsp1/vsp1_drv.c   | 13 +++++--
- drivers/media/platform/vsp1/vsp1_regs.h  |  6 +--
- drivers/media/platform/vsp1/vsp1_rwpf.c  | 11 ++++++
- drivers/media/platform/vsp1/vsp1_video.c | 83 ++++++++++++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_video.h |  5 ++-
- 5 files changed, 109 insertions(+), 9 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
