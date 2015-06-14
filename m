@@ -1,90 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-240.synserver.de ([212.40.185.240]:1064 "EHLO
-	smtp-out-240.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802AbbFXQui (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 12:50:38 -0400
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 4/5] [media] adv7604: Deliver resolution change events to userspace
-Date: Wed, 24 Jun 2015 18:50:30 +0200
-Message-Id: <1435164631-19924-4-git-send-email-lars@metafoo.de>
-In-Reply-To: <1435164631-19924-1-git-send-email-lars@metafoo.de>
-References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+Received: from iodev.co.uk ([82.211.30.53]:56594 "EHLO iodev.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751569AbbFNV7H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2015 17:59:07 -0400
+Date: Sun, 14 Jun 2015 18:51:08 -0300
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: khalasa@piap.pl (Krzysztof =?UTF-8?B?SGHFgmFzYQ==?=)
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] SOLO6x10: Fix G.723 minimum audio period count.
+Message-ID: <20150614185108.43b02128@pirotess>
+In-Reply-To: <m33822xr06.fsf@t19.piap.pl>
+References: <m3a8waxr86.fsf@t19.piap.pl>
+	<m33822xr06.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the new v4l2_subdev_notify_event() helper function to deliver the
-resolution change event to userspace via the v4l2 subdev event queue as
-well as to the bridge driver using the callback notify mechanism.
+On Mon, 08 Jun 2015 15:35:05 +0200
+khalasa@piap.pl (Krzysztof Hałasa) wrote:
+> The period count is fixed, don't confuse ALSA.
+> 
+> Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+> 
+> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+> @@ -48,10 +48,8 @@
+>  /* The solo writes to 1k byte pages, 32 pages, in the dma. Each 1k
+> page
+>   * is broken down to 20 * 48 byte regions (one for each channel
+> possible)
+>   * with the rest of the page being dummy data. */
+> -#define G723_MAX_BUFFER		(G723_PERIOD_BYTES *
+> PERIODS_MAX) +#define PERIODS			G723_FDMA_PAGES
+>  #define G723_INTR_ORDER		4 /* 0 - 4 */
+> -#define PERIODS_MIN		(1 << G723_INTR_ORDER)
+> -#define PERIODS_MAX		G723_FDMA_PAGES
+>  
+>  struct solo_snd_pcm {
+>  	int				on;
+> @@ -130,11 +128,11 @@ static const struct snd_pcm_hardware
+> snd_solo_pcm_hw = { .rate_max		= SAMPLERATE,
+>  	.channels_min		= 1,
+>  	.channels_max		= 1,
+> -	.buffer_bytes_max	= G723_MAX_BUFFER,
+> +	.buffer_bytes_max	= G723_PERIOD_BYTES * PERIODS,
+>  	.period_bytes_min	= G723_PERIOD_BYTES,
+>  	.period_bytes_max	= G723_PERIOD_BYTES,
+> -	.periods_min		= PERIODS_MIN,
+> -	.periods_max		= PERIODS_MAX,
+> +	.periods_min		= PERIODS,
+> +	.periods_max		= PERIODS,
+>  };
+>  
+>  static int snd_solo_pcm_open(struct snd_pcm_substream *ss)
+> @@ -340,7 +338,8 @@ static int solo_snd_pcm_init(struct solo_dev
+> *solo_dev) ret = snd_pcm_lib_preallocate_pages_for_all(pcm,
+>  					SNDRV_DMA_TYPE_CONTINUOUS,
+>  					snd_dma_continuous_data(GFP_KERNEL),
+> -					G723_MAX_BUFFER,
+> G723_MAX_BUFFER);
+> +					G723_PERIOD_BYTES * PERIODS,
+> +					G723_PERIOD_BYTES * PERIODS);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This allows userspace applications to react to changes in resolution. This
-is useful and often necessary for video pipelines where there is no direct
-1-to-1 relationship between the subdevice converter and the video capture
-device and hence it does not make sense to directly forward the event to
-the video capture device node.
-
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7604.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index cf1cb5a..b66f63e3 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1761,8 +1761,8 @@ static int adv76xx_s_routing(struct v4l2_subdev *sd,
- 	select_input(sd);
- 	enable_input(sd);
- 
--	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
--			   (void *)&adv76xx_ev_fmt);
-+	v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
-+
- 	return 0;
- }
- 
-@@ -1929,8 +1929,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
- 			__func__, fmt_change, fmt_change_digital);
- 
--		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
--				   (void *)&adv76xx_ev_fmt);
-+		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
- 
- 		if (handled)
- 			*handled = true;
-@@ -2348,6 +2347,20 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
-+static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
-+				   struct v4l2_fh *fh,
-+				   struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_SOURCE_CHANGE:
-+		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_event_subdev_unsubscribe(sd, fh, sub);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
-@@ -2357,7 +2370,7 @@ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
- static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
- 	.log_status = adv76xx_log_status,
- 	.interrupt_service_routine = adv76xx_isr,
--	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-+	.subscribe_event = adv76xx_subscribe_event,
- 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = adv76xx_g_register,
--- 
-2.1.4
-
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
