@@ -1,219 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f65.google.com ([209.85.192.65]:33311 "EHLO
-	mail-qg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046AbbFKUYc (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55590 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753934AbbFOLkz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 16:24:32 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
-	bhelgaas@google.com, luto@amacapital.net,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Doug Ledford <dledford@redhat.com>,
-	Suresh Siddha <sbsiddha@gmail.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Juergen Gross <jgross@suse.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@redhat.com>,
-	Antonino Daplas <adaplas@gmail.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Stefan Bader <stefan.bader@canonical.com>,
-	=?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <syrjala@sci.fi>,
-	konrad.wilk@oracle.com, toshi.kani@hp.com,
-	=?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>,
-	xen-devel@lists.xensource.com
-Subject: [PATCH v7 1/3] ivtv: use arch_phys_wc_add() and require PAT disabled
-Date: Thu, 11 Jun 2015 13:19:52 -0700
-Message-Id: <1434053994-2196-2-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1434053994-2196-1-git-send-email-mcgrof@do-not-panic.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 15 Jun 2015 07:40:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/14] soc_camera: pass on streamoff error
+Date: Mon, 15 Jun 2015 13:33:39 +0200
+Message-Id: <1434368021-7467-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We are burrying direct access to MTRR code support on
-x86 in order to take advantage of PAT. In the future we
-also want to make the default behaviour of ioremap_nocache()
-to use strong UC, use of mtrr_add() on those systems
-would make write-combining void.
+If streamoff returned an error, then pass that on to the caller.
 
-In order to help both enable us to later make strong
-UC default and in order to phase out direct MTRR access
-code port the driver over to arch_phys_wc_add() and
-annotate that the device driver requires systems to
-boot with PAT disabled, with the nopat kernel parameter.
-
-This is a worthy compromise given that the hardware is
-really rare these days, and perhaps only some lost souls
-in some third world country are expected to be using this
-feature of the device driver.
-
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Suresh Siddha <sbsiddha@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Stefan Bader <stefan.bader@canonical.com>
-Cc: Ville Syrjälä <syrjala@sci.fi>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: konrad.wilk@oracle.com
-Cc: toshi.kani@hp.com
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: linux-media@vger.kernel.org
-Cc: xen-devel@lists.xensource.com
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ivtv/Kconfig  |  3 +++
- drivers/media/pci/ivtv/ivtvfb.c | 58 ++++++++++++++++-------------------------
- 2 files changed, 26 insertions(+), 35 deletions(-)
+ drivers/media/platform/soc_camera/soc_camera.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
-index dd6ee57e..6e5867c 100644
---- a/drivers/media/pci/ivtv/Kconfig
-+++ b/drivers/media/pci/ivtv/Kconfig
-@@ -57,5 +57,8 @@ config VIDEO_FB_IVTV
- 	  This is used in the Hauppauge PVR-350 card. There is a driver
- 	  homepage at <http://www.ivtvdriver.org>.
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 6ce6576..0b09281 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1000,6 +1000,7 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+ 	struct soc_camera_device *icd = file->private_data;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	int ret;
  
-+	  In order to use this module, you will need to boot with PAT disabled
-+	  on x86 systems, using the nopat kernel parameter.
-+
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ivtvfb.
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 9ff1230..4cb365d 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -44,8 +44,8 @@
- #include <linux/ivtvfb.h>
- #include <linux/slab.h>
+ 	WARN_ON(priv != file->private_data);
  
--#ifdef CONFIG_MTRR
--#include <asm/mtrr.h>
-+#ifdef CONFIG_X86_64
-+#include <asm/pat.h>
- #endif
+@@ -1014,13 +1015,13 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+ 	 * remaining buffers. When the last buffer is freed, stop capture
+ 	 */
+ 	if (ici->ops->init_videobuf)
+-		videobuf_streamoff(&icd->vb_vidq);
++		ret = videobuf_streamoff(&icd->vb_vidq);
+ 	else
+-		vb2_streamoff(&icd->vb2_vidq, i);
++		ret = vb2_streamoff(&icd->vb2_vidq, i);
  
- #include "ivtv-driver.h"
-@@ -155,12 +155,11 @@ struct osd_info {
- 	/* Buffer size */
- 	u32 video_buffer_size;
+ 	v4l2_subdev_call(sd, video, s_stream, 0);
  
--#ifdef CONFIG_MTRR
- 	/* video_base rounded down as required by hardware MTRRs */
- 	unsigned long fb_start_aligned_physaddr;
- 	/* video_base rounded up as required by hardware MTRRs */
- 	unsigned long fb_end_aligned_physaddr;
--#endif
-+	int wc_cookie;
- 
- 	/* Store the buffer offset */
- 	int set_osd_coords_x;
-@@ -1099,6 +1098,8 @@ static int ivtvfb_init_vidmode(struct ivtv *itv)
- static int ivtvfb_init_io(struct ivtv *itv)
- {
- 	struct osd_info *oi = itv->osd_info;
-+	/* Find the largest power of two that maps the whole buffer */
-+	int size_shift = 31;
- 
- 	mutex_lock(&itv->serialize_lock);
- 	if (ivtv_init_on_first_open(itv)) {
-@@ -1132,29 +1133,16 @@ static int ivtvfb_init_io(struct ivtv *itv)
- 			oi->video_pbase, oi->video_vbase,
- 			oi->video_buffer_size / 1024);
- 
--#ifdef CONFIG_MTRR
--	{
--		/* Find the largest power of two that maps the whole buffer */
--		int size_shift = 31;
--
--		while (!(oi->video_buffer_size & (1 << size_shift))) {
--			size_shift--;
--		}
--		size_shift++;
--		oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
--		oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
--		oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
--		oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
--		if (mtrr_add(oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr,
--			     MTRR_TYPE_WRCOMB, 1) < 0) {
--			IVTVFB_INFO("disabled mttr\n");
--			oi->fb_start_aligned_physaddr = 0;
--			oi->fb_end_aligned_physaddr = 0;
--		}
--	}
--#endif
--
-+	while (!(oi->video_buffer_size & (1 << size_shift)))
-+		size_shift--;
-+	size_shift++;
-+	oi->fb_start_aligned_physaddr = oi->video_pbase & ~((1 << size_shift) - 1);
-+	oi->fb_end_aligned_physaddr = oi->video_pbase + oi->video_buffer_size;
-+	oi->fb_end_aligned_physaddr += (1 << size_shift) - 1;
-+	oi->fb_end_aligned_physaddr &= ~((1 << size_shift) - 1);
-+	oi->wc_cookie = arch_phys_wc_add(oi->fb_start_aligned_physaddr,
-+					 oi->fb_end_aligned_physaddr -
-+					 oi->fb_start_aligned_physaddr);
- 	/* Blank the entire osd. */
- 	memset_io(oi->video_vbase, 0, oi->video_buffer_size);
- 
-@@ -1172,14 +1160,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
- 
- 	/* Release pseudo palette */
- 	kfree(oi->ivtvfb_info.pseudo_palette);
--
--#ifdef CONFIG_MTRR
--	if (oi->fb_end_aligned_physaddr) {
--		mtrr_del(-1, oi->fb_start_aligned_physaddr,
--			oi->fb_end_aligned_physaddr - oi->fb_start_aligned_physaddr);
--	}
--#endif
--
-+	arch_phys_wc_del(oi->wc_cookie);
- 	kfree(oi);
- 	itv->osd_info = NULL;
+-	return 0;
++	return ret;
  }
-@@ -1284,6 +1265,13 @@ static int __init ivtvfb_init(void)
- 	int registered = 0;
- 	int err;
  
-+#ifdef CONFIG_X86_64
-+	if (WARN(pat_enabled(),
-+		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
-+		return -ENODEV;
-+	}
-+#endif
-+
- 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
- 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
- 		     IVTV_MAX_CARDS - 1);
+ static int soc_camera_cropcap(struct file *file, void *fh,
 -- 
-2.3.2.209.gd67f9d5.dirty
+2.1.4
 
