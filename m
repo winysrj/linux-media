@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50391 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753094AbbFHJDp (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58147 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750885AbbFOHbM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 05:03:45 -0400
-Message-ID: <55755A6A.9080300@xs4all.nl>
-Date: Mon, 08 Jun 2015 11:03:38 +0200
+	Mon, 15 Jun 2015 03:31:12 -0400
+Message-ID: <557E7F2F.6070106@xs4all.nl>
+Date: Mon, 15 Jun 2015 09:30:55 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/9] v4l2: add RF gain control
-References: <1433592188-31748-1-git-send-email-crope@iki.fi> <1433592188-31748-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jan Kara <jack@suse.cz>
+Subject: [GIT FIXES FOR v4.2] Revert "[media] vb2: Push mmap_sem down to memops"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2015 02:03 PM, Antti Palosaari wrote:
-> Add new RF tuner gain control named RF gain. That is aimed for
-> external LNA (amplifier) chip just right after antenna connector.
+Mauro,
 
-I don't follow. Do you mean:
+Please merge this revert asap. This patch introduces two serious regressions (first
+noticed when testing the cobalt driver, later reproduced with the vivid driver).
 
-This feeds into the external LNA...
-
-But if that's the case, then the LNA chip isn't right after the antenna connector,
-since there is a RF amplified in between.
-
-Remember, this is not my area of expertise, so if I don't understand it, then that's
-probably true for other non-experts as well :-)
+This patch needs more work from Jan. Luckily I noticed in time and it should help
+Jan that it is reproducible with vivid, so he does not need any hardware to test it.
 
 Regards,
 
 	Hans
 
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
->  include/uapi/linux/v4l2-controls.h   | 2 ++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index e3a3468..0fc34b8 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
->  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
->  	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-> +	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
-> +	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
->  	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
->  	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
->  	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
-> @@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
->  	case V4L2_CID_IMAGE_STABILIZATION:
->  	case V4L2_CID_RDS_RECEPTION:
-> +	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
->  	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
->  	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
->  	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
-> @@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_PILOT_TONE_FREQUENCY:
->  	case V4L2_CID_TUNE_POWER_LEVEL:
->  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-> +	case V4L2_CID_RF_TUNER_RF_GAIN:
->  	case V4L2_CID_RF_TUNER_LNA_GAIN:
->  	case V4L2_CID_RF_TUNER_MIXER_GAIN:
->  	case V4L2_CID_RF_TUNER_IF_GAIN:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 9f6e108..87539be 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -932,6 +932,8 @@ enum v4l2_deemphasis {
->  
->  #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
->  #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
-> +#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
-> +#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
->  #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
->  #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
->  #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
-> 
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
 
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2o
+
+for you to fetch changes up to 7d82ba199758c5de8e564b82579e4241d5b152c0:
+
+  Revert "[media] vb2: Push mmap_sem down to memops" (2015-06-15 09:16:32 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      Revert "[media] vb2: Push mmap_sem down to memops"
+
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 ++
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 -------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +-----
+ 4 files changed, 3 insertions(+), 18 deletions(-)
