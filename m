@@ -1,101 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59264 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753023AbbFGI6k (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55720 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753930AbbFOKiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 04:58:40 -0400
+	Mon, 15 Jun 2015 06:38:54 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D4C2A2A007E
+	for <linux-media@vger.kernel.org>; Mon, 15 Jun 2015 12:38:37 +0200 (CEST)
+Message-ID: <557EAB2D.5090407@xs4all.nl>
+Date: Mon, 15 Jun 2015 12:38:37 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 10/11] sh-vou: fix bytesperline
-Date: Sun,  7 Jun 2015 10:58:04 +0200
-Message-Id: <1433667485-35711-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.2] Remove compat control ops and two other improvements
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-The bytesperline values were wrong for planar formats where bytesperline is
-the line length for the first plane.
+These are mostly patches removing the compatibility control ops from
+various subdevs where this is no longer needed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Also a code cleanup and code to improve logging the framerate.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 872da9a..22b32ec 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -133,6 +133,7 @@ struct sh_vou_fmt {
- 	u32		pfmt;
- 	char		*desc;
- 	unsigned char	bpp;
-+	unsigned char	bpl;
- 	unsigned char	rgb;
- 	unsigned char	yf;
- 	unsigned char	pkf;
-@@ -143,6 +144,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_NV12,
- 		.bpp	= 12,
-+		.bpl	= 1,
- 		.desc	= "YVU420 planar",
- 		.yf	= 0,
- 		.rgb	= 0,
-@@ -150,6 +152,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_NV16,
- 		.bpp	= 16,
-+		.bpl	= 1,
- 		.desc	= "YVYU planar",
- 		.yf	= 1,
- 		.rgb	= 0,
-@@ -157,6 +160,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB24,
- 		.bpp	= 24,
-+		.bpl	= 3,
- 		.desc	= "RGB24",
- 		.pkf	= 2,
- 		.rgb	= 1,
-@@ -164,6 +168,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB565,
- 		.bpp	= 16,
-+		.bpl	= 2,
- 		.desc	= "RGB565",
- 		.pkf	= 3,
- 		.rgb	= 1,
-@@ -171,6 +176,7 @@ static struct sh_vou_fmt vou_fmt[] = {
- 	{
- 		.pfmt	= V4L2_PIX_FMT_RGB565X,
- 		.bpp	= 16,
-+		.bpl	= 2,
- 		.desc	= "RGB565 byteswapped",
- 		.pkf	= 3,
- 		.rgb	= 1,
-@@ -701,7 +707,8 @@ static int sh_vou_try_fmt_vid_out(struct file *file, void *priv,
- 
- 	v4l_bound_align_image(&pix->width, 0, VOU_MAX_IMAGE_WIDTH, 2,
- 			      &pix->height, 0, img_height_max, 1, 0);
--	pix->bytesperline = pix->width * 2;
-+	pix->bytesperline = pix->width * vou_fmt[pix_idx].bpl;
-+	pix->sizeimage = pix->height * ((pix->width * vou_fmt[pix_idx].bpp) >> 3);
- 
- 	return 0;
- }
-@@ -1372,7 +1379,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	pix->height		= 480;
- 	pix->pixelformat	= V4L2_PIX_FMT_NV16;
- 	pix->field		= V4L2_FIELD_NONE;
--	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH * 2;
-+	pix->bytesperline	= VOU_MAX_IMAGE_WIDTH;
- 	pix->sizeimage		= VOU_MAX_IMAGE_WIDTH * 2 * 480;
- 	pix->colorspace		= V4L2_COLORSPACE_SMPTE170M;
- 
--- 
-2.1.4
+Regards,
 
+	Hans
+
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
+
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2p
+
+for you to fetch changes up to e6c8f2db405dda4a921463143417e4c204b0e39f:
+
+  media/radio/saa7706h: Remove compat control ops (2015-06-15 12:23:53 +0200)
+
+----------------------------------------------------------------
+Prashant Laddha (1):
+      v4l2-dv-timings: print refresh rate with better precision
+
+Ricardo Ribalda Delgado (12):
+      media/v4l2-ctrls: Code cleanout validate_new()
+      media/i2c/adv7343: Remove compat control ops
+      media/i2c/adv7393: Remove compat control ops
+      media/i2c/cs5345: Remove compat control ops
+      media/i2c/saa717x: Remove compat control ops
+      media/i2c/tda7432: Remove compat control ops
+      media/i2c/tlv320aic23: Remove compat control ops
+      media/i2c/tvp514x: Remove compat control ops
+      media/i2c/tvp7002: Remove compat control ops
+      i2c/wm8739: Remove compat control ops
+      pci/ivtv/ivtv-gpio: Remove compat control ops
+      media/radio/saa7706h: Remove compat control ops
+
+ drivers/media/i2c/adv7343.c               |  7 -------
+ drivers/media/i2c/adv7393.c               |  7 -------
+ drivers/media/i2c/cs5345.c                |  7 -------
+ drivers/media/i2c/saa717x.c               |  7 -------
+ drivers/media/i2c/tda7432.c               |  7 -------
+ drivers/media/i2c/tlv320aic23b.c          |  7 -------
+ drivers/media/i2c/tvp514x.c               | 11 -----------
+ drivers/media/i2c/tvp7002.c               |  7 -------
+ drivers/media/i2c/wm8739.c                |  7 -------
+ drivers/media/pci/ivtv/ivtv-gpio.c        |  7 -------
+ drivers/media/radio/saa7706h.c            | 16 ++--------------
+ drivers/media/v4l2-core/v4l2-ctrls.c      | 15 ---------------
+ drivers/media/v4l2-core/v4l2-dv-timings.c |  9 ++++++---
+ 13 files changed, 8 insertions(+), 106 deletions(-)
