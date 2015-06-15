@@ -1,49 +1,26 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
- "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
- Boris BREZILLON <boris.brezillon@free-electrons.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 11/12] pci/ivtv/ivtv-gpio: Remove compat control ops
-Date: Fri, 12 Jun 2015 18:31:17 +0200
-Message-id: <1434126678-7978-12-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from [112.78.4.34] ([112.78.4.34]:51188 "EHLO s4d34.cloudnetwork.vn"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753374AbbFOJjw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jun 2015 05:39:52 -0400
+Received: from 112.78.4.34 (localhost [127.0.0.1])
+	by s4d34.cloudnetwork.vn (Postfix) with SMTP id ACD7B87CE0
+	for <linux-media@vger.kernel.org>; Mon, 15 Jun 2015 16:32:34 +0700 (ICT)
+Message-ID: <768CA9924D99B704D8DD94295DFF684E@vger.kernel.org>
+Reply-To: "Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com Yznaite
+	  podrobnee!!!" <nonen22pp@gmail.com>
+From: "Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com Yznaite
+	podrobnee!!!" <linux-media@vger.kernel.org>
+To: <linux-media@vger.kernel.org>
+Subject: Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com Yznaite podrobnee!!!
+Date: Mon, 15 Jun 2015 08:29:38 +0400
+MIME-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="utf-8";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-They are no longer used in old non-control-framework
-bridge drivers.
-
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/pci/ivtv/ivtv-gpio.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/media/pci/ivtv/ivtv-gpio.c b/drivers/media/pci/ivtv/ivtv-gpio.c
-index af52def700cc..f752f3993687 100644
---- a/drivers/media/pci/ivtv/ivtv-gpio.c
-+++ b/drivers/media/pci/ivtv/ivtv-gpio.c
-@@ -313,13 +313,6 @@ static const struct v4l2_ctrl_ops gpio_ctrl_ops = {
- 
- static const struct v4l2_subdev_core_ops subdev_core_ops = {
- 	.log_status = subdev_log_status,
--	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_tuner_ops subdev_tuner_ops = {
--- 
-2.1.4
+Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com Yznaite podrobnee!!!
