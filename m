@@ -1,59 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-240.synserver.de ([212.40.185.240]:1061 "EHLO
-	smtp-out-240.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752405AbbFXQui (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43204 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754025AbbFOKXs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 12:50:38 -0400
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 2/5] [media] adv7842: Add support for control event notifications
-Date: Wed, 24 Jun 2015 18:50:28 +0200
-Message-Id: <1435164631-19924-2-git-send-email-lars@metafoo.de>
-In-Reply-To: <1435164631-19924-1-git-send-email-lars@metafoo.de>
-References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+	Mon, 15 Jun 2015 06:23:48 -0400
+Message-ID: <557EA7A2.8060403@xs4all.nl>
+Date: Mon, 15 Jun 2015 12:23:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Axel Lin <axel.lin@ingics.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 05/12] media/i2c/sr030pc30: Remove compat control ops
+References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com> <1434126678-7978-6-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1434126678-7978-6-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow userspace applications to subscribe to control change events. This
-can e.g. be used to monitor the 5V detect control to be notified when a
-source is connected or disconnected.
+Sylwester,
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7842.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Can you confirm that this is only used with bridge drivers that use the
+control framework? Actually, this driver isn't used by any bridge driver
+in the kernel tree, but it is probably in use by out-of-tree code.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 4cf79b2..ffc0655 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -40,6 +40,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/adv7842.h>
-@@ -3015,6 +3016,8 @@ static const struct v4l2_subdev_core_ops adv7842_core_ops = {
- 	.log_status = adv7842_log_status,
- 	.ioctl = adv7842_ioctl,
- 	.interrupt_service_routine = adv7842_isr,
-+	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = adv7842_g_register,
- 	.s_register = adv7842_s_register,
-@@ -3210,7 +3213,7 @@ static int adv7842_probe(struct i2c_client *client,
- 
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
--	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
- 	state->mode = pdata->mode;
- 
- 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
--- 
-2.1.4
+I'd like your Ack (or Nack) before I merge this.
+
+Note that eventually these legacy support ops will disappear once all
+bridge drivers in the kernel have been converted to the control framework.
+
+Regards,
+
+	Hans
+
+
+On 06/12/2015 06:31 PM, Ricardo Ribalda Delgado wrote:
+> They are no longer used in old non-control-framework
+> bridge drivers.
+> 
+> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/i2c/sr030pc30.c | 7 -------
+>  1 file changed, 7 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
+> index b62b6ddc4356..229dc76c44a5 100644
+> --- a/drivers/media/i2c/sr030pc30.c
+> +++ b/drivers/media/i2c/sr030pc30.c
+> @@ -636,13 +636,6 @@ static const struct v4l2_ctrl_ops sr030pc30_ctrl_ops = {
+>  
+>  static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
+>  	.s_power	= sr030pc30_s_power,
+> -	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+> -	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+> -	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+> -	.g_ctrl = v4l2_subdev_g_ctrl,
+> -	.s_ctrl = v4l2_subdev_s_ctrl,
+> -	.queryctrl = v4l2_subdev_queryctrl,
+> -	.querymenu = v4l2_subdev_querymenu,
+>  };
+>  
+>  static const struct v4l2_subdev_pad_ops sr030pc30_pad_ops = {
+> 
 
