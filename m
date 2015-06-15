@@ -1,72 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39336 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752821AbbFGKdC (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34885 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753374AbbFOKZy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 06:33:02 -0400
+	Mon, 15 Jun 2015 06:25:54 -0400
+Message-ID: <557EA821.2010208@xs4all.nl>
+Date: Mon, 15 Jun 2015 12:25:37 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/6] adv7604: log alt-gamma and HDMI colorspace
-Date: Sun,  7 Jun 2015 12:32:35 +0200
-Message-Id: <1433673155-20179-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH 2/7] v4l2: replace video op g_mbus_fmt by pad op get_fmt
+References: <1428574888-46407-1-git-send-email-hverkuil@xs4all.nl> <1428574888-46407-3-git-send-email-hverkuil@xs4all.nl> <1988961.x4zUjgPhSL@avalon>
+In-Reply-To: <1988961.x4zUjgPhSL@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/15/2015 12:08 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> (CC'ing Javier Martin)
+> 
+> On Thursday 09 April 2015 12:21:23 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The g_mbus_fmt video op is a duplicate of the pad op. Replace all uses
+>> by the get_fmt pad op and remove the video op.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> Cc: Kamil Debski <k.debski@samsung.com>
+> 
+> [snip]
+> 
+>> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+>> index f2f87b7..e4fa074 100644
+>> --- a/drivers/media/i2c/tvp5150.c
+>> +++ b/drivers/media/i2c/tvp5150.c
+>> @@ -828,14 +828,18 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev
+>> *sd, return 0;
+>>  }
+>>
+>> -static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
+>> -			    struct v4l2_mbus_framefmt *f)
+>> +static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+>> +		struct v4l2_subdev_pad_config *cfg,
+>> +		struct v4l2_subdev_format *format)
+>>  {
+>> +	struct v4l2_mbus_framefmt *f;
+>>  	struct tvp5150 *decoder = to_tvp5150(sd);
+>>
+>> -	if (f == NULL)
+>> +	if (!format || format->pad)
+>>  		return -EINVAL;
+>>
+>> +	f = &format->format;
+>> +
+>>  	tvp5150_reset(sd, 0);
+> 
+> This resets the device every time a get or set format is issued, even for TRY 
+> formats. I don't think that's right.
+> 
+> Do you have any idea why this is needed ? The code was introduced in commit 
+> ec2c4f3f93cb ("[media] media: tvp5150: Add mbus_fmt callbacks"), with Javier 
+> listed as the author but Mauro being the only SoB.
 
-Log the alternate gamma state and the HDMI colorspace that the adv
-device detected.
+I have no idea why this would be needed. I agree with you that it seems
+unnecessary. Note that I don't think this is ever used with TRY formats today,
+but still it doesn't look right for SET formats either.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index c04e0dd..daf9386 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2222,6 +2222,14 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 		"invalid", "invalid", "invalid", "invalid", "invalid",
- 		"invalid", "invalid", "automatic"
- 	};
-+	static const char * const hdmi_color_space_txt[16] = {
-+		"RGB limited range (16-235)", "RGB full range (0-255)",
-+		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
-+		"xvYCC Bt.601", "xvYCC Bt.709",
-+		"YCbCr Bt.601 (0-255)", "YCbCr Bt.709 (0-255)",
-+		"sYCC", "Adobe YCC 601", "AdobeRGB", "invalid", "invalid",
-+		"invalid", "invalid", "invalid"
-+	};
- 	static const char * const rgb_quantization_range_txt[] = {
- 		"Automatic",
- 		"RGB limited range (16-235)",
-@@ -2289,11 +2297,12 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 			rgb_quantization_range_txt[state->rgb_quantization_range]);
- 	v4l2_info(sd, "Input color space: %s\n",
- 			input_color_space_txt[reg_io_0x02 >> 4]);
--	v4l2_info(sd, "Output color space: %s %s, saturator %s\n",
-+	v4l2_info(sd, "Output color space: %s %s, saturator %s, alt-gamma %s\n",
- 			(reg_io_0x02 & 0x02) ? "RGB" : "YCbCr",
- 			(reg_io_0x02 & 0x04) ? "(16-235)" : "(0-255)",
- 			(((reg_io_0x02 >> 2) & 0x01) ^ (reg_io_0x02 & 0x01)) ?
--				"enabled" : "disabled");
-+				"enabled" : "disabled",
-+			(reg_io_0x02 & 0x08) ? "enabled" : "disabled");
- 	v4l2_info(sd, "Color space conversion: %s\n",
- 			csc_coeff_sel_rb[cp_read(sd, info->cp_csc) >> 4]);
- 
-@@ -2330,6 +2339,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
- 		v4l2_info(sd, "AV Mute: %s\n", (hdmi_read(sd, 0x04) & 0x40) ? "on" : "off");
- 
- 		v4l2_info(sd, "Deep color mode: %s\n", deep_color_mode_txt[(hdmi_read(sd, 0x0b) & 0x60) >> 5]);
-+		v4l2_info(sd, "HDMI colorspace: %s\n", hdmi_color_space_txt[hdmi_read(sd, 0x53) & 0xf]);
- 
- 		adv76xx_log_infoframes(sd);
- 	}
--- 
-2.1.4
+	Hans
+
+> 
+>>  	f->width = decoder->rect.width;
+>> @@ -1069,9 +1073,6 @@ static const struct v4l2_subdev_tuner_ops
+>> tvp5150_tuner_ops = { static const struct v4l2_subdev_video_ops
+>> tvp5150_video_ops = {
+>>  	.s_std = tvp5150_s_std,
+>>  	.s_routing = tvp5150_s_routing,
+>> -	.s_mbus_fmt = tvp5150_mbus_fmt,
+>> -	.try_mbus_fmt = tvp5150_mbus_fmt,
+>> -	.g_mbus_fmt = tvp5150_mbus_fmt,
+>>  	.s_crop = tvp5150_s_crop,
+>>  	.g_crop = tvp5150_g_crop,
+>>  	.cropcap = tvp5150_cropcap,
+>> @@ -1086,6 +1087,8 @@ static const struct v4l2_subdev_vbi_ops
+>> tvp5150_vbi_ops = {
+>>
+>>  static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
+>>  	.enum_mbus_code = tvp5150_enum_mbus_code,
+>> +	.set_fmt = tvp5150_fill_fmt,
+>> +	.get_fmt = tvp5150_fill_fmt,
+>>  };
+>>
+>>  static const struct v4l2_subdev_ops tvp5150_ops = {
+> 
 
