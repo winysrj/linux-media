@@ -1,73 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:37610 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbbF2KZn (ORCPT
+Received: from smtprelay0153.hostedemail.com ([216.40.44.153]:36103 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753379AbbFOCBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:25:43 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org
-Subject: [PATCHv7 01/15] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-Date: Mon, 29 Jun 2015 12:14:46 +0200
-Message-Id: <1435572900-56998-2-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+	Sun, 14 Jun 2015 22:01:48 -0400
+Message-ID: <1434333705.2507.32.camel@perches.com>
+Subject: [PATCH] media: ttpci:  Use vsprintf %pM extension
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Sun, 14 Jun 2015 19:01:45 -0700
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Format mac addresses with the normal kernel extension.
 
-Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-Exynos4x12 SoCs. These are required by the HDMI CEC device.
-
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
- 2 files changed, 14 insertions(+)
+ drivers/media/pci/ttpci/ttpci-eeprom.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-index a7c2128..9331c62 100644
---- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-@@ -820,6 +820,13 @@
- 			samsung,pin-pud = <1>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
+diff --git a/drivers/media/pci/ttpci/ttpci-eeprom.c b/drivers/media/pci/ttpci/ttpci-eeprom.c
+index 32d4315..c6f31f2 100644
+--- a/drivers/media/pci/ttpci/ttpci-eeprom.c
++++ b/drivers/media/pci/ttpci/ttpci-eeprom.c
+@@ -162,9 +162,7 @@ int ttpci_eeprom_parse_mac(struct i2c_adapter *adapter, u8 *proposed_mac)
+ 	}
  
- 	pinctrl@03860000 {
-diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-index c141931..875464e 100644
---- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-@@ -885,6 +885,13 @@
- 			samsung,pin-pud = <0>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
+ 	memcpy(proposed_mac, decodedMAC, 6);
+-	dprintk("adapter has MAC addr = %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
+-		decodedMAC[0], decodedMAC[1], decodedMAC[2],
+-		decodedMAC[3], decodedMAC[4], decodedMAC[5]);
++	dprintk("adapter has MAC addr = %pM\n", decodedMAC);
+ 	return 0;
+ }
  
- 	pinctrl@03860000 {
--- 
-2.1.4
+
 
