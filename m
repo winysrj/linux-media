@@ -1,38 +1,61 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v3 19/19] Documentation: media: Fix code sample
-Date: Fri, 12 Jun 2015 18:46:38 +0200
-Message-id: <1434127598-11719-20-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57481 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754109AbbFOLeG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jun 2015 07:34:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/14] tw9910: don't use COLORSPACE_JPEG
+Date: Mon, 15 Jun 2015 13:33:30 +0200
+Message-Id: <1434368021-7467-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add newly created core op to the example.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+This is an SDTV video receiver, so the colorspace should be SMPTE170M.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/video4linux/v4l2-controls.txt | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/soc_camera/tw9910.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 7e3dfcacdbee..1d25de0199c4 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -105,6 +105,7 @@ Basic usage for V4L2 and sub-device drivers
- 	.g_ctrl = v4l2_subdev_g_ctrl,
- 	.s_ctrl = v4l2_subdev_s_ctrl,
- 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.g_def_ext_ctrls = v4l2_subdev_g_def_ext_ctrls,
- 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
- 	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+index 42bec9b..df66417 100644
+--- a/drivers/media/i2c/soc_camera/tw9910.c
++++ b/drivers/media/i2c/soc_camera/tw9910.c
+@@ -711,7 +711,7 @@ static int tw9910_get_fmt(struct v4l2_subdev *sd,
+ 	mf->width	= priv->scale->width;
+ 	mf->height	= priv->scale->height;
+ 	mf->code	= MEDIA_BUS_FMT_UYVY8_2X8;
+-	mf->colorspace	= V4L2_COLORSPACE_JPEG;
++	mf->colorspace	= V4L2_COLORSPACE_SMPTE170M;
+ 	mf->field	= V4L2_FIELD_INTERLACED_BT;
  
+ 	return 0;
+@@ -732,7 +732,7 @@ static int tw9910_s_fmt(struct v4l2_subdev *sd,
+ 	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
+ 		return -EINVAL;
+ 
+-	mf->colorspace = V4L2_COLORSPACE_JPEG;
++	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	ret = tw9910_set_frame(sd, &width, &height);
+ 	if (!ret) {
+@@ -762,7 +762,7 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
+ 	}
+ 
+ 	mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	mf->colorspace = V4L2_COLORSPACE_JPEG;
++	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	/*
+ 	 * select suitable norm
 -- 
 2.1.4
+
