@@ -1,89 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50705 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755983AbbFCOAM (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53546 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753987AbbFOLeD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 06/15] media: adv7604: ability to read default input port from DT
-Date: Wed,  3 Jun 2015 14:59:53 +0100
-Message-Id: <1433340002-1691-7-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Mon, 15 Jun 2015 07:34:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/14] sh-veu: initialize timestamp_flags and copy timestamp info
+Date: Mon, 15 Jun 2015 13:33:28 +0200
+Message-Id: <1434368021-7467-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Adds support to the adv7604 driver for specifying the default input
-port in the Device tree. If no value is provided, the driver will be
-unable to select an input without help from userspace.
+This field wasn't set, causing WARN_ON's from the vb2 core.
 
-Tested-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/devicetree/bindings/media/i2c/adv7604.txt |    3 +++
- drivers/media/i2c/adv7604.c                             |    8 +++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/platform/sh_veu.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 7eafdbc..8337f75 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -47,6 +47,7 @@ Optional Endpoint Properties:
-   If none of hsync-active, vsync-active and pclk-sample is specified the
-   endpoint will use embedded BT.656 synchronization.
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index 2554f37..77a74d3 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -958,6 +958,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &sh_veu_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->lock = &veu->fop_lock;
++	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
  
-+  - default-input: Select which input is selected after reset.
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret < 0)
+@@ -971,6 +972,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &sh_veu_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->lock = &veu->fop_lock;
++	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
  
- Example:
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1103,6 +1105,12 @@ static irqreturn_t sh_veu_isr(int irq, void *dev_id)
+ 	if (!src || !dst)
+ 		return IRQ_NONE;
  
-@@ -60,6 +61,8 @@ Example:
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
-+		default-input = <0>;
++	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
++	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++	dst->v4l2_buf.flags |=
++		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
 +
- 		port@0 {
- 			reg = <0>;
- 		};
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 16646517..5b6ac8e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2745,6 +2745,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
-+	u32 v;
- 
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
- 
-@@ -2754,6 +2755,12 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+
-+	if (!of_property_read_u32(endpoint, "default-input", &v))
-+		state->pdata.default_input = v;
-+	else
-+		state->pdata.default_input = -1;
-+
- 	of_node_put(endpoint);
- 
- 	flags = bus_cfg.bus.parallel.flags;
-@@ -2792,7 +2799,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	/* Hardcode the remaining platform data fields. */
- 	state->pdata.disable_pwrdnb = 0;
- 	state->pdata.disable_cable_det_rst = 0;
--	state->pdata.default_input = -1;
- 	state->pdata.blank_data = 1;
- 	state->pdata.alt_data_sat = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+ 	spin_lock(&veu->lock);
+ 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
 -- 
-1.7.10.4
+2.1.4
 
