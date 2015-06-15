@@ -1,95 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:60938 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563AbbFXNwS (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50787 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753983AbbFOLlE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 09:52:18 -0400
-From: Prashant Laddha <prladdha@cisco.com>
+	Mon, 15 Jun 2015 07:41:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC PATCH v2 2/2] v4l2-utils: extend set-dv-timings to support reduced fps
-Date: Wed, 24 Jun 2015 19:22:15 +0530
-Message-Id: <1435153935-11403-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1435153935-11403-1-git-send-email-prladdha@cisco.com>
-References: <1435153935-11403-1-git-send-email-prladdha@cisco.com>
+Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 14/14] DocBook/media: fix bad spacing in VIDIOC_EXPBUF
+Date: Mon, 15 Jun 2015 13:33:41 +0200
+Message-Id: <1434368021-7467-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extended command line option for set-dv-timings to support timings
-calculations for reduced fps. This will allow supporting NTSC frame
-rates like 29.97 or 59.94.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+The VIDIOC_EXPBUF documentation had spurious spaces that made it irritating
+to read. Fix this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- utils/v4l2-ctl/v4l2-ctl-stds.cpp | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-expbuf.xml | 38 +++++++++++------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-index e969d08..3987ba1 100644
---- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-@@ -41,11 +41,15 @@ void stds_usage(void)
- 	       "                     index=<index>: use the index as provided by --list-dv-timings\n"
- 	       "                     or specify timings using cvt/gtf options as follows:\n"
- 	       "                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>\n"
--	       "                     interlaced=<0/1>,reduced-blanking=<0/1/2>\n"
-+	       "                     interlaced=<0/1>,reduced-blanking=<0/1/2>,reduced-fps=<0/1>\n"
- 	       "                     The value of reduced-blanking, if greater than 0, indicates\n"
- 	       "                     that reduced blanking is to be used and the value indicate the\n"
- 	       "                     version. For gtf, there is no version 2 for reduced blanking, and\n"
- 	       "		     the value 1 or 2 will give same results.\n"
-+	       "		     reduced-fps = 1, slows down pixel clock by factor of 1000 / 1001, allowing\n"
-+	       "		     to support NTSC frame rates like 29.97 or 59.94.\n"
-+	       "		     Reduced fps flag takes effect only with reduced blanking version 2 and,\n"
-+	       "		     when refresh rate is an integer multiple of 6, say, fps = 24,30,60 etc.\n"
- 	       "                     or give a fully specified timings:\n"
- 	       "                     width=<width>,height=<height>,interlaced=<0/1>,\n"
- 	       "                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,\n"
-@@ -152,6 +156,7 @@ enum timing_opts {
- 	GTF,
- 	FPS,
- 	REDUCED_BLANK,
-+	REDUCED_FPS,
- };
+diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+index a78c920..0ae0b6a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+@@ -62,28 +62,28 @@ buffer as a DMABUF file at any time after buffers have been allocated with the
+ &VIDIOC-REQBUFS; ioctl.</para>
  
- static int parse_timing_subopt(char **subopt_str, int *value)
-@@ -179,6 +184,7 @@ static int parse_timing_subopt(char **subopt_str, int *value)
- 		"gtf",
- 		"fps",
- 		"reduced-blanking",
-+		"reduced-fps",
- 		NULL
- 	};
+ <para> To export a buffer, applications fill &v4l2-exportbuffer;.  The
+-<structfield> type </structfield> field is set to the same buffer type as was
+-previously used with  &v4l2-requestbuffers;<structfield> type </structfield>.
+-Applications must also set the <structfield> index </structfield> field. Valid
++<structfield>type</structfield> field is set to the same buffer type as was
++previously used with &v4l2-requestbuffers; <structfield>type</structfield>.
++Applications must also set the <structfield>index</structfield> field. Valid
+ index numbers range from zero to the number of buffers allocated with
+-&VIDIOC-REQBUFS; (&v4l2-requestbuffers;<structfield> count </structfield>)
+-minus one.  For the multi-planar API, applications set the <structfield> plane
+-</structfield> field to the index of the plane to be exported. Valid planes
++&VIDIOC-REQBUFS; (&v4l2-requestbuffers; <structfield>count</structfield>)
++minus one.  For the multi-planar API, applications set the <structfield>plane</structfield>
++field to the index of the plane to be exported. Valid planes
+ range from zero to the maximal number of valid planes for the currently active
+-format. For the single-planar API, applications must set <structfield> plane
+-</structfield> to zero.  Additional flags may be posted in the <structfield>
+-flags </structfield> field.  Refer to a manual for open() for details.
++format. For the single-planar API, applications must set <structfield>plane</structfield>
++to zero.  Additional flags may be posted in the <structfield>flags</structfield>
++field.  Refer to a manual for open() for details.
+ Currently only O_CLOEXEC, O_RDONLY, O_WRONLY, and O_RDWR are supported.  All
+ other fields must be set to zero.
+ In the case of multi-planar API, every plane is exported separately using
+-multiple <constant> VIDIOC_EXPBUF </constant> calls. </para>
++multiple <constant>VIDIOC_EXPBUF</constant> calls.</para>
  
-@@ -209,6 +215,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 	int fps = 0;
- 	int r_blank = 0;
- 	int interlaced = 0;
-+	bool reduced_fps = false;
- 	bool timings_valid = false;
+-<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
+-</structfield> field will be set by a driver.  This is a DMABUF file
++<para>After calling <constant>VIDIOC_EXPBUF</constant> the <structfield>fd</structfield>
++field will be set by a driver.  This is a DMABUF file
+ descriptor. The application may pass it to other DMABUF-aware devices. Refer to
+ <link linkend="dmabuf">DMABUF importing</link> for details about importing
+ DMABUF files into V4L2 nodes. It is recommended to close a DMABUF file when it
+-is no longer used to allow the associated memory to be reclaimed. </para>
++is no longer used to allow the associated memory to be reclaimed.</para>
+   </refsect1>
  
- 	char *subopt_str = subopt;
-@@ -234,6 +241,9 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 		case INTERLACED:
- 			interlaced = opt_val;
- 			break;
-+		case REDUCED_FPS:
-+			reduced_fps = (opt_val == 1) ? true : false;
-+			break;
- 		default:
- 			break;
- 		}
-@@ -241,7 +251,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
- 
- 	if (standard == V4L2_DV_BT_STD_CVT) {
- 		timings_valid = calc_cvt_modeline(width, height, fps, r_blank,
--						  interlaced == 1 ? true : false, false, bt);
-+						  interlaced == 1 ? true : false, reduced_fps, bt);
- 	} else {
- 		timings_valid = calc_gtf_modeline(width, height, fps, r_blank,
- 						  interlaced == 1 ? true : false, bt);
+   <refsect1>
+@@ -170,9 +170,9 @@ multi-planar API. Otherwise this value must be set to zero. </entry>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>flags</structfield></entry>
+-	    <entry>Flags for the newly created file, currently only <constant>
+-O_CLOEXEC </constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY
+-</constant>, and <constant>O_RDWR</constant> are supported, refer to the manual
++	    <entry>Flags for the newly created file, currently only
++<constant>O_CLOEXEC</constant>, <constant>O_RDONLY</constant>, <constant>O_WRONLY</constant>,
++and <constant>O_RDWR</constant> are supported, refer to the manual
+ of open() for more details.</entry>
+ 	  </row>
+ 	  <row>
+@@ -200,9 +200,9 @@ set the array to zero.</entry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+ 	  <para>A queue is not in MMAP mode or DMABUF exporting is not
+-supported or <structfield> flags </structfield> or <structfield> type
+-</structfield> or <structfield> index </structfield> or <structfield> plane
+-</structfield> fields are invalid.</para>
++supported or <structfield>flags</structfield> or <structfield>type</structfield>
++or <structfield>index</structfield> or <structfield>plane</structfield> fields
++are invalid.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
 -- 
-1.9.1
+2.1.4
 
