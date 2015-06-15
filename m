@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:34283 "EHLO
-	mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739AbbFBWDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 18:03:49 -0400
-Received: by oifu123 with SMTP id u123so136740688oif.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2015 15:03:48 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 3 Jun 2015 01:03:48 +0300
-Message-ID: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
-Subject: tw5864 driver development, help needed
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Linux Media <linux-media@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, khalasa <khalasa@piap.pl>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:56891 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292AbbFOMaT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jun 2015 08:30:19 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] Kconfig: disable Media Controller for DVB
+Date: Mon, 15 Jun 2015 09:29:49 -0300
+Message-Id: <1434371389-8143-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi! I am working on making a Linux driver for TW5864-based video&audio
-capture and encoding PCI boards. The driver is to be submitted for
-inclusion to Linux upstream.
-The following two links are links to boards available for buying:
-http://www.provideo.com.tw/web/DVR%20Card_TW-310.htm
-http://www.provideo.com.tw/web/DVR%20Card_TW-320.htm
-We possess one 8-port board and we try to make it play.
+Since when we start discussions about the usage Media Controller for
+complex hardware, one thing become clear: the way it is, MC fails to
+map anything different than capture/output/m2m video-only streaming.
 
-http://whdd.org/tw5864/TW-3XX_Linux.rar - this is reference driver
-code. Overwhelmingly complicated IMO.
-http://whdd.org/tw5864/tw5864b1-ds.pdf - Datasheet.
-http://whdd.org/tw5864/TW5864_datasheet_0.6d.pdf - Another datasheet.
-These two differ in some minor points.
-https://github.com/krieger-od/linux - my work in progress on this, in
-drivers/staging/media/tw5864 directory. Derived from
-drivers/media/pci/tw68 (which is raw video capture card), defined
-reasonable part of registers, now trying to make device produce video
-capture and encoding interrupts, but cannot get any interrupts except
-GPIO and timer ones. This is currently the critical blocking issue in
-development.
-I hope that somebody experienced with similar boards would have
-quesswork on how to proceed.
-My work-on-progress code is dirty, so if you would agree to check that
-only if it will be cleaned up, please let me know.
+The point is that MC has entities named as devnodes, but the only
+devnode used (before the DVB patches) is MEDIA_ENT_T_DEVNODE_V4L.
+Due to the way MC got implemented, however, this entity actually
+doesn't represent the devnode, but the hardware I/O engine that
+receives data via DMA.
 
-I am willing to pay for productive help.
+By coincidence, such DMA is associated with the V4L device node
+on webcam hardware, but this is not true even for other V4L2
+devices. For example, on USB hardware, the DMA is done via the
+USB controller. The data passes though a in-kernel filter that
+strips off the URB headers. Other V4L2 devices like radio may not
+even have DMA. When it have, the DMA is done via ALSA, and not
+via the V4L devnode.
 
+In other words, MC is broken as a whole, but tagging it as BROKEN
+right now would do more harm than good.
+
+So, instead, let's mark, for now, the DVB part as broken and
+block all new changes to MC while we fix this mess, whith
+we hopefully will do for the next Kernel version.
+
+Requested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 3ef0f90b128f..157099243d61 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -97,6 +97,7 @@ config MEDIA_CONTROLLER
+ config MEDIA_CONTROLLER_DVB
+ 	bool "Enable Media controller for DVB"
+ 	depends on MEDIA_CONTROLLER
++	depends on BROKEN
+ 	---help---
+ 	  Enable the media controller API support for DVB.
+ 
 -- 
-Bluecherry developer.
+2.4.3
+
