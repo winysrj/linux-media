@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33013 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851AbbFEK7x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/10] sh-vou: add support for log_status
-Date: Fri,  5 Jun 2015 12:59:23 +0200
-Message-Id: <1433501966-30176-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.emea.novell.com ([130.57.118.101]:38939 "EHLO
+	mail.emea.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885AbbFOGUR convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-linux-media@vger.kernel.org:17:3>);
+	Mon, 15 Jun 2015 02:20:17 -0400
+Message-Id: <557E8ABA02000078000849A8@mail.emea.novell.com>
+Date: Mon, 15 Jun 2015 07:20:10 +0100
+From: "Jan Beulich" <JBeulich@suse.com>
+To: "Andy Lutomirski" <luto@amacapital.net>
+Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
+	"Bjorn Helgaas" <bhelgaas@google.com>,
+	"Jej B" <James.Bottomley@hansenpartnership.com>,
+	"Toshi Kani" <toshi.kani@hp.com>, "X86 ML" <x86@kernel.org>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	<ville.syrjala@linux.intel.com>,
+	"Julia Lawall" <julia.lawall@lip6.fr>,
+	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+	"Dave Airlie" <airlied@redhat.com>, <syrjala@sci.fi>,
+	"Juergen Gross" <JGross@suse.com>,
+	"Luis Rodriguez" <Mcgrof@Suse.com>, "Borislav Petkov" <bp@suse.de>,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"linux-fbdev" <linux-fbdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+ <1434064996.11808.64.camel@misato.fc.hp.com>
+ <557AAD910200007800084014@mail.emea.novell.com>
+ <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+In-Reply-To: <CALCETrXWZU2NZRZy7b74z54Tt5aKmTOmgMmf5WYG1OZtEmjw7A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+>>> On 13.06.15 at 01:15, <luto@amacapital.net> wrote:
+> On Jun 12, 2015 12:59 AM, "Jan Beulich" <JBeulich@suse.com> wrote:
+>>
+>> >>> On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
+>> > There are two usages on MTRRs:
+>> >  1) MTRR entries set by firmware
+>> >  2) MTRR entries set by OS drivers
+>> >
+>> > We can obsolete 2), but we have no control over 1).  As UEFI firmwares
+>> > also set this up, this usage will continue to stay.  So, we should not
+>> > get rid of the MTRR code that looks up the MTRR entries, while we have
+>> > no need to modify them.
+>> >
+>> > Such MTRR entries provide safe guard to /dev/mem, which allows
+>> > privileged user to access a range that may require UC mapping while
+>> > the /dev/mem driver blindly maps it with WB.  MTRRs converts WB to UC in
+>> > such a case.
+>>
+>> But it wouldn't be impossible to simply read the MTRRs upon boot,
+>> store the information, disable MTRRs, and correctly use PAT to
+>> achieve the same effect (i.e. the "blindly maps" part of course
+>> would need fixing).
+> 
+> This may crash and burn badly when we call a UEFI function or an SMI
+> happens.  I think we should just leave the MTRRs alone.
 
-Dump the VOU registers in log_status.
+I buy the SMI part, but UEFI runtime calls are being done on
+page tables we construct and control, so attributes could be kept
+correct without relying on MTRRs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
-
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 7ed5a8b..400efec 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -951,6 +951,34 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
- 	return 0;
- }
- 
-+static int sh_vou_log_status(struct file *file, void *priv)
-+{
-+	struct sh_vou_device *vou_dev = video_drvdata(file);
-+
-+	pr_info("PSELA:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
-+	pr_info("VOUER:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUER));
-+	pr_info("VOUCR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUCR));
-+	pr_info("VOUSTR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSTR));
-+	pr_info("VOUVCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVCR));
-+	pr_info("VOUISR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUISR));
-+	pr_info("VOUBCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUBCR));
-+	pr_info("VOUDPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDPR));
-+	pr_info("VOUDSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDSR));
-+	pr_info("VOUVPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUVPR));
-+	pr_info("VOUIR:   0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUIR));
-+	pr_info("VOUSRR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSRR));
-+	pr_info("VOUMSR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUMSR));
-+	pr_info("VOUHIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUHIR));
-+	pr_info("VOUDFR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUDFR));
-+	pr_info("VOUAD1R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD1R));
-+	pr_info("VOUAD2R: 0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAD2R));
-+	pr_info("VOUAIR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUAIR));
-+	pr_info("VOUSWR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOUSWR));
-+	pr_info("VOURCR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURCR));
-+	pr_info("VOURPR:  0x%08x\n", sh_vou_reg_a_read(vou_dev, VOURPR));
-+	return 0;
-+}
-+
- static int sh_vou_g_selection(struct file *file, void *fh,
- 			      struct v4l2_selection *sel)
- {
-@@ -1289,6 +1317,7 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
- 	.vidioc_g_std			= sh_vou_g_std,
- 	.vidioc_g_selection		= sh_vou_g_selection,
- 	.vidioc_s_selection		= sh_vou_s_selection,
-+	.vidioc_log_status		= sh_vou_log_status,
- };
- 
- static const struct v4l2_file_operations sh_vou_fops = {
--- 
-2.1.4
+Jan
 
