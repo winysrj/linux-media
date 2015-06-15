@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40198 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750900AbbFQLCy convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50508 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932094AbbFOLeS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2015 07:02:54 -0400
-Date: Wed, 17 Jun 2015 08:02:49 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: "Gabor Z. Papp" <gzpapp.lists@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: em28xx problem with 3.10-4.0
-Message-ID: <20150617080249.379eeb10@recife.lan>
-In-Reply-To: <x6oakedev9@gzp>
-References: <x6d212hdgj@gzp>
-	<x6d20wi1ml@gzp>
-	<20150616062056.34b4d4ef@recife.lan>
-	<x6oakedev9@gzp>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+	Mon, 15 Jun 2015 07:34:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 11/14] soc_camera: compliance fixes
+Date: Mon, 15 Jun 2015 13:33:38 +0200
+Message-Id: <1434368021-7467-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 17 Jun 2015 08:32:26 +0200
-"Gabor Z. Papp" <gzpapp.lists@gmail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> * Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> 
-> | Nothing. You just ran out of continuous memory. This driver
-> | requires long chunks of continuous memory for USB data transfer.
-> 
-> And there is no way to preset some mem?
-> Or do something to get the driver work again?
-> I don't think I'm using too much memory.
-> 
-> $ free
->              total       used       free     shared    buffers     cached
-> Mem:       2073656     625696    1447960          0      21072     231096
-> -/+ buffers/cache:     373528    1700128
-> Swap:      1004056          0    1004056
+- REQBUFS(0) will stop streaming, free buffers and release the file ownership.
+- Return ENOTTY for create_bufs for a vb1 driver
+- Return EBUSY if there is a different streaming owner and set the new owner on
+  success.
 
->From your error logs, it failed to allocate the 3rd buffer (of a total of 5
-buffers) with a continuous block of 165.120 bytes on the DMA range.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-In order words, your system needs to have at least 5 non-fragmented buffers
-with 256KB each, on a memory region where the CPU can do DMA (e. g. 
-outside the high memory area).
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 5f1e5a8..6ce6576 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -384,9 +384,8 @@ static int soc_camera_reqbufs(struct file *file, void *priv,
+ 		ret = vb2_reqbufs(&icd->vb2_vidq, p);
+ 	}
+ 
+-	if (!ret && !icd->streamer)
+-		icd->streamer = file;
+-
++	if (!ret)
++		icd->streamer = p->count ? file : NULL;
+ 	return ret;
+ }
+ 
+@@ -443,12 +442,19 @@ static int soc_camera_create_bufs(struct file *file, void *priv,
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	int ret;
+ 
+ 	/* videobuf2 only */
+ 	if (ici->ops->init_videobuf)
+-		return -EINVAL;
+-	else
+-		return vb2_create_bufs(&icd->vb2_vidq, create);
++		return -ENOTTY;
++
++	if (icd->streamer && icd->streamer != file)
++		return -EBUSY;
++
++	ret = vb2_create_bufs(&icd->vb2_vidq, create);
++	if (!ret)
++		icd->streamer = file;
++	return ret;
+ }
+ 
+ static int soc_camera_prepare_buf(struct file *file, void *priv,
+-- 
+2.1.4
 
-I'm not a memory management specialist, but I guess you could try to change
-some sysctl parameters or use a different memory allocator in order to avoid
-memory fragmentation.
-
-If you're a C programmer, an option would be to change the driver's code
-to optimize it for low memory usage, for example, to reduce the buffer size
-and increasing the number of buffers (at the cost of requiring more CPU
-and/or reducing the maximum size of the image). Another alternative would be
-to reserve the memory at the time the driver gets loaded.
-
-Regards,
-Mauro
