@@ -1,142 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44382 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbbFEK7w (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35370 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750885AbbFOHlg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 06:59:52 -0400
+	Mon, 15 Jun 2015 03:41:36 -0400
+Message-ID: <557E819D.401@xs4all.nl>
+Date: Mon, 15 Jun 2015 09:41:17 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/10] sh-vou: replace g/s_crop/cropcap by g/s_selection
-Date: Fri,  5 Jun 2015 12:59:22 +0200
-Message-Id: <1433501966-30176-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433501966-30176-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/10/2015 11:20 AM, Mauro Carvalho Chehab wrote:
+> Hi Andrew,
+> 
+> I received this patch series with a new set of helper functions for
+> mm, together with changes for media and DRM drivers.
+> 
+> As this stuff is actually mm code, I prefer if this got merged via
+> your tree.
+> 
+> Could you please handle it? Please notice that patch 8 actually changes
+> the exynos DRM driver, but it misses ack from DRM people.
 
-Implement g/s_selection. The v4l2 core will emulate g/s_crop and
-cropcap on top of g/s_selection.
+For the vb2 patches 3-7:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 71 +++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 46 deletions(-)
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index eaa432e..7ed5a8b 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -951,24 +951,36 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
- 	return 0;
- }
- 
--static int sh_vou_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
-+static int sh_vou_g_selection(struct file *file, void *fh,
-+			      struct v4l2_selection *sel)
- {
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
- 
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
--
--	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	a->c = vou_dev->rect;
--
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE:
-+		sel->r = vou_dev->rect;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = VOU_MAX_IMAGE_WIDTH;
-+		sel->r.height = VOU_MAX_IMAGE_HEIGHT;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 	return 0;
- }
- 
- /* Assume a dull encoder, do all the work ourselves. */
--static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
-+static int sh_vou_s_selection(struct file *file, void *fh,
-+			      struct v4l2_selection *sel)
- {
--	struct v4l2_crop a_writable = *a;
-+	struct v4l2_rect *rect = &sel->r;
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
--	struct v4l2_rect *rect = &a_writable.c;
- 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
- 	struct v4l2_pix_format *pix = &vou_dev->pix;
- 	struct sh_vou_geometry geo;
-@@ -982,10 +994,8 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- 	unsigned int img_height_max;
- 	int ret;
- 
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u@%u:%u\n", __func__,
--		rect->width, rect->height, rect->left, rect->top);
--
--	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    sel->target != V4L2_SEL_TGT_COMPOSE)
- 		return -EINVAL;
- 
- 	if (vou_dev->std & V4L2_STD_525_60)
-@@ -1049,36 +1059,6 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- 	return 0;
- }
- 
--/*
-- * Total field: NTSC 858 x 2 * 262/263, PAL 864 x 2 * 312/313, default rectangle
-- * is the initial register values, height takes the interlaced format into
-- * account. The actual image can only go up to 720 x 2 * 240, So, VOUVPR can
-- * actually only meaningfully contain values <= 720 and <= 240 respectively, and
-- * not <= 864 and <= 312.
-- */
--static int sh_vou_cropcap(struct file *file, void *priv,
--			  struct v4l2_cropcap *a)
--{
--	struct sh_vou_device *vou_dev = video_drvdata(file);
--
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
--
--	a->type				= V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	a->bounds.left			= 0;
--	a->bounds.top			= 0;
--	a->bounds.width			= VOU_MAX_IMAGE_WIDTH;
--	a->bounds.height		= VOU_MAX_IMAGE_HEIGHT;
--	/* Default = max, set VOUDPR = 0, which is not hardware default */
--	a->defrect.left			= 0;
--	a->defrect.top			= 0;
--	a->defrect.width		= VOU_MAX_IMAGE_WIDTH;
--	a->defrect.height		= VOU_MAX_IMAGE_HEIGHT;
--	a->pixelaspect.numerator	= 1;
--	a->pixelaspect.denominator	= 1;
--
--	return 0;
--}
--
- static irqreturn_t sh_vou_isr(int irq, void *dev_id)
- {
- 	struct sh_vou_device *vou_dev = dev_id;
-@@ -1307,9 +1287,8 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
- 	.vidioc_enum_output		= sh_vou_enum_output,
- 	.vidioc_s_std			= sh_vou_s_std,
- 	.vidioc_g_std			= sh_vou_g_std,
--	.vidioc_cropcap			= sh_vou_cropcap,
--	.vidioc_g_crop			= sh_vou_g_crop,
--	.vidioc_s_crop			= sh_vou_s_crop,
-+	.vidioc_g_selection		= sh_vou_g_selection,
-+	.vidioc_s_selection		= sh_vou_s_selection,
- };
- 
- static const struct v4l2_file_operations sh_vou_fops = {
--- 
-2.1.4
+Since the prerequisite patch "vb2: Push mmap_sem down to memops" caused
+two regressions I want to postpone these other vb2 patches until that problem
+is fixed first.
+
+Jan, I leave it to you whether you want the non-vb2 patches to go in or not.
+I don't think they are affected by this vb2 problem.
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> Mauro
+> 
+> Jan Kara (9):
+>   mm: Provide new get_vaddr_frames() helper
+>   [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use
+>     get_vaddr_pfns()
+>   [media] vb2: Provide helpers for mapping virtual addresses
+>   [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame
+>     vector
+>   [media] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame
+>     vector
+>   [media] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
+>   [media] media: vb2: Remove unused functions
+>   [media] drm/exynos: Convert g2d_userptr_get_dma_addr() to use
+>     get_vaddr_frames()
+>   [media] mm: Move get_vaddr_frames() behind a config option
+> 
+>  drivers/gpu/drm/exynos/Kconfig                 |   1 +
+>  drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  95 ++++------
+>  drivers/gpu/drm/exynos/exynos_drm_gem.c        |  97 -----------
+>  drivers/media/platform/omap/Kconfig            |   1 +
+>  drivers/media/platform/omap/omap_vout.c        |  69 ++++----
+>  drivers/media/v4l2-core/Kconfig                |   1 +
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 214 ++++-------------------
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  99 ++---------
+>  drivers/media/v4l2-core/videobuf2-memops.c     | 156 ++++++-----------
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  92 ++++------
+>  include/linux/mm.h                             |  44 +++++
+>  include/media/videobuf2-memops.h               |  11 +-
+>  mm/Kconfig                                     |   3 +
+>  mm/Makefile                                    |   1 +
+>  mm/frame_vector.c                              | 232 +++++++++++++++++++++++++
+>  mm/gup.c                                       |   1 +
+>  16 files changed, 486 insertions(+), 631 deletions(-)
+>  create mode 100644 mm/frame_vector.c
+> 
 
