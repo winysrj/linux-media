@@ -1,142 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54847 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752543AbbFGI6d (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:45191 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755649AbbFOO0a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 04:58:33 -0400
+	Mon, 15 Jun 2015 10:26:30 -0400
+Message-ID: <557EE085.5020708@xs4all.nl>
+Date: Mon, 15 Jun 2015 16:26:13 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 07/11] sh-vou: replace g/s_crop/cropcap by g/s_selection
-Date: Sun,  7 Jun 2015 10:58:01 +0200
-Message-Id: <1433667485-35711-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jan Kara <jack@suse.cz>
+Subject: [GIT FIXES FOR v4.2] Revert "[media] vb2: Push mmap_sem down to memops"
+ & videodev2.h fix
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Mauro,
 
-Implement g/s_selection. The v4l2 core will emulate g/s_crop and
-cropcap on top of g/s_selection.
+Please merge this revert asap. This patch introduces two serious regressions (first
+noticed when testing the cobalt driver, later reproduced with the vivid driver).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/sh_vou.c | 71 +++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 46 deletions(-)
+This patch needs more work from Jan. Luckily I noticed in time and it should help
+Jan that it is reproducible with vivid, so he does not need any hardware to test it.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 262c244..9479c44 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -949,24 +949,36 @@ static int sh_vou_g_std(struct file *file, void *priv, v4l2_std_id *std)
- 	return 0;
- }
- 
--static int sh_vou_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
-+static int sh_vou_g_selection(struct file *file, void *fh,
-+			      struct v4l2_selection *sel)
- {
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
- 
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
--
--	a->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	a->c = vou_dev->rect;
--
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE:
-+		sel->r = vou_dev->rect;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = VOU_MAX_IMAGE_WIDTH;
-+		sel->r.height = VOU_MAX_IMAGE_HEIGHT;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 	return 0;
- }
- 
- /* Assume a dull encoder, do all the work ourselves. */
--static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
-+static int sh_vou_s_selection(struct file *file, void *fh,
-+			      struct v4l2_selection *sel)
- {
--	struct v4l2_crop a_writable = *a;
-+	struct v4l2_rect *rect = &sel->r;
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
--	struct v4l2_rect *rect = &a_writable.c;
- 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
- 	struct v4l2_pix_format *pix = &vou_dev->pix;
- 	struct sh_vou_geometry geo;
-@@ -980,10 +992,8 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- 	unsigned int img_height_max;
- 	int ret;
- 
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s(): %ux%u@%u:%u\n", __func__,
--		rect->width, rect->height, rect->left, rect->top);
--
--	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+	    sel->target != V4L2_SEL_TGT_COMPOSE)
- 		return -EINVAL;
- 
- 	if (vou_dev->std & V4L2_STD_525_60)
-@@ -1047,36 +1057,6 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- 	return 0;
- }
- 
--/*
-- * Total field: NTSC 858 x 2 * 262/263, PAL 864 x 2 * 312/313, default rectangle
-- * is the initial register values, height takes the interlaced format into
-- * account. The actual image can only go up to 720 x 2 * 240, So, VOUVPR can
-- * actually only meaningfully contain values <= 720 and <= 240 respectively, and
-- * not <= 864 and <= 312.
-- */
--static int sh_vou_cropcap(struct file *file, void *priv,
--			  struct v4l2_cropcap *a)
--{
--	struct sh_vou_device *vou_dev = video_drvdata(file);
--
--	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
--
--	a->type				= V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	a->bounds.left			= 0;
--	a->bounds.top			= 0;
--	a->bounds.width			= VOU_MAX_IMAGE_WIDTH;
--	a->bounds.height		= VOU_MAX_IMAGE_HEIGHT;
--	/* Default = max, set VOUDPR = 0, which is not hardware default */
--	a->defrect.left			= 0;
--	a->defrect.top			= 0;
--	a->defrect.width		= VOU_MAX_IMAGE_WIDTH;
--	a->defrect.height		= VOU_MAX_IMAGE_HEIGHT;
--	a->pixelaspect.numerator	= 1;
--	a->pixelaspect.denominator	= 1;
--
--	return 0;
--}
--
- static irqreturn_t sh_vou_isr(int irq, void *dev_id)
- {
- 	struct sh_vou_device *vou_dev = dev_id;
-@@ -1305,9 +1285,8 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
- 	.vidioc_enum_output		= sh_vou_enum_output,
- 	.vidioc_s_std			= sh_vou_s_std,
- 	.vidioc_g_std			= sh_vou_g_std,
--	.vidioc_cropcap			= sh_vou_cropcap,
--	.vidioc_g_crop			= sh_vou_g_crop,
--	.vidioc_s_crop			= sh_vou_s_crop,
-+	.vidioc_g_selection		= sh_vou_g_selection,
-+	.vidioc_s_selection		= sh_vou_s_selection,
- };
- 
- static const struct v4l2_file_operations sh_vou_fops = {
--- 
-2.1.4
+The other patch I added (superseding my previous GIT FIXES request) fixes a stupid
+copy-and-paste error in a macro newly added for 4.2. This bug breaks the correct
+handling of transfer functions as I discovered while preparing for a presentation on
+this topic.
 
+Regards,
+
+	Hans
+
+The following changes since commit e42c8c6eb456f8978de417ea349eef676ef4385c:
+
+  [media] au0828: move dev->boards atribuition to happen earlier (2015-06-10 12:39:35 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.2o
+
+for you to fetch changes up to 6da206bf3b501193398ccd55383ea0e8df1755d8:
+
+  videodev2.h: fix copy-and-paste error in V4L2_MAP_XFER_FUNC_DEFAULT (2015-06-15 16:21:14 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      Revert "[media] vb2: Push mmap_sem down to memops"
+      videodev2.h: fix copy-and-paste error in V4L2_MAP_XFER_FUNC_DEFAULT
+
+ drivers/media/v4l2-core/videobuf2-core.c       | 2 ++
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 -------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 6 ------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    | 6 +-----
+ include/uapi/linux/videodev2.h                 | 2 +-
+ 5 files changed, 4 insertions(+), 19 deletions(-)
