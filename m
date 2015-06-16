@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:35043 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841AbbFILpT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2015 07:45:19 -0400
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pavel Machek <pavel@ucw.cz>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	=?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
-	Jan Roemisch <maxx@spaceboyz.net>
-Subject: [PATCH v2] radio-bcm2048: Fix region selection
-Date: Tue,  9 Jun 2015 13:44:33 +0200
-Message-Id: <1433850273-32223-1-git-send-email-pali.rohar@gmail.com>
-In-Reply-To: <557189C8.7040203@xs4all.nl>
-References: <557189C8.7040203@xs4all.nl>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:38830 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620AbbFPLJL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2015 07:09:11 -0400
+Received: by wibdq8 with SMTP id dq8so15813723wib.1
+        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2015 04:09:10 -0700 (PDT)
+Message-ID: <558003D7.1080906@gmail.com>
+Date: Tue, 16 Jun 2015 12:09:11 +0100
+From: Andy Furniss <adf.lists@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"Gabor Z. Papp" <gzpapp.lists@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx problem with 3.10-4.0
+References: <x6d212hdgj@gzp>	<x6d20wi1ml@gzp> <20150616062056.34b4d4ef@recife.lan>
+In-Reply-To: <20150616062056.34b4d4ef@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Roemisch <maxx@spaceboyz.net>
+Mauro Carvalho Chehab wrote:
+> Em Tue, 16 Jun 2015 08:54:58 +0200 "Gabor Z. Papp"
+> <gzpapp.lists@gmail.com> escreveu:
+>
+>> * "Gabor Z. Papp" <gzpapp.lists@gmail.com>:
+>>
+>> | I would like to use my Pinnacle Dazzle DVC usb encoder with
+>> kernels | 3.10-4.0, but I'm getting the same error all the time.
+>>
+>> | Latest working kernel is the 3.4 line.
+>>
+>> | What happend with the driver?
+>
+> Nothing. You just ran out of continuous memory. This driver requires
+> long chunks of continuous memory for USB data transfer.
+>
+> Please see this thread:
+> http://www.spinics.net/lists/linux-media/msg43868.html
+>
+> As far as I remember, some things changed from 3.4 on the part that
+> allocates memory there, reducing the risk of getting out of memory,
+> but can't remember the specific details anymore.
 
-This patch fixes region selection for lower bottom_frequency in BCM2048 FM
-receiver. It also removes "Japan wide band" region since this is impossible
-to do just like that.
+Oh interesting - I only recently stopped using the low mem box in that
+post. I think I ended up on kernel 3.9 and had uptimes of > 200 days
+without issue.
 
-Signed-off-by: Jan Roemisch <maxx@spaceboyz.net>
-Acked-by: Pali Rohár <pali.rohar@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+I still have the 290e but now on a box with 4 gig ram - haven't had time
+to see if I'll hit it again with 4.1.
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index e9d0691..134e2af 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -342,14 +342,6 @@ static struct region_info region_configs[] = {
- 		.deemphasis		= 50,
- 		.region			= 3,
- 	},
--	/* Japan wide band */
--	{
--		.channel_spacing	= 10,
--		.bottom_frequency	= 76000,
--		.top_frequency		= 108000,
--		.deemphasis		= 50,
--		.region			= 4,
--	},
- };
- 
- /*
-@@ -741,6 +733,18 @@ static int bcm2048_set_region(struct bcm2048_device *bdev, u8 region)
- 
- 	mutex_lock(&bdev->mutex);
- 	bdev->region_info = region_configs[region];
-+
-+	if (region_configs[region].bottom_frequency < 87500)
-+		bdev->cache_fm_ctrl |= BCM2048_BAND_SELECT;
-+	else
-+		bdev->cache_fm_ctrl &= ~BCM2048_BAND_SELECT;
-+
-+	err = bcm2048_send_command(bdev, BCM2048_I2C_FM_CTRL,
-+					bdev->cache_fm_ctrl);
-+	if (err) {
-+		mutex_unlock(&bdev->mutex);
-+		goto done;
-+	}
- 	mutex_unlock(&bdev->mutex);
- 
- 	if (bdev->frequency < region_configs[region].bottom_frequency ||
--- 
-1.7.10.4
+My use case was dvb not analogue.
+
+If you just want to plug and cap something you may be able to workaround
+by first, as root, doing -
+
+sync;echo 3 >/proc/sys/vm/drop_caches
+
+to clean out men.
+
+
 
