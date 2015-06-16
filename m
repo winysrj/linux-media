@@ -1,116 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f169.google.com ([209.85.213.169]:36674 "EHLO
-	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754193AbbFCTIC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 15:08:02 -0400
-Received: by igbpi8 with SMTP id pi8so120259197igb.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 12:08:01 -0700 (PDT)
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:32846 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754509AbbFPGWW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2015 02:22:22 -0400
+Message-ID: <557FC08B.9000109@xs4all.nl>
+Date: Tue, 16 Jun 2015 08:22:03 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <556F1E70.7070507@iki.fi>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-	<556EB2F7.506@iki.fi>
-	<556EB4B0.8050505@iki.fi>
-	<CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
-	<556F1E70.7070507@iki.fi>
-Date: Wed, 3 Jun 2015 21:08:01 +0200
-Message-ID: <CAAZRmGx9z_-_zs54+3OdEVj=H4ddwU0hh5+FaktzYYo=EabVzQ@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Kamil Debski <kamil@wypas.org>, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+CC: m.szyprowski@samsung.com, mchehab@osg.samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu
+Subject: Re: [PATCH v6 00/11]
+References: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1430760785-1169-1-git-send-email-k.debski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I cold booted my number cruncher after a hiatus of a couple of weeks,
-applied a couple of extra dev_dbg printouts in the si2168_cmd_execute
-and installed the newly built module. The results:
+On 05/04/2015 07:32 PM, Kamil Debski wrote:
+> Hi,
+> 
+> The sixth version of this patchset addresses recent comments on the mailing
+> list. Please see the changelog below for details.
 
-[  663.147757] si2168 2-0066: Silicon Labs Si2168 successfully attached
-[  663.151735] si2157 1-0060: Silicon Labs Si2147/2148/2157/2158
-successfully attached
-[  663.152436] DVB: registering new adapter (saa7164)
-[  663.152441] saa7164 0000:07:00.0: DVB: registering adapter 1
-frontend 0 (Silicon Labs Si2168)...
-[  678.690104] si2168:si2168_init: si2168 2-0064:
-[  678.690111] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 13, rlen: 0
-[  678.690115] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
-12 00 0c 00 0d 16 00 00 00 00 00 00
-[  678.693331] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 8, rlen: 1
-[  678.693337] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: c0
-06 01 0f 00 20 20 01
-[  678.701914] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
-[  678.701920] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution took 6 ms
-[  678.701923] si2168:si2168_cmd_execute: si2168 2-0064: wlen: 1, rlen: 13
-[  678.701926] si2168:si2168_cmd_execute: si2168 2-0064: i2c write: 02
-[  678.708631] si2168:si2168_cmd_execute: si2168 2-0064: i2c read: 80
-00 44 34 30 02 00 00 00 00 00 00 00
-[  678.708636] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution took 2 ms
-[  678.708639] si2168 2-0064: unknown chip version Si2168-
-[  678.714777] si2168:si2168_init: si2168 2-0064: failed=-22
-[  678.727424] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
-[  678.783587] si2157 0-0060: firmware version: 3.0.5
+Just in case people are wondering what happened to this: about a month ago I
+took over from Kamil and I am working hard to get a v7 posted. I'm currently
+working on a utility to send messages over the cec line and once that's done
+I plan on posting a new version which should be close to the final version.
 
-The answer to the 02 command seems really odd. You can see it is a
-Si2168, version 40, but I'd expect the second octet to say 42 instead
-of 00.
+One of the main problems is making sure that the framework covers the full
+CEC 2.0 functionality (or at least, making sure that any missing pieces can
+be added seamlessly later). CEC 2.0 is a lot more strict in what should and
+what shouldn't be implemented, so this takes time.
 
-Cheers,
--olli
+Regards,
 
-On 3 June 2015 at 17:34, Antti Palosaari <crope@iki.fi> wrote:
-> On 06/03/2015 12:29 PM, Olli Salonen wrote:
->>
->> I'm seeing the same issue as well. I thought that maybe some recent
->> Si2168 changes did impact this, but it does not seem to be the case.
->>
->> I made a quick test myself. I reverted the latest si2168 patches one
->> by one, but that did not remedy the situation. Anyway, the kernel log
->> does not seem to indicate that the si2168_cmd_execute itself would
->> fail (which is what happens after the I2C error handling patch in case
->> the demod sets the error bit).
->>
->> olli@dl160:~/src/media_tree/drivers/media/dvb-frontends$ git log
->> --oneline si2168.c
->>
->> d4b3830 Revert "[media] si2168: add support for gapped clock"
->> eb62eb1 Revert "[media] si2168: add I2C error handling"
->> 7adf99d [media] si2168: add I2C error handling
->> 8117a31 [media] si2168: add support for gapped clock
->> 17d4d6a [media] si2168: add support for 1.7MHz bandwidth
->> 683e98b [media] si2168: return error if set_frontend is called with
->> invalid para
->> c32b281 [media] si2168: change firmware variable name and type
->> 9b7839c [media] si2168: print chip version
->>
->> dmesg lines when it fails (this is with a card that has worked before):
->>
->> [66661.336898] saa7164[0]: registered device video0 [mpeg]
->> [66661.567295] saa7164[0]: registered device video1 [mpeg]
->> [66661.778660] saa7164[0]: registered device vbi0 [vbi]
->> [66661.778817] saa7164[0]: registered device vbi1 [vbi]
->> [66675.175508] si2168:si2168_init: si2168 2-0064:
->> [66675.187299] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution
->> took 6 ms
->> [66675.194105] si2168:si2168_cmd_execute: si2168 2-0064: cmd execution
->> took 2 ms [OLLI: The result of this I2C cmd must be bogus]
->> [66675.194110] si2168 2-0064: unknown chip version Si2168-
->> [66675.200244] si2168:si2168_init: si2168 2-0064: failed=-22
->> [66675.213020] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
->> [66675.242856] si2157 0-0060: firmware version: 3.0.5
->
->
-> Okei, so it has been working earlier... Could you enable I2C debugs to see
-> what kind of data that command returns?
->
-> What I suspect in first hand is that Windows driver has downloaded firmware
-> to chip and linux driver does it again, but with incompatible firmware,
-> which leads to situation it starts failing. But if that is issue you likely
-> already noted it.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
+	Hans
+
+> 
+> Best wishes,
+> Kamil Debski
+> 
+> Changes since v5
+> ================
+> - drop struct cec_timeval in favour of a __u64 that keeps the timestamp in ns
+> - remove userspace documentation from Documentation/cec.txt as userspace API
+>   is described in the DocBook
+> - add missing documentation for the passthrough mode to the DocBook
+> - add information about the number of events that can be queued
+> - fix misspelling of reply
+> - fix behaviour of posting an event in cec_received_msg, such that the behaviour
+>   is consistent with the documentation
+> 
+> Changes since v4
+> ================
+> - add sequence numbering to transmitted messages
+> - add sequence number handling to event hanlding
+> - add passthrough mode
+> - change reserved field sizes
+> - fixed CEC version defines and addec CEC 2.0 commands
+> - add DocBook documentation
+> 
+> Changes since v3
+> ================
+> - remove the promiscuous mode
+> - rewrite the devicetree patches
+> - fixes, expansion and partial rewrite of the documentation
+> - reorder of API structures and addition of reserved fields
+> - use own struct to report time (32/64 bit safe)
+> - fix of handling events
+> - add cec.h to include/uapi/linux/Kbuild
+> - fixes in the adv76xx driver (add missing methods, change adv7604 to adv76xx)
+> - cleanup of debug messages in s5p-cec driver
+> - remove non necessary claiming of a gpio in the s5p-cec driver
+> - cleanup headers of the s5p-cec driver
+> 
+> Changes since v2
+> ===============-
+> - added promiscuous mode
+> - added new key codes to the input framework
+> - add vendor ID reporting
+> - add the possibility to clear assigned logical addresses
+> - cleanup of the rc cec map
+> 
+> Changes since v1
+> ================
+> - documentation edited and moved to the Documentation folder
+> - added key up/down message handling
+> - add missing CEC commands to the cec.h file
+> 
+> Background
+> ==========
+> 
+> The work on a common CEC framework was started over three years ago by Hans
+> Verkuil. Unfortunately the work has stalled. As I have received the task of
+> creating a driver for the CEC interface module present on the Exynos range of
+> SoCs, I got in touch with Hans. He replied that the work stalled due to his
+> lack of time.
+> 
+> Original RFC by Hans Verkuil/Martin Bugge
+> =========================================
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
+> 
+> 
+> Hans Verkuil (5):
+>   cec: add HDMI CEC framework
+>   DocBook/media: add CEC documentation
+>   v4l2-subdev: add HDMI CEC ops
+>   cec: adv7604: add cec support.
+>   cec: adv7511: add cec support.
+> 
+> Kamil Debski (6):
+>   dts: exynos4*: add HDMI CEC pin definition to pinctrl
+>   dts: exynos4: add node for the HDMI CEC device
+>   dts: exynos4412-odroid*: enable the HDMI CEC device
+>   HID: add HDMI CEC specific keycodes
+>   rc: Add HDMI CEC protoctol handling
+>   cec: s5p-cec: Add s5p-cec driver
+> 
+>  Documentation/DocBook/media/Makefile               |    4 +-
+>  Documentation/DocBook/media/v4l/biblio.xml         |   10 +
+>  Documentation/DocBook/media/v4l/cec-api.xml        |   74 ++
+>  Documentation/DocBook/media/v4l/cec-func-close.xml |   59 +
+>  Documentation/DocBook/media/v4l/cec-func-ioctl.xml |   73 ++
+>  Documentation/DocBook/media/v4l/cec-func-open.xml  |   94 ++
+>  Documentation/DocBook/media/v4l/cec-func-poll.xml  |   89 ++
+>  .../DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml |  275 +++++
+>  .../DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml |   78 ++
+>  .../DocBook/media/v4l/cec-ioc-g-adap-state.xml     |   87 ++
+>  Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml |  173 +++
+>  .../DocBook/media/v4l/cec-ioc-g-event.xml          |  125 ++
+>  .../DocBook/media/v4l/cec-ioc-g-passthrough.xml    |   88 ++
+>  .../DocBook/media/v4l/cec-ioc-g-vendor-id.xml      |   70 ++
+>  .../DocBook/media/v4l/cec-ioc-receive.xml          |  185 +++
+>  Documentation/DocBook/media_api.tmpl               |    6 +-
+>  Documentation/cec.txt                              |  165 +++
+>  .../devicetree/bindings/media/s5p-cec.txt          |   33 +
+>  arch/arm/boot/dts/exynos4.dtsi                     |   12 +
+>  arch/arm/boot/dts/exynos4210-pinctrl.dtsi          |    7 +
+>  arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |    4 +
+>  arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |    7 +
+>  drivers/media/Kconfig                              |    6 +
+>  drivers/media/Makefile                             |    2 +
+>  drivers/media/cec.c                                | 1191 ++++++++++++++++++++
+>  drivers/media/i2c/adv7511.c                        |  347 +++++-
+>  drivers/media/i2c/adv7604.c                        |  207 +++-
+>  drivers/media/platform/Kconfig                     |   10 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/s5p-cec/Makefile            |    4 +
+>  drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |   37 +
+>  .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   |  208 ++++
+>  drivers/media/platform/s5p-cec/regs-cec.h          |   96 ++
+>  drivers/media/platform/s5p-cec/s5p_cec.c           |  283 +++++
+>  drivers/media/platform/s5p-cec/s5p_cec.h           |   76 ++
+>  drivers/media/rc/keymaps/Makefile                  |    1 +
+>  drivers/media/rc/keymaps/rc-cec.c                  |  144 +++
+>  drivers/media/rc/rc-main.c                         |    1 +
+>  include/media/adv7511.h                            |    6 +-
+>  include/media/cec.h                                |  142 +++
+>  include/media/rc-core.h                            |    1 +
+>  include/media/rc-map.h                             |    5 +-
+>  include/media/v4l2-subdev.h                        |    8 +
+>  include/uapi/linux/Kbuild                          |    1 +
+>  include/uapi/linux/cec.h                           |  332 ++++++
+>  include/uapi/linux/input.h                         |   12 +
+>  46 files changed, 4824 insertions(+), 15 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-state.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-passthrough.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-vendor-id.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+>  create mode 100644 Documentation/cec.txt
+>  create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
+>  create mode 100644 drivers/media/cec.c
+>  create mode 100644 drivers/media/platform/s5p-cec/Makefile
+>  create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+>  create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+>  create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
+>  create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
+>  create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
+>  create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+>  create mode 100644 include/media/cec.h
+>  create mode 100644 include/uapi/linux/cec.h
+> 
+
