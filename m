@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41796 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752086AbbFJURh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 16:17:37 -0400
-Date: Wed, 10 Jun 2015 17:17:32 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andy Furniss <adf.lists@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt to work
- when recording.
-Message-ID: <20150610171732.49e60671@recife.lan>
-In-Reply-To: <20150610155047.25b92662@recife.lan>
-References: <556E2D5B.5080201@gmail.com>
-	<20150610095215.79e5e77e@recife.lan>
-	<55787382.5010607@gmail.com>
-	<20150610155047.25b92662@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:48161 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757368AbbFPJ1C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2015 05:27:02 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 2/3] v4l2-utils gtf: use round instead of roundown for v_lines_rnd
+Date: Tue, 16 Jun 2015 14:47:51 +0530
+Message-Id: <1434446272-21256-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
+References: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Jun 2015 15:50:47 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+GTF standards document specifies to use round() for v_lines_rnd
+calculations. This change will affect only if image height is odd.
 
-> Em Wed, 10 Jun 2015 18:27:30 +0100
-> Andy Furniss <adf.lists@gmail.com> escreveu:
-> 
-> > Mauro Carvalho Chehab wrote:
-> > 
-> > > Just applied a fix for it:
-> > > 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=c7c9af17163f282a147ea76f1a3c0e9a0a86e7fa
-> > >
-> > > It will retry up to 10 times. This should very likely be enough if the
-> > > driver doesn't have any bug.
-> > >
-> > > Please let me know if this fixes the issue.
-> > 
-> > No, it doesn't, so I reverted the above and added back my hack + a 
-> > counter as below and it seems to be retrying > a million times.
-> 
-> Hmm.... that's likely a bug at the demod driver. It doesn't make much
-> sense to keep a mutex hold for that long. 
-> 
-> Anyway, I modified the patch to use a timeout of 1 second, instead of
-> trying 10 times. It is still a hack, as IMHO this is a driver bug,
-> but it should produce a better result.
-> 
-> Please check if the patch below works for you.
-> 
-> You may change the MAX_TIME there if 1 second is not enough.
-> 
-> It could be interesting if you add a printf with the difference
-> between start and end time, for us to have an idea about how
-> much time the driver is kept on such unreliable state.
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-modes.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Actually, there was an error on that patch. I did some tests here
-with a PCTV 292e. While I was not able to reproduce the issue
-you're reporting, I forced some errors. The patch should be
-working. The only question is if 1 second is enough or not.
+diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+index ef528c0..d65cd75 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+@@ -410,7 +410,7 @@ bool calc_gtf_modeline(int image_width, int image_height,
+ 
+ 	if (interlaced) {
+ 		interlace = 1;
+-		v_lines_rnd = v_lines / 2;
++		v_lines_rnd = (v_lines + 1) / 2;
+ 		v_refresh = v_refresh * 2;
+ 	} else {
+ 		interlace = 0;
+-- 
+1.9.1
 
-So, please test.
-
-PS.: the patch was already merged upstream.
-
-Regards,
-Mauro
