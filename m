@@ -1,121 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39879 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752770AbbFICtJ (ORCPT
+Received: from bgl-iport-3.cisco.com ([72.163.197.27]:11187 "EHLO
+	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757202AbbFPJ0s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 22:49:09 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 804D62A0095
-	for <linux-media@vger.kernel.org>; Tue,  9 Jun 2015 04:49:01 +0200 (CEST)
-Date: Tue, 09 Jun 2015 04:49:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 16 Jun 2015 05:26:48 -0400
+From: Prashant Laddha <prladdha@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150609024901.804D62A0095@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [PATCH 3/3] v4l2-utils: fix pixel clock calc for cvt reduced blanking
+Date: Tue, 16 Jun 2015 14:47:52 +0530
+Message-Id: <1434446272-21256-4-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
+References: <1434446272-21256-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+In case of CVT reduced blanking, pixel clock calculation does not
+use h period estimates, it rather directly uses refresh rate and
+total vertical lines. This difference can lead to a minor mismatch
+between the pixel clocks calculated by v4l2-utils and the standards
+spreadsheet.
 
-Results of the daily build of media_tree:
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-modes.cpp | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-date:		Tue Jun  9 04:00:15 CEST 2015
-git branch:	test
-git hash:	ec8f3386a7ef6af7f185aba486402e82cd84b0ad
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+index d65cd75..7768998 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+@@ -139,6 +139,7 @@ bool calc_cvt_modeline(int image_width, int image_height,
+ 	int active_h_pixel;
+ 	int active_v_lines;
+ 	int total_h_pixel;
++	int total_v_lines;
+ 
+ 	int h_blank;
+ 	int v_blank;
+@@ -229,6 +230,10 @@ bool calc_cvt_modeline(int image_width, int image_height,
+ 
+ 		h_bp = h_blank / 2;
+ 		h_fp = h_blank - h_bp - h_sync;
++
++		pixel_clock =  ((long long)total_h_pixel * HV_FACTOR * 1000000)
++				/ h_period;
++		pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
+ 	} else {
+ 		/* Reduced blanking */
+ 
+@@ -247,11 +252,12 @@ bool calc_cvt_modeline(int image_width, int image_height,
+ 		if (vbi_lines < (CVT_RB_V_FPORCH + v_sync + CVT_MIN_V_BPORCH))
+ 			vbi_lines = CVT_RB_V_FPORCH + v_sync + CVT_MIN_V_BPORCH;
+ 
+-		total_h_pixel = active_h_pixel + CVT_RB_H_BLANK;
+-
+ 		h_blank = CVT_RB_H_BLANK;
+ 		v_blank = vbi_lines;
+ 
++		total_h_pixel = active_h_pixel + h_blank;
++		total_v_lines = active_v_lines + v_blank;
++
+ 		h_sync = CVT_RB_H_SYNC;
+ 
+ 		h_bp = h_blank / 2;
+@@ -259,11 +265,11 @@ bool calc_cvt_modeline(int image_width, int image_height,
+ 
+ 		v_fp = CVT_RB_V_FPORCH;
+ 		v_bp = v_blank - v_fp - v_sync;
+-	}
+ 
+-	pixel_clock =  ((long long)total_h_pixel * HV_FACTOR * 1000000)
+-			/ h_period;
+-	pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
++		pixel_clock = v_refresh * total_h_pixel *
++			      (2 * total_v_lines + interlace) / 2;
++		pixel_clock -= pixel_clock  % CVT_PXL_CLK_GRAN;
++	}
+ 
+ 	cvt->standards 	 = V4L2_DV_BT_STD_CVT;
+ 
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
