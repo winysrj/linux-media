@@ -1,109 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:34650 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756AbbFXPL1 (ORCPT
+Received: from fep18.mx.upcmail.net ([62.179.121.38]:40650 "EHLO
+	fep18.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754666AbbFPNRt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 11:11:27 -0400
-Received: by wicnd19 with SMTP id nd19so137764882wic.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:25 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 00/12] Add c8sectpfe LinuxDVB demux driver
-Date: Wed, 24 Jun 2015 16:10:58 +0100
-Message-Id: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	Tue, 16 Jun 2015 09:17:49 -0400
+Message-ID: <558021FA.5010509@chello.at>
+Date: Tue, 16 Jun 2015 15:17:46 +0200
+From: Hurda <hurda@chello.at>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: si2168/dvbsky - blind-scan for DVB-T2 with PLP fails
+References: <556644C7.8040701@chello.at> <5566A70A.1090805@iki.fi> <55708CB2.8090502@chello.at> <5570A6F9.1030004@iki.fi> <5572FE86.9010707@chello.at> <5573010C.6000402@iki.fi>
+In-Reply-To: <5573010C.6000402@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maruro,
+(Resending as the first try apparently hasn't made it onto the mailing-list)
 
-This patchset adds support for a LinuxDVB demux driver for the
-ST STB stih407 family SoC's. It is what I spoke to you about
-when we met at ELC-E in Dusseldorf last year.
 
-One advantage of having a upstream demux driver implementation for ST
-SoC's is that it will be easier to add support and maintain existing support
-for the ST demodulators and tuners which are upstream. As this driver allows
-ST NIM daughter boards (which typically have a tuner/demod combination)
-to be used with a upstream kernel.
+On 06.06.2015 16:17, Antti Palosaari wrote:
+> On 06/06/2015 05:07 PM, Hurda wrote:
+>> Thanks, this worked.
+>> The kernel of Ubuntu 15.04 already was compiled with dynamic debug,
+>> which saved
+>> me a lot of time.
+>> The driver is properly setting stream_id to 1 when needed.
+>>
+>> I tried again with the vanilla source and "cmd.args[2] = 0;".
+>> With the vanilla source, it doesn't find any T2-transponders.
+>
+> You mean with vanilla source, but without that "cmd.args[2] = 0;" hack it does
+> not find any transponders?
+>
 
-This initial patchset adds support for the following demux HW called c8sectpfe: -
-* Input Block HW
-* HW PID filtering
-* memdma engine (moves TS from sram to RAM)
+No T2-transponders, no.
+With "cmd.args[2] = 0;" the number of found T2-transponders is changing with 
+every scan.
+Using the dvbsky-driver, the scan always finds all four T2-transponders.
 
-The driver creates one Linux DVB adapter, and each tsin channel which is
-described in DT has a set of LDVB dev nodes.
+>
+>> With the modified source, the number of found transponders changes every
+>> time
+>
+> You mean with source, modified with that "cmd.args[2] = 0;" hack it finds
+> transponders, but not always?
+>
+> If that is difference, then it sounds just like application is requesting some
+> PLP, probably 0, and it will not work as your network delivers channels using
+> PLP 1.
+>
+> "cmd.args[2] = 0;" disables PLP filtering - it sets auto mode. Why it likely
+> does not find all channels is too short timeout.
+>
+> Increase timeout value to 3 second, 900 => 3000, in funtion
+> si2168_get_tune_settings()
 
-Currently the driver supports 7 tsin channels. This driver has been tested with
-the stih407-b2120 board and stih410-b2120 reference design boards, and currently
-we support the following DVB fronend cards:
- - STMicroelectronics DVB-T B2100A (STV0367 + TDA18212)
- - STMicroelectronics DVB-T STV0367 PLL board (STV0367 + DTT7546X)
- - STMicroelectronics DVB-S/S2 STV0903 + STV6110 + LNBP24 board
+No difference, even with 10000. Tried that timeout with "cmd.args[2] = 0;" and 
+"cmd.args[2] = c->stream_id == NO_STREAM_ID_FILTER ? 0 : 1;"
 
-There are also some small changes to dvb-pll.c and stv0367.c to get these
-NIM daughterboards working correctly.
+> You didn't provide any debugs to see what PLP ID your application is
+> requesting. It is the most important thing I would like to know, as I suspect
+> it is wrong.
+>
+> regards
+> Antti
+>
 
-regards,
-
-Peter.
-
-p.s. The series which adds pinctrl config used by this driver is
-https://lkml.org/lkml/2015/6/10/377
-
-Peter Griffin (12):
-  ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
-  [media] dvb-pll: Add support for THOMSON DTT7546X tuner.
-  [media] stv0367: Refine i2c error trace to include i2c address
-  [media] stv0367: Add support for 16Mhz reference clock
-  [media] tsin: c8sectpfe: Add DT bindings documentation for c8sectpfe
-    driver.
-  ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
-  [media] tsin: c8sectpfe: STiH407/10 Linux DVB demux support
-  [media] tsin: c8sectpfe: Add LDVB helper functions.
-  [media] tsin: c8sectpfe: Add support for various ST NIM cards.
-  [media] tsin: c8sectpfe: Add c8sectpfe debugfs support.
-  [media] tsin: c8sectpfe: Add Kconfig and Makefile for the driver.
-  MAINTAINERS: Add c8sectpfe driver directory to STi section
-
- .../bindings/media/stih407-c8sectpfe.txt           |   90 ++
- MAINTAINERS                                        |    1 +
- arch/arm/boot/dts/stihxxx-b2120.dtsi               |   60 +-
- drivers/media/Kconfig                              |    1 +
- drivers/media/Makefile                             |    1 +
- drivers/media/dvb-frontends/dvb-pll.c              |   74 +-
- drivers/media/dvb-frontends/dvb-pll.h              |    1 +
- drivers/media/dvb-frontends/stv0367.c              |   17 +-
- drivers/media/tsin/c8sectpfe/Kconfig               |   26 +
- drivers/media/tsin/c8sectpfe/Makefile              |   11 +
- drivers/media/tsin/c8sectpfe/c8sectpfe-common.c    |  266 +++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-common.h    |   66 ++
- drivers/media/tsin/c8sectpfe/c8sectpfe-core.c      | 1105 ++++++++++++++++++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-core.h      |  288 +++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-debugfs.c   |  271 +++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-debugfs.h   |   26 +
- drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c       |  296 ++++++
- drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h       |   20 +
- include/dt-bindings/media/c8sectpfe.h              |   14 +
- 19 files changed, 2617 insertions(+), 17 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
- create mode 100644 drivers/media/tsin/c8sectpfe/Kconfig
- create mode 100644 drivers/media/tsin/c8sectpfe/Makefile
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-common.c
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-common.h
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-core.c
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-core.h
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-debugfs.c
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-debugfs.h
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.c
- create mode 100644 drivers/media/tsin/c8sectpfe/c8sectpfe-dvb.h
- create mode 100644 include/dt-bindings/media/c8sectpfe.h
-
--- 
-1.9.1
-
+Debug-logs:
+http://www.mediafire.com/download/8j4s9oytsfv9s40/si2168-dvbsky_debug_logs.zip
+Made with the vanilla tree and "cmd.args[2] = 0;", and timeout 900 (default) and 
+3000msec.
