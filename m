@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42047 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736AbbFFMDV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 08:03:21 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/9] v4l2: add RF gain control
-Date: Sat,  6 Jun 2015 15:03:01 +0300
-Message-Id: <1433592188-31748-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
-References: <1433592188-31748-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:35035 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752728AbbFPUpw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2015 16:45:52 -0400
+Received: by labko7 with SMTP id ko7so19573390lab.2
+        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2015 13:45:50 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 16 Jun 2015 22:45:50 +0200
+Message-ID: <CAB0z4NovukS8xV2azaq1JCkn32V9r0HtCeOsOjrmecVkRGsf-Q@mail.gmail.com>
+Subject: Support for EVOLVEO XtraTV stick
+From: CIJOML CIJOMLovic <cijoml@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new RF tuner gain control named RF gain. That is aimed for
-external LNA (amplifier) chip just right after antenna connector.
+Hello guys,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
+please find out down this email patch to support EVOLVEO XtraTV stick.
+This tuner is for android phones with microusb connecter, however with
+reduction it works perfectly with linux kernel:
+The device identify itself at USB bus as Bus 002 Device 004: ID
+1f4d:a115 G-Tek Electronics Group
+so I have created new vendor group but device named as its commercial name.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e3a3468..0fc34b8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -888,6 +888,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
- 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:	return "RF Gain, Auto";
-+	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
-@@ -960,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_RF_TUNER_RF_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
-@@ -1161,6 +1164,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_RF_TUNER_RF_GAIN:
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
- 	case V4L2_CID_RF_TUNER_IF_GAIN:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 9f6e108..87539be 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -932,6 +932,8 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
- #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
-+#define V4L2_CID_RF_TUNER_RF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 31)
-+#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
- #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
- #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
- #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
--- 
-http://palosaari.fi/
+Thank you for merging this patch to upstream
 
+Best regards
+
+Michal
+
+
+diff -urN media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
+--- media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
+2015-05-11 13:20:08.000000000 +0200
++++ media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
+2015-06-16 22:26:01.917990493 +0200
+@@ -70,6 +70,8 @@
+ #define USB_VID_EVOLUTEPC            0x1e59
+ #define USB_VID_AZUREWAVE            0x13d3
+ #define USB_VID_TECHNISAT            0x14f7
++#define USB_VID_GTEK                0x1f4d
++
+
+ /* Product IDs */
+ #define USB_PID_ADSTECH_USB2_COLD            0xa333
+@@ -388,4 +390,5 @@
+ #define USB_PID_PCTV_2002E_SE                           0x025d
+ #define USB_PID_SVEON_STV27                             0xd3af
+ #define USB_PID_TURBOX_DTT_2000                         0xd3a4
++#define USB_PID_EVOLVEO_XTRATV_STICK            0xa115
+ #endif
+diff -urN media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+--- media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+2015-05-30 17:32:46.000000000 +0200
++++ media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+2015-06-16 22:26:14.561990868 +0200
+@@ -2075,6 +2075,8 @@
+         &af9035_props, "PCTV AndroiDTV (78e)", RC_MAP_IT913X_V1) },
+     { DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
+         &af9035_props, "PCTV microStick (79e)", RC_MAP_IT913X_V2) },
++    { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_EVOLVEO_XTRATV_STICK,
++        &af9035_props, "EVOLVEO XtraTV stick", RC_MAP_IT913X_V2) },
+
+     /* IT930x devices */
+     { DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
+r
