@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:19974 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782AbbFFQzw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 12:55:52 -0400
-Date: Sat, 6 Jun 2015 19:55:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Shuah Khan <shuah.kh@samsung.com>,
-	Akihiro Tsukada <tskd08@gmail.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH] [media] dvb-core: prevent some corruption the legacy ioctl
-Message-ID: <20150606165521.GB28331@mwanda>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:50316 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753064AbbFQKfa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2015 06:35:30 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
+Date: Wed, 17 Jun 2015 18:39:38 +0800
+Message-ID: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quite a few of the ->diseqc_send_master_cmd() implementations don't
-check cmd->msg_len so it can lead to memory corruption.
+In the function configure_geometry(), we will setup the ISI CFG2
+according to the sensor output format.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+It make no sense to just read back the CFG2 register and just set part
+of it.
+
+So just set up this register directly makes things simpler.
+Currently only support YUV format from camera sensor.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
-I don't think it ever makes sense for ->msg_len to be longer than ->msg
-but I am a newbie to this code.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index a894d4c..aa6b48f 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2403,7 +2403,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 9070172..8bc40ca 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+ static int configure_geometry(struct atmel_isi *isi, u32 width,
+ 			u32 height, u32 code)
+ {
+-	u32 cfg2, cr;
++	u32 cfg2;
  
- 	case FE_DISEQC_SEND_MASTER_CMD:
- 		if (fe->ops.diseqc_send_master_cmd) {
--			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
-+			struct dvb_diseqc_master_cmd *cmd = parg;
-+
-+			if (cmd->msg_len > sizeof(cmd->msg)) {
-+				err = -EINVAL;
-+				break;
-+			}
-+			err = fe->ops.diseqc_send_master_cmd(fe, cmd);
- 			fepriv->state = FESTATE_DISEQC;
- 			fepriv->status = 0;
- 		}
++	/* According to sensor's output format to set cfg2 */
+ 	switch (code) {
+ 	/* YUV, including grey */
+ 	case MEDIA_BUS_FMT_Y8_1X8:
+-		cr = ISI_CFG2_GRAYSCALE;
++		cfg2 = ISI_CFG2_GRAYSCALE;
+ 		break;
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+-		cr = ISI_CFG2_YCC_SWAP_MODE_3;
++		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		cr = ISI_CFG2_YCC_SWAP_MODE_2;
++		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
+ 		break;
+ 	case MEDIA_BUS_FMT_YVYU8_2X8:
+-		cr = ISI_CFG2_YCC_SWAP_MODE_1;
++		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+-		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
++		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+ 		break;
+ 	/* RGB, TODO */
+ 	default:
+@@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+ 	}
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+-
+-	cfg2 = isi_readl(isi, ISI_CFG2);
+-	/* Set YCC swap mode */
+-	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
+-	cfg2 |= cr;
+ 	/* Set width */
+-	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
+ 	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
+ 			ISI_CFG2_IM_HSIZE_MASK;
+ 	/* Set height */
+-	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
+ 	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+ 			& ISI_CFG2_IM_VSIZE_MASK;
+ 	isi_writel(isi, ISI_CFG2, cfg2);
+-- 
+1.9.1
+
