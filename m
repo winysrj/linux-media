@@ -1,92 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:46349 "EHLO
-	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751899AbbFEUL6 (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:48491 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbbFQKXR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 16:11:58 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: define Media Controller API when CONFIG_MEDIA_CONTROLLER enabled
-Date: Fri,  5 Jun 2015 14:11:54 -0600
-Message-Id: <1433535114-5493-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 17 Jun 2015 06:23:17 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH] media: atmel-isi: increase timeout to disable/enable isi
+Date: Wed, 17 Jun 2015 18:27:08 +0800
+Message-ID: <1434536828-21621-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change to define Media Controller API when CONFIG_MEDIA_CONTROLLER
-is enabled. Define stubs for CONFIG_MEDIA_CONTROLLER disabled case.
-This will help avoid drivers needing to enclose Media Controller
-code within ifdef CONFIG_MEDIA_CONTROLLER block.
+If ISI is working on a 1024x768 or higher resolution, it needs longer
+time to disable ISI. So this patch will increase timeout to 500ms.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/media-device.c |  4 ++++
- include/media/media-device.h | 27 +++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index a4d5b24..c55ab50 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -30,6 +30,8 @@
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
+ drivers/media/platform/soc_camera/atmel-isi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 1482af2..354b7db 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -219,7 +219,7 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
+ 	}
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
- /* -----------------------------------------------------------------------------
-  * Userspace API
-  */
-@@ -495,3 +497,5 @@ struct media_device *media_device_find_devres(struct device *dev)
- 	return devres_find(dev, media_device_release_devres, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(media_device_find_devres);
-+
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 22792cd..a44f18f 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -80,6 +80,8 @@ struct media_device {
- 			   unsigned int notification);
- };
+ 	timeout = wait_for_completion_timeout(&isi->complete,
+-			msecs_to_jiffies(100));
++			msecs_to_jiffies(500));
+ 	if (timeout == 0)
+ 		return -ETIMEDOUT;
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
- /* Supported link_notify @notification values. */
- #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
- #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
-@@ -102,4 +104,29 @@ struct media_device *media_device_find_devres(struct device *dev);
- #define media_device_for_each_entity(entity, mdev)			\
- 	list_for_each_entry(entity, &(mdev)->entities, list)
- 
-+#else
-+static inline int media_device_register(struct media_device *mdev)
-+{
-+	return 0;
-+}
-+static inline void media_device_unregister(struct media_device *mdev)
-+{
-+}
-+static inline int media_device_register_entity(struct media_device *mdev,
-+						struct media_entity *entity)
-+{
-+	return 0;
-+}
-+static inline void media_device_unregister_entity(struct media_entity *entity)
-+{
-+}
-+static inline struct media_device *media_device_get_devres(struct device *dev)
-+{
-+	return NULL;
-+}
-+static inline struct media_device *media_device_find_devres(struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_MEDIA_CONTROLLER */
- #endif
 -- 
-2.1.4
+1.9.1
 
