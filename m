@@ -1,181 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm7-vm5.access.bullet.mail.gq1.yahoo.com ([216.39.63.125]:38868
-	"EHLO nm7-vm5.access.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753381AbbFDB3A (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:35091 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754959AbbFQMLN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 21:29:00 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 04 Jun 2015 13:22:25 +1200
-From: faulkner-ball <faulkner-ball@xtra.co.nz>
-To: Stephen Allan <stephena@intellectit.com.au>
-Cc: linux-media@vger.kernel.org, linux-media-owner@vger.kernel.org
-Subject: RE: Hauppauge WinTV-HVR2205 driver feedback
-Reply-To: faulkner-ball@xtra.co.nz
-In-Reply-To: <d5b30de9fc234bd7b4bbf3d1cbcc8ffc@IITMAIL.intellectit.local>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
- <556EB2F7.506@iki.fi> <556EB4B0.8050505@iki.fi>
- <d5b30de9fc234bd7b4bbf3d1cbcc8ffc@IITMAIL.intellectit.local>
-Message-ID: <8b2be8c2a67eb3b6a4d15f2449735d8f@faulkner-ball.ddns.net>
+	Wed, 17 Jun 2015 08:11:13 -0400
+Received: by wiga1 with SMTP id a1so137451496wig.0
+        for <linux-media@vger.kernel.org>; Wed, 17 Jun 2015 05:11:12 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, treding@nvidia.com, airlied@redhat.com,
+	sumit.semwal@linaro.org, gnomes@lxorguk.ukuu.org.uk,
+	weigelt@melag.de
+Cc: tom.gall@linaro.org, linaro-mm-sig@lists.linaro.org,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 2/2] SMAF: add CMA allocator
+Date: Wed, 17 Jun 2015 14:10:52 +0200
+Message-Id: <1434543052-18795-3-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1434543052-18795-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1434543052-18795-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The board has multiple "chips", each of which are detected and 
-configured as part of the driver loading.
+SMAF CMA allocator implement helpers functions to allow SMAF
+to allocate contiguous memory.
 
-saa7164
-This chip requires firmware which appears to load correctly at 20.240637
+match() each if at least one of the attached devices have coherent_dma_mask
+set to DMA_BIT_MASK(32).
 
+For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
+dma_alloc_writecombine to be compatible with ARM 64bits architecture
 
-si2168
-This chip requires firmware
-The chip is detected and "loaded" but the chip version is not 
-identified, so the firmware load does not occur.
-As this is a dual tuner card, there are 2 of these chips.
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ drivers/smaf/Kconfig    |   6 ++
+ drivers/smaf/Makefile   |   1 +
+ drivers/smaf/smaf-cma.c | 198 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 205 insertions(+)
+ create mode 100644 drivers/smaf/smaf-cma.c
 
+diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
+index d36651a..058ec4c 100644
+--- a/drivers/smaf/Kconfig
++++ b/drivers/smaf/Kconfig
+@@ -3,3 +3,9 @@ config SMAF
+ 	depends on DMA_SHARED_BUFFER
+ 	help
+ 	  Choose this option to enable Secure Memory Allocation Framework
++
++config SMAF_CMA
++	tristate "SMAF CMA allocator"
++	depends on SMAF && HAVE_DMA_ATTRS
++	help
++	  Choose this option to enable CMA allocation within SMAF
+diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
+index 40cd882..05bab01 100644
+--- a/drivers/smaf/Makefile
++++ b/drivers/smaf/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_SMAF) += smaf-core.o
++obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
+diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
+new file mode 100644
+index 0000000..b3ebd57
+--- /dev/null
++++ b/drivers/smaf/smaf-cma.c
+@@ -0,0 +1,198 @@
++/*
++ * smaf-cma.c
++ *
++ * Copyright (C) Linaro SA 2015
++ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include <linux/dma-mapping.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/smaf-allocator.h>
++
++struct smaf_cma_buffer_info {
++	struct device *dev;
++	size_t size;
++	void *vaddr;
++	dma_addr_t paddr;
++};
++
++/**
++ * find_matching_device - iterate over the attached devices to find one
++ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
++ * Matching device (if any) will be used to aim CMA area.
++ */
++static struct device *find_matching_device(struct dma_buf *dmabuf)
++{
++	struct dma_buf_attachment *attach_obj;
++
++	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
++		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
++			return attach_obj->dev;
++	}
++
++	return NULL;
++}
++
++/**
++ * smaf_cma_match - return true if at least one device has been found
++ */
++static bool smaf_cma_match(struct dma_buf *dmabuf)
++{
++	return !!find_matching_device(dmabuf);
++}
++
++static void smaf_cma_release(struct dma_buf *dmabuf)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	dma_free_attrs(info->dev, info->size, info->vaddr, info->paddr, &attrs);
++
++	kfree(info);
++}
++
++static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
++				     enum dma_data_direction direction)
++{
++	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
++	struct sg_table *sgt;
++	int ret;
++
++	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt)
++		return NULL;
++
++	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
++			      info->paddr, info->size);
++	if (ret < 0)
++		goto out;
++
++	sg_dma_address(sgt->sgl) = info->paddr;
++	return sgt;
++
++out:
++	kfree(sgt);
++	return NULL;
++}
++
++static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
++			   struct sg_table *sgt,
++			   enum dma_data_direction direction)
++{
++	/* do nothing */
++}
++
++static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++	int ret;
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	if (info->size < vma->vm_end - vma->vm_start)
++		return -EINVAL;
++
++	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
++	ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
++			     info->size, &attrs);
++
++	return ret;
++}
++
++static void *smaf_cma_vmap(struct dma_buf *dmabuf)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++
++	return info->vaddr;
++}
++
++static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++
++	return (void *)info->paddr + offset;
++}
++
++static struct dma_buf_ops smaf_cma_ops = {
++	.map_dma_buf = smaf_cma_map,
++	.unmap_dma_buf = smaf_cma_unmap,
++	.mmap = smaf_cma_mmap,
++	.release = smaf_cma_release,
++	.kmap_atomic = smaf_kmap_atomic,
++	.kmap = smaf_kmap_atomic,
++	.vmap = smaf_cma_vmap,
++};
++
++static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
++					 size_t length, unsigned int flags)
++{
++	struct dma_buf_attachment *attach_obj;
++	struct smaf_cma_buffer_info *info;
++	struct dma_buf *cma_dmabuf;
++	int ret;
++
++	DEFINE_DMA_BUF_EXPORT_INFO(export);
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return NULL;
++
++	info->size = round_up(length, PAGE_SIZE);
++	info->dev = find_matching_device(dmabuf);
++
++	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
++				      GFP_KERNEL | __GFP_NOWARN, &attrs);
++	if (!info->vaddr) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	export.ops = &smaf_cma_ops;
++	export.size = info->size;
++	export.flags = flags;
++	export.priv = info;
++
++	cma_dmabuf = dma_buf_export(&export);
++	if (IS_ERR(cma_dmabuf))
++		goto error;
++
++	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
++		dma_buf_attach(cma_dmabuf, attach_obj->dev);
++	}
++
++	return cma_dmabuf;
++
++error:
++	kfree(info);
++	return NULL;
++}
++
++struct smaf_allocator smaf_cma = {
++	.match = smaf_cma_match,
++	.allocate = smaf_cma_allocate,
++};
++
++static int __init smaf_cma_init(void)
++{
++	INIT_LIST_HEAD(&smaf_cma.list_node);
++	return smaf_register_allocator(&smaf_cma);
++}
++module_init(smaf_cma_init);
++
++static void __exit smaf_cma_deinit(void)
++{
++	smaf_unregister_allocator(&smaf_cma);
++}
++module_exit(smaf_cma_deinit);
++
++MODULE_DESCRIPTION("SMAF CMA module");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
+-- 
+1.9.1
 
-si2157
-this is the actual tuner chip, again there are 2 chips on the card, and 
-it does not need to load any firmware.
-The firmware version already in the chip is reported at 165512.480559 
-and 165518.024867
-
-both of the si21xx chips don't get the firmware loaded until the tuner 
-is accessed by an application, so the card appears to be loading 
-correctly, but will not tune.
-
-
-See my other post for a workaround.
-I'm sure one of the developers will provide a more elegant/correct 
-solution soon.
-
-
-Regards
-Peter
-
-
-On 04/06/2015 12:38 pm, Stephen Allan wrote:
-> Hi,
-> 
-> Just thought I'd clarify that in my case I haven't ever used this
-> board with Windows.  See a more detailed dmesg output below for
-> "saa7168" and "si21xx" messages.  From what I am seeing the firmware
-> is loading correctly.  However I may be wrong.
-> 
-> dmesg | grep 'saa7164\|si21'
-> [   18.112439] saa7164 driver loaded
-> [   18.113429] CORE saa7164[0]: subsystem: 0070:f120, board: Hauppauge
-> WinTV-HVR2205 [card=13,autodetected]
-> [   18.113435] saa7164[0]/0: found at 0000:03:00.0, rev: 129, irq: 16,
-> latency: 0, mmio: 0xf7800000
-> [   18.113470] saa7164 0000:03:00.0: irq 46 for MSI/MSI-X
-> [   18.270310] saa7164_downloadfirmware() no first image
-> [   18.270322] saa7164_downloadfirmware() Waiting for firmware upload
-> (NXP7164-2010-03-10.1.fw)
-> [   20.240635] saa7164_downloadfirmware() firmware read 4019072 bytes.
-> [   20.240637] saa7164_downloadfirmware() firmware loaded.
-> [   20.240642] saa7164_downloadfirmware() SecBootLoader.FileSize = 
-> 4019072
-> [   20.240648] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
-> [   20.240649] saa7164_downloadfirmware() BSLSize = 0x0
-> [   20.240650] saa7164_downloadfirmware() Reserved = 0x0
-> [   20.240650] saa7164_downloadfirmware() Version = 0x1661c00
-> [   27.096269] saa7164_downloadimage() Image downloaded, booting...
-> [   27.200300] saa7164_downloadimage() Image booted successfully.
-> [   29.936962] saa7164_downloadimage() Image downloaded, booting...
-> [   31.705407] saa7164_downloadimage() Image booted successfully.
-> [   31.750358] saa7164[0]: Hauppauge eeprom: model=151609
-> [   31.776446] si2168 22-0064: Silicon Labs Si2168 successfully 
-> attached
-> [   31.781307] si2157 20-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   31.781695] DVB: registering new adapter (saa7164)
-> [   31.781698] saa7164 0000:03:00.0: DVB: registering adapter 4
-> frontend 0 (Silicon Labs Si2168)...
-> [   31.782652] si2168 22-0066: Silicon Labs Si2168 successfully 
-> attached
-> [   31.785961] si2157 21-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   31.786340] DVB: registering new adapter (saa7164)
-> [   31.786342] saa7164 0000:03:00.0: DVB: registering adapter 5
-> frontend 0 (Silicon Labs Si2168)...
-> [   31.786562] saa7164[0]: registered device video1 [mpeg]
-> [   32.021659] saa7164[0]: registered device video2 [mpeg]
-> [   32.238336] saa7164[0]: registered device vbi0 [vbi]
-> [   32.238389] saa7164[0]: registered device vbi1 [vbi]
-> [165512.436662] si2168 22-0066: unknown chip version Si2168-
-> [165512.450315] si2157 21-0060: found a 'Silicon Labs Si2157-A30'
-> [165512.480559] si2157 21-0060: firmware version: 3.0.5
-> [165517.981155] si2168 22-0064: unknown chip version Si2168-
-> [165517.994620] si2157 20-0060: found a 'Silicon Labs Si2157-A30'
-> [165518.024867] si2157 20-0060: firmware version: 3.0.5
-> [165682.334171] si2168 22-0064: unknown chip version Si2168-
-> [165730.579085] si2168 22-0064: unknown chip version Si2168-
-> [165838.420693] si2168 22-0064: unknown chip version Si2168-
-> [166337.342437] si2168 22-0064: unknown chip version Si2168-
-> [167305.393572] si2168 22-0064: unknown chip version Si2168-
-> [170762.907071] si2168 22-0064: unknown chip version Si2168-
-> 
-> -----Original Message-----
-> From: Antti Palosaari [mailto:crope@iki.fi]
-> Sent: Wednesday, June 3, 2015 6:03 PM
-> To: Stephen Allan; linux-media@vger.kernel.org
-> Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-> 
-> On 06/03/2015 10:55 AM, Antti Palosaari wrote:
->> On 06/03/2015 06:55 AM, Stephen Allan wrote:
->>> I am aware that there is some development going on for the saa7164
->>> driver to support the Hauppauge WinTV-HVR2205.  I thought I would
->>> post some feedback.  I have recently compiled the driver as at
->>> 2015-05-31 using "media build tree".  I am unable to tune a channel.
->>> When running the following w_scan command:
->>> 
->>> w_scan -a4 -ft -cAU -t 3 -X > /tmp/tzap/channels.conf
->>> 
->>> I get the following error after scanning the frequency range for
->>> Australia.
->>> 
->>> ERROR: Sorry - i couldn't get any working frequency/transponder
->>>   Nothing to scan!!
->>> 
->>> At the same time I get the following messages being logged to the
->>> Linux console.
->>> 
->>> dmesg
->>> [165512.436662] si2168 22-0066: unknown chip version Si2168-
->>> [165512.450315] si2157 21-0060: found a 'Silicon Labs Si2157-A30'
->>> [165512.480559] si2157 21-0060: firmware version: 3.0.5
->>> [165517.981155] si2168 22-0064: unknown chip version Si2168-
->>> [165517.994620] si2157 20-0060: found a 'Silicon Labs Si2157-A30'
->>> [165518.024867] si2157 20-0060: firmware version: 3.0.5
->>> [165682.334171] si2168 22-0064: unknown chip version Si2168-
->>> [165730.579085] si2168 22-0064: unknown chip version Si2168-
->>> [165838.420693] si2168 22-0064: unknown chip version Si2168-
->>> [166337.342437] si2168 22-0064: unknown chip version Si2168-
->>> [167305.393572] si2168 22-0064: unknown chip version Si2168-
->>> 
->>> 
->>> Many thanks to the developers for all of your hard work.
->> 
->> Let me guess they have changed Si2168 chip to latest "C" version.
->> Driver supports only A and B (A20, A30 and B40). I have never seen C 
->> version.
-> 
-> gah, looking the driver I think that is not issue - it will likely
-> print "unknown chip version Si2168-C.." on that case already. However,
-> I remember I have seen that kind of issue earlier too, but don't
-> remember what was actual reason. Probably something to do with
-> firmware, wrong firmware and loading has failed? Could you make cold
-> boot, remove socket from the wallet and wait minute it really powers
-> down, then boot and look what happens.
-> 
-> regards
-> Antti
-> 
-> 
-> 
-> --
-> http://palosaari.fi/
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���b�{ay�ʇڙ�,j��f���h���z��w����+zf���h���~����i���z��w���?����&�)ߢ
