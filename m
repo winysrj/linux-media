@@ -1,88 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:34413 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbbFFHlf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2015 03:41:35 -0400
-Received: by igbhj9 with SMTP id hj9so30333806igb.1
-        for <linux-media@vger.kernel.org>; Sat, 06 Jun 2015 00:41:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5571AFBE.8050509@iki.fi>
-References: <CALzAhNW=Oei7_Nziozh3Mm+X_NNHvM5EdmPVPh9ajn5Aen9O2g@mail.gmail.com>
-	<557048EF.3040703@iki.fi>
-	<CAAZRmGw7NcDo8YJtYN5gC6DM23jtgqmGhhJUAa6VaEovX+qNdA@mail.gmail.com>
-	<CAAZRmGy_AwJfGzfDorx_=43xNQ3cB915GFnck-YJ0gu0W64xKw@mail.gmail.com>
-	<CALzAhNXWsv6O23yzRAx9L6TrKRvm9o7SdApsHjMgE3dpqUYpWA@mail.gmail.com>
-	<CAAZRmGxtzq1qX=JKusF_A+_0od8sY8LO_kN-6ZWge2E7GMoweA@mail.gmail.com>
-	<5571AFBE.8050509@iki.fi>
-Date: Sat, 6 Jun 2015 09:41:34 +0200
-Message-ID: <CAAZRmGyWXYUdEubcybwCM2Me4pBai6=M-2_iZv9bxPtAvu+AhQ@mail.gmail.com>
-Subject: Re: [PATCH][media] SI2168: Resolve unknown chip version errors with
- different HVR22x5 models
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50695 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752554AbbFQCt6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2015 22:49:58 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 161B12A0089
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2015 04:49:38 +0200 (CEST)
+Date: Wed, 17 Jun 2015 04:49:38 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150617024938.161B12A0089@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Indeed, the HVR-2205 I have works fine with that patch reverted and
-after setting REGLEN_0bit for the Si2168 chips in the saa7164-cards.
+Results of the daily build of media_tree:
 
-The chip detection and firmware load is correct now.
+date:		Wed Jun 17 04:00:18 CEST 2015
+git branch:	test
+git hash:	e42c8c6eb456f8978de417ea349eef676ef4385c
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-[ 2046.684246] si2168 2-0064: found a 'Silicon Labs Si2168-B40'
-[ 2046.684278] si2168 2-0064: downloading firmware from file
-'dvb-demod-si2168-b40-01.fw'
-[ 2049.242810] si2168 2-0064: firmware version: 4.0.11
-[ 2049.261896] si2157 0-0060: found a 'Silicon Labs Si2157-A30'
-[ 2049.294328] si2157 0-0060: firmware version: 3.0.5
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-I'll send the patches on to linux-media so Steven can evaluate the
-impact on other boards, if any.
+Detailed results are available here:
 
-Cheers,
--olli
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
 
-On 5 June 2015 at 16:18, Antti Palosaari <crope@iki.fi> wrote:
-> On 06/05/2015 04:40 PM, Olli Salonen wrote:
->>
->> Hi Steven,
->>
->> It seems to me that that part of the code is identical to your driver, no?
->>
->> The media_tree driver:
->>
->> retval = saa7164_api_i2c_read(bus,
->>                       msgs[i].addr,
->>                       0 /* reglen */,
->>                       NULL /* reg */, msgs[i].len, msgs[i].buf);
->>
->> It's exactly the same with a little bit different formatting.
->
->
-> And that looks correct.
->
-> But the patch which does not look correct, or is at least unclear, is that
-> [media] saa7164: Improvements for I2C handling
-> http://permalink.gmane.org/gmane.comp.video.linuxtv.scm/22211
->
-> First change does not have any effect as len should be zero in any case and
-> memcpy() should do nothing.
->
-> Second change looks something that is likely wrong. There is some hack which
-> increases data len. All that register len stuff is logically wrong - I2C
-> adapter handles just bytes and should not know nothing about client register
-> layout. OK, there is some exceptions (like af9035) where I2C firmware
-> actually knows register layout for some strange reason.
->
-> So could you remove that patch and test?
->
-> Antti
->
-> --
-> http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
