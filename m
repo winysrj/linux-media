@@ -1,51 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49068 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191AbbFEO2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 10:28:06 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 07/11] [media] tm6000: remove needless check
-Date: Fri,  5 Jun 2015 11:27:40 -0300
-Message-Id: <c849e2ce6d9085a6b3ee5c61db3d87a6ffa4c9b6.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433514004.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
+Received: from nasmtp01.atmel.com ([192.199.1.245]:23789 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753064AbbFQKfg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2015 06:35:36 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH 2/2] media: atmel-isi: move configure_geometry() to start_streaming()
+Date: Wed, 17 Jun 2015 18:39:39 +0800
+Message-ID: <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch reports a warning:
-	drivers/media/usb/tm6000/tm6000-video.c:646 tm6000_prepare_isoc() error: we previously assumed 'dev->urb_buffer' could be null (see line 624)
+As in set_fmt() function we only need to know which format is been set,
+we don't need to access the ISI hardware in this moment.
 
-This is not really a problem, but it actually shows that the check
-if urb_buffer is NULL is being done twice: at the if and at
-tm6000_alloc_urb_buffers().
+So move the configure_geometry(), which access the ISI hardware, to
+start_streaming() will make code more consistent and simpler.
 
-We don't need to do it twice. So, remove the extra check. The code
-become cleaner, and, as a collateral effect, smatch becomes happy.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index 77ce9efe1f24..5287d2960282 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -621,7 +621,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
- 		    dev->isoc_in.maxsize, size);
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 8bc40ca..b01086d 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Disable all interrupts */
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
  
++	ret = configure_geometry(isi, icd->user_width, icd->user_height,
++				icd->current_fmt->code);
++	if (ret < 0)
++		return ret;
++
+ 	spin_lock_irq(&isi->lock);
+ 	/* Clear any pending interrupt */
+ 	isi_readl(isi, ISI_STATUS);
+@@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct atmel_isi *isi = ici->priv;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+@@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
  
--	if (!dev->urb_buffer && tm6000_alloc_urb_buffers(dev) < 0) {
-+	if (tm6000_alloc_urb_buffers(dev) < 0) {
- 		tm6000_err("cannot allocate memory for urb buffers\n");
- 
- 		/* call free, as some buffers might have been allocated */
+-	/* Enable PM and peripheral clock before operate isi registers */
+-	pm_runtime_get_sync(ici->v4l2_dev.dev);
+-
+-	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
+-
+-	pm_runtime_put(ici->v4l2_dev.dev);
+-
+-	if (ret < 0)
+-		return ret;
+-
+ 	pix->width		= mf->width;
+ 	pix->height		= mf->height;
+ 	pix->field		= mf->field;
 -- 
-2.4.2
+1.9.1
 
