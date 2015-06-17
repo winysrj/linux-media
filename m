@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:34662 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686AbbFBBkZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2015 21:40:25 -0400
-Received: by payr10 with SMTP id r10so39016325pay.1
-        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2015 18:40:25 -0700 (PDT)
-Received: from [10.16.129.137] (napt.igel.co.jp. [219.106.231.132])
-        by mx.google.com with ESMTPSA id p9sm15827697pds.92.2015.06.01.18.40.22
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 01 Jun 2015 18:40:23 -0700 (PDT)
-From: "Damian Hobson-Garcia" <dhobsong@igel.co.jp>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [RFC] V4L2 codecs in user space
-Date: Tue, 02 Jun 2015 01:40:25 +0000
-Message-Id: <em1e648821-484a-48b8-afe4-beed2241343a@damian-pc>
-Reply-To: "Damian Hobson-Garcia" <dhobsong@igel.co.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=utf-8
+Received: from lists.s-osg.org ([54.187.51.154]:40198 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750900AbbFQLCy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2015 07:02:54 -0400
+Date: Wed, 17 Jun 2015 08:02:49 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Gabor Z. Papp" <gzpapp.lists@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: em28xx problem with 3.10-4.0
+Message-ID: <20150617080249.379eeb10@recife.lan>
+In-Reply-To: <x6oakedev9@gzp>
+References: <x6d212hdgj@gzp>
+	<x6d20wi1ml@gzp>
+	<20150616062056.34b4d4ef@recife.lan>
+	<x6oakedev9@gzp>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello All,
+Em Wed, 17 Jun 2015 08:32:26 +0200
+"Gabor Z. Papp" <gzpapp.lists@gmail.com> escreveu:
 
-I would like to ask for some comments about a plan to use user space 
-video codecs through the V4L interface.  I am thinking of a situation 
-similar to the one described on the linuxtv.org wiki at 
-http://www.linuxtv.org/wiki/index.php/V4L2_Userspace_Library
+> * Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> 
+> | Nothing. You just ran out of continuous memory. This driver
+> | requires long chunks of continuous memory for USB data transfer.
+> 
+> And there is no way to preset some mem?
+> Or do something to get the driver work again?
+> I don't think I'm using too much memory.
+> 
+> $ free
+>              total       used       free     shared    buffers     cached
+> Mem:       2073656     625696    1447960          0      21072     231096
+> -/+ buffers/cache:     373528    1700128
+> Swap:      1004056          0    1004056
 
-The basic premise is to use a FUSE-like driver to connect the standard 
-V4L2 api to a user space daemon that will work as an mem-to-mem driver 
-for decoding/encoding, compression/decompression and the like.  This 
-allows for codecs that are either partially or wholly implemented in 
-user space to be exposed through the standard kernel interface.
+>From your error logs, it failed to allocate the 3rd buffer (of a total of 5
+buffers) with a continuous block of 165.120 bytes on the DMA range.
 
-Before I dive in to implementing this I was hoping to get some comments 
-regarding the following:
+In order words, your system needs to have at least 5 non-fragmented buffers
+with 256KB each, on a memory region where the CPU can do DMA (e. g. 
+outside the high memory area).
 
-1. I haven't been able to find any implementation of the design 
-described in the wiki page.  Would anyone know if I have missed it?  
-Does this exist somewhere, even in part? It seems like that might be a 
-good place to start if possible.
+I'm not a memory management specialist, but I guess you could try to change
+some sysctl parameters or use a different memory allocator in order to avoid
+memory fragmentation.
 
-2. I think that this could be implemented as either an extension to FUSE 
-(like CUSE) or as a V4L2 device driver (that forwards requests through 
-the FUSE API).  I think that the V4L2  device driver would be 
-sufficient, but would the fact that there is no specific hardware tied 
-to it be an issue?  Should it instead be presented as a more generic 
-device?
+If you're a C programmer, an option would be to change the driver's code
+to optimize it for low memory usage, for example, to reduce the buffer size
+and increasing the number of buffers (at the cost of requiring more CPU
+and/or reducing the maximum size of the image). Another alternative would be
+to reserve the memory at the time the driver gets loaded.
 
-3. And of course anything else that comes to mind.
-
-Thank you,
-Damian
-
+Regards,
+Mauro
