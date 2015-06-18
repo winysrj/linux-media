@@ -1,45 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49654 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751973AbbFYJbP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39031 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbbFRURY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:31:15 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 14/15] media: rcar_vin: fill in bus_info field
-Date: Thu, 25 Jun 2015 10:31:08 +0100
-Message-Id: <1435224669-23672-15-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+	Thu, 18 Jun 2015 16:17:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH/RFC] v4l: vsp1: Align crop rectangle to even boundary for YUV formats
+Date: Thu, 18 Jun 2015 23:18:12 +0300
+Message-ID: <9503303.Op9lV3ecnM@avalon>
+In-Reply-To: <5559A030.4030301@igel.co.jp>
+References: <1430327133-8461-1-git-send-email-ykaneko0929@gmail.com> <2003077.85RPlhiJ1o@avalon> <5559A030.4030301@igel.co.jp>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+Hi Damian,
 
-Adapt rcar_vin_querycap() so that cap->bus_info is populated with
-something meaningful/unique.
+On Monday 18 May 2015 17:17:52 Damian Hobson-Garcia wrote:
+> On 2015-05-04 7:13 AM, Laurent Pinchart wrote:
+> > On Thursday 30 April 2015 14:22:02 Sergei Shtylyov wrote:
+> >> On 4/29/2015 8:05 PM, Yoshihiro Kaneko wrote:
+> >>> From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+> >>> 
+> >>> Make sure that there are valid values in the crop rectangle to ensure
+> >>> that the color plane doesn't get shifted when cropping.
+> >>> Since there is no distintion between 12bit and 16bit YUV formats in
+> >> 
+> >> Вistinсtion.
+> >> 
+> >>> at the subdev level, use the more restrictive 12bit limits for all YUV
+> >>> formats.
+> > 
+> > I would like to mention in the commit message that only the top coordinate
+> > constraints differ between the YUV formats, as the subsampling coefficient
+> > is always two in the horizontal direction.
+> 
+> I believe that the height value has the same constraint as the top.
 
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c |    1 +
- 1 file changed, 1 insertion(+)
+Sure, I meant only the vertical coordinates, sorry.
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 1023c5b..20f690d 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1800,6 +1800,7 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
- 	strlcpy(cap->card, "R_Car_VIN", sizeof(cap->card));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s%d", DRV_NAME, ici->nr);
- 
- 	return 0;
- }
+> > Do you foresee a use case for odd cropping top coordinates ?
+> 
+> There might be a case when you're blending surfaces together and one
+> extends beyond the boundary of the other and you want to clip away the
+> non-overlapping portions.
+
+Let's wait until someone requests support for that use case :-)
+
+> >>>   	if (rwpf->entity.type == VSP1_ENTITY_WPF) {
+> >>> -		sel->r.left = min_t(unsigned int, sel->r.left, 255);
+> >>> -		sel->r.top = min_t(unsigned int, sel->r.top, 255);
+> >>> +		int maxcrop =
+> > 
+> > I would declare maxcrop as an unsigned int.
+> > 
+> >>> +			format->code == MEDIA_BUS_FMT_AYUV8_1X32 ? 254 : 255;
+> >> 
+> >> I think you need an empty line here.
+> >> 
+> >>> +		sel->r.left = min_t(unsigned int, sel->r.left, maxcrop);
+> >>> +		sel->r.top = min_t(unsigned int, sel->r.top, maxcrop);
+> > 
+> > Is this needed ? Based on what I understand from the datasheet the WPF
+> > crops the image before passing it to the DMA engine. At that point YUV
+> > data isn't subsampled, so it looks like we don't need to restrict the
+> > left and top to even values.
+> 
+> I think that you're correct. There is no subsampling at this stage in
+> the pipeline so the maxcrop setting should be fine at 255 regardless of
+> the format.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
