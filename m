@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:8420 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbbFEINe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 04:13:34 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH] v4l2-dv-timing: avoid rounding twice in gtf hblank calc
-Date: Fri,  5 Jun 2015 13:43:31 +0530
-Message-Id: <1433492011-28939-1-git-send-email-prladdha@cisco.com>
+Received: from cantor2.suse.de ([195.135.220.15]:46759 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753954AbbFROIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2015 10:08:50 -0400
+From: Jan Kara <jack@suse.cz>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/10 v6] Helper to abstract vma handling in media layer
+Date: Thu, 18 Jun 2015 16:08:30 +0200
+Message-Id: <1434636520-25116-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, in gtf hblank calculations, the rounding is used twice,
-one at intermediate division and one at final state where hblank
-is rounded to nearest multiple of twice cell granularity. This
-error got introduced in commit d7ed5a3, where it missed combining
-the rounding step. Correcting the same in this patch.
+  Hello,
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+I'm sending the sixth version of my patch series to abstract vma handling from
+the various media drivers. Since the previous version I have added a patch to
+move mm helpers into a separate file and behind a config option. I also
+changed patch pushing mmap_sem down in videobuf2 core to avoid lockdep warning
+and NULL dereference Hans found in his testing. I've also included small
+fixups Andrew was carrying.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 7e15749..0d849fc 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -586,20 +586,22 @@ bool v4l2_detect_gtf(unsigned frame_height,
- 
- 		num = ((image_width * GTF_D_C_PRIME * (u64)hfreq) -
- 		      ((u64)image_width * GTF_D_M_PRIME * 1000));
--		den = hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000;
-+		den = (hfreq * (100 - GTF_D_C_PRIME) + GTF_D_M_PRIME * 1000) *
-+		      (2 * GTF_CELL_GRAN);
- 		h_blank = div_u64((num + (den >> 1)), den);
-+		h_blank *= (2 * GTF_CELL_GRAN);
- 	} else {
- 		u64 num;
- 		u32 den;
- 
- 		num = ((image_width * GTF_S_C_PRIME * (u64)hfreq) -
- 		      ((u64)image_width * GTF_S_M_PRIME * 1000));
--		den = hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000;
-+		den = (hfreq * (100 - GTF_S_C_PRIME) + GTF_S_M_PRIME * 1000) *
-+		      (2 * GTF_CELL_GRAN);
- 		h_blank = div_u64((num + (den >> 1)), den);
-+		h_blank *= (2 * GTF_CELL_GRAN);
- 	}
- 
--	h_blank = ((h_blank + GTF_CELL_GRAN) / (2 * GTF_CELL_GRAN)) *
--		  (2 * GTF_CELL_GRAN);
- 	frame_width = image_width + h_blank;
- 
- 	pix_clk = (image_width + h_blank) * hfreq;
--- 
-1.9.1
+After this patch set drivers have to know much less details about vmas, their
+types, and locking. Also quite some code is removed from them. As a bonus
+drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
+this series is to remove knowledge about mmap_sem locking from as many places a
+possible so that we can change it with reasonable effort.
 
+The core of the series is the new helper get_vaddr_frames() which is given a
+virtual address and it fills in PFNs / struct page pointers (depending on VMA
+type) into the provided array. If PFNs correspond to normal pages it also grabs
+references to these pages. The difference from get_user_pages() is that this
+function can also deal with pfnmap, and io mappings which is what the media
+drivers need.
+
+I have tested the patches with vivid driver so at least vb2 code got some
+exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
+exynos driver which is only for Samsung platform is completely untested).
+
+Andrew, can you please update the patches in mm three? Thanks!
+
+								Honza
+
+Changes since v5:
+* Moved mm helper into a separate file and behind a config option
+* Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
+  possible deadlock
+
+Changes since v4:
+* Minor cleanups and fixes pointed out by Mel and Vlasta
+* Added Acked-by tags
+
+Changes since v3:
+* Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
+* Fixed error path for exynos driver
+
+Changes since v2:
+* Renamed functions and structures as Mel suggested
+* Other minor changes suggested by Mel
+* Rebased on top of 4.1-rc2
+* Changed functions to get pointer to array of pages / pfns to perform
+  conversion if necessary. This fixes possible issue in the omap I may have
+  introduced in v2 and generally makes the API less errorprone.
