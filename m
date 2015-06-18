@@ -1,99 +1,575 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:32892 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbbFZIpv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 04:45:51 -0400
-Date: Fri, 26 Jun 2015 10:45:46 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: "Luis R. Rodriguez" <mcgrof@suse.com>
-Cc: Hyong-Youb Kim <hkim@cspi.com>,
-	Andy Walls <awalls@md.metrocast.net>, benh@kernel.crashing.org,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>, bp@suse.de,
-	andy@silverblocksystems.net, mchehab@osg.samsung.com,
-	dledford@redhat.com, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Message-ID: <20150626084546.GD26303@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com>
- <20150625173847.GH3005@wotan.suse.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150625173847.GH3005@wotan.suse.de>
+Received: from cantor2.suse.de ([195.135.220.15]:46800 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448AbbFROIy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2015 10:08:54 -0400
+From: Jan Kara <jack@suse.cz>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 10/10] mm: Move get_vaddr_frames() behind a config option
+Date: Thu, 18 Jun 2015 16:08:40 +0200
+Message-Id: <1434636520-25116-11-git-send-email-jack@suse.cz>
+In-Reply-To: <1434636520-25116-1-git-send-email-jack@suse.cz>
+References: <1434636520-25116-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+get_vaddr_frames() is used by relatively rare drivers so hide it and the
+related functions behind a config option that is selected only by
+drivers that need the infrastructure.
 
-* Luis R. Rodriguez <mcgrof@suse.com> wrote:
+The saving are:
+add/remove: 0/6 grow/shrink: 0/0 up/down: 0/-868 (-868)
+function                                     old     new   delta
+frame_vector_destroy                          55       -     -55
+frame_vector_to_pfns                          56       -     -56
+frame_vector_create                           81       -     -81
+put_vaddr_frames                              93       -     -93
+frame_vector_to_pages                         98       -     -98
+get_vaddr_frames                             485       -    -485
 
-> On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
-> > 
-> > * Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
-> > 
-> > > From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> > > 
-> > > On built-in kernels this warning will always splat as this is part
-> > > of the module init. Fix that by shifting the PAT requirement check
-> > > out under the code that does the "quasi-probe" for the device. This
-> > > device driver relies on an existing driver to find its own devices,
-> > > it looks for that device driver and its own found devices, then
-> > > uses driver_for_each_device() to try to see if it can probe each of
-> > > those devices as a frambuffer device with ivtvfb_init_card(). We
-> > > tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> > > call making the check at least require an ivtv device present
-> > > before complaining.
-> > > 
-> > > Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> > > Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> > > ---
-> > >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
-> > >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> > > index 4cb365d..8b95eef 100644
-> > > --- a/drivers/media/pci/ivtv/ivtvfb.c
-> > > +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> > > @@ -38,6 +38,8 @@
-> > >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> > >   */
-> > >  
-> > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > +
-> > >  #include <linux/module.h>
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/fb.h>
-> > > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> > >  {
-> > >  	int rc;
-> > >  
-> > > +#ifdef CONFIG_X86_64
-> > > +	if (pat_enabled()) {
-> > > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> > > +		return -ENODEV;
-> > > +	}
-> > > +#endif
-> > > +
-> > >  	if (itv->osd_info) {
-> > >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
-> > >  		return -EBUSY;
-> > 
-> > Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and 
-> > return -1, and check it in arch_phys_wc_del()?
-> 
-> The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need 
-> not only need to add this in where we replace the MTRR call but we also need to 
-> convert ioremap_nocache() calls to ioremap_wc() but only if things were split up 
-> already.
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/gpu/drm/exynos/Kconfig      |   1 +
+ drivers/media/platform/omap/Kconfig |   1 +
+ drivers/media/v4l2-core/Kconfig     |   1 +
+ mm/Kconfig                          |   3 +
+ mm/Makefile                         |   1 +
+ mm/frame_vector.c                   | 231 ++++++++++++++++++++++++++++++++++++
+ mm/gup.c                            | 222 ----------------------------------
+ 7 files changed, 238 insertions(+), 222 deletions(-)
+ create mode 100644 mm/frame_vector.c
 
-We don't need to do that: for such legacy drivers we can fall back to UC just 
-fine, and inform the user that by booting with 'nopat' the old behavior will be 
-back...
+diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
+index 0a6780367d28..fc678289cf79 100644
+--- a/drivers/gpu/drm/exynos/Kconfig
++++ b/drivers/gpu/drm/exynos/Kconfig
+@@ -71,6 +71,7 @@ config DRM_EXYNOS_VIDI
+ config DRM_EXYNOS_G2D
+ 	bool "Exynos DRM G2D"
+ 	depends on DRM_EXYNOS && !VIDEO_SAMSUNG_S5P_G2D
++	select FRAME_VECTOR
+ 	help
+ 	  Choose this option if you want to use Exynos G2D for DRM.
+ 
+diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
+index dc2aaab54aef..217d613b0fe7 100644
+--- a/drivers/media/platform/omap/Kconfig
++++ b/drivers/media/platform/omap/Kconfig
+@@ -10,6 +10,7 @@ config VIDEO_OMAP2_VOUT
+ 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
+ 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+ 	select VIDEO_OMAP2_VOUT_VRFB if VIDEO_OMAP2_VOUT && OMAP2_VRFB
++	select FRAME_VECTOR
+ 	default n
+ 	---help---
+ 	  V4L2 Display driver support for OMAP2/3 based boards.
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index ba7e21a73023..0cb22add650b 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -73,6 +73,7 @@ config VIDEOBUF2_CORE
+ 
+ config VIDEOBUF2_MEMOPS
+ 	tristate
++	select FRAME_VECTOR
+ 
+ config VIDEOBUF2_DMA_CONTIG
+ 	tristate
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 390214da4546..2ca52e9986f0 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -635,3 +635,6 @@ config MAX_STACK_SIZE_MB
+ 	  changed to a smaller value in which case that is used.
+ 
+ 	  A sane initial value is 80 MB.
++
++config FRAME_VECTOR
++	bool
+diff --git a/mm/Makefile b/mm/Makefile
+index 98c4eaeabdcb..be5d5c866305 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -78,3 +78,4 @@ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
++obj-$(CONFIG_FRAME_VECTOR) += frame_vector.o
+diff --git a/mm/frame_vector.c b/mm/frame_vector.c
+new file mode 100644
+index 000000000000..f76b579e46f1
+--- /dev/null
++++ b/mm/frame_vector.c
+@@ -0,0 +1,231 @@
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/pagemap.h>
++#include <linux/sched.h>
++
++/*
++ * get_vaddr_frames() - map virtual addresses to pfns
++ * @start:	starting user address
++ * @nr_frames:	number of pages / pfns from start to map
++ * @write:	whether pages will be written to by the caller
++ * @force:	whether to force write access even if user mapping is
++ *		readonly. See description of the same argument of
++		get_user_pages().
++ * @vec:	structure which receives pages / pfns of the addresses mapped.
++ *		It should have space for at least nr_frames entries.
++ *
++ * This function maps virtual addresses from @start and fills @vec structure
++ * with page frame numbers or page pointers to corresponding pages (choice
++ * depends on the type of the vma underlying the virtual address). If @start
++ * belongs to a normal vma, the function grabs reference to each of the pages
++ * to pin them in memory. If @start belongs to VM_IO | VM_PFNMAP vma, we don't
++ * touch page structures and the caller must make sure pfns aren't reused for
++ * anything else while he is using them.
++ *
++ * The function returns number of pages mapped which may be less than
++ * @nr_frames. In particular we stop mapping if there are more vmas of
++ * different type underlying the specified range of virtual addresses.
++ * When the function isn't able to map a single page, it returns error.
++ *
++ * This function takes care of grabbing mmap_sem as necessary.
++ */
++int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
++		     bool write, bool force, struct frame_vector *vec)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	int ret = 0;
++	int err;
++	int locked;
++
++	if (nr_frames == 0)
++		return 0;
++
++	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
++		nr_frames = vec->nr_allocated;
++
++	down_read(&mm->mmap_sem);
++	locked = 1;
++	vma = find_vma_intersection(mm, start, start + 1);
++	if (!vma) {
++		ret = -EFAULT;
++		goto out;
++	}
++	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
++		vec->got_ref = true;
++		vec->is_pfns = false;
++		ret = get_user_pages_locked(current, mm, start, nr_frames,
++			write, force, (struct page **)(vec->ptrs), &locked);
++		goto out;
++	}
++
++	vec->got_ref = false;
++	vec->is_pfns = true;
++	do {
++		unsigned long *nums = frame_vector_pfns(vec);
++
++		while (ret < nr_frames && start + PAGE_SIZE <= vma->vm_end) {
++			err = follow_pfn(vma, start, &nums[ret]);
++			if (err) {
++				if (ret == 0)
++					ret = err;
++				goto out;
++			}
++			start += PAGE_SIZE;
++			ret++;
++		}
++		/*
++		 * We stop if we have enough pages or if VMA doesn't completely
++		 * cover the tail page.
++		 */
++		if (ret >= nr_frames || start < vma->vm_end)
++			break;
++		vma = find_vma_intersection(mm, start, start + 1);
++	} while (vma && vma->vm_flags & (VM_IO | VM_PFNMAP));
++out:
++	if (locked)
++		up_read(&mm->mmap_sem);
++	if (!ret)
++		ret = -EFAULT;
++	if (ret > 0)
++		vec->nr_frames = ret;
++	return ret;
++}
++EXPORT_SYMBOL(get_vaddr_frames);
++
++/**
++ * put_vaddr_frames() - drop references to pages if get_vaddr_frames() acquired
++ *			them
++ * @vec:	frame vector to put
++ *
++ * Drop references to pages if get_vaddr_frames() acquired them. We also
++ * invalidate the frame vector so that it is prepared for the next call into
++ * get_vaddr_frames().
++ */
++void put_vaddr_frames(struct frame_vector *vec)
++{
++	int i;
++	struct page **pages;
++
++	if (!vec->got_ref)
++		goto out;
++	pages = frame_vector_pages(vec);
++	/*
++	 * frame_vector_pages() might needed to do a conversion when
++	 * get_vaddr_frames() got pages but vec was later converted to pfns.
++	 * But it shouldn't really fail to convert pfns back...
++	 */
++	if (WARN_ON(IS_ERR(pages)))
++		goto out;
++	for (i = 0; i < vec->nr_frames; i++)
++		put_page(pages[i]);
++	vec->got_ref = false;
++out:
++	vec->nr_frames = 0;
++}
++EXPORT_SYMBOL(put_vaddr_frames);
++
++/**
++ * frame_vector_to_pages - convert frame vector to contain page pointers
++ * @vec:	frame vector to convert
++ *
++ * Convert @vec to contain array of page pointers.  If the conversion is
++ * successful, return 0. Otherwise return an error. Note that we do not grab
++ * page references for the page structures.
++ */
++int frame_vector_to_pages(struct frame_vector *vec)
++{
++	int i;
++	unsigned long *nums;
++	struct page **pages;
++
++	if (!vec->is_pfns)
++		return 0;
++	nums = frame_vector_pfns(vec);
++	for (i = 0; i < vec->nr_frames; i++)
++		if (!pfn_valid(nums[i]))
++			return -EINVAL;
++	pages = (struct page **)nums;
++	for (i = 0; i < vec->nr_frames; i++)
++		pages[i] = pfn_to_page(nums[i]);
++	vec->is_pfns = false;
++	return 0;
++}
++EXPORT_SYMBOL(frame_vector_to_pages);
++
++/**
++ * frame_vector_to_pfns - convert frame vector to contain pfns
++ * @vec:	frame vector to convert
++ *
++ * Convert @vec to contain array of pfns.
++ */
++void frame_vector_to_pfns(struct frame_vector *vec)
++{
++	int i;
++	unsigned long *nums;
++	struct page **pages;
++
++	if (vec->is_pfns)
++		return;
++	pages = (struct page **)(vec->ptrs);
++	nums = (unsigned long *)pages;
++	for (i = 0; i < vec->nr_frames; i++)
++		nums[i] = page_to_pfn(pages[i]);
++	vec->is_pfns = true;
++}
++EXPORT_SYMBOL(frame_vector_to_pfns);
++
++/**
++ * frame_vector_create() - allocate & initialize structure for pinned pfns
++ * @nr_frames:	number of pfns slots we should reserve
++ *
++ * Allocate and initialize struct pinned_pfns to be able to hold @nr_pfns
++ * pfns.
++ */
++struct frame_vector *frame_vector_create(unsigned int nr_frames)
++{
++	struct frame_vector *vec;
++	int size = sizeof(struct frame_vector) + sizeof(void *) * nr_frames;
++
++	if (WARN_ON_ONCE(nr_frames == 0))
++		return NULL;
++	/*
++	 * This is absurdly high. It's here just to avoid strange effects when
++	 * arithmetics overflows.
++	 */
++	if (WARN_ON_ONCE(nr_frames > INT_MAX / sizeof(void *) / 2))
++		return NULL;
++	/*
++	 * Avoid higher order allocations, use vmalloc instead. It should
++	 * be rare anyway.
++	 */
++	if (size <= PAGE_SIZE)
++		vec = kmalloc(size, GFP_KERNEL);
++	else
++		vec = vmalloc(size);
++	if (!vec)
++		return NULL;
++	vec->nr_allocated = nr_frames;
++	vec->nr_frames = 0;
++	return vec;
++}
++EXPORT_SYMBOL(frame_vector_create);
++
++/**
++ * frame_vector_destroy() - free memory allocated to carry frame vector
++ * @vec:	Frame vector to free
++ *
++ * Free structure allocated by frame_vector_create() to carry frames.
++ */
++void frame_vector_destroy(struct frame_vector *vec)
++{
++	/* Make sure put_vaddr_frames() got called properly... */
++	VM_BUG_ON(vec->nr_frames > 0);
++	kvfree(vec);
++}
++EXPORT_SYMBOL(frame_vector_destroy);
++
+diff --git a/mm/gup.c b/mm/gup.c
+index a7a4ac6ae9d0..222d57e335f9 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -937,228 +937,6 @@ int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
+ 	return ret;	/* 0 or negative error code */
+ }
+ 
+-/*
+- * get_vaddr_frames() - map virtual addresses to pfns
+- * @start:	starting user address
+- * @nr_frames:	number of pages / pfns from start to map
+- * @write:	whether pages will be written to by the caller
+- * @force:	whether to force write access even if user mapping is
+- *		readonly. See description of the same argument of
+-		get_user_pages().
+- * @vec:	structure which receives pages / pfns of the addresses mapped.
+- *		It should have space for at least nr_frames entries.
+- *
+- * This function maps virtual addresses from @start and fills @vec structure
+- * with page frame numbers or page pointers to corresponding pages (choice
+- * depends on the type of the vma underlying the virtual address). If @start
+- * belongs to a normal vma, the function grabs reference to each of the pages
+- * to pin them in memory. If @start belongs to VM_IO | VM_PFNMAP vma, we don't
+- * touch page structures and the caller must make sure pfns aren't reused for
+- * anything else while he is using them.
+- *
+- * The function returns number of pages mapped which may be less than
+- * @nr_frames. In particular we stop mapping if there are more vmas of
+- * different type underlying the specified range of virtual addresses.
+- * When the function isn't able to map a single page, it returns error.
+- *
+- * This function takes care of grabbing mmap_sem as necessary.
+- */
+-int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+-		     bool write, bool force, struct frame_vector *vec)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	int ret = 0;
+-	int err;
+-	int locked;
+-
+-	if (nr_frames == 0)
+-		return 0;
+-
+-	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+-		nr_frames = vec->nr_allocated;
+-
+-	down_read(&mm->mmap_sem);
+-	locked = 1;
+-	vma = find_vma_intersection(mm, start, start + 1);
+-	if (!vma) {
+-		ret = -EFAULT;
+-		goto out;
+-	}
+-	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
+-		vec->got_ref = true;
+-		vec->is_pfns = false;
+-		ret = get_user_pages_locked(current, mm, start, nr_frames,
+-			write, force, (struct page **)(vec->ptrs), &locked);
+-		goto out;
+-	}
+-
+-	vec->got_ref = false;
+-	vec->is_pfns = true;
+-	do {
+-		unsigned long *nums = frame_vector_pfns(vec);
+-
+-		while (ret < nr_frames && start + PAGE_SIZE <= vma->vm_end) {
+-			err = follow_pfn(vma, start, &nums[ret]);
+-			if (err) {
+-				if (ret == 0)
+-					ret = err;
+-				goto out;
+-			}
+-			start += PAGE_SIZE;
+-			ret++;
+-		}
+-		/*
+-		 * We stop if we have enough pages or if VMA doesn't completely
+-		 * cover the tail page.
+-		 */
+-		if (ret >= nr_frames || start < vma->vm_end)
+-			break;
+-		vma = find_vma_intersection(mm, start, start + 1);
+-	} while (vma && vma->vm_flags & (VM_IO | VM_PFNMAP));
+-out:
+-	if (locked)
+-		up_read(&mm->mmap_sem);
+-	if (!ret)
+-		ret = -EFAULT;
+-	if (ret > 0)
+-		vec->nr_frames = ret;
+-	return ret;
+-}
+-EXPORT_SYMBOL(get_vaddr_frames);
+-
+-/**
+- * put_vaddr_frames() - drop references to pages if get_vaddr_frames() acquired
+- *			them
+- * @vec:	frame vector to put
+- *
+- * Drop references to pages if get_vaddr_frames() acquired them. We also
+- * invalidate the frame vector so that it is prepared for the next call into
+- * get_vaddr_frames().
+- */
+-void put_vaddr_frames(struct frame_vector *vec)
+-{
+-	int i;
+-	struct page **pages;
+-
+-	if (!vec->got_ref)
+-		goto out;
+-	pages = frame_vector_pages(vec);
+-	/*
+-	 * frame_vector_pages() might needed to do a conversion when
+-	 * get_vaddr_frames() got pages but vec was later converted to pfns.
+-	 * But it shouldn't really fail to convert pfns back...
+-	 */
+-	if (WARN_ON(IS_ERR(pages)))
+-		goto out;
+-	for (i = 0; i < vec->nr_frames; i++)
+-		put_page(pages[i]);
+-	vec->got_ref = false;
+-out:
+-	vec->nr_frames = 0;
+-}
+-EXPORT_SYMBOL(put_vaddr_frames);
+-
+-/**
+- * frame_vector_to_pages - convert frame vector to contain page pointers
+- * @vec:	frame vector to convert
+- *
+- * Convert @vec to contain array of page pointers.  If the conversion is
+- * successful, return 0. Otherwise return an error. Note that we do not grab
+- * page references for the page structures.
+- */
+-int frame_vector_to_pages(struct frame_vector *vec)
+-{
+-	int i;
+-	unsigned long *nums;
+-	struct page **pages;
+-
+-	if (!vec->is_pfns)
+-		return 0;
+-	nums = frame_vector_pfns(vec);
+-	for (i = 0; i < vec->nr_frames; i++)
+-		if (!pfn_valid(nums[i]))
+-			return -EINVAL;
+-	pages = (struct page **)nums;
+-	for (i = 0; i < vec->nr_frames; i++)
+-		pages[i] = pfn_to_page(nums[i]);
+-	vec->is_pfns = false;
+-	return 0;
+-}
+-EXPORT_SYMBOL(frame_vector_to_pages);
+-
+-/**
+- * frame_vector_to_pfns - convert frame vector to contain pfns
+- * @vec:	frame vector to convert
+- *
+- * Convert @vec to contain array of pfns.
+- */
+-void frame_vector_to_pfns(struct frame_vector *vec)
+-{
+-	int i;
+-	unsigned long *nums;
+-	struct page **pages;
+-
+-	if (vec->is_pfns)
+-		return;
+-	pages = (struct page **)(vec->ptrs);
+-	nums = (unsigned long *)pages;
+-	for (i = 0; i < vec->nr_frames; i++)
+-		nums[i] = page_to_pfn(pages[i]);
+-	vec->is_pfns = true;
+-}
+-EXPORT_SYMBOL(frame_vector_to_pfns);
+-
+-/**
+- * frame_vector_create() - allocate & initialize structure for pinned pfns
+- * @nr_frames:	number of pfns slots we should reserve
+- *
+- * Allocate and initialize struct pinned_pfns to be able to hold @nr_pfns
+- * pfns.
+- */
+-struct frame_vector *frame_vector_create(unsigned int nr_frames)
+-{
+-	struct frame_vector *vec;
+-	int size = sizeof(struct frame_vector) + sizeof(void *) * nr_frames;
+-
+-	if (WARN_ON_ONCE(nr_frames == 0))
+-		return NULL;
+-	/*
+-	 * This is absurdly high. It's here just to avoid strange effects when
+-	 * arithmetics overflows.
+-	 */
+-	if (WARN_ON_ONCE(nr_frames > INT_MAX / sizeof(void *) / 2))
+-		return NULL;
+-	/*
+-	 * Avoid higher order allocations, use vmalloc instead. It should
+-	 * be rare anyway.
+-	 */
+-	if (size <= PAGE_SIZE)
+-		vec = kmalloc(size, GFP_KERNEL);
+-	else
+-		vec = vmalloc(size);
+-	if (!vec)
+-		return NULL;
+-	vec->nr_allocated = nr_frames;
+-	vec->nr_frames = 0;
+-	return vec;
+-}
+-EXPORT_SYMBOL(frame_vector_create);
+-
+-/**
+- * frame_vector_destroy() - free memory allocated to carry frame vector
+- * @vec:	Frame vector to free
+- *
+- * Free structure allocated by frame_vector_create() to carry frames.
+- */
+-void frame_vector_destroy(struct frame_vector *vec)
+-{
+-	/* Make sure put_vaddr_frames() got called properly... */
+-	VM_BUG_ON(vec->nr_frames > 0);
+-	kvfree(vec);
+-}
+-EXPORT_SYMBOL(frame_vector_destroy);
+-
+ /**
+  * get_dump_page() - pin user page in memory while writing it to core dump
+  * @addr: user address
+-- 
+2.1.4
 
-Thanks,
-
-	Ingo
