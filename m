@@ -1,105 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58573 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030211AbbFEOnY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 10:43:24 -0400
-Date: Fri, 5 Jun 2015 11:43:19 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/9] Some smatch fixups
-Message-ID: <20150605114319.57cc5035@recife.lan>
-In-Reply-To: <cover.1433511345.git.mchehab@osg.samsung.com>
-References: <cover.1433514004.git.mchehab@osg.samsung.com>
-	<cover.1433511345.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45898 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751626AbbFRQnt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2015 12:43:49 -0400
+Message-ID: <5582F523.1010208@xs4all.nl>
+Date: Thu, 18 Jun 2015 18:43:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] au0828: Cache the decoder info at au0828 dev structure
+References: <1434643776-25614-1-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <1434643776-25614-1-git-send-email-mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 05 Jun 2015 11:27:33 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On 06/18/2015 06:09 PM, Mauro Carvalho Chehab wrote:
+> Instead of seeking for the decoder every time analog stream is
+> started, cache it.
+> 
+> Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-video.c | 37 ++++++++++++++++++---------------
+>  drivers/media/usb/au0828/au0828.h       |  1 +
+>  2 files changed, 21 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index 4ebe13673adf..5f6e2aaad222 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -641,32 +641,35 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+>  {
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_device *mdev = dev->media_dev;
+> -	struct media_entity  *entity, *decoder = NULL, *source;
+> +	struct media_entity  *entity, *source;
+>  	struct media_link *link, *found_link = NULL;
+>  	int i, ret, active_links = 0;
+>  
+>  	if (!mdev)
+>  		return 0;
+>  
+> -	/*
+> -	 * This will find the tuner that is connected into the decoder.
+> -	 * Technically, this is not 100% correct, as the device may be
+> -	 * using an analog input instead of the tuner. However, as we can't
+> -	 * do DVB streaming while the DMA engine is being used for V4L2,
+> -	 * this should be enough for the actual needs.
+> -	 */
+> -	media_device_for_each_entity(entity, mdev) {
+> -		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> -			decoder = entity;
+> -			break;
+> +	if (!dev->decoder) {
+> +		/*
+> +		* This will find the tuner that is connected into the decoder.
+> +		* Technically, this is not 100% correct, as the device may be
+> +		* using an analog input instead of the tuner. However, as we
+> +		* can't do DVB streaming while the DMA engine is being used for
+> +		* V4L2, this should be enough for the actual needs.
+> +		*/
+> +		media_device_for_each_entity(entity, mdev) {
+> +			if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
+> +				dev->decoder = entity;
+> +				break;
+> +			}
 
-> Fix several smatch warnings.
-> 
-> There are still 27 smatch warnings at drivers/media:
+No, this is still searching unnecessary. Look in au0828_card_analog_fe_setup(),
+which is where the au8522 is loaded (and that's the only decoder used by this driver):
+just store the &sd->entity pointer in the decoder field and you're done. You can
+drop this whole 'if (!dev->decoder)' part here.
 
-Please discard this e-mail. Git sent it by accident. This is a version
-of patch 0/11, saved with another name (and another extension).
+BTW, the comment in the 'if' block belongs to 'for' loop below.
 
-The same applies to the other e-mail with the very same subject.
+Regards,
 
-The real one is "[PATCH 00/11] Some smatch fixups".
+	Hans
 
+>  		}
+> +
+> +		if (!dev->decoder)
+> +			return 0;
+>  	}
+> -	if (!decoder)
+> -		return 0;
+>  
+> -	for (i = 0; i < decoder->num_links; i++) {
+> -		link = &decoder->links[i];
+> -		if (link->sink->entity == decoder) {
+> +	for (i = 0; i < dev->decoder->num_links; i++) {
+> +		link = &dev->decoder->links[i];
+> +		if (link->sink->entity == dev->decoder) {
+>  			found_link = link;
+>  			if (link->flags & MEDIA_LNK_FL_ENABLED)
+>  				active_links++;
+> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+> index 7e6a3bbc68ab..d3644b3fe6fa 100644
+> --- a/drivers/media/usb/au0828/au0828.h
+> +++ b/drivers/media/usb/au0828/au0828.h
+> @@ -280,6 +280,7 @@ struct au0828_dev {
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_device *media_dev;
+>  	struct media_pad video_pad, vbi_pad;
+> +	struct media_entity *decoder;
+>  #endif
+>  };
+>  
 > 
-> 
-> This one:
-> 	drivers/media/pci/cx23885/cx23885-dvb.c:2046 dvb_register() Function too hairy.  Giving up.
-> 
-> It is just to a random memory limit at smatch that allows it to
-> allocate only 50Mb of memory for name allocation. I fixed it
-> locally and submitted a fix to Dan.
-> 
-> Those seem to be false-positives:
-> 	drivers/media/dvb-frontends/stv0900_core.c:1183 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-> 	drivers/media/dvb-frontends/stv0900_core.c:1185 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-> 	drivers/media/dvb-frontends/stv0900_core.c:1187 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-> 	drivers/media/dvb-frontends/stv0900_core.c:1189 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-> 	drivers/media/dvb-frontends/stv0900_core.c:1191 stv0900_get_optim_carr_loop() error: buffer overflow 'cllas2' 11 <= 13
-> 	drivers/media/media-entity.c:238:17: warning: Variable length array is used.
-> 	drivers/media/media-entity.c:239:17: warning: Variable length array is used.
-> 	drivers/media/pci/ttpci/av7110.c:2210 frontend_init() warn: missing break? reassigning 'av7110->fe'
-> 	drivers/media/pci/ttpci/budget.c:631 frontend_init() warn: missing break? reassigning 'budget->dvb_frontend'
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
-> 	drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
-> 	drivers/media/radio/radio-aimslab.c:73 rtrack_alloc() warn: possible memory leak of 'rt'
-> 	drivers/media/radio/radio-aztech.c:87 aztech_alloc() warn: possible memory leak of 'az'
-> 	drivers/media/radio/radio-gemtek.c:189 gemtek_alloc() warn: possible memory leak of 'gt'
-> 	drivers/media/radio/radio-trust.c:60 trust_alloc() warn: possible memory leak of 'tr'
-> 	drivers/media/radio/radio-typhoon.c:79 typhoon_alloc() warn: possible memory leak of 'ty'
-> 	drivers/media/radio/radio-zoltrix.c:83 zoltrix_alloc() warn: possible memory leak of 'zol'
-> 	drivers/media/usb/pvrusb2/pvrusb2-encoder.c:227 pvr2_encoder_cmd() error: buffer overflow 'wrData' 16 <= 16
-> 	drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
-> 	drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
-> 
-> I didn't find an easy/worth way to remove the above.
-> 
-> This one is due to a code that got commented:
-> 	drivers/media/usb/usbvision/usbvision-video.c:1072 usbvision_read() warn: inconsistent indenting
-> 
-> Probably the best here is to remove the commented code and fix 
-> identation.
-> 
-> This one seems a real bug, but fixing it would require some tests with 
-> the hardware, and a better understanding on what the function should be 
-> expecting to do when steal is NULL:
-> 	drivers/media/pci/ivtv/ivtv-queue.c:145 ivtv_queue_move() error: we previously assumed 'steal' could be null (see line 138)
-> 
-> Mauro Carvalho Chehab (9):
->   [media] drxk: better handle errors
->   [media] em28xx: remove dead code
->   [media] sh_vou: avoid going past arrays
->   dib0090: Remove a dead code
->   [media] bt8xx: remove needless check
->   [media] ivtv: fix two smatch warnings
->   tm6000: remove needless check
->   [media] ir: Fix IR_MAX_DURATION enforcement
->   rc: set IR_MAX_DURATION to 500 ms
-> 
->  drivers/media/dvb-frontends/dib0090.c   |   4 +-
->  drivers/media/dvb-frontends/drxk_hard.c |   7 +-
->  drivers/media/pci/bt8xx/dst_ca.c        | 132 ++++++++++++++++----------------
->  drivers/media/pci/ivtv/ivtv-driver.h    |   3 +-
->  drivers/media/platform/sh_vou.c         |  14 ++--
->  drivers/media/rc/redrat3.c              |   5 +-
->  drivers/media/rc/streamzap.c            |   6 +-
->  drivers/media/usb/em28xx/em28xx-video.c |   1 -
->  drivers/media/usb/tm6000/tm6000-video.c |   2 +-
->  include/media/rc-core.h                 |   2 +-
->  10 files changed, 87 insertions(+), 89 deletions(-)
-> 
+
