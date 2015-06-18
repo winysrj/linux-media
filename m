@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50910 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932746AbbFPKQr (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39065 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753297AbbFRUap (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 06:16:47 -0400
-Date: Tue, 16 Jun 2015 12:16:44 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	kernel@pengutronix.de, Alexandre Courbot <gnurou@gmail.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c/adp1653: set enable gpio to output
-Message-ID: <20150616101644.GB25899@amd>
-References: <1434095248-31057-1-git-send-email-u.kleine-koenig@pengutronix.de>
+	Thu, 18 Jun 2015 16:30:45 -0400
+Received: from avalon.localnet (a91-152-136-245.elisa-laajakaista.fi [91.152.136.245])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 031942039D
+	for <linux-media@vger.kernel.org>; Thu, 18 Jun 2015 22:29:44 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.2] VSP1 miscellaneous fixes
+Date: Thu, 18 Jun 2015 23:31:33 +0300
+Message-ID: <1526864.UJrODxtOuG@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1434095248-31057-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 2015-06-12 09:47:28, Uwe Kleine-König wrote:
-> Without setting the direction of a gpio to output a call to
-> gpiod_set_value doesn't have a defined outcome.
-> 
-> Furthermore this is one caller less that stops us making the flags
-> argument to gpiod_get*() mandatory.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Hi Mauro,
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+I suppose it's too late for v4.2, but who knows :-) If it is, v4.3 is fine as 
+well.
 
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index c70ababce954..5dd39775d6ca 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -465,7 +465,7 @@ static int adp1653_of_init(struct i2c_client *client,
->  
->  	of_node_put(child);
->  
-> -	pd->enable_gpio = devm_gpiod_get(&client->dev, "enable");
-> +	pd->enable_gpio = devm_gpiod_get(&client->dev, "enable", GPIOD_OUT_LOW);
->  	if (!pd->enable_gpio) {
->  		dev_err(&client->dev, "Error getting GPIO\n");
->  		return -EINVAL;
+The following changes since commit f8d5556fa9dbf6b88e1a8fe88e47ad1b8ddb4742:
+
+  [media] videodev2.h: fix copy-and-paste error in V4L2_MAP_XFER_FUNC_DEFAULT 
+(2015-06-18 14:34:46 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git vsp1/next2
+
+for you to fetch changes up to 2a2d600528e8d7c26fef1dc077c74057c1586702:
+
+  v4l: vsp1: Align crop rectangle to even boundary for YUV formats (2015-06-18 
+23:27:36 +0300)
+
+----------------------------------------------------------------
+Damian Hobson-Garcia (1):
+      v4l: vsp1: Align crop rectangle to even boundary for YUV formats
+
+Laurent Pinchart (1):
+      v4l: vsp1: Fix race condition when stopping pipeline
+
+Nobuhiro Iwamatsu (3):
+      v4l: vsp1: Fix VI6_WPF_SZCLIP_SIZE_MASK macro
+      v4l: vsp1: Fix VI6_DPR_ROUTE_FP_MASK macro
+      v4l: vsp1: Fix VI6_DPR_ROUTE_FXA_MASK macro
+
+Sei Fumizono (1):
+      v4l: vsp1: Fix Suspend-to-RAM
+
+ drivers/media/platform/vsp1/vsp1_drv.c   | 13 +++++--
+ drivers/media/platform/vsp1/vsp1_regs.h  |  6 +--
+ drivers/media/platform/vsp1/vsp1_rwpf.c  | 11 ++++++
+ drivers/media/platform/vsp1/vsp1_video.c | 83 ++++++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_video.h |  5 ++-
+ 5 files changed, 109 insertions(+), 9 deletions(-)
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+
+Laurent Pinchart
+
