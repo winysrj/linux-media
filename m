@@ -1,144 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:33414 "EHLO
-	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbbFVUwO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 16:52:14 -0400
-MIME-Version: 1.0
-In-Reply-To: <1435006096-12470-1-git-send-email-geert@linux-m68k.org>
-References: <1435006096-12470-1-git-send-email-geert@linux-m68k.org>
-Date: Mon, 22 Jun 2015 22:52:13 +0200
-Message-ID: <CAMuHMdXprKyxirhUZBzNV97oxymcMqeugKixTEC8ojcMq3EeDw@mail.gmail.com>
-Subject: Re: Build regressions/improvements in v4.1
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from cantor2.suse.de ([195.135.220.15]:46799 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754537AbbFROIx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2015 10:08:53 -0400
+From: Jan Kara <jack@suse.cz>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 8/10] media: vb2: Remove unused functions
+Date: Thu, 18 Jun 2015 16:08:38 +0200
+Message-Id: <1434636520-25116-9-git-send-email-jack@suse.cz>
+In-Reply-To: <1434636520-25116-1-git-send-email-jack@suse.cz>
+References: <1434636520-25116-1-git-send-email-jack@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 22, 2015 at 10:48 PM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> JFYI, when comparing v4.1[1] to v4.1-rc8[3], the summaries are:
->   - build errors: +44/-7
+Conversion to the use of pinned pfns made some functions unused. Remove
+them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
 
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_BUFFERABLE' undeclared here (not in a function):  => 81:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_DEV_CACHED' undeclared here (not in a function):  => 117:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_DEV_NONSHARED' undeclared here (not in a function):  =>
-108:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_DEV_SHARED' undeclared here (not in a function):  => 103:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_DEV_WC' undeclared here (not in a function):  => 113:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'L_PTE_MT_MASK'
-undeclared here (not in a function):  => 76:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_MINICACHE' undeclared here (not in a function):  => 94:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_UNCACHED' undeclared here (not in a function):  => 77:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_WRITEALLOC' undeclared here (not in a function):  => 99:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_WRITEBACK' undeclared here (not in a function):  => 89:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'L_PTE_MT_WRITETHROUGH' undeclared here (not in a function):  => 85:10
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'L_PTE_RDONLY'
-undeclared here (not in a function):  => 61:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'L_PTE_SHARED'
-undeclared here (not in a function):  => 71:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'L_PTE_USER'
-undeclared here (not in a function):  => 56:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'L_PTE_XN'
-undeclared here (not in a function):  => 66:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'PMD_SECT_AP_READ' undeclared here (not in a function):  => 153:13
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error:
-'PMD_SECT_AP_WRITE' undeclared here (not in a function):  => 153:32
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PMD_SECT_S'
-undeclared here (not in a function):  => 175:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PMD_SECT_XN'
-undeclared here (not in a function):  => 170:11
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PMD_SIZE'
-undeclared (first use in this function):  => 276:22
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PTRS_PER_PGD'
-undeclared (first use in this function):  => 314:18
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PTRS_PER_PMD'
-undeclared (first use in this function):  => 275:18
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'PTRS_PER_PTE'
-undeclared (first use in this function):  => 263:18
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: 'SECTION_SIZE'
-undeclared (first use in this function):  => 282:7
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[0].mask'):  => 153:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[1].mask'):  => 157:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[1].val'):  => 158:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[2].mask'):  => 161:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[2].val'):  => 162:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[3].mask'):  => 165:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[3].val'):  => 166:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[4].mask'):  => 170:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[4].val'):  => 171:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[5].mask'):  => 175:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: (near
-initialization for 'section_bits[5].val'):  => 176:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: implicit
-declaration of function 'pmd_large'
-[-Werror=implicit-function-declaration]:  => 277:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: implicit
-declaration of function 'pmd_none'
-[-Werror=implicit-function-declaration]:  => 277:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: implicit
-declaration of function 'pmd_present'
-[-Werror=implicit-function-declaration]:  => 277:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: implicit
-declaration of function 'pte_offset_kernel'
-[-Werror=implicit-function-declaration]:  => 259:2
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: initializer
-element is not constant:  => 153:3, 176:3, 170:3, 161:3, 166:3, 175:3,
-162:3, 171:3, 158:3, 165:3, 157:3
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: invalid operands
-to binary * (have 'unsigned int' and 'const struct prot_bits *'):  =>
-276:20
-  + /home/kisskb/slave/src/arch/arm/mm/dump.c: error: invalid operands
-to binary | (have 'const struct prot_bits *' and 'const struct
-prot_bits *'):  => 157:30, 166:30, 165:30, 161:30, 153:30
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
+ include/media/videobuf2-memops.h           |   6 --
+ 2 files changed, 120 deletions(-)
 
-arm-randconfig
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 0ec186d41b9b..48c6a49c4928 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -23,120 +23,6 @@
+ #include <media/videobuf2-memops.h>
+ 
+ /**
+- * vb2_get_vma() - acquire and lock the virtual memory area
+- * @vma:	given virtual memory area
+- *
+- * This function attempts to acquire an area mapped in the userspace for
+- * the duration of a hardware operation. The area is "locked" by performing
+- * the same set of operation that are done when process calls fork() and
+- * memory areas are duplicated.
+- *
+- * Returns a copy of a virtual memory region on success or NULL.
+- */
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
+-{
+-	struct vm_area_struct *vma_copy;
+-
+-	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
+-	if (vma_copy == NULL)
+-		return NULL;
+-
+-	if (vma->vm_ops && vma->vm_ops->open)
+-		vma->vm_ops->open(vma);
+-
+-	if (vma->vm_file)
+-		get_file(vma->vm_file);
+-
+-	memcpy(vma_copy, vma, sizeof(*vma));
+-
+-	vma_copy->vm_mm = NULL;
+-	vma_copy->vm_next = NULL;
+-	vma_copy->vm_prev = NULL;
+-
+-	return vma_copy;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_vma);
+-
+-/**
+- * vb2_put_userptr() - release a userspace virtual memory area
+- * @vma:	virtual memory region associated with the area to be released
+- *
+- * This function releases the previously acquired memory area after a hardware
+- * operation.
+- */
+-void vb2_put_vma(struct vm_area_struct *vma)
+-{
+-	if (!vma)
+-		return;
+-
+-	if (vma->vm_ops && vma->vm_ops->close)
+-		vma->vm_ops->close(vma);
+-
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-
+-	kfree(vma);
+-}
+-EXPORT_SYMBOL_GPL(vb2_put_vma);
+-
+-/**
+- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
+- * @vaddr:	starting virtual address of the area to be verified
+- * @size:	size of the area
+- * @res_paddr:	will return physical address for the given vaddr
+- * @res_vma:	will return locked copy of struct vm_area for the given area
+- *
+- * This function will go through memory area of size @size mapped at @vaddr and
+- * verify that the underlying physical pages are contiguous. If they are
+- * contiguous the virtual memory area is locked and a @res_vma is filled with
+- * the copy and @res_pa set to the physical address of the buffer.
+- *
+- * Returns 0 on success.
+- */
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long offset, start, end;
+-	unsigned long this_pfn, prev_pfn;
+-	dma_addr_t pa = 0;
+-
+-	start = vaddr;
+-	offset = start & ~PAGE_MASK;
+-	end = start + size;
+-
+-	vma = find_vma(mm, start);
+-
+-	if (vma == NULL || vma->vm_end < end)
+-		return -EFAULT;
+-
+-	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
+-		int ret = follow_pfn(vma, start, &this_pfn);
+-		if (ret)
+-			return ret;
+-
+-		if (prev_pfn == 0)
+-			pa = this_pfn << PAGE_SHIFT;
+-		else if (this_pfn != prev_pfn + 1)
+-			return -EFAULT;
+-
+-		prev_pfn = this_pfn;
+-	}
+-
+-	/*
+-	 * Memory is contigous, lock vma and return to the caller
+-	 */
+-	*res_vma = vb2_get_vma(vma);
+-	if (*res_vma == NULL)
+-		return -ENOMEM;
+-
+-	*res_pa = pa + offset;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+-
+-/**
+  * vb2_create_framevec() - map virtual addresses to pfns
+  * @start:	Virtual user address where we start mapping
+  * @length:	Length of a range to map
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 2f0564ff5f31..830b5239fd8b 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -31,12 +31,6 @@ struct vb2_vmarea_handler {
+ 
+ extern const struct vm_operations_struct vb2_common_vm_ops;
+ 
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+-
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+-void vb2_put_vma(struct vm_area_struct *vma);
+-
+ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 					 unsigned long length,
+ 					 bool write);
+-- 
+2.1.4
 
-  + /home/kisskb/slave/src/drivers/media/i2c/ov2659.c: error: 'struct
-v4l2_subdev_fh' has no member named 'pad':  => 1264:38
-  + /home/kisskb/slave/src/drivers/media/i2c/ov2659.c: error: implicit
-declaration of function 'v4l2_subdev_get_try_format'
-[-Werror=implicit-function-declaration]:  => 1054:3
-
-x86_64-randconfig
-
-> [1] http://kisskb.ellerman.id.au/kisskb/head/9038/ (all 254 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/head/9008/ (all 254 configs)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
