@@ -1,302 +1,130 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC] media: New ioct VIDIOC_INITIAL_EXT_CTRLS
-Date: Wed, 10 Jun 2015 13:17:53 +0200
-Message-id: <1433935073-24104-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48222 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751107AbbFSL4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2015 07:56:46 -0400
+Message-ID: <55840367.3010700@xs4all.nl>
+Date: Fri, 19 Jun 2015 13:56:23 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Kamil Debski <kamil@wypas.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [URGENT] [PATCH] vb2: Don't WARN when v4l2_buffer.bytesused is
+ 0 for multiplanar buffers
+References: <1434714607-31447-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1434714607-31447-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Integer controls provide a way to get their default/initial value, but
-any other control (p_u32, p_u8.....) provide no other way to get the
-initial value than unloading the module and loading it back.
+On 06/19/2015 01:50 PM, Laurent Pinchart wrote:
+> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
+> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
+> using a zero value for v4l2_buffer.bytesused.
+> 
+> However, the condition is checked incorrectly, as the v4L2_buffer
+> bytesused field is supposed to be ignored for multiplanar buffers. This
+> results in spurious warnings when using the multiplanar API.
+> 
+> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
+> v4l2_plane.bytesused for multiplanar buffers.
+> 
+> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
+>  1 file changed, 23 insertions(+), 10 deletions(-)
+> 
+> The bug was introduced in v4.1-rc1. It would be quite bad if it made it to
+> v4.1 as many users will start complaining.
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index d835814a24d4..93b315459098 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_discard_done);
+>  
+> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+> +{
+> +	static bool __check_once __read_mostly;
 
-*What is the actual problem?
-I have a custom control with WIDTH integer values. Every value
-represents the calibrated FPN (fixed pattern noise) correction value for that column
--Application A changes the FPN correction value
--Application B wants to restore the calibrated value but it cant :(
+Why the underscores? Why the __read_mostly?
 
-*What is the proposed solution?
--Add a new ioctl VIDIOC_INITIAL_EXT_CTRLS, with the same API as
-G_EXT_CTRLS, but that returns the initial value of a given control
+Just say: 'static bool check_once;'
 
-*This code is not splited in different patches and there is no doc!
-Yes, at this point I want your feedback about the ioctl, and an initial
-piece of code could help the disscussion. Of course, once we agreed I
-will provide the documentation and a properly build patchset.
+Much more readable, and there really is no benefit whatsoever for adding
+a __read_mostly attribute here.
 
-So, shoot me: What do you think?
+> +
+> +	if (__check_once)
+> +		return;
+> +
+> +	__check_once = true;
+> +	__WARN();
+> +
+> +	pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
 
-THANKS!
+This can be pr_warn now. pr_warn_once will implicitly only do another 'check_once' check
+with its own 'check_once' variable.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++
- drivers/media/v4l2-core/v4l2-ctrls.c          | 65 ++++++++++++++++++++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c          | 20 +++++++++
- drivers/media/v4l2-core/v4l2-subdev.c         |  3 ++
- include/media/v4l2-ctrls.h                    |  2 +
- include/media/v4l2-ioctl.h                    |  2 +
- include/uapi/linux/videodev2.h                |  4 +-
- 7 files changed, 92 insertions(+), 8 deletions(-)
+> +	if (vb->vb2_queue->allow_zero_bytesused)
+> +		pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> +	else
+> +		pr_warn_once("use the actual size instead.\n");
+> +}
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index af635430524e..1e3272e28b2d 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -817,6 +817,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
- #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
- #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
-+#define VIDIOC_INITIAL_EXT_CTRLS32    _IOWR('V', 104, struct v4l2_ext_controls32)
- 
- #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
- #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-@@ -859,6 +860,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_TRY_FMT32: cmd = VIDIOC_TRY_FMT; break;
- 	case VIDIOC_G_EXT_CTRLS32: cmd = VIDIOC_G_EXT_CTRLS; break;
- 	case VIDIOC_S_EXT_CTRLS32: cmd = VIDIOC_S_EXT_CTRLS; break;
-+	case VIDIOC_INITIAL_EXT_CTRLS32: cmd = VIDIOC_INITIAL_EXT_CTRLS; break;
- 	case VIDIOC_TRY_EXT_CTRLS32: cmd = VIDIOC_TRY_EXT_CTRLS; break;
- 	case VIDIOC_DQEVENT32: cmd = VIDIOC_DQEVENT; break;
- 	case VIDIOC_OVERLAY32: cmd = VIDIOC_OVERLAY; break;
-@@ -937,6 +939,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_G_EXT_CTRLS:
- 	case VIDIOC_S_EXT_CTRLS:
- 	case VIDIOC_TRY_EXT_CTRLS:
-+	case VIDIOC_INITIAL_EXT_CTRLS:
- 		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
- 		compatible_arg = 0;
- 		break;
-@@ -964,6 +967,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_G_EXT_CTRLS:
- 	case VIDIOC_S_EXT_CTRLS:
- 	case VIDIOC_TRY_EXT_CTRLS:
-+	case VIDIOC_INITIAL_EXT_CTRLS:
- 		if (put_v4l2_ext_controls32(&karg.v2ecs, up))
- 			err = -EFAULT;
- 		break;
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b462165a7f0c..465f73acc644 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1449,6 +1449,40 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
- 	.validate = std_validate,
- };
- 
-+/* Helper function: copy the initial value back to the caller */
-+static int init_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
-+{
-+	int idx;
-+	int ret;
-+	long size;
-+	union v4l2_ctrl_ptr ptr;
-+
-+	if (!ctrl->is_ptr){
-+		ptr.p = &c->value;
-+		ctrl->type_ops->init(ctrl, 0, ptr);
-+		return 0;
-+	}
-+
-+	size = ctrl->elem_size * ctrl->elems;
-+	if (c->size < size){
-+		c->size = size;
-+		return -ENOSPC;
-+	}
-+
-+	ptr.p = kzalloc(size, GFP_KERNEL);
-+	if (!ptr.p)
-+		return -ENOMEM;
-+
-+	for (idx=0; idx<ctrl->elems; idx++)
-+		ctrl->type_ops->init(ctrl, idx, ptr);
-+
-+	ret = copy_to_user(c->ptr, ptr.p, size);
-+
-+	kfree(ptr.p);
-+
-+	return ret ? -EFAULT : 0;
-+}
-+
- /* Helper function: copy the given control value back to the caller */
- static int ptr_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl,
-@@ -2806,10 +2840,10 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
- 	return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
- }
- 
--
--
- /* Get extended controls. Allocates the helpers array if needed. */
--int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
-+static int v4l2_g_ext_ctrls_initial(struct v4l2_ctrl_handler *hdl,
-+				    struct v4l2_ext_controls *cs,
-+				    bool initial_value)
- {
- 	struct v4l2_ctrl_helper helper[4];
- 	struct v4l2_ctrl_helper *helpers = helper;
-@@ -2840,10 +2874,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			ret = -EACCES;
- 
- 	for (i = 0; !ret && i < cs->count; i++) {
--		int (*ctrl_to_user)(struct v4l2_ext_control *c,
--				    struct v4l2_ctrl *ctrl) = cur_to_user;
-+		int (*ctrl_to_user)(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl);
- 		struct v4l2_ctrl *master;
- 
-+		ctrl_to_user =  initial_value ? init_to_user : cur_to_user;
-+
- 		if (helpers[i].mref == NULL)
- 			continue;
- 
-@@ -2853,8 +2888,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		v4l2_ctrl_lock(master);
- 
- 		/* g_volatile_ctrl will update the new control values */
--		if ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
--			(master->has_volatiles && !is_cur_manual(master))) {
-+		if ((!(master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
-+		     (master->has_volatiles && !is_cur_manual(master))) &&
-+		     !initial_value) {
- 			for (j = 0; j < master->ncontrols; j++)
- 				cur_to_new(master->cluster[j]);
- 			ret = call_op(master, g_volatile_ctrl);
-@@ -2879,6 +2915,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		kfree(helpers);
- 	return ret;
- }
-+
-+int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs){
-+	return v4l2_g_ext_ctrls_initial(hdl, cs, false);
-+}
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
- 
- int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs)
-@@ -2887,6 +2927,17 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
- }
- EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
- 
-+int v4l2_initial_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs){
-+	return v4l2_g_ext_ctrls_initial(hdl, cs, true);
-+}
-+EXPORT_SYMBOL(v4l2_initial_ext_ctrls);
-+
-+int v4l2_subdev_initial_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs)
-+{
-+	return v4l2_initial_ext_ctrls(sd->ctrl_handler, cs);
-+}
-+EXPORT_SYMBOL(v4l2_subdev_initial_ext_ctrls);
-+
- /* Helper function to get a single control */
- static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
- {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 8712168a3b0a..e68d9ec8832a 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1812,6 +1812,25 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 					-EINVAL;
- }
- 
-+static int v4l_initial_ext_ctrls(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_ext_controls *p = arg;
-+	struct v4l2_fh *vfh =
-+		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
-+
-+	p->error_idx = p->count;
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_initial_ext_ctrls(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_initial_ext_ctrls(vfd->ctrl_handler, p);
-+	if (ops->vidioc_initial_ext_ctrls == NULL)
-+		return -ENOTTY;
-+	return check_ext_ctrls(p, 0) ? ops->vidioc_initial_ext_ctrls(file, fh, p) :
-+					-EINVAL;
-+}
-+
- static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -2285,6 +2304,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_G_SLICED_VBI_CAP, v4l_g_sliced_vbi_cap, v4l_print_sliced_vbi_cap, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
- 	IOCTL_INFO_FNC(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
- 	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-+	IOCTL_INFO_FNC(VIDIOC_INITIAL_EXT_CTRLS, v4l_initial_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
- 	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
- 	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
- 	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes, v4l_print_frmsizeenum, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 19a034e79be4..6ed308df9d2f 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -206,6 +206,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_G_EXT_CTRLS:
- 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
- 
-+	case VIDIOC_INITIAL_EXT_CTRLS:
-+		return v4l2_initial_ext_ctrls(vfh->ctrl_handler, arg);
-+
- 	case VIDIOC_S_EXT_CTRLS:
- 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index ec63d8c44f4e..6521f54718ca 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -815,6 +815,7 @@ int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *ctrl);
- int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 						struct v4l2_control *ctrl);
- int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c);
-+int v4l2_initial_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c);
- int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *c);
- int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 						struct v4l2_ext_controls *c);
-@@ -824,6 +825,7 @@ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc);
- int v4l2_subdev_querymenu(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
- int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
-+int v4l2_subdev_initial_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_try_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 8537983b9b22..16a289bc46b1 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -166,6 +166,8 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_control *a);
- 	int (*vidioc_g_ext_ctrls)      (struct file *file, void *fh,
- 					struct v4l2_ext_controls *a);
-+	int (*vidioc_initial_ext_ctrls)(struct file *file, void *fh,
-+					struct v4l2_ext_controls *a);
- 	int (*vidioc_s_ext_ctrls)      (struct file *file, void *fh,
- 					struct v4l2_ext_controls *a);
- 	int (*vidioc_try_ext_ctrls)    (struct file *file, void *fh,
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b26d23f9b04..9b84f1755d5f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2204,8 +2204,10 @@ struct v4l2_create_buffers {
- 
- #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
- 
-+#define VIDIOC_INITIAL_EXT_CTRLS	_IOWR('V', 104, struct v4l2_ext_controls)
-+
- /* Reminder: when adding new ioctls please add support for them to
--   drivers/media/video/v4l2-compat-ioctl32.c as well! */
-+   drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
- 
- #define BASE_VIDIOC_PRIVATE	192		/* 192-255 are private */
- 
--- 
-2.1.4
+Regards,
+
+	Hans
+
+> +
+>  /**
+>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+>   * v4l2_buffer by the userspace. The caller has already verified that struct
+> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  {
+>  	unsigned int plane;
+>  
+> -	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> -		if (WARN_ON_ONCE(b->bytesused == 0)) {
+> -			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> -			if (vb->vb2_queue->allow_zero_bytesused)
+> -				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> -			else
+> -				pr_warn_once("use the actual size instead.\n");
+> -		}
+> -	}
+> -
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>  		if (b->memory == V4L2_MEMORY_USERPTR) {
+>  			for (plane = 0; plane < vb->num_planes; ++plane) {
+> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  				struct v4l2_plane *pdst = &v4l2_planes[plane];
+>  				struct v4l2_plane *psrc = &b->m.planes[plane];
+>  
+> +				if (psrc->bytesused == 0)
+> +					vb2_warn_zero_bytesused(vb);
+> +
+>  				if (vb->vb2_queue->allow_zero_bytesused)
+>  					pdst->bytesused = psrc->bytesused;
+>  				else
+> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  		}
+>  
+>  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			if (b->bytesused == 0)
+> +				vb2_warn_zero_bytesused(vb);
+> +
+>  			if (vb->vb2_queue->allow_zero_bytesused)
+>  				v4l2_planes[0].bytesused = b->bytesused;
+>  			else
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
