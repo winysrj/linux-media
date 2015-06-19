@@ -1,262 +1,646 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:33053 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085AbbFJS4w (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35884 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753615AbbFSNXK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:56:52 -0400
-Received: by iebgx4 with SMTP id gx4so40623240ieb.0
-        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 11:56:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5578728A.4020106@gmail.com>
-References: <5578728A.4020106@gmail.com>
-Date: Wed, 10 Jun 2015 20:56:51 +0200
-Message-ID: <CAAZRmGyXwFQL4_R8bknr=NH=t2enLTS1eYOsbtfZBNQ7OV12cA@mail.gmail.com>
-Subject: Re: Hauppauge 2250 on Ubuntu 15.04
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Jeff Allen <worthspending@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 19 Jun 2015 09:23:10 -0400
+Received: by wicnd19 with SMTP id nd19so18979959wic.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2015 06:23:08 -0700 (PDT)
+From: Pablo Anton <pablo.anton@veo-labs.com>
+To: hans.verkuil@cisco.com
+Cc: mchehab@osg.samsung.com, lars@metafoo.de,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Subject: [PATCH v3] media: i2c: ADV7604: Migrate to regmap
+Date: Fri, 19 Jun 2015 15:23:06 +0200
+Message-Id: <1434720186-25611-1-git-send-email-pablo.anton@veo-labs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jeff,
+This is a preliminary patch in order to add support for ALSA.
+It replaces all current i2c access with regmap.
 
-Based on the PCI subsystem ID I think your card is actually HVR-2255
-and not the older HVR-2250. Check what it says on the card. Some
-people have reported buying a HVR-2250, but receiving actually a
-HVR-2255.
+Signed-off-by: Pablo Anton <pablo.anton@veo-labs.com>
+Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+v3: check return value of regmap_read
+    start configure_regmaps from ADV7604_PAGE_AVLINK
+    add Acked-by and Tested-by
+    change some v4l2_info to v4l2_err
 
-Anyway, HVR-2255 is supported by the media_tree these days, but you
-need to build the driver yourself before kernel 4.2 is out. Follow the
-steps here to do that:
-http://git.linuxtv.org/cgit.cgi/media_build.git/about/
+ drivers/media/i2c/adv7604.c | 351 ++++++++++++++++++++++++++++++++------------
+ 1 file changed, 256 insertions(+), 95 deletions(-)
 
-Cheers,
--olli
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 60ffcf0..0bbf800 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -36,6 +36,7 @@
+ #include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
++#include <linux/regmap.h>
+ 
+ #include <media/adv7604.h>
+ #include <media/v4l2-ctrls.h>
+@@ -166,6 +167,9 @@ struct adv76xx_state {
+ 	/* i2c clients */
+ 	struct i2c_client *i2c_clients[ADV76XX_PAGE_MAX];
+ 
++	/* Regmaps */
++	struct regmap *regmap[ADV76XX_PAGE_MAX];
++
+ 	/* controls */
+ 	struct v4l2_ctrl *detect_tx_5v_ctrl;
+ 	struct v4l2_ctrl *analog_sampling_phase_ctrl;
+@@ -346,66 +350,39 @@ static inline unsigned vtotal(const struct v4l2_bt_timings *t)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static s32 adv_smbus_read_byte_data_check(struct i2c_client *client,
+-		u8 command, bool check)
+-{
+-	union i2c_smbus_data data;
+-
+-	if (!i2c_smbus_xfer(client->adapter, client->addr, client->flags,
+-			I2C_SMBUS_READ, command,
+-			I2C_SMBUS_BYTE_DATA, &data))
+-		return data.byte;
+-	if (check)
+-		v4l_err(client, "error reading %02x, %02x\n",
+-				client->addr, command);
+-	return -EIO;
+-}
+-
+-static s32 adv_smbus_read_byte_data(struct adv76xx_state *state,
+-				    enum adv76xx_page page, u8 command)
++static int adv76xx_read_check(struct adv76xx_state *state,
++			     int client_page, u8 reg)
+ {
+-	return adv_smbus_read_byte_data_check(state->i2c_clients[page],
+-					      command, true);
+-}
+-
+-static s32 adv_smbus_write_byte_data(struct adv76xx_state *state,
+-				     enum adv76xx_page page, u8 command,
+-				     u8 value)
+-{
+-	struct i2c_client *client = state->i2c_clients[page];
+-	union i2c_smbus_data data;
++	struct i2c_client *client = state->i2c_clients[client_page];
+ 	int err;
+-	int i;
++	unsigned int val;
+ 
+-	data.byte = value;
+-	for (i = 0; i < 3; i++) {
+-		err = i2c_smbus_xfer(client->adapter, client->addr,
+-				client->flags,
+-				I2C_SMBUS_WRITE, command,
+-				I2C_SMBUS_BYTE_DATA, &data);
+-		if (!err)
+-			break;
++	err = regmap_read(state->regmap[client_page], reg, &val);
++
++	if (err) {
++		v4l_err(client, "error reading %02x, %02x\n",
++				client->addr, reg);
++		return err;
+ 	}
+-	if (err < 0)
+-		v4l_err(client, "error writing %02x, %02x, %02x\n",
+-				client->addr, command, value);
+-	return err;
++	return val;
+ }
+ 
+-static s32 adv_smbus_write_i2c_block_data(struct adv76xx_state *state,
+-					  enum adv76xx_page page, u8 command,
+-					  unsigned length, const u8 *values)
++/* adv76xx_write_block(): Write raw data with a maximum of I2C_SMBUS_BLOCK_MAX
++ * size to one or more registers.
++ *
++ * A value of zero will be returned on success, a negative errno will
++ * be returned in error cases.
++ */
++static int adv76xx_write_block(struct adv76xx_state *state, int client_page,
++			      unsigned int init_reg, const void *val,
++			      size_t val_len)
+ {
+-	struct i2c_client *client = state->i2c_clients[page];
+-	union i2c_smbus_data data;
++	struct regmap *regmap = state->regmap[client_page];
++
++	if (val_len > I2C_SMBUS_BLOCK_MAX)
++		val_len = I2C_SMBUS_BLOCK_MAX;
+ 
+-	if (length > I2C_SMBUS_BLOCK_MAX)
+-		length = I2C_SMBUS_BLOCK_MAX;
+-	data.block[0] = length;
+-	memcpy(data.block + 1, values, length);
+-	return i2c_smbus_xfer(client->adapter, client->addr, client->flags,
+-			      I2C_SMBUS_WRITE, command,
+-			      I2C_SMBUS_I2C_BLOCK_DATA, &data);
++	return regmap_raw_write(regmap, init_reg, val, val_len);
+ }
+ 
+ /* ----------------------------------------------------------------------- */
+@@ -414,14 +391,14 @@ static inline int io_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_IO, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_IO, reg);
+ }
+ 
+ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_IO, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_IO], reg, val);
+ }
+ 
+ static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
+@@ -433,71 +410,70 @@ static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV7604_PAGE_AVLINK, reg);
++	return adv76xx_read_check(state, ADV7604_PAGE_AVLINK, reg);
+ }
+ 
+ static inline int avlink_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV7604_PAGE_AVLINK, reg, val);
++	return regmap_write(state->regmap[ADV7604_PAGE_AVLINK], reg, val);
+ }
+ 
+ static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CEC, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_CEC, reg);
+ }
+ 
+ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CEC, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_CEC], reg, val);
+ }
+ 
+ static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_INFOFRAME, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_INFOFRAME, reg);
+ }
+ 
+ static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_INFOFRAME,
+-					 reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_INFOFRAME], reg, val);
+ }
+ 
+ static inline int afe_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_AFE, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_AFE, reg);
+ }
+ 
+ static inline int afe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_AFE, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_AFE], reg, val);
+ }
+ 
+ static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_REP, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_REP, reg);
+ }
+ 
+ static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_REP, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_REP], reg, val);
+ }
+ 
+ static inline int rep_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
+@@ -509,28 +485,37 @@ static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_EDID, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_EDID, reg);
+ }
+ 
+ static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_EDID, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_EDID], reg, val);
+ }
+ 
+ static inline int edid_write_block(struct v4l2_subdev *sd,
+-					unsigned len, const u8 *val)
++					unsigned int total_len, const u8 *val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 	int err = 0;
+-	int i;
++	int i = 0;
++	int len = 0;
+ 
+-	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n", __func__, len);
++	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n",
++				__func__, total_len);
++
++	while (!err && i < total_len) {
++		len = (total_len - i) > I2C_SMBUS_BLOCK_MAX ?
++				I2C_SMBUS_BLOCK_MAX :
++				(total_len - i);
++
++		err = adv76xx_write_block(state, ADV76XX_PAGE_EDID,
++				i, val + i, len);
++		i += len;
++	}
+ 
+-	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
+-		err = adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_EDID,
+-				i, I2C_SMBUS_BLOCK_MAX, val + i);
+ 	return err;
+ }
+ 
+@@ -560,7 +545,7 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_HDMI, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_HDMI, reg);
+ }
+ 
+ static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
+@@ -572,7 +557,7 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_HDMI, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_HDMI], reg, val);
+ }
+ 
+ static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
+@@ -584,14 +569,14 @@ static inline int test_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_TEST, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_TEST], reg, val);
+ }
+ 
+ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CP, reg);
++	return adv76xx_read_check(state, ADV76XX_PAGE_CP, reg);
+ }
+ 
+ static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
+@@ -603,7 +588,7 @@ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CP, reg, val);
++	return regmap_write(state->regmap[ADV76XX_PAGE_CP], reg, val);
+ }
+ 
+ static inline int cp_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
+@@ -615,14 +600,14 @@ static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_read_byte_data(state, ADV7604_PAGE_VDP, reg);
++	return adv76xx_read_check(state, ADV7604_PAGE_VDP, reg);
+ }
+ 
+ static inline int vdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 
+-	return adv_smbus_write_byte_data(state, ADV7604_PAGE_VDP, reg, val);
++	return regmap_write(state->regmap[ADV7604_PAGE_VDP], reg, val);
+ }
+ 
+ #define ADV76XX_REG(page, offset)	(((page) << 8) | (offset))
+@@ -633,13 +618,16 @@ static int adv76xx_read_reg(struct v4l2_subdev *sd, unsigned int reg)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+ 	unsigned int page = reg >> 8;
++	unsigned int val;
++	int err;
+ 
+ 	if (!(BIT(page) & state->info->page_mask))
+ 		return -EINVAL;
+ 
+ 	reg &= 0xff;
++	err = regmap_read(state->regmap[page], reg, &val);
+ 
+-	return adv_smbus_read_byte_data(state, page, reg);
++	return err ? err : val;
+ }
+ #endif
+ 
+@@ -653,7 +641,7 @@ static int adv76xx_write_reg(struct v4l2_subdev *sd, unsigned int reg, u8 val)
+ 
+ 	reg &= 0xff;
+ 
+-	return adv_smbus_write_byte_data(state, page, reg, val);
++	return regmap_write(state->regmap[page], reg, val);
+ }
+ 
+ static void adv76xx_write_reg_seq(struct v4l2_subdev *sd,
+@@ -949,8 +937,8 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
+ 		/* Should only be set in auto-graphics mode [REF_02, p. 91-92] */
+ 		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
+ 		/* IO-map reg. 0x16 and 0x17 should be written in sequence */
+-		if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_IO,
+-						   0x16, 2, pll))
++		if (regmap_raw_write(state->regmap[ADV76XX_PAGE_IO],
++					0x16, pll, 2))
+ 			v4l2_err(sd, "writing to reg 0x16 and 0x17 failed\n");
+ 
+ 		/* active video - horizontal timing */
+@@ -1001,8 +989,8 @@ static void adv76xx_set_offset(struct v4l2_subdev *sd, bool auto_offset, u16 off
+ 	offset_buf[3] = offset_c & 0x0ff;
+ 
+ 	/* Registers must be written in this order with no i2c access in between */
+-	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
+-					   0x77, 4, offset_buf))
++	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
++			0x77, offset_buf, 4))
+ 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x77, 0x78, 0x79, 0x7a\n", __func__);
+ }
+ 
+@@ -1031,8 +1019,8 @@ static void adv76xx_set_gain(struct v4l2_subdev *sd, bool auto_gain, u16 gain_a,
+ 	gain_buf[3] = ((gain_c & 0x0ff));
+ 
+ 	/* Registers must be written in this order with no i2c access in between */
+-	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
+-					   0x73, 4, gain_buf))
++	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
++			     0x73, gain_buf, 4))
+ 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x73, 0x74, 0x75, 0x76\n", __func__);
+ }
+ 
+@@ -2674,6 +2662,148 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	return 0;
+ }
+ 
++static const struct regmap_config adv76xx_regmap_cnf[] = {
++	{
++		.name			= "io",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "avlink",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "cec",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "infoframe",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "esdp",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "epp",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "afe",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "rep",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "edid",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++
++	{
++		.name			= "hdmi",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "test",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "cp",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++	{
++		.name			= "vdp",
++		.reg_bits		= 8,
++		.val_bits		= 8,
++
++		.max_register		= 0xff,
++		.cache_type		= REGCACHE_NONE,
++	},
++};
++
++static int configure_regmap(struct adv76xx_state *state, int region)
++{
++	int err;
++
++	if (!state->i2c_clients[region])
++		return -ENODEV;
++
++	state->regmap[region] =
++		devm_regmap_init_i2c(state->i2c_clients[region],
++				     &adv76xx_regmap_cnf[region]);
++
++	if (IS_ERR(state->regmap[region])) {
++		err = PTR_ERR(state->regmap[region]);
++		v4l_err(state->i2c_clients[region],
++			"Error initializing regmap %d with error %d\n",
++			region, err);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int configure_regmaps(struct adv76xx_state *state)
++{
++	int i, err;
++
++	for (i = ADV7604_PAGE_AVLINK ; i < ADV76XX_PAGE_MAX; i++) {
++		err = configure_regmap(state, i);
++		if (err && (err != -ENODEV))
++			return err;
++	}
++	return 0;
++}
++
+ static int adv76xx_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -2683,7 +2813,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	struct v4l2_ctrl_handler *hdl;
+ 	struct v4l2_subdev *sd;
+ 	unsigned int i;
+-	u16 val;
++	unsigned int val, val2;
+ 	int err;
+ 
+ 	/* Check if the adapter supports the needed features */
+@@ -2747,23 +2877,49 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		client->addr);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
++	/* Configure IO Regmap region */
++	err = configure_regmap(state, ADV76XX_PAGE_IO);
++
++	if (err) {
++		v4l2_err(sd, "Error configuring IO regmap region\n");
++		return -ENODEV;
++	}
++
+ 	/*
+ 	 * Verify that the chip is present. On ADV7604 the RD_INFO register only
+ 	 * identifies the revision, while on ADV7611 it identifies the model as
+ 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
+ 	 */
+ 	if (state->info->type == ADV7604) {
+-		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
++		err = regmap_read(state->regmap[ADV76XX_PAGE_IO], 0xfb, &val);
++		if (err) {
++			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
++			return -ENODEV;
++		}
+ 		if (val != 0x68) {
+-			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
++			v4l2_err(sd, "not an adv7604 on address 0x%x\n",
+ 					client->addr << 1);
+ 			return -ENODEV;
+ 		}
+ 	} else {
+-		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
+-		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
+-		if (val != 0x2051) {
+-			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
++		err = regmap_read(state->regmap[ADV76XX_PAGE_IO],
++				0xea,
++				&val);
++		if (err) {
++			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
++			return -ENODEV;
++		}
++		val2 = val << 8;
++		err = regmap_read(state->regmap[ADV76XX_PAGE_IO],
++			    0xeb,
++			    &val);
++		if (err) {
++			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
++			return -ENODEV;
++		}
++		val2 |= val;
++		if (val2 != 0x2051) {
++			v4l2_err(sd, "not an adv7611 on address 0x%x\n",
+ 					client->addr << 1);
+ 			return -ENODEV;
+ 		}
+@@ -2853,6 +3009,11 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_work_queues;
+ 
++	/* Configure regmaps */
++	err = configure_regmaps(state);
++	if (err)
++		goto err_entity;
++
+ 	err = adv76xx_core_init(sd);
+ 	if (err)
+ 		goto err_entity;
+-- 
+2.3.5
 
-On 10 June 2015 at 19:23, Jeff Allen <worthspending@gmail.com> wrote:
-> I am trying to get the firmware to load on a fresh install of Ubuntu 15.04
-> desktop 64-bit on a new system.
->
-> uname -a
-> Linux 3.19.0-15-generic #15-Ubuntu SMP Thu Apr 16 23:32:37 UTC 2015 x86_64
-> x86_64 x86_64 GNU/Linux
->
-> lshw
->     description: Computer
->     width: 64 bits
->     capabilities: smbios-2.7 vsyscall32
->   *-core
->        description: Motherboard
->        physical id: 0
->      *-memory
->           description: System memory
->           physical id: 0
->           size: 7884MiB
->      *-cpu
->           product: AMD FX(tm)-8320 Eight-Core Processor
->           vendor: Advanced Micro Devices [AMD]
->           physical id: 1
->           bus info: cpu@0
->           size: 1400MHz
->           capacity: 3500MHz
->           width: 64 bits
->           capabilities: fpu fpu_exception wp vme de pse tsc msr pae mce cx8
-> apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx
-> mmxext fxsr_opt pdpe1gb rdtscp x86-64 constant_tsc rep_good nopl nonstop_tsc
-> extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2
-> popcnt aes xsave avx f16c lahf_lm cmp_legacy svm extapic cr8_legacy abm
-> sse4a misalignsse 3dnowprefetch osvw ibs xop skinit wdt lwp fma4 tce
-> nodeid_msr tbm topoext perfctr_core perfctr_nb arat cpb hw_pstate npt lbrv
-> svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists
-> pausefilter pfthreshold vmmcall bmi1 cpufreq
->
-> I have tried for a few hours now.  Many combinations / suggestions from the
-> documentation, forum posts, etc.  The most recent attempts were made with
-> another fresh install of Ubuntu 15.04 and following the instructions at the
-> following link:
-> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2250
->
-> Here is what I did on my last attempt after the fresh install.
->
-> sudo lshw -C multimedia
->   *-multimedia
->        description: Multimedia controller
->        product: SAA7164
->        vendor: Philips Semiconductors
->        physical id: 0
->        bus info: pci@0000:05:00.0
->        version: 81
->        width: 64 bits
->        clock: 33MHz
->        capabilities: msi pciexpress pm bus_master cap_list
->        configuration: driver=saa7164 latency=0
->        resources: irq:47 memory:fe000000-fe3fffff memory:fdc00000-fdffffff
->
-> dmesg | grep 7164
->
-> [    0.000000] On node 0 totalpages: 2071641
-> [    0.530288] pci 0000:05:00.0: [1131:7164] type 00 class 0x048000
-> [    5.977865] saa7164 driver loaded
-> [    5.977973] saa7164[0]: Your board isn't known (yet) to the driver.
-> saa7164[0]: Try to pick one of the existing card configs via
-> saa7164[0]: card=<n> insmod option.  Updating to the latest
-> saa7164[0]: version might help as well.
-> [    5.977976] saa7164[0]: Here are valid choices for the card=<n> insmod
-> option:
-> [    5.977977] saa7164[0]:    card=0 -> Unknown
-> [    5.977978] saa7164[0]:    card=1 -> Generic Rev2
-> [    5.977979] saa7164[0]:    card=2 -> Generic Rev3
-> [    5.977981] saa7164[0]:    card=3 -> Hauppauge WinTV-HVR2250
-> [    5.977981] saa7164[0]:    card=4 -> Hauppauge WinTV-HVR2200
-> [    5.977982] saa7164[0]:    card=5 -> Hauppauge WinTV-HVR2200
-> [    5.977983] saa7164[0]:    card=6 -> Hauppauge WinTV-HVR2200
-> [    5.977984] saa7164[0]:    card=7 -> Hauppauge WinTV-HVR2250
-> [    5.977985] saa7164[0]:    card=8 -> Hauppauge WinTV-HVR2250
-> [    5.977986] saa7164[0]:    card=9 -> Hauppauge WinTV-HVR2200
-> [    5.977987] saa7164[0]:    card=10 -> Hauppauge WinTV-HVR2200
-> [    5.978018] CORE saa7164[0]: subsystem: 0070:f111, board: Unknown
-> [card=0,autodetected]
-> [    5.978021] saa7164[0]/0: found at 0000:05:00.0, rev: 129, irq: 47,
-> latency: 0, mmio: 0xfe000000
-> [    5.978037] saa7164_initdev() Unsupported board detected, registering
-> without firmware
->
->
-> - created a file at: /etc/modprobe.d/saa7164.conf with the following
-> contents
->
->   options saa7164 card=8
->
-> - downloaded the firmware and copied it to /lib/firmware
->
->   wget
-> http://www.steventoth.net/linux/hvr22xx/firmwares/4019072/NXP7164-2010-03-10.1.fw
->   cp *.fw /lib/firmware
->
-> -  reboot
->
-> - after reboot
->
-> dmesg | grep 7164
->
-> [    0.000000] On node 0 totalpages: 2071641
-> [    0.530265] pci 0000:05:00.0: [1131:7164] type 00 class 0x048000
-> [    1.571643] device-mapper: ioctl: 4.29.0-ioctl (2014-10-28) initialised:
-> dm-devel@redhat.com
-> [    6.584365] saa7164 driver loaded
-> [    6.584503] CORE saa7164[0]: subsystem: 0070:f111, board: Hauppauge
-> WinTV-HVR2250 [card=8,insmod option]
-> [    6.584506] saa7164[0]/0: found at 0000:05:00.0, rev: 129, irq: 47,
-> latency: 0, mmio: 0xfe000000
-> [    6.758475] saa7164_downloadfirmware() no first image
-> [    6.758483] saa7164_downloadfirmware() Waiting for firmware upload
-> (NXP7164-2010-03-10.1.fw)
-> [    6.836305] saa7164 0000:05:00.0: Direct firmware load for
-> NXP7164-2010-03-10.1.fw failed with error -2
-> [    6.836309] saa7164_downloadfirmware() Upload failed. (file not found?)
-> [    0.000000] On node 0 totalpages: 2071641
-> [    0.530263] pci 0000:05:00.0: [1131:7164] type 00 class 0x048000
-> [    6.372707] saa7164 driver loaded
-> [    6.372835] CORE saa7164[0]: subsystem: 0070:f111, board: Hauppauge
-> WinTV-HVR2250 [card=8,insmod option]
-> [    6.372838] saa7164[0]/0: found at 0000:05:00.0, rev: 129, irq: 47,
-> latency: 0, mmio: 0xfe000000
-> [    6.530496] saa7164_downloadfirmware() no first image
-> [    6.530505] saa7164_downloadfirmware() Waiting for firmware upload
-> (NXP7164-2010-03-10.1.fw)
-> [    6.899014] saa7164_downloadfirmware() firmware read 4019072 bytes.
-> [    6.899017] saa7164_downloadfirmware() firmware loaded.
-> [    6.899022] saa7164_downloadfirmware() SecBootLoader.FileSize = 4019072
-> [    6.899027] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
-> [    6.899028] saa7164_downloadfirmware() BSLSize = 0x0
-> [    6.899029] saa7164_downloadfirmware() Reserved = 0x0
-> [    6.899030] saa7164_downloadfirmware() Version = 0x1661c00
-> [   13.650943] saa7164_downloadimage() Image downloaded, booting...
-> [   13.754950] saa7164_downloadimage() Image booted successfully.
-> [   16.395094] saa7164_downloadimage() Image downloaded, booting...
-> [   18.267203] saa7164_downloadimage() Image booted successfully.
-> [   18.316076] saa7164[0]: Warning: Unknown Hauppauge model #0
-> [   18.316078] saa7164[0]: Hauppauge eeprom: model=0
-> [   18.380192] saa7164_dvb_register() Frontend initialization failed
-> [   18.380195] saa7164_initdev() Failed to register dvb adapters on porta
-> [   18.383340] saa7164_api_i2c_read() error, ret(2) = 0x9
-> [   18.383347] saa7164_dvb_register() Frontend initialization failed
-> [   18.383348] saa7164_initdev() Failed to register dvb adapters on portb
-> [   18.383411] saa7164[0]: registered device video0 [mpeg]
-> [   18.618462] saa7164[0]: registered device video1 [mpeg]
-> [   18.834041] saa7164[0]: registered device vbi0 [vbi]
-> [   18.834087] saa7164[0]: registered device vbi1 [vbi]
-> [   18.848471] Modules linked in: s5h1411 amdkfd amd_iommu_v2 kvm_amd
-> snd_hda_codec_realtek kvm radeon snd_hda_codec_gen
-> eric crct10dif_pclmul crc32_pclmul ghash_clmulni_intel aesni_intel ttm
-> drm_kms_helper snd_hda_codec_hdmi aes_x86_64 drm
-> snd_hda_intel snd_hda_controller saa7164 i2c_algo_bit snd_hda_codec
-> eeepc_wmi lrw gf128mul tveeprom asus_wmi glue_helper
->  dvb_core sparse_keymap snd_hwdep v4l2_common video snd_pcm mxm_wmi
-> snd_seq_midi snd_seq_midi_event ablk_helper snd_rawm
-> idi videodev snd_seq snd_seq_device media snd_timer wmi snd serio_raw
-> soundcore shpchp 8250_fintek cryptd fam15h_power k
-> 10temp edac_core i2c_piix4 tpm_infineon
->
->
-> - edited /etc/modprobe.d/saa7164.conf
-> changed card=8 to card=7
->
-> - rebooted again
->
-> dmesg | grep 7164
->
-> [    0.000000] On node 0 totalpages: 2071641
-> [    0.530051] pci 0000:05:00.0: [1131:7164] type 00 class 0x048000
-> [    7.009868] saa7164 driver loaded
-> [    7.010007] CORE saa7164[0]: subsystem: 0070:f111, board: Hauppauge
-> WinTV-HVR2250 [card=7,insmod option]
-> [    7.010010] saa7164[0]/0: found at 0000:05:00.0, rev: 129, irq: 47,
-> latency: 0, mmio: 0xfe000000
-> [    7.178353] saa7164_downloadfirmware() no first image
-> [    7.178365] saa7164_downloadfirmware() Waiting for firmware upload
-> (NXP7164-2010-03-10.1.fw)
-> [    7.561231] saa7164_downloadfirmware() firmware read 4019072 bytes.
-> [    7.561237] saa7164_downloadfirmware() firmware loaded.
-> [    7.561251] saa7164_downloadfirmware() SecBootLoader.FileSize = 4019072
-> [    7.561258] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
-> [    7.561260] saa7164_downloadfirmware() BSLSize = 0x0
-> [    7.561262] saa7164_downloadfirmware() Reserved = 0x0
-> [    7.561264] saa7164_downloadfirmware() Version = 0x1661c00
-> [   14.310760] saa7164_downloadimage() Image downloaded, booting...
-> [   14.414757] saa7164_downloadimage() Image booted successfully.
-> [   17.054898] saa7164_downloadimage() Image downloaded, booting...
-> [   18.927006] saa7164_downloadimage() Image booted successfully.
-> [   18.971706] tveeprom 10-0000: audio processor is SAA7164 (idx 43)
-> [   18.971707] tveeprom 10-0000: decoder processor is SAA7164 (idx 40)
-> [   18.971709] saa7164[0]: Warning: Unknown Hauppauge model #151061
-> [   18.971711] saa7164[0]: Hauppauge eeprom: model=151061
-> [   19.025745] saa7164_dvb_register() Frontend initialization failed
-> [   19.025748] saa7164_initdev() Failed to register dvb adapters on porta
-> [   19.028551] saa7164_dvb_register() Frontend initialization failed
-> [   19.028554] saa7164_initdev() Failed to register dvb adapters on portb
-> [   19.028614] saa7164[0]: registered device video0 [mpeg]
-> [   19.263763] saa7164[0]: registered device video1 [mpeg]
-> [   19.476734] saa7164[0]: registered device vbi0 [vbi]
-> [   19.476775] saa7164[0]: registered device vbi1 [vbi]
-> [   19.485472] Modules linked in: s5h1411 amdkfd amd_iommu_v2 radeon ttm
-> snd_hda_codec_realtek snd_hda_codec_generic drm
-> _kms_helper snd_hda_codec_hdmi snd_hda_intel drm snd_hda_controller
-> snd_hda_codec saa7164 snd_hwdep kvm_amd snd_pcm kvm
-> tveeprom dvb_core snd_seq_midi v4l2_common snd_seq_midi_event snd_rawmidi
-> eeepc_wmi crct10dif_pclmul crc32_pclmul asus_w
-> mi ghash_clmulni_intel snd_seq videodev sparse_keymap media snd_seq_device
-> i2c_algo_bit aesni_intel snd_timer snd video
-> aes_x86_64 mxm_wmi lrw gf128mul glue_helper ablk_helper wmi soundcore
-> k10temp cryptd edac_core shpchp tpm_infineon 8250_
-> fintek serio_raw i2c_piix4 fam15h_power edac_mce_amd mac_hid parport_pc
-> ppdev lp parport autofs4 hid_generic usbhid hid
-> firewire_ohci psmouse firewire_core ahci crc_itu_t r8169 libahci mii
->
->
-> Any help would be deeply appreciated.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
