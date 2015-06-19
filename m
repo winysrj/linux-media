@@ -1,69 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50702 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755995AbbFCOAM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39735 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752531AbbFSMBv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 03/15] media: adv7180: add of match table
-Date: Wed,  3 Jun 2015 14:59:50 +0100
-Message-Id: <1433340002-1691-4-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Fri, 19 Jun 2015 08:01:51 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Kamil Debski <kamil@wypas.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers
+Date: Fri, 19 Jun 2015 15:02:38 +0300
+Message-Id: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ben Dooks <ben.dooks@codethink.co.uk>
+Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
+vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
+using a zero value for v4l2_buffer.bytesused.
 
-Add a proper of match id for use when the device is being bound via
-device tree, to avoid having to use the i2c old-style binding of the
-device.
+However, the condition is checked incorrectly, as the v4L2_buffer
+bytesused field is supposed to be ignored for multiplanar buffers. This
+results in spurious warnings when using the multiplanar API.
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-Signed-off-by: William.Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
+v4l2_plane.bytesused for multiplanar buffers.
+
+Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/i2c/adv7180.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index a493c0b..09a96df 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -25,6 +25,7 @@
- #include <linux/interrupt.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <media/v4l2-ioctl.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-@@ -1324,11 +1325,21 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops, adv7180_suspend, adv7180_resume);
- #define ADV7180_PM_OPS NULL
- #endif
+Changes since v1:
+
+- Rename __check_once to check_once
+- Drop __read_mostly on check_once
+- Use pr_warn instead of pr_warn_once
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index d835814a24d4..4eaf2f4f0294 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
+ }
+ EXPORT_SYMBOL_GPL(vb2_discard_done);
  
-+#ifdef CONFIG_OF
-+static const struct of_device_id adv7180_of_id[] = {
-+	{ .compatible = "adi,adv7180", },
-+	{ },
-+};
++static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
++{
++	static bool check_once;
 +
-+MODULE_DEVICE_TABLE(of, adv7180_of_id);
-+#endif
++	if (check_once)
++		return;
 +
- static struct i2c_driver adv7180_driver = {
- 	.driver = {
- 		   .owner = THIS_MODULE,
- 		   .name = KBUILD_MODNAME,
- 		   .pm = ADV7180_PM_OPS,
-+		   .of_match_table = of_match_ptr(adv7180_of_id),
- 		   },
- 	.probe = adv7180_probe,
- 	.remove = adv7180_remove,
++	check_once = true;
++	__WARN();
++
++	pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
++	if (vb->vb2_queue->allow_zero_bytesused)
++		pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
++	else
++		pr_warn("use the actual size instead.\n");
++}
++
+ /**
+  * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+  * v4l2_buffer by the userspace. The caller has already verified that struct
+@@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ {
+ 	unsigned int plane;
+ 
+-	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+-		if (WARN_ON_ONCE(b->bytesused == 0)) {
+-			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+-			if (vb->vb2_queue->allow_zero_bytesused)
+-				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+-			else
+-				pr_warn_once("use the actual size instead.\n");
+-		}
+-	}
+-
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		if (b->memory == V4L2_MEMORY_USERPTR) {
+ 			for (plane = 0; plane < vb->num_planes; ++plane) {
+@@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 				struct v4l2_plane *pdst = &v4l2_planes[plane];
+ 				struct v4l2_plane *psrc = &b->m.planes[plane];
+ 
++				if (psrc->bytesused == 0)
++					vb2_warn_zero_bytesused(vb);
++
+ 				if (vb->vb2_queue->allow_zero_bytesused)
+ 					pdst->bytesused = psrc->bytesused;
+ 				else
+@@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		}
+ 
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++			if (b->bytesused == 0)
++				vb2_warn_zero_bytesused(vb);
++
+ 			if (vb->vb2_queue->allow_zero_bytesused)
+ 				v4l2_planes[0].bytesused = b->bytesused;
+ 			else
 -- 
-1.7.10.4
+Regards,
 
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
