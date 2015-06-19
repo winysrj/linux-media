@@ -1,69 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60202 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752957AbbFHPWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 11:22:23 -0400
-Message-ID: <5575B32D.8050809@iki.fi>
-Date: Mon, 08 Jun 2015 18:22:21 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:34740 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667AbbFSMFx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2015 08:05:53 -0400
+Received: by lbbti3 with SMTP id ti3so70739492lbb.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2015 05:05:52 -0700 (PDT)
 MIME-Version: 1.0
-To: Unembossed Name <severe.siberian.man@mail.ru>,
-	linux-media@vger.kernel.org
-Subject: Re: About Si2168 Part, Revision and ROM detection.
-References: <A9A450C95D0047DA969F1F370ED24FE4@unknown>
-In-Reply-To: <A9A450C95D0047DA969F1F370ED24FE4@unknown>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <55840540.3020906@xs4all.nl>
+References: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<55840540.3020906@xs4all.nl>
+Date: Fri, 19 Jun 2015 13:05:51 +0100
+Message-ID: <CAP3TMiGz4Gwd_SnkaPkj0PwuDdZZtPOp2foWn+9gY-khuqgSeA@mail.gmail.com>
+Subject: Re: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when
+ v4l2_buffer.bytesused is 0 for multiplanar buffers
+From: Kamil Debski <kamil@wypas.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/06/2015 08:03 AM, Unembossed Name wrote:
-> Information below was given by a hardware vendor, who uses these
-> demodulators on their dvb-t2 products. As an explanation on our
-> questions for Si2168 Linux driver development.
-> I think it can give more clue with Part, Revision and ROM detection
-> algorithm in Linux driver for that demodulator.
+Hi Laurent,
+
+First - thank you so much for the patch. I had a look into the code
+and it looks good. You have my Ack.
+
+Thank and best wishes,
+Kamil Debski
+
+On 19 June 2015 at 13:04, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 06/19/2015 02:02 PM, Laurent Pinchart wrote:
+>> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
+>> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
+>> using a zero value for v4l2_buffer.bytesused.
+>>
+>> However, the condition is checked incorrectly, as the v4L2_buffer
+>> bytesused field is supposed to be ignored for multiplanar buffers. This
+>> results in spurious warnings when using the multiplanar API.
+>>
+>> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
+>> v4l2_plane.bytesused for multiplanar buffers.
+>>
+>> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 >
-> Also, I would like to suggest a following naming method for files
-> containing firmware patches. It's self explaining:
-> dvb-demod-si2168-a30-rom3_0_2-patch-build3_0_20.fw
-> dvb-demod-si2168-b40-rom4_0_2-patch-build4_0_19.fw.tar.gz
-> dvb-demod-si2168-b40-rom4_0_2-startup-without-patch-stub.fw
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-There is very little idea to add firmware version number to name as then 
-you cannot update firmware without driver update. Also, it is not 
-possible to change names as it is regression after kernel update.
+Acked-by: Kamil Debski <kamil@wypas.org>
 
-> (Stub code to startup B40 without patch at all:
-> 0x05,0x00,0x00,0x00,0x00,0x00,0x00,0x00)
-> I think such naming scheme can help to avoid possible mess with fw patch
-> versions.
-
-Current driver selects firmware by reading chip revision (A, B) and 
-PMAJOR/PMINOR, which means A20, A30 and B40 are detected.
-
-PBUILD is 2 and ROMID is 1 for me Si2168-B40 chip, without firmware 
-upgrade it boots up with fw version 4.0.2. Those numbers are just same 
-than PMAJOR.PMINOR.PBUILD, but are those?
-
-It is not clear at all what the hell is role of ROMID.
-
-I know that there is many firmware updates available and all are not 
-compatible with chip revisions. But I expect it is only waste of some 
-time when upload always biggest firmware to chip.
-
-Lets say there is old B40 having 4.0.2 on ROM. Then there is newer B40 
-having 4.0.10 on ROM. Then there is firmware upgrade to 4.0.11, one for 
-4.0.2 and another for 4.0.10. 4.0.2 is significant bigger and as 4.0.10 
-very close to 4.0.11 it is significantly smaller. However, you could 
-download that 4.0.2 => 4.0.11 upgrade to both chips and it leads same, 
-but chip with 4.0.2 fw on ROM will not work if you upload 4.0.10 => 
-4.0.11 upgrade. I haven't tested that theory, but currently driver does 
-that as there is no any other detection than A20/A30/B40 and it seems to 
-work pretty well. Downside is just that large fw update done always.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+>
+> Thanks!
+>
+>         Hans
+>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
+>>  1 file changed, 23 insertions(+), 10 deletions(-)
+>>
+>> Changes since v1:
+>>
+>> - Rename __check_once to check_once
+>> - Drop __read_mostly on check_once
+>> - Use pr_warn instead of pr_warn_once
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index d835814a24d4..4eaf2f4f0294 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
+>>  }
+>>  EXPORT_SYMBOL_GPL(vb2_discard_done);
+>>
+>> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+>> +{
+>> +     static bool check_once;
+>> +
+>> +     if (check_once)
+>> +             return;
+>> +
+>> +     check_once = true;
+>> +     __WARN();
+>> +
+>> +     pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+>> +     if (vb->vb2_queue->allow_zero_bytesused)
+>> +             pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+>> +     else
+>> +             pr_warn("use the actual size instead.\n");
+>> +}
+>> +
+>>  /**
+>>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+>>   * v4l2_buffer by the userspace. The caller has already verified that struct
+>> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>  {
+>>       unsigned int plane;
+>>
+>> -     if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+>> -             if (WARN_ON_ONCE(b->bytesused == 0)) {
+>> -                     pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+>> -                     if (vb->vb2_queue->allow_zero_bytesused)
+>> -                             pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+>> -                     else
+>> -                             pr_warn_once("use the actual size instead.\n");
+>> -             }
+>> -     }
+>> -
+>>       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>>               if (b->memory == V4L2_MEMORY_USERPTR) {
+>>                       for (plane = 0; plane < vb->num_planes; ++plane) {
+>> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>                               struct v4l2_plane *pdst = &v4l2_planes[plane];
+>>                               struct v4l2_plane *psrc = &b->m.planes[plane];
+>>
+>> +                             if (psrc->bytesused == 0)
+>> +                                     vb2_warn_zero_bytesused(vb);
+>> +
+>>                               if (vb->vb2_queue->allow_zero_bytesused)
+>>                                       pdst->bytesused = psrc->bytesused;
+>>                               else
+>> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>>               }
+>>
+>>               if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+>> +                     if (b->bytesused == 0)
+>> +                             vb2_warn_zero_bytesused(vb);
+>> +
+>>                       if (vb->vb2_queue->allow_zero_bytesused)
+>>                               v4l2_planes[0].bytesused = b->bytesused;
+>>                       else
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
