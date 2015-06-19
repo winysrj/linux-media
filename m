@@ -1,119 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:37167 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754176AbbFJR1b (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38166 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752901AbbFSCt7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 13:27:31 -0400
-Received: by wifx6 with SMTP id x6so54574717wif.0
-        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2015 10:27:30 -0700 (PDT)
-Message-ID: <55787382.5010607@gmail.com>
-Date: Wed, 10 Jun 2015 18:27:30 +0100
-From: Andy Furniss <adf.lists@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvbv5-tzap with pctv 290e/292e needs EAGAIN for pat/pmt
- to work when recording.
-References: <556E2D5B.5080201@gmail.com> <20150610095215.79e5e77e@recife.lan>
-In-Reply-To: <20150610095215.79e5e77e@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 18 Jun 2015 22:49:59 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 568E82A00AF
+	for <linux-media@vger.kernel.org>; Fri, 19 Jun 2015 04:49:37 +0200 (CEST)
+Date: Fri, 19 Jun 2015 04:49:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150619024937.568E82A00AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Just applied a fix for it:
-> 	http://git.linuxtv.org/cgit.cgi/v4l-utils.git/commit/?id=c7c9af17163f282a147ea76f1a3c0e9a0a86e7fa
->
-> It will retry up to 10 times. This should very likely be enough if the
-> driver doesn't have any bug.
->
-> Please let me know if this fixes the issue.
+Results of the daily build of media_tree:
 
-No, it doesn't, so I reverted the above and added back my hack + a 
-counter as below and it seems to be retrying > a million times.
+date:		Fri Jun 19 04:00:21 CEST 2015
+git branch:	test
+git hash:	6f32a8c97f11eb074027052b6b507891e5c9d8b1
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Tested both 290e and 292e.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-I currently have a post on linux-usb because I am having some dvb packet 
-loss issues unless I spin a cpu - don't know if that's relevant or not 
-but thought I should mention it. The loss is relatively low level but 
-enough to be annoying, spinning a cpu doesn't change the eagain count.
+Detailed results are available here:
 
-results with below patch recording =
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-asr[scans-dvb]$ dvbv5-zap -a 1  -pro ~/test1.ts -t 10 -c 
-dvb_channel-290.conf "BBC TWO"
-using demux '/dev/dvb/adapter1/demux0'
-reading channels from file 'dvb_channel-290.conf'
-service has pid type 05:  7270 250
-tuning to 745833000 Hz
+Full logs are available here:
 
-EAGAIN count = 1468127
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-video pid 201
-   dvb_set_pesfilter 201
-audio pid 202
-   dvb_set_pesfilter 202
-Lock   (0x1f) Signal= 100.00% C/N= 0.20% UCB= 132 postBER= 0
-Lock   (0x1f) Signal= 100.00% C/N= 0.21% UCB= 138 postBER= 0
-Record to file '/home/andy/test1.ts' started
-copied 4581936 bytes (447 Kbytes/sec)
-Lock   (0x1f) Signal= 100.00% C/N= 0.43% UCB= 283 postBER= 0
+The Media Infrastructure API from this daily build is here:
 
-asr[scans-dvb]$ dvbv5-zap -a 0  -pro ~/test2.ts -t 10 -c 
-dvb_channel-290.conf "BBC TWO"
-using demux '/dev/dvb/adapter0/demux0'
-reading channels from file 'dvb_channel-290.conf'
-service has pid type 05:  7270 250
-tuning to 745833000 Hz
-
-EAGAIN count = 1285533
-
-video pid 201
-   dvb_set_pesfilter 201
-audio pid 202
-   dvb_set_pesfilter 202
-Lock   (0x1f) C/N= 16.75dB
-Lock   (0x1f) C/N= 17.00dB
-Record to file '/home/andy/test2.ts' started
-copied 3780116 bytes (369 Kbytes/sec)
-Lock   (0x1f) C/N= 34.00dB
-
-
-
-diff --git a/lib/libdvbv5/dvb-demux.c b/lib/libdvbv5/dvb-demux.c
-index 30d4eda..f435078 100644
---- a/lib/libdvbv5/dvb-demux.c
-+++ b/lib/libdvbv5/dvb-demux.c
-@@ -130,6 +130,7 @@ int dvb_get_pmt_pid(int patfd, int sid)
-         int count;
-         int pmt_pid = 0;
-         int patread = 0;
-+        int eacount = 0;
-         int section_length;
-         unsigned char buft[4096];
-         unsigned char *buf = buft;
-@@ -151,10 +152,16 @@ int dvb_get_pmt_pid(int patfd, int sid)
-                 if (((count = read(patfd, buf, sizeof(buft))) < 0) && 
-errno == EOVERFLOW)
-                 count = read(patfd, buf, sizeof(buft));
-                 if (count < 0) {
--               perror("read_sections: read error");
--               return -1;
-+                       if (errno == EAGAIN){ /*ADF*/
-+                               eacount++;
-+                               continue;
-+                       }
-+                       perror("read_sections: read error");
-+                       return -1;
-                 }
-
-+                fprintf(stderr, "EAGAIN count = %d\n", eacount);
-+
-                 section_length = ((buf[1] & 0x0f) << 8) | buf[2];
-                 if (count != section_length + 3)
-                 continue;
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
