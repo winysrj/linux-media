@@ -1,82 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:38607 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933295AbbFCPNE (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:26354 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbbFSMFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 11:13:04 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, vladcatoi@gmail.com,
-	damien@zamaudio.com, chris.j.arges@canonical.com,
-	takamichiho@gmail.com, misterpib@gmail.com, daniel@zonque.org,
-	pmatilai@laiskiainen.org, jussi@sonarnerd.net,
-	normalperson@yhbt.net, fisch602@gmail.com, joe@oampo.co.uk
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 0/2] Update ALSA driver to use media controller API
-Date: Wed,  3 Jun 2015 09:12:52 -0600
-Message-Id: <cover.1433298842.git.shuahkh@osg.samsung.com>
+	Fri, 19 Jun 2015 08:05:19 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NQ600HTAXKSDL80@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Jun 2015 13:05:16 +0100 (BST)
+Subject: Re: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when
+ v4l2_buffer.bytesused is 0 for multiplanar buffers
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+References: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Kamil Debski <kamil@wypas.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <5584057B.2080504@samsung.com>
+Date: Fri, 19 Jun 2015 14:05:15 +0200
+MIME-version: 1.0
+In-reply-to: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series updates ALSA driver to use media controller
-API to share tuner with DVB and V4L2 drivers that control AU0828
-media device. Two new interfaces are added to media controller
-API to enable creating media device as a device resource. This
-allows creating media device as a device resource on the main
-struct device that is common to all drivers that control a single
-media hardware and share resources on it. Drivers then can find
-the common media device to register entities and manage links,
-and pipelines.
+Hello,
 
-Tested with and without CONFIG_MEDIA_CONTROLLER enabled.
-Tested tuner entity doesn't exist case as au0828 v4l2
-driver is the one that will create the tuner when it gets
-updated to use media controller API.
+On 2015-06-19 14:02, Laurent Pinchart wrote:
+> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
+> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
+> using a zero value for v4l2_buffer.bytesused.
+>
+> However, the condition is checked incorrectly, as the v4L2_buffer
+> bytesused field is supposed to be ignored for multiplanar buffers. This
+> results in spurious warnings when using the multiplanar API.
+>
+> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
+> v4l2_plane.bytesused for multiplanar buffers.
+>
+> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Please note that au0828 updates media controller are necessary
-before the resource sharing can work across ALSA and au0828
-dvb and v4l2 drivers. This work is in progress and another
-developer is working on it.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Changes since v1:
-- Moved media specific code into new header and source file
-- Created a new structure for media controller specific fields
-- Added a new define USE_MEDIA_CONTROLLER to add media specific
-  code. This new define is defined only when Media Controller
-  support is enabled. New media specific code is active only
-  when this define is defined.
-- Moved media_deviced_delete() check under !was_shutdown block
-- Removed return check for media_device_init()
-- Changed new Media Controller interface names for clarity. Now
-  they are named media_device_get_devres() and
-  media_device_find_devres().
-- Calling media_entity_pipeline_stop() on a pipe that isn't active
-  appears to be safe. This needs further testing once AU0828
-  media controller patches are ready.
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
+>   1 file changed, 23 insertions(+), 10 deletions(-)
+>
+> Changes since v1:
+>
+> - Rename __check_once to check_once
+> - Drop __read_mostly on check_once
+> - Use pr_warn instead of pr_warn_once
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index d835814a24d4..4eaf2f4f0294 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
+>   }
+>   EXPORT_SYMBOL_GPL(vb2_discard_done);
+>   
+> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+> +{
+> +	static bool check_once;
+> +
+> +	if (check_once)
+> +		return;
+> +
+> +	check_once = true;
+> +	__WARN();
+> +
+> +	pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> +	if (vb->vb2_queue->allow_zero_bytesused)
+> +		pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> +	else
+> +		pr_warn("use the actual size instead.\n");
+> +}
+> +
+>   /**
+>    * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+>    * v4l2_buffer by the userspace. The caller has already verified that struct
+> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   {
+>   	unsigned int plane;
+>   
+> -	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> -		if (WARN_ON_ONCE(b->bytesused == 0)) {
+> -			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> -			if (vb->vb2_queue->allow_zero_bytesused)
+> -				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> -			else
+> -				pr_warn_once("use the actual size instead.\n");
+> -		}
+> -	}
+> -
+>   	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>   		if (b->memory == V4L2_MEMORY_USERPTR) {
+>   			for (plane = 0; plane < vb->num_planes; ++plane) {
+> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   				struct v4l2_plane *pdst = &v4l2_planes[plane];
+>   				struct v4l2_plane *psrc = &b->m.planes[plane];
+>   
+> +				if (psrc->bytesused == 0)
+> +					vb2_warn_zero_bytesused(vb);
+> +
+>   				if (vb->vb2_queue->allow_zero_bytesused)
+>   					pdst->bytesused = psrc->bytesused;
+>   				else
+> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>   		}
+>   
+>   		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			if (b->bytesused == 0)
+> +				vb2_warn_zero_bytesused(vb);
+> +
+>   			if (vb->vb2_queue->allow_zero_bytesused)
+>   				v4l2_planes[0].bytesused = b->bytesused;
+>   			else
 
-Shuah Khan (2):
-  media: new media controller API for device resource support
-  sound/usb: Update ALSA driver to use media controller API
-
- drivers/media/media-device.c |  33 ++++++++
- include/media/media-device.h |   2 +
- sound/usb/Makefile           |   3 +-
- sound/usb/card.c             |   5 ++
- sound/usb/card.h             |   1 +
- sound/usb/media.c            | 181 +++++++++++++++++++++++++++++++++++++++++++
- sound/usb/media.h            |  40 ++++++++++
- sound/usb/pcm.c              |  10 ++-
- sound/usb/quirks-table.h     |   1 +
- sound/usb/quirks.c           |   9 ++-
- sound/usb/stream.c           |   3 +
- sound/usb/usbaudio.h         |   1 +
- 12 files changed, 286 insertions(+), 3 deletions(-)
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
-
+Best regards
 -- 
-2.1.4
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
