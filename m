@@ -1,79 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:62169 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168AbbFTLqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2015 07:46:03 -0400
-Date: Sat, 20 Jun 2015 13:45:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct
- pad number in try_fmt
-In-Reply-To: <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1506201345160.31977@axis700.grange>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
- <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51937 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751532AbbFSMEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2015 08:04:39 -0400
+Message-ID: <55840540.3020906@xs4all.nl>
+Date: Fri, 19 Jun 2015 14:04:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Kamil Debski <kamil@wypas.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [URGENT FOR v4.1] [PATCH v2] vb2: Don't WARN when v4l2_buffer.bytesused
+ is 0 for multiplanar buffers
+References: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1434715358-28325-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Jun 2015, William Towle wrote:
+On 06/19/2015 02:02 PM, Laurent Pinchart wrote:
+> Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
+> vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
+> using a zero value for v4l2_buffer.bytesused.
+> 
+> However, the condition is checked incorrectly, as the v4L2_buffer
+> bytesused field is supposed to be ignored for multiplanar buffers. This
+> results in spurious warnings when using the multiplanar API.
+> 
+> Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
+> v4l2_plane.bytesused for multiplanar buffers.
+> 
+> Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the vb2_queue struct")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
-> 
-> Fix calls to subdev try_fmt to use correct pad. Fixes failures with
-> subdevs that care about having the right pad number set.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
 > ---
->  drivers/media/platform/soc_camera/soc_scale_crop.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
+>  drivers/media/v4l2-core/videobuf2-core.c | 33 ++++++++++++++++++++++----------
+>  1 file changed, 23 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> index bda29bc..90e2769 100644
-> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> @@ -225,6 +225,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
->  	bool host_1to1;
->  	int ret;
+> Changes since v1:
+> 
+> - Rename __check_once to check_once
+> - Drop __read_mostly on check_once
+> - Use pr_warn instead of pr_warn_once
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index d835814a24d4..4eaf2f4f0294 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_discard_done);
 >  
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	format->pad = icd->src_pad_idx;
-> +#endif
+> +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+> +{
+> +	static bool check_once;
 > +
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  					 soc_camera_grp_id(icd), pad,
->  					 set_fmt, NULL, format);
-> @@ -261,10 +265,16 @@ static int client_set_fmt(struct soc_camera_device *icd,
->  	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
->  	while ((width > tmp_w || height > tmp_h) &&
->  	       tmp_w < max_width && tmp_h < max_height) {
+> +	if (check_once)
+> +		return;
 > +
->  		tmp_w = min(2 * tmp_w, max_width);
->  		tmp_h = min(2 * tmp_h, max_height);
->  		mf->width = tmp_w;
->  		mf->height = tmp_h;
+> +	check_once = true;
+> +	__WARN();
 > +
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		format->pad = icd->src_pad_idx;
-
-BTW, can format->pad be changed by subdev's .set_fmt()? Do you really have 
-to set it in a loop?
-
-Thanks
-Guennadi
-
-> +#endif
+> +	pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> +	if (vb->vb2_queue->allow_zero_bytesused)
+> +		pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> +	else
+> +		pr_warn("use the actual size instead.\n");
+> +}
 > +
->  		ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  					soc_camera_grp_id(icd), pad,
->  					set_fmt, NULL, format);
-> -- 
-> 1.7.10.4
+>  /**
+>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+>   * v4l2_buffer by the userspace. The caller has already verified that struct
+> @@ -1252,16 +1269,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  {
+>  	unsigned int plane;
+>  
+> -	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> -		if (WARN_ON_ONCE(b->bytesused == 0)) {
+> -			pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> -			if (vb->vb2_queue->allow_zero_bytesused)
+> -				pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> -			else
+> -				pr_warn_once("use the actual size instead.\n");
+> -		}
+> -	}
+> -
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>  		if (b->memory == V4L2_MEMORY_USERPTR) {
+>  			for (plane = 0; plane < vb->num_planes; ++plane) {
+> @@ -1302,6 +1309,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  				struct v4l2_plane *pdst = &v4l2_planes[plane];
+>  				struct v4l2_plane *psrc = &b->m.planes[plane];
+>  
+> +				if (psrc->bytesused == 0)
+> +					vb2_warn_zero_bytesused(vb);
+> +
+>  				if (vb->vb2_queue->allow_zero_bytesused)
+>  					pdst->bytesused = psrc->bytesused;
+>  				else
+> @@ -1336,6 +1346,9 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+>  		}
+>  
+>  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+> +			if (b->bytesused == 0)
+> +				vb2_warn_zero_bytesused(vb);
+> +
+>  			if (vb->vb2_queue->allow_zero_bytesused)
+>  				v4l2_planes[0].bytesused = b->bytesused;
+>  			else
 > 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-media" in
