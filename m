@@ -1,60 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54778 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563AbbFHTyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 23/26] [media] dvb: frontend.h: improve dvb_frontent_parameters comment
-Date: Mon,  8 Jun 2015 16:54:07 -0300
-Message-Id: <a1904073e0652eb6745454df7b5a2087355980e8.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:59785 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240AbbFSHdA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2015 03:33:00 -0400
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+Cc: pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH] leds: aat1290: Add 'static' modifier to init_mm_current_scale
+Date: Fri, 19 Jun 2015 09:32:44 +0200
+Message-id: <1434699164-5750-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The comment for struct dvb_frontend_parameters is weird, as it
-mixes delivery system name (ATSC) with modulation names
-(QPSK, QAM, OFDM).
+Fix sparse warning by adding static modifier to the function
+init_mm_current_scale.
 
-Use delivery system names there on the frequency comment, as this
-is clearer, specially after 2GEN delivery systems.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+---
+ drivers/leds/leds-aat1290.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-While here, add comments at the union, to make live easier for ones
-that may try to understand the convention used by the legacy API.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 0380e62fc8b2..e764fd8b7e35 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -540,14 +540,14 @@ struct dvb_ofdm_parameters {
- };
+diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+index 8635404..b055882 100644
+--- a/drivers/leds/leds-aat1290.c
++++ b/drivers/leds/leds-aat1290.c
+@@ -308,7 +308,7 @@ static void aat1290_led_validate_mm_current(struct aat1290_led *led,
+ 	cfg->max_brightness = b + 1;
+ }
  
- struct dvb_frontend_parameters {
--	__u32 frequency;     /* (absolute) frequency in Hz for QAM/OFDM/ATSC */
--			     /* intermediate frequency in kHz for QPSK */
-+	__u32 frequency;     /* (absolute) frequency in Hz for DVB-C/DVB-T/ATSC */
-+			     /* intermediate frequency in kHz for DVB-S */
- 	fe_spectral_inversion_t inversion;
- 	union {
--		struct dvb_qpsk_parameters qpsk;
--		struct dvb_qam_parameters  qam;
--		struct dvb_ofdm_parameters ofdm;
--		struct dvb_vsb_parameters vsb;
-+		struct dvb_qpsk_parameters qpsk;	/* DVB-S */
-+		struct dvb_qam_parameters  qam;		/* DVB-C */
-+		struct dvb_ofdm_parameters ofdm;	/* DVB-T */
-+		struct dvb_vsb_parameters vsb;		/* ATSC */
- 	} u;
- };
- 
+-int init_mm_current_scale(struct aat1290_led *led,
++static int init_mm_current_scale(struct aat1290_led *led,
+ 			struct aat1290_led_config_data *cfg)
+ {
+ 	int max_mm_current_percent[] = { 20, 22, 25, 28, 32, 36, 40, 45, 50, 56,
 -- 
-2.4.2
+1.7.9.5
 
