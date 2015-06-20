@@ -1,93 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:50316 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753064AbbFQKfa (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33950 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753398AbbFTC6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2015 06:35:30 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
-Date: Wed, 17 Jun 2015 18:39:38 +0800
-Message-ID: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+	Fri, 19 Jun 2015 22:58:25 -0400
+Date: Sat, 20 Jun 2015 08:28:17 +0530
+From: Vaishali Thakkar <vthakkar1994@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: [PATCH] [media] dvb_core: Replace memset with eth_zero_addr
+Message-ID: <20150620025817.GA4420@vaishali-Ideapad-Z570>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the function configure_geometry(), we will setup the ISI CFG2
-according to the sensor output format.
+Use eth_zero_addr to assign the zero address to the given address
+array instead of memset when second argument is address of zero.
 
-It make no sense to just read back the CFG2 register and just set part
-of it.
+The Coccinelle semantic patch that makes this change is as follows:
 
-So just set up this register directly makes things simpler.
-Currently only support YUV format from camera sensor.
+// <smpl>
+@eth_zero_addr@
+expression e;
+@@
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+-memset(e,0x00,ETH_ALEN);
++eth_zero_addr(e);
+// </smpl>
+
+Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
 ---
+ drivers/media/dvb-core/dvb_net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 9070172..8bc40ca 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
- static int configure_geometry(struct atmel_isi *isi, u32 width,
- 			u32 height, u32 code)
- {
--	u32 cfg2, cr;
-+	u32 cfg2;
- 
-+	/* According to sensor's output format to set cfg2 */
- 	switch (code) {
- 	/* YUV, including grey */
- 	case MEDIA_BUS_FMT_Y8_1X8:
--		cr = ISI_CFG2_GRAYSCALE;
-+		cfg2 = ISI_CFG2_GRAYSCALE;
- 		break;
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_3;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_2;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
- 		break;
- 	case MEDIA_BUS_FMT_YVYU8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_1;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
-+		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
- 		break;
- 	/* RGB, TODO */
- 	default:
-@@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 	}
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
--	cfg2 = isi_readl(isi, ISI_CFG2);
--	/* Set YCC swap mode */
--	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
--	cfg2 |= cr;
- 	/* Set width */
--	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
- 	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
- 			ISI_CFG2_IM_HSIZE_MASK;
- 	/* Set height */
--	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
- 	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
- 			& ISI_CFG2_IM_VSIZE_MASK;
- 	isi_writel(isi, ISI_CFG2, cfg2);
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index a694fb1..b81e026 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -709,7 +709,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 					if (!priv->ule_dbit) {
+ 						 /* dest_addr buffer is only valid if priv->ule_dbit == 0 */
+ 						memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
+-						memset(ethh->h_source, 0, ETH_ALEN);
++						eth_zero_addr(ethh->h_source);
+ 					}
+ 					else /* zeroize source and dest */
+ 						memset( ethh, 0, ETH_ALEN*2 );
 -- 
 1.9.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
