@@ -1,121 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43181 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751116AbbFYCvk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 22:51:40 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EEADD2A00AD
-	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2015 04:51:09 +0200 (CEST)
-Date: Thu, 25 Jun 2015 04:51:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150625025109.EEADD2A00AD@tschai.lan>
+Received: from mout.gmx.net ([212.227.15.15]:62169 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752168AbbFTLqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Jun 2015 07:46:03 -0400
+Date: Sat, 20 Jun 2015 13:45:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct
+ pad number in try_fmt
+In-Reply-To: <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1506201345160.31977@axis700.grange>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+ <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, 3 Jun 2015, William Towle wrote:
 
-Results of the daily build of media_tree:
+> From: Rob Taylor <rob.taylor@codethink.co.uk>
+> 
+> Fix calls to subdev try_fmt to use correct pad. Fixes failures with
+> subdevs that care about having the right pad number set.
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> ---
+>  drivers/media/platform/soc_camera/soc_scale_crop.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> index bda29bc..90e2769 100644
+> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> @@ -225,6 +225,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
+>  	bool host_1to1;
+>  	int ret;
+>  
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	format->pad = icd->src_pad_idx;
+> +#endif
+> +
+>  	ret = v4l2_device_call_until_err(sd->v4l2_dev,
+>  					 soc_camera_grp_id(icd), pad,
+>  					 set_fmt, NULL, format);
+> @@ -261,10 +265,16 @@ static int client_set_fmt(struct soc_camera_device *icd,
+>  	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
+>  	while ((width > tmp_w || height > tmp_h) &&
+>  	       tmp_w < max_width && tmp_h < max_height) {
+> +
+>  		tmp_w = min(2 * tmp_w, max_width);
+>  		tmp_h = min(2 * tmp_h, max_height);
+>  		mf->width = tmp_w;
+>  		mf->height = tmp_h;
+> +
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +		format->pad = icd->src_pad_idx;
 
-date:		Thu Jun 25 04:00:30 CEST 2015
-git branch:	test
-git hash:	faebbd8f134f0c054f372982c8ddd1bbcc41b440
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+BTW, can format->pad be changed by subdev's .set_fmt()? Do you really have 
+to set it in a loop?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Thanks
+Guennadi
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> +#endif
+> +
+>  		ret = v4l2_device_call_until_err(sd->v4l2_dev,
+>  					soc_camera_grp_id(icd), pad,
+>  					set_fmt, NULL, format);
+> -- 
+> 1.7.10.4
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
