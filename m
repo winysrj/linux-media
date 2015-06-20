@@ -1,57 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34800 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.15.18]:53147 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030184AbbFEOSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 10:18:42 -0400
-Message-ID: <5571AFBE.8050509@iki.fi>
-Date: Fri, 05 Jun 2015 17:18:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1752030AbbFTLjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Jun 2015 07:39:04 -0400
+Date: Sat, 20 Jun 2015 13:38:55 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: William Towle <william.towle@codethink.co.uk>
+cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
+	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
+	hans verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 11/15] media: soc_camera: soc_scale_crop: Use correct
+ pad number in try_fmt
+In-Reply-To: <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
+Message-ID: <Pine.LNX.4.64.1506201323020.31977@axis700.grange>
+References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+ <1433340002-1691-12-git-send-email-william.towle@codethink.co.uk>
 MIME-Version: 1.0
-To: Olli Salonen <olli.salonen@iki.fi>,
-	Steven Toth <stoth@kernellabs.com>
-CC: Linux-Media <linux-media@vger.kernel.org>,
-	Peter Faulkner-Ball <faulkner-ball@xtra.co.nz>
-Subject: Re: [PATCH][media] SI2168: Resolve unknown chip version errors with
- different HVR22x5 models
-References: <CALzAhNW=Oei7_Nziozh3Mm+X_NNHvM5EdmPVPh9ajn5Aen9O2g@mail.gmail.com>	<557048EF.3040703@iki.fi>	<CAAZRmGw7NcDo8YJtYN5gC6DM23jtgqmGhhJUAa6VaEovX+qNdA@mail.gmail.com>	<CAAZRmGy_AwJfGzfDorx_=43xNQ3cB915GFnck-YJ0gu0W64xKw@mail.gmail.com>	<CALzAhNXWsv6O23yzRAx9L6TrKRvm9o7SdApsHjMgE3dpqUYpWA@mail.gmail.com> <CAAZRmGxtzq1qX=JKusF_A+_0od8sY8LO_kN-6ZWge2E7GMoweA@mail.gmail.com>
-In-Reply-To: <CAAZRmGxtzq1qX=JKusF_A+_0od8sY8LO_kN-6ZWge2E7GMoweA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/05/2015 04:40 PM, Olli Salonen wrote:
-> Hi Steven,
->
-> It seems to me that that part of the code is identical to your driver, no?
->
-> The media_tree driver:
->
-> retval = saa7164_api_i2c_read(bus,
->                       msgs[i].addr,
->                       0 /* reglen */,
->                       NULL /* reg */, msgs[i].len, msgs[i].buf);
->
-> It's exactly the same with a little bit different formatting.
+On Wed, 3 Jun 2015, William Towle wrote:
 
-And that looks correct.
+> From: Rob Taylor <rob.taylor@codethink.co.uk>
+> 
+> Fix calls to subdev try_fmt to use correct pad. Fixes failures with
+> subdevs that care about having the right pad number set.
+> 
+> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> ---
+>  drivers/media/platform/soc_camera/soc_scale_crop.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> index bda29bc..90e2769 100644
+> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> @@ -225,6 +225,10 @@ static int client_set_fmt(struct soc_camera_device *icd,
+>  	bool host_1to1;
+>  	int ret;
+>  
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	format->pad = icd->src_pad_idx;
+> +#endif
+> +
+>  	ret = v4l2_device_call_until_err(sd->v4l2_dev,
+>  					 soc_camera_grp_id(icd), pad,
+>  					 set_fmt, NULL, format);
+> @@ -261,10 +265,16 @@ static int client_set_fmt(struct soc_camera_device *icd,
+>  	/* width <= max_width && height <= max_height - guaranteed by try_fmt */
+>  	while ((width > tmp_w || height > tmp_h) &&
+>  	       tmp_w < max_width && tmp_h < max_height) {
+> +
 
-But the patch which does not look correct, or is at least unclear, is that
-[media] saa7164: Improvements for I2C handling
-http://permalink.gmane.org/gmane.comp.video.linuxtv.scm/22211
+I usually don't use an empty line directly after an opening brace. Please, 
+drop.
 
-First change does not have any effect as len should be zero in any case 
-and memcpy() should do nothing.
+Thanks
+Guennadi
 
-Second change looks something that is likely wrong. There is some hack 
-which increases data len. All that register len stuff is logically wrong 
-- I2C adapter handles just bytes and should not know nothing about 
-client register layout. OK, there is some exceptions (like af9035) where 
-I2C firmware actually knows register layout for some strange reason.
-
-So could you remove that patch and test?
-
-Antti
-
--- 
-http://palosaari.fi/
+>  		tmp_w = min(2 * tmp_w, max_width);
+>  		tmp_h = min(2 * tmp_h, max_height);
+>  		mf->width = tmp_w;
+>  		mf->height = tmp_h;
+> +
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +		format->pad = icd->src_pad_idx;
+> +#endif
+> +
+>  		ret = v4l2_device_call_until_err(sd->v4l2_dev,
+>  					soc_camera_grp_id(icd), pad,
+>  					set_fmt, NULL, format);
+> -- 
+> 1.7.10.4
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
