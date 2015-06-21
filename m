@@ -1,108 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:36304 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479AbbFJSV2 (ORCPT
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:55875 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752222AbbFUSHN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:21:28 -0400
+	Sun, 21 Jun 2015 14:07:13 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@intel.com>
+Subject: Re: [PATCH 3/4] media: pxa_camera: trivial move of dma irq functions
+References: <1426980085-12281-1-git-send-email-robert.jarzmik@free.fr>
+	<1426980085-12281-4-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.1506201503550.31977@axis700.grange>
+	<87y4je831c.fsf@belgarion.home>
+	<Pine.LNX.4.64.1506211810240.7745@axis700.grange>
+Date: Sun, 21 Jun 2015 20:05:06 +0200
+In-Reply-To: <Pine.LNX.4.64.1506211810240.7745@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun, 21 Jun 2015 18:11:26 +0200 (CEST)")
+Message-ID: <87k2ux7x9p.fsf@belgarion.home>
 MIME-Version: 1.0
-In-Reply-To: <1433754145-12765-2-git-send-email-j.anaszewski@samsung.com>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com> <1433754145-12765-2-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Wed, 10 Jun 2015 11:21:07 -0700
-Message-ID: <CAK5ve-JDncP+f89svGw-yugaJb1o-Ywr-ngf0ejnw7FS1amrag@mail.gmail.com>
-Subject: Re: [PATCH v10 1/8] Documentation: leds: Add description of
- v4l2-flash sub-device
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> This patch extends LED Flash class documention by
-> the description of interactions with v4l2-flash sub-device.
->
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Merged into my -devel branch and it won't be merged into 4.2.0 merge
-window but wait for one more cycle, since now it's quite late in 4.1.0
-cycle.
-
-Thanks,
--Bryan
-
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> ---
->  Documentation/leds/leds-class-flash.txt |   51 +++++++++++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
+> On Sat, 20 Jun 2015, Robert Jarzmik wrote:
 >
-> diff --git a/Documentation/leds/leds-class-flash.txt b/Documentation/leds/leds-class-flash.txt
-> index 19bb673..8da3c6f 100644
-> --- a/Documentation/leds/leds-class-flash.txt
-> +++ b/Documentation/leds/leds-class-flash.txt
-> @@ -20,3 +20,54 @@ Following sysfs attributes are exposed for controlling flash LED devices:
->         - max_flash_timeout
->         - flash_strobe
->         - flash_fault
-> +
-> +
-> +V4L2 flash wrapper for flash LEDs
-> +=================================
-> +
-> +A LED subsystem driver can be controlled also from the level of VideoForLinux2
-> +subsystem. In order to enable this CONFIG_V4L2_FLASH_LED_CLASS symbol has to
-> +be defined in the kernel config.
-> +
-> +The driver must call the v4l2_flash_init function to get registered in the
-> +V4L2 subsystem. The function takes six arguments:
-> +- dev       : flash device, e.g. an I2C device
-> +- of_node   : of_node of the LED, may be NULL if the same as device's
-> +- fled_cdev : LED flash class device to wrap
-> +- iled_cdev : LED flash class device representing indicator LED associated with
-> +             fled_cdev, may be NULL
-> +- ops : V4L2 specific ops
-> +       * external_strobe_set - defines the source of the flash LED strobe -
-> +               V4L2_CID_FLASH_STROBE control or external source, typically
-> +               a sensor, which makes it possible to synchronise the flash
-> +               strobe start with exposure start,
-> +       * intensity_to_led_brightness and led_brightness_to_intensity - perform
-> +               enum led_brightness <-> V4L2 intensity conversion in a device
-> +               specific manner - they can be used for devices with non-linear
-> +               LED current scale.
-> +- config : configuration for V4L2 Flash sub-device
-> +       * dev_name - the name of the media entity, unique in the system,
-> +       * flash_faults - bitmask of flash faults that the LED flash class
-> +               device can report; corresponding LED_FAULT* bit definitions are
-> +               available in <linux/led-class-flash.h>,
-> +       * torch_intensity - constraints for the LED in TORCH mode
-> +               in microamperes,
-> +       * indicator_intensity - constraints for the indicator LED
-> +               in microamperes,
-> +       * has_external_strobe - determines whether the flash strobe source
-> +               can be switched to external,
-> +
-> +On remove the v4l2_flash_release function has to be called, which takes one
-> +argument - struct v4l2_flash pointer returned previously by v4l2_flash_init.
-> +This function can be safely called with NULL or error pointer argument.
-> +
-> +Please refer to drivers/leds/leds-max77693.c for an exemplary usage of the
-> +v4l2 flash wrapper.
-> +
-> +Once the V4L2 sub-device is registered by the driver which created the Media
-> +controller device, the sub-device node acts just as a node of a native V4L2
-> +flash API device would. The calls are simply routed to the LED flash API.
-> +
-> +Opening the V4L2 flash sub-device makes the LED subsystem sysfs interface
-> +unavailable. The interface is re-enabled after the V4L2 flash sub-device
-> +is closed.
-> --
-> 1.7.9.5
+>> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+>> 
+>> >> +static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+>> >> +			       enum pxa_camera_active_dma act_dma);
+>> >> +
+>> >> +static void pxa_camera_dma_irq_y(void *data)
+>> >
+>> > Wait, how is this patch trivial? You change pxa_camera_dma_irq_?() 
+>> > prototypes, which are used as PXA DMA callbacks. Does this mean, that 
+>> > either before or after this patch compilation is broken?
+>> 
+>> Jeez you're right.
+>> So I can either fold that with patch 4, or try to rework it somehow ...
 >
+> How about letting that patch do exactly what it says it does? Just move 
+> functions up in the file if you need them there, without changing them, 
+> and only change them when it's needed?
+Deal, for next iteration.
+
+Cheers.
+
+-- 
+Robert
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
