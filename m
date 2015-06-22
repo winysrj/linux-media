@@ -1,52 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51298 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbbFYKBs (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37756 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752819AbbFVHF0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 06:01:48 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field just as vb2_ioctl_reqbufs does
-Date: Thu, 25 Jun 2015 12:01:26 +0200
-Message-Id: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 22 Jun 2015 03:05:26 -0400
+Message-ID: <5587B39A.4050805@xs4all.nl>
+Date: Mon, 22 Jun 2015 09:04:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl> <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1506211855010.7745@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1506211855010.7745@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+> On Mon, 15 Jun 2015, Hans Verkuil wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> When the standard changes the VACTIVE and VDELAY values need to be updated.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+>>  1 file changed, 28 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+>> index df66417..e939c24 100644
+>> --- a/drivers/media/i2c/soc_camera/tw9910.c
+>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+>> @@ -510,13 +510,39 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+>>  {
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	struct tw9910_priv *priv = to_tw9910(client);
+>> +	const unsigned hact = 720;
+>> +	const unsigned hdelay = 15;
+>> +	unsigned vact;
+>> +	unsigned vdelay;
+>> +	int ret;
+>>  
+>>  	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+>>  		return -EINVAL;
+>>  
+>>  	priv->norm = norm;
+>> +	if (norm & V4L2_STD_525_60) {
+>> +		vact = 240;
+>> +		vdelay = 18;
+>> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
+>> +	} else {
+>> +		vact = 288;
+>> +		vdelay = 24;
+>> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
+>> +	}
+>> +	if (!ret)
+>> +		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+>> +			((vdelay >> 2) & 0xc0) |
+>> +			((vact >> 4) & 0x30) |
+>> +			((hdelay >> 6) & 0x0c) |
+>> +			((hact >> 8) & 0x03));
+> 
+> I personally would find ((x & 0xc0) >> {2,4,6,8}) a bit easier for the 
+> eyes, but this works as well for me:)
+> 
+>> +	if (!ret)
+>> +		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+>> +			vdelay & 0xff);
+>> +	if (!ret)
+>> +		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
+>> +			vact & 0xff);
+>>  
+>> -	return 0;
+>> +	return ret;
+>>  }
+>>  
+>>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+>>  
+>>  	priv->norm = V4L2_STD_NTSC;
+>> +	priv->scale = &tw9910_ntsc_scales[0];
+> 
+> Why do you need this? So far everywhere in the code priv->scale is either 
+> checked or set before use. Don't see why an additional initialisation is 
+> needed.
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index dc853e5..511caaa 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -357,9 +357,16 @@ int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 		     struct v4l2_requestbuffers *reqbufs)
- {
- 	struct vb2_queue *vq;
-+	int ret;
- 
- 	vq = v4l2_m2m_get_vq(m2m_ctx, reqbufs->type);
--	return vb2_reqbufs(vq, reqbufs);
-+	ret = vb2_reqbufs(vq, reqbufs);
-+	/* If count == 0, then the owner has released all buffers and he
-+	   is no longer owner of the queue. Otherwise we have a new owner. */
-+	if (ret == 0)
-+		vq->owner = reqbufs->count ? file->private_data : NULL;
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_reqbufs);
- 
--- 
-2.1.4
+If you just start streaming without explicitly setting up formats (which is
+allowed), then priv->scale is still NULL.
 
+V4L2 always assumes that there is some initial format configured, and this line
+enables that for this driver (NTSC).
+
+Regards,
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+>>  
+>>  done:
+>>  	tw9910_s_power(&priv->subdev, 0);
+>> -- 
+>> 2.1.4
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
