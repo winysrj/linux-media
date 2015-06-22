@@ -1,126 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:52706 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751433AbbFELjg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2015 07:39:36 -0400
-Date: Fri, 5 Jun 2015 13:39:28 +0200
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Jon Hunter <jonathanh@nvidia.com>
-Cc: Paul Walmsley <paul@pwsan.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Stephen Boyd <sboyd@codeaurora.org>,
-	<linux-clk@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	ascha Hauer <kernel@pengutronix.de>,
-	David Brown <davidb@codeaurora.org>,
-	Daniel Walker <dwalker@fifo99.com>,
-	Bryan Huntsman <bryanh@codeaurora.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Liviu Dudau <liviu.dudau@arm.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Ralf Baechle <ralf@linux-mips.org>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Barry Song <baohua@kernel.org>,
-	Viresh Kumar <viresh.linux@gmail.com>,
-	Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Peter De Schrijver <pdeschrijver@nvidia.com>,
-	Prashant Gaikwad <pgaikwad@nvidia.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Alexandre Courbot <gnurou@gmail.com>,
-	Tero Kristo <t-kristo@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	<linux-doc@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-arm-msm@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mips@linux-mips.org>, <patches@opensource.wolfsonmicro.com>,
-	<linux-rockchip@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <spear-devel@list.st.com>,
-	<linux-tegra@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<linux-media@vger.kernel.org>, <rtc-linux@googlegroups.com>
-Subject: Re: [PATCH v2 1/2] clk: change clk_ops' ->round_rate() prototype
-Message-ID: <20150605133928.66909901@bbrezillon>
-In-Reply-To: <557161D1.3040107@nvidia.com>
-References: <1430407809-31147-1-git-send-email-boris.brezillon@free-electrons.com>
- <1430407809-31147-2-git-send-email-boris.brezillon@free-electrons.com>
- <alpine.DEB.2.02.1506042258530.12316@utopia.booyaka.com>
- <557161D1.3040107@nvidia.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44623 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756112AbbFVHVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2015 03:21:15 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2071D2A0095
+	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2015 09:20:49 +0200 (CEST)
+Message-ID: <5587B751.7080104@xs4all.nl>
+Date: Mon, 22 Jun 2015 09:20:49 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.3] sh-vou and various i2c subdev fixes
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+This pull request contains a pile of fixes for sh-vou (including a conversion to
+vb2) and various i2c subdev improvements and a small docbook fix.
 
-On Fri, 5 Jun 2015 09:46:09 +0100
-Jon Hunter <jonathanh@nvidia.com> wrote:
+Regards,
 
-> 
-> On 05/06/15 00:02, Paul Walmsley wrote:
-> > Hi folks
-> > 
-> > just a brief comment on this one:
-> > 
-> > On Thu, 30 Apr 2015, Boris Brezillon wrote:
-> > 
-> >> Clock rates are stored in an unsigned long field, but ->round_rate()
-> >> (which returns a rounded rate from a requested one) returns a long
-> >> value (errors are reported using negative error codes), which can lead
-> >> to long overflow if the clock rate exceed 2Ghz.
-> >>
-> >> Change ->round_rate() prototype to return 0 or an error code, and pass the
-> >> requested rate as a pointer so that it can be adjusted depending on
-> >> hardware capabilities.
-> > 
-> > ...
-> > 
-> >> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
-> >> index 0e4f90a..fca8b7a 100644
-> >> --- a/Documentation/clk.txt
-> >> +++ b/Documentation/clk.txt
-> >> @@ -68,8 +68,8 @@ the operations defined in clk.h:
-> >>  		int		(*is_enabled)(struct clk_hw *hw);
-> >>  		unsigned long	(*recalc_rate)(struct clk_hw *hw,
-> >>  						unsigned long parent_rate);
-> >> -		long		(*round_rate)(struct clk_hw *hw,
-> >> -						unsigned long rate,
-> >> +		int		(*round_rate)(struct clk_hw *hw,
-> >> +						unsigned long *rate,
-> >>  						unsigned long *parent_rate);
-> >>  		long		(*determine_rate)(struct clk_hw *hw,
-> >>  						unsigned long rate,
-> > 
-> > I'd suggest that we should probably go straight to 64-bit rates.  There 
-> > are already plenty of clock sources that can generate rates higher than 
-> > 4GiHz.
-> 
-> An alternative would be to introduce to a frequency "base" the default
-> could be Hz (for backwards compatibility), but for CPUs we probably only
-> care about MHz (or may be kHz) and so 32-bits would still suffice. Even
-> if CPUs cared about Hz they could still use Hz, but in that case they
-> probably don't care about GHz. Obviously, we don't want to break DT
-> compatibility but may be the frequency base could be defined in DT and
-> if it is missing then Hz is assumed. Just a thought ...
+	Hans
 
-Yes, but is it really worth the additional complexity. You'll have to
-add the unit information anyway, so using an unsigned long for the
-value and another field for the unit (an enum ?) is just like using a
-64 bit integer.
 
-Best Regards,
+The following changes since commit 6f32a8c97f11eb074027052b6b507891e5c9d8b1:
 
-Boris
+  [media] MAINTAINERS: Add entry for the Renesas VSP1 driver (2015-06-18 18:00:44 -0300)
 
--- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.3a
+
+for you to fetch changes up to 5c973d986fcf43f4abed6fcfe48d67fc99da85e8:
+
+  media: adv7604: ability to read default input port from DT (2015-06-22 09:12:21 +0200)
+
+----------------------------------------------------------------
+Ben Dooks (1):
+      media: adv7180: add of match table
+
+Hans Verkuil (12):
+      clock-sh7724.c: fix sh-vou clock identifier
+      sh-vou: use resource managed calls
+      sh-vou: fix querycap support
+      sh-vou: use v4l2_fh
+      sh-vou: support compulsory G/S/ENUM_OUTPUT ioctls
+      sh-vou: fix incorrect initial pixelformat.
+      sh-vou: replace g/s_crop/cropcap by g/s_selection
+      sh-vou: let sh_vou_s_fmt_vid_out call sh_vou_try_fmt_vid_out
+      sh-vou: fix bytesperline
+      sh-vou: convert to vb2
+      sh-vou: add support for log_status
+      DocBook/media: fix bad spacing in VIDIOC_EXPBUF
+
+Ian Molton (2):
+      media: adv7604: document support for ADV7612 dual HDMI input decoder
+      media: adv7604: ability to read default input port from DT
+
+Pablo Anton (1):
+      media: i2c: ADV7604: Migrate to regmap
+
+Ricardo Ribalda Delgado (1):
+      media/i2c/sr030pc30: Remove compat control ops
+
+William Towle (1):
+      media: adv7604: chip info and formats for ADV7612
+
+ Documentation/DocBook/media/v4l/vidioc-expbuf.xml       |  38 ++--
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt |  21 +-
+ arch/sh/kernel/cpu/sh4a/clock-sh7724.c                  |   2 +-
+ drivers/media/i2c/adv7180.c                             |  11 +
+ drivers/media/i2c/adv7604.c                             | 446 ++++++++++++++++++++++++++++---------
+ drivers/media/i2c/sr030pc30.c                           |   7 -
+ drivers/media/platform/sh_vou.c                         | 817 +++++++++++++++++++++++++++++++-------------------------------------
+ 7 files changed, 763 insertions(+), 579 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
