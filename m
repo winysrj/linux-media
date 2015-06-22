@@ -1,121 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44349 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526AbbFDCtV (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48842 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932665AbbFVH30 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 22:49:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AB1F52A0097
-	for <linux-media@vger.kernel.org>; Thu,  4 Jun 2015 04:49:11 +0200 (CEST)
-Date: Thu, 04 Jun 2015 04:49:11 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150604024911.AB1F52A0097@tschai.lan>
+	Mon, 22 Jun 2015 03:29:26 -0400
+Message-ID: <5587B93C.1030106@xs4all.nl>
+Date: Mon, 22 Jun 2015 09:29:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl> <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl> <Pine.LNX.4.64.1506220920280.13683@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1506220920280.13683@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Mon, 22 Jun 2015, Hans Verkuil wrote:
+> 
+>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
+>>>
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> ---
+>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+>>>> index df66417..e939c24 100644
+>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
+>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+>>>> @@ -510,13 +510,39 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+>>>>  {
+>>>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>>>  	struct tw9910_priv *priv = to_tw9910(client);
+>>>> +	const unsigned hact = 720;
+>>>> +	const unsigned hdelay = 15;
+>>>> +	unsigned vact;
+>>>> +	unsigned vdelay;
+>>>> +	int ret;
+>>>>  
+>>>>  	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+>>>>  		return -EINVAL;
+>>>>  
+>>>>  	priv->norm = norm;
+>>>> +	if (norm & V4L2_STD_525_60) {
+>>>> +		vact = 240;
+>>>> +		vdelay = 18;
+>>>> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
+>>>> +	} else {
+>>>> +		vact = 288;
+>>>> +		vdelay = 24;
+>>>> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
+>>>> +	}
+>>>> +	if (!ret)
+>>>> +		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+>>>> +			((vdelay >> 2) & 0xc0) |
+>>>> +			((vact >> 4) & 0x30) |
+>>>> +			((hdelay >> 6) & 0x0c) |
+>>>> +			((hact >> 8) & 0x03));
+>>>
+>>> I personally would find ((x & 0xc0) >> {2,4,6,8}) a bit easier for the 
+>>> eyes, but this works as well for me:)
+>>>
+>>>> +	if (!ret)
+>>>> +		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+>>>> +			vdelay & 0xff);
+>>>> +	if (!ret)
+>>>> +		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
+>>>> +			vact & 0xff);
+>>>>  
+>>>> -	return 0;
+>>>> +	return ret;
+>>>>  }
+>>>>  
+>>>>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+>>>>  
+>>>>  	priv->norm = V4L2_STD_NTSC;
+>>>> +	priv->scale = &tw9910_ntsc_scales[0];
+>>>
+>>> Why do you need this? So far everywhere in the code priv->scale is either 
+>>> checked or set before use. Don't see why an additional initialisation is 
+>>> needed.
+>>
+>> If you just start streaming without explicitly setting up formats (which is
+>> allowed), then priv->scale is still NULL.
+> 
+> Yes, it can well be NULL, but it is also unused. Before it is used it will 
+> be set, while it is unused it is allowed to stay NULL.
 
-Results of the daily build of media_tree:
+No. If you start streaming without the set_fmt op having been called, then
+s_stream will return an error since priv->scale is NULL. This is wrong. Since
+this driver defaults to NTSC the initial setup should be for NTSC and it should
+be ready for streaming.
 
-date:		Thu Jun  4 04:00:17 CEST 2015
-git branch:	test
-git hash:	c1c3c85ddf60a6d97c122d57d385b4929fcec4b3
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
+E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
+case. It's how I found this bug.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1-rc1-i686: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: WARNINGS
-linux-4.1-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+It's a trivial one liner to ensure a valid priv->scale pointer.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+	Hans
 
-Full logs are available here:
+> 
+> Thanks
+> Guennadi
+> 
+>> V4L2 always assumes that there is some initial format configured, and this line
+>> enables that for this driver (NTSC).
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Thanks
+>>> Guennadi
+>>>
+>>>>  
+>>>>  done:
+>>>>  	tw9910_s_power(&priv->subdev, 0);
+>>>> -- 
+>>>> 2.1.4
+>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
