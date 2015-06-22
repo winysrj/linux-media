@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:41344 "EHLO www.osadl.org"
+Received: from cantor2.suse.de ([195.135.220.15]:55667 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750746AbbFGOmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 10:42:53 -0400
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Erik Andren <erik.andren@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] [media] gscpa_m5602: use msecs_to_jiffies for conversions
-Date: Sun,  7 Jun 2015 16:34:40 +0200
-Message-Id: <1433687680-1736-1-git-send-email-hofrat@osadl.org>
+	id S1751343AbbFVRTl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2015 13:19:41 -0400
+Date: Mon, 22 Jun 2015 19:19:39 +0200
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
+To: Borislav Petkov <bp@suse.de>
+Cc: Fengguang Wu <fengguang.wu@intel.com>,
+	Ingo Molnar <mingo@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, LKP <lkp@01.org>
+Subject: Re: [x86/mm/pat, drivers/media/ivtv]  WARNING: CPU: 0 PID: 1 at
+ drivers/media/pci/ivtv/ivtvfb.c:1270 ivtvfb_init()
+Message-ID: <20150622171939.GR11147@wotan.suse.de>
+References: <20150620071756.GA10923@wfg-t540p.sh.intel.com>
+ <20150620110844.GA30725@pd.tnic>
+ <20150621202348.GP11147@wotan.suse.de>
+ <20150621204120.GA11833@pd.tnic>
+ <20150622010138.GQ11147@wotan.suse.de>
+ <20150622070641.GA19872@pd.tnic>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150622070641.GA19872@pd.tnic>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-API compliance scanning with coccinelle flagged:
-./drivers/media/usb/gspca/m5602/m5602_s5k83a.c:180:9-25:
-	 WARNING: timeout (100) seems HZ dependent
+On Mon, Jun 22, 2015 at 09:06:41AM +0200, Borislav Petkov wrote:
+> On Mon, Jun 22, 2015 at 03:01:38AM +0200, Luis R. Rodriguez wrote:
+> > We can certainly replace the WARN() with pr_warn(), I don't see
+> > how its confusing though as its a run time real issue. Either
+> > way whatever you recommend is fine by me.
+> 
+> Yeah, it confused the 0day robot at least. :-)
+> 
+> But maybe because it cannot really read. But I've experienced cases
+> where people don't read too, see *a* splat and raise the alarm. So yeah,
+> I think a simple pr_warn would be much better.
 
-Numeric constants passed to schedule_timeout() make the effective
-timeout HZ dependent which makes little sense in a polling loop for
-the cameras rotation state.
-Fixed up by converting the constant to jiffies with msecs_to_jiffies()
+OK I'll submit a follow up fix and say the robot reported it :)
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
-
-Patch was compile tested with i386_defconfig + 
-
-Patch is against 4.1-rc6 (localversion-next is -next-20150605)
-
- drivers/media/usb/gspca/m5602/m5602_s5k83a.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/gspca/m5602/m5602_s5k83a.c b/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
-index 7cbc3a0..bf6b215 100644
---- a/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
-+++ b/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
-@@ -177,7 +177,7 @@ static int rotation_thread_function(void *data)
- 	__s32 vflip, hflip;
- 
- 	set_current_state(TASK_INTERRUPTIBLE);
--	while (!schedule_timeout(100)) {
-+	while (!schedule_timeout(msecs_to_jiffies(100))) {
- 		if (mutex_lock_interruptible(&sd->gspca_dev.usb_lock))
- 			break;
- 
--- 
-1.7.10.4
-
+ Luis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
