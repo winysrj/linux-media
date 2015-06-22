@@ -1,165 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46758 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982AbbFROIv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 10:08:51 -0400
-From: Jan Kara <jack@suse.cz>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/10] [media] vb2: Push mmap_sem down to memops
-Date: Thu, 18 Jun 2015 16:08:31 +0200
-Message-Id: <1434636520-25116-2-git-send-email-jack@suse.cz>
-In-Reply-To: <1434636520-25116-1-git-send-email-jack@suse.cz>
-References: <1434636520-25116-1-git-send-email-jack@suse.cz>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35999 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbbFVWES (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2015 18:04:18 -0400
+Date: Mon, 22 Jun 2015 15:04:17 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
+Message-Id: <20150622150417.9328994e4c19916d3a88846f@linux-foundation.org>
+In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
+References: <cover.1433927458.git.mchehab@osg.samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently vb2 core acquires mmap_sem just around call to
-__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
-lockdep warning) it isn't necessary to acquire it so early as we no
-longer have to drop queue mutex before acquiring mmap_sem. So push
-acquisition of mmap_sem down into .get_userptr memop so that the
-semaphore is acquired for a shorter time and it is clearer what it is
-needed for.
+On Wed, 10 Jun 2015 06:20:43 -0300 Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-Note that we also need mmap_sem in .put_userptr memop since that ends up
-calling vb2_put_vma() which calls vma->vm_ops->close() which should be
-called with mmap_sem held. However we didn't hold mmap_sem in some code
-paths anyway (e.g. when called via vb2_ioctl_reqbufs() ->
-__vb2_queue_free() -> vb2_dma_sg_put_userptr()) and getting mmap_sem in
-put_userptr() introduces a lock inversion with queue->mmap_lock in the
-above mentioned call path.
+> I received this patch series with a new set of helper functions for
+> mm, together with changes for media and DRM drivers.
+> 
+> As this stuff is actually mm code, I prefer if this got merged via
+> your tree.
+> 
+> Could you please handle it? Please notice that patch 8 actually changes
+> the exynos DRM driver, but it misses ack from DRM people.
 
-Luckily this whole locking mess will get resolved once we convert
-videobuf2 core to the new mm helper which avoids the need for mmap_sem
-in .put_userptr memop altogether.
+I'm now getting large rejects from many of these patches.  It seems
+that someone has recently removed a patch from linux-next, and that
+patch added down_read(mmap_sem) and up_read(mmap_sem) to the same
+functions which this patch series is altering.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 2 --
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++++
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 4 +++-
- 4 files changed, 12 insertions(+), 3 deletions(-)
+I started fixing them all up but I got bored, and I'm not very
+confident in the end result.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 66ada01c796c..20cdbc0900ea 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1657,9 +1657,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
--		down_read(&current->mm->mmap_sem);
- 		ret = __qbuf_userptr(vb, b);
--		up_read(&current->mm->mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 644dec73d220..8e660f033d3c 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -616,6 +616,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		goto fail_buf;
- 	}
- 
-+	down_read(&current->mm->mmap_sem);
- 	/* current->mm->mmap_sem is taken by videobuf2 core */
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
-@@ -642,6 +643,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-+			up_read(&current->mm->mmap_sem);
- 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
- 			buf->size = size;
- 			kfree(pages);
-@@ -651,6 +653,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		pr_err("failed to get user pages\n");
- 		goto fail_vma;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
-@@ -713,10 +716,12 @@ fail_get_user_pages:
- 		while (n_pages)
- 			put_page(pages[--n_pages]);
- 
-+	down_read(&current->mm->mmap_sem);
- fail_vma:
- 	vb2_put_vma(buf->vma);
- 
- fail_pages:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(pages); /* kfree is NULL-proof */
- 
- fail_buf:
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 45c708e463b9..cdcf5ad79012 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -263,6 +263,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf->pages)
- 		goto userptr_fail_alloc_pages;
- 
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
- 		dprintk(1, "no vma for address %lu\n", vaddr);
-@@ -301,6 +302,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-+	up_read(&current->mm->mmap_sem);
- 
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
-@@ -328,8 +330,10 @@ userptr_fail_get_user_pages:
- 	if (!vma_is_io(buf->vma))
- 		while (--num_pages_from_user >= 0)
- 			put_page(buf->pages[num_pages_from_user]);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
- userptr_fail_find_vma:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf->pages);
- userptr_fail_alloc_pages:
- 	kfree(buf);
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 657ab302a5cf..3199c379cd47 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
- 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		if (!buf->vaddr)
- 			goto fail_get_user_pages;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	buf->vaddr += offset;
- 	return buf;
-@@ -133,6 +134,7 @@ fail_get_user_pages:
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- 
- 	return NULL;
--- 
-2.1.4
-
+It was a particularly bad time to be making these sorts of changes. 
+Does anyone know what's happening?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
