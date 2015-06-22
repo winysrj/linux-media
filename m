@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46711 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbbFBW3N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 18:29:13 -0400
-Date: Tue, 2 Jun 2015 15:29:12 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
-Message-Id: <20150602152912.4851e6fd4213828ddf7eb5b2@linux-foundation.org>
-In-Reply-To: <20150602152300.GD17315@quack.suse.cz>
-References: <1431522495-4692-1-git-send-email-jack@suse.cz>
-	<1431522495-4692-3-git-send-email-jack@suse.cz>
-	<20150528162402.19a0a26a5b9eae36aa8050e5@linux-foundation.org>
-	<20150602152300.GD17315@quack.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:34543 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408AbbFVWeK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2015 18:34:10 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com
+Cc: mingo@kernel.org, fengguang.wu@intel.com,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: [PATCH 0/2] x86/mm/pat: don't use WARN for nopat requirement
+Date: Mon, 22 Jun 2015 15:31:56 -0700
+Message-Id: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2 Jun 2015 17:23:00 +0200 Jan Kara <jack@suse.cz> wrote:
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-> > That's a lump of new code which many kernels won't be needing.  Can we
-> > put all this in a new .c file and select it within drivers/media
-> > Kconfig?
->   So the attached patch should do what you had in mind. OK?
+Mauro, Doug,
 
-lgtm.
+The 0-day robot found using WARN() on built-in kernels confusing. Upon
+further thought pr_warn() is better and will likely also not confuse
+humans too.
 
->  drivers/gpu/drm/exynos/Kconfig      |   1 +
->  drivers/media/platform/omap/Kconfig |   1 +
->  drivers/media/v4l2-core/Kconfig     |   1 +
->  mm/Kconfig                          |   3 +
->  mm/Makefile                         |   1 +
->  mm/frame-vec.c                      | 233 ++++++++++++++++++++++++++++++++++++
+Boris, provided maintainers Ack, please consider these patches.
 
-But frame_vector.c would be a more pleasing name.  For `struct frame_vector'.
+These depend on pat_enabled() exported symbol which went in through
+the x86 tree, so I suppose this also needs to go through there. This
+is an example issue of cross-tree collateral evolution follow ups,
+one reason why I punted the a RFD and proposal for a linux-oven [0].
+In that regard I suppose follow ups like these would need to go through
+that tree as well.
+
+[0] http://lkml.kernel.org/r/20150619231255.GC7487@garbanzo.do-not-panic.com
+
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: replace WARN() with pr_warn()
+
+ drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+-- 
+2.3.2.209.gd67f9d5.dirty
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
