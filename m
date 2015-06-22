@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52460 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752458AbbFKSyI (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50925 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933048AbbFVHbs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 14:54:08 -0400
-Date: Thu, 11 Jun 2015 11:54:07 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
-Message-Id: <20150611115407.6da5d331edaa263269e50350@linux-foundation.org>
-In-Reply-To: <5579501F.6080000@xs4all.nl>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-	<5579501F.6080000@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Mon, 22 Jun 2015 03:31:48 -0400
+Message-ID: <5587B9C9.70803@xs4all.nl>
+Date: Mon, 22 Jun 2015 09:31:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Benoit Parrot <bparrot@ti.com>
+CC: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org
+Subject: Re: [Patch 0/2] media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
+References: <1434475763-20294-1-git-send-email-bparrot@ti.com>
+In-Reply-To: <1434475763-20294-1-git-send-email-bparrot@ti.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Jun 2015 11:08:47 +0200 Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> I discovered a regression on a prerequisite patch merged in the media
-> tree that until solved prevents parts of this patch series from going in.
+On 06/16/2015 07:29 PM, Benoit Parrot wrote:
+> The Camera Adaptation Layer (CAL) is a block which consists of a dual
+> port CSI2/MIPI camera capture engine.
+> This camera engine is currently found on DRA72xx family of devices.
 > 
-> See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg89538.html
+> Port #0 can handle CSI2 camera connected to up to 4 data lanes.
+> Port #1 can handle CSI2 camera connected to up to 2 data lanes.
 > 
-> Jan is on vacation, and I don't know if I have time this weekend to dig
-> into this, so the patch that caused the regression may have to be reverted
-> for 4.2 and the vb2 patches in this series postponed until the regression
-> problem is fixed.
+> The driver implements the required API/ioctls to be V4L2 compliant.
+> Driver supports the following:
+>     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
+>     - Asynchronous sensor sub device registration
+>     - DT support
 > 
-> Note that this is all v4l/vb2 related, the get_vaddr_frames helper is actually
-> fine and could be merged, it's just the vb2 patches in this patch series that
-> cannot be merged for now due to deadlocks.
+> Currently each port is designed to connect to a single sub-device.
+> In other words port aggregation is not currently supported.
+> 
+> Here is a sample output of the v4l2-compliance tool:
+> 
+> # ./v4l2-compliance -s -v -d /dev/video0
 
-OK, thanks.  I'll just keep these patches on hold (in -next) until
-advised otherwise?
+Can you show the output of './v4l2-compliance -f' as well?
 
+Thanks!
+
+	Hans
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
