@@ -1,145 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:43327 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276AbbFHJCw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 05:02:52 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, pavel@ucw.cz, cooloney@gmail.com,
-	rpurdie@rpsys.net, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v10 0/8] LED / flash API integration
-Date: Mon, 08 Jun 2015 11:02:17 +0200
-Message-id: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:51070 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753790AbbFVHWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2015 03:22:04 -0400
+Date: Mon, 22 Jun 2015 09:21:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+In-Reply-To: <5587B39A.4050805@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1506220920280.13683@axis700.grange>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+ <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is tenth non-RFC version of LED / flash API integration
-series [1]. It is based on linux_next-20150605 with patch [2].
+Hi Hans,
 
-================
-Changes since v9
-================
-- improved v4l2_flash_open and v4l2_flash_close functions of
-  v4l2-flash-led-class wrapper, to lock/unlock also the sysfs interface
-  of indicator LED flash class device
-- improved slightly LED subsystem documentation for V4L2 flash wrapper
-- used proper function for getting the size of array of phandles in
-  the exynos4-is media device driver and switched over to only raising
-  a warning when a sensor phandle related to a flash phandle is not known
-  to the media device controller
+On Mon, 22 Jun 2015, Hans Verkuil wrote:
 
-================
-Changes since v8
-================
-- switched from samsung,flash-leds to samsun,camera-flashes DT property
-- improved async sub-devices matching for exynos4-is media device
-- modified v4l2-flash-led-class wrapper to incorporate indicator
-  LED class deviecs
+> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+> > On Mon, 15 Jun 2015, Hans Verkuil wrote:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> When the standard changes the VACTIVE and VDELAY values need to be updated.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+> >>  1 file changed, 28 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+> >> index df66417..e939c24 100644
+> >> --- a/drivers/media/i2c/soc_camera/tw9910.c
+> >> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+> >> @@ -510,13 +510,39 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+> >>  {
+> >>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >>  	struct tw9910_priv *priv = to_tw9910(client);
+> >> +	const unsigned hact = 720;
+> >> +	const unsigned hdelay = 15;
+> >> +	unsigned vact;
+> >> +	unsigned vdelay;
+> >> +	int ret;
+> >>  
+> >>  	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+> >>  		return -EINVAL;
+> >>  
+> >>  	priv->norm = norm;
+> >> +	if (norm & V4L2_STD_525_60) {
+> >> +		vact = 240;
+> >> +		vdelay = 18;
+> >> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
+> >> +	} else {
+> >> +		vact = 288;
+> >> +		vdelay = 24;
+> >> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
+> >> +	}
+> >> +	if (!ret)
+> >> +		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+> >> +			((vdelay >> 2) & 0xc0) |
+> >> +			((vact >> 4) & 0x30) |
+> >> +			((hdelay >> 6) & 0x0c) |
+> >> +			((hact >> 8) & 0x03));
+> > 
+> > I personally would find ((x & 0xc0) >> {2,4,6,8}) a bit easier for the 
+> > eyes, but this works as well for me:)
+> > 
+> >> +	if (!ret)
+> >> +		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+> >> +			vdelay & 0xff);
+> >> +	if (!ret)
+> >> +		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
+> >> +			vact & 0xff);
+> >>  
+> >> -	return 0;
+> >> +	return ret;
+> >>  }
+> >>  
+> >>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> >> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+> >>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+> >>  
+> >>  	priv->norm = V4L2_STD_NTSC;
+> >> +	priv->scale = &tw9910_ntsc_scales[0];
+> > 
+> > Why do you need this? So far everywhere in the code priv->scale is either 
+> > checked or set before use. Don't see why an additional initialisation is 
+> > needed.
+> 
+> If you just start streaming without explicitly setting up formats (which is
+> allowed), then priv->scale is still NULL.
 
-================
-Changes since v7
-================
+Yes, it can well be NULL, but it is also unused. Before it is used it will 
+be set, while it is unused it is allowed to stay NULL.
 
-- Merged patches from Sakari for v4l2-flash-led-class and V4L2 related
-  patches for leds-max77693 and leds-aat1290 drivers
-- applied minor modifications to the both led drivers related patches
-- modified exynos4-is media device to parse new samsung,flash-led
-  property, instead of 'flashes' array
-- added DT documentation for samsung,flash-led property
+Thanks
+Guennadi
 
-================
-Changes since v5
-================
-- renamed v4l2-flash module to v4l2-flash-led-class and applied
-  other related modifications spotted by Sakari
-- fixed not released of_node reference in max77693-led driver
-
-================
-Changes since v4
-================
-- adapted leds-max77693 and leds-aat1290 drivers to the recent
-  modifications in leds/common.txt bindings documentation and
-  changed the behaviour when properties are missing
-- modified DT bindings documenation for the aforementioned
-  drivers
-- removed unjustified use of goto in the leds-aat1290 driver
-- fixed lack of of_node_put in leds-aat1290 driver, after parsing
-  DT child node 
-- removed patch adding 'skyworks' vendor prefix, as the entry
-  has been recently added
-
-================
-Changes since v2
-================
-- improved leds/common DT bindings documentation
-- improved max77693-led DT documentation
-- fixed validation of DT confguration for leds-max77693 by
-  minimal values in joint iouts case
-- removed trigger-type property from leds-max77693 bindings
-  and adjusted the driver accordingly
-- improved LED Flash class documentation related to v4l2-flash sub-device
-  initialization
-- excluded from leds-aat1290 DT bindings documentation the part
-  related to handling external strobe sources
-
-================
-Changes since v1
-================
-
-- excluded exynos4-is media device related patches, as there is
-  consenus required related to flash devices handling in media device
-  DT bindings
-- modifications around LED Flash class settings and v4l2 flash config
-  initialization in LED Flash class drivers and v4l2-flash wrapper
-- switched to using DT node name as a device name for leds-max77693
-  and leds-aat1290 drivers, in case DT 'label' property is absent
-- dropped OF dependecy for v4l2-flash wrapper
-- moved LED_FAULTS definitions from led-class-flash.h to uapi/linux/leds.h
-- allowed for multiple clients of v4l2-flash sub-device
-
-======================
-Changes since RFC v13:
-======================
-
-- reduced number of patches - some of them have been merged
-- slightly modified max77693-led device naming
-- fixed issues in v4l2-flash helpers detected with yavta
-- cleaned up AAT1290 device tree documentation
-- added GPIOLIB dependecy to AAT1290 related entry in Kconfig
-
-Thanks,
-Jacek Anaszewski
-
-[1] http://www.spinics.net/lists/kernel/msg1944538.html
-[2] http://www.spinics.net/lists/linux-media/msg89839.html
-
-Jacek Anaszewski (8):
-  Documentation: leds: Add description of v4l2-flash sub-device
-  media: Add registration helpers for V4L2 flash sub-devices
-  leds: max77693: add support for V4L2 Flash sub-device
-  DT: aat1290: Document handling external strobe sources
-  leds: aat1290: add support for V4L2 Flash sub-device
-  exynos4-is: Improve the mechanism of async subdevs verification
-  DT: Add documentation for exynos4-is 'flashes' property
-  exynos4-is: Add support for v4l2-flash subdevs
-
- .../devicetree/bindings/leds/leds-aat1290.txt      |   36 +-
- .../devicetree/bindings/media/samsung-fimc.txt     |   10 +
- Documentation/leds/leds-class-flash.txt            |   51 ++
- drivers/leds/Kconfig                               |    1 +
- drivers/leds/leds-aat1290.c                        |  137 +++-
- drivers/leds/leds-max77693.c                       |  129 +++-
- drivers/media/platform/exynos4-is/media-dev.c      |  105 ++-
- drivers/media/platform/exynos4-is/media-dev.h      |   12 +-
- drivers/media/v4l2-core/Kconfig                    |   11 +
- drivers/media/v4l2-core/Makefile                   |    2 +
- drivers/media/v4l2-core/v4l2-flash-led-class.c     |  708 ++++++++++++++++++++
- include/media/v4l2-flash-led-class.h               |  148 ++++
- 12 files changed, 1326 insertions(+), 24 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
- create mode 100644 include/media/v4l2-flash-led-class.h
-
--- 
-1.7.9.5
-
+> V4L2 always assumes that there is some initial format configured, and this line
+> enables that for this driver (NTSC).
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> >>  
+> >>  done:
+> >>  	tw9910_s_power(&priv->subdev, 0);
+> >> -- 
+> >> 2.1.4
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > 
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
