@@ -1,320 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:35470 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766AbbFVVAQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 17:00:16 -0400
+Received: from vader.hardeman.nu ([95.142.160.32]:48755 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932123AbbFWUpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2015 16:45:43 -0400
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v3 1/7] rc: rc-ir-raw: Add scancode encoder callback
 MIME-Version: 1.0
-In-Reply-To: <1434699203-5822-1-git-send-email-j.anaszewski@samsung.com>
-References: <1434699203-5822-1-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Mon, 22 Jun 2015 13:59:55 -0700
-Message-ID: <CAK5ve-KJd24pM=HmjoRQne2uMg3915-t-E+HznOea6EEGxNRLw@mail.gmail.com>
-Subject: Re: [PATCH v10.1] leds: aat1290: add support for V4L2 Flash sub-device
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Tue, 23 Jun 2015 22:45:42 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: =?UTF-8?Q?Antti_Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	linux-media@vger.kernel.org, James Hogan <james@albanarts.com>
+In-Reply-To: <20150618182305.577ba0df@recife.lan>
+References: <20150519203851.GC18036@hardeman.nu>
+ <CAKv9HNb=qK18mGj9dOdyqEPvABU8b8aAEmGa1s2NULC4g0KX-Q@mail.gmail.com>
+ <20150520182901.GB13624@hardeman.nu>
+ <CAKv9HNZdsse=ETkKpZWPN8Z+kLA_aNxpvEtr_WFGp5ZpaZ36dg@mail.gmail.com>
+ <20150520204557.GB15223@hardeman.nu>
+ <CAKv9HNZEQJkCE3b0OcOGg_o59aYiTwLhQ0f=ji1obcJcG7ePwA@mail.gmail.com>
+ <32cae92aa099067315d1a13c7302957f@hardeman.nu>
+ <CAKv9HNZ_JjCutG-V+77vu2xMEihbRrYJSr4QR+LESSdrM71+yQ@mail.gmail.com>
+ <db6f383689a45d2d9b5346c41e48d535@hardeman.nu>
+ <CAKv9HNY5jM-i5i420iu_kcfS2ZsnnMjdED59fxkxH5e5mjYe=Q@mail.gmail.com>
+ <20150521194034.GB19532@hardeman.nu>
+ <CAKv9HNbsCK_1XbYMgO3Monui9JnHc7knJL3yon9FUMJ_MCLppg@mail.gmail.com>
+ <5418c2397b8a8dab54bfbcfe9ed3df1d@hardeman.nu>
+ <CAKv9HNbGAta3BDSk=xjsviUuqMP7TBGtf4PhdfNn8B7N-Gz_dg@mail.gmail.com>
+ <3b967113dc16d6edc8d8dd7df9be8b80@hardeman.nu>
+ <20150618182305.577ba0df@recife.lan>
+Message-ID: <e50840af0dbb6e43148ae999a9c60da5@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 19, 2015 at 12:33 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> Add support for V4L2 Flash sub-device to the aat1290 LED Flash class
-> driver. The support allows for V4L2 Flash sub-device to take the control
-> of the LED Flash class device.
->
+On 2015-06-18 23:23, Mauro Carvalho Chehab wrote:
+> Em Sun, 14 Jun 2015 01:44:54 +0200
+> David Härdeman <david@hardeman.nu> escreveu:
+>> If you've followed the development of rc-core during the last few 
+>> years
+>> it should be pretty clear that Mauro has little to no long-term plan,
+>> understanding of the current issues or willingness to fix them. I
+>> wouldn't read too much into the fact that the code was merged.
+> 
+> You completely missed the point.
 
-I used this one to replace the old one.
--Bryan
+Of course...
 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> - fixed sparse warnings by adding 'static' modifiers to the functions:
->   * aat1290_intensity_to_brightness
->   * aat1290_brightness_to_intensity
->
->  drivers/leds/Kconfig        |    1 +
->  drivers/leds/leds-aat1290.c |  137 +++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 132 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
-> index 14876d3..a1013c5 100644
-> --- a/drivers/leds/Kconfig
-> +++ b/drivers/leds/Kconfig
-> @@ -44,6 +44,7 @@ config LEDS_AAT1290
->         depends on LEDS_CLASS_FLASH
->         depends on GPIOLIB
->         depends on OF
-> +       depends on PINCTRL
->         help
->          This option enables support for the LEDs on the AAT1290.
->
-> diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
-> index b055882..2a5254c 100644
-> --- a/drivers/leds/leds-aat1290.c
-> +++ b/drivers/leds/leds-aat1290.c
-> @@ -17,9 +17,11 @@
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/of.h>
-> +#include <linux/pinctrl/consumer.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <linux/workqueue.h>
-> +#include <media/v4l2-flash-led-class.h>
->
->  #define AAT1290_MOVIE_MODE_CURRENT_ADDR        17
->  #define AAT1290_MAX_MM_CURR_PERCENT_0  16
-> @@ -52,6 +54,8 @@ struct aat1290_led_config_data {
->         u32 max_flash_current;
->         /* maximum flash timeout */
->         u32 max_flash_tm;
-> +       /* external strobe capability */
-> +       bool has_external_strobe;
->         /* max LED brightness level */
->         enum led_brightness max_brightness;
->  };
-> @@ -64,6 +68,8 @@ struct aat1290_led {
->
->         /* corresponding LED Flash class device */
->         struct led_classdev_flash fled_cdev;
-> +       /* V4L2 Flash device */
-> +       struct v4l2_flash *v4l2_flash;
->
->         /* FLEN pin */
->         struct gpio_desc *gpio_fl_en;
-> @@ -230,11 +236,15 @@ static int aat1290_led_flash_timeout_set(struct led_classdev_flash *fled_cdev,
->  }
->
->  static int aat1290_led_parse_dt(struct aat1290_led *led,
-> -                       struct aat1290_led_config_data *cfg)
-> +                       struct aat1290_led_config_data *cfg,
-> +                       struct device_node **sub_node)
->  {
->         struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
->         struct device *dev = &led->pdev->dev;
->         struct device_node *child_node;
-> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-> +       struct pinctrl *pinctrl;
-> +#endif
->         int ret = 0;
->
->         led->gpio_fl_en = devm_gpiod_get(dev, "flen", GPIOD_ASIS);
-> @@ -251,6 +261,17 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
->                 return ret;
->         }
->
-> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-> +       pinctrl = devm_pinctrl_get_select_default(&led->pdev->dev);
-> +       if (IS_ERR(pinctrl)) {
-> +               cfg->has_external_strobe = false;
-> +               dev_info(dev,
-> +                        "No support for external strobe detected.\n");
-> +       } else {
-> +               cfg->has_external_strobe = true;
-> +       }
-> +#endif
-> +
->         child_node = of_get_next_available_child(dev->of_node, NULL);
->         if (!child_node) {
->                 dev_err(dev, "No DT child node found for connected LED.\n");
-> @@ -288,6 +309,8 @@ static int aat1290_led_parse_dt(struct aat1290_led *led,
->
->         of_node_put(child_node);
->
-> +       *sub_node = child_node;
-> +
->         return ret;
->  }
->
-> @@ -316,7 +339,8 @@ static int init_mm_current_scale(struct aat1290_led *led,
->         int i, max_mm_current =
->                         AAT1290_MAX_MM_CURRENT(cfg->max_flash_current);
->
-> -       led->mm_current_scale = kzalloc(sizeof(max_mm_current_percent),
-> +       led->mm_current_scale = devm_kzalloc(&led->pdev->dev,
-> +                                       sizeof(max_mm_current_percent),
->                                         GFP_KERNEL);
->         if (!led->mm_current_scale)
->                 return -ENOMEM;
-> @@ -329,11 +353,12 @@ static int init_mm_current_scale(struct aat1290_led *led,
->  }
->
->  static int aat1290_led_get_configuration(struct aat1290_led *led,
-> -                                       struct aat1290_led_config_data *cfg)
-> +                                       struct aat1290_led_config_data *cfg,
-> +                                       struct device_node **sub_node)
->  {
->         int ret;
->
-> -       ret = aat1290_led_parse_dt(led, cfg);
-> +       ret = aat1290_led_parse_dt(led, cfg, sub_node);
->         if (ret < 0)
->                 return ret;
->         /*
-> @@ -346,7 +371,10 @@ static int aat1290_led_get_configuration(struct aat1290_led *led,
->
->         aat1290_led_validate_mm_current(led, cfg);
->
-> -       kfree(led->mm_current_scale);
-> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-> +#else
-> +       devm_kfree(&led->pdev->dev, led->mm_current_scale);
-> +#endif
->
->         return 0;
->  }
-> @@ -365,6 +393,88 @@ static void aat1290_init_flash_timeout(struct aat1290_led *led,
->         setting->val = setting->max;
->  }
->
-> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-> +static enum led_brightness aat1290_intensity_to_brightness(
-> +                                       struct v4l2_flash *v4l2_flash,
-> +                                       s32 intensity)
-> +{
-> +       struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-> +       struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-> +       int i;
-> +
-> +       for (i = AAT1290_MM_CURRENT_SCALE_SIZE - 1; i >= 0; --i)
-> +               if (intensity >= led->mm_current_scale[i])
-> +                       return i + 1;
-> +
-> +       return 1;
-> +}
-> +
-> +static s32 aat1290_brightness_to_intensity(struct v4l2_flash *v4l2_flash,
-> +                                       enum led_brightness brightness)
-> +{
-> +       struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-> +       struct aat1290_led *led = fled_cdev_to_led(fled_cdev);
-> +
-> +       return led->mm_current_scale[brightness - 1];
-> +}
-> +
-> +static int aat1290_led_external_strobe_set(struct v4l2_flash *v4l2_flash,
-> +                                               bool enable)
-> +{
-> +       struct aat1290_led *led = fled_cdev_to_led(v4l2_flash->fled_cdev);
-> +       struct led_classdev_flash *fled_cdev = v4l2_flash->fled_cdev;
-> +       struct led_classdev *led_cdev = &fled_cdev->led_cdev;
-> +       struct pinctrl *pinctrl;
-> +
-> +       gpiod_direction_output(led->gpio_fl_en, 0);
-> +       gpiod_direction_output(led->gpio_en_set, 0);
-> +
-> +       led->movie_mode = false;
-> +       led_cdev->brightness = 0;
-> +
-> +       pinctrl = devm_pinctrl_get_select(&led->pdev->dev,
-> +                                               enable ? "isp" : "host");
-> +       if (IS_ERR(pinctrl)) {
-> +               dev_warn(&led->pdev->dev, "Unable to switch strobe source.\n");
-> +               return PTR_ERR(pinctrl);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-> +                                       struct aat1290_led_config_data *led_cfg,
-> +                                       struct v4l2_flash_config *v4l2_sd_cfg)
-> +{
-> +       struct led_classdev *led_cdev = &led->fled_cdev.led_cdev;
-> +       struct led_flash_setting *s;
-> +
-> +       strlcpy(v4l2_sd_cfg->dev_name, led_cdev->name,
-> +               sizeof(v4l2_sd_cfg->dev_name));
-> +
-> +       s = &v4l2_sd_cfg->torch_intensity;
-> +       s->min = led->mm_current_scale[0];
-> +       s->max = led_cfg->max_mm_current;
-> +       s->step = 1;
-> +       s->val = s->max;
-> +
-> +       v4l2_sd_cfg->has_external_strobe = led_cfg->has_external_strobe;
-> +}
-> +
-> +static const struct v4l2_flash_ops v4l2_flash_ops = {
-> +       .external_strobe_set = aat1290_led_external_strobe_set,
-> +       .intensity_to_led_brightness = aat1290_intensity_to_brightness,
-> +       .led_brightness_to_intensity = aat1290_brightness_to_intensity,
-> +};
-> +#else
-> +static inline void aat1290_init_v4l2_flash_config(struct aat1290_led *led,
-> +                               struct aat1290_led_config_data *led_cfg,
-> +                               struct v4l2_flash_config *v4l2_sd_cfg)
-> +{
-> +}
-> +static const struct v4l2_flash_ops v4l2_flash_ops;
-> +#endif
-> +
->  static const struct led_flash_ops flash_ops = {
->         .strobe_set = aat1290_led_flash_strobe_set,
->         .timeout_set = aat1290_led_flash_timeout_set,
-> @@ -373,10 +483,12 @@ static const struct led_flash_ops flash_ops = {
->  static int aat1290_led_probe(struct platform_device *pdev)
->  {
->         struct device *dev = &pdev->dev;
-> +       struct device_node *sub_node = NULL;
->         struct aat1290_led *led;
->         struct led_classdev *led_cdev;
->         struct led_classdev_flash *fled_cdev;
->         struct aat1290_led_config_data led_cfg = {};
-> +       struct v4l2_flash_config v4l2_sd_cfg = {};
->         int ret;
->
->         led = devm_kzalloc(dev, sizeof(*led), GFP_KERNEL);
-> @@ -390,7 +502,7 @@ static int aat1290_led_probe(struct platform_device *pdev)
->         fled_cdev->ops = &flash_ops;
->         led_cdev = &fled_cdev->led_cdev;
->
-> -       ret = aat1290_led_get_configuration(led, &led_cfg);
-> +       ret = aat1290_led_get_configuration(led, &led_cfg, &sub_node);
->         if (ret < 0)
->                 return ret;
->
-> @@ -410,8 +522,20 @@ static int aat1290_led_probe(struct platform_device *pdev)
->         if (ret < 0)
->                 goto err_flash_register;
->
-> +       aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
-> +
-> +       /* Create V4L2 Flash subdev. */
-> +       led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
-> +                                         &v4l2_flash_ops, &v4l2_sd_cfg);
-> +       if (IS_ERR(led->v4l2_flash)) {
-> +               ret = PTR_ERR(led->v4l2_flash);
-> +               goto error_v4l2_flash_init;
-> +       }
-> +
->         return 0;
->
-> +error_v4l2_flash_init:
-> +       led_classdev_flash_unregister(fled_cdev);
->  err_flash_register:
->         mutex_destroy(&led->lock);
->
-> @@ -422,6 +546,7 @@ static int aat1290_led_remove(struct platform_device *pdev)
->  {
->         struct aat1290_led *led = platform_get_drvdata(pdev);
->
-> +       v4l2_flash_release(led->v4l2_flash);
->         led_classdev_flash_unregister(&led->fled_cdev);
->         cancel_work_sync(&led->work_brightness_set);
->
-> --
-> 1.7.9.5
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> Adding new drivers and new features
+> don't require much time to review, and don't require testing.
+
+But a focus on adding new "features" (some of which further cement bad 
+API) is dangerous when the foundations still need work.
+
+> What you're trying to send as "fixes" is actually series of patches 
+> that
+> change the behavior of the subsystem, with would cause regressions.
+
+Some things can't be fixed without changing some behavior...assuming 
+you're not talking about the patches that add a rc-core chardev...that 
+is indeed a whole new direction and I can completely take onboard that 
+you'd like to see a better RFC discussion with a document describing the 
+interface, changes, rationale, etc....and I'd be happy to produce a 
+document like that when I have the time (I'm guessing the LinuxTV wiki 
+might be a good place).
+
+I have a total of six patches in my queue that are not related to the 
+rc-core chardev:
+
+One fixes a uevent bug and should be trivial
+One converts rc-core to use an IDA, a cleanup which seems to fix a race 
+as well
+One removes lirc as a "protocol" and is not an API change as you thought
+One prepares the lmedm04 driver for the next two patches
+The last two adds protocol info to the EVIOC[GS]KEYCODE_V2 ioctl
+
+The last two patches need the most careful scrutiny, but they are an 
+attempt to finally fix a serious issue. I've already indicated that they 
+are not 100% backwards compatible, but the corner cases they won't catch 
+(can't catch) are pretty extreme. I'd be happy to discuss them further 
+if you'd like.
+
+I have no plans to move on to the rc-core chardev discussion before the 
+above patches have been dealt with. I don't think it's a good use of 
+anyone's time.
+
+> Btw, a lot of the pull requests you've sent over the past years did 
+> cause
+> regressions.
+
+Yes, trying to change/fix parts of the foundation of the rc-core code 
+definitely carries a larger risk of regressions (especially when I don't 
+even have the hardware). That's not a good reason to not try though.
+
+> So, I can only review/apply them when I have a bunch of
+> spare time to test them. As I don't usually have a bunch of spare time,
+> nor we have a sub-maintainer for remote controllers that would have
+> time for such tests, they're delayed.
+
+I think we're getting off-topic.
+
+>> Mauro....wake up? I hope you're not planning to push the current code
+>> upstream???
+> 
+> What's there are planned to be sent upstream. If you think that 
+> something
+> is not mature enough to be applied, please send a patch reverting it,
+> with "[PATCH FIXES]" in the subject, clearly explaining why it should 
+> be
+> reverted for me to analyze. Having Antti/James acks on that would help.
+
+This thread should already provide you with all the information you need 
+why the patches should be reverted (including Antii saying the patches 
+should be reverted).
+
+The current code includes hilarious "features" like producing different 
+results depending on module load order and makes sure we'll be stuck 
+with a bad API. Sending them upstream will look quite foolish...
+
+Regards,
+David
+
