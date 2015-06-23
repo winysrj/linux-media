@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f196.google.com ([209.85.216.196]:33412 "EHLO
-	mail-qc0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbbFKSEk (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36214 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848AbbFWOpm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 14:04:40 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de
-Cc: mchehab@osg.samsung.com, tomi.valkeinen@ti.com,
-	bhelgaas@google.com, luto@amacapital.net,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [PATCH v6 0/3] linux: address broken PAT drivers
-Date: Thu, 11 Jun 2015 10:49:59 -0700
-Message-Id: <1434045002-31575-1-git-send-email-mcgrof@do-not-panic.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 23 Jun 2015 10:45:42 -0400
+From: Antonio Borneo <borneo.antonio@gmail.com>
+To: Alan Ott <alan@signal11.us>,
+	Alexander Aring <alex.aring@gmail.com>,
+	alsa-devel@alsa-project.org, Andrzej Hajda <a.hajda@samsung.com>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Karol Wrona <k.wrona@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Liam Girdwood <lgirdwood@gmail.com>, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-wpan@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	netdev@vger.kernel.org, patches@opensource.wolfsonmicro.com,
+	Solomon Peachy <pizza@shaftnet.org>,
+	Takashi Iwai <tiwai@suse.de>,
+	Varka Bhadram <varkabhadram@gmail.com>
+Cc: Antonio Borneo <borneo.antonio@gmail.com>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/6] Remove redundant spi driver bus initialization
+Date: Tue, 23 Jun 2015 22:45:08 +0800
+Message-Id: <1435070714-24174-1-git-send-email-borneo.antonio@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+This cleanup was already completed between end 2011 and early 2012
+with a patch series from Lars-Peter Clausen:
+https://lkml.org/lkml/2011/11/24/190
 
-Mauro,
+Later on new redundant initialization re-appeared here and there.
+Time to cleanup again.
 
-since the ivtv patch is already acked by the driver maintainer
-and depends on an x86 symbol that went through Boris' tree are you
-OK in it going through Boris' tree?
+And, yes, I'm lazy! I copy-paste the exact same commit message from
+Lars-Peter; only minor reformat to stay in 75 char/line and fix the
+name of spi_register_driver().
 
-Boris,
+Regards,
+Antonio
 
-provided the outcome of the above maintainer's preference for you
-to merge these please consider these patches for your tree. The
-maintainer path is the only thing pending for the 1 ivtv patch.
-The Infiniband subsystem maintainer, Doug, already provided his
-ACK for the ipath driver and for this to go through you.
+Antonio Borneo (6):
+  ASoC: wm0010: Remove redundant spi driver bus initialization
+  iio: ssp_sensors: Remove redundant spi driver bus initialization
+  staging: mt29f_spinand: Remove redundant spi driver bus initialization
+  net: ieee802154: Remove redundant spi driver bus initialization
+  wireless: cw1200: Remove redundant spi driver bus initialization
+  [media] s5c73m3: Remove redundant spi driver bus initialization
 
-Luis R. Rodriguez (3):
-  ivtv: use arch_phys_wc_add() and require PAT disabled
-  IB/ipath: add counting for MTRR
-  IB/ipath: use arch_phys_wc_add() and require PAT disabled
-
- drivers/infiniband/hw/ipath/Kconfig           |  3 ++
- drivers/infiniband/hw/ipath/ipath_driver.c    | 18 ++++++---
- drivers/infiniband/hw/ipath/ipath_kernel.h    |  4 +-
- drivers/infiniband/hw/ipath/ipath_wc_x86_64.c | 43 +++++---------------
- drivers/media/pci/ivtv/Kconfig                |  3 ++
- drivers/media/pci/ivtv/ivtvfb.c               | 58 +++++++++++----------------
- 6 files changed, 52 insertions(+), 77 deletions(-)
+ drivers/iio/common/ssp_sensors/ssp_dev.c      | 1 -
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c       | 1 -
+ drivers/net/ieee802154/cc2520.c               | 1 -
+ drivers/net/ieee802154/mrf24j40.c             | 1 -
+ drivers/net/wireless/cw1200/cw1200_spi.c      | 1 -
+ drivers/staging/mt29f_spinand/mt29f_spinand.c | 1 -
+ sound/soc/codecs/wm0010.c                     | 1 -
+ 7 files changed, 7 deletions(-)
 
 -- 
-2.3.2.209.gd67f9d5.dirty
+2.4.4
 
