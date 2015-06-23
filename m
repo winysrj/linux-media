@@ -1,45 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0079.outbound.protection.outlook.com ([157.56.111.79]:12800
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753296AbbFXQ3j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 12:29:39 -0400
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	Michal Simek <michals@xilinx.com>,
-	"Soren Brinkmann" <sorenb@xilinx.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
-Subject: RE: [patch] [media] v4l: xilinx: missing error code
-Date: Wed, 24 Jun 2015 16:14:43 +0000
-Message-ID: <E439C2F435589E4DA34D847245F141A4AFF74C92@XSJ-PSEXMBX01.xlnx.xilinx.com>
-References: <20150624142831.GB1702@mwanda>
-In-Reply-To: <20150624142831.GB1702@mwanda>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mx1.redhat.com ([209.132.183.28]:45791 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753865AbbFWJyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2015 05:54:43 -0400
+Message-ID: <55892CE0.9080606@redhat.com>
+Date: Tue, 23 Jun 2015 11:54:40 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Nicholas Mc Guire <hofrat@osadl.org>,
+	Erik Andren <erik.andren@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] gscpa_m5602: use msecs_to_jiffies for conversions
+References: <1433687680-1736-1-git-send-email-hofrat@osadl.org>
+In-Reply-To: <1433687680-1736-1-git-send-email-hofrat@osadl.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgRGFuLA0KDQpUaGFua3MgZm9yIHRoZSBwYXRjaC4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KPiBGcm9tOiBEYW4gQ2FycGVudGVyIFttYWlsdG86ZGFuLmNhcnBlbnRlckBvcmFj
-bGUuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEp1bmUgMjQsIDIwMTUgNzoyOSBBTQ0KPiBUbzog
-SHl1biBLd29uDQo+IENjOiBMYXVyZW50IFBpbmNoYXJ0OyBNYXVybyBDYXJ2YWxobyBDaGVoYWI7
-IE1pY2hhbCBTaW1lazsgU29yZW4gQnJpbmttYW5uOw0KPiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5l
-bC5vcmc7IGtlcm5lbC1qYW5pdG9yc0B2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogW3BhdGNo
-XSBbbWVkaWFdIHY0bDogeGlsaW54OiBtaXNzaW5nIGVycm9yIGNvZGUNCj4NCj4gV2Ugc2hvdWxk
-IHNldCAicmV0IiBvbiB0aGlzIGVycm9yIHBhdGggaW5zdGVhZCBvZiByZXR1cm5pbmcgc3VjY2Vz
-cy4NCj4NCj4gRml4ZXM6IGRmMzMwNTE1NmY5OCAoJ1ttZWRpYV0gdjRsOiB4aWxpbng6IEFkZCBY
-aWxpbnggVmlkZW8gSVAgY29yZScpDQo+IFNpZ25lZC1vZmYtYnk6IERhbiBDYXJwZW50ZXIgPGRh
-bi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4NCg0KQWNrZWQtYnk6IEh5dW4gS3dvbiA8aHl1bi5rd29u
-QHhpbGlueC5jb20+DQoNClRoYW5rcywNCi1oeXVuDQoNCg0KDQpUaGlzIGVtYWlsIGFuZCBhbnkg
-YXR0YWNobWVudHMgYXJlIGludGVuZGVkIGZvciB0aGUgc29sZSB1c2Ugb2YgdGhlIG5hbWVkIHJl
-Y2lwaWVudChzKSBhbmQgY29udGFpbihzKSBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gdGhhdCBt
-YXkgYmUgcHJvcHJpZXRhcnksIHByaXZpbGVnZWQgb3IgY29weXJpZ2h0ZWQgdW5kZXIgYXBwbGlj
-YWJsZSBsYXcuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIGRvIG5vdCBy
-ZWFkLCBjb3B5LCBvciBmb3J3YXJkIHRoaXMgZW1haWwgbWVzc2FnZSBvciBhbnkgYXR0YWNobWVu
-dHMuIERlbGV0ZSB0aGlzIGVtYWlsIG1lc3NhZ2UgYW5kIGFueSBhdHRhY2htZW50cyBpbW1lZGlh
-dGVseS4NCg0K
+Hi,
+
+On 07-06-15 16:34, Nicholas Mc Guire wrote:
+> API compliance scanning with coccinelle flagged:
+> ./drivers/media/usb/gspca/m5602/m5602_s5k83a.c:180:9-25:
+> 	 WARNING: timeout (100) seems HZ dependent
+>
+> Numeric constants passed to schedule_timeout() make the effective
+> timeout HZ dependent which makes little sense in a polling loop for
+> the cameras rotation state.
+> Fixed up by converting the constant to jiffies with msecs_to_jiffies()
+>
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+
+Thanks I've queued this up for merging into 4.3
+
+Regards,
+
+Hans
+
+
+> ---
+>
+> Patch was compile tested with i386_defconfig +
+>
+> Patch is against 4.1-rc6 (localversion-next is -next-20150605)
+>
+>   drivers/media/usb/gspca/m5602/m5602_s5k83a.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/gspca/m5602/m5602_s5k83a.c b/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
+> index 7cbc3a0..bf6b215 100644
+> --- a/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
+> +++ b/drivers/media/usb/gspca/m5602/m5602_s5k83a.c
+> @@ -177,7 +177,7 @@ static int rotation_thread_function(void *data)
+>   	__s32 vflip, hflip;
+>
+>   	set_current_state(TASK_INTERRUPTIBLE);
+> -	while (!schedule_timeout(100)) {
+> +	while (!schedule_timeout(msecs_to_jiffies(100))) {
+>   		if (mutex_lock_interruptible(&sd->gspca_dev.usb_lock))
+>   			break;
+>
+>
