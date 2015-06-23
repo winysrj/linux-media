@@ -1,90 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f195.google.com ([209.85.223.195]:34695 "EHLO
-	mail-ie0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265AbbFKQmJ (ORCPT
+Received: from hl140.dinaserver.com ([82.98.160.94]:50560 "EHLO
+	hl140.dinaserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbbFWKaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 12:42:09 -0400
-Received: by iebtr6 with SMTP id tr6so3261987ieb.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2015 09:42:09 -0700 (PDT)
+	Tue, 23 Jun 2015 06:30:12 -0400
+Received: from [192.168.2.27] (5.Red-212-170-183.staticIP.rima-tde.net [212.170.183.5])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by hl140.dinaserver.com (Postfix) with ESMTPSA id 98CD14B95810
+	for <linux-media@vger.kernel.org>; Tue, 23 Jun 2015 12:20:41 +0200 (CEST)
+Message-ID: <558932F7.3070509@by.com.es>
+Date: Tue, 23 Jun 2015 12:20:39 +0200
+From: Javier Martin <javiermartin@by.com.es>
 MIME-Version: 1.0
-In-Reply-To: <55755971.3050002@iki.fi>
-References: <CAAT-iuuO1L=ft+Mw27T156JfY1j+-Xdr42TVSxjdGNA9yowYZA@mail.gmail.com>
-	<55755971.3050002@iki.fi>
-Date: Thu, 11 Jun 2015 09:42:09 -0700
-Message-ID: <CAAT-iuvtksa1paUpv9VACqONT9jm9KR2_eHU9HVKO=2dk=MUfQ@mail.gmail.com>
-Subject: Re: Obtain Si2157 and LGDT3306A signal stats from HVR955Q?
-From: Doug Lung <dlung0@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: linux-media <linux-media@vger.kernel.org>
+Subject: i.MX6 video capture support in mainline
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for confirming the HVR-955Q SNR and other data is available via
-the DVBv5 API.
+Hello,
+we have an BD-SL-i.MX6 platform (compatible with the Nitrogen6X) where 
+we are currently running the BSP from Freescale, which is based on 
+kernel 3.10 if I recall properly.
 
-Before switching my signal/antenna test programs to DVBv5, 'll see if
-I can figure out why the dvb-fe-tool is not returning the SNR data and
-error rate statistics from the HVR-955Q even though it does return
-this info from other Hauppauge USB tuners like the Aero-M. Perhaps I
-missed an update.
+We are aware that those drivers have some issues, specially when it 
+comes to compliance with the V4L2 frameworks like the media controller 
+API, stability, etc...
 
-I may be back with more questions!
-
-              ...Doug
+Furthermore, we need to use the mainline kernel because some of the 
+drivers that we need to use are not available in the Freescale kernel.
 
 
-On Mon, Jun 8, 2015 at 1:59 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Moikka!
->
->
-> On 06/08/2015 01:21 AM, Doug Lung wrote:
->>
->> Hello! this is my first post here, although I've benefited from all
->> the work of the contributors over the year. Thanks!
->>
->> I'm looking for help getting similar signal statistics from the new
->> Hauppauge HVR955Q (Si2157, LGDT3306A, CX23102) USB ATSC tuner that I'm
->> now getting from the Hauppauge Aero-M (MxL111SF, LGDT3305).  I'm
->> currently using DVBv3 API in my programs but am open to switching to
->> the DVBv5 API if necessary.
->>
->> I applied Antti Palosaari's "si2157: implement signal strength stats"
->> patch to the media_build and dvb-fe-tool with dvbv5-zap now returns
->> relatively accurate RSSI data in dBm from the HVR955Q but no SNR or
->> packet error data. dvb-fe-tool provides a full set of data
->> (unformatted) from the Aero-M but only Lock and RSSI (formatted in
->> dBm) from the HVR955Q.
->>
->> The SNR and packet error data is available from the HVR955Q in raw
->> form in DVBv3 applications like femon. The Si2157 RSSI in dBm is not.
->> The DVBv3 apps show the "signal quality" based on SNR margin above
->> threshold from the LGDT3306A.
->>
->> Any suggestions on modifying the HVR955Q driver to provide RSSI
->> (unformatted is okay) from the Si2157 with the DVBv3 API? That's
->> preferred since it will work with my existing Aero-M signal testing
->> programs.
->>
->> Alternatively, is there a way to obtain full DVBv5 API compliant
->> signal quality data (RSSI, SNR, uncorrected packets) from the
->> HVR955Q's LGDT3306A so I can modify my programs to use the linuxdvb.py
->> API v5.1 bindings?
->
->
-> Looking the LGDT3306A code reveals it already calculates SNR as dB, so
-> returning it via DVBv5 is easy.
->
-> BER and UCB are returned as a raw error values from registers. You could
-> return those also as a error values by counter type easily (numerator of
-> fraction). But getting some useful values you will need also total number of
-> packets too (denominator) (error fraction = error count / total count).
-> Total count is not mandatory, but very recommend, you have to find it some
-> how, calculate from stream parameters for example.
->
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
+The biggest problem that we have found so far for switching to the 
+mainline kernel is the video capture support in the I.MX6 IPU. I've been 
+following some old e-mail threads (from 2014) and I eventually found 
+Philipp Zabel's repository branch 'nitrogen6x-ipu-media' which has what 
+seems to be an early version of an i.MX6 IPU capture driver via the CSI 
+interface.
+
+We've got here the same setup with an ov5642 sensor connected to the CSI 
+interface and we have been giving a try to the driver.
+
+This is what we have tried so far:
+
+cat /dev/video0 # This is needed so that open gets called and the csi 
+links are created
+media-ctl -l '"ov5642 1-003c":0->"mipi_ipu1_mux":1[1], 
+"/soc/ipu@02400000/port@0":1->"IPU0 SMFC0":0[1]'
+media-ctl -l '"IPU0 SMFC0":1->"imx-ipuv3-camera.2":0[1]'
+
+The last command will fail like this:
+
+imx-ipuv3 2400000.ipu: invalid link 'IPU0 SMFC0'(5):1 -> 
+'imx-ipuv3-camera.2'(2):0
+Unable to parse link: Invalid argument (22)
+
+The reason it fails, apparently, is that the links that have been 
+created when opening /dev/video0 are not included in the "ipu_links[]" 
+static table defined in "drivers/gpio/ipu-v3/ipu-media.c" which is where 
+the "ipu_smfc_link_setup()" function tries to find a valid link.
+
+I've got some questions regarding this driver and iMX6 video capture 
+support in general that someone here may gladly answer:
+
+a) Is anyone currently working on mainlining iMX6 video capture support? 
+I know about Steve's and Philipp's work but I haven't seen any progress 
+since September 2014.
+
+b) Does anyone know whether it's possible to capture YUV420P video using 
+the driver in Philipp's repository? If so could you please provide the 
+pipeline setup that you used with media-ctl?
+
+c) If we were willing to help with mainline submission of this driver 
+what issues should we focus on?
+
+
+Regards,
+Javier.
+
+[1] git://git.pengutronix.de/git/pza/linux.git
+
