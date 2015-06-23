@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50577 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960AbbF3JFJ convert rfc822-to-8bit (ORCPT
+Received: from bgl-iport-3.cisco.com ([72.163.197.27]:62168 "EHLO
+	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751358AbbFWF4Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2015 05:05:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] mt9v032: Add missing initialization of pdata in mt9v032_get_pdata()
-Date: Tue, 30 Jun 2015 12:05:12 +0300
-Message-ID: <2598276.2OYSshb3AX@avalon>
-In-Reply-To: <1435580621-21663-1-git-send-email-geert@linux-m68k.org>
-References: <1435580621-21663-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+	Tue, 23 Jun 2015 01:56:16 -0400
+Received: from pla-VB.cisco.com ([10.142.61.237])
+	by bgl-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id t5N5uDBN010411
+	for <linux-media@vger.kernel.org>; Tue, 23 Jun 2015 05:56:13 GMT
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH v2 0/2] v4l2-utils: add support for RB v2 in cvt
+Date: Tue, 23 Jun 2015 11:26:11 +0530
+Message-Id: <1435038973-2076-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Posting v2 of patches adding support for reduced blanking version 2 in
+v4l2-utils. 
 
-Thank you for the patch.
+Changes compared to v1:
+Incorporated comments on v1. Removed an extra option that was added for 
+use-rb-v2. Instead, it now allows reduced-blanking = 2 to indicate the
+version 2 of reduced blanking.
 
-On Monday 29 June 2015 14:23:41 Geert Uytterhoeven wrote:
-> drivers/media/i2c/mt9v032.c: In function ‘mt9v032_get_pdata’:
-> drivers/media/i2c/mt9v032.c:885: warning: ‘pdata’ may be used uninitialized
-> in this function
-> 
-> If parsing the endpoint node properties fails, mt9v032_get_pdata() will
-> return an uninitialized pointer value.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Prashant Laddha (2):
+  v4l2-ctl-modes: add support for reduced blanking version 2
+  v4l2-utils: Modify usage for set-dv-timing to support RB V2
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/i2c/mt9v032.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 977f4006edbd496d..a68ce94ee097604a 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -882,7 +882,7 @@ static const struct regmap_config mt9v032_regmap_config
-> = { static struct mt9v032_platform_data *
->  mt9v032_get_pdata(struct i2c_client *client)
->  {
-> -	struct mt9v032_platform_data *pdata;
-> +	struct mt9v032_platform_data *pdata = NULL;
->  	struct v4l2_of_endpoint endpoint;
->  	struct device_node *np;
->  	struct property *prop;
+ utils/v4l2-ctl/v4l2-ctl-modes.cpp | 63 +++++++++++++++++++++++++++++----------
+ utils/v4l2-ctl/v4l2-ctl-stds.cpp  | 19 ++++++------
+ utils/v4l2-ctl/v4l2-ctl.h         |  4 +--
+ 3 files changed, 58 insertions(+), 28 deletions(-)
 
 -- 
-Regards,
+1.9.1
 
-Laurent Pinchart
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
