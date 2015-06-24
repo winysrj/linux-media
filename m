@@ -1,55 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:55473 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbbFYJaR (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:33371 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437AbbFXKtx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:30:17 -0400
-Date: Thu, 25 Jun 2015 10:30:07 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Build regressions/improvements in v4.1
-Message-ID: <20150625093007.GS7557@n2100.arm.linux.org.uk>
-References: <1435006096-12470-1-git-send-email-geert@linux-m68k.org>
- <CAMuHMdXprKyxirhUZBzNV97oxymcMqeugKixTEC8ojcMq3EeDw@mail.gmail.com>
- <20150622211857.GY7557@n2100.arm.linux.org.uk>
- <CAMuHMdXyaS65sTdkB88btchm5NzwgNK969QNcaoGBj9-77eFXQ@mail.gmail.com>
- <20150625091815.GR7557@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150625091815.GR7557@n2100.arm.linux.org.uk>
+	Wed, 24 Jun 2015 06:49:53 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 1/7] [media] si470x: cleanup define namespace
+Date: Wed, 24 Jun 2015 07:49:05 -0300
+Message-Id: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 25, 2015 at 10:18:15AM +0100, Russell King - ARM Linux wrote:
-> On Tue, Jun 23, 2015 at 09:50:00AM +0200, Geert Uytterhoeven wrote:
-> As for the build errors you're reporting, that doesn't seem to be
-> anything new.  It seems to be down to a missing dependency between
-> ARM_PTDUMP and MMU, which means that ARM_PTDUMP is selectable on !MMU
-> systems.  I'll add that dependency, but that's just a small drop in
-> the ocean - it looks like it's the least of the problems with ARM
-> randconfig...
+Some architectures already use CHIPID defines:
 
-Now that the build has finished... even with that fixed...
+	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
+	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
+	drivers/media/radio/si470x/radio-si470x.h:57:0: warning: "CHIPID" redefined [enabled by default]
 
-arch/arm/mach-versatile/built-in.o: In function `pci_versatile_setup':
-arch/arm/mach-versatile/pci.c:249: undefined reference to `pci_ioremap_io'
-kernel/built-in.o: In function `set_section_ro_nx':
-kernel/module.c:1738: undefined reference to `set_memory_nx'
-kernel/built-in.o: In function `set_page_attributes':
-kernel/module.c:1709: undefined reference to `set_memory_ro'
-...
+So, use SI_foo namespace to avoid conflicts.
 
-which means that DEBUG_SET_MODULE_RONX also needs to depend on MMU.
-As for the pci_ioremap_io, I'm not sure what to do about that.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-In any case, I'll queue up both of these dependency fixes as low
-priority.  Thanks.
-
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index 49fe8453e218..471d6a8ae8a4 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -384,14 +384,14 @@ static int si470x_i2c_probe(struct i2c_client *client,
+ 		goto err_radio;
+ 	}
+ 	dev_info(&client->dev, "DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
+-			radio->registers[DEVICEID], radio->registers[CHIPID]);
+-	if ((radio->registers[CHIPID] & CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
++			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
++	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
+ 		dev_warn(&client->dev,
+ 			"This driver is known to work with "
+ 			"firmware version %hu,\n", RADIO_FW_VERSION);
+ 		dev_warn(&client->dev,
+ 			"but the device has firmware version %hu.\n",
+-			radio->registers[CHIPID] & CHIPID_FIRMWARE);
++			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
+ 		version_warning = 1;
+ 	}
+ 
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 57f0bc3b60e7..091d793f6583 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -686,14 +686,14 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 		goto err_ctrl;
+ 	}
+ 	dev_info(&intf->dev, "DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
+-			radio->registers[DEVICEID], radio->registers[CHIPID]);
+-	if ((radio->registers[CHIPID] & CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
++			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
++	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
+ 		dev_warn(&intf->dev,
+ 			"This driver is known to work with "
+ 			"firmware version %hu,\n", RADIO_FW_VERSION);
+ 		dev_warn(&intf->dev,
+ 			"but the device has firmware version %hu.\n",
+-			radio->registers[CHIPID] & CHIPID_FIRMWARE);
++			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
+ 		version_warning = 1;
+ 	}
+ 
+diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+index 4b7660470e2f..6c0ca900702e 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -54,10 +54,10 @@
+ #define DEVICEID_PN		0xf000	/* bits 15..12: Part Number */
+ #define DEVICEID_MFGID		0x0fff	/* bits 11..00: Manufacturer ID */
+ 
+-#define CHIPID			1	/* Chip ID */
+-#define CHIPID_REV		0xfc00	/* bits 15..10: Chip Version */
+-#define CHIPID_DEV		0x0200	/* bits 09..09: Device */
+-#define CHIPID_FIRMWARE		0x01ff	/* bits 08..00: Firmware Version */
++#define SI_CHIPID		1	/* Chip ID */
++#define SI_CHIPID_REV		0xfc00	/* bits 15..10: Chip Version */
++#define SI_CHIPID_DEV		0x0200	/* bits 09..09: Device */
++#define SI_CHIPID_FIRMWARE	0x01ff	/* bits 08..00: Firmware Version */
+ 
+ #define POWERCFG		2	/* Power Configuration */
+ #define POWERCFG_DSMUTE		0x8000	/* bits 15..15: Softmute Disable */
 -- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+2.4.3
+
