@@ -1,55 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:45706 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753056AbbFKN2g (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:35380 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbbFXRZd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 09:28:36 -0400
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>,
-	<dmaengine@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH 0/2] genalloc: rename dev_get_gen_pool() and of_get_named_gen_pool()
-Date: Thu, 11 Jun 2015 16:26:32 +0300
-Message-ID: <1434029192-7082-1-git-send-email-vladimir_zapolskiy@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 24 Jun 2015 13:25:33 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com,
+	dledford@redhat.com
+Cc: mingo@kernel.org, fengguang.wu@intel.com,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: [PATCH v2 0/2] x86/mm/pat: modify nopat requirement warning
+Date: Wed, 24 Jun 2015 10:23:18 -0700
+Message-Id: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trivial nonfunctional change initially based on discussion
-https://lkml.org/lkml/2015/6/8/588
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-Worth to mention that instead of the assumed new name
-dev_gen_pool_get(), this change attempts to be more close to other
-in-kernel interfaces and new function name is just gen_pool_get().
+The 0-day robot found that the notpat requirement warning was
+being triggered on the ivtv driver on the module init path,
+that will always trigger on built-in devices. We want that warning
+to trigger only if real hardware is found so this moves the ivtv
+warning out under its quasi-probe routine. The ipath driver already
+had the warning issued on its probe so no shift of code is needed
+there. Upon further thought though we decided WARN() messages would
+confuse people so instead just change these to sensible single
+pr_warn() messages for both drivers.
 
-The change is based and tested on linux-next.
+This goes build and load tested.
 
-Vladimir Zapolskiy (2):
-  genalloc: rename dev_get_gen_pool() to gen_pool_get()
-  genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with
+    pr_warn()
 
- arch/arm/mach-at91/pm.c                   |  2 +-
- arch/arm/mach-imx/pm-imx5.c               |  2 +-
- arch/arm/mach-imx/pm-imx6.c               |  2 +-
- drivers/dma/mmp_tdma.c                    |  2 +-
- drivers/media/platform/coda/coda-common.c |  4 ++--
- include/linux/genalloc.h                  |  6 +++---
- lib/genalloc.c                            | 14 +++++++-------
- sound/core/memalloc.c                     |  2 +-
- 8 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_driver.c |  6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 15 +++++++++------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
 -- 
-2.1.4
+2.3.2.209.gd67f9d5.dirty
 
