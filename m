@@ -1,53 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50778 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755990AbbFCOAM (ORCPT
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:53630 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753187AbbFXOAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 13/15] media: soc_camera: Fix error reporting in expbuf
-Date: Wed,  3 Jun 2015 15:00:00 +0100
-Message-Id: <1433340002-1691-14-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+	Wed, 24 Jun 2015 10:00:00 -0400
+From: Prashant Laddha <prladdha@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prashant Laddha <prladdha@cisco.com>
+Subject: [RFC PATCH v2 2/2] v4l2-utils: extend set-dv-timings to support reduced fps
+Date: Wed, 24 Jun 2015 19:29:56 +0530
+Message-Id: <1435154396-11548-3-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1435154396-11548-1-git-send-email-prladdha@cisco.com>
+References: <1435154396-11548-1-git-send-email-prladdha@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Extended command line option for set-dv-timings to support timings
+calculations for reduced fps. This will allow supporting NTSC frame
+rates like 29.97 or 59.94.
 
-Remove unnecessary check and fix the error code for vb1 drivers.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Prashant Laddha <prladdha@cisco.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ utils/v4l2-ctl/v4l2-ctl-stds.cpp | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 51daeb1..4e59833 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -470,14 +470,10 @@ static int soc_camera_expbuf(struct file *file, void *priv,
- 	struct soc_camera_device *icd = file->private_data;
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+index e969d08..3987ba1 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+@@ -41,11 +41,15 @@ void stds_usage(void)
+ 	       "                     index=<index>: use the index as provided by --list-dv-timings\n"
+ 	       "                     or specify timings using cvt/gtf options as follows:\n"
+ 	       "                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>\n"
+-	       "                     interlaced=<0/1>,reduced-blanking=<0/1/2>\n"
++	       "                     interlaced=<0/1>,reduced-blanking=<0/1/2>,reduced-fps=<0/1>\n"
+ 	       "                     The value of reduced-blanking, if greater than 0, indicates\n"
+ 	       "                     that reduced blanking is to be used and the value indicate the\n"
+ 	       "                     version. For gtf, there is no version 2 for reduced blanking, and\n"
+ 	       "		     the value 1 or 2 will give same results.\n"
++	       "		     reduced-fps = 1, slows down pixel clock by factor of 1000 / 1001, allowing\n"
++	       "		     to support NTSC frame rates like 29.97 or 59.94.\n"
++	       "		     Reduced fps flag takes effect only with reduced blanking version 2 and,\n"
++	       "		     when refresh rate is an integer multiple of 6, say, fps = 24,30,60 etc.\n"
+ 	       "                     or give a fully specified timings:\n"
+ 	       "                     width=<width>,height=<height>,interlaced=<0/1>,\n"
+ 	       "                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,\n"
+@@ -152,6 +156,7 @@ enum timing_opts {
+ 	GTF,
+ 	FPS,
+ 	REDUCED_BLANK,
++	REDUCED_FPS,
+ };
  
--	if (icd->streamer != file)
--		return -EBUSY;
--
- 	/* videobuf2 only */
- 	if (ici->ops->init_videobuf)
--		return -EINVAL;
--	else
--		return vb2_expbuf(&icd->vb2_vidq, p);
-+		return -ENOTTY;
-+	return vb2_expbuf(&icd->vb2_vidq, p);
- }
+ static int parse_timing_subopt(char **subopt_str, int *value)
+@@ -179,6 +184,7 @@ static int parse_timing_subopt(char **subopt_str, int *value)
+ 		"gtf",
+ 		"fps",
+ 		"reduced-blanking",
++		"reduced-fps",
+ 		NULL
+ 	};
  
- /* Always entered with .host_lock held */
+@@ -209,6 +215,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
+ 	int fps = 0;
+ 	int r_blank = 0;
+ 	int interlaced = 0;
++	bool reduced_fps = false;
+ 	bool timings_valid = false;
+ 
+ 	char *subopt_str = subopt;
+@@ -234,6 +241,9 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
+ 		case INTERLACED:
+ 			interlaced = opt_val;
+ 			break;
++		case REDUCED_FPS:
++			reduced_fps = (opt_val == 1) ? true : false;
++			break;
+ 		default:
+ 			break;
+ 		}
+@@ -241,7 +251,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
+ 
+ 	if (standard == V4L2_DV_BT_STD_CVT) {
+ 		timings_valid = calc_cvt_modeline(width, height, fps, r_blank,
+-						  interlaced == 1 ? true : false, false, bt);
++						  interlaced == 1 ? true : false, reduced_fps, bt);
+ 	} else {
+ 		timings_valid = calc_gtf_modeline(width, height, fps, r_blank,
+ 						  interlaced == 1 ? true : false, bt);
 -- 
-1.7.10.4
+1.9.1
 
