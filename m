@@ -1,62 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60487 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751741AbbFFLUC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 07:20:02 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/2] tda10071: add missing error status when probe() fails
-Date: Sat,  6 Jun 2015 14:19:38 +0300
-Message-Id: <1433589579-20611-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37318 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736AbbFXPLw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jun 2015 11:11:52 -0400
+Received: by wicgi11 with SMTP id gi11so49609590wic.0
+        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:51 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: [PATCH 12/12] MAINTAINERS: Add c8sectpfe driver directory to STi section
+Date: Wed, 24 Jun 2015 16:11:10 +0100
+Message-Id: <1435158670-7195-13-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We must return -ENODEV error on case probe() fails to detect chip.
+Add the new c8sectpfe demux driver to the STi section of the
+MAINTAINERS file.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 ---
- drivers/media/dvb-frontends/tda10071.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-index 3132854..1470a5d 100644
---- a/drivers/media/dvb-frontends/tda10071.c
-+++ b/drivers/media/dvb-frontends/tda10071.c
-@@ -1348,18 +1348,30 @@ static int tda10071_probe(struct i2c_client *client,
- 
- 	/* chip ID */
- 	ret = tda10071_rd_reg(dev, 0xff, &u8tmp);
--	if (ret || u8tmp != 0x0f)
-+	if (ret)
-+		goto err_kfree;
-+	if (u8tmp != 0x0f) {
-+		ret = -ENODEV;
- 		goto err_kfree;
-+	}
- 
- 	/* chip type */
- 	ret = tda10071_rd_reg(dev, 0xdd, &u8tmp);
--	if (ret || u8tmp != 0x00)
-+	if (ret)
-+		goto err_kfree;
-+	if (u8tmp != 0x00) {
-+		ret = -ENODEV;
- 		goto err_kfree;
-+	}
- 
- 	/* chip version */
- 	ret = tda10071_rd_reg(dev, 0xfe, &u8tmp);
--	if (ret || u8tmp != 0x01)
-+	if (ret)
- 		goto err_kfree;
-+	if (u8tmp != 0x01) {
-+		ret = -ENODEV;
-+		goto err_kfree;
-+	}
- 
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &tda10071_ops, sizeof(struct dvb_frontend_ops));
+diff --git a/MAINTAINERS b/MAINTAINERS
+index d8afd29..49c8963 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1481,6 +1481,7 @@ F:	arch/arm/boot/dts/sti*
+ F:	drivers/clocksource/arm_global_timer.c
+ F:	drivers/i2c/busses/i2c-st.c
+ F:	drivers/media/rc/st_rc.c
++F:	drivers/media/tsin/c8sectpfe/
+ F:	drivers/mmc/host/sdhci-st.c
+ F:	drivers/phy/phy-miphy28lp.c
+ F:	drivers/phy/phy-miphy365x.c
 -- 
-http://palosaari.fi/
+1.9.1
 
