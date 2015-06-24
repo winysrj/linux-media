@@ -1,73 +1,90 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v2 04/27] v4l2-subdev: Add g_def_ext_ctrls to core_ops
-Date: Fri, 12 Jun 2015 15:11:58 +0200
-Message-id: <1434114742-7420-5-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-out-240.synserver.de ([212.40.185.240]:1064 "EHLO
+	smtp-out-240.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752802AbbFXQui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jun 2015 12:50:38 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 4/5] [media] adv7604: Deliver resolution change events to userspace
+Date: Wed, 24 Jun 2015 18:50:30 +0200
+Message-Id: <1435164631-19924-4-git-send-email-lars@metafoo.de>
+In-Reply-To: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function returns the default value of an extended control. Provides
-sub-devices with the same functionality as ioctl VIDIOC_G_DEF_EXT_CTRLS.
+Use the new v4l2_subdev_notify_event() helper function to deliver the
+resolution change event to userspace via the v4l2 subdev event queue as
+well as to the bridge driver using the callback notify mechanism.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+This allows userspace applications to react to changes in resolution. This
+is useful and often necessary for video pipelines where there is no direct
+1-to-1 relationship between the subdevice converter and the video capture
+device and hence it does not make sense to directly forward the event to
+the video capture device node.
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 7 +++++++
- include/media/v4l2-ctrls.h           | 2 ++
- include/media/v4l2-subdev.h          | 2 ++
- 3 files changed, 11 insertions(+)
+ drivers/media/i2c/adv7604.c | 23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 02ff6f573fd2..2a42b826f857 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2888,6 +2888,13 @@ int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
- }
- EXPORT_SYMBOL(v4l2_subdev_g_ext_ctrls);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index cf1cb5a..b66f63e3 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1761,8 +1761,8 @@ static int adv76xx_s_routing(struct v4l2_subdev *sd,
+ 	select_input(sd);
+ 	enable_input(sd);
  
-+int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
-+				struct v4l2_ext_controls *cs)
-+{
-+	return v4l2_g_ext_ctrls(sd->ctrl_handler, cs, true);
-+}
-+EXPORT_SYMBOL(v4l2_subdev_g_def_ext_ctrls);
+-	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+-			   (void *)&adv76xx_ev_fmt);
++	v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
 +
- /* Helper function to get a single control */
- static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
- {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 16f16b67181b..61e6cd67fc10 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -823,6 +823,8 @@ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- int v4l2_subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc);
- int v4l2_subdev_querymenu(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
- int v4l2_subdev_g_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
-+int v4l2_subdev_g_def_ext_ctrls(struct v4l2_subdev *sd,
-+				struct v4l2_ext_controls *cs);
- int v4l2_subdev_try_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs);
- int v4l2_subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index dc20102ff600..01b3354942cf 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -158,6 +158,8 @@ struct v4l2_subdev_core_ops {
- 	int (*g_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
- 	int (*s_ctrl)(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
- 	int (*g_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
-+	int (*g_def_ext_ctrls)(struct v4l2_subdev *sd,
-+			       struct v4l2_ext_controls *ctrls);
- 	int (*s_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
- 	int (*try_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
- 	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+ 	return 0;
+ }
+ 
+@@ -1929,8 +1929,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
+ 			__func__, fmt_change, fmt_change_digital);
+ 
+-		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+-				   (void *)&adv76xx_ev_fmt);
++		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+ 
+ 		if (handled)
+ 			*handled = true;
+@@ -2348,6 +2347,20 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
++static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
++				   struct v4l2_fh *fh,
++				   struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_SOURCE_CHANGE:
++		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
++	case V4L2_EVENT_CTRL:
++		return v4l2_event_subdev_unsubscribe(sd, fh, sub);
++	default:
++		return -EINVAL;
++	}
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+@@ -2357,7 +2370,7 @@ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+ static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
+ 	.log_status = adv76xx_log_status,
+ 	.interrupt_service_routine = adv76xx_isr,
+-	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.subscribe_event = adv76xx_subscribe_event,
+ 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = adv76xx_g_register,
 -- 
 2.1.4
+
