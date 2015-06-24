@@ -1,118 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37756 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752819AbbFVHF0 (ORCPT
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:34628 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753968AbbFXR3z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 03:05:26 -0400
-Message-ID: <5587B39A.4050805@xs4all.nl>
-Date: Mon, 22 Jun 2015 09:04:58 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl> <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1506211855010.7745@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1506211855010.7745@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 24 Jun 2015 13:29:55 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com,
+	dledford@redhat.com
+Cc: mingo@kernel.org, fengguang.wu@intel.com,
+	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with pr_warn()
+Date: Wed, 24 Jun 2015 10:23:20 -0700
+Message-Id: <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
+In-Reply-To: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
+References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
-> On Mon, 15 Jun 2015, Hans Verkuil wrote:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> When the standard changes the VACTIVE and VDELAY values need to be updated.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
->>  1 file changed, 28 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
->> index df66417..e939c24 100644
->> --- a/drivers/media/i2c/soc_camera/tw9910.c
->> +++ b/drivers/media/i2c/soc_camera/tw9910.c
->> @@ -510,13 +510,39 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
->>  {
->>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>  	struct tw9910_priv *priv = to_tw9910(client);
->> +	const unsigned hact = 720;
->> +	const unsigned hdelay = 15;
->> +	unsigned vact;
->> +	unsigned vdelay;
->> +	int ret;
->>  
->>  	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
->>  		return -EINVAL;
->>  
->>  	priv->norm = norm;
->> +	if (norm & V4L2_STD_525_60) {
->> +		vact = 240;
->> +		vdelay = 18;
->> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
->> +	} else {
->> +		vact = 288;
->> +		vdelay = 24;
->> +		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
->> +	}
->> +	if (!ret)
->> +		ret = i2c_smbus_write_byte_data(client, CROP_HI,
->> +			((vdelay >> 2) & 0xc0) |
->> +			((vact >> 4) & 0x30) |
->> +			((hdelay >> 6) & 0x0c) |
->> +			((hact >> 8) & 0x03));
-> 
-> I personally would find ((x & 0xc0) >> {2,4,6,8}) a bit easier for the 
-> eyes, but this works as well for me:)
-> 
->> +	if (!ret)
->> +		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
->> +			vdelay & 0xff);
->> +	if (!ret)
->> +		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
->> +			vact & 0xff);
->>  
->> -	return 0;
->> +	return ret;
->>  }
->>  
->>  #ifdef CONFIG_VIDEO_ADV_DEBUG
->> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
->>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
->>  
->>  	priv->norm = V4L2_STD_NTSC;
->> +	priv->scale = &tw9910_ntsc_scales[0];
-> 
-> Why do you need this? So far everywhere in the code priv->scale is either 
-> checked or set before use. Don't see why an additional initialisation is 
-> needed.
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-If you just start streaming without explicitly setting up formats (which is
-allowed), then priv->scale is still NULL.
+On built-in kernels this warning will always splat as this is part
+of the module init. Fix that by shifting the PAT requirement check
+out under the code that does the "quasi-probe" for the device. This
+device driver relies on an existing driver to find its own devices,
+it looks for that device driver and its own found devices, then
+uses driver_for_each_device() to try to see if it can probe each of
+those devices as a frambuffer device with ivtvfb_init_card(). We
+tuck the PAT requiremenet check then on the ivtvfb_init_card()
+call making the check at least require an ivtv device present
+before complaining.
 
-V4L2 always assumes that there is some initial format configured, and this line
-enables that for this driver (NTSC).
+Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
+Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+---
+ drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-Regards,
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index 4cb365d..8b95eef 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -38,6 +38,8 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fb.h>
+@@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
+ {
+ 	int rc;
+ 
++#ifdef CONFIG_X86_64
++	if (pat_enabled()) {
++		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
++		return -ENODEV;
++	}
++#endif
++
+ 	if (itv->osd_info) {
+ 		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
+ 		return -EBUSY;
+@@ -1265,12 +1274,6 @@ static int __init ivtvfb_init(void)
+ 	int registered = 0;
+ 	int err;
+ 
+-#ifdef CONFIG_X86_64
+-	if (WARN(pat_enabled(),
+-		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
+-		return -ENODEV;
+-	}
+-#endif
+ 
+ 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+ 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+-- 
+2.3.2.209.gd67f9d5.dirty
 
-	Hans
-
-> 
-> Thanks
-> Guennadi
-> 
->>  
->>  done:
->>  	tw9910_s_power(&priv->subdev, 0);
->> -- 
->> 2.1.4
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
