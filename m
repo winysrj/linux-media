@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46869 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346AbbFYVw1 convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35855 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbbFXKwm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 17:52:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 5/7] [media] omap3isp: remove unused var
-Date: Fri, 26 Jun 2015 00:52:21 +0300
-Message-ID: <2241247.FDDqeShdzl@avalon>
-In-Reply-To: <7a9327cd8788da75b44d3bafb058bcfd6ae34319.1435142906.git.mchehab@osg.samsung.com>
-References: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com> <7a9327cd8788da75b44d3bafb058bcfd6ae34319.1435142906.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+	Wed, 24 Jun 2015 06:52:42 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH v2] [media] lmedm04: fix the range for relative measurements
+Date: Wed, 24 Jun 2015 07:52:01 -0300
+Message-Id: <620275d149c129d3464cb73dd00b17e54128340c.1435143112.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Relative measurements are typically between 0 and 0xffff. However,
+for some tuners (TUNER_S7395 and TUNER_S0194), the range were from
+0 to 0xff00, with means that 100% is never archived.
+Also, TUNER_RS2000 uses a more complex math.
 
-On Wednesday 24 June 2015 07:49:09 Mauro Carvalho Chehab wrote:
-> drivers/media/platform/omap3isp/isppreview.c:932:6: warning: variable
-> ‘features’ set but not used [-Wunused-but-set-variable]
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+So, create a macro that does the conversion using bit operations
+and use it for all conversions.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The code is also easier to read with is a bonus.
 
-On a side note, I'd appreciate if you could wait a couple of days for review 
-before committing patches to the media_tree master branch.
+While here, remove a bogus comment.
 
-Or maybe process pending pull requests for the same driver before fast-
-tracking your own patches ;-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> diff --git a/drivers/media/platform/omap3isp/isppreview.c
-> b/drivers/media/platform/omap3isp/isppreview.c index
-> 15cb254ccc39..13803270d104 100644
-> --- a/drivers/media/platform/omap3isp/isppreview.c
-> +++ b/drivers/media/platform/omap3isp/isppreview.c
-> @@ -929,14 +929,10 @@ static void preview_setup_hw(struct isp_prev_device
-> *prev, u32 update, u32 active)
->  {
->  	unsigned int i;
-> -	u32 features;
-> 
->  	if (update == 0)
->  		return;
-> 
-> -	features = (prev->params.params[0].features & active)
-> -		 | (prev->params.params[1].features & ~active);
-> -
->  	for (i = 0; i < ARRAY_SIZE(update_attrs); i++) {
->  		const struct preview_update *attr = &update_attrs[i];
->  		struct prev_params *params;
-
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index fcef2a33ef3d..4cc55b3a0558 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -257,6 +257,9 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
+ 	return ret;
+ }
+ 
++/* Convert range from 0x00-0xff to 0x0000-0xffff */
++#define reg_to_16bits(x)	((x) | ((x) << 8))
++
+ static void lme2510_update_stats(struct dvb_usb_adapter *adap)
+ {
+ 	struct lme2510_state *st = adap_to_priv(adap);
+@@ -288,23 +291,17 @@ static void lme2510_update_stats(struct dvb_usb_adapter *adap)
+ 
+ 	switch (st->tuner_config) {
+ 	case TUNER_LG:
+-		s_tmp = 0xff - st->signal_level;
+-		s_tmp |= s_tmp << 8;
+-
+-		c_tmp = 0xff - st->signal_sn;
+-		c_tmp |= c_tmp << 8;
++		s_tmp = reg_to_16bits(0xff - st->signal_level);
++		c_tmp = reg_to_16bits(0xff - st->signal_sn);
+ 		break;
+-	/* fall through */
+ 	case TUNER_S7395:
+ 	case TUNER_S0194:
+ 		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
+-
+-		c_tmp = ((0xff - st->signal_sn - 0xa1) * 3) << 8;
++		c_tmp = reg_to_16bits((0xff - st->signal_sn - 0xa1) * 3);
+ 		break;
+ 	case TUNER_RS2000:
+-		s_tmp = st->signal_level * 0xffff / 0xff;
+-
+-		c_tmp = st->signal_sn * 0xffff / 0x7f;
++		s_tmp = reg_to_16bits(st->signal_level);
++		c_tmp = reg_to_16bits(st->signal_sn);
+ 	}
+ 
+ 	c->strength.len = 1;
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
