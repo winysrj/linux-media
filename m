@@ -1,51 +1,121 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-In-reply-to: <557AE172.7070408@xs4all.nl>
-References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
- <557AE172.7070408@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 12 Jun 2015 15:55:17 +0200
-Message-id: <CAPybu_2HzHxCK1z9--v7c8MMJ_S1K2Gvr5WLoZye3Gikf0atTA@mail.gmail.com>
-Subject: Re: [RFC v2 00/27] New ioct VIDIOC_G_DEF_EXT_CTRLS
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- linux-media <linux-media@vger.kernel.org>
-Content-type: text/plain; charset=UTF-8
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37398 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753892AbbFXCuF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2015 22:50:05 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D0A7F2A008D
+	for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 04:49:34 +0200 (CEST)
+Date: Wed, 24 Jun 2015 04:49:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150624024934.D0A7F2A008D@tschai.lan>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, Jun 12, 2015 at 3:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Results of the daily build of media_tree:
 
->
-> I did a quick analysis and for the following i2c modules you can just remove the
-> compat control ops altogether since they are no longer used in old non-control-framework
-> bridge drivers:
->
-> saa7706
-> ivtv-gpio
-> wm8739
-> tvp7002
-> tvp514x
-> tvl320aic23b
-> tda7432
-> sr030pc30
-> saa717x
-> cs5345
-> adv7393
-> adv7343
->
-> Also note that the uvc driver needs to be adapted manually since it can't use
-> the control framework. The ioctls are implemented in the driver itself.
+date:		Wed Jun 24 04:00:19 CEST 2015
+git branch:	test
+git hash:	77a3c6fd90c94f635edb00d4a65f485687538791
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Would it make sense to split this patchset in two?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-1) This patchset - all i2c modules that dont need compat control ops +
-uvc driver
-2) A new patchset removing compat control ops on the list that you provided
+Detailed results are available here:
 
-Thanks
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
