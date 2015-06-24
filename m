@@ -1,44 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35999 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854AbbFVWES (ORCPT
+Received: from smtp-out-240.synserver.de ([212.40.185.240]:1027 "EHLO
+	smtp-out-240.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443AbbFXQui (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 18:04:18 -0400
-Date: Mon, 22 Jun 2015 15:04:17 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/9] Helper to abstract vma handling in media layer
-Message-Id: <20150622150417.9328994e4c19916d3a88846f@linux-foundation.org>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 24 Jun 2015 12:50:38 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 5/5] [media] adv7842: Deliver resolution change events to userspace
+Date: Wed, 24 Jun 2015 18:50:31 +0200
+Message-Id: <1435164631-19924-5-git-send-email-lars@metafoo.de>
+In-Reply-To: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Jun 2015 06:20:43 -0300 Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+Use the new v4l2_subdev_notify_event() helper function to deliver the
+resolution change event to userspace via the v4l2 subdev event queue as
+well as to the bridge driver using the callback notify mechanism.
 
-> I received this patch series with a new set of helper functions for
-> mm, together with changes for media and DRM drivers.
-> 
-> As this stuff is actually mm code, I prefer if this got merged via
-> your tree.
-> 
-> Could you please handle it? Please notice that patch 8 actually changes
-> the exynos DRM driver, but it misses ack from DRM people.
+This allows userspace applications to react to changes in resolution. This
+is useful and often necessary for video pipelines where there is no direct
+1-to-1 relationship between the subdevice converter and the video capture
+device and hence it does not make sense to directly forward the event to
+the video capture device node.
 
-I'm now getting large rejects from many of these patches.  It seems
-that someone has recently removed a patch from linux-next, and that
-patch added down_read(mmap_sem) and up_read(mmap_sem) to the same
-functions which this patch series is altering.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7842.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-I started fixing them all up but I got bored, and I'm not very
-confident in the end result.
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index ffc0655..ed51aa7 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1981,8 +1981,7 @@ static int adv7842_s_routing(struct v4l2_subdev *sd,
+ 	select_input(sd, state->vid_std_select);
+ 	enable_input(sd);
+ 
+-	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+-			   (void *)&adv7842_ev_fmt);
++	v4l2_subdev_notify_event(sd, &adv7842_ev_fmt);
+ 
+ 	return 0;
+ }
+@@ -2215,8 +2214,7 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			 "%s: fmt_change_cp = 0x%x, fmt_change_digital = 0x%x, fmt_change_sdp = 0x%x\n",
+ 			 __func__, fmt_change_cp, fmt_change_digital,
+ 			 fmt_change_sdp);
+-		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+-				   (void *)&adv7842_ev_fmt);
++		v4l2_subdev_notify_event(sd, &adv7842_ev_fmt);
+ 		if (handled)
+ 			*handled = true;
+ 	}
+@@ -3006,6 +3004,20 @@ static long adv7842_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ 	return -ENOTTY;
+ }
+ 
++static int adv7842_subscribe_event(struct v4l2_subdev *sd,
++				   struct v4l2_fh *fh,
++				   struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_SOURCE_CHANGE:
++		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
++	case V4L2_EVENT_CTRL:
++		return v4l2_event_subdev_unsubscribe(sd, fh, sub);
++	default:
++		return -EINVAL;
++	}
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops adv7842_ctrl_ops = {
+@@ -3016,7 +3028,7 @@ static const struct v4l2_subdev_core_ops adv7842_core_ops = {
+ 	.log_status = adv7842_log_status,
+ 	.ioctl = adv7842_ioctl,
+ 	.interrupt_service_routine = adv7842_isr,
+-	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.subscribe_event = adv7842_subscribe_event,
+ 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = adv7842_g_register,
+-- 
+2.1.4
 
-It was a particularly bad time to be making these sorts of changes. 
-Does anyone know what's happening?
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
