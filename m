@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:33781 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbbF2TZO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 15:25:14 -0400
-Date: Mon, 29 Jun 2015 12:25:09 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org
-Subject: Re: [PATCHv7 04/15] HID: add HDMI CEC specific keycodes
-Message-ID: <20150629192509.GD22166@dtor-ws>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
- <1435572900-56998-5-git-send-email-hans.verkuil@cisco.com>
+Received: from lists.s-osg.org ([54.187.51.154]:49599 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933823AbbFXDFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2015 23:05:37 -0400
+Message-ID: <558A1E79.8050902@osg.samsung.com>
+Date: Tue, 23 Jun 2015 21:05:29 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435572900-56998-5-git-send-email-hans.verkuil@cisco.com>
+To: "Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: =?UTF-8?B?Q29tcGlsZXIgd2FybmluZyBmcm9tIGRyaXZlcnMvbWVkaWEvdXNiL2E=?=
+ =?UTF-8?B?dTA4MjgvYXUwODI4LXZpZGVvLmM6IEluIGZ1bmN0aW9uIOKAmHF1ZXVlX3NldHU=?=
+ =?UTF-8?B?cOKAmQ==?=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 29, 2015 at 12:14:49PM +0200, Hans Verkuil wrote:
-> From: Kamil Debski <kamil@wypas.org>
-> 
-> Add HDMI CEC specific keycodes to the keycodes definition.
-> 
-> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Could you please describe the intended use for these keycodes for people
-who do not live and breathe CEC specs?
+I am seeing the following warning from au0828 - linux_media
+media_controller branch:
 
-Thanks!
+drivers/media/usb/au0828/au0828-video.c: In function ‘queue_setup’:
+drivers/media/usb/au0828/au0828-video.c:679:6: warning: ‘entity’ may be
+used uninitialized in this function [-Wmaybe-uninitialized]
+   if (sink == entity)
+      ^
+drivers/media/usb/au0828/au0828-video.c:644:24: note: ‘entity’ was
+declared here
+  struct media_entity  *entity, *source;
+                        ^
 
-> ---
->  include/uapi/linux/input.h | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-> index 731417c..7430a3f 100644
-> --- a/include/uapi/linux/input.h
-> +++ b/include/uapi/linux/input.h
-> @@ -752,6 +752,18 @@ struct input_keymap_entry {
->  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
->  #define KEY_KBDINPUTASSIST_CANCEL		0x265
->  
-> +#define KEY_RIGHT_UP			0x266
-> +#define KEY_RIGHT_DOWN			0x267
-> +#define KEY_LEFT_UP			0x268
-> +#define KEY_LEFT_DOWN			0x269
-> +
-> +#define KEY_NEXT_FAVORITE		0x270
-> +#define KEY_STOP_RECORD			0x271
-> +#define KEY_PAUSE_RECORD		0x272
-> +#define KEY_VOD				0x273
-> +#define KEY_UNMUTE			0x274
-> +#define KEY_DVB				0x275
-> +
->  #define BTN_TRIGGER_HAPPY		0x2c0
->  #define BTN_TRIGGER_HAPPY1		0x2c0
->  #define BTN_TRIGGER_HAPPY2		0x2c1
-> -- 
-> 2.1.4
-> 
+This looks real to me, but don't know what entity should have been
+initialized to.
+
+thanks,
+-- Shuah
 
 -- 
-Dmitry
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
