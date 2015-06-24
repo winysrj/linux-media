@@ -1,102 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33042 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:33363 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbbFAJNF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2015 05:13:05 -0400
+	with ESMTP id S1752426AbbFXKtx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jun 2015 06:49:53 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/2] [media] DocBook: some fixes for DVB FE open()
-Date: Mon,  1 Jun 2015 06:12:52 -0300
-Message-Id: <6fd877748a9c4133e37417061e426188fcb00fea.1433149961.git.mchehab@osg.samsung.com>
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH 7/7] [media] lmedm04: fix the range for relative measurements
+Date: Wed, 24 Jun 2015 07:49:11 -0300
+Message-Id: <fed99febe2e76373847162c4c927e515282537e3.1435142906.git.mchehab@osg.samsung.com>
+In-Reply-To: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
+References: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
+In-Reply-To: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
+References: <dd7a2acf5b7da9449988a99fe671349b3e5ec593.1435142906.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The changeset dc9ef7d11207 change the open() ioctl documentation to
-match the V4L2 open(). However, some cut-and-pasted stuff doesn't
-match what actually happens at the DVB core.
+Relative measurements are typically between 0 and 0xffff. However,
+for some tuners (TUNER_S7395 and TUNER_S0194), the range were from
+0 to 0xff00, with means that 100% is never archived.
+Also, TUNER_RS2000 uses a more complex math.
 
-So, fix the documentation entry to be more accurate with the DVB
-frontend open() specifics.
+So, create a macro that does the conversion using bit operations
+and use it for all conversions.
+
+The code is also easier to read with is a bonus.
+
+While here, remove a bogus comment.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index c7fa3d8bff5c..9d8e95cd9694 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -61,7 +61,7 @@ specification is available at
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index fcef2a33ef3d..befcf97662ca 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -257,6 +257,9 @@ static int lme2510_enable_pid(struct dvb_usb_device *d, u8 index, u16 pid_out)
+ 	return ret;
+ }
  
- <refentry id="frontend_f_open">
-   <refmeta>
--    <refentrytitle>open()</refentrytitle>
-+    <refentrytitle>DVB frontend open()</refentrytitle>
-     &manvol;
-   </refmeta>
++/* Convert range from 0x00-0xff to 0x0000-0xffff */
++#define reg_to_16bits(x)	((x) | ((x) << 8)
++
+ static void lme2510_update_stats(struct dvb_usb_adapter *adap)
+ {
+ 	struct lme2510_state *st = adap_to_priv(adap);
+@@ -288,23 +291,17 @@ static void lme2510_update_stats(struct dvb_usb_adapter *adap)
  
-@@ -94,20 +94,19 @@ specification is available at
-       <varlistentry>
- 	<term><parameter>flags</parameter></term>
- 	<listitem>
--	  <para>Open flags. Access mode must be
--<constant>O_RDWR</constant>. This is just a technicality, input devices
--still support only reading and output devices only writing.</para>
--	  <para>When the <constant>O_NONBLOCK</constant> flag is
--given, the read() function will return the &EAGAIN; when no data is available,
--otherwise these functions block until data becomes
--available. Other flags have no effect.</para>
-+	  <para>Open flags. Access can either be
-+              <constant>O_RDWR</constant> or <constant>O_RDONLY</constant>.</para>
-+          <para>Multiple opens are allowed with <constant>O_RDONLY</constant>. In this mode, only query and read ioctls are allowed.</para>
-+          <para>Only one open is allowed in <constant>O_RDWR</constant>. In this mode, all ioctls are allowed.</para>
-+	  <para>When the <constant>O_NONBLOCK</constant> flag is given, the system calls may return &EAGAIN; when no data is available or when the device driver is temporarily busy.</para>
-+         <para>Other flags have no effect.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
-   </refsect1>
-   <refsect1>
-     <title>Description</title>
--<para>This system call opens a named frontend device (/dev/dvb/adapter0/frontend0)
-+    <para>This system call opens a named frontend device (<constant>/dev/dvb/adapter?/frontend?</constant>)
-  for subsequent use. Usually the first thing to do after a successful open is to
-  find out the frontend type with <link linkend="FE_GET_INFO">FE_GET_INFO</link>.</para>
- <para>The device can be opened in read-only mode, which only allows monitoring of
-@@ -145,8 +144,7 @@ device.</para>
-       <varlistentry>
- 	<term><errorcode>EBUSY</errorcode></term>
- 	<listitem>
--	  <para>The driver does not support multiple opens and the
--device is already in use.</para>
-+	  <para>The the device driver is already in use.</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -177,13 +175,19 @@ files open.</para>
- system has been reached.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENODEV</errorcode></term>
-+	<listitem>
-+	  <para>The device got removed.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
+ 	switch (st->tuner_config) {
+ 	case TUNER_LG:
+-		s_tmp = 0xff - st->signal_level;
+-		s_tmp |= s_tmp << 8;
+-
+-		c_tmp = 0xff - st->signal_sn;
+-		c_tmp |= c_tmp << 8;
++		s_tmp = reg_to_16bits(0xff - st->signal_level);
++		c_tmp = reg_to_16bits(0xff - st->signal_sn);
+ 		break;
+-	/* fall through */
+ 	case TUNER_S7395:
+ 	case TUNER_S0194:
+ 		s_tmp = 0xffff - (((st->signal_level * 2) << 8) * 5 / 4);
+-
+-		c_tmp = ((0xff - st->signal_sn - 0xa1) * 3) << 8;
++		c_tmp = reg_to_16bits((0xff - st->signal_sn - 0xa1) * 3);
+ 		break;
+ 	case TUNER_RS2000:
+-		s_tmp = st->signal_level * 0xffff / 0xff;
+-
+-		c_tmp = st->signal_sn * 0xffff / 0x7f;
++		s_tmp = reg_to_16bits(st->signal_level);
++		c_tmp = reg_to_16bits(st->signal_sn);
+ 	}
  
- <refentry id="frontend_f_close">
-   <refmeta>
--    <refentrytitle>close()</refentrytitle>
-+    <refentrytitle>DVB frontend close()</refentrytitle>
-     &manvol;
-   </refmeta>
- 
+ 	c->strength.len = 1;
 -- 
-2.4.1
+2.4.3
 
