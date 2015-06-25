@@ -1,530 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38697 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932874AbbFIMga (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Jun 2015 08:36:30 -0400
-Date: Tue, 9 Jun 2015 09:36:25 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] dvb: convert demod frequency ranges to Hz
-Message-ID: <20150609093625.3d351547@recife.lan>
-In-Reply-To: <1433853077-29083-1-git-send-email-mchehab@osg.samsung.com>
-References: <1433853077-29083-1-git-send-email-mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtprelay0104.hostedemail.com ([216.40.44.104]:60521 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751014AbbFYBRm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jun 2015 21:17:42 -0400
+Message-ID: <1435195057.9377.18.camel@perches.com>
+Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X
+ tuner.
+From: Joe Perches <joe@perches.com>
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	lee.jones@linaro.org, hugues.fruchet@st.com,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Date: Wed, 24 Jun 2015 18:17:37 -0700
+In-Reply-To: <1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	 <1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 09 Jun 2015 09:31:17 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
+> This is used in conjunction with the STV0367 demodulator on
+> the STV0367-NIM-V1.0 NIM card which can be used with the STi
+> STB SoC's.
 
-> Currently, all demods are either Satellite or Cable/Terrestrial.
-> 
-> On Satellite, the frequency ranges are specified in kHz, while
-> on Cable/Terrestrial, they're in Hz.
-> 
-> There's a new set of demods arriving in the market that can handle
-> both Satellite and Cable/Terrestrial.
-> 
-> As the demod entry would be the same, the best is to always use
-> Hz as the frequency range on the internal descriptors, letting
-> the DVB core to convert to kHz when needed.
+Barely associated to this specific patch, but for
+dvb-pll.c, another thing that seems possible is to
+convert the struct dvb_pll_desc uses to const and
+change the "entries" fixed array size from 12 to []
 
-I forgot to mark as such, but this patch is RFC.
+It'd save a couple KB overall and remove ~5KB of data.
 
-If we're willing to do such change, we'll also likely want to change
-the code inside the satellite drivers to always use Hz also for
-tuning frequency, keeping the Hz <==> kHz conversion inside the DVB
-core.
+$ size drivers/media/dvb-frontends/dvb-pll.o*
+   text	   data	    bss	    dec	    hex	filename
+   8520	   1552	   2120	  12192	   2fa0	drivers/media/dvb-frontends/dvb-pll.o.new
+   5624	   6363	   2120	  14107	   371b	drivers/media/dvb-frontends/dvb-pll.o.old
+---
+ drivers/media/dvb-frontends/dvb-pll.c | 50 +++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c      | 27 +++++++++++++++++++++++++++
->  drivers/media/dvb-frontends/cx24110.c      |  8 ++++----
->  drivers/media/dvb-frontends/cx24116.c      |  8 ++++----
->  drivers/media/dvb-frontends/cx24117.c      |  8 ++++----
->  drivers/media/dvb-frontends/cx24120.c      |  8 ++++----
->  drivers/media/dvb-frontends/cx24123.c      |  8 ++++----
->  drivers/media/dvb-frontends/ds3000.c       |  8 ++++----
->  drivers/media/dvb-frontends/dvb_dummy_fe.c |  8 ++++----
->  drivers/media/dvb-frontends/m88ds3103.c    |  6 +++---
->  drivers/media/dvb-frontends/m88rs2000.c    |  8 ++++----
->  drivers/media/dvb-frontends/mb86a16.c      |  6 +++---
->  drivers/media/dvb-frontends/mt312.c        |  6 +++---
->  drivers/media/dvb-frontends/s5h1420.c      |  8 ++++----
->  drivers/media/dvb-frontends/si21xx.c       |  6 +++---
->  drivers/media/dvb-frontends/stb0899_drv.c  |  4 ++--
->  drivers/media/dvb-frontends/stv0288.c      |  6 +++---
->  drivers/media/dvb-frontends/stv0299.c      |  8 ++++----
->  drivers/media/dvb-frontends/stv0900_core.c |  6 +++---
->  drivers/media/dvb-frontends/stv090x.c      |  4 ++--
->  drivers/media/dvb-frontends/tc90522.c      |  4 ++--
->  drivers/media/dvb-frontends/tda10071.c     |  6 +++---
->  drivers/media/dvb-frontends/tda10086.c     |  6 +++---
->  drivers/media/dvb-frontends/tda8083.c      |  6 +++---
->  drivers/media/dvb-frontends/ves1x93.c      |  8 ++++----
->  24 files changed, 104 insertions(+), 77 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index c2050742d22d..058628145169 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -974,6 +974,8 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
->  static void dvb_frontend_get_frequency_limits(struct dvb_frontend *fe,
->  					u32 *freq_min, u32 *freq_max)
->  {
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> +
->  	*freq_min = max(fe->ops.info.frequency_min, fe->ops.tuner_ops.info.frequency_min);
->  
->  	if (fe->ops.info.frequency_max == 0)
-> @@ -986,6 +988,19 @@ static void dvb_frontend_get_frequency_limits(struct dvb_frontend *fe,
->  	if (*freq_min == 0 || *freq_max == 0)
->  		dev_warn(fe->dvb->device, "DVB: adapter %i frontend %u frequency limits undefined - fix the driver\n",
->  				fe->dvb->num, fe->id);
-> +
-> +	switch (c->delivery_system) {
-> +	case SYS_DVBS:
-> +	case SYS_DVBS2:
-> +	case SYS_TURBO:
-> +	case SYS_DSS:
-> +	case SYS_ISDBS:
-> +		/* Userspace API expects ranges in kHz */
-> +		*freq_min /= 1000;
-> +		*freq_max /= 1000;
-> +	default:
-> +		break;
-> +	}
->  }
->  
->  static int dvb_frontend_check_parameters(struct dvb_frontend *fe)
-> @@ -2299,6 +2314,18 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->  
->  		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
->  		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
-> +		switch (c->delivery_system) {
-> +		case SYS_DVBS:
-> +		case SYS_DVBS2:
-> +		case SYS_TURBO:
-> +		case SYS_DSS:
-> +		case SYS_ISDBS:
-> +			/* Userspace API expects ranges in kHz */
-> +			info->frequency_stepsize /= 1000;
-> +			info->frequency_tolerance /= 1000;
-> +		default:
-> +			break;
-> +		}
->  
->  		/*
->  		 * Associate the 4 delivery systems supported by DVBv3
-> diff --git a/drivers/media/dvb-frontends/cx24110.c b/drivers/media/dvb-frontends/cx24110.c
-> index 4edadb5a29de..2a5fc286db4b 100644
-> --- a/drivers/media/dvb-frontends/cx24110.c
-> +++ b/drivers/media/dvb-frontends/cx24110.c
-> @@ -624,10 +624,10 @@ static struct dvb_frontend_ops cx24110_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name = "Conexant CX24110 DVB-S",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011,  /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 29500,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000,  /* Hz */
-> +		.frequency_tolerance = 29500000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-> index 9378364e7365..2d9df776c97a 100644
-> --- a/drivers/media/dvb-frontends/cx24116.c
-> +++ b/drivers/media/dvb-frontends/cx24116.c
-> @@ -1469,10 +1469,10 @@ static struct dvb_frontend_ops cx24116_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "Conexant CX24116/CX24118",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-> index be41297535a2..5ad648e57cf4 100644
-> --- a/drivers/media/dvb-frontends/cx24117.c
-> +++ b/drivers/media/dvb-frontends/cx24117.c
-> @@ -1620,10 +1620,10 @@ static struct dvb_frontend_ops cx24117_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "Conexant CX24117/CX24132",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/cx24120.c b/drivers/media/dvb-frontends/cx24120.c
-> index 3b0ef52bb834..284168a03771 100644
-> --- a/drivers/media/dvb-frontends/cx24120.c
-> +++ b/drivers/media/dvb-frontends/cx24120.c
-> @@ -1554,10 +1554,10 @@ static struct dvb_frontend_ops cx24120_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "Conexant CX24120/CX24118",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps =	FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
-> index b6c1b2094bc5..ccfc711902df 100644
-> --- a/drivers/media/dvb-frontends/cx24123.c
-> +++ b/drivers/media/dvb-frontends/cx24123.c
-> @@ -1115,10 +1115,10 @@ static struct dvb_frontend_ops cx24123_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name = "Conexant CX24123/CX24109",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> index 435c4dac9389..adc8f11c2b0e 100644
-> --- a/drivers/media/dvb-frontends/ds3000.c
-> +++ b/drivers/media/dvb-frontends/ds3000.c
-> @@ -1098,10 +1098,10 @@ static struct dvb_frontend_ops ds3000_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "Montage Technology DS3000",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_stepsize = 1011, /* kHz for QPSK frontends */
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 1011000, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/dvb_dummy_fe.c b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-> index 3aeb64576bee..ec66647ad21a 100644
-> --- a/drivers/media/dvb-frontends/dvb_dummy_fe.c
-> +++ b/drivers/media/dvb-frontends/dvb_dummy_fe.c
-> @@ -228,10 +228,10 @@ static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "Dummy DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 250,           /* kHz for QPSK frontends */
-> -		.frequency_tolerance	= 29500,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 250000, /* Hz */
-> +		.frequency_tolerance	= 29500000, /* Hz */
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-> index 88572666088f..7f4d7ab2cae3 100644
-> --- a/drivers/media/dvb-frontends/m88ds3103.c
-> +++ b/drivers/media/dvb-frontends/m88ds3103.c
-> @@ -1444,9 +1444,9 @@ static struct dvb_frontend_ops m88ds3103_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "Montage M88DS3103",
-> -		.frequency_min =  950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min =  950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min =  1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-> index 9cd1d8a1b895..bb9972baf84b 100644
-> --- a/drivers/media/dvb-frontends/m88rs2000.c
-> +++ b/drivers/media/dvb-frontends/m88rs2000.c
-> @@ -753,10 +753,10 @@ static struct dvb_frontend_ops m88rs2000_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "M88RS2000 DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 1000,	 /* kHz for QPSK frontends */
-> -		.frequency_tolerance	= 5000,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 1000000, /* Hz */
-> +		.frequency_tolerance	= 5000000, /* Hz */
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
->  		.symbol_rate_tolerance	= 500,	/* ppm */
-> diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
-> index 0fe400b3e8be..9d5a1c71a8a9 100644
-> --- a/drivers/media/dvb-frontends/mb86a16.c
-> +++ b/drivers/media/dvb-frontends/mb86a16.c
-> @@ -1819,9 +1819,9 @@ static struct dvb_frontend_ops mb86a16_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "Fujitsu MB86A16 DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 3000,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 3000000, /* Hz */
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
-> diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-> index aa33ecff913d..e8568161cd7b 100644
-> --- a/drivers/media/dvb-frontends/mt312.c
-> +++ b/drivers/media/dvb-frontends/mt312.c
-> @@ -749,10 +749,10 @@ static struct dvb_frontend_ops mt312_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name = "Zarlink ???? DVB-S",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
->  		/* FIXME: adjust freq to real used xtal */
-> -		.frequency_stepsize = (MT312_PLL_CLK / 1000) / 128,
-> +		.frequency_stepsize = MT312_PLL_CLK / 128, /* Hz */
->  		.symbol_rate_min = MT312_SYS_CLK / 128, /* FIXME as above */
->  		.symbol_rate_max = MT312_SYS_CLK / 2,
->  		.caps =
-> diff --git a/drivers/media/dvb-frontends/s5h1420.c b/drivers/media/dvb-frontends/s5h1420.c
-> index d2e1a21ccb1c..21a68ba1087e 100644
-> --- a/drivers/media/dvb-frontends/s5h1420.c
-> +++ b/drivers/media/dvb-frontends/s5h1420.c
-> @@ -933,10 +933,10 @@ static struct dvb_frontend_ops s5h1420_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name     = "Samsung S5H1420/PnpNetwork PN1010 DVB-S",
-> -		.frequency_min    = 950000,
-> -		.frequency_max    = 2150000,
-> -		.frequency_stepsize = 125,     /* kHz for QPSK frontends */
-> -		.frequency_tolerance  = 29500,
-> +		.frequency_min    = 950000000, /* Hz */
-> +		.frequency_max    = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 125000,  /* Hz */
-> +		.frequency_tolerance  = 29500000, /* Hz */
->  		.symbol_rate_min  = 1000000,
->  		.symbol_rate_max  = 45000000,
->  		/*  .symbol_rate_tolerance  = ???,*/
-> diff --git a/drivers/media/dvb-frontends/si21xx.c b/drivers/media/dvb-frontends/si21xx.c
-> index 4ee88d36681e..146b493d7b3d 100644
-> --- a/drivers/media/dvb-frontends/si21xx.c
-> +++ b/drivers/media/dvb-frontends/si21xx.c
-> @@ -870,9 +870,9 @@ static struct dvb_frontend_ops si21xx_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "SL SI21XX DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 125,	 /* kHz for QPSK frontends */
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 125000, /* Hz */
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
-> diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-> index 493f5ebb91d8..1296883ee72b 100644
-> --- a/drivers/media/dvb-frontends/stb0899_drv.c
-> +++ b/drivers/media/dvb-frontends/stb0899_drv.c
-> @@ -1588,8 +1588,8 @@ static struct dvb_frontend_ops stb0899_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2, SYS_DSS },
->  	.info = {
->  		.name 			= "STB0899 Multistandard",
-> -		.frequency_min		= 950000,
-> -		.frequency_max 		= 2150000,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max 		= 2150000000U, /* Hz */
->  		.frequency_stepsize	= 0,
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min 	=  5000000,
-> diff --git a/drivers/media/dvb-frontends/stv0288.c b/drivers/media/dvb-frontends/stv0288.c
-> index b54d55802e27..da1e0bf5f128 100644
-> --- a/drivers/media/dvb-frontends/stv0288.c
-> +++ b/drivers/media/dvb-frontends/stv0288.c
-> @@ -539,9 +539,9 @@ static struct dvb_frontend_ops stv0288_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "ST STV0288 DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 1000,	 /* kHz for QPSK frontends */
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 1000000, /* Hz */
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
-> diff --git a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
-> index 20bde6431e5d..c31feb8b8c8d 100644
-> --- a/drivers/media/dvb-frontends/stv0299.c
-> +++ b/drivers/media/dvb-frontends/stv0299.c
-> @@ -711,10 +711,10 @@ static struct dvb_frontend_ops stv0299_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "ST STV0299 DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 125,	 /* kHz for QPSK frontends */
-> -		.frequency_tolerance	= 0,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 125000, /* Hz */
-> +		.frequency_tolerance	= 0, /* Hz */
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
->  		.symbol_rate_tolerance	= 500,	/* ppm */
-> diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
-> index fc47b70c07e4..6d09bd0c367c 100644
-> --- a/drivers/media/dvb-frontends/stv0900_core.c
-> +++ b/drivers/media/dvb-frontends/stv0900_core.c
-> @@ -1874,9 +1874,9 @@ static struct dvb_frontend_ops stv0900_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2, SYS_DSS },
->  	.info = {
->  		.name			= "STV0900 frontend",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 125,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 125000, /* Hz */
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
-> diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-> index 34b303bdfcf0..3d8fa03117e8 100644
-> --- a/drivers/media/dvb-frontends/stv090x.c
-> +++ b/drivers/media/dvb-frontends/stv090x.c
-> @@ -4889,8 +4889,8 @@ static struct dvb_frontend_ops stv090x_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2, SYS_DSS },
->  	.info = {
->  		.name			= "STV090x Multistandard",
-> -		.frequency_min		= 950000,
-> -		.frequency_max 		= 2150000,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max 		= 2150000000U, /* Hz */
->  		.frequency_stepsize	= 0,
->  		.frequency_tolerance	= 0,
->  		.symbol_rate_min 	= 1000000,
-> diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
-> index 169c38f21acd..894c2a78b621 100644
-> --- a/drivers/media/dvb-frontends/tc90522.c
-> +++ b/drivers/media/dvb-frontends/tc90522.c
-> @@ -722,8 +722,8 @@ static const struct dvb_frontend_ops tc90522_ops_sat = {
->  	.delsys = { SYS_ISDBS },
->  	.info = {
->  		.name = "Toshiba TC90522 ISDB-S module",
-> -		.frequency_min =  950000,
-> -		.frequency_max = 2150000,
-> +		.frequency_min =  950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
->  		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO |
->  			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
->  			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
-> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-> index feed77e0cae4..051c2ff348b7 100644
-> --- a/drivers/media/dvb-frontends/tda10071.c
-> +++ b/drivers/media/dvb-frontends/tda10071.c
-> @@ -1269,9 +1269,9 @@ static struct dvb_frontend_ops tda10071_ops = {
->  	.delsys = { SYS_DVBS, SYS_DVBS2 },
->  	.info = {
->  		.name = "NXP TDA10071",
-> -		.frequency_min = 950000,
-> -		.frequency_max = 2150000,
-> -		.frequency_tolerance = 5000,
-> +		.frequency_min = 950000000, /* Hz */
-> +		.frequency_max = 2150000000U, /* Hz */
-> +		.frequency_tolerance = 5000000, /* Hz */
->  		.symbol_rate_min = 1000000,
->  		.symbol_rate_max = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/tda10086.c b/drivers/media/dvb-frontends/tda10086.c
-> index 7ca450be5fe8..a83e666b4148 100644
-> --- a/drivers/media/dvb-frontends/tda10086.c
-> +++ b/drivers/media/dvb-frontends/tda10086.c
-> @@ -707,9 +707,9 @@ static struct dvb_frontend_ops tda10086_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name     = "Philips TDA10086 DVB-S",
-> -		.frequency_min    = 950000,
-> -		.frequency_max    = 2150000,
-> -		.frequency_stepsize = 125,     /* kHz for QPSK frontends */
-> +		.frequency_min    = 950000000, /* Hz */
-> +		.frequency_max    = 2150000000U, /* Hz */
-> +		.frequency_stepsize = 125000, /* Hz */
->  		.symbol_rate_min  = 1000000,
->  		.symbol_rate_max  = 45000000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> diff --git a/drivers/media/dvb-frontends/tda8083.c b/drivers/media/dvb-frontends/tda8083.c
-> index 915c9cb33ef2..2f474b08ef2d 100644
-> --- a/drivers/media/dvb-frontends/tda8083.c
-> +++ b/drivers/media/dvb-frontends/tda8083.c
-> @@ -443,9 +443,9 @@ static struct dvb_frontend_ops tda8083_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "Philips TDA8083 DVB-S",
-> -		.frequency_min		= 920000,     /* TDA8060 */
-> -		.frequency_max		= 2200000,    /* TDA8060 */
-> -		.frequency_stepsize	= 125,   /* kHz for QPSK frontends */
-> +		.frequency_min		= 920000000, /* Hz */    /* TDA8060 */
-> +		.frequency_max		= 2200000000, /* Hz */   /* TDA8060 */
-> +		.frequency_stepsize	= 125000, /* Hz */
->  	/*      .frequency_tolerance	= ???,*/
->  		.symbol_rate_min	= 12000000,
->  		.symbol_rate_max	= 30000000,
-> diff --git a/drivers/media/dvb-frontends/ves1x93.c b/drivers/media/dvb-frontends/ves1x93.c
-> index 3c23f715843d..39b93c1034e2 100644
-> --- a/drivers/media/dvb-frontends/ves1x93.c
-> +++ b/drivers/media/dvb-frontends/ves1x93.c
-> @@ -513,10 +513,10 @@ static struct dvb_frontend_ops ves1x93_ops = {
->  	.delsys = { SYS_DVBS },
->  	.info = {
->  		.name			= "VLSI VES1x93 DVB-S",
-> -		.frequency_min		= 950000,
-> -		.frequency_max		= 2150000,
-> -		.frequency_stepsize	= 125,		 /* kHz for QPSK frontends */
-> -		.frequency_tolerance	= 29500,
-> +		.frequency_min		= 950000000, /* Hz */
-> +		.frequency_max		= 2150000000U, /* Hz */
-> +		.frequency_stepsize	= 125000, /* Hz */
-> +		.frequency_tolerance	= 29500000, /* Hz */
->  		.symbol_rate_min	= 1000000,
->  		.symbol_rate_max	= 45000000,
->  	/*	.symbol_rate_tolerance	=	???,*/
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index 6d8fe88..53089e1 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -34,7 +34,7 @@ struct dvb_pll_priv {
+ 	struct i2c_adapter *i2c;
+ 
+ 	/* the PLL descriptor */
+-	struct dvb_pll_desc *pll_desc;
++	const struct dvb_pll_desc *pll_desc;
+ 
+ 	/* cached frequency/bandwidth */
+ 	u32 frequency;
+@@ -57,7 +57,7 @@ MODULE_PARM_DESC(id, "force pll id to use (DEBUG ONLY)");
+ /* ----------------------------------------------------------- */
+ 
+ struct dvb_pll_desc {
+-	char *name;
++	const char *name;
+ 	u32  min;
+ 	u32  max;
+ 	u32  iffreq;
+@@ -71,13 +71,13 @@ struct dvb_pll_desc {
+ 		u32 stepsize;
+ 		u8  config;
+ 		u8  cb;
+-	} entries[12];
++	} entries[];
+ };
+ 
+ /* ----------------------------------------------------------- */
+ /* descriptions                                                */
+ 
+-static struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
++static const struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
+ 	.name  = "Thomson dtt7579",
+ 	.min   = 177000000,
+ 	.max   = 858000000,
+@@ -99,7 +99,7 @@ static void thomson_dtt759x_bw(struct dvb_frontend *fe, u8 *buf)
+ 		buf[3] |= 0x10;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
++static const struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
+ 	.name  = "Thomson dtt759x",
+ 	.min   = 177000000,
+ 	.max   = 896000000,
+@@ -123,7 +123,7 @@ static void thomson_dtt7520x_bw(struct dvb_frontend *fe, u8 *buf)
+ 		buf[3] ^= 0x10;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
++static const struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
+ 	.name  = "Thomson dtt7520x",
+ 	.min   = 185000000,
+ 	.max   = 900000000,
+@@ -141,7 +141,7 @@ static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
+ 	},
+ };
+ 
+-static struct dvb_pll_desc dvb_pll_lg_z201 = {
++static const struct dvb_pll_desc dvb_pll_lg_z201 = {
+ 	.name  = "LG z201",
+ 	.min   = 174000000,
+ 	.max   = 862000000,
+@@ -157,7 +157,7 @@ static struct dvb_pll_desc dvb_pll_lg_z201 = {
+ 	},
+ };
+ 
+-static struct dvb_pll_desc dvb_pll_unknown_1 = {
++static const struct dvb_pll_desc dvb_pll_unknown_1 = {
+ 	.name  = "unknown 1", /* used by dntv live dvb-t */
+ 	.min   = 174000000,
+ 	.max   = 862000000,
+@@ -179,7 +179,7 @@ static struct dvb_pll_desc dvb_pll_unknown_1 = {
+ /* Infineon TUA6010XS
+  * used in Thomson Cable Tuner
+  */
+-static struct dvb_pll_desc dvb_pll_tua6010xs = {
++static const struct dvb_pll_desc dvb_pll_tua6010xs = {
+ 	.name  = "Infineon TUA6010XS",
+ 	.min   =  44250000,
+ 	.max   = 858000000,
+@@ -193,7 +193,7 @@ static struct dvb_pll_desc dvb_pll_tua6010xs = {
+ };
+ 
+ /* Panasonic env57h1xd5 (some Philips PLL ?) */
+-static struct dvb_pll_desc dvb_pll_env57h1xd5 = {
++static const struct dvb_pll_desc dvb_pll_env57h1xd5 = {
+ 	.name  = "Panasonic ENV57H1XD5",
+ 	.min   =  44250000,
+ 	.max   = 858000000,
+@@ -217,7 +217,7 @@ static void tda665x_bw(struct dvb_frontend *fe, u8 *buf)
+ 		buf[3] |= 0x08;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_tda665x = {
++static const struct dvb_pll_desc dvb_pll_tda665x = {
+ 	.name  = "Philips TDA6650/TDA6651",
+ 	.min   =  44250000,
+ 	.max   = 858000000,
+@@ -251,7 +251,7 @@ static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+ 		buf[3] |= 0x08;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_tua6034 = {
++static const struct dvb_pll_desc dvb_pll_tua6034 = {
+ 	.name  = "Infineon TUA6034",
+ 	.min   =  44250000,
+ 	.max   = 858000000,
+@@ -275,7 +275,7 @@ static void tded4_bw(struct dvb_frontend *fe, u8 *buf)
+ 		buf[3] |= 0x04;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_tded4 = {
++static const struct dvb_pll_desc dvb_pll_tded4 = {
+ 	.name = "ALPS TDED4",
+ 	.min = 47000000,
+ 	.max = 863000000,
+@@ -293,7 +293,7 @@ static struct dvb_pll_desc dvb_pll_tded4 = {
+ /* ALPS TDHU2
+  * used in AverTVHD MCE A180
+  */
+-static struct dvb_pll_desc dvb_pll_tdhu2 = {
++static const struct dvb_pll_desc dvb_pll_tdhu2 = {
+ 	.name = "ALPS TDHU2",
+ 	.min = 54000000,
+ 	.max = 864000000,
+@@ -310,7 +310,7 @@ static struct dvb_pll_desc dvb_pll_tdhu2 = {
+ /* Samsung TBMV30111IN / TBMV30712IN1
+  * used in Air2PC ATSC - 2nd generation (nxt2002)
+  */
+-static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
++static const struct dvb_pll_desc dvb_pll_samsung_tbmv = {
+ 	.name = "Samsung TBMV30111IN / TBMV30712IN1",
+ 	.min = 54000000,
+ 	.max = 860000000,
+@@ -329,7 +329,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
+ /*
+  * Philips SD1878 Tuner.
+  */
+-static struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
++static const struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
+ 	.name  = "Philips SD1878",
+ 	.min   =  950000,
+ 	.max   = 2150000,
+@@ -395,7 +395,7 @@ static void opera1_bw(struct dvb_frontend *fe, u8 *buf)
+ 	return;
+ }
+ 
+-static struct dvb_pll_desc dvb_pll_opera1 = {
++static const struct dvb_pll_desc dvb_pll_opera1 = {
+ 	.name  = "Opera Tuner",
+ 	.min   =  900000,
+ 	.max   = 2250000,
+@@ -442,7 +442,7 @@ static void samsung_dtos403ih102a_set(struct dvb_frontend *fe, u8 *buf)
+ }
+ 
+ /* unknown pll used in Samsung DTOS403IH102A DVB-C tuner */
+-static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
++static const struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
+ 	.name   = "Samsung DTOS403IH102A",
+ 	.min    =  44250000,
+ 	.max    = 858000000,
+@@ -462,7 +462,7 @@ static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
+ };
+ 
+ /* Samsung TDTC9251DH0 DVB-T NIM, as used on AirStar 2 */
+-static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
++static const struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
+ 	.name	= "Samsung TDTC9251DH0",
+ 	.min	=  48000000,
+ 	.max	= 863000000,
+@@ -476,7 +476,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
+ };
+ 
+ /* Samsung TBDU18132 DVB-S NIM with TSA5059 PLL, used in SkyStar2 DVB-S 2.3 */
+-static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
++static const struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
+ 	.name = "Samsung TBDU18132",
+ 	.min	=  950000,
+ 	.max	= 2150000, /* guesses */
+@@ -497,7 +497,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
+ };
+ 
+ /* Samsung TBMU24112 DVB-S NIM with SL1935 zero-IF tuner */
+-static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
++static const struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
+ 	.name = "Samsung TBMU24112",
+ 	.min	=  950000,
+ 	.max	= 2150000, /* guesses */
+@@ -518,7 +518,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
+  * 153 - 430   0  *  0   0   0   0   1   0   0x02
+  * 430 - 822   0  *  0   0   1   0   0   0   0x08
+  * 822 - 862   1  *  0   0   1   0   0   0   0x88 */
+-static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
++static const struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+ 	.name = "ALPS TDEE4",
+ 	.min	=  47000000,
+ 	.max	= 862000000,
+@@ -534,7 +534,7 @@ static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+ 
+ /* ----------------------------------------------------------- */
+ 
+-static struct dvb_pll_desc *pll_list[] = {
++static const struct dvb_pll_desc *pll_list[] = {
+ 	[DVB_PLL_UNDEFINED]              = NULL,
+ 	[DVB_PLL_THOMSON_DTT7579]        = &dvb_pll_thomson_dtt7579,
+ 	[DVB_PLL_THOMSON_DTT759X]        = &dvb_pll_thomson_dtt759x,
+@@ -564,7 +564,7 @@ static int dvb_pll_configure(struct dvb_frontend *fe, u8 *buf,
+ 			     const u32 frequency)
+ {
+ 	struct dvb_pll_priv *priv = fe->tuner_priv;
+-	struct dvb_pll_desc *desc = priv->pll_desc;
++	const struct dvb_pll_desc *desc = priv->pll_desc;
+ 	u32 div;
+ 	int i;
+ 
+@@ -758,7 +758,7 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+ 			       .buf = b1, .len = 1 };
+ 	struct dvb_pll_priv *priv = NULL;
+ 	int ret;
+-	struct dvb_pll_desc *desc;
++	const struct dvb_pll_desc *desc;
+ 
+ 	if ((id[dvb_pll_devcount] > DVB_PLL_UNDEFINED) &&
+ 	    (id[dvb_pll_devcount] < ARRAY_SIZE(pll_list)))
+
+
