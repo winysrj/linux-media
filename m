@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54621 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754112AbbFSJQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 05:16:38 -0400
-Date: Fri, 19 Jun 2015 06:16:33 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for v4.2] cobalt: set Kconfig default to n
-Message-ID: <20150619061633.710d4600@recife.lan>
-In-Reply-To: <5583B729.30601@xs4all.nl>
-References: <5583B729.30601@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43039 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750983AbbFYHX0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 03:23:26 -0400
+Message-ID: <1435216998.4528.100.camel@tiscali.nl>
+Subject: Re: [PATCH 11/12] [media] tsin: c8sectpfe: Add Kconfig and Makefile
+ for the driver.
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Peter Griffin <peter.griffin@linaro.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: lee.jones@linaro.org, hugues.fruchet@st.com,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Date: Thu, 25 Jun 2015 09:23:18 +0200
+In-Reply-To: <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	 <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 19 Jun 2015 08:31:05 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
+> --- /dev/null
+> +++ b/drivers/media/tsin/c8sectpfe/Makefile
 
-> Since this board is a Cisco-internal board there is no point in having it compiled
-> by default. So set the Kconfig default to n.
+> +c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o
+> +
+> +obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
+> +
+> +ifneq ($(CONFIG_DVB_C8SECTPFE),)
+> +	c8sectpfe-y += c8sectpfe-debugfs.o
+> +endif
 
-This should not change anything. The default for all options that aren't
-specified are already 'n'.
+Isn't the above equivalent to
+    c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o c8sectpfe-debugfs.o
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
-> index 3be1b2c..4d0777a 100644
-> --- a/drivers/media/pci/cobalt/Kconfig
-> +++ b/drivers/media/pci/cobalt/Kconfig
-> @@ -7,6 +7,7 @@ config VIDEO_COBALT
->  	select VIDEO_ADV7511
->  	select VIDEO_ADV7842
->  	select VIDEOBUF2_DMA_SG
-> +	default n
->  	---help---
->  	  This is a video4linux driver for the Cisco PCIe Cobalt card.
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
+
+Or am I missing something subtle here?
+
+
+Paul Bolle
