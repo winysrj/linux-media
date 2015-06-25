@@ -1,49 +1,146 @@
-Return-Path: <ricardo.ribalda@gmail.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Andy Walls <awalls@md.metrocast.net>, Hans Verkuil <hans.verkuil@cisco.com>,
- "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
- Boris BREZILLON <boris.brezillon@free-electrons.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
- Scott Jiang <scott.jiang.linux@gmail.com>, Axel Lin <axel.lin@ingics.com>,
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 04/12] media/i2c/saa717x: Remove compat control ops
-Date: Fri, 12 Jun 2015 18:31:10 +0200
-Message-id: <1434126678-7978-5-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434126678-7978-1-git-send-email-ricardo.ribalda@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49641 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751954AbbFYJbO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:31:14 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 09/15] media: soc_camera pad-aware driver initialisation
+Date: Thu, 25 Jun 2015 10:31:03 +0100
+Message-Id: <1435224669-23672-10-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-They are no longer used in old non-control-framework
-bridge drivers.
+Add detection of source pad number for drivers aware of the media
+controller API, so that the combination of soc_camera and rcar_vin
+can create device nodes to support modern drivers such as adv7604.c
+(for HDMI on Lager) and the converted adv7180.c (for composite)
+underneath.
 
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+line with requirements for building the drivers associated with it.
+
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
 ---
- drivers/media/i2c/saa717x.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/media/platform/soc_camera/Kconfig      |    1 +
+ drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
+ drivers/media/platform/soc_camera/soc_camera.c |   36 ++++++++++++++++++++++++
+ include/media/soc_camera.h                     |    1 +
+ 4 files changed, 39 insertions(+)
 
-diff --git a/drivers/media/i2c/saa717x.c b/drivers/media/i2c/saa717x.c
-index 7d517361e419..c6ba19cf1aa5 100644
---- a/drivers/media/i2c/saa717x.c
-+++ b/drivers/media/i2c/saa717x.c
-@@ -1204,13 +1204,6 @@ static const struct v4l2_subdev_core_ops saa717x_core_ops = {
- 	.g_register = saa717x_g_register,
- 	.s_register = saa717x_s_register,
- #endif
--	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
--	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
--	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.querymenu = v4l2_subdev_querymenu,
- 	.log_status = saa717x_log_status,
- };
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index f2776cd..5c45c83 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
+ 	depends on VIDEO_DEV && SOC_CAMERA
+ 	depends on ARCH_SHMOBILE || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on MEDIA_CONTROLLER
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 16352a8..00c1034 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 		struct device *dev = icd->parent;
+ 		int shift;
  
++		fmt.pad = icd->src_pad_idx;
+ 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index d708df4..8d4d20c 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1293,6 +1293,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
+ 	int ret;
+ 
+ 	sd->grp_id = soc_camera_grp_id(icd);
+@@ -1310,8 +1313,33 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
++	icd->src_pad_idx = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* At this point client .probe() should have run already */
++	ret = media_entity_init(&icd->vdev->entity, 1, &pad, 0);
++	if (ret < 0) {
++		goto eusrfmt;
++	} else {
++		int pad_idx;
++
++		for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++			if (sd->entity.pads[pad_idx].flags
++					== MEDIA_PAD_FL_SOURCE)
++				break;
++		if (pad_idx >= sd->entity.num_pads)
++			goto eusrfmt;
++
++		icd->src_pad_idx = pad_idx;
++		ret = soc_camera_init_user_formats(icd);
++		if (ret < 0) {
++			icd->src_pad_idx = -1;
++			goto eusrfmt;
++		}
++	}
++#else
+ 	ret = soc_camera_init_user_formats(icd);
++#endif
++
+ 	if (ret < 0)
+ 		goto eusrfmt;
+ 
+@@ -1335,6 +1363,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ evidstart:
+ 	soc_camera_free_user_formats(icd);
+ eusrfmt:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&icd->vdev->entity);
++#endif
+ 	soc_camera_remove_device(icd);
+ 
+ 	return ret;
+@@ -1856,6 +1887,11 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ 	if (icd->num_user_formats)
+ 		soc_camera_free_user_formats(icd);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (icd->vdev->entity.num_pads)
++		media_entity_cleanup(&icd->vdev->entity);
++#endif
++
+ 	if (icd->clk) {
+ 		/* For the synchronous case */
+ 		v4l2_clk_unregister(icd->clk);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..30193cf 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -42,6 +42,7 @@ struct soc_camera_device {
+ 	unsigned char devnum;		/* Device number per host */
+ 	struct soc_camera_sense *sense;	/* See comment in struct definition */
+ 	struct video_device *vdev;
++	int src_pad_idx;		/* For media-controller drivers */
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	const struct soc_camera_format_xlate *current_fmt;
+ 	struct soc_camera_format_xlate *user_formats;
 -- 
-2.1.4
+1.7.10.4
+
