@@ -1,47 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37098 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932590AbbFWJyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2015 05:54:04 -0400
-Message-ID: <55892CBA.2070609@redhat.com>
-Date: Tue, 23 Jun 2015 11:54:02 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:55473 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbbFYJaR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:30:17 -0400
+Date: Thu, 25 Jun 2015 10:30:07 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Build regressions/improvements in v4.1
+Message-ID: <20150625093007.GS7557@n2100.arm.linux.org.uk>
+References: <1435006096-12470-1-git-send-email-geert@linux-m68k.org>
+ <CAMuHMdXprKyxirhUZBzNV97oxymcMqeugKixTEC8ojcMq3EeDw@mail.gmail.com>
+ <20150622211857.GY7557@n2100.arm.linux.org.uk>
+ <CAMuHMdXyaS65sTdkB88btchm5NzwgNK969QNcaoGBj9-77eFXQ@mail.gmail.com>
+ <20150625091815.GR7557@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PULL fixes for 4.3]: gspca minor fixes
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20150625091815.GR7557@n2100.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Jun 25, 2015 at 10:18:15AM +0100, Russell King - ARM Linux wrote:
+> On Tue, Jun 23, 2015 at 09:50:00AM +0200, Geert Uytterhoeven wrote:
+> As for the build errors you're reporting, that doesn't seem to be
+> anything new.  It seems to be down to a missing dependency between
+> ARM_PTDUMP and MMU, which means that ARM_PTDUMP is selectable on !MMU
+> systems.  I'll add that dependency, but that's just a small drop in
+> the ocean - it looks like it's the least of the problems with ARM
+> randconfig...
 
-Here are 2 minor fixes for gspca for 4.3.
+Now that the build has finished... even with that fixed...
 
-The following changes since commit 77a3c6fd90c94f635edb00d4a65f485687538791:
+arch/arm/mach-versatile/built-in.o: In function `pci_versatile_setup':
+arch/arm/mach-versatile/pci.c:249: undefined reference to `pci_ioremap_io'
+kernel/built-in.o: In function `set_section_ro_nx':
+kernel/module.c:1738: undefined reference to `set_memory_nx'
+kernel/built-in.o: In function `set_page_attributes':
+kernel/module.c:1709: undefined reference to `set_memory_ro'
+...
 
-   [media] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers (2015-06-22 09:52:58 -0300)
+which means that DEBUG_SET_MODULE_RONX also needs to depend on MMU.
+As for the pci_ioremap_io, I'm not sure what to do about that.
 
-are available in the git repository at:
+In any case, I'll queue up both of these dependency fixes as low
+priority.  Thanks.
 
-   git://linuxtv.org/hgoede/gspca.git media-for_v4.3
-
-for you to fetch changes up to 08cf79c93ec8568738b8e7db5e63278e43721850:
-
-   gscpa_m5602: use msecs_to_jiffies for conversions (2015-06-23 11:50:27 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-       gspca: sn9c2028: remove an unneeded condition
-
-Nicholas Mc Guire (1):
-       gscpa_m5602: use msecs_to_jiffies for conversions
-
-  drivers/media/usb/gspca/m5602/m5602_s5k83a.c | 2 +-
-  drivers/media/usb/gspca/sn9c2028.c           | 2 +-
-  2 files changed, 2 insertions(+), 2 deletions(-)
-
-Thanks & Regards,
-
-Hans
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
