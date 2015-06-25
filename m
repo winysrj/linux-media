@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53461 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685AbbFDKYk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Jun 2015 06:24:40 -0400
-Message-ID: <55702765.5080401@redhat.com>
-Date: Thu, 04 Jun 2015 12:24:37 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] gspca: sn9c2028: remove an unneeded condition
-References: <20150604085226.GA22838@mwanda>
-In-Reply-To: <20150604085226.GA22838@mwanda>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55961 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689AbbFYQda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 12:33:30 -0400
+Message-ID: <1435249995.3761.55.camel@pengutronix.de>
+Subject: Re: [PATCH 2/2] [media] videobuf2: add trace events
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Date: Thu, 25 Jun 2015 18:33:15 +0200
+In-Reply-To: <20150625090724.09fb03f8@gandalf.local.home>
+References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+	 <1435226487-24863-2-git-send-email-p.zabel@pengutronix.de>
+	 <20150625090724.09fb03f8@gandalf.local.home>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am Donnerstag, den 25.06.2015, 09:07 -0400 schrieb Steven Rostedt:
+> On Thu, 25 Jun 2015 12:01:27 +0200
+> Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> 
+> > diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+> > index 89d0497..3d15cf1 100644
+> > --- a/include/trace/events/v4l2.h
+> > +++ b/include/trace/events/v4l2.h
+> > @@ -175,9 +175,108 @@ SHOW_FIELD
+> >  		)							\
+> >  	)
+> >  
+> > +#define VB2_TRACE_EVENT(event_name)					\
+> 
+> This is what we have DECLARE_EVENT_CLASS for. Please use that,
+> otherwise you are adding about 5k of text per event (where as
+> DEFINE_EVENT adds only about 250 bytes).
+[...]
+> While you are at it, nuke the above macro and convert that too.
 
-On 04-06-15 10:52, Dan Carpenter wrote:
-> We already know status is negative because of the earlier check so there
-> is no need to check again.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Thanks, I'll do that.
 
-Makes sense:
+regards
+Philipp
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Mauro, can you pick this one up directly please?
-
-Regards,
-
-Hans
-
-
->
-> diff --git a/drivers/media/usb/gspca/sn9c2028.c b/drivers/media/usb/gspca/sn9c2028.c
-> index c75b738..4f2050a 100644
-> --- a/drivers/media/usb/gspca/sn9c2028.c
-> +++ b/drivers/media/usb/gspca/sn9c2028.c
-> @@ -140,7 +140,7 @@ static int sn9c2028_long_command(struct gspca_dev *gspca_dev, u8 *command)
->   		status = sn9c2028_read1(gspca_dev);
->   	if (status < 0) {
->   		pr_err("long command status read error %d\n", status);
-> -		return (status < 0) ? status : -EIO;
-> +		return status;
->   	}
->
->   	memset(reading, 0, 4);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
