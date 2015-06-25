@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56683 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616AbbFJBSt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2015 21:18:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dennis Chen <barracks510@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] USB: uvc: add support for the Microsoft Surface Pro 3 Cameras
-Date: Wed, 10 Jun 2015 04:19:24 +0300
-Message-ID: <2450709.nghA4lNjjK@avalon>
-In-Reply-To: <1433898546.11979.6.camel@gmail.com>
-References: <1433879614.3036.3.camel@gmail.com> <3765742.rat6LA2JPE@avalon> <1433898546.11979.6.camel@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49625 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751893AbbFYJbN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:31:13 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 05/15] media: adv7604: document support for ADV7612 dual HDMI input decoder
+Date: Thu, 25 Jun 2015 10:30:59 +0100
+Message-Id: <1435224669-23672-6-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dennis,
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Thank you for the patch.
+This documentation accompanies the patch adding support for the ADV7612
+dual HDMI decoder / repeater chip.
 
-On Tuesday 09 June 2015 18:09:06 Dennis Chen wrote:
-> Add support for the Microsoft Surface Pro 3 Cameras.
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/i2c/adv7604.txt        |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-Is this needed ? Looking at the patch your cameras are UVC-compliant and 
-should thus be picked by the uvcvideo driver without any change to the code.
-
-> Signed-off-by: Dennis Chen <barracks510@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 5970dd6..ec5a407 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -2538,6 +2538,22 @@ static struct usb_device_id uvc_ids[] = {
->           .bInterfaceSubClass   = 1,
->           .bInterfaceProtocol   = 0,
->           .driver_info          = UVC_QUIRK_FORCE_Y8 },
-> +       /*Microsoft Surface Pro 3 Front Camera*/
-> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
-> +         .idVendor             = 0x045e,
-> +         .idProduct            = 0x07be,
-> +         .bInterfaceClass      = USB_CLASS_VIDEO,
-> +         .bInterfaceSubClass   = 1,
-> +         .bInterfaceProtocol   = 1 },
-> +       /* Microsoft Surface Pro 3 Rear */
-> +       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> +                               | USB_DEVICE_ID_MATCH_INT_INFO,
-> +         .idVendor             = 0x045e,
-> +         .idProduct            = 0x07bf,
-> +         .bInterfaceClass      = USB_CLASS_VIDEO,
-> +         .bInterfaceSubClass   = 1,
-> +         .bInterfaceProtocol   = 1 },
->         /* Generic USB Video Class */
->         { USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
->         {}
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index c27cede..7eafdbc 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -1,15 +1,17 @@
+-* Analog Devices ADV7604/11 video decoder with HDMI receiver
++* Analog Devices ADV7604/11/12 video decoder with HDMI receiver
+ 
+-The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
+-receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
+-and the ADV7611 has one HDMI input and no analog input.
++The ADV7604 and ADV7611/12 are multiformat video decoders with an integrated
++HDMI receiver. The ADV7604 has four multiplexed HDMI inputs and one analog
++input, and the ADV7611 has one HDMI input and no analog input. The 7612 is
++similar to the 7611 but has 2 HDMI inputs.
+ 
+-These device tree bindings support the ADV7611 only at the moment.
++These device tree bindings support the ADV7611/12 only at the moment.
+ 
+ Required Properties:
+ 
+   - compatible: Must contain one of the following
+     - "adi,adv7611" for the ADV7611
++    - "adi,adv7612" for the ADV7612
+ 
+   - reg: I2C slave address
+ 
+@@ -22,10 +24,10 @@ port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+ are numbered as follows.
+ 
+-  Port			ADV7611
++  Port			ADV7611    ADV7612
+ ------------------------------------------------------------
+-  HDMI			0
+-  Digital output	1
++  HDMI			0             0, 1
++  Digital output	1                2
+ 
+ The digital output port node must contain at least one endpoint.
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
