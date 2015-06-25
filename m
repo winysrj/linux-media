@@ -1,76 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp52.i.mail.ru ([94.100.177.112]:38208 "EHLO smtp52.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751956AbbFIB53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2015 21:57:29 -0400
-Message-ID: <E21EB9CE868F46199F08CAF33C2798E1@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: <linux-media@vger.kernel.org>, "Antti Palosaari" <crope@iki.fi>
-References: <A9A450C95D0047DA969F1F370ED24FE4@unknown> <5575B32D.8050809@iki.fi> <143B25D372A842478792E29914320459@unknown> <55762957.1060403@iki.fi>
-Subject: Re: About Si2168 Part, Revision and ROM detection.
-Date: Tue, 9 Jun 2015 08:57:21 +0700
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52522 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932265AbbFYKV3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 06:21:29 -0400
+Date: Thu, 25 Jun 2015 13:21:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] [media] adv7604: Deliver resolution change events to
+ userspace
+Message-ID: <20150625102124.GK5904@valkosipuli.retiisi.org.uk>
+References: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+ <1435164631-19924-4-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="utf-8";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1435164631-19924-4-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Antti Palosaari"
-To: "Unembossed Name" <severe.siberian.man@mail.ru>; <linux-media@vger.kernel.org>
-Sent: Tuesday, June 09, 2015 6:46 AM
-Subject: Re: About Si2168 Part, Revision and ROM detection.
+Hi Lars-Peter,
 
-
->> And at the same time, he was able to successfully upload firmware patch,
->> that
->> designed for A30 ROM 3.0.2 and makes version 3.0.2 => 3.0.20 after patching
->> completes. Here it is: http://beholder.ru/bb/download/file.php?id=732
->>
->> What can be cause of that? Probably it's either broken or corrupted
->> firmware
->> (I doubt in it), or possibly it's designed for A30 revision, but with
->> another ROM
->> version?
+On Wed, Jun 24, 2015 at 06:50:30PM +0200, Lars-Peter Clausen wrote:
+> Use the new v4l2_subdev_notify_event() helper function to deliver the
+> resolution change event to userspace via the v4l2 subdev event queue as
+> well as to the bridge driver using the callback notify mechanism.
 > 
-> I expected dvb-demod-si2168-a30-01.fw to be update for 3.0.2 ROM. But 
-> not sure. Olli surely has sniffs to check which ROM and PBUILD device 
-> has replied. If it appears to be some other than 3.0.2 it explains some 
-> things (why firmware is incompatible).
-
-That would be really good to retest it somehow. 
-
->> #define Si2168B_ROM1_4_0_2_PBUILD   2
->>
->> Here we can see here, that ROM from a chip vendor can come as:
->> PMAJOR   '2'
->> PMINOR   '0'
->> PBUILD   3
->> And not only 2.0.2, 3.0.2, 4.0.2 and so on.
+> This allows userspace applications to react to changes in resolution. This
+> is useful and often necessary for video pipelines where there is no direct
+> 1-to-1 relationship between the subdevice converter and the video capture
+> device and hence it does not make sense to directly forward the event to
+> the video capture device node.
 > 
-> These values meet 100% for those sniffs. But is there really any other 
-> than these? Have you seen any other version than Si2168-B 4.0.2 for example?
+> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+> ---
+>  drivers/media/i2c/adv7604.c | 23 ++++++++++++++++++-----
+>  1 file changed, 18 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index cf1cb5a..b66f63e3 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1761,8 +1761,8 @@ static int adv76xx_s_routing(struct v4l2_subdev *sd,
+>  	select_input(sd);
+>  	enable_input(sd);
+>  
+> -	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+> -			   (void *)&adv76xx_ev_fmt);
+> +	v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1929,8 +1929,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+>  			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
+>  			__func__, fmt_change, fmt_change_digital);
+>  
+> -		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+> -				   (void *)&adv76xx_ev_fmt);
+> +		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+>  
+>  		if (handled)
+>  			*handled = true;
+> @@ -2348,6 +2347,20 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+>  	return 0;
+>  }
+>  
+> +static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
+> +				   struct v4l2_fh *fh,
+> +				   struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_event_subdev_unsubscribe(sd, fh, sub);
 
-No, I have not seen. And a hw vendor, who gave us this little info, also wrote about 4.0.2
-But, there is nothing impossible. If they already done that one time. Why not to do it again.
+This should be ..._subscribe(), shouldn't it?
 
-BTW: I've found that I've missed a few more things.
-1. It is also possible to start A30 without patch and even stub code. Just boot it.
+You could simply use v4l2_event_subscribe(fh, sub),
+v4l2_event_subdev_unsubscribe() is there so you can use it directly as the
+subscribe_event() op.
 
-2. Hw vendor gave us a little advice. I'm not sure, will it be useful for you, but, as he wrote: 
-"when you checking CTS status, check it by a mask 0x3C and she should be empty,
-because sometimes you can receive a wrong status, you should ignore it, if by
-a mask 0x3C not  zeroes".
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+>  /* ----------------------------------------------------------------------- */
+>  
+>  static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+> @@ -2357,7 +2370,7 @@ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+>  static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
+>  	.log_status = adv76xx_log_status,
+>  	.interrupt_service_routine = adv76xx_isr,
+> -	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+> +	.subscribe_event = adv76xx_subscribe_event,
+>  	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.g_register = adv76xx_g_register,
 
-3. After fw download completion, it's possible to switch a demod into a sleep mode with a
-command Si2168_POWER_DOWN_CMD (without CTS status checking). And wake
-it when it needed with a command Si2168_START_CLK_CMD (with a parameter
-Si2168_POWER_UP_CMD_WAKE_UP_WAKE_UP) any desired number of times. 
-After that you do not need to reupload fw patch again.
+-- 
+Regards,
 
-4. After you switching chip pins with a command Si2168_DD_EXT_AGC_TER_CMD, 
-you have to give a command Si2168_DD_RESTART_CMD, otherwise pins will not be 
-switched. And after Si2168_DD_RESTART_CMD you have to wait minimum 10ms.
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
