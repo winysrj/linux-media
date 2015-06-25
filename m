@@ -1,96 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50704 "EHLO
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49659 "EHLO
 	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756004AbbFCOAM (ORCPT
+	by vger.kernel.org with ESMTP id S1751982AbbFYJbP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
+	Thu, 25 Jun 2015 05:31:15 -0400
 From: William Towle <william.towle@codethink.co.uk>
 To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 01/15] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
-Date: Wed,  3 Jun 2015 14:59:48 +0100
-Message-Id: <1433340002-1691-2-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 15/15] media: rcar_vin: Reject videobufs that are too small for current format
+Date: Thu, 25 Jun 2015 10:31:09 +0100
+Message-Id: <1435224669-23672-16-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT entries for vin0, vin0_pins, and adv7612
+From: Rob Taylor <rob.taylor@codethink.co.uk>
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
+In videobuf_setup reject buffers that are too small for the configured
+format. Fixes v4l2-compliance issue.
+
 Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Reviewed-by: William Towle <william.towle@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ drivers/media/platform/soc_camera/rcar_vin.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index aaa4f25..90c4531 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -370,7 +370,12 @@
- 		renesas,function = "usb2";
- 	};
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 20f690d..75f5ad0 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -541,6 +541,9 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
+ 		unsigned int bytes_per_line;
+ 		int ret;
  
--	vin1_pins: vin {
-+	vin0_pins: vin0 {
-+		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
-+		renesas,function = "vin0";
-+	};
++		if (fmt->fmt.pix.sizeimage < icd->sizeimage)
++			return -EINVAL;
 +
-+	vin1_pins: vin1 {
- 		renesas,groups = "vin1_data8", "vin1_clk";
- 		renesas,function = "vin1";
- 	};
-@@ -531,6 +536,18 @@
- 		reg = <0x12>;
- 	};
- 
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		remote = <&vin0>;
-+
-+		port {
-+			hdmi_in_ep: endpoint {
-+				remote-endpoint = <&vin0ep0>;
-+			};
-+		};
-+	};
-+
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -646,6 +663,28 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&hdmi_in_ep>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
+ 		xlate = soc_camera_xlate_by_fourcc(icd,
+ 						   fmt->fmt.pix.pixelformat);
+ 		if (!xlate)
 -- 
 1.7.10.4
 
