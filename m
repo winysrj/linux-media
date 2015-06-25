@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59264 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752257AbbFGI6Y (ORCPT
+Received: from fallback5.mail.ru ([94.100.181.253]:57038 "EHLO
+	fallback5.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbbFYVBG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 04:58:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Magnus Damm <damm@opensource.se>
-Subject: [PATCHv2 01/11] clock-sh7724.c: fix sh-vou clock identifier
-Date: Sun,  7 Jun 2015 10:57:55 +0200
-Message-Id: <1433667485-35711-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433667485-35711-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 25 Jun 2015 17:01:06 -0400
+Received: from smtp20.mail.ru (smtp20.mail.ru [94.100.179.251])
+	by fallback5.mail.ru (mPOP.Fallback_MX) with ESMTP id 1367887E7724
+	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2015 23:58:58 +0300 (MSK)
+Message-ID: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown>
+From: "Unembossed Name" <severe.siberian.man@mail.ru>
+To: <linux-media@vger.kernel.org>,
+	"Devin Heitmueller" <dheitmueller@kernellabs.com>
+Subject: XC5000C 0x14b4 status
+Date: Fri, 26 Jun 2015 03:58:48 +0700
+MIME-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="koi8-r";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Bitrot has set in for this driver and the sh-vou clock was never enabled,
-since the clock name in clock-sh7724.c was wrong. It should be sh-vou, not
-sh-vou.0.
+I was working on a Linux driver for a hybrid TV-tuner with SAA7134 PCI bridge, XC5000C RF tuner and Si2168 DVB demodulator by a
+"combining" all existent at that time drivers together.
+During that work, I had an issue with XC5000C.
+Episodically, after attaching to DVB and reading XREG_PRODUCT_ID register, it
+was possible to receive 0x14b4 instead of usual 0x1388 status. And as a result get a "xc5000: Device not found at addr 0x%02x 
+(0x%x)\n" in dmesg.
+To workaround these, I added a few strings to a source of a driver to make it's behaviour the same for 0x14b4, as for 0x1388.
+After that RF tuner identification became always successful.
+I had a conversation with a hardware vendor.
+Now I can say, that such behaviour, most likely, because of  "early" firmware for XC5000C.
+This hardware vendor is using for his Windows driver a latest firmware, and reading Product ID register always gives 0x14b4 status.
+As he says, 0x1388 status is only for previous XC5000 IC. (Without C at end of a P/N)
+Is this possible to patch xc5000.c with something like this:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Thanks-to: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Magnus Damm <damm@opensource.se>
----
- arch/sh/kernel/cpu/sh4a/clock-sh7724.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ #define XC_PRODUCT_ID_FW_LOADED 0x1388
++#define XC_PRODUCT_ID_FW_LOADED_XC5000C 0x14b4
 
-diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
-index c187b95..f27c618 100644
---- a/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
-+++ b/arch/sh/kernel/cpu/sh4a/clock-sh7724.c
-@@ -343,7 +343,7 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_CON_ID("2ddmac0", &mstp_clks[HWBLK_2DDMAC]),
- 	CLKDEV_DEV_ID("sh_fsi.0", &mstp_clks[HWBLK_SPU]),
- 	CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
--	CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
-+	CLKDEV_DEV_ID("sh-vou", &mstp_clks[HWBLK_VOU]),
- 	CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU0]),
- 	CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU0]),
- 	CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU0]),
--- 
-2.1.4
+  case XC_PRODUCT_ID_FW_LOADED:
++ case XC_PRODUCT_ID_FW_LOADED_XC5000C:
+   printk(KERN_INFO
+    "xc5000: Successfully identified at address 0x%02x\n",
+
+Or to try to get a chip vendor's permission for using a latest firmware for XC5000C in Linux, and then anyway, patch the driver?
+
+Best regards. 
 
