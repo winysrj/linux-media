@@ -1,130 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34616 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398AbbF2GzL (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49639 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751807AbbFYJbO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 02:55:11 -0400
-Date: Mon, 29 Jun 2015 08:55:05 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: Andy Walls <andy@silverblocksystems.net>
-Cc: "Luis R. Rodriguez" <mcgrof@suse.com>,
-	Hyong-Youb Kim <hkim@cspi.com>,
-	Andy Walls <awalls@md.metrocast.net>, benh@kernel.crashing.org,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>, bp@suse.de,
-	mchehab@osg.samsung.com, dledford@redhat.com,
-	fengguang.wu@intel.com, linux-media@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-Message-ID: <20150629065505.GB17509@gmail.com>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com>
- <20150625173847.GH3005@wotan.suse.de>
- <20150626084546.GD26303@gmail.com>
- <1435322161.2713.10.camel@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435322161.2713.10.camel@localhost>
+	Thu, 25 Jun 2015 05:31:14 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 08/15] v4l: subdev: Add pad config allocator and init
+Date: Thu, 25 Jun 2015 10:31:02 +0100
+Message-Id: <1435224669-23672-9-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-* Andy Walls <andy@silverblocksystems.net> wrote:
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
-> On Fri, 2015-06-26 at 10:45 +0200, Ingo Molnar wrote:
-> > * Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> > 
-> > > On Thu, Jun 25, 2015 at 08:51:47AM +0200, Ingo Molnar wrote:
-> > > > 
-> > > > * Luis R. Rodriguez <mcgrof@do-not-panic.com> wrote:
-> > > > 
-> > > > > From: "Luis R. Rodriguez" <mcgrof@suse.com>
-> > > > > 
-> > > > > On built-in kernels this warning will always splat as this is part
-> > > > > of the module init. Fix that by shifting the PAT requirement check
-> > > > > out under the code that does the "quasi-probe" for the device. This
-> > > > > device driver relies on an existing driver to find its own devices,
-> > > > > it looks for that device driver and its own found devices, then
-> > > > > uses driver_for_each_device() to try to see if it can probe each of
-> > > > > those devices as a frambuffer device with ivtvfb_init_card(). We
-> > > > > tuck the PAT requiremenet check then on the ivtvfb_init_card()
-> > > > > call making the check at least require an ivtv device present
-> > > > > before complaining.
-> > > > > 
-> > > > > Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-> > > > > Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
-> > > > > ---
-> > > > >  drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
-> > > > >  1 file changed, 9 insertions(+), 6 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > index 4cb365d..8b95eef 100644
-> > > > > --- a/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > +++ b/drivers/media/pci/ivtv/ivtvfb.c
-> > > > > @@ -38,6 +38,8 @@
-> > > > >      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> > > > >   */
-> > > > >  
-> > > > > +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> > > > > +
-> > > > >  #include <linux/module.h>
-> > > > >  #include <linux/kernel.h>
-> > > > >  #include <linux/fb.h>
-> > > > > @@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> > > > >  {
-> > > > >  	int rc;
-> > > > >  
-> > > > > +#ifdef CONFIG_X86_64
-> > > > > +	if (pat_enabled()) {
-> > > > > +		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-> > > > > +		return -ENODEV;
-> > > > > +	}
-> > > > > +#endif
-> > > > > +
-> > > > >  	if (itv->osd_info) {
-> > > > >  		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
-> > > > >  		return -EBUSY;
-> > > > 
-> > > > Same argument as for ipath: why not make arch_phys_wc_add() fail on PAT and 
-> > > > return -1, and check it in arch_phys_wc_del()?
-> > > 
-> > > The arch_phys_wc_add() is a no-op for PAT systems but for PAT to work we need 
-> > > not only need to add this in where we replace the MTRR call but we also need to 
-> > > convert ioremap_nocache() calls to ioremap_wc() but only if things were split up 
-> > > already.
-> > 
-> 
-> Hi Ingo,
-> 
-> > We don't need to do that: for such legacy drivers we can fall back to UC just 
-> > fine, and inform the user that by booting with 'nopat' the old behavior will be 
-> > back...
-> 
-> This is really a "user experience" decision.
-> 
-> IMO anyone who is still using ivtvfb and an old conventional PCI PVR-350 to 
-> render, at SDTV resolution, an X Desktop display or video playback on a 
-> television screen, isn't going to give a hoot about modern things like PAT.  The 
-> user will simply want the framebuffer performance they are accustomed to having 
-> with their system.  UC will probably yield unsatisfactory performance for an 
-> ivtvfb framebuffer.
-> 
-> With that in mind, I would think it better to obviously and clearly disable the 
-> ivtvfb framebuffer module with PAT enabled, so the user will check the log and 
-> read the steps needed to obtain acceptable performance.
-> 
-> Maybe that's me just wanting to head off the "poor ivtvfb performance with 
-> latest kernel" bug reports.
-> 
-> Whatever the decision, my stock response to bug reports related to this will 
-> always be "What do the logs say?".
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           | 10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-So what if that frame buffer is their only (working) frame buffer? A slow 
-framebuffer is still much better at giving people logs to look at than a 
-non-working one.
+Changes since v1:
 
-Thanks,
+- Added v4l2_subdev_free_pad_config
+---
+ drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           |   10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-	Ingo
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6359606..d594fe5 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	v4l2_subdev_call(sd, pad, init_cfg, cfg);
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index dc20102..4a609f6 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -485,6 +485,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	void (*init_cfg)(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -677,7 +679,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++
++static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
+-- 
+1.7.10.4
+
