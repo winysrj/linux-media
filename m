@@ -1,121 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50695 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752554AbbFQCt6 (ORCPT
+Received: from smtp-out-243.synserver.de ([212.40.185.243]:1065 "EHLO
+	smtp-out-241.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752801AbbFYKod (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 22:49:58 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 161B12A0089
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2015 04:49:38 +0200 (CEST)
-Date: Wed, 17 Jun 2015 04:49:38 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150617024938.161B12A0089@tschai.lan>
+	Thu, 25 Jun 2015 06:44:33 -0400
+Message-ID: <558BDB8E.6000705@metafoo.de>
+Date: Thu, 25 Jun 2015 12:44:30 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] [media] adv7604: Deliver resolution change events
+ to userspace
+References: <1435164631-19924-1-git-send-email-lars@metafoo.de> <1435164631-19924-4-git-send-email-lars@metafoo.de> <20150625102124.GK5904@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20150625102124.GK5904@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/25/2015 12:21 PM, Sakari Ailus wrote:
+> Hi Lars-Peter,
+>
+> On Wed, Jun 24, 2015 at 06:50:30PM +0200, Lars-Peter Clausen wrote:
+>> Use the new v4l2_subdev_notify_event() helper function to deliver the
+>> resolution change event to userspace via the v4l2 subdev event queue as
+>> well as to the bridge driver using the callback notify mechanism.
+>>
+>> This allows userspace applications to react to changes in resolution. This
+>> is useful and often necessary for video pipelines where there is no direct
+>> 1-to-1 relationship between the subdevice converter and the video capture
+>> device and hence it does not make sense to directly forward the event to
+>> the video capture device node.
+>>
+>> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+>> ---
+>>   drivers/media/i2c/adv7604.c | 23 ++++++++++++++++++-----
+>>   1 file changed, 18 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+>> index cf1cb5a..b66f63e3 100644
+>> --- a/drivers/media/i2c/adv7604.c
+>> +++ b/drivers/media/i2c/adv7604.c
+>> @@ -1761,8 +1761,8 @@ static int adv76xx_s_routing(struct v4l2_subdev *sd,
+>>   	select_input(sd);
+>>   	enable_input(sd);
+>>
+>> -	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+>> -			   (void *)&adv76xx_ev_fmt);
+>> +	v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+>> +
+>>   	return 0;
+>>   }
+>>
+>> @@ -1929,8 +1929,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+>>   			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
+>>   			__func__, fmt_change, fmt_change_digital);
+>>
+>> -		v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+>> -				   (void *)&adv76xx_ev_fmt);
+>> +		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+>>
+>>   		if (handled)
+>>   			*handled = true;
+>> @@ -2348,6 +2347,20 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+>>   	return 0;
+>>   }
+>>
+>> +static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
+>> +				   struct v4l2_fh *fh,
+>> +				   struct v4l2_event_subscription *sub)
+>> +{
+>> +	switch (sub->type) {
+>> +	case V4L2_EVENT_SOURCE_CHANGE:
+>> +		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
+>> +	case V4L2_EVENT_CTRL:
+>> +		return v4l2_event_subdev_unsubscribe(sd, fh, sub);
+>
+> This should be ..._subscribe(), shouldn't it?
 
-Results of the daily build of media_tree:
+Right, not sure how that happened.
 
-date:		Wed Jun 17 04:00:18 CEST 2015
-git branch:	test
-git hash:	e42c8c6eb456f8978de417ea349eef676ef4385c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+>
+> You could simply use v4l2_event_subscribe(fh, sub),
+> v4l2_event_subdev_unsubscribe() is there so you can use it directly as the
+> subscribe_event() op.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+It's just to be on the safe side in case v4l2_event_subdev_subscribe() 
+starts to do something in addition to just being a wrapper around 
+v4l2_event_subscribe().
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+- Lars
