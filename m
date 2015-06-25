@@ -1,56 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59264 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933062AbbFEO3K (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49628 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751898AbbFYJbN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 10:29:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] vim2m: add create_bufs and prepare_buf support
-Date: Fri,  5 Jun 2015 16:28:52 +0200
-Message-Id: <1433514532-23306-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433514532-23306-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433514532-23306-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 25 Jun 2015 05:31:13 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 06/15] media: adv7604: ability to read default input port from DT
+Date: Thu, 25 Jun 2015 10:31:00 +0100
+Message-Id: <1435224669-23672-7-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Ian Molton <ian.molton@codethink.co.uk>
 
-Add support for the missing VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF
-ioctls.
+Adds support to the adv7604 driver for specifying the default input
+port in the Device tree. If no value is provided, the driver will be
+unable to select an input without help from userspace.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vim2m.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt |    3 +++
+ drivers/media/i2c/adv7604.c                             |    8 +++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index cecfd75..295fde5 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -693,6 +693,8 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
- 	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
- 	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
- 	.vidioc_dqbuf		= v4l2_m2m_ioctl_dqbuf,
-+	.vidioc_prepare_buf	= v4l2_m2m_ioctl_prepare_buf,
-+	.vidioc_create_bufs	= v4l2_m2m_ioctl_create_bufs,
- 	.vidioc_expbuf		= v4l2_m2m_ioctl_expbuf,
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index 7eafdbc..8337f75 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -47,6 +47,7 @@ Optional Endpoint Properties:
+   If none of hsync-active, vsync-active and pclk-sample is specified the
+   endpoint will use embedded BT.656 synchronization.
  
- 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
-@@ -720,6 +722,12 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
++  - default-input: Select which input is selected after reset.
  
- 	size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
+ Example:
  
-+	if (fmt) {
-+		if (fmt->fmt.pix.sizeimage < size)
-+			return -EINVAL;
-+		size = fmt->fmt.pix.sizeimage;
-+	}
+@@ -60,6 +61,8 @@ Example:
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
++		default-input = <0>;
 +
- 	while (size * count > MEM2MEM_VID_MEM_LIMIT)
- 		(count)--;
+ 		port@0 {
+ 			reg = <0>;
+ 		};
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index ebeddd5..2a89b91 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2795,6 +2795,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
++	u32 v;
  
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+ 
+@@ -2804,6 +2805,12 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 		return -EINVAL;
+ 
+ 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++
++	if (!of_property_read_u32(endpoint, "default-input", &v))
++		state->pdata.default_input = v;
++	else
++		state->pdata.default_input = -1;
++
+ 	of_node_put(endpoint);
+ 
+ 	flags = bus_cfg.bus.parallel.flags;
+@@ -2842,7 +2849,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	/* Hardcode the remaining platform data fields. */
+ 	state->pdata.disable_pwrdnb = 0;
+ 	state->pdata.disable_cable_det_rst = 0;
+-	state->pdata.default_input = -1;
+ 	state->pdata.blank_data = 1;
+ 	state->pdata.alt_data_sat = 1;
+ 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
 -- 
-2.1.4
+1.7.10.4
 
