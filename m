@@ -1,103 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39727 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbbFSL6g (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51466 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751256AbbFYJMj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2015 07:58:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 25 Jun 2015 05:12:39 -0400
+Date: Thu, 25 Jun 2015 12:12:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, Kamil Debski <kamil@wypas.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [URGENT] [PATCH] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers
-Date: Fri, 19 Jun 2015 14:59:26 +0300
-Message-ID: <4737269.QnNX680z18@avalon>
-In-Reply-To: <55840367.3010700@xs4all.nl>
-References: <1434714607-31447-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <55840367.3010700@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH] v4l2-event: v4l2_event_queue: do nothing if vdev == NULL
+Message-ID: <20150625091236.GH5904@valkosipuli.retiisi.org.uk>
+References: <558924D7.4010904@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <558924D7.4010904@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-On Friday 19 June 2015 13:56:23 Hans Verkuil wrote:
-> On 06/19/2015 01:50 PM, Laurent Pinchart wrote:
-> > Commit f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-> > vb2_queue struct") added a WARN_ONCE to catch usage of a deprecated API
-> > using a zero value for v4l2_buffer.bytesused.
-> > 
-> > However, the condition is checked incorrectly, as the v4L2_buffer
-> > bytesused field is supposed to be ignored for multiplanar buffers. This
-> > results in spurious warnings when using the multiplanar API.
-> > 
-> > Fix it by checking v4l2_buffer.bytesused for uniplanar buffers and
-> > v4l2_plane.bytesused for multiplanar buffers.
-> > 
-> > Fixes: f61bf13b6a07 ("[media] vb2: add allow_zero_bytesused flag to the
-> > vb2_queue struct") Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > --- 
-> >  drivers/media/v4l2-core/videobuf2-core.c | 33 +++++++++++++++++----------
-> >  1 file changed, 23 insertions(+), 10 deletions(-)
-> > 
-> > The bug was introduced in v4.1-rc1. It would be quite bad if it made it to
-> > v4.1 as many users will start complaining.
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c index
-> > d835814a24d4..93b315459098 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1242,6 +1242,23 @@ void vb2_discard_done(struct vb2_queue *q)
-> > 
-> >  }
-> >  EXPORT_SYMBOL_GPL(vb2_discard_done);
-> > 
-> > +static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-> > +{
-> > +	static bool __check_once __read_mostly;
+On Tue, Jun 23, 2015 at 11:20:23AM +0200, Hans Verkuil wrote:
+> If the vdev pointer == NULL, then just return.
 > 
-> Why the underscores? Why the __read_mostly?
+> This makes it easier for subdev drivers to use this function without having to
+> check if the sd->devnode pointer is NULL or not.
 
-Copied from WARN_ONCE :-)
+Do you have an example of when this would be useful? Isn't it a rather
+fundamental question to a driver whether or not it exposes a device node,
+i.e. why would a driver use v4l2_event_queue() in the first place if it does
+not expose a device node, and so the event interface?
 
-> Just say: 'static bool check_once;'
 > 
-> Much more readable, and there really is no benefit whatsoever for adding
-> a __read_mostly attribute here.
-
-I'll remove them.
-
-> > +
-> > +	if (__check_once)
-> > +		return;
-> > +
-> > +	__check_once = true;
-> > +	__WARN();
-> > +
-> > +	pr_warn_once("use of bytesused == 0 is deprecated and will be removed 
-in
-> > the future,\n");
-> This can be pr_warn now. pr_warn_once will implicitly only do another
-> 'check_once' check with its own 'check_once' variable.
-
-I had intended to do so but just forgot.
-
-v2 on its way.
-
-> > +	if (vb->vb2_queue->allow_zero_bytesused)
-> > +		pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.
-\n");
-> > +	else
-> > +		pr_warn_once("use the actual size instead.\n");
-> > +}
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+> index 8761aab..8d3171c 100644
+> --- a/drivers/media/v4l2-core/v4l2-event.c
+> +++ b/drivers/media/v4l2-core/v4l2-event.c
+> @@ -172,6 +172,9 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
+>  	unsigned long flags;
+>  	struct timespec timestamp;
+> 
+> +	if (vdev == NULL)
+> +		return;
+> +
+>  	ktime_get_ts(&timestamp);
+> 
+>  	spin_lock_irqsave(&vdev->fh_lock, flags);
 
 -- 
 Regards,
 
-Laurent Pinchart
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
