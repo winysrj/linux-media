@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58253 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752595AbbFANC1 (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.187]:65363 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbbFYLQL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2015 09:02:27 -0400
-Message-ID: <556C57D6.80908@xs4all.nl>
-Date: Mon, 01 Jun 2015 15:02:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 25 Jun 2015 07:16:11 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+Date: Thu, 25 Jun 2015 13:15:57 +0200
+Message-ID: <4970019.av0JOFIyTW@wuerfel>
+In-Reply-To: <20150624162401.GP19530@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <5587F1F4.1060905@ti.com> <20150624162401.GP19530@localhost>
 MIME-Version: 1.0
-To: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>
-CC: linux-mm@kvack.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	mgorman@suse.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 2/9] mm: Provide new get_vaddr_frames() helper
-References: <1431522495-4692-1-git-send-email-jack@suse.cz> <1431522495-4692-3-git-send-email-jack@suse.cz> <20150528162402.19a0a26a5b9eae36aa8050e5@linux-foundation.org> <20150601124017.GC20288@quack.suse.cz>
-In-Reply-To: <20150601124017.GC20288@quack.suse.cz>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2015 02:40 PM, Jan Kara wrote:
-> On Thu 28-05-15 16:24:02, Andrew Morton wrote:
->> On Wed, 13 May 2015 15:08:08 +0200 Jan Kara <jack@suse.cz> wrote:
->>
->>> Provide new function get_vaddr_frames().  This function maps virtual
->>> addresses from given start and fills given array with page frame numbers of
->>> the corresponding pages. If given start belongs to a normal vma, the function
->>> grabs reference to each of the pages to pin them in memory. If start
->>> belongs to VM_IO | VM_PFNMAP vma, we don't touch page structures. Caller
->>> must make sure pfns aren't reused for anything else while he is using
->>> them.
->>>
->>> This function is created for various drivers to simplify handling of
->>> their buffers.
->>>
->>> Acked-by: Mel Gorman <mgorman@suse.de>
->>> Acked-by: Vlastimil Babka <vbabka@suse.cz>
->>> Signed-off-by: Jan Kara <jack@suse.cz>
->>> ---
->>>  include/linux/mm.h |  44 +++++++++++
->>>  mm/gup.c           | 226 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->>
->> That's a lump of new code which many kernels won't be needing.  Can we
->> put all this in a new .c file and select it within drivers/media
->> Kconfig?
->   Yeah, makes sense. I'll write a patch. Hans, is it OK with you if I
-> just create a patch on top of the series you have in your tree?
+On Wednesday 24 June 2015 21:54:01 Vinod Koul wrote:
+> > It would be nice to find another name for the
+> > dma_request_slave_channel_compat() so with the new name we could have chance
+> > to rearrange the parameters: (dev, name, mask, fn, fn_param)
+> > 
+> > We would end up with the following APIs, all returning with error code on failure:
+> > dma_request_slave_channel(dev, name);
+> > dma_request_channel_legacy(mask, fn, fn_param);
+> > dma_request_slave_channel_compat(mask, fn, fn_param, dev, name);
+> > dma_request_any_channel(mask);
+> This is good idea but still we end up with 4 APIs. Why not just converge to
+> two API, one legacy + memcpy + filer fn and one untimate API for slave?
+> 
+> Internally we may have 4 APIs for cleaner handling...
+> 
 
-No problem.
+Not sure if it's realistic, but I think it would be nice to have
+a way for converting the current slave drivers that use the
+mask/filter/param API to the dev/name based API. We should
+be able to do this by registering a lookup table from platform
+code that translates one to the other, like we do with the
+clkdev lookup to find a device clock based on a local identifier.
 
-Regards,
+The main downside of this is that it's a lot of work if we want
+to completely remove dma_request_channel() for slave drivers,
+but it could be done more gradually.
 
-	Hans
+Another upside is that we could come up with a mechanism to
+avoid the link-time dependency on the filter-function that
+causes problems when that filter is defined in a loadable
+module for the dmaengine driver.
+
+	Arnd
