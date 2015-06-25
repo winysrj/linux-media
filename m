@@ -1,50 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:36412 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753399AbbFCOaK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2015 10:30:10 -0400
-Received: by qgep100 with SMTP id p100so4399829qge.3
-        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2015 07:30:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-	<556EB2F7.506@iki.fi>
-	<556EB4B0.8050505@iki.fi>
-	<CAAZRmGxby0r20HX6-MqmFBcJ1de3-Op0XHyO4QrErkZ0K3Om2Q@mail.gmail.com>
-Date: Wed, 3 Jun 2015 10:30:09 -0400
-Message-ID: <CALzAhNWZxoCHyYmjTKVzMR-7z_+cqAmcG_LAuCKEaoDdP1JswQ@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Steven Toth <stoth@kernellabs.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49627 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751902AbbFYJbN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:31:13 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 01/15] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
+Date: Thu, 25 Jun 2015 10:30:55 +0100
+Message-Id: <1435224669-23672-2-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 3, 2015 at 5:29 AM, Olli Salonen <olli.salonen@iki.fi> wrote:
-> I'm seeing the same issue as well. I thought that maybe some recent
-> Si2168 changes did impact this, but it does not seem to be the case.
+Add DT entries for vin0, vin0_pins, and adv7612
 
-We've had a couple of people raise this so its highly likely we have an issue.
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
-I had some patches to the 2168 driver to add support for a new
-firmware revision. The last time I tested the HVR2205 I convinced
-myself those were not required, thus I discarded those and re-tested.
-Probably a warm boot.
-
-If the GPIOs aren't truly resetting the SI2168 and thus a warm boot
-didn't flush the firmware, I suspect dropping the patches would have
-no immediate effect until a full power-down took place. I'm wondering
-whether the testing was invalid and indeed we have a problem in the
-field, as well as a GPIO issue. Two potential issues.
-
-I'll schedule sometime later this week to fire up my HVR22xx dev
-platform and re-validate the 2205.
-
-Thanks for raising this.
-
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 10b3426..d381e99 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -378,7 +378,12 @@
+ 		renesas,function = "usb2";
+ 	};
+ 
+-	vin1_pins: vin {
++	vin0_pins: vin0 {
++		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
++		renesas,function = "vin0";
++	};
++
++	vin1_pins: vin1 {
+ 		renesas,groups = "vin1_data8", "vin1_clk";
+ 		renesas,function = "vin1";
+ 	};
+@@ -539,6 +544,18 @@
+ 		reg = <0x12>;
+ 	};
+ 
++	hdmi-in@4c {
++		compatible = "adi,adv7612";
++		reg = <0x4c>;
++		remote = <&vin0>;
++
++		port {
++			hdmi_in_ep: endpoint {
++				remote-endpoint = <&vin0ep0>;
++			};
++		};
++	};
++
+ 	composite-in@20 {
+ 		compatible = "adi,adv7180";
+ 		reg = <0x20>;
+@@ -654,6 +671,28 @@
+ 	status = "okay";
+ };
+ 
++/* HDMI video input */
++&vin0 {
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	status = "ok";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin0ep0: endpoint {
++			remote-endpoint = <&hdmi_in_ep>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
++
+ /* composite video input */
+ &vin1 {
+ 	pinctrl-0 = <&vin1_pins>;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
