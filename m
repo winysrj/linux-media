@@ -1,143 +1,208 @@
-Return-Path: <hverkuil@xs4all.nl>
-Message-id: <557AE172.7070408@xs4all.nl>
-Date: Fri, 12 Jun 2015 15:41:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
- Hans Verkuil <hans.verkuil@cisco.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
- Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
- Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-media@vger.kernel.org
-Subject: Re: [RFC v2 00/27]  New ioct VIDIOC_G_DEF_EXT_CTRLS
-References: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-In-reply-to: <1434114742-7420-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49622 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751882AbbFYJbN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:31:13 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 04/15] media: adv7604: chip info and formats for ADV7612
+Date: Thu, 25 Jun 2015 10:30:58 +0100
+Message-Id: <1435224669-23672-5-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/12/2015 03:11 PM, Ricardo Ribalda Delgado wrote:
-> Integer controls provide a way to get their default/initial value, but
-> any other control (p_u32, p_u8.....) provide no other way to get the
-> initial value than unloading the module and loading it back.
-> 
-> *What is the actual problem?
-> I have a custom control with WIDTH integer values. Every value
-> represents the calibrated FPN (fixed pattern noise) correction value for that
-> column
-> -Application A changes the FPN correction value
-> -Application B wants to restore the calibrated value but it cant :(
-> 
-> *What is the proposed solution?
-> -Add a new ioctl VIDIOC_G_DEF_EXT_CTRLS, with the same API as
-> G_EXT_CTRLS, but that returns the initial value of a given control.
-> 
-> 
-> I have posted a copy of my working tree to
-> 
-> https://github.com/ribalda/linux/tree/g_def_ext
-> 
-> It has been tested with a hacked version of yavta (for normal controls) and a
-> custom program for the array control.
-> 
-> Changelog v2:
-> -Add documentation
-> -Split in multiple patches
-> -Comments by Hans:
->   -Rename ioctl to G_DEF_EXT_CTRL
->   -Much! better implementation of def_to_user
-> 
-> 
-> THANKS!
-> 
-> Ricardo Ribalda Delgado (27):
->   media/v4l2-core: Add argument def_value to g_ext_ctrl
->   media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
->   videodev2.h: Fix typo in comment
->   v4l2-subdev: Add g_def_ext_ctrls to core_ops
->   media/i2c/adv7343: Implement g_def_ext_ctrls core_op
->   media/i2c/adv7393: Implement g_def_ext_ctrls core_op
->   media/i2c/bt819: Implement g_def_ext_ctrls core_op
->   media/i2c/cs5345: Implement g_def_ext_ctrls core_op
->   media/i2c/cs53l32a: Implement g_def_ext_ctrls core_op
->   media/i2c/cx25840/cx25840-core: Implement g_def_ext_ctrls core_op
->   media/i2c/msp3400-driver: Implement g_def_ext_ctrls core_op
->   media/i2c/saa7110: Implement g_def_ext_ctrls core_op
->   media/i2c/saa7115: Implement g_def_ext_ctrls core_op
->   media/i2c/saa717x: Implement g_def_ext_ctrls core_op
->   media/i2c/sr030pc30: Implement g_def_ext_ctrls core_op
->   media/i2c/tda7432: Implement g_def_ext_ctrls core_op
->   media/i2c/tlv320aic23b: Implement g_def_ext_ctrls core_op
->   media/i2c/tvaudio: Implement g_def_ext_ctrls core_op
->   media/i2c/tvp514x: Implement g_def_ext_ctrls core_op
->   media/i2c/tvp7002: Implement g_def_ext_ctrls core_op
->   media/i2c/vpx3220: Implement g_def_ext_ctrls core_op
->   media/i2c/wm8739: Implement g_def_ext_ctrls core_op
->   media/i2c/wm8775: Implement g_def_ext_ctrls core_op
->   media/pci/ivtv/ivtv-gpio: Implement g_def_ext_ctrls core_op
->   media/radio/saa7706h: Implement g_def_ext_ctrls core_op
+Add support for the ADV7612 chip as implemented on Renesas' Lager
+board to adv7604.c, including lists for formats/colourspace/timing
+selection and an IRQ handler.
 
-I did a quick analysis and for the following i2c modules you can just remove the
-compat control ops altogether since they are no longer used in old non-control-framework
-bridge drivers:
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/i2c/adv7604.c |  102 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 98 insertions(+), 4 deletions(-)
 
-saa7706
-ivtv-gpio
-wm8739
-tvp7002
-tvp514x
-tvl320aic23b
-tda7432
-sr030pc30
-saa717x
-cs5345
-adv7393
-adv7343
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 808360f..ebeddd5 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -81,6 +81,7 @@ MODULE_LICENSE("GPL");
+ enum adv76xx_type {
+ 	ADV7604,
+ 	ADV7611,
++	ADV7612,
+ };
+ 
+ struct adv76xx_reg_seq {
+@@ -766,6 +767,23 @@ static const struct adv76xx_format_info adv7611_formats[] = {
+ 	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_12BIT },
+ };
+ 
++static const struct adv76xx_format_info adv7612_formats[] = {
++	{ MEDIA_BUS_FMT_RGB888_1X24, ADV76XX_OP_CH_SEL_RGB, true, false,
++	  ADV76XX_OP_MODE_SEL_SDR_444 | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_YUYV8_2X8, ADV76XX_OP_CH_SEL_RGB, false, false,
++	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_YVYU8_2X8, ADV76XX_OP_CH_SEL_RGB, false, true,
++	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_UYVY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, false,
++	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_VYUY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, true,
++	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_YUYV8_1X16, ADV76XX_OP_CH_SEL_RGB, false, false,
++	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
++	{ MEDIA_BUS_FMT_YVYU8_1X16, ADV76XX_OP_CH_SEL_RGB, false, true,
++	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
++};
++
+ static const struct adv76xx_format_info *
+ adv76xx_format_info(struct adv76xx_state *state, u32 code)
+ {
+@@ -870,6 +888,16 @@ static unsigned int adv7611_read_cable_det(struct v4l2_subdev *sd)
+ 	return value & 1;
+ }
+ 
++static unsigned int adv7612_read_cable_det(struct v4l2_subdev *sd)
++{
++	/*  Reads CABLE_DET_A_RAW. For input B support, need to
++	 *  account for bit 7 [MSB] of 0x6a (ie. CABLE_DET_B_RAW)
++	 */
++	u8 value = io_read(sd, 0x6f);
++
++	return value & 1;
++}
++
+ static int adv76xx_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+@@ -2510,6 +2538,11 @@ static void adv7611_setup_irqs(struct v4l2_subdev *sd)
+ 	io_write(sd, 0x41, 0xd0); /* STDI irq for any change, disable INT2 */
+ }
+ 
++static void adv7612_setup_irqs(struct v4l2_subdev *sd)
++{
++	io_write(sd, 0x41, 0xd0); /* disable INT2 */
++}
++
+ static void adv76xx_unregister_clients(struct adv76xx_state *state)
+ {
+ 	unsigned int i;
+@@ -2597,6 +2630,19 @@ static const struct adv76xx_reg_seq adv7611_recommended_settings_hdmi[] = {
+ 	{ ADV76XX_REG_SEQ_TERM, 0 },
+ };
+ 
++static const struct adv76xx_reg_seq adv7612_recommended_settings_hdmi[] = {
++	{ ADV76XX_REG(ADV76XX_PAGE_CP, 0x6c), 0x00 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x9b), 0x03 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x6f), 0x08 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x85), 0x1f },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x87), 0x70 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x57), 0xda },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x58), 0x01 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x03), 0x98 },
++	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x4c), 0x44 },
++	{ ADV76XX_REG_SEQ_TERM, 0 },
++};
++
+ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
+ 	[ADV7604] = {
+ 		.type = ADV7604,
+@@ -2685,17 +2731,60 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
+ 		.field1_vsync_mask = 0x3fff,
+ 		.field1_vbackporch_mask = 0x3fff,
+ 	},
++	[ADV7612] = {
++		.type = ADV7612,
++		.has_afe = false,
++		.max_port = ADV76XX_PAD_HDMI_PORT_A,	/* B not supported */
++		.num_dv_ports = 1,			/* normally 2 */
++		.edid_enable_reg = 0x74,
++		.edid_status_reg = 0x76,
++		.lcf_reg = 0xa3,
++		.tdms_lock_mask = 0x43,
++		.cable_det_mask = 0x01,
++		.fmt_change_digital_mask = 0x03,
++		.cp_csc = 0xf4,
++		.formats = adv7612_formats,
++		.nformats = ARRAY_SIZE(adv7612_formats),
++		.set_termination = adv7611_set_termination,
++		.setup_irqs = adv7612_setup_irqs,
++		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
++		.read_cable_det = adv7612_read_cable_det,
++		.recommended_settings = {
++		    [1] = adv7612_recommended_settings_hdmi,
++		},
++		.num_recommended_settings = {
++		    [1] = ARRAY_SIZE(adv7612_recommended_settings_hdmi),
++		},
++		.page_mask = BIT(ADV76XX_PAGE_IO) | BIT(ADV76XX_PAGE_CEC) |
++			BIT(ADV76XX_PAGE_INFOFRAME) | BIT(ADV76XX_PAGE_AFE) |
++			BIT(ADV76XX_PAGE_REP) |  BIT(ADV76XX_PAGE_EDID) |
++			BIT(ADV76XX_PAGE_HDMI) | BIT(ADV76XX_PAGE_CP),
++		.linewidth_mask = 0x1fff,
++		.field0_height_mask = 0x1fff,
++		.field1_height_mask = 0x1fff,
++		.hfrontporch_mask = 0x1fff,
++		.hsync_mask = 0x1fff,
++		.hbackporch_mask = 0x1fff,
++		.field0_vfrontporch_mask = 0x3fff,
++		.field0_vsync_mask = 0x3fff,
++		.field0_vbackporch_mask = 0x3fff,
++		.field1_vfrontporch_mask = 0x3fff,
++		.field1_vsync_mask = 0x3fff,
++		.field1_vbackporch_mask = 0x3fff,
++	},
+ };
+ 
+ static const struct i2c_device_id adv76xx_i2c_id[] = {
+ 	{ "adv7604", (kernel_ulong_t)&adv76xx_chip_info[ADV7604] },
+ 	{ "adv7611", (kernel_ulong_t)&adv76xx_chip_info[ADV7611] },
++	{ "adv7612", (kernel_ulong_t)&adv76xx_chip_info[ADV7612] },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, adv76xx_i2c_id);
+ 
+ static const struct of_device_id adv76xx_of_id[] __maybe_unused = {
+ 	{ .compatible = "adi,adv7611", .data = &adv76xx_chip_info[ADV7611] },
++	{ .compatible = "adi,adv7612", .data = &adv76xx_chip_info[ADV7612] },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, adv76xx_of_id);
+@@ -2840,21 +2929,26 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	 * identifies the revision, while on ADV7611 it identifies the model as
+ 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
+ 	 */
+-	if (state->info->type == ADV7604) {
++	switch (state->info->type) {
++	case ADV7604:
+ 		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
+ 		if (val != 0x68) {
+ 			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
+ 					client->addr << 1);
+ 			return -ENODEV;
+ 		}
+-	} else {
++		break;
++	case ADV7611:
++	case ADV7612:
+ 		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
+ 		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
+-		if (val != 0x2051) {
+-			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
++		if ((state->info->type == ADV7611 && val != 0x2051) ||
++			(state->info->type == ADV7612 && val != 0x2041)) {
++			v4l2_info(sd, "not an adv761x on address 0x%x\n",
+ 					client->addr << 1);
+ 			return -ENODEV;
+ 		}
++		break;
+ 	}
+ 
+ 	/* control handlers */
+-- 
+1.7.10.4
 
-Also note that the uvc driver needs to be adapted manually since it can't use
-the control framework. The ioctls are implemented in the driver itself.
-
-Regards,
-
-	Hans
-
->   Docbook: media: new ioctl VIDIOC_G_DEF_EXT_CTRLS
->   Documentation: media: Fix code sample
-> 
->  Documentation/DocBook/media/v4l/v4l2.xml           |  8 ++++++
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 13 ++++++---
->  Documentation/video4linux/v4l2-controls.txt        |  4 ++-
->  Documentation/video4linux/v4l2-framework.txt       |  1 +
->  Documentation/zh_CN/video4linux/v4l2-framework.txt |  1 +
->  drivers/media/i2c/adv7343.c                        |  1 +
->  drivers/media/i2c/adv7393.c                        |  1 +
->  drivers/media/i2c/bt819.c                          |  1 +
->  drivers/media/i2c/cs5345.c                         |  1 +
->  drivers/media/i2c/cs53l32a.c                       |  1 +
->  drivers/media/i2c/cx25840/cx25840-core.c           |  1 +
->  drivers/media/i2c/msp3400-driver.c                 |  1 +
->  drivers/media/i2c/saa7110.c                        |  1 +
->  drivers/media/i2c/saa7115.c                        |  1 +
->  drivers/media/i2c/saa717x.c                        |  1 +
->  drivers/media/i2c/sr030pc30.c                      |  1 +
->  drivers/media/i2c/tda7432.c                        |  1 +
->  drivers/media/i2c/tlv320aic23b.c                   |  1 +
->  drivers/media/i2c/tvaudio.c                        |  1 +
->  drivers/media/i2c/tvp514x.c                        |  1 +
->  drivers/media/i2c/tvp7002.c                        |  1 +
->  drivers/media/i2c/vpx3220.c                        |  1 +
->  drivers/media/i2c/wm8739.c                         |  1 +
->  drivers/media/i2c/wm8775.c                         |  1 +
->  drivers/media/pci/ivtv/ivtv-gpio.c                 |  1 +
->  drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
->  drivers/media/radio/saa7706h.c                     |  1 +
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  4 +++
->  drivers/media/v4l2-core/v4l2-ctrls.c               | 32 ++++++++++++++++++----
->  drivers/media/v4l2-core/v4l2-ioctl.c               | 25 +++++++++++++++--
->  drivers/media/v4l2-core/v4l2-subdev.c              |  5 +++-
->  include/media/v4l2-ctrls.h                         |  5 +++-
->  include/media/v4l2-ioctl.h                         |  2 ++
->  include/media/v4l2-subdev.h                        |  2 ++
->  include/uapi/linux/videodev2.h                     |  3 +-
->  35 files changed, 112 insertions(+), 16 deletions(-)
-> 
