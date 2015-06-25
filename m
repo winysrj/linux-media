@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53546 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932094AbbFOLeM (ORCPT
+Received: from mail-la0-f51.google.com ([209.85.215.51]:33834 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786AbbFYOKa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2015 07:34:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/14] sh_mobile_ceu_camera: fix querycap
-Date: Mon, 15 Jun 2015 13:33:34 +0200
-Message-Id: <1434368021-7467-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 25 Jun 2015 10:10:30 -0400
+Received: by lagx9 with SMTP id x9so45830445lag.1
+        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2015 07:10:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+Date: Thu, 25 Jun 2015 15:10:28 +0100
+Message-ID: <CAP3TMiEByap-vb_1CjEmSYFKwwhVOarccgU+qDj=S8vPWqujDw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field just
+ as vb2_ioctl_reqbufs does
+From: Kamil Debski <kamil@wypas.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Philipp,
 
-Fill in the bus_info and driver fields. Found by v4l2-compliance.
+On 25 June 2015 at 11:01, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 2 ++
- 1 file changed, 2 insertions(+)
+Please add the patch description no matter how simple it is and how
+well the subject covers the content of the patch.
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index c5c6c4e..8881efe 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -1665,6 +1665,8 @@ static int sh_mobile_ceu_querycap(struct soc_camera_host *ici,
- 				  struct v4l2_capability *cap)
- {
- 	strlcpy(cap->card, "SuperH_Mobile_CEU", sizeof(cap->card));
-+	strlcpy(cap->driver, "sh_mobile_ceu", sizeof(cap->driver));
-+	strlcpy(cap->bus_info, "platform:sh_mobile_ceu", sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
--- 
-2.1.4
+Best wishes,
+Kamil
 
+> ---
+>  drivers/media/v4l2-core/v4l2-mem2mem.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index dc853e5..511caaa 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -357,9 +357,16 @@ int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>                      struct v4l2_requestbuffers *reqbufs)
+>  {
+>         struct vb2_queue *vq;
+> +       int ret;
+>
+>         vq = v4l2_m2m_get_vq(m2m_ctx, reqbufs->type);
+> -       return vb2_reqbufs(vq, reqbufs);
+> +       ret = vb2_reqbufs(vq, reqbufs);
+> +       /* If count == 0, then the owner has released all buffers and he
+> +          is no longer owner of the queue. Otherwise we have a new owner. */
+> +       if (ret == 0)
+> +               vq->owner = reqbufs->count ? file->private_data : NULL;
+> +
+> +       return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_m2m_reqbufs);
+>
+> --
+> 2.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
