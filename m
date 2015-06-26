@@ -1,38 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-4.cisco.com ([72.163.197.28]:23252 "EHLO
-	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757201AbbFPJhd (ORCPT
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:33495 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751919AbbFZOPR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 05:37:33 -0400
-Received: from pla-VB.cisco.com ([10.142.61.237])
-	by bgl-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id t5G9UTv9014878
-	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2015 09:30:29 GMT
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/2] v4l2-utils: add support for RB v2 in cvt modeline
-Date: Tue, 16 Jun 2015 15:00:29 +0530
-Message-Id: <1434447031-21434-1-git-send-email-prladdha@cisco.com>
+	Fri, 26 Jun 2015 10:15:17 -0400
+Received: by igtg8 with SMTP id g8so2062169igt.0
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 07:15:16 -0700 (PDT)
+MIME-Version: 1.0
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Fri, 26 Jun 2015 19:44:56 +0530
+Message-ID: <CAO_48GGTitYKgPJVouZf4YNDn3rh4BkGLnPqfb2ufpxSdz27_w@mail.gmail.com>
+Subject: [GIT PULL]: dma-buf changes for 4.2
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Linus,
 
-Please find patches adding support for reduced blanking v2 (RB v2) in cvt modeline
-calculations in v4l2-utils. Recently, RB v2 support was added to v4l2-dv-timings and
-RB v2 support in v4l2-utils is a follow up on that work. Please review.
+Very small pull request on dma-buf for 4.2 merge window. May I request
+you to please pull?
 
-Regards,
-Prashant
 
-Prashant Laddha (2):
-  v4l2-ctl-modes: add support for reduced blanking version 2
-  v4l2-utils: extend set-dv-timing options for RB version
+The following changes since commit 5ebe6afaf0057ac3eaeb98defd5456894b446d22:
 
- utils/v4l2-ctl/v4l2-ctl-modes.cpp | 44 +++++++++++++++++++++++++++++++--------
- utils/v4l2-ctl/v4l2-ctl-stds.cpp  | 11 +++++++++-
- utils/v4l2-ctl/v4l2-ctl.h         |  3 ++-
- 3 files changed, 47 insertions(+), 11 deletions(-)
+  Linux 4.1-rc2 (2015-05-03 19:22:23 -0700)
 
--- 
-1.9.1
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
+tags/dma-buf-for-4.2
+
+for you to fetch changes up to 5136629dc5a19701746abd7c8ad98ce0b84dda1d:
+
+  dma-buf: Minor coding style fixes (2015-05-21 11:29:59 +0530)
+
+----------------------------------------------------------------
+Minor changes for 4.2
+- add ref-counting for kernel modules as exporters
+- minor code style fixes
+
+----------------------------------------------------------------
+Jagan Teki (1):
+      dma-buf: Minor coding style fixes
+
+Sumit Semwal (1):
+      dma-buf: add ref counting for module as exporter
+
+ drivers/dma-buf/dma-buf.c     | 19 ++++++++++++++++---
+ drivers/dma-buf/reservation.c |  9 ++++++---
+ drivers/dma-buf/seqno-fence.c |  8 +++++++-
+ include/linux/dma-buf.h       | 10 ++++++++--
+ 4 files changed, 37 insertions(+), 9 deletions(-)
+
+Thanks and best regards,
+Sumit.
