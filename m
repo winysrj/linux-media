@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47250 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754AbbF2Tm1 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:55125 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717AbbFZUnZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 15:42:27 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 1/1] media: am437x-vpfe: Requested frame size and fmt overwritten by current sensor setting
-Date: Mon, 29 Jun 2015 14:42:20 -0500
-Message-ID: <1435606940-2321-1-git-send-email-bparrot@ti.com>
+	Fri, 26 Jun 2015 16:43:25 -0400
+Message-ID: <558DB96C.6040803@infradead.org>
+Date: Fri, 26 Jun 2015 13:43:24 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH -next] media/pci/cobalt: fix Kconfig and build when SND is
+ not enabled
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Upon a S_FMT the input/requeated frame size and pixel format is
-overwritten by the current subdevice settings.
-Fix this so application can actually set the frame size and format.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Fix build errors in cobalt driver when CONFIG_SND is not enabled.
+Fixes these build errors:
+
+ERROR: "snd_pcm_period_elapsed" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "_snd_pcm_stream_lock_irqsave" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_hw_constraint_integer" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_set_ops" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_stream_unlock_irqrestore" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_lib_ioctl" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_card_new" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_card_free" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_card_register" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_new" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc:	Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/am437x/am437x-vpfe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/cobalt/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index eb25c43..0fa62c5 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1584,7 +1584,7 @@ static int vpfe_s_fmt(struct file *file, void *priv,
- 		return -EBUSY;
- 	}
- 
--	ret = vpfe_try_fmt(file, priv, fmt);
-+	ret = vpfe_try_fmt(file, priv, &format);
- 	if (ret)
- 		return ret;
- 
--- 
-1.8.5.1
-
+--- linux-next-20150626.orig/drivers/media/pci/cobalt/Kconfig
++++ linux-next-20150626/drivers/media/pci/cobalt/Kconfig
+@@ -2,6 +2,7 @@ config VIDEO_COBALT
+ 	tristate "Cisco Cobalt support"
+ 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
+ 	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS && GPIOLIB
++	depends on SND
+ 	select I2C_ALGOBIT
+ 	select VIDEO_ADV7604
+ 	select VIDEO_ADV7511
