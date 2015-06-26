@@ -1,626 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:35025 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756515AbbFPIit (ORCPT
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:33667 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546AbbFZLe3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2015 04:38:49 -0400
-Received: by wiga1 with SMTP id a1so101672002wig.0
-        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2015 01:38:47 -0700 (PDT)
-From: Pablo Anton <pablo.anton@veo-labs.com>
-To: hans.verkuil@cisco.com
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, lars@metafoo.de,
-	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Subject: [PATCH v2] media: i2c: ADV7604: Migrate to regmap
-Date: Tue, 16 Jun 2015 10:38:39 +0200
-Message-Id: <1434443919-3196-1-git-send-email-pablo.anton@veo-labs.com>
+	Fri, 26 Jun 2015 07:34:29 -0400
+Received: by igin14 with SMTP id n14so9285648igi.0
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 04:34:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAP3TMiFoKSYdsFrQfzx5gLqhJQv6J6HqPpPU0CrrhMyrzjvq3w@mail.gmail.com>
+References: <1430344409-11928-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+	<5004544.CpPfGJfHMn@avalon>
+	<20150506010310.24f82a42@bones>
+	<5695336.CA8eQ67zhi@avalon>
+	<CAP3TMiFoKSYdsFrQfzx5gLqhJQv6J6HqPpPU0CrrhMyrzjvq3w@mail.gmail.com>
+Date: Fri, 26 Jun 2015 14:34:28 +0300
+Message-ID: <CALi4nhrswSKVHzz4wJ2NQVK+gVWR0nHhMa-RZnZwT4R+iy-cdw@mail.gmail.com>
+Subject: Re: [PATCH v3 1/1] V4L2: platform: Renesas R-Car JPEG codec driver
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	j.anaszewski@samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preliminary patch in order to add support for ALSA.
-It replaces all current i2c access with regmap.
+Hi,
 
-Signed-off-by: Pablo Anton <pablo.anton@veo-labs.com>
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
----
-v2: Rebase after renaming
+Thanks everybody for comments.
 
- drivers/media/i2c/adv7604.c | 337 ++++++++++++++++++++++++++++++++------------
- 1 file changed, 244 insertions(+), 93 deletions(-)
+2015-06-22 17:54 GMT+03:00 Kamil Debski <kamil@wypas.org>:
+> Hi,
+>
+> I am adding Jacek Anaszewski to CC loop. He was working with the
+> s5p-jpeg driver some time ago.
+> I've spoken with him about questions in this email recently. Jacek,
+> thank you for your comments :)
+>
+> On 18 June 2015 at 20:48, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Mikhail,
+>>
+>> (CC'ing Kamil Debski)
+>>
+>> On Wednesday 06 May 2015 01:03:10 Mikhail Ulianov wrote:
+>>> On Mon, 04 May 2015 02:32:05 +0300 Laurent Pinchart wrote:
+>
+> [snip]
+>
+>>> [snip]
+>>>
+>>> >> +/*
+>>> >> + * ====================================================================
+>>> >> + * Queue operations
+>>> >> + * ====================================================================
+>>> >> + */
+>>> >> +static int jpu_queue_setup(struct vb2_queue *vq,
+>>> >> +                     const struct v4l2_format *fmt,
+>>> >> +                     unsigned int *nbuffers, unsigned int
+>>> >> *nplanes,
+>>> >> +                     unsigned int sizes[], void
+>>> >> *alloc_ctxs[])
+>>> >> +{
+>>> >> +  struct jpu_ctx *ctx = vb2_get_drv_priv(vq);
+>>> >> +  struct jpu_q_data *q_data;
+>>> >> +  unsigned int count = *nbuffers;
+>>> >> +  unsigned int i;
+>>> >> +
+>>> >> +  q_data = jpu_get_q_data(ctx, vq->type);
+>>> >> +
+>>> >> +  *nplanes = q_data->format.num_planes;
+>>> >> +
+>>> >> +  /*
+>>> >> +   * Header is parsed during decoding and parsed information
+>>> >> stored
+>>> >> +   * in the context so we do not allow another buffer to
+>>> >> overwrite it.
+>>> >> +   * For now it works this way, but planned for alternation.
+>>> >
+>>> > It shouldn't be difficult to create a jpu_buffer structure that
+>>> > inherits from vb2_buffer and store the information there instead of
+>>> > in the context.
+>>>
+>>> You are absolutely right. But for this version i want to keep it
+>>> simple and also at this moment not everything clear for me with this
+>>> format "autodetection" feature we want to have e.g. for decoder if user
+>>> requested 2 output buffers and then queue first with some valid JPEG
+>>> with format -1-(so we setup queues format here), after that
+>>> another one with format -2-... should we discard second one or just
+>>> change format of queues? what about same situation if user already
+>>> requested capture buffers. I mean relations with buf_prepare and
+>>> queue_setup. AFAIU format should remain the same for all requested
+>>> buffers. I see only one "solid" solution here - get rid of
+>>> "autodetection" feature and rely only on format setted by user, so in
+>>> this case we can just discard queued buffers with inappropriate
+>>> format(kind of format validation in kernel). This solution will also
+>>> work well with NV61, NV21, and semiplanar formats we want to add in next
+>>> version. *But* with this solution header parsing must be done twice(in
+>>> user and kernel spaces).
+>>> I'm a little bit frustrated here :)
+>>
+>> Yes, it's a bit frustrating indeed. I'm not sure what to advise, I'm not too
+>> familiar with the m2m API for JPEG.
+>>
+>> Kamil, do you have a comment on that ?
+>
+> I am not sure whether it is good to get rid of header parsing by the
+> driver/hardware option. I agree that the buffers should have a
+> consistent format and size. Maybe the way to go would be to allow
+> header parsing by the hardware, but to stop processing when the format
+> has changed? Other solution would be to use the
+> V4L2_EVENT_SOURCE_CHANGE event to inform user space about the change.
+> User space then could check whether the buffers are sufficient or
+> reallocate them. Similar to what happens in MFC when format changes.
+>
+> For me implementing resolution change in JPEG seems like an overkill,
+> but maybe you have a use case that would benefit from this. Initially
+> the JPEG decoder was designed and written as a one shot device. Could
+> you give an example of such use case?
+>
+> The possible use case I can imagine is having an M-JPEG stream where
+> all JPEGs have the same dimensions and format. There I can see some
+> benefits from having more than one buffer on the queues. Then there
+> would be no change in the buffer parameters, so this should work.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 60ffcf0..38ae454 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -36,6 +36,7 @@
- #include <linux/v4l2-dv-timings.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
-+#include <linux/regmap.h>
- 
- #include <media/adv7604.h>
- #include <media/v4l2-ctrls.h>
-@@ -166,6 +167,9 @@ struct adv76xx_state {
- 	/* i2c clients */
- 	struct i2c_client *i2c_clients[ADV76XX_PAGE_MAX];
- 
-+	/* Regmaps */
-+	struct regmap *regmap[ADV76XX_PAGE_MAX];
-+
- 	/* controls */
- 	struct v4l2_ctrl *detect_tx_5v_ctrl;
- 	struct v4l2_ctrl *analog_sampling_phase_ctrl;
-@@ -346,66 +350,39 @@ static inline unsigned vtotal(const struct v4l2_bt_timings *t)
- 
- /* ----------------------------------------------------------------------- */
- 
--static s32 adv_smbus_read_byte_data_check(struct i2c_client *client,
--		u8 command, bool check)
--{
--	union i2c_smbus_data data;
--
--	if (!i2c_smbus_xfer(client->adapter, client->addr, client->flags,
--			I2C_SMBUS_READ, command,
--			I2C_SMBUS_BYTE_DATA, &data))
--		return data.byte;
--	if (check)
--		v4l_err(client, "error reading %02x, %02x\n",
--				client->addr, command);
--	return -EIO;
--}
--
--static s32 adv_smbus_read_byte_data(struct adv76xx_state *state,
--				    enum adv76xx_page page, u8 command)
-+static int adv76xx_read_check(struct adv76xx_state *state,
-+			     int client_page, u8 reg)
- {
--	return adv_smbus_read_byte_data_check(state->i2c_clients[page],
--					      command, true);
--}
--
--static s32 adv_smbus_write_byte_data(struct adv76xx_state *state,
--				     enum adv76xx_page page, u8 command,
--				     u8 value)
--{
--	struct i2c_client *client = state->i2c_clients[page];
--	union i2c_smbus_data data;
-+	struct i2c_client *client = state->i2c_clients[client_page];
- 	int err;
--	int i;
-+	unsigned int val;
- 
--	data.byte = value;
--	for (i = 0; i < 3; i++) {
--		err = i2c_smbus_xfer(client->adapter, client->addr,
--				client->flags,
--				I2C_SMBUS_WRITE, command,
--				I2C_SMBUS_BYTE_DATA, &data);
--		if (!err)
--			break;
-+	err = regmap_read(state->regmap[client_page], reg, &val);
-+
-+	if (err) {
-+		v4l_err(client, "error reading %02x, %02x\n",
-+				client->addr, reg);
-+		return err;
- 	}
--	if (err < 0)
--		v4l_err(client, "error writing %02x, %02x, %02x\n",
--				client->addr, command, value);
--	return err;
-+	return val;
- }
- 
--static s32 adv_smbus_write_i2c_block_data(struct adv76xx_state *state,
--					  enum adv76xx_page page, u8 command,
--					  unsigned length, const u8 *values)
-+/* adv76xx_write_block(): Write raw data with a maximum of I2C_SMBUS_BLOCK_MAX
-+ * size to one or more registers.
-+ *
-+ * A value of zero will be returned on success, a negative errno will
-+ * be returned in error cases.
-+ */
-+static int adv76xx_write_block(struct adv76xx_state *state, int client_page,
-+			      unsigned int init_reg, const void *val,
-+			      size_t val_len)
- {
--	struct i2c_client *client = state->i2c_clients[page];
--	union i2c_smbus_data data;
-+	struct regmap *regmap = state->regmap[client_page];
-+
-+	if (val_len > I2C_SMBUS_BLOCK_MAX)
-+		val_len = I2C_SMBUS_BLOCK_MAX;
- 
--	if (length > I2C_SMBUS_BLOCK_MAX)
--		length = I2C_SMBUS_BLOCK_MAX;
--	data.block[0] = length;
--	memcpy(data.block + 1, values, length);
--	return i2c_smbus_xfer(client->adapter, client->addr, client->flags,
--			      I2C_SMBUS_WRITE, command,
--			      I2C_SMBUS_I2C_BLOCK_DATA, &data);
-+	return regmap_raw_write(regmap, init_reg, val, val_len);
- }
- 
- /* ----------------------------------------------------------------------- */
-@@ -414,14 +391,14 @@ static inline int io_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_IO, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_IO, reg);
- }
- 
- static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_IO, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_IO], reg, val);
- }
- 
- static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -433,71 +410,70 @@ static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_AVLINK, reg);
-+	return adv76xx_read_check(state, ADV7604_PAGE_AVLINK, reg);
- }
- 
- static inline int avlink_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_AVLINK, reg, val);
-+	return regmap_write(state->regmap[ADV7604_PAGE_AVLINK], reg, val);
- }
- 
- static inline int cec_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CEC, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_CEC, reg);
- }
- 
- static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CEC, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_CEC], reg, val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_INFOFRAME, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_INFOFRAME, reg);
- }
- 
- static inline int infoframe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_INFOFRAME,
--					 reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_INFOFRAME], reg, val);
- }
- 
- static inline int afe_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_AFE, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_AFE, reg);
- }
- 
- static inline int afe_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_AFE, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_AFE], reg, val);
- }
- 
- static inline int rep_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_REP, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_REP, reg);
- }
- 
- static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_REP, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_REP], reg, val);
- }
- 
- static inline int rep_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -509,28 +485,37 @@ static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_EDID, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_EDID, reg);
- }
- 
- static inline int edid_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_EDID, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_EDID], reg, val);
- }
- 
- static inline int edid_write_block(struct v4l2_subdev *sd,
--					unsigned len, const u8 *val)
-+					unsigned int total_len, const u8 *val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 	int err = 0;
--	int i;
-+	int i = 0;
-+	int len = 0;
-+
-+	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n",
-+				__func__, total_len);
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID block (%d byte)\n", __func__, len);
-+	while (!err && i < total_len) {
-+		len = (total_len - i) > I2C_SMBUS_BLOCK_MAX ?
-+				I2C_SMBUS_BLOCK_MAX :
-+				(total_len - i);
-+
-+		err = adv76xx_write_block(state, ADV76XX_PAGE_EDID,
-+				i, val + i, len);
-+		i += len;
-+	}
- 
--	for (i = 0; !err && i < len; i += I2C_SMBUS_BLOCK_MAX)
--		err = adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_EDID,
--				i, I2C_SMBUS_BLOCK_MAX, val + i);
- 	return err;
- }
- 
-@@ -560,7 +545,7 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_HDMI, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_HDMI, reg);
- }
- 
- static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-@@ -572,7 +557,7 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_HDMI, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_HDMI], reg, val);
- }
- 
- static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -584,14 +569,14 @@ static inline int test_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_TEST, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_TEST], reg, val);
- }
- 
- static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV76XX_PAGE_CP, reg);
-+	return adv76xx_read_check(state, ADV76XX_PAGE_CP, reg);
- }
- 
- static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-@@ -603,7 +588,7 @@ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV76XX_PAGE_CP, reg, val);
-+	return regmap_write(state->regmap[ADV76XX_PAGE_CP], reg, val);
- }
- 
- static inline int cp_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-@@ -615,14 +600,14 @@ static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_read_byte_data(state, ADV7604_PAGE_VDP, reg);
-+	return adv76xx_read_check(state, ADV7604_PAGE_VDP, reg);
- }
- 
- static inline int vdp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 
--	return adv_smbus_write_byte_data(state, ADV7604_PAGE_VDP, reg, val);
-+	return regmap_write(state->regmap[ADV7604_PAGE_VDP], reg, val);
- }
- 
- #define ADV76XX_REG(page, offset)	(((page) << 8) | (offset))
-@@ -633,13 +618,15 @@ static int adv76xx_read_reg(struct v4l2_subdev *sd, unsigned int reg)
- {
- 	struct adv76xx_state *state = to_state(sd);
- 	unsigned int page = reg >> 8;
-+	unsigned int val;
- 
- 	if (!(BIT(page) & state->info->page_mask))
- 		return -EINVAL;
- 
- 	reg &= 0xff;
-+	regmap_read(state->regmap[page], reg, &val);
- 
--	return adv_smbus_read_byte_data(state, page, reg);
-+	return val;
- }
- #endif
- 
-@@ -653,7 +640,7 @@ static int adv76xx_write_reg(struct v4l2_subdev *sd, unsigned int reg, u8 val)
- 
- 	reg &= 0xff;
- 
--	return adv_smbus_write_byte_data(state, page, reg, val);
-+	return regmap_write(state->regmap[page], reg, val);
- }
- 
- static void adv76xx_write_reg_seq(struct v4l2_subdev *sd,
-@@ -949,8 +936,8 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
- 		/* Should only be set in auto-graphics mode [REF_02, p. 91-92] */
- 		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
- 		/* IO-map reg. 0x16 and 0x17 should be written in sequence */
--		if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_IO,
--						   0x16, 2, pll))
-+		if (regmap_raw_write(state->regmap[ADV76XX_PAGE_IO],
-+					0x16, pll, 2))
- 			v4l2_err(sd, "writing to reg 0x16 and 0x17 failed\n");
- 
- 		/* active video - horizontal timing */
-@@ -1001,8 +988,8 @@ static void adv76xx_set_offset(struct v4l2_subdev *sd, bool auto_offset, u16 off
- 	offset_buf[3] = offset_c & 0x0ff;
- 
- 	/* Registers must be written in this order with no i2c access in between */
--	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
--					   0x77, 4, offset_buf))
-+	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
-+			0x77, offset_buf, 4))
- 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x77, 0x78, 0x79, 0x7a\n", __func__);
- }
- 
-@@ -1031,8 +1018,8 @@ static void adv76xx_set_gain(struct v4l2_subdev *sd, bool auto_gain, u16 gain_a,
- 	gain_buf[3] = ((gain_c & 0x0ff));
- 
- 	/* Registers must be written in this order with no i2c access in between */
--	if (adv_smbus_write_i2c_block_data(state, ADV76XX_PAGE_CP,
--					   0x73, 4, gain_buf))
-+	if (regmap_raw_write(state->regmap[ADV76XX_PAGE_CP],
-+			     0x73, gain_buf, 4))
- 		v4l2_err(sd, "%s: i2c error writing to CP reg 0x73, 0x74, 0x75, 0x76\n", __func__);
- }
- 
-@@ -2674,6 +2661,151 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	return 0;
- }
- 
-+static const struct regmap_config adv76xx_regmap_cnf[] = {
-+	{
-+		.name			= "io",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "avlink",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "cec",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "infoframe",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "esdp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "epp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "afe",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "rep",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "edid",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+
-+	{
-+		.name			= "hdmi",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "test",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "cp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+	{
-+		.name			= "vdp",
-+		.reg_bits		= 8,
-+		.val_bits		= 8,
-+
-+		.max_register		= 0xff,
-+		.cache_type		= REGCACHE_NONE,
-+	},
-+};
-+
-+static int configure_regmap(struct adv76xx_state *state, int region)
-+{
-+	int err;
-+
-+	if (!state->i2c_clients[region])
-+		return -ENODEV;
-+
-+	if (!state->regmap[region]) {
-+
-+		state->regmap[region] =
-+			devm_regmap_init_i2c(state->i2c_clients[region],
-+					     &adv76xx_regmap_cnf[region]);
-+
-+		if (IS_ERR(state->regmap[region])) {
-+			err = PTR_ERR(state->regmap[region]);
-+			v4l_err(state->i2c_clients[region],
-+					"Error initializing regmap %d with error %d\n",
-+					region, err);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int configure_regmaps(struct adv76xx_state *state)
-+{
-+	int i, err;
-+
-+	for (i = 0 ; i < ADV76XX_PAGE_MAX; i++) {
-+		err = configure_regmap(state, i);
-+		if (err && (err != -ENODEV))
-+			return err;
-+	}
-+	return 0;
-+}
-+
- static int adv76xx_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-@@ -2683,7 +2815,7 @@ static int adv76xx_probe(struct i2c_client *client,
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
- 	unsigned int i;
--	u16 val;
-+	unsigned int val, val2;
- 	int err;
- 
- 	/* Check if the adapter supports the needed features */
-@@ -2747,22 +2879,36 @@ static int adv76xx_probe(struct i2c_client *client,
- 		client->addr);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-+	/* Configure IO Regmap region */
-+	err = configure_regmap(state, ADV76XX_PAGE_IO);
-+
-+	if (err) {
-+		v4l2_info(sd, "Error configuring IO regmap region\n");
-+		return -ENODEV;
-+	}
-+
- 	/*
- 	 * Verify that the chip is present. On ADV7604 the RD_INFO register only
- 	 * identifies the revision, while on ADV7611 it identifies the model as
- 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
- 	 */
- 	if (state->info->type == ADV7604) {
--		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
-+		regmap_read(state->regmap[ADV76XX_PAGE_IO], 0xfb, &val);
- 		if (val != 0x68) {
- 			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
- 	} else {
--		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
--		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
--		if (val != 0x2051) {
-+		regmap_read(state->regmap[ADV76XX_PAGE_IO],
-+				0xea,
-+				&val);
-+		val2 = val << 8;
-+		regmap_read(state->regmap[ADV76XX_PAGE_IO],
-+			    0xeb,
-+			    &val);
-+		val2 |= val;
-+		if (val2 != 0x2051) {
- 			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
-@@ -2853,6 +2999,11 @@ static int adv76xx_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_work_queues;
- 
-+	/* Configure regmaps */
-+	err = configure_regmaps(state);
-+	if (err)
-+		goto err_entity;
-+
- 	err = adv76xx_core_init(sd);
- 	if (err)
- 		goto err_entity;
--- 
-2.3.5
+That's correct. It's exactly our use case, but we have few cameras. So
+we serialize buffers in user space and sometimes one(or more) cameras
+have different configuration. I think i should go with stop processing
+option.
 
+>>> [snip]
+>
+> [snip]
+>
+> Best wishes,
+> Kamil Debski
