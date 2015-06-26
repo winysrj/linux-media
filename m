@@ -1,73 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57080 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422953AbbFEPHZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:07:25 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5929A2A0085
-	for <linux-media@vger.kernel.org>; Fri,  5 Jun 2015 17:07:13 +0200 (CEST)
-Message-ID: <5571BB21.2050200@xs4all.nl>
-Date: Fri, 05 Jun 2015 17:07:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp4.mail.ru ([94.100.179.57]:51855 "EHLO smtp4.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751317AbbFZMTT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2015 08:19:19 -0400
+Message-ID: <DB50FB6BCC774E06B4CD8BAB39BA9F55@unknown>
+From: "Unembossed Name" <severe.siberian.man@mail.ru>
+To: "Steven Toth" <stoth@kernellabs.com>
+Cc: <linux-media@vger.kernel.org>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	"Devin Heitmueller" <dheitmueller@kernellabs.com>
+References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan><2DCE24E5218441A2AD205B5EA707CB62@unknown><CAGoCfixD8VwQX9jB8a3_8urGu4y3D+x=JhZvq8PbpTpPcqrGzQ@mail.gmail.com> <CALzAhNUrAAuPa1y6duaOSuNvpW_AP9g-ttwHkYSXBfdncvCKkA@mail.gmail.com>
+Subject: Re: XC5000C 0x14b4 status
+Date: Fri, 26 Jun 2015 19:19:03 +0700
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.2] Helper to abstract vma handling in media layer
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	format=flowed;
+	charset="UTF-8";
+	reply-type=original
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request merged Jan's vb2/mm patches to abstract vma handling.
+>> Correct.  These are not parts that have any form of default firmware
+>> in their ROM mask (i.e. not like the silabs or micronas parts which
+>> have a default firmware and the ability to patch the ROM via a
+>> software loaded code update).  The firmware must be loaded every time
+>> the chip is brought out of reset or it won't work at all.
+>
+> An image of the top of the tuner clearly showing any manufacturing
+> markings would be welcome - assuming its accessible.
 
-See http://www.spinics.net/lists/linux-media/msg89653.html for more info.
+It's a best picture I could find:
+http://www.reviews.ru/clause/over/T7_2/image41.jpg
 
-It's the same pull request as from May 25th, but with an additional patch that
-puts get_vaddr_frames() behind a config option (requested by Andrew Morton).
+Also, at least 2 users was successful with using Behold TV T7 tuner with
+"my" Linux driver for it, then I shared it with others a year ago.
 
-Regards,
+HW vendor also says, that Linux FW 4.1.30.7 for XC5000C (from KernelLabs)
+reminds him "an old 4.1" numeration scheme from 2010 year. But he was unable to
+understand it's date.
 
-	Hans
+Also he says, that for XC5000C they are already long time using 0.6.30.5, and it's
+always gives a 0x14b4.
+// Filename : Xc5000_firmwares.h
+// Generated : 2012/3/5 ¤W¤È 08:34:27
+// Firmware version : 0.6; Release Number: 30.5
 
-The following changes since commit 64d5702229d86deacf42a43bc893a981f72d4908:
 
-  [media] vivid.txt: update the vivid documentation (2015-06-05 11:52:12 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2m
-
-for you to fetch changes up to 1382dd5a8f783f368f8b1dd687ee0bf0a93ed899:
-
-  mm: Move get_vaddr_frames() behind a config option (2015-06-05 17:01:17 +0200)
-
-----------------------------------------------------------------
-Jan Kara (9):
-      mm: Provide new get_vaddr_frames() helper
-      media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
-      vb2: Provide helpers for mapping virtual addresses
-      media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
-      media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
-      media: vb2: Convert vb2_dc_get_userptr() to use frame vector
-      media: vb2: Remove unused functions
-      drm/exynos: Convert g2d_userptr_get_dma_addr() to use get_vaddr_frames()
-      mm: Move get_vaddr_frames() behind a config option
-
- drivers/gpu/drm/exynos/Kconfig                 |   1 +
- drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  91 ++++++++++--------------------
- drivers/gpu/drm/exynos/exynos_drm_gem.c        |  97 --------------------------------
- drivers/media/platform/omap/Kconfig            |   1 +
- drivers/media/platform/omap/omap_vout.c        |  69 +++++++++++------------
- drivers/media/v4l2-core/Kconfig                |   1 +
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 214 ++++++++++++-----------------------------------------------------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c     |  97 +++++---------------------------
- drivers/media/v4l2-core/videobuf2-memops.c     | 148 ++++++++++++++++---------------------------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c    |  94 ++++++++++++-------------------
- include/linux/mm.h                             |  44 +++++++++++++++
- include/media/videobuf2-memops.h               |  11 ++--
- mm/Kconfig                                     |   3 +
- mm/Makefile                                    |   1 +
- mm/frame_vector.c                              | 232 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- mm/gup.c                                       |   1 +
- 16 files changed, 480 insertions(+), 625 deletions(-)
- create mode 100644 mm/frame_vector.c
