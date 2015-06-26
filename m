@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-4.cisco.com ([72.163.197.28]:7279 "EHLO
-	bgl-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbbFLLsN (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:33502 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbbFZEem (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 07:48:13 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH] v4l2-dv-timings: print refresh rate with better precision
-Date: Fri, 12 Jun 2015 17:18:10 +0530
-Message-Id: <1434109690-27479-1-git-send-email-prladdha@cisco.com>
+	Fri, 26 Jun 2015 00:34:42 -0400
+Date: Fri, 26 Jun 2015 10:04:37 +0530
+From: Vaishali Thakkar <vthakkar1994@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] pctv452e: Replace memset with eth_zero_addr
+Message-ID: <20150626043437.GA15971@vaishali-Ideapad-Z570>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In many cases, refresh rate is not exact integer. In such cases,
-fraction was lost and it used to print, say, 59 in case of 59.94.
-Now, capturing the fraction up to 2 decimal places.
+Use eth_zero_addr to assign the zero address to the given address
+array instead of memset when second argument is address of zero.
+Note that the 6 in the third argument of memset appears to represent
+an ethernet address size (ETH_ALEN).
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+The Coccinelle semantic patch that makes this change is as follows:
+
+// <smpl>
+@eth_zero_addr@
+expression e;
+@@
+
+-memset(e,0x00,6);
++eth_zero_addr(e);
+// </smpl>
+
+Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/usb/dvb-usb/pctv452e.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 1e08eee..21f3480 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -256,6 +256,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
- {
- 	const struct v4l2_bt_timings *bt = &t->bt;
- 	u32 htot, vtot;
-+	u32 fps;
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index d17618f..ec397c4 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -611,7 +611,7 @@ static int pctv452e_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
+ 	return 0;
  
- 	if (t->type != V4L2_DV_BT_656_1120)
- 		return;
-@@ -265,13 +266,15 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
- 	if (bt->interlaced)
- 		vtot /= 2;
+ failed:
+-	memset(mac, 0, 6);
++	eth_zero_addr(mac);
  
-+	fps = (htot * vtot) > 0 ? div_u64((100 * (u64)bt->pixelclock),
-+				  (htot * vtot)) : 0;
-+
- 	if (prefix == NULL)
- 		prefix = "";
- 
--	pr_info("%s: %s%ux%u%s%u (%ux%u)\n", dev_prefix, prefix,
-+	pr_info("%s: %s%ux%u%s%u.%u (%ux%u)\n", dev_prefix, prefix,
- 		bt->width, bt->height, bt->interlaced ? "i" : "p",
--		(htot * vtot) > 0 ? ((u32)bt->pixelclock / (htot * vtot)) : 0,
--		htot, vtot);
-+		fps / 100, fps % 100, htot, vtot);
- 
- 	if (!detailed)
- 		return;
+ 	return ret;
+ }
 -- 
 1.9.1
 
