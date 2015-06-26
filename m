@@ -1,130 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:33695 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751331AbbFRLZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 07:25:54 -0400
-Date: Thu, 18 Jun 2015 13:25:48 +0200
-From: Jan Kara <jack@suse.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jan Kara <jack@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] Revert "[media] vb2: Push mmap_sem down to memops"
-Message-ID: <20150618112548.GG21820@quack.suse.cz>
-References: <557E7DC7.3000607@xs4all.nl>
- <20150618103335.GF21820@quack.suse.cz>
- <5582A146.5070003@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5582A146.5070003@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36248 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752036AbbFZJo0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2015 05:44:26 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 3/3] [media] videobuf2: add trace events
+Date: Fri, 26 Jun 2015 11:44:06 +0200
+Message-Id: <1435311846-23417-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1435311846-23417-1-git-send-email-p.zabel@pengutronix.de>
+References: <1435311846-23417-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 18-06-15 12:45:26, Hans Verkuil wrote:
-> On 06/18/2015 12:33 PM, Jan Kara wrote:
-> > On Mon 15-06-15 09:24:55, Hans Verkuil wrote:
-> >> This reverts commit 48b25a3a713b90988b6882d318f7c0a6bed9aabc.
-> >>
-> >> That commit caused two regressions. The first is a BUG:
-> >>
-> >> BUG: unable to handle kernel NULL pointer dereference at 0000000000000100
-> >> IP: [<ffffffff810d5cd0>] __lock_acquire+0x2f0/0x2070
-> >> PGD 0
-> >> Oops: 0000 [#1] PREEMPT SMP
-> >> Modules linked in: vivid v4l2_dv_timings videobuf2_vmalloc videobuf2_memops videobuf2_core v4l2_common videodev media vmw_balloon vmw_vmci acpi_cpufreq processor button
-> >> CPU: 0 PID: 1542 Comm: v4l2-ctl Not tainted 4.1.0-rc3-test-media #1190
-> >> Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 05/20/2014
-> >> task: ffff880220ce4200 ti: ffff88021d16c000 task.ti: ffff88021d16c000
-> >> RIP: 0010:[<ffffffff810d5cd0>]  [<ffffffff810d5cd0>] __lock_acquire+0x2f0/0x2070
-> >> RSP: 0018:ffff88021d16f9b8  EFLAGS: 00010002
-> >> RAX: 0000000000000046 RBX: 0000000000000292 RCX: 0000000000000001
-> >> RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000100
-> >> RBP: ffff88021d16fa88 R08: 0000000000000001 R09: 0000000000000000
-> >> R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000001
-> >> R13: ffff880220ce4200 R14: 0000000000000100 R15: 0000000000000000
-> >> FS:  00007f2441e7f740(0000) GS:ffff880236e00000(0000) knlGS:0000000000000000
-> >> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> >> CR2: 0000000000000100 CR3: 0000000001e0b000 CR4: 00000000001406f0
-> >> Stack:
-> >>  ffff88021d16fa98 ffffffff810d6543 0000000000000006 0000000000000246
-> >>  ffff88021d16fa08 ffffffff810d532d ffff880220ce4a78 ffff880200000000
-> >>  ffff880200000001 0000000000000000 0000000000000001 000000000093a4a0
-> >> Call Trace:
-> >>  [<ffffffff810d6543>] ? __lock_acquire+0xb63/0x2070
-> >>  [<ffffffff810d532d>] ? mark_held_locks+0x6d/0xa0
-> >>  [<ffffffff810d37a8>] ? __lock_is_held+0x58/0x80
-> >>  [<ffffffff810d852c>] lock_acquire+0x6c/0xa0
-> >>  [<ffffffffa039f1f6>] ? vb2_vmalloc_put_userptr+0x36/0x110 [videobuf2_vmalloc]
-> >>  [<ffffffff819b1a92>] down_read+0x42/0x60
-> >>  [<ffffffffa039f1f6>] ? vb2_vmalloc_put_userptr+0x36/0x110 [videobuf2_vmalloc]
-> >>  [<ffffffff819af1b1>] ? mutex_lock_nested+0x2b1/0x560
-> >>  [<ffffffffa038fdc5>] ? vb2_queue_release+0x25/0x40 [videobuf2_core]
-> >>  [<ffffffffa039f1f6>] vb2_vmalloc_put_userptr+0x36/0x110 [videobuf2_vmalloc]
-> >>  [<ffffffffa038b626>] __vb2_queue_free+0x146/0x5e0 [videobuf2_core]
-> >>  [<ffffffffa038fdd3>] vb2_queue_release+0x33/0x40 [videobuf2_core]
-> >>  [<ffffffffa038fe75>] _vb2_fop_release+0x95/0xb0 [videobuf2_core]
-> >>  [<ffffffffa038feb9>] vb2_fop_release+0x29/0x50 [videobuf2_core]
-> >>  [<ffffffffa03ad372>] vivid_fop_release+0x92/0x230 [vivid]
-> >>  [<ffffffffa0358460>] v4l2_release+0x30/0x80 [videodev]
-> >>  [<ffffffff811a51d5>] __fput+0xe5/0x200
-> >>  [<ffffffff811a5339>] ____fput+0x9/0x10
-> >>  [<ffffffff810a9fa4>] task_work_run+0xc4/0xf0
-> >>  [<ffffffff8108c670>] do_exit+0x3a0/0xaf0
-> >>  [<ffffffff819b3a9b>] ? _raw_spin_unlock_irq+0x2b/0x60
-> >>  [<ffffffff8108e0ff>] do_group_exit+0x4f/0xe0
-> >>  [<ffffffff8109a170>] get_signal+0x200/0x8c0
-> >>  [<ffffffff819b14b5>] ? __mutex_unlock_slowpath+0xf5/0x240
-> >>  [<ffffffff81002593>] do_signal+0x23/0x820
-> >>  [<ffffffff819b1609>] ? mutex_unlock+0x9/0x10
-> >>  [<ffffffffa0358648>] ? v4l2_ioctl+0x78/0xf0 [videodev]
-> >>  [<ffffffff819b4653>] ? int_very_careful+0x5/0x46
-> >>  [<ffffffff810d54bd>] ? trace_hardirqs_on_caller+0x15d/0x200
-> >>  [<ffffffff81002de0>] do_notify_resume+0x50/0x60
-> >>  [<ffffffff819b46a6>] int_signal+0x12/0x17
-> >> Code: ca 81 31 c0 e8 7a e2 8c 00 e8 aa 1d 8d 00 0f 1f 44 00 00 31 db 48 81 c4 a8 00 00 00 89 d8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 66 90 <49> 81 3e 40 4e 02 82 b8 00 00 00 00 44 0f 44 e0 41 83 ff 01 0f
-> >> RIP  [<ffffffff810d5cd0>] __lock_acquire+0x2f0/0x2070
-> >>  RSP <ffff88021d16f9b8>
-> >> CR2: 0000000000000100
-> >> ---[ end trace 25595c2b8560cb57 ]---
-> >> Fixing recursive fault but reboot is needed!
-> > 
-> > Ah, that's tricky. We can end up calling task_work_run() via
-> > exit_task_work() after mm has been shut down. And the task work will be
-> > dropping the last reference to all file descriptors which ends up shutting
-> > down vb2 after current->mm has been cleaned up.
-> > 
-> > So in the light of this it's probably better for the initial patch to
-> > completely avoid grabbing mmap_sem in put_userptr(). It breaks locking for
-> > vma->vm_ops->close() but that's already broken in vb2 as I explained in my
-> > other email. And the remainder of the patch set will make sure we don't
-> > need mmap_sem in put_userptr() at all and thus fixes the whole issue.
-> > 
-> > This also explains why I never saw the problem in my testing - I was always
-> > testing the patch set as a whole.
-> > 
-> > I'll send an updated first patch later today.
-> 
-> OK, good. I'm thinking: if it is OK with Andrew, then the low-level mm changes
-> can be merged for 4.2 through his tree since that doesn't affect anything else
-> (right?), but the vb2 changes I prefer to postpone to 4.3. I'd like to give it
-> enough time for testing and shake-out any remaining issues (hopefully there
-> aren't any, of course).
+Add videobuf2 specific vb2_qbuf and vb2_dqbuf trace events that mirror the
+v4l2_qbuf and v4l2_dqbuf trace events, only they include additional
+information about queue fill state and are emitted right before the buffer
+is enqueued in the driver or userspace is woken up. This allows to make
+sense of the timeline of trace events in combination with others that might
+be triggered by __enqueue_in_driver.
 
-Yeah, the mm changes just provide the infrastructure so they don't depend
-on anything. I think they are fine for 4.2.
+Also two new trace events vb2_buf_queue and vb2_buf_done are added,
+allowing to trace the handover between videobuf2 framework and driver.
 
-> The omap_vout patch can go in for 4.3 as well (this driver might be
-> removed in the near future, so there is no hurry there), and it's up to
-> you what to do with the exynos drm driver.
-> 
-> Does this make sense?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - use event class for similar trace events, as requested by Steven Rostedt
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 11 ++++
+ include/trace/events/v4l2.h              | 97 ++++++++++++++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
 
-OK. I think exynos drm driver conversion can go in with mm changes. I see
-no point in waiting there. I agree with postpoing vb2 changes for 4.3 just
-to be sure we got things right.
-
-								Honza
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 93b3154..b866a6b 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -30,6 +30,8 @@
+ #include <media/v4l2-common.h>
+ #include <media/videobuf2-core.h>
+ 
++#include <trace/events/v4l2.h>
++
+ static int debug;
+ module_param(debug, int, 0644);
+ 
+@@ -1207,6 +1209,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
++	trace_vb2_buf_done(q, vb);
++
+ 	if (state == VB2_BUF_STATE_QUEUED) {
+ 		if (q->start_streaming_called)
+ 			__enqueue_in_driver(vb);
+@@ -1629,6 +1633,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->owned_by_drv_count);
+ 
++	trace_vb2_buf_queue(q, vb);
++
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+@@ -1878,6 +1884,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 			vb->v4l2_buf.timecode = b->timecode;
+ 	}
+ 
++	trace_vb2_qbuf(q, vb);
++
+ 	/*
+ 	 * If already streaming, give the buffer to driver for processing.
+ 	 * If not, the buffer will be given to driver on next streamon.
+@@ -2123,6 +2131,9 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	/* Remove from videobuf queue */
+ 	list_del(&vb->queued_entry);
+ 	q->queued_count--;
++
++	trace_vb2_dqbuf(q, vb);
++
+ 	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
+ 	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
+ 		q->last_buffer_dequeued = true;
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index 4c88a32..d9e9aeb 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -174,6 +174,103 @@ DEFINE_EVENT(v4l2_event_class, v4l2_qbuf,
+ 	TP_ARGS(minor, buf)
+ );
+ 
++DECLARE_EVENT_CLASS(vb2_event_class,
++	TP_PROTO(struct vb2_queue *q, struct vb2_buffer *vb),
++	TP_ARGS(q, vb),
++
++	TP_STRUCT__entry(
++		__field(int, minor)
++		__field(u32, queued_count)
++		__field(int, owned_by_drv_count)
++		__field(u32, index)
++		__field(u32, type)
++		__field(u32, bytesused)
++		__field(u32, flags)
++		__field(u32, field)
++		__field(s64, timestamp)
++		__field(u32, timecode_type)
++		__field(u32, timecode_flags)
++		__field(u8, timecode_frames)
++		__field(u8, timecode_seconds)
++		__field(u8, timecode_minutes)
++		__field(u8, timecode_hours)
++		__field(u8, timecode_userbits0)
++		__field(u8, timecode_userbits1)
++		__field(u8, timecode_userbits2)
++		__field(u8, timecode_userbits3)
++		__field(u32, sequence)
++	),
++
++	TP_fast_assign(
++		__entry->minor = q->owner ? q->owner->vdev->minor : -1;
++		__entry->queued_count = q->queued_count;
++		__entry->owned_by_drv_count =
++			atomic_read(&q->owned_by_drv_count);
++		__entry->index = vb->v4l2_buf.index;
++		__entry->type = vb->v4l2_buf.type;
++		__entry->bytesused = vb->v4l2_buf.bytesused;
++		__entry->flags = vb->v4l2_buf.flags;
++		__entry->field = vb->v4l2_buf.field;
++		__entry->timestamp = timeval_to_ns(&vb->v4l2_buf.timestamp);
++		__entry->timecode_type = vb->v4l2_buf.timecode.type;
++		__entry->timecode_flags = vb->v4l2_buf.timecode.flags;
++		__entry->timecode_frames = vb->v4l2_buf.timecode.frames;
++		__entry->timecode_seconds = vb->v4l2_buf.timecode.seconds;
++		__entry->timecode_minutes = vb->v4l2_buf.timecode.minutes;
++		__entry->timecode_hours = vb->v4l2_buf.timecode.hours;
++		__entry->timecode_userbits0 = vb->v4l2_buf.timecode.userbits[0];
++		__entry->timecode_userbits1 = vb->v4l2_buf.timecode.userbits[1];
++		__entry->timecode_userbits2 = vb->v4l2_buf.timecode.userbits[2];
++		__entry->timecode_userbits3 = vb->v4l2_buf.timecode.userbits[3];
++		__entry->sequence = vb->v4l2_buf.sequence;
++	),
++
++	TP_printk("minor = %d, queued = %u, owned_by_drv = %d, index = %u, "
++		  "type = %s, bytesused = %u, flags = %s, field = %s, "
++		  "timestamp = %llu, timecode = { type = %s, flags = %s, "
++		  "frames = %u, seconds = %u, minutes = %u, hours = %u, "
++		  "userbits = { %u %u %u %u } }, sequence = %u", __entry->minor,
++		  __entry->queued_count,
++		  __entry->owned_by_drv_count,
++		  __entry->index, show_type(__entry->type),
++		  __entry->bytesused,
++		  show_flags(__entry->flags),
++		  show_field(__entry->field),
++		  __entry->timestamp,
++		  show_timecode_type(__entry->timecode_type),
++		  show_timecode_flags(__entry->timecode_flags),
++		  __entry->timecode_frames,
++		  __entry->timecode_seconds,
++		  __entry->timecode_minutes,
++		  __entry->timecode_hours,
++		  __entry->timecode_userbits0,
++		  __entry->timecode_userbits1,
++		  __entry->timecode_userbits2,
++		  __entry->timecode_userbits3,
++		  __entry->sequence
++	)
++)
++
++DEFINE_EVENT(vb2_event_class, vb2_buf_done,
++	TP_PROTO(struct vb2_queue *q, struct vb2_buffer *vb),
++	TP_ARGS(q, vb)
++);
++
++DEFINE_EVENT(vb2_event_class, vb2_buf_queue,
++	TP_PROTO(struct vb2_queue *q, struct vb2_buffer *vb),
++	TP_ARGS(q, vb)
++);
++
++DEFINE_EVENT(vb2_event_class, vb2_dqbuf,
++	TP_PROTO(struct vb2_queue *q, struct vb2_buffer *vb),
++	TP_ARGS(q, vb)
++);
++
++DEFINE_EVENT(vb2_event_class, vb2_qbuf,
++	TP_PROTO(struct vb2_queue *q, struct vb2_buffer *vb),
++	TP_ARGS(q, vb)
++);
++
+ #endif /* if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ) */
+ 
+ /* This part must be outside protection */
 -- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+2.1.4
+
