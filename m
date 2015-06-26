@@ -1,116 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58650 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878AbbFDP6X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Jun 2015 11:58:23 -0400
-Message-ID: <5570758E.6030302@ti.com>
-Date: Thu, 4 Jun 2015 18:58:06 +0300
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:35431 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680AbbFZLEV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2015 07:04:21 -0400
+Received: by ykdy1 with SMTP id y1so55022127ykd.2
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 04:04:20 -0700 (PDT)
 MIME-Version: 1.0
-To: Vinod Koul <vinod.koul@intel.com>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com> <20150529093317.GF3140@localhost> <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com> <20150529101846.GG3140@localhost> <55687892.7050606@ti.com> <20150602125535.GS3140@localhost>
-In-Reply-To: <20150602125535.GS3140@localhost>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <2DCE24E5218441A2AD205B5EA707CB62@unknown>
+References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown>
+	<20150626062210.6ee035ec@recife.lan>
+	<2DCE24E5218441A2AD205B5EA707CB62@unknown>
+Date: Fri, 26 Jun 2015 07:04:20 -0400
+Message-ID: <CAGoCfixD8VwQX9jB8a3_8urGu4y3D+x=JhZvq8PbpTpPcqrGzQ@mail.gmail.com>
+Subject: Re: XC5000C 0x14b4 status
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Unembossed Name <severe.siberian.man@mail.ru>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vinod,
+> It's not "new" IC. It's XC5000C. Maybe i was interpreted wrong.
+> As I have understood, such behaviour can depends from FW version.
+> HW vendor says, that with his latest FW he always gets response 0x14b4.
 
-On 06/02/2015 03:55 PM, Vinod Koul wrote:
-> On Fri, May 29, 2015 at 05:32:50PM +0300, Peter Ujfalusi wrote:
->> On 05/29/2015 01:18 PM, Vinod Koul wrote:
->>> On Fri, May 29, 2015 at 11:42:27AM +0200, Geert Uytterhoeven wrote:
->>>> On Fri, May 29, 2015 at 11:33 AM, Vinod Koul <vinod.koul@intel.com> wrote:
->>>>> On Tue, May 26, 2015 at 04:25:57PM +0300, Peter Ujfalusi wrote:
->>>>>> dma_request_slave_channel_compat() 'eats' up the returned error codes which
->>>>>> prevents drivers using the compat call to be able to do deferred probing.
->>>>>>
->>>>>> The new wrapper is identical in functionality but it will return with error
->>>>>> code in case of failure and will pass the -EPROBE_DEFER to the caller in
->>>>>> case dma_request_slave_channel_reason() returned with it.
->>>>> This is okay but am worried about one more warpper, how about fixing
->>>>> dma_request_slave_channel_compat()
->>>>
->>>> Then all callers of dma_request_slave_channel_compat() have to be
->>>> modified to handle ERR_PTR first.
->>>>
->>>> The same is true for (the existing) dma_request_slave_channel_reason()
->>>> vs. dma_request_slave_channel().
->>> Good point, looking again, I think we should rather fix
->>> dma_request_slave_channel_reason() as it was expected to return err code and
->>> add new users. Anyway users of this API do expect the reason...
->>
->> Hrm, they are for different use.dma_request_slave_channel()/_reason() is for
->> drivers only working via DT or ACPI while
->> dma_request_slave_channel_compat()/_reason() is for drivers expected to run in
->> DT/ACPI or legacy mode as well.
->>
->> I added the dma_request_slave_channel_compat_reason() because OMAP/daVinci
->> drivers are using this to request channels - they need to support DT and
->> legacy mode.
-> I think we should hide these things behind the API and do this behind the
-> hood for ACPI/DT systems.
-> 
-> Also it makes sense to use right API and mark rest as depricated
+Ah, so you're running a completely different firmware image?  Well in
+that case that would explain the different response for the firmware
+loaded indication.
 
-So to convert the dma_request_slave_channel_compat() and not to create _reason
-variant?
+> Not a 0x1388. And I think, that these ICs still come without pre-loaded FW.
+> HW vendor also didn't says anything about FW pre-load possibility.
 
-Or to have single API to request channel? The problem with that is that we
-need different parameters for legacy and DT for example.
+Correct.  These are not parts that have any form of default firmware
+in their ROM mask (i.e. not like the silabs or micronas parts which
+have a default firmware and the ability to patch the ROM via a
+software loaded code update).  The firmware must be loaded every time
+the chip is brought out of reset or it won't work at all.
 
->>
->> But it is doable to do this for both the non _compat and _compat version:
->> 1. change all users to check IS_ERR_OR_NULL(chan)
->>  return the PTR_ERR if not NULL, or do whatever the driver was doing in case
->> of chan == NULL.
->> 2. change the non _compat and _compat versions to do the same as the _reason
->> variants, #define the _reason ones to the non _reason names
->> 3. Rename the _reason use to non _reason function in drivers
->> 4. Remove the #defines for the _reason functions
->> 5. Change the IS_ERR_OR_NULL(chan) to IS_ERR(chan) in all drivers
->> The result:
->> Both dma_request_slave_channel() and dma_request_slave_channel_compat() will
->> return ERR_PTR in case of failure or in success they will return the pinter to
->> chan.
->>
->> Is this what you were asking?
->> It is a bit broader than what this series was doing: taking care of
->> OMAP/daVinci drivers for deferred probing regarding to dmaengine ;)
-> Yes but it would make sense right? I know it is a larger work but then we
-> wouldn't want another dma_request_slave_xxx API, at some point we have stop
-> it exapnding, perhpas now :)
-
-Yes, it make sense to get rid if the _reason() things and have the
-dma_request_slave_channel() and dma_request_slave_channel_compat() return with
-error code
-
-One thing we need to do for this is to change the error codes coming back from
-the _dt() and _acpi() calls when we boot in legacy mode. Right now the only
-error code which comes back is -ENODEV and -EPROBE_DEFER. We need to
-differentiate between 'real' errors and from the fact that we did not booted
-with DT or the ACPI is not available.
-IMHO if we boot with DT and the channel request fails with other than
--EPROBE_DEFER we should not go and try to get the channel via legacy API.
-
-> Yes I am all ears to stage this work and not do transition gardually..
-> 
-
+Devin
 
 -- 
-Péter
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
