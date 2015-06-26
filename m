@@ -1,47 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49599 "EHLO lists.s-osg.org"
+Received: from smtp49.i.mail.ru ([94.100.177.109]:50780 "EHLO smtp49.i.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933823AbbFXDFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2015 23:05:37 -0400
-Message-ID: <558A1E79.8050902@osg.samsung.com>
-Date: Tue, 23 Jun 2015 21:05:29 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1751821AbbFZO7m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2015 10:59:42 -0400
+Message-ID: <BEE05153D9AC45B29751EBD9AD1A43D6@unknown>
+From: "Unembossed Name" <severe.siberian.man@mail.ru>
+To: "Steven Toth" <stoth@kernellabs.com>
+Cc: <linux-media@vger.kernel.org>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	"Devin Heitmueller" <dheitmueller@kernellabs.com>
+References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan><2DCE24E5218441A2AD205B5EA707CB62@unknown><CAGoCfixD8VwQX9jB8a3_8urGu4y3D+x=JhZvq8PbpTpPcqrGzQ@mail.gmail.com><CALzAhNUrAAuPa1y6duaOSuNvpW_AP9g-ttwHkYSXBfdncvCKkA@mail.gmail.com><DB50FB6BCC774E06B4CD8BAB39BA9F55@unknown> <CALzAhNU=2WfkorDuNkD=i=Ez-XrvPW9BzczW81GsoyAC6Przew@mail.gmail.com>
+Subject: Re: XC5000C 0x14b4 status
+Date: Fri, 26 Jun 2015 21:59:30 +0700
 MIME-Version: 1.0
-To: "Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: =?UTF-8?B?Q29tcGlsZXIgd2FybmluZyBmcm9tIGRyaXZlcnMvbWVkaWEvdXNiL2E=?=
- =?UTF-8?B?dTA4MjgvYXUwODI4LXZpZGVvLmM6IEluIGZ1bmN0aW9uIOKAmHF1ZXVlX3NldHU=?=
- =?UTF-8?B?cOKAmQ==?=
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	format=flowed;
+	charset="UTF-8";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Here is a link on a chinese site with datasheet for xc5100.
+http://wenku.baidu.com/view/7f92f3fe700abb68a982fb96.html
+If you look at it, after reading Product ID we also should receive
+0x14b4 (5300 decimal)
 
-I am seeing the following warning from au0828 - linux_media
-media_controller branch:
+I'll try extract a FW from a Windows driver and will share results,
+in case of success.
 
-drivers/media/usb/au0828/au0828-video.c: In function ‘queue_setup’:
-drivers/media/usb/au0828/au0828-video.c:679:6: warning: ‘entity’ may be
-used uninitialized in this function [-Wmaybe-uninitialized]
-   if (sink == entity)
-      ^
-drivers/media/usb/au0828/au0828-video.c:644:24: note: ‘entity’ was
-declared here
-  struct media_entity  *entity, *source;
-                        ^
-
-This looks real to me, but don't know what entity should have been
-initialized to.
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Best regards.
