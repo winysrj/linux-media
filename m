@@ -1,176 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41162 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbbFGKcy (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51128 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751196AbbFZCvL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2015 06:32:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 25 Jun 2015 22:51:11 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1A1782A0376
+	for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 04:50:37 +0200 (CEST)
+Date: Fri, 26 Jun 2015 04:50:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/6] adv7511: replace uintX_t by uX for consistency
-Date: Sun,  7 Jun 2015 12:32:30 +0200
-Message-Id: <1433673155-20179-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
-References: <1433673155-20179-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150626025037.1A1782A0376@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Currently this driver mixes u8/u16 and uint8_t/uint16_t. Standardize on
-u8/u16.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7511.c | 32 ++++++++++++++++----------------
- include/media/adv7511.h     |  6 +++---
- 2 files changed, 19 insertions(+), 19 deletions(-)
+date:		Fri Jun 26 04:00:24 CEST 2015
+git branch:	test
+git hash:	faebbd8f134f0c054f372982c8ddd1bbcc41b440
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 9032567..d9bb90b 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -77,7 +77,7 @@ struct adv7511_state_edid {
- 	u32 blocks;
- 	/* Number of segments read */
- 	u32 segments;
--	uint8_t data[EDID_MAX_SEGM * 256];
-+	u8 data[EDID_MAX_SEGM * 256];
- 	/* Number of EDID read retries left */
- 	unsigned read_retries;
- 	bool complete;
-@@ -89,8 +89,8 @@ struct adv7511_state {
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
- 	int chip_revision;
--	uint8_t i2c_edid_addr;
--	uint8_t i2c_cec_addr;
-+	u8 i2c_edid_addr;
-+	u8 i2c_cec_addr;
- 	/* Is the adv7511 powered on? */
- 	bool power_on;
- 	/* Did we receive hotplug and rx-sense signals? */
-@@ -201,7 +201,7 @@ static int adv7511_wr(struct v4l2_subdev *sd, u8 reg, u8 val)
- 
- /* To set specific bits in the register, a clear-mask is given (to be AND-ed),
-    and then the value-mask (to be OR-ed). */
--static inline void adv7511_wr_and_or(struct v4l2_subdev *sd, u8 reg, uint8_t clr_mask, uint8_t val_mask)
-+static inline void adv7511_wr_and_or(struct v4l2_subdev *sd, u8 reg, u8 clr_mask, u8 val_mask)
- {
- 	adv7511_wr(sd, reg, (adv7511_rd(sd, reg) & clr_mask) | val_mask);
- }
-@@ -223,7 +223,7 @@ static int adv_smbus_read_i2c_block_data(struct i2c_client *client,
- 	return ret;
- }
- 
--static inline void adv7511_edid_rd(struct v4l2_subdev *sd, uint16_t len, uint8_t *buf)
-+static inline void adv7511_edid_rd(struct v4l2_subdev *sd, u16 len, u8 *buf)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	int i;
-@@ -248,7 +248,7 @@ static inline bool adv7511_have_rx_sense(struct v4l2_subdev *sd)
- 	return adv7511_rd(sd, 0x42) & MASK_ADV7511_MSEN_DETECT;
- }
- 
--static void adv7511_csc_conversion_mode(struct v4l2_subdev *sd, uint8_t mode)
-+static void adv7511_csc_conversion_mode(struct v4l2_subdev *sd, u8 mode)
- {
- 	adv7511_wr_and_or(sd, 0x18, 0x9f, (mode & 0x3)<<5);
- }
-@@ -292,7 +292,7 @@ static void adv7511_csc_coeff(struct v4l2_subdev *sd,
- static void adv7511_csc_rgb_full2limit(struct v4l2_subdev *sd, bool enable)
- {
- 	if (enable) {
--		uint8_t csc_mode = 0;
-+		u8 csc_mode = 0;
- 		adv7511_csc_conversion_mode(sd, csc_mode);
- 		adv7511_csc_coeff(sd,
- 				  4096-564, 0, 0, 256,
-@@ -546,8 +546,8 @@ static int adv7511_s_power(struct v4l2_subdev *sd, int on)
- /* Enable interrupts */
- static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
- {
--	uint8_t irqs = MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT;
--	uint8_t irqs_rd;
-+	u8 irqs = MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT;
-+	u8 irqs_rd;
- 	int retries = 100;
- 
- 	v4l2_dbg(2, debug, sd, "%s: %s\n", __func__, enable ? "enable" : "disable");
-@@ -580,7 +580,7 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
- /* Interrupt handler */
- static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
--	uint8_t irq_status;
-+	u8 irq_status;
- 
- 	/* disable interrupts to prevent a race condition */
- 	adv7511_set_isr(sd, false);
-@@ -1033,7 +1033,7 @@ static const struct v4l2_subdev_ops adv7511_ops = {
- };
- 
- /* ----------------------------------------------------------------------- */
--static void adv7511_dbg_dump_edid(int lvl, int debug, struct v4l2_subdev *sd, int segment, uint8_t *buf)
-+static void adv7511_dbg_dump_edid(int lvl, int debug, struct v4l2_subdev *sd, int segment, u8 *buf)
- {
- 	if (debug >= lvl) {
- 		int i, j;
-@@ -1145,7 +1145,7 @@ static void adv7511_check_monitor_present_status(struct v4l2_subdev *sd)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	/* read hotplug and rx-sense state */
--	uint8_t status = adv7511_rd(sd, 0x42);
-+	u8 status = adv7511_rd(sd, 0x42);
- 
- 	v4l2_dbg(1, debug, sd, "%s: status: 0x%x%s%s\n",
- 			 __func__,
-@@ -1189,9 +1189,9 @@ static void adv7511_check_monitor_present_status(struct v4l2_subdev *sd)
- 	}
- }
- 
--static bool edid_block_verify_crc(uint8_t *edid_block)
-+static bool edid_block_verify_crc(u8 *edid_block)
- {
--	uint8_t sum = 0;
-+	u8 sum = 0;
- 	int i;
- 
- 	for (i = 0; i < 128; i++)
-@@ -1203,7 +1203,7 @@ static bool edid_verify_crc(struct v4l2_subdev *sd, u32 segment)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	u32 blocks = state->edid.blocks;
--	uint8_t *data = state->edid.data;
-+	u8 *data = state->edid.data;
- 
- 	if (!edid_block_verify_crc(&data[segment * 256]))
- 		return false;
-@@ -1228,7 +1228,7 @@ static bool edid_verify_header(struct v4l2_subdev *sd, u32 segment)
- static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
--	uint8_t edidRdy = adv7511_rd(sd, 0xc5);
-+	u8 edidRdy = adv7511_rd(sd, 0xc5);
- 
- 	v4l2_dbg(1, debug, sd, "%s: edid ready (retries: %d)\n",
- 			 __func__, EDID_MAX_RETRIES - state->edid.read_retries);
-diff --git a/include/media/adv7511.h b/include/media/adv7511.h
-index bb78bed..f351eff 100644
---- a/include/media/adv7511.h
-+++ b/include/media/adv7511.h
-@@ -40,9 +40,9 @@ struct adv7511_cec_arg {
- };
- 
- struct adv7511_platform_data {
--	uint8_t i2c_edid;
--	uint8_t i2c_cec;
--	uint32_t cec_clk;
-+	u8 i2c_edid;
-+	u8 i2c_cec;
-+	u32 cec_clk;
- };
- 
- #endif
--- 
-2.1.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
