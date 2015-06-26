@@ -1,51 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f175.google.com ([209.85.216.175]:33035 "EHLO
-	mail-qc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbbFKTZ0 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26626 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbbFZI2m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2015 15:25:26 -0400
-Received: by qcnj1 with SMTP id j1so4903485qcn.0
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2015 12:25:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5579DA5F.1000107@gmail.com>
-References: <5578728A.4020106@gmail.com>
-	<CALzAhNVg=uoq2TGb605iugxxzVuWBxEfp3t3hGZShXrQ2dKR4Q@mail.gmail.com>
-	<5579DA5F.1000107@gmail.com>
-Date: Thu, 11 Jun 2015 15:25:25 -0400
-Message-ID: <CALzAhNUB5fsCYEuTKTKfjY4iW2baRBVE1Dkbut2HLSggs5YKZQ@mail.gmail.com>
-Subject: Re: Hauppauge 2250 on Ubuntu 15.04
-From: Steven Toth <stoth@kernellabs.com>
-To: Jeff Allen <worthspending@gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 26 Jun 2015 04:28:42 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NQJ00KMYM7RCU00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Jun 2015 09:28:40 +0100 (BST)
+Message-id: <558D0D29.7060104@samsung.com>
+Date: Fri, 26 Jun 2015 10:28:25 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kamil@wypas.org,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field just
+ as vb2_ioctl_reqbufs does
+References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+ <558BFDED.1090006@samsung.com> <1435245167.3761.53.camel@pengutronix.de>
+In-reply-to: <1435245167.3761.53.camel@pengutronix.de>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 11, 2015 at 2:58 PM, Jeff Allen <worthspending@gmail.com> wrote:
-> Thanks, I did that and it is working now.  However, I ran into another
-> problem.  The card will not scan any channels.  I live in the Chicago area
-> and my cable provider is Wowway.  Wowway requires a main set top box and
-> digital adapters for every other TV in the home.  Cable ready TV's after
-> 2010 are suppose to work without the need for a digital adapter.  I have a
-> feeling that the 2255 card I have will not work with my cable provider.
->
-> Any thoughts?
+Hi Philipp,
 
-Cc'ing linux-media back in.
+On 25/06/15 17:12, Philipp Zabel wrote:
+> Am Donnerstag, den 25.06.2015, 15:11 +0200 schrieb Sylwester Nawrocki:
+>> On 25/06/15 12:01, Philipp Zabel wrote:
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-mem2mem.c | 9 ++++++++-
+>>>  1 file changed, 8 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+>>> index dc853e5..511caaa 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+>>> @@ -357,9 +357,16 @@ int v4l2_m2m_reqbufs(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>>>  		     struct v4l2_requestbuffers *reqbufs)
+>>>  {
+>>>  	struct vb2_queue *vq;
+>>> +	int ret;
+>>>  
+>>>  	vq = v4l2_m2m_get_vq(m2m_ctx, reqbufs->type);
+>>> -	return vb2_reqbufs(vq, reqbufs);
+>>> +	ret = vb2_reqbufs(vq, reqbufs);
+>>> +	/* If count == 0, then the owner has released all buffers and he
+>>> +	   is no longer owner of the queue. Otherwise we have a new owner. */
+>>> +	if (ret == 0)
+>>> +		vq->owner = reqbufs->count ? file->private_data : NULL;
+>>> +
+>>> +	return ret;
+>>>  }
+>>
+>> How about modifying v4l2_m2m_ioctl_reqbufs() instead ?
+> 
+> The coda, gsc-m2m, m2m-deinterlace, mx2_emmaprp, and sh_veu drivers all
+> have their own implementation of vidioc_reqbufs that call
+> v4l2_m2m_reqbufs directly.
+> Maybe this should be moved into v4l2_m2m_ioctl_reqbufs after all drivers
+> are updated to use it instead of v4l2_m2m_reqbufs.
 
-I'm not aware of any US cable provider that the HVR2255 cannot
-tune/demodulate. I'd be highly surprised if your HVR2255 isn't
-delivering packets, unless its faulty.
+In case of some of the above listed drivers it shouldn't be difficult
+and would be nice to convert to the generic v4l2_m2m_ioctl* callbacks.
 
-However, depending on your provider, those multiplexes may only
-contain encrypted tv channels - not watchable by you. I have a handful
-of channels from my provider that are watchable. 300+ are fully
-encrypted.... the data delivered by the card isn't that useful, for
-encrypted channels.
+Anyway, I guess your code change makes sense, just the comment might
+be a little bit misleading. vq->owner will always be one and the same
+file handle, unless I'm missing something.
 
-I suggest you share the output from your scan tests with the mailing
-list and see if anyone can help.
+>> Moreover, does it really makes sense when a new m2m device context
+>> is being created during each video device open()?
+> 
+> Having the queue owner's device minor in the trace output is very useful
+> when tracing a single stream across multiple devices. To discern events
+> from multiple simultaneous contexts I have added the context id to the
+> coda driver specific trace events.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+OK, I understand now, you are just using this stored file handle for traces.
+
+--
+Regards,
+Sylwester
