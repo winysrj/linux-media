@@ -1,197 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37127 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754264AbbFJJVX (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37275 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751685AbbFZIvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 05:21:23 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 4/9] [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
-Date: Wed, 10 Jun 2015 06:20:47 -0300
-Message-Id: <abb00c355248d495dba1da8fb0d9398503f503cc.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433927458.git.mchehab@osg.samsung.com>
-References: <cover.1433927458.git.mchehab@osg.samsung.com>
+	Fri, 26 Jun 2015 04:51:46 -0400
+Message-ID: <558D1297.7080405@xs4all.nl>
+Date: Fri, 26 Jun 2015 10:51:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH v2 1/2] v4l2-utils: add support for reduced fps in
+ cvt modeline
+References: <1435154396-11548-1-git-send-email-prladdha@cisco.com> <1435154396-11548-2-git-send-email-prladdha@cisco.com>
+In-Reply-To: <1435154396-11548-2-git-send-email-prladdha@cisco.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+Hi Prashant,
 
-Simplify the VMA code by using frame_vector_pages() & friends on VB2.
+On 06/24/2015 03:59 PM, Prashant Laddha wrote:
+> Added reduced fps option in cvt timings calculation. In this case,
+> pixel clock is slowed down by a factor of 1000 / 1001 and all other
+> timing parameters are unchanged. With reduced fps option one could
+> generate timings for refresh rates like 29.97 or 59.94. Pixel clock
+> in this case needs better precision, in the order of 0.001 Khz and
+> hence reduced fps option can be supported only when reduced blanking
+> V2 is enabled. Reduced fps is applicable only to nominal refresh
+> rates which are integer multiple of 6, say 24, 30, 60 etc.
+> 
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-modes.cpp | 7 ++++++-
+>  utils/v4l2-ctl/v4l2-ctl-stds.cpp  | 2 +-
+>  utils/v4l2-ctl/v4l2-ctl.h         | 3 ++-
+>  3 files changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-modes.cpp b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+> index 88f7b6a..9439b51 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-modes.cpp
+> @@ -122,6 +122,7 @@ static int v_sync_from_aspect_ratio(int width, int height)
+>   * @reduced_blanking: This value, if greater than 0, indicates that
+>   * reduced blanking is to be used and value indicates the version.
+>   * @interlaced: whether to compute an interlaced mode
+> + * @reduced_fps: reduce fps by factor of 1000 / 1001
+>   * @cvt: stores results of cvt timing calculation
+>   *
+>   * Returns:
+> @@ -131,7 +132,8 @@ static int v_sync_from_aspect_ratio(int width, int height)
+>  
+>  bool calc_cvt_modeline(int image_width, int image_height,
+>  		       int refresh_rate, int reduced_blanking,
+> -		       bool interlaced, struct v4l2_bt_timings *cvt)
+> +		       bool interlaced, bool reduced_fps,
+> +		       struct v4l2_bt_timings *cvt)
+>  {
+>  	int h_sync;
+>  	int v_sync;
+> @@ -295,6 +297,9 @@ bool calc_cvt_modeline(int image_width, int image_height,
+>  
+>  		pixel_clock = v_refresh * total_h_pixel *
+>  			      (2 * total_v_lines + interlace) / 2;
+> +		if (reduced_fps && v_refresh % 6 == 0)
+> +			pixel_clock = ((long long)pixel_clock * 1000) / 1001;
+> +
 
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I merged this patch a bit too quickly since this is wrong. If reduced fps is required,
+then the pixelclock in this struct remains at the nominal frequency and all that
+happens is that the V4L2_DV_FL_REDUCED_FPS flag is set.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index d7bcb05c7058..be7bd6535c9d 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	struct page			**pages;
-+	struct frame_vector		*vec;
- 	int				offset;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
- 	unsigned int			num_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
--	struct vm_area_struct		*vma;
- 
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -225,25 +225,17 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size,
- 				    enum dma_data_direction dma_dir)
- {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
--	unsigned long first, last;
--	int num_pages_from_user;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	DEFINE_DMA_ATTRS(attrs);
-+	struct frame_vector *vec;
- 
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
--
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return NULL;
-@@ -254,63 +246,19 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 	buf->dma_sgt = &buf->sg_table;
--
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->num_pages = last - first + 1;
--
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
--	if (!buf->pages)
--		goto userptr_fail_alloc_pages;
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		dprintk(1, "no vma for address %lu\n", vaddr);
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		dprintk(1, "vma at %lu is too small for %lu bytes\n",
--			vaddr, size);
--		goto userptr_fail_find_vma;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		dprintk(1, "failed to copy vma\n");
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma_is_io(buf->vma)) {
--		for (num_pages_from_user = 0;
--		     num_pages_from_user < buf->num_pages;
--		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
--			unsigned long pfn;
--
--			if (follow_pfn(vma, vaddr, &pfn)) {
--				dprintk(1, "no page for address %lu\n", vaddr);
--				break;
--			}
--			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
--		}
--	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->num_pages,
--					     buf->dma_dir == DMA_FROM_DEVICE,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--	up_read(&current->mm->mmap_sem);
--
--	if (num_pages_from_user != buf->num_pages)
--		goto userptr_fail_get_user_pages;
-+	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec))
-+		goto userptr_fail_pfnvec;
-+	buf->vec = vec;
-+
-+	buf->pages = frame_vector_pages(vec);
-+	if (IS_ERR(buf->pages))
-+		goto userptr_fail_sgtable;
-+	buf->num_pages = frame_vector_count(vec);
- 
- 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
--		goto userptr_fail_alloc_table_from_pages;
-+		goto userptr_fail_sgtable;
- 
- 	sgt = &buf->sg_table;
- 	/*
-@@ -326,19 +274,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- userptr_fail_map:
- 	sg_free_table(&buf->sg_table);
--userptr_fail_alloc_table_from_pages:
--userptr_fail_get_user_pages:
--	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--		buf->num_pages, num_pages_from_user);
--	if (!vma_is_io(buf->vma))
--		while (--num_pages_from_user >= 0)
--			put_page(buf->pages[num_pages_from_user]);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--userptr_fail_find_vma:
--	up_read(&current->mm->mmap_sem);
--	kfree(buf->pages);
--userptr_fail_alloc_pages:
-+userptr_fail_sgtable:
-+	vb2_destroy_framevec(vec);
-+userptr_fail_pfnvec:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -366,13 +304,8 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	while (--i >= 0) {
- 		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
--		if (!vma_is_io(buf->vma))
--			put_page(buf->pages[i]);
- 	}
--	kfree(buf->pages);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
--- 
-2.4.2
+I fixed this in a follow-up patch.
 
+Regards,
+
+	Hans
+
+>  		pixel_clock -= pixel_clock  % clk_gran;
+>  	}
+>  
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+> index aea46c9..e969d08 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+> @@ -241,7 +241,7 @@ static void get_cvt_gtf_timings(char *subopt, int standard,
+>  
+>  	if (standard == V4L2_DV_BT_STD_CVT) {
+>  		timings_valid = calc_cvt_modeline(width, height, fps, r_blank,
+> -						  interlaced == 1 ? true : false, bt);
+> +						  interlaced == 1 ? true : false, false, bt);
+>  	} else {
+>  		timings_valid = calc_gtf_modeline(width, height, fps, r_blank,
+>  						  interlaced == 1 ? true : false, bt);
+> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+> index de65900..113f348 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl.h
+> +++ b/utils/v4l2-ctl/v4l2-ctl.h
+> @@ -351,7 +351,8 @@ void edid_get(int fd);
+>  /* v4l2-ctl-modes.cpp */
+>  bool calc_cvt_modeline(int image_width, int image_height,
+>  		       int refresh_rate, int reduced_blanking,
+> -		       bool interlaced, struct v4l2_bt_timings *cvt);
+> +		       bool interlaced, bool reduced_fps,
+> +		       struct v4l2_bt_timings *cvt);
+>  
+>  bool calc_gtf_modeline(int image_width, int image_height,
+>  		       int refresh_rate, int reduced_blanking,
+> 
