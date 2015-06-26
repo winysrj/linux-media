@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50894 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211AbbFLJXA (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35743 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707AbbFZJDK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2015 05:23:00 -0400
-Message-ID: <557AA4E8.40208@xs4all.nl>
-Date: Fri, 12 Jun 2015 11:22:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 15/15] media: rcar_vin: Reject videobufs that are too
- small for current format
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk> <1433340002-1691-16-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-16-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
+	Fri, 26 Jun 2015 05:03:10 -0400
+Message-ID: <1435309372.3761.70.camel@pengutronix.de>
+Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: set the queue owner field
+ just as vb2_ioctl_reqbufs does
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>, kamil@wypas.org,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Date: Fri, 26 Jun 2015 11:02:52 +0200
+In-Reply-To: <558D0D29.7060104@samsung.com>
+References: <1435226487-24863-1-git-send-email-p.zabel@pengutronix.de>
+	 <558BFDED.1090006@samsung.com> <1435245167.3761.53.camel@pengutronix.de>
+	 <558D0D29.7060104@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2015 04:00 PM, William Towle wrote:
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
+Am Freitag, den 26.06.2015, 10:28 +0200 schrieb Sylwester Nawrocki:
+[...]
+> >> How about modifying v4l2_m2m_ioctl_reqbufs() instead ?
+> > 
+> > The coda, gsc-m2m, m2m-deinterlace, mx2_emmaprp, and sh_veu drivers all
+> > have their own implementation of vidioc_reqbufs that call
+> > v4l2_m2m_reqbufs directly.
+> > Maybe this should be moved into v4l2_m2m_ioctl_reqbufs after all drivers
+> > are updated to use it instead of v4l2_m2m_reqbufs.
 > 
-> In videobuf_setup reject buffers that are too small for the configured
-> format. Fixes v4l2-complience issue.
+> In case of some of the above listed drivers it shouldn't be difficult
+> and would be nice to convert to the generic v4l2_m2m_ioctl* callbacks.
 > 
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Reviewed-by: William Towle <william.towle@codethink.co.uk>
+> Anyway, I guess your code change makes sense, just the comment might
+> be a little bit misleading. vq->owner will always be one and the same
+> file handle, unless I'm missing something.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+True. Since the m2m_ctx containing the vb2_queue is attached to the file
+handle, this will only ever get called with the same file handle for a
+given queue. s/we have a new owner/we have an owner/ ?
 
-Thanks,
-
-	Hans
-
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |    3 +++
->  1 file changed, 3 insertions(+)
+[...]
+> > Having the queue owner's device minor in the trace output is very useful
+> > when tracing a single stream across multiple devices. To discern events
+> > from multiple simultaneous contexts I have added the context id to the
+> > coda driver specific trace events.
 > 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index cc993bc..1531a76 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -541,6 +541,9 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
->  		unsigned int bytes_per_line;
->  		int ret;
->  
-> +		if (fmt->fmt.pix.sizeimage < icd->sizeimage)
-> +			return -EINVAL;
-> +
->  		xlate = soc_camera_xlate_by_fourcc(icd,
->  						   fmt->fmt.pix.pixelformat);
->  		if (!xlate)
-> 
+> OK, I understand now, you are just using this stored file handle for traces.
+
+I should mention this in the patch description.
+
+regards
+Philipp
 
