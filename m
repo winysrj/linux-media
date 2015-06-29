@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:35431 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbbFZLEV (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:37610 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752147AbbF2KZh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 07:04:21 -0400
-Received: by ykdy1 with SMTP id y1so55022127ykd.2
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2015 04:04:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2DCE24E5218441A2AD205B5EA707CB62@unknown>
-References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown>
-	<20150626062210.6ee035ec@recife.lan>
-	<2DCE24E5218441A2AD205B5EA707CB62@unknown>
-Date: Fri, 26 Jun 2015 07:04:20 -0400
-Message-ID: <CAGoCfixD8VwQX9jB8a3_8urGu4y3D+x=JhZvq8PbpTpPcqrGzQ@mail.gmail.com>
-Subject: Re: XC5000C 0x14b4 status
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Unembossed Name <severe.siberian.man@mail.ru>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 29 Jun 2015 06:25:37 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org
+Subject: [PATCHv7 03/15] dts: exynos4412-odroid*: enable the HDMI CEC device
+Date: Mon, 29 Jun 2015 12:14:48 +0200
+Message-Id: <1435572900-56998-4-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> It's not "new" IC. It's XC5000C. Maybe i was interpreted wrong.
-> As I have understood, such behaviour can depends from FW version.
-> HW vendor says, that with his latest FW he always gets response 0x14b4.
+From: Kamil Debski <kamil@wypas.org>
 
-Ah, so you're running a completely different firmware image?  Well in
-that case that would explain the different response for the firmware
-loaded indication.
+Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+family of SoCs.
 
-> Not a 0x1388. And I think, that these ICs still come without pre-loaded FW.
-> HW vendor also didn't says anything about FW pre-load possibility.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Correct.  These are not parts that have any form of default firmware
-in their ROM mask (i.e. not like the silabs or micronas parts which
-have a default firmware and the ability to patch the ROM via a
-software loaded code update).  The firmware must be loaded every time
-the chip is brought out of reset or it won't work at all.
-
-Devin
-
+diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+index d6b49e5..a97362a 100644
+--- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
++++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+@@ -472,6 +472,10 @@
+ 		status = "okay";
+ 	};
+ 
++	cec@100B0000 {
++		status = "okay";
++	};
++
+ 	hdmi_ddc: i2c@13880000 {
+ 		status = "okay";
+ 		pinctrl-names = "default";
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.1.4
+
