@@ -1,52 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:38458 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752947AbbFXPLg (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34231 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753347AbbF2KoC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 11:11:36 -0400
-Received: by wibdq8 with SMTP id dq8so49720940wib.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2015 08:11:35 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: [PATCH 04/12] [media] stv0367: Add support for 16Mhz reference clock
-Date: Wed, 24 Jun 2015 16:11:02 +0100
-Message-Id: <1435158670-7195-5-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	Mon, 29 Jun 2015 06:44:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux-samsung-soc@vger.kernel.org, kamil@wypas.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/4] Makefile.am: copy cec headers with make sync-with-kernel
+Date: Mon, 29 Jun 2015 12:43:13 +0200
+Message-Id: <1435574596-38029-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
+References: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The B2100A dvb NIM card from ST has 2x stv0367 demodulators
-and 2x TDA18212 silicon tuners, with a 16Mhz crystal. To
-get this working properly with the upstream driver we need
-to add support for the 16Mhz reference clock.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Copy the new cec headers.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/stv0367.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ Makefile.am | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index c3b7e6c..ad7cab7 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -1554,6 +1554,11 @@ static int stv0367ter_init(struct dvb_frontend *fe)
- 
- 	switch (state->config->xtal) {
- 		/*set internal freq to 53.125MHz */
-+	case 16000000:
-+		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
-+		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
-+		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
-+		break;
- 	case 25000000:
- 		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
- 		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
+diff --git a/Makefile.am b/Makefile.am
+index 1a61592..b8c450d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -21,6 +21,8 @@ sync-with-kernel:
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-common.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-subdev.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-mediabus.h -o \
++	      ! -f $(KERNEL_DIR)/usr/include/linux/cec.h -o \
++	      ! -f $(KERNEL_DIR)/usr/include/linux/cec-funcs.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/ivtv.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/frontend.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h -o \
+@@ -38,6 +40,8 @@ sync-with-kernel:
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/v4l2-mediabus.h $(top_srcdir)/include/linux
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/media-bus-format.h $(top_srcdir)/include/linux
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/media.h $(top_srcdir)/include/linux
++	cp -a $(KERNEL_DIR)/usr/include/linux/cec.h $(top_srcdir)/include/linux
++	cp -a $(KERNEL_DIR)/usr/include/linux/cec-funcs.h $(top_srcdir)/include/linux
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/ivtv.h $(top_srcdir)/include/linux
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/dvb/frontend.h $(top_srcdir)/include/linux/dvb
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h $(top_srcdir)/include/linux/dvb
 -- 
-1.9.1
+2.1.4
 
