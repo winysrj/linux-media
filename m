@@ -1,55 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41006 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753465AbbFCHzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 03:55:38 -0400
-Message-ID: <556EB2F7.506@iki.fi>
-Date: Wed, 03 Jun 2015 10:55:35 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp.academica.fi ([109.75.228.249]:52474 "EHLO
+	smtp41.academica.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992AbbF2JjK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2015 05:39:10 -0400
+Message-ID: <55911239.4000709@iki.fi>
+Date: Mon, 29 Jun 2015 12:39:05 +0300
+From: Jouni Karvo <Jouni.Karvo@iki.fi>
 MIME-Version: 1.0
-To: Stephen Allan <stephena@intellectit.com.au>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
-In-Reply-To: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
+To: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: cx23885 risc op code error with DvbSKY T982
+References: <55870014.90902@iki.fi> <5587D8A5.70905@iki.fi> <5587DB9F.4020008@gmail.com>
+In-Reply-To: <5587DB9F.4020008@gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2015 06:55 AM, Stephen Allan wrote:
-> I am aware that there is some development going on for the saa7164 driver to support the Hauppauge WinTV-HVR2205.  I thought I would post some feedback.  I have recently compiled the driver as at 2015-05-31 using "media build tree".  I am unable to tune a channel.  When running the following w_scan command:
->
-> w_scan -a4 -ft -cAU -t 3 -X > /tmp/tzap/channels.conf
->
-> I get the following error after scanning the frequency range for Australia.
->
-> ERROR: Sorry - i couldn't get any working frequency/transponder
->   Nothing to scan!!
->
-> At the same time I get the following messages being logged to the Linux console.
->
-> dmesg
-> [165512.436662] si2168 22-0066: unknown chip version Si2168-
-> [165512.450315] si2157 21-0060: found a 'Silicon Labs Si2157-A30'
-> [165512.480559] si2157 21-0060: firmware version: 3.0.5
-> [165517.981155] si2168 22-0064: unknown chip version Si2168-
-> [165517.994620] si2157 20-0060: found a 'Silicon Labs Si2157-A30'
-> [165518.024867] si2157 20-0060: firmware version: 3.0.5
-> [165682.334171] si2168 22-0064: unknown chip version Si2168-
-> [165730.579085] si2168 22-0064: unknown chip version Si2168-
-> [165838.420693] si2168 22-0064: unknown chip version Si2168-
-> [166337.342437] si2168 22-0064: unknown chip version Si2168-
-> [167305.393572] si2168 22-0064: unknown chip version Si2168-
->
->
-> Many thanks to the developers for all of your hard work.
+22.06.2015, 12:55, Tycho Lürsen kirjoitti:
+> I've got a couple of T982 cards. Running Debian Jessie, with kernel 
+> 4.1-rc8, I cannot reproduce your errors.
+> Only difference might be:
+> I synced the silabs drivers with upstream and used the patch from:
 
-Let me guess they have changed Si2168 chip to latest "C" version. Driver 
-supports only A and B (A20, A30 and B40). I have never seen C version.
+hi,
 
-regards
-Antti
+I tested with 4.1.0 (which produced the errors.  4.1.0 with media_build 
+produced the errors.  I did not test that with the patch, as because of 
+another kernel bug (in mdraid) I switched to 4.0.6.
 
--- 
-http://palosaari.fi/
+With 4.0.6 this error does not seem to happen with neither card.
+
+yours,
+         Jouni
