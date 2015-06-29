@@ -1,66 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:65363 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbbFYLQL (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:33781 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809AbbF2TZO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2015 07:16:11 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	linux-crypto@vger.kernel.org,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Thu, 25 Jun 2015 13:15:57 +0200
-Message-ID: <4970019.av0JOFIyTW@wuerfel>
-In-Reply-To: <20150624162401.GP19530@localhost>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <5587F1F4.1060905@ti.com> <20150624162401.GP19530@localhost>
+	Mon, 29 Jun 2015 15:25:14 -0400
+Date: Mon, 29 Jun 2015 12:25:09 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org
+Subject: Re: [PATCHv7 04/15] HID: add HDMI CEC specific keycodes
+Message-ID: <20150629192509.GD22166@dtor-ws>
+References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+ <1435572900-56998-5-git-send-email-hans.verkuil@cisco.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1435572900-56998-5-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 24 June 2015 21:54:01 Vinod Koul wrote:
-> > It would be nice to find another name for the
-> > dma_request_slave_channel_compat() so with the new name we could have chance
-> > to rearrange the parameters: (dev, name, mask, fn, fn_param)
-> > 
-> > We would end up with the following APIs, all returning with error code on failure:
-> > dma_request_slave_channel(dev, name);
-> > dma_request_channel_legacy(mask, fn, fn_param);
-> > dma_request_slave_channel_compat(mask, fn, fn_param, dev, name);
-> > dma_request_any_channel(mask);
-> This is good idea but still we end up with 4 APIs. Why not just converge to
-> two API, one legacy + memcpy + filer fn and one untimate API for slave?
+On Mon, Jun 29, 2015 at 12:14:49PM +0200, Hans Verkuil wrote:
+> From: Kamil Debski <kamil@wypas.org>
 > 
-> Internally we may have 4 APIs for cleaner handling...
+> Add HDMI CEC specific keycodes to the keycodes definition.
+> 
+> Signed-off-by: Kamil Debski <kamil@wypas.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Could you please describe the intended use for these keycodes for people
+who do not live and breathe CEC specs?
+
+Thanks!
+
+> ---
+>  include/uapi/linux/input.h | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+> index 731417c..7430a3f 100644
+> --- a/include/uapi/linux/input.h
+> +++ b/include/uapi/linux/input.h
+> @@ -752,6 +752,18 @@ struct input_keymap_entry {
+>  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+>  #define KEY_KBDINPUTASSIST_CANCEL		0x265
+>  
+> +#define KEY_RIGHT_UP			0x266
+> +#define KEY_RIGHT_DOWN			0x267
+> +#define KEY_LEFT_UP			0x268
+> +#define KEY_LEFT_DOWN			0x269
+> +
+> +#define KEY_NEXT_FAVORITE		0x270
+> +#define KEY_STOP_RECORD			0x271
+> +#define KEY_PAUSE_RECORD		0x272
+> +#define KEY_VOD				0x273
+> +#define KEY_UNMUTE			0x274
+> +#define KEY_DVB				0x275
+> +
+>  #define BTN_TRIGGER_HAPPY		0x2c0
+>  #define BTN_TRIGGER_HAPPY1		0x2c0
+>  #define BTN_TRIGGER_HAPPY2		0x2c1
+> -- 
+> 2.1.4
 > 
 
-Not sure if it's realistic, but I think it would be nice to have
-a way for converting the current slave drivers that use the
-mask/filter/param API to the dev/name based API. We should
-be able to do this by registering a lookup table from platform
-code that translates one to the other, like we do with the
-clkdev lookup to find a device clock based on a local identifier.
-
-The main downside of this is that it's a lot of work if we want
-to completely remove dma_request_channel() for slave drivers,
-but it could be done more gradually.
-
-Another upside is that we could come up with a mechanism to
-avoid the link-time dependency on the filter-function that
-causes problems when that filter is defined in a loadable
-module for the dmaengine driver.
-
-	Arnd
+-- 
+Dmitry
