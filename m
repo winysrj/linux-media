@@ -1,234 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50224 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752757AbbFZPBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 11:01:34 -0400
-Date: Fri, 26 Jun 2015 12:01:27 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC] Enumeration of Media Interfaces
-Message-ID: <20150626120127.7d31141d@recife.lan>
-In-Reply-To: <558D3615.3050608@xs4all.nl>
-References: <558D3615.3050608@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:43857 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020AbbF2KZ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2015 06:25:57 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv7 08/15] cec.txt: add CEC framework documentation
+Date: Mon, 29 Jun 2015 12:14:53 +0200
+Message-Id: <1435572900-56998-9-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hansverk@cisco.com>
 
-Em Fri, 26 Jun 2015 13:23:01 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Document the new HDMI CEC framework.
 
-> Introduction
-> ============
-> 
-> This RFC is a proposal that will hopefully fix the impasse w.r.t. DVB and MC.
-> This proposal was the result of a private irc discussion between Laurent and
-> myself. We were both on opposite sides of the earlier discussions and we decided
-> to try to come to a solution between just the two of us. Sakari read an earlier
-> version of this RFC and is OK with it as well, so now it is time to post it
-> publicly. Hopefully Mauro likes it as well.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: add DocBook documentation by Hans Verkuil, with
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/cec.txt | 166 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 166 insertions(+)
+ create mode 100644 Documentation/cec.txt
 
-Yeah, the general concept of the RFC is OK to me. We need to dig into the
-details.
+diff --git a/Documentation/cec.txt b/Documentation/cec.txt
+new file mode 100644
+index 0000000..b298249
+--- /dev/null
++++ b/Documentation/cec.txt
+@@ -0,0 +1,166 @@
++CEC Kernel Support
++==================
++
++The CEC framework provides a unified kernel interface for use with HDMI CEC
++hardware. It is designed to handle a multiple variants of hardware. Adding to
++the flexibility of the framework it enables to set which parts of the CEC
++protocol processing is handled by the hardware, by the driver and by the
++userspace application.
++
++
++The CEC Protocol
++----------------
++
++The CEC protocol enables consumer electronic devices to communicate with each
++other through the HDMI connection. The protocol uses logical addresses in the
++communication. The logical address is strictly connected with the functionality
++provided by the device. The TV acting as the communication hub is always
++assigned address 0. The physical address is determined by the physical
++connection between devices.
++
++The protocol enables control of compatible devices with a single remote.
++Synchronous power on/standby, instant playback with changing the content source
++on the TV.
++
++The Kernel Interface
++====================
++
++CEC Adapter
++-----------
++
++#define CEC_LOG_ADDR_INVALID 0xff
++
++/* The maximum number of logical addresses one device can be assigned to.
++ * The CEC 2.0 spec allows for only 2 logical addresses at the moment. The
++ * Analog Devices CEC hardware supports 3. So let's go wild and go for 4. */
++#define CEC_MAX_LOG_ADDRS 4
++
++/* The "Primary Device Type" */
++#define CEC_OP_PRIM_DEVTYPE_TV		0
++#define CEC_OP_PRIM_DEVTYPE_RECORD		1
++#define CEC_OP_PRIM_DEVTYPE_TUNER		3
++#define CEC_OP_PRIM_DEVTYPE_PLAYBACK		4
++#define CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM	5
++#define CEC_OP_PRIM_DEVTYPE_SWITCH		6
++#define CEC_OP_PRIM_DEVTYPE_VIDEOPROC	7
++
++/* The "All Device Types" flags (CEC 2.0) */
++#define CEC_OP_ALL_DEVTYPE_TV		(1 << 7)
++#define CEC_OP_ALL_DEVTYPE_RECORD	(1 << 6)
++#define CEC_OP_ALL_DEVTYPE_TUNER	(1 << 5)
++#define CEC_OP_ALL_DEVTYPE_PLAYBACK	(1 << 4)
++#define CEC_OP_ALL_DEVTYPE_AUDIOSYSTEM	(1 << 3)
++#define CEC_OP_ALL_DEVTYPE_SWITCH	(1 << 2)
++/* And if you wondering what happened to VIDEOPROC devices: those should
++ * be mapped to a SWITCH. */
++
++/* The logical address types that the CEC device wants to claim */
++#define CEC_LOG_ADDR_TYPE_TV		0
++#define CEC_LOG_ADDR_TYPE_RECORD	1
++#define CEC_LOG_ADDR_TYPE_TUNER		2
++#define CEC_LOG_ADDR_TYPE_PLAYBACK	3
++#define CEC_LOG_ADDR_TYPE_AUDIOSYSTEM	4
++#define CEC_LOG_ADDR_TYPE_SPECIFIC	5
++#define CEC_LOG_ADDR_TYPE_UNREGISTERED	6
++/* Switches should use UNREGISTERED.
++ * Video processors should use SPECIFIC. */
++
++/* The CEC version */
++#define CEC_OP_CEC_VERSION_1_3A		4
++#define CEC_OP_CEC_VERSION_1_4		5
++#define CEC_OP_CEC_VERSION_2_0		6
++
++struct cec_adapter {
++	/* internal fields removed */
++
++	u16 phys_addr;
++	u32 capabilities;
++	u8 version;
++	u8 num_log_addrs;
++	u8 prim_device[CEC_MAX_LOG_ADDRS];
++	u8 log_addr_type[CEC_MAX_LOG_ADDRS];
++	u8 log_addr[CEC_MAX_LOG_ADDRS];
++
++	int (*adap_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
++	int (*adap_transmit)(struct cec_adapter *adap, struct cec_msg *msg);
++	void (*adap_transmit_timed_out)(struct cec_adapter *adap);
++
++	void (*claimed_log_addr)(struct cec_adapter *adap, u8 idx);
++	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
++};
++
++int cec_create_adapter(struct cec_adapter *adap, u32 caps);
++void cec_delete_adapter(struct cec_adapter *adap);
++int cec_transmit_msg(struct cec_adapter *adap, struct cec_data *data, bool block);
++
++/* Called by the adapter */
++void cec_transmit_done(struct cec_adapter *adap, u32 status);
++void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++
++int cec_receive_msg(struct cec_adapter *adap, struct cec_msg *msg, bool block);
++int cec_claim_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs, bool block);
++
++The device type defines are defined by the CEC standard.
++
++The cec_adapter structure represents the adapter. It has a number of
++operations that have to be implemented in the driver: adap_enable() enables
++or disables the physical adapter, adap_log_addr() tells the driver which
++logical address should be configured. This may be called multiple times
++to configure multiple logical addresses. Calling adap_enable(false) or
++adap_log_addr(CEC_LOG_ADDR_INVALID) will clear all configured logical
++addresses.
++
++The adap_transmit op will setup the hardware to send out the given CEC message.
++This will return without waiting for the transmission to finish. The
++adap_transmit_timed_out() function is called when the current transmission timed
++out and the hardware needs to be informed of this (the hardware should go back
++from transmitter to receiver mode).
++
++The adapter driver will also call into the adapter: it should call
++cec_transmit_done() when a cec transfer was finalized and cec_received_msg()
++when a new message was received.
++
++When a message is received the received() op is called.
++
++The driver has to call cec_create_adapter to initialize the structure. If
++the 'caps' argument is non-zero, then it will also create a /dev/cecX
++device node to allow userspace to interact with the CEC device. Userspace
++can request those capabilities with the CEC_G_CAPS ioctl.
++
++In order for a CEC adapter to be configured it needs a physical address.
++This is normally assigned by the driver. It is either 0.0.0.0 for a TV (aka
++video receiver) or it is derived from the EDID that the source received
++from the sink. This is normally set by the driver before enabling the CEC
++adapter, or it is set from userspace in the case of CEC USB dongles (although
++embedded systems might also want to set this manually).
++
++After enabling the CEC adapter it has to be configured.
++
++The userspace has to inform the CEC adapter of which type of device it requests
++the adapter to identify itself. After this information is set by userspace, the
++CEC framework will attempt to to find and claim a logical addresses matching the
++requested device type. If none are found, then it will fall back to logical
++address Unregistered (15). To clear the logical addresses list from the list the
++userspace application should set the num_log_addrs field of struct cec_log_addr
++to 0.
++
++The type of device is set from the userspace with the CEC_S_ADAP_LOG_ADDRS. In
++addition, claiming logical addresses can be initiated from the kernel side by
++calling the cec_claim_log_addrs function.
++
++Before the addresses are claimed it is possible to send and receive messages.
++Sending all messages is possible as it is up to the userspace to the source
++and destination addresses in the message payload. However, only broadcast
++messages can be received until a regular logical address is claimed.
++
++When a CEC message is received the CEC framework will take care of the CEC
++core messages CEC_MSG_GET_CEC_VERSION, CEC_MSG_GIVE_PHYS_ADDR and CEC_MSG_ABORT.
++Then it will call the received() op (if set), and finally it will queue it
++for handling by userspace if create_devnode was true, or send back
++FEATURE_ABORT if create_devnode was false.
++
++Drivers can also use the cec_transmit_msg() call to transmit a message. This
++can either be fire-and-forget (the CEC framework will queue up messages in a
++transmit queue), or a blocking wait until there is either an error or a
++reply to the message.
+-- 
+2.1.4
 
-> 
-> This proposal is fairly high-level, and it does not attempt to go into details.
-> Before doing that we need to know if all parties agree with the basic concept.
-> Laurent, Sakari and myself are considering to meet in Finland for 2-3 days in
-> July to hammer out the details.
-
-A meeting to discuss would be good. I should be participating on it, but
-we should try a closer venue. We could do that in Brazil ;) Or on some place
-in the middle, that would have more direct routes from here. London is a
-good place, as I can get some space for our meeting at Samsung Research UK,
-with would make easier to have other Samsung guys working on DVB to join us.
-
-Let's try to schedule this via IRC, and then announce though the ML to
-see if others can join as well.
-
-> Proposal
-> ========
-> 
-> There are two types of drivers: the first (true for all non-MC drivers available
-> today) controls the full pipeline through DVB/V4L/ALSA/etc. interfaces (generally
-> these interfaces are device nodes). Applications for these drivers do not need to
-> know which entities there are, knowing the interfaces is enough.
-> 
-> The second type (the current set of MC drivers) exposes the hardware through media
-> entities, and each entity can be controlled through a single device node:
-> v4l-subdevX for subdevices, and videoX for DMA engines. Applications for these
-> drivers will need to know the entities and how they are linked in order to configure
-> the hardware correctly. The only interfaces they need to know are those that control
-> each entity.
-> 
-> The first type of driver will be called an 'interface-centric' driver, the second
-> type will be called an 'entity-centric' driver in this document. Better names are
-> welcome, but I can't talk about MC and non-MC drivers anymore since we want to use
-> the MC for all drivers, so we need to come up with another name. So interface vs
-> entity centric is the best I came up with.
-> 
-> So we want to extend the use of the MC for all driver types, but we ran into a major
-> difference of opinion of how to represent device nodes (are these media entities or
-> properties of media entities?) and how to represent which entities a device node
-> controls (through links, properties, something else?).
-> 
-> This RFC presents a solution that I hope is acceptable to all.
-> 
-> 
-> Media Interfaces
-> ================
-> 
-> The key difference of this proposal is that interfaces such as device nodes (but
-> this can be an e.g. network interface as well) are represented by a new struct:
-> media_interface. And that the list of interfaces that a media device has
-> can be obtained by a new ioctl: MEDIA_IOC_G_INTERFACES. The ioctl will get all
-> interfaces in a single call for efficiency and atomicity.
-> 
-> So an interface is different from an entity, but both are first class citizens in
-> the media controller.
-> 
-> The kernel implementation will be that the media_entity in struct video_device will
-> be replaced by a struct media_interface. And any media_interface that is created
-> will link into a linked list maintained by the media_device struct. As a consequence
-> of this change there now is no longer a media_entity for DMA engines to use: this
-> will have to be created in the DMA engine driver itself, just as subdevice drivers
-> have their own media_entity.
-> 
-> This design is a lot cleaner as well since today the video_device struct used
-> to represent a v4l-subdevX device node doesn't use the media_entity field, which
-> is weird and it indicates that there is a problem with the datastructure design.
-> 
-> However, with the introduction of a media_interface struct any video_device struct
-> will always use the media_interface field.
-> 
-> So device nodes are media interfaces, hardware blocks are media entities. In rare
-> cases software blocks are allowed as media entities (e.g. the DVB software demux),
-> but there should be very good reasons for doing so.
-> 
-> This solves the problem of how to represent device nodes: these are no longer entities
-> (which several developers were strongly opposed to), but neither are they properties
-> (which the other camp was strongly opposed to). Instead they are now a new object:
-> the media interface.
-> 
-> The existing DVB/V4L/ etc. applications can use the new ioctl to obtain all interfaces
-> exposed by the MC and open the device nodes that are relevant to them.
-> 
-> They don't care about entities (some might in the future, but for now this is not
-> something they need), they just want the interfaces.
-> 
-> On the other hand applications written for MC devices need to enumerate the entities
-> and entities may have an interface. For both backwards compatibility and as a shortcut
-> the interface that controls the entity will remain available through the media_entity,
-> but only if there is a one-to-one mapping between the entity and interface. This is
-> always the case today.
-> 
-> Both entities and interfaces will likely need properties, and we should use the same
-> property API for both.
-> 
-> 
-> Relationship between Entities and Interfaces
-> ============================================
-> 
-> This leaves the final missing piece: how to tell userspace which interfaces control
-> which entities? Or, alternatively: which interfaces control an entity?
-> 
-> The best solution in my view is to do both: depending on the type of driver you approach
-> this from different directions: either you start with entities and want to find the
-> interfaces (this is for entity-centric drivers), or you start with interfaces and you
-> want to find the entities they control (interface-centric drivers).
-> 
-> So keep everyone happy and just support both. It's easy to store this information
-> efficiently in the kernel and to support both approaches. From an application point
-> of view either approach (entity or interface centric) is equally valid, so the API
-> should reflect that.
-> 
-> The current proposal is to expose the list of interfaces that control an entity and
-> the list of entities controlled by an interface as a property of the entity and
-> interface respectively.
-> 
-> I am not 100% certain about this, as I think that an argument can be made that
-> extending struct media_links_enum with a 'struct media_ctl_link_desc *ctl_links' is
-> a valid approach as well, but using properties would be acceptable for me as well.
-> 
-> I personally like the idea of a media_ctl_link_desc (similar to the media_link_desc,
-> except there is no pad index) since that would allow a future MEDIA_IOC_SETUP_CTL_LINK
-> ioctl to be added if we ever need to enable/disable control links.
-
-That seems to be better than using properties, as it allows to express the
-1:n, n:m and n:1 relationships better than properties. All those graphs
-seem to have usecases. Examples of complex relationships:
-
-- a frontend devnode has a 1:n relationship with entities, as it controls SEC,
-  tuner, demodulator entities;
-- both net and demux device nodes control the demux entity (n:1 relationship);
-- the network device node also controls multiple network entities. As it
-  controls the demux, the relationship is actually n:m.
-
-In order to address such complex scenarios, userspace will likely need to
-build a graph in order to be able to properly manage the hardware. Properties
-is not the best way to represent such graphs.
-
-> The media_ctl_link_desc struct could look like this:
-> 
-> struct media_ctl_link_desc {
-> 	__u32 entity;
-> 	__u32 interface;
-> 	__u32 flags;	/* media link flags */
-> };
-
-Seems to work, although it could be useful to add something either now
-or in the future that wouldhelp to identify what type(s) of properties 
-are controlled via the control link.
-
-For example, in the case of a V4L2 device node, we have:
-
-	/dev/video0 ---- tuner, video/audio std ioctls----> tuner
-	/dev/video0 ------- video/audio std ioctls -------> analog demod
-
-Ok, on the above case, this is obvious, but on a scenario that it is
-between "interface-centric" and "entity-centric", this info could be
-useful. I guess we have this already on some existing drivers, where the
-same entity could be controlled either via the subdev devnode or via
-the V4L2 device node.
-
-I don't see any usecase where we would need this for DVB ATM, although
-complex hybrid devices could need it. So, this discussion can be
-postponed if we don't reach an agreement on those "control link
-proprieties".
-
-> 
-> Since media interfaces will have their own 32-bit ID (just like entities, and I guess
-> the same counter in media_device could be used for both), both entities and interfaces
-> can be referred to in properties (or in a struct media_ctl_link_desc) as a unique u32
-> value.
-> 
-> For the union in media_entity_desc I would propose that we keep dev for backwards
-> compatibility, and only use it for v4l-subdev and video nodes (DMA engine). New
-> applications should use properties to find the interfaces. I'm not certain about
-> this, this is definitely one of the details that need to be hammered out.
-> 
-> We might not need the union anymore anyway, so that would make a lot of space
-> available in media_entity_desc. We'd have to think about how to use that.
-> 
-> Not discussed here are the details of the property API. That's a separate
-> discussion.
-> 
-> 
-> Summary
-> =======
-> 
-> I think this proposal makes sense: the media controller enumerates both entities
-> and interfaces, and entities can export their interfaces and interfaces can export
-> their entities.
-> 
-> Everybody happy :-)
-> 
-> Regards,
-> 
-> 	Hans
