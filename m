@@ -1,126 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 59-100-193-174.mel.static-ipl.aapt.com.au ([59.100.193.174]:22746
-	"EHLO mail6.intellectit.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753192AbbFDAiJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49427 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752907AbbF2IKP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 20:38:09 -0400
-Received: from mail6.intellectit.com.au (localhost.localdomain [127.0.0.1])
-	by localhost (Email Security Appliance) with SMTP id 5143143E62_56F9DEBB
-	for <linux-media@vger.kernel.org>; Thu,  4 Jun 2015 00:38:03 +0000 (GMT)
-Received: from mail.intellectit.com.au (iitmail.intellectit.local [192.168.254.230])
-	by mail6.intellectit.com.au (Sophos Email Appliance) with ESMTP id 7EA8C43EB2_56F9DEAF
-	for <linux-media@vger.kernel.org>; Thu,  4 Jun 2015 00:38:02 +0000 (GMT)
-From: Stephen Allan <stephena@intellectit.com.au>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Hauppauge WinTV-HVR2205 driver feedback
-Date: Thu, 4 Jun 2015 00:38:05 +0000
-Message-ID: <d5b30de9fc234bd7b4bbf3d1cbcc8ffc@IITMAIL.intellectit.local>
-References: <b69d68a858a946c59bb1e292111504ad@IITMAIL.intellectit.local>
- <556EB2F7.506@iki.fi> <556EB4B0.8050505@iki.fi>
-In-Reply-To: <556EB4B0.8050505@iki.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	Mon, 29 Jun 2015 04:10:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL in link validate default
+Date: Mon, 29 Jun 2015 11:10:17 +0300
+Message-ID: <1906172.kdU77gsF2d@avalon>
+In-Reply-To: <5590F276.40909@linux.intel.com>
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com> <5590F276.40909@linux.intel.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNCkp1c3QgdGhvdWdodCBJJ2QgY2xhcmlmeSB0aGF0IGluIG15IGNhc2UgSSBoYXZlbid0
-IGV2ZXIgdXNlZCB0aGlzIGJvYXJkIHdpdGggV2luZG93cy4gIFNlZSBhIG1vcmUgZGV0YWlsZWQg
-ZG1lc2cgb3V0cHV0IGJlbG93IGZvciAic2FhNzE2OCIgYW5kICJzaTIxeHgiIG1lc3NhZ2VzLiAg
-RnJvbSB3aGF0IEkgYW0gc2VlaW5nIHRoZSBmaXJtd2FyZSBpcyBsb2FkaW5nIGNvcnJlY3RseS4g
-IEhvd2V2ZXIgSSBtYXkgYmUgd3JvbmcuDQoNCmRtZXNnIHwgZ3JlcCAnc2FhNzE2NFx8c2kyMScN
-ClsgICAxOC4xMTI0MzldIHNhYTcxNjQgZHJpdmVyIGxvYWRlZA0KWyAgIDE4LjExMzQyOV0gQ09S
-RSBzYWE3MTY0WzBdOiBzdWJzeXN0ZW06IDAwNzA6ZjEyMCwgYm9hcmQ6IEhhdXBwYXVnZSBXaW5U
-Vi1IVlIyMjA1IFtjYXJkPTEzLGF1dG9kZXRlY3RlZF0NClsgICAxOC4xMTM0MzVdIHNhYTcxNjRb
-MF0vMDogZm91bmQgYXQgMDAwMDowMzowMC4wLCByZXY6IDEyOSwgaXJxOiAxNiwgbGF0ZW5jeTog
-MCwgbW1pbzogMHhmNzgwMDAwMA0KWyAgIDE4LjExMzQ3MF0gc2FhNzE2NCAwMDAwOjAzOjAwLjA6
-IGlycSA0NiBmb3IgTVNJL01TSS1YDQpbICAgMTguMjcwMzEwXSBzYWE3MTY0X2Rvd25sb2FkZmly
-bXdhcmUoKSBubyBmaXJzdCBpbWFnZQ0KWyAgIDE4LjI3MDMyMl0gc2FhNzE2NF9kb3dubG9hZGZp
-cm13YXJlKCkgV2FpdGluZyBmb3IgZmlybXdhcmUgdXBsb2FkIChOWFA3MTY0LTIwMTAtMDMtMTAu
-MS5mdykNClsgICAyMC4yNDA2MzVdIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIGZpcm13YXJl
-IHJlYWQgNDAxOTA3MiBieXRlcy4NClsgICAyMC4yNDA2MzddIHNhYTcxNjRfZG93bmxvYWRmaXJt
-d2FyZSgpIGZpcm13YXJlIGxvYWRlZC4NClsgICAyMC4yNDA2NDJdIHNhYTcxNjRfZG93bmxvYWRm
-aXJtd2FyZSgpIFNlY0Jvb3RMb2FkZXIuRmlsZVNpemUgPSA0MDE5MDcyDQpbICAgMjAuMjQwNjQ4
-XSBzYWE3MTY0X2Rvd25sb2FkZmlybXdhcmUoKSBGaXJtd2FyZVNpemUgPSAweDFmZDYNClsgICAy
-MC4yNDA2NDldIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIEJTTFNpemUgPSAweDANClsgICAy
-MC4yNDA2NTBdIHNhYTcxNjRfZG93bmxvYWRmaXJtd2FyZSgpIFJlc2VydmVkID0gMHgwDQpbICAg
-MjAuMjQwNjUwXSBzYWE3MTY0X2Rvd25sb2FkZmlybXdhcmUoKSBWZXJzaW9uID0gMHgxNjYxYzAw
-DQpbICAgMjcuMDk2MjY5XSBzYWE3MTY0X2Rvd25sb2FkaW1hZ2UoKSBJbWFnZSBkb3dubG9hZGVk
-LCBib290aW5nLi4uDQpbICAgMjcuMjAwMzAwXSBzYWE3MTY0X2Rvd25sb2FkaW1hZ2UoKSBJbWFn
-ZSBib290ZWQgc3VjY2Vzc2Z1bGx5Lg0KWyAgIDI5LjkzNjk2Ml0gc2FhNzE2NF9kb3dubG9hZGlt
-YWdlKCkgSW1hZ2UgZG93bmxvYWRlZCwgYm9vdGluZy4uLg0KWyAgIDMxLjcwNTQwN10gc2FhNzE2
-NF9kb3dubG9hZGltYWdlKCkgSW1hZ2UgYm9vdGVkIHN1Y2Nlc3NmdWxseS4NClsgICAzMS43NTAz
-NThdIHNhYTcxNjRbMF06IEhhdXBwYXVnZSBlZXByb206IG1vZGVsPTE1MTYwOQ0KWyAgIDMxLjc3
-NjQ0Nl0gc2kyMTY4IDIyLTAwNjQ6IFNpbGljb24gTGFicyBTaTIxNjggc3VjY2Vzc2Z1bGx5IGF0
-dGFjaGVkDQpbICAgMzEuNzgxMzA3XSBzaTIxNTcgMjAtMDA2MDogU2lsaWNvbiBMYWJzIFNpMjE0
-Ny8yMTQ4LzIxNTcvMjE1OCBzdWNjZXNzZnVsbHkgYXR0YWNoZWQNClsgICAzMS43ODE2OTVdIERW
-QjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKHNhYTcxNjQpDQpbICAgMzEuNzgxNjk4XSBzYWE3
-MTY0IDAwMDA6MDM6MDAuMDogRFZCOiByZWdpc3RlcmluZyBhZGFwdGVyIDQgZnJvbnRlbmQgMCAo
-U2lsaWNvbiBMYWJzIFNpMjE2OCkuLi4NClsgICAzMS43ODI2NTJdIHNpMjE2OCAyMi0wMDY2OiBT
-aWxpY29uIExhYnMgU2kyMTY4IHN1Y2Nlc3NmdWxseSBhdHRhY2hlZA0KWyAgIDMxLjc4NTk2MV0g
-c2kyMTU3IDIxLTAwNjA6IFNpbGljb24gTGFicyBTaTIxNDcvMjE0OC8yMTU3LzIxNTggc3VjY2Vz
-c2Z1bGx5IGF0dGFjaGVkDQpbICAgMzEuNzg2MzQwXSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFw
-dGVyIChzYWE3MTY0KQ0KWyAgIDMxLjc4NjM0Ml0gc2FhNzE2NCAwMDAwOjAzOjAwLjA6IERWQjog
-cmVnaXN0ZXJpbmcgYWRhcHRlciA1IGZyb250ZW5kIDAgKFNpbGljb24gTGFicyBTaTIxNjgpLi4u
-DQpbICAgMzEuNzg2NTYyXSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzEgW21w
-ZWddDQpbICAgMzIuMDIxNjU5XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzIg
-W21wZWddDQpbICAgMzIuMjM4MzM2XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2Ymkw
-IFt2YmldDQpbICAgMzIuMjM4Mzg5XSBzYWE3MTY0WzBdOiByZWdpc3RlcmVkIGRldmljZSB2Ymkx
-IFt2YmldDQpbMTY1NTEyLjQzNjY2Ml0gc2kyMTY4IDIyLTAwNjY6IHVua25vd24gY2hpcCB2ZXJz
-aW9uIFNpMjE2OC0NClsxNjU1MTIuNDUwMzE1XSBzaTIxNTcgMjEtMDA2MDogZm91bmQgYSAnU2ls
-aWNvbiBMYWJzIFNpMjE1Ny1BMzAnDQpbMTY1NTEyLjQ4MDU1OV0gc2kyMTU3IDIxLTAwNjA6IGZp
-cm13YXJlIHZlcnNpb246IDMuMC41DQpbMTY1NTE3Ljk4MTE1NV0gc2kyMTY4IDIyLTAwNjQ6IHVu
-a25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0NClsxNjU1MTcuOTk0NjIwXSBzaTIxNTcgMjAtMDA2
-MDogZm91bmQgYSAnU2lsaWNvbiBMYWJzIFNpMjE1Ny1BMzAnDQpbMTY1NTE4LjAyNDg2N10gc2ky
-MTU3IDIwLTAwNjA6IGZpcm13YXJlIHZlcnNpb246IDMuMC41DQpbMTY1NjgyLjMzNDE3MV0gc2ky
-MTY4IDIyLTAwNjQ6IHVua25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0NClsxNjU3MzAuNTc5MDg1
-XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LQ0KWzE2NTgzOC40
-MjA2OTNdIHNpMjE2OCAyMi0wMDY0OiB1bmtub3duIGNoaXAgdmVyc2lvbiBTaTIxNjgtDQpbMTY2
-MzM3LjM0MjQzN10gc2kyMTY4IDIyLTAwNjQ6IHVua25vd24gY2hpcCB2ZXJzaW9uIFNpMjE2OC0N
-ClsxNjczMDUuMzkzNTcyXSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2ky
-MTY4LQ0KWzE3MDc2Mi45MDcwNzFdIHNpMjE2OCAyMi0wMDY0OiB1bmtub3duIGNoaXAgdmVyc2lv
-biBTaTIxNjgtDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBBbnR0aSBQYWxv
-c2FhcmkgW21haWx0bzpjcm9wZUBpa2kuZmldIA0KU2VudDogV2VkbmVzZGF5LCBKdW5lIDMsIDIw
-MTUgNjowMyBQTQ0KVG86IFN0ZXBoZW4gQWxsYW47IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
-Zw0KU3ViamVjdDogUmU6IEhhdXBwYXVnZSBXaW5UVi1IVlIyMjA1IGRyaXZlciBmZWVkYmFjaw0K
-DQpPbiAwNi8wMy8yMDE1IDEwOjU1IEFNLCBBbnR0aSBQYWxvc2Fhcmkgd3JvdGU6DQo+IE9uIDA2
-LzAzLzIwMTUgMDY6NTUgQU0sIFN0ZXBoZW4gQWxsYW4gd3JvdGU6DQo+PiBJIGFtIGF3YXJlIHRo
-YXQgdGhlcmUgaXMgc29tZSBkZXZlbG9wbWVudCBnb2luZyBvbiBmb3IgdGhlIHNhYTcxNjQgDQo+
-PiBkcml2ZXIgdG8gc3VwcG9ydCB0aGUgSGF1cHBhdWdlIFdpblRWLUhWUjIyMDUuICBJIHRob3Vn
-aHQgSSB3b3VsZCANCj4+IHBvc3Qgc29tZSBmZWVkYmFjay4gIEkgaGF2ZSByZWNlbnRseSBjb21w
-aWxlZCB0aGUgZHJpdmVyIGFzIGF0IA0KPj4gMjAxNS0wNS0zMSB1c2luZyAibWVkaWEgYnVpbGQg
-dHJlZSIuICBJIGFtIHVuYWJsZSB0byB0dW5lIGEgY2hhbm5lbC4gIA0KPj4gV2hlbiBydW5uaW5n
-IHRoZSBmb2xsb3dpbmcgd19zY2FuIGNvbW1hbmQ6DQo+Pg0KPj4gd19zY2FuIC1hNCAtZnQgLWNB
-VSAtdCAzIC1YID4gL3RtcC90emFwL2NoYW5uZWxzLmNvbmYNCj4+DQo+PiBJIGdldCB0aGUgZm9s
-bG93aW5nIGVycm9yIGFmdGVyIHNjYW5uaW5nIHRoZSBmcmVxdWVuY3kgcmFuZ2UgZm9yIA0KPj4g
-QXVzdHJhbGlhLg0KPj4NCj4+IEVSUk9SOiBTb3JyeSAtIGkgY291bGRuJ3QgZ2V0IGFueSB3b3Jr
-aW5nIGZyZXF1ZW5jeS90cmFuc3BvbmRlcg0KPj4gICBOb3RoaW5nIHRvIHNjYW4hIQ0KPj4NCj4+
-IEF0IHRoZSBzYW1lIHRpbWUgSSBnZXQgdGhlIGZvbGxvd2luZyBtZXNzYWdlcyBiZWluZyBsb2dn
-ZWQgdG8gdGhlIA0KPj4gTGludXggY29uc29sZS4NCj4+DQo+PiBkbWVzZw0KPj4gWzE2NTUxMi40
-MzY2NjJdIHNpMjE2OCAyMi0wMDY2OiB1bmtub3duIGNoaXAgdmVyc2lvbiBTaTIxNjgtIA0KPj4g
-WzE2NTUxMi40NTAzMTVdIHNpMjE1NyAyMS0wMDYwOiBmb3VuZCBhICdTaWxpY29uIExhYnMgU2ky
-MTU3LUEzMCcNCj4+IFsxNjU1MTIuNDgwNTU5XSBzaTIxNTcgMjEtMDA2MDogZmlybXdhcmUgdmVy
-c2lvbjogMy4wLjUgDQo+PiBbMTY1NTE3Ljk4MTE1NV0gc2kyMTY4IDIyLTAwNjQ6IHVua25vd24g
-Y2hpcCB2ZXJzaW9uIFNpMjE2OC0gDQo+PiBbMTY1NTE3Ljk5NDYyMF0gc2kyMTU3IDIwLTAwNjA6
-IGZvdW5kIGEgJ1NpbGljb24gTGFicyBTaTIxNTctQTMwJw0KPj4gWzE2NTUxOC4wMjQ4NjddIHNp
-MjE1NyAyMC0wMDYwOiBmaXJtd2FyZSB2ZXJzaW9uOiAzLjAuNSANCj4+IFsxNjU2ODIuMzM0MTcx
-XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LSANCj4+IFsxNjU3
-MzAuNTc5MDg1XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24gU2kyMTY4LSAN
-Cj4+IFsxNjU4MzguNDIwNjkzXSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlwIHZlcnNpb24g
-U2kyMTY4LSANCj4+IFsxNjYzMzcuMzQyNDM3XSBzaTIxNjggMjItMDA2NDogdW5rbm93biBjaGlw
-IHZlcnNpb24gU2kyMTY4LSANCj4+IFsxNjczMDUuMzkzNTcyXSBzaTIxNjggMjItMDA2NDogdW5r
-bm93biBjaGlwIHZlcnNpb24gU2kyMTY4LQ0KPj4NCj4+DQo+PiBNYW55IHRoYW5rcyB0byB0aGUg
-ZGV2ZWxvcGVycyBmb3IgYWxsIG9mIHlvdXIgaGFyZCB3b3JrLg0KPg0KPiBMZXQgbWUgZ3Vlc3Mg
-dGhleSBoYXZlIGNoYW5nZWQgU2kyMTY4IGNoaXAgdG8gbGF0ZXN0ICJDIiB2ZXJzaW9uLiANCj4g
-RHJpdmVyIHN1cHBvcnRzIG9ubHkgQSBhbmQgQiAoQTIwLCBBMzAgYW5kIEI0MCkuIEkgaGF2ZSBu
-ZXZlciBzZWVuIEMgdmVyc2lvbi4NCg0KZ2FoLCBsb29raW5nIHRoZSBkcml2ZXIgSSB0aGluayB0
-aGF0IGlzIG5vdCBpc3N1ZSAtIGl0IHdpbGwgbGlrZWx5IHByaW50ICJ1bmtub3duIGNoaXAgdmVy
-c2lvbiBTaTIxNjgtQy4uIiBvbiB0aGF0IGNhc2UgYWxyZWFkeS4gSG93ZXZlciwgSSByZW1lbWJl
-ciBJIGhhdmUgc2VlbiB0aGF0IGtpbmQgb2YgaXNzdWUgZWFybGllciB0b28sIGJ1dCBkb24ndCBy
-ZW1lbWJlciB3aGF0IHdhcyBhY3R1YWwgcmVhc29uLiBQcm9iYWJseSBzb21ldGhpbmcgdG8gZG8g
-d2l0aCBmaXJtd2FyZSwgd3JvbmcgZmlybXdhcmUgYW5kIGxvYWRpbmcgaGFzIGZhaWxlZD8gQ291
-bGQgeW91IG1ha2UgY29sZCBib290LCByZW1vdmUgc29ja2V0IGZyb20gdGhlIHdhbGxldCBhbmQg
-d2FpdCBtaW51dGUgaXQgcmVhbGx5IHBvd2VycyBkb3duLCB0aGVuIGJvb3QgYW5kIGxvb2sgd2hh
-dCBoYXBwZW5zLg0KDQpyZWdhcmRzDQpBbnR0aQ0KDQoNCg0KLS0NCmh0dHA6Ly9wYWxvc2Fhcmku
-ZmkvDQo=
+Hi Sakari,
+
+On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+> Helen Fornazier wrote:
+> > According to the V4L2 API, the VIDIOC_STREAMON ioctl should return EPIPE
+> > when the pipeline configuration is invalid.
+> > 
+> > As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the error
+> > caused by the v4l2_subdev_link_validate_default (if it is in use), it
+> > should return -EPIPE if it detects a format mismatch in the pipeline
+> > configuration
+> 
+> Only link configuration errors have yielded -EPIPE so far, sub-device
+> format configuration error has returned -INVAL instead as you noticed.
+
+It should also be noted that while v4l2_subdev_link_validate() will return -
+EINVAL in case of error, the only driver that performs custom link validation 
+(omap3isp/ispccdc.c) will return -EPIPE.
+
+> There are not many sources of -EINVAL while enabling streaming and all
+> others are directly caused by the application; I lean towards thinking
+> the code is good as it was. The documentation could be improved though.
+> It may not be clear which error codes could be caused by different
+> conditions.
+> 
+> The debug level messages from media module
+> (drivers/media/media-entity.c) do provide more information if needed,
+> albeit this certainly is not an application interface.
+> 
+> I wonder what others think.
+
+There's a discrepancy between the implementation and the documentation, so at 
+least one of them need to be fixed. -EPIPE would be coherent with the 
+documentation and seems appropriately named, but another error code would 
+allow userspace to tell link configuration and format configuration problems 
+apart.
+
+Do you think -EINVAL is the most appropriate error code for format 
+configuration ? It's already used to indicate that the stream type is invalid 
+or that not enough buffers have been allocated, and is also used by drivers 
+directly for various purposes.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
