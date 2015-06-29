@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:49999 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437AbbFBKUd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2015 06:20:33 -0400
-Date: Tue, 2 Jun 2015 13:20:00 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] m88ds3103: a couple missing error codes
-Message-ID: <20150602102000.GD11247@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:26733 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753230AbbF2KZV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2015 06:25:21 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org
+Subject: [PATCHv7 02/15] dts: exynos4: add node for the HDMI CEC device
+Date: Mon, 29 Jun 2015 12:14:47 +0200
+Message-Id: <1435572900-56998-3-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to set some error codes here.
+From: Kamil Debski <kamil@wypas.org>
 
-Fixes: f01919e8f54f ('[media] m88ds3103: add I2C client binding')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 01b9ded..7b21f1a 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1563,6 +1563,7 @@ static int m88ds3103_probe(struct i2c_client *client,
- 		u8tmp = 0x10;
- 		break;
- 	default:
-+		ret = -EINVAL;
- 		goto err_kfree;
- 	}
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index e20cdc2..8776db9 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -704,6 +704,18 @@
+ 		status = "disabled";
+ 	};
  
-@@ -1590,8 +1591,10 @@ static int m88ds3103_probe(struct i2c_client *client,
- 	dev->i2c_adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
- 					       dev, 0, 0, 0, m88ds3103_select,
- 					       m88ds3103_deselect);
--	if (dev->i2c_adapter == NULL)
-+	if (dev->i2c_adapter == NULL) {
-+		ret = -ENOMEM;
- 		goto err_kfree;
-+	}
- 
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
++	hdmicec: cec@100B0000 {
++		compatible = "samsung,s5p-cec";
++		reg = <0x100B0000 0x200>;
++		interrupts = <0 114 0>;
++		clocks = <&clock CLK_HDMI_CEC>;
++		clock-names = "hdmicec";
++		samsung,syscon-phandle = <&pmu_system_controller>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmi_cec>;
++		status = "disabled";
++	};
++
+ 	mixer: mixer@12C10000 {
+ 		compatible = "samsung,exynos4210-mixer";
+ 		interrupts = <0 91 0>;
+-- 
+2.1.4
+
