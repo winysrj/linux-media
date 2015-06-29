@@ -1,190 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:50701 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756002AbbFCOAM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2015 10:00:12 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: guennadi liakhovetski <g.liakhovetski@gmx.de>,
-	sergei shtylyov <sergei.shtylyov@cogentembedded.com>,
-	hans verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 04/15] media: adv7604: chip info and formats for ADV7612
-Date: Wed,  3 Jun 2015 14:59:51 +0100
-Message-Id: <1433340002-1691-5-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
-References: <1433340002-1691-1-git-send-email-william.towle@codethink.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:60506 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753215AbbF2Tqf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2015 15:46:35 -0400
+Date: Mon, 29 Jun 2015 14:46:32 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Benoit Parrot <bparrot@ti.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [Patch 1/1] media: am437x-vpfe: Requested frame size and fmt
+ overwritten by current sensor setting
+Message-ID: <20150629194632.GG1019@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
+References: <1435606940-2321-1-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KIzF6Cje4W/osXrF"
+Content-Disposition: inline
+In-Reply-To: <1435606940-2321-1-git-send-email-bparrot@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the ADV7612 chip as implemented on Renesas' Lager
-board to adv7604.c, including lists for formats/colourspace/timing
-selection and an IRQ handler.
+--KIzF6Cje4W/osXrF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/i2c/adv7604.c |   91 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 87 insertions(+), 4 deletions(-)
+On Mon, Jun 29, 2015 at 02:42:20PM -0500, Benoit Parrot wrote:
+> Upon a S_FMT the input/requeated frame size and pixel format is
+> overwritten by the current subdevice settings.
+> Fix this so application can actually set the frame size and format.
+>=20
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index aaa37b0..16646517 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -80,6 +80,7 @@ MODULE_LICENSE("GPL");
- enum adv76xx_type {
- 	ADV7604,
- 	ADV7611,
-+	ADV7612,
- };
- 
- struct adv76xx_reg_seq {
-@@ -758,6 +759,23 @@ static const struct adv76xx_format_info adv7611_formats[] = {
- 	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_12BIT },
- };
- 
-+static const struct adv76xx_format_info adv7612_formats[] = {
-+	{ MEDIA_BUS_FMT_RGB888_1X24, ADV76XX_OP_CH_SEL_RGB, true, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_444 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_2X8, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422 | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_UYVY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_VYUY8_1X16, ADV76XX_OP_CH_SEL_RBG, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YUYV8_1X16, ADV76XX_OP_CH_SEL_RGB, false, false,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+	{ MEDIA_BUS_FMT_YVYU8_1X16, ADV76XX_OP_CH_SEL_RGB, false, true,
-+	  ADV76XX_OP_MODE_SEL_SDR_422_2X | ADV76XX_OP_FORMAT_SEL_8BIT },
-+};
-+
- static const struct adv76xx_format_info *
- adv76xx_format_info(struct adv76xx_state *state, u32 code)
- {
-@@ -2471,6 +2489,11 @@ static void adv7611_setup_irqs(struct v4l2_subdev *sd)
- 	io_write(sd, 0x41, 0xd0); /* STDI irq for any change, disable INT2 */
- }
- 
-+static void adv7612_setup_irqs(struct v4l2_subdev *sd)
-+{
-+	io_write(sd, 0x41, 0xd0); /* disable INT2 */
-+}
-+
- static void adv76xx_unregister_clients(struct adv76xx_state *state)
- {
- 	unsigned int i;
-@@ -2558,6 +2581,19 @@ static const struct adv76xx_reg_seq adv7611_recommended_settings_hdmi[] = {
- 	{ ADV76XX_REG_SEQ_TERM, 0 },
- };
- 
-+static const struct adv76xx_reg_seq adv7612_recommended_settings_hdmi[] = {
-+	{ ADV76XX_REG(ADV76XX_PAGE_CP, 0x6c), 0x00 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x9b), 0x03 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x6f), 0x08 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x85), 0x1f },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x87), 0x70 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x57), 0xda },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x58), 0x01 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x03), 0x98 },
-+	{ ADV76XX_REG(ADV76XX_PAGE_HDMI, 0x4c), 0x44 },
-+	{ ADV76XX_REG_SEQ_TERM, 0 },
-+};
-+
- static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 	[ADV7604] = {
- 		.type = ADV7604,
-@@ -2646,17 +2682,59 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
- 		.field1_vsync_mask = 0x3fff,
- 		.field1_vbackporch_mask = 0x3fff,
- 	},
-+	[ADV7612] = {
-+		.type = ADV7612,
-+		.has_afe = false,
-+		.max_port = ADV7604_PAD_HDMI_PORT_B,
-+		.num_dv_ports = 2,
-+		.edid_enable_reg = 0x74,
-+		.edid_status_reg = 0x76,
-+		.lcf_reg = 0xa3,
-+		.tdms_lock_mask = 0x43,
-+		.cable_det_mask = 0x01,
-+		.fmt_change_digital_mask = 0x03,
-+		.formats = adv7612_formats,
-+		.nformats = ARRAY_SIZE(adv7612_formats),
-+		.set_termination = adv7611_set_termination,
-+		.setup_irqs = adv7612_setup_irqs,
-+		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
-+		.read_cable_det = adv7611_read_cable_det,
-+		.recommended_settings = {
-+		    [1] = adv7612_recommended_settings_hdmi,
-+		},
-+		.num_recommended_settings = {
-+		    [1] = ARRAY_SIZE(adv7612_recommended_settings_hdmi),
-+		},
-+		.page_mask = BIT(ADV76XX_PAGE_IO) | BIT(ADV76XX_PAGE_CEC) |
-+			BIT(ADV76XX_PAGE_INFOFRAME) | BIT(ADV76XX_PAGE_AFE) |
-+			BIT(ADV76XX_PAGE_REP) |  BIT(ADV76XX_PAGE_EDID) |
-+			BIT(ADV76XX_PAGE_HDMI) | BIT(ADV76XX_PAGE_CP),
-+		.linewidth_mask = 0x1fff,
-+		.field0_height_mask = 0x1fff,
-+		.field1_height_mask = 0x1fff,
-+		.hfrontporch_mask = 0x1fff,
-+		.hsync_mask = 0x1fff,
-+		.hbackporch_mask = 0x1fff,
-+		.field0_vfrontporch_mask = 0x3fff,
-+		.field0_vsync_mask = 0x3fff,
-+		.field0_vbackporch_mask = 0x3fff,
-+		.field1_vfrontporch_mask = 0x3fff,
-+		.field1_vsync_mask = 0x3fff,
-+		.field1_vbackporch_mask = 0x3fff,
-+	},
- };
- 
- static const struct i2c_device_id adv76xx_i2c_id[] = {
- 	{ "adv7604", (kernel_ulong_t)&adv76xx_chip_info[ADV7604] },
- 	{ "adv7611", (kernel_ulong_t)&adv76xx_chip_info[ADV7611] },
-+	{ "adv7612", (kernel_ulong_t)&adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, adv76xx_i2c_id);
- 
- static const struct of_device_id adv76xx_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7611", .data = &adv76xx_chip_info[ADV7611] },
-+	{ .compatible = "adi,adv7612", .data = &adv76xx_chip_info[ADV7612] },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, adv76xx_of_id);
-@@ -2801,21 +2879,26 @@ static int adv76xx_probe(struct i2c_client *client,
- 	 * identifies the revision, while on ADV7611 it identifies the model as
- 	 * well. Use the HDMI slave address on ADV7604 and RD_INFO on ADV7611.
- 	 */
--	if (state->info->type == ADV7604) {
-+	switch (state->info->type) {
-+	case ADV7604:
- 		val = adv_smbus_read_byte_data_check(client, 0xfb, false);
- 		if (val != 0x68) {
- 			v4l2_info(sd, "not an adv7604 on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
--	} else {
-+		break;
-+	case ADV7611:
-+	case ADV7612:
- 		val = (adv_smbus_read_byte_data_check(client, 0xea, false) << 8)
- 		    | (adv_smbus_read_byte_data_check(client, 0xeb, false) << 0);
--		if (val != 0x2051) {
--			v4l2_info(sd, "not an adv7611 on address 0x%x\n",
-+		if ((state->info->type == ADV7611 && val != 0x2051) ||
-+			(state->info->type == ADV7612 && val != 0x2041)) {
-+			v4l2_info(sd, "not an adv761x on address 0x%x\n",
- 					client->addr << 1);
- 			return -ENODEV;
- 		}
-+		break;
- 	}
- 
- 	/* control handlers */
--- 
-1.7.10.4
+likewise, stable ?
 
+--=20
+balbi
+
+--KIzF6Cje4W/osXrF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVkaCYAAoJEIaOsuA1yqREB8UP/3a+eZDUdGMhhb2M79hTc4Hg
+DElRe/eEq/KD8vrM1AgMmWkTEKktWio15P3+9WOo450at44chlhEFvvLLoOo+Mgw
+SucE5ULOxIea0pXAtVkqCzC3g2Msoat1VdBuJjXJqq77p4SK8MbPybFrgMtqgJO9
+Baron93RXRa7w4YEDL0M+43DfEqdjGY0PO/YFurjVxC/QlPTDs3lfrAl8vZx+iuF
+7kIw72V065dcrdqfZEUNfuNySPohvXLYCzKdUYXrVj+d+YVBWryS7BYXJjxP2+/P
+E35HDkPOS3gQFN/bbBkeWMgbTZIxJCNvQxjfL4Fxomu94m4yYYyll5WuSo1NYed/
+fr2If+rJ6Ral6/JFU88nHqdd+xFZeWU615eTfhD0rn/twA3gJtsmeNBVW4zIJnU+
+AdF754aR5qqNjj6yFrCMBNOZYOkCR1VZubsJCI2NJ8ZlsQv1t5SyUxRNXrpsMSVU
+vPp3snGzsgn5BHaGUtJFRbdl6PTkH+LVRJ4TTsuy8isiU6wAYVfpg8TaeqOPrPtK
+PP22m54cBTlhqE1/wrCpcu/A+dbpf6qMCiIs4XreyVAZJsyyDW246cDwHyE60tvJ
+P0A0B1vLV0rf/tUvbD1IovkbpkC5E4ITWWgeDFdBl+zEu6CWFb1oKPEDYOoy+nDG
+4I59DHH2uAhfOHFOamzU
+=U31p
+-----END PGP SIGNATURE-----
+
+--KIzF6Cje4W/osXrF--
