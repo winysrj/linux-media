@@ -1,275 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:35047 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933971AbbFJSMW (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:23304 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034AbbF2KZt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:12:22 -0400
-MIME-Version: 1.0
-In-Reply-To: <1433754145-12765-4-git-send-email-j.anaszewski@samsung.com>
-References: <1433754145-12765-1-git-send-email-j.anaszewski@samsung.com> <1433754145-12765-4-git-send-email-j.anaszewski@samsung.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Wed, 10 Jun 2015 11:12:01 -0700
-Message-ID: <CAK5ve-+PW7KUL+Leei46HJDiS60-KVjoMMpXZfKX9yDFYCrZEA@mail.gmail.com>
-Subject: Re: [PATCH v10 3/8] leds: max77693: add support for V4L2 Flash sub-device
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	"rpurdie@rpsys.net" <rpurdie@rpsys.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 29 Jun 2015 06:25:49 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org
+Subject: [PATCHv7 00/15] HDMI CEC framework
+Date: Mon, 29 Jun 2015 12:14:45 +0200
+Message-Id: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 8, 2015 at 2:02 AM, Jacek Anaszewski
-<j.anaszewski@samsung.com> wrote:
-> Add support for V4L2 Flash sub-device to the max77693 LED Flash class
-> driver. The support allows for V4L2 Flash sub-device to take the control
-> of the LED Flash class device.
->
+Hi all,
 
-Merged into my -devel branch and it won't be merged into 4.2.0 merge
-window but wait for one more cycle, since now it's quite late in 4.1.0
-cycle.
+The seventh version of this patchset addresses comments on the mailing list
+and many changes due to the work I did on the cec-compliance and cec-ctl
+utilities (will be posted in a separate patch series). Please see the
+changelog below for details.
 
-Thanks,
--Bryan
+Note: I have taken over from Kamil: he no longer had the time to work on this,
+whereas I needed to get this working. Many thanks to Kamil for the work he did!
 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Bryan Wu <cooloney@gmail.com>
-> Cc: Richard Purdie <rpurdie@rpsys.net>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/leds/leds-max77693.c |  129 ++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 123 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
-> index eecaa92..b8b0eec 100644
-> --- a/drivers/leds/leds-max77693.c
-> +++ b/drivers/leds/leds-max77693.c
-> @@ -20,6 +20,7 @@
->  #include <linux/regmap.h>
->  #include <linux/slab.h>
->  #include <linux/workqueue.h>
-> +#include <media/v4l2-flash-led-class.h>
->
->  #define MODE_OFF               0
->  #define MODE_FLASH(a)          (1 << (a))
-> @@ -62,6 +63,8 @@ struct max77693_sub_led {
->         struct led_classdev_flash fled_cdev;
->         /* assures led-triggers compatibility */
->         struct work_struct work_brightness_set;
-> +       /* V4L2 Flash device */
-> +       struct v4l2_flash *v4l2_flash;
->
->         /* brightness cache */
->         unsigned int torch_brightness;
-> @@ -627,7 +630,8 @@ static int max77693_led_flash_timeout_set(
->  }
->
->  static int max77693_led_parse_dt(struct max77693_led_device *led,
-> -                               struct max77693_led_config_data *cfg)
-> +                               struct max77693_led_config_data *cfg,
-> +                               struct device_node **sub_nodes)
->  {
->         struct device *dev = &led->pdev->dev;
->         struct max77693_sub_led *sub_leds = led->sub_leds;
-> @@ -674,6 +678,13 @@ static int max77693_led_parse_dt(struct max77693_led_device *led,
->                         return -EINVAL;
->                 }
->
-> +               if (sub_nodes[fled_id]) {
-> +                       dev_err(dev,
-> +                               "Conflicting \"led-sources\" DT properties\n");
-> +                       return -EINVAL;
-> +               }
-> +
-> +               sub_nodes[fled_id] = child_node;
->                 sub_leds[fled_id].fled_id = fled_id;
->
->                 cfg->label[fled_id] =
-> @@ -786,11 +797,12 @@ static void max77693_led_validate_configuration(struct max77693_led_device *led,
->  }
->
->  static int max77693_led_get_configuration(struct max77693_led_device *led,
-> -                               struct max77693_led_config_data *cfg)
-> +                               struct max77693_led_config_data *cfg,
-> +                               struct device_node **sub_nodes)
->  {
->         int ret;
->
-> -       ret = max77693_led_parse_dt(led, cfg);
-> +       ret = max77693_led_parse_dt(led, cfg, sub_nodes);
->         if (ret < 0)
->                 return ret;
->
-> @@ -838,6 +850,71 @@ static void max77693_init_flash_settings(struct max77693_sub_led *sub_led,
->         setting->val = setting->max;
->  }
->
-> +#if IS_ENABLED(CONFIG_V4L2_FLASH_LED_CLASS)
-> +
-> +static int max77693_led_external_strobe_set(
-> +                               struct v4l2_flash *v4l2_flash,
-> +                               bool enable)
-> +{
-> +       struct max77693_sub_led *sub_led =
-> +                               flcdev_to_sub_led(v4l2_flash->fled_cdev);
-> +       struct max77693_led_device *led = sub_led_to_led(sub_led);
-> +       int fled_id = sub_led->fled_id;
-> +       int ret;
-> +
-> +       mutex_lock(&led->lock);
-> +
-> +       if (enable)
-> +               ret = max77693_add_mode(led, MODE_FLASH_EXTERNAL(fled_id));
-> +       else
-> +               ret = max77693_clear_mode(led, MODE_FLASH_EXTERNAL(fled_id));
-> +
-> +       mutex_unlock(&led->lock);
-> +
-> +       return ret;
-> +}
-> +
-> +static void max77693_init_v4l2_flash_config(struct max77693_sub_led *sub_led,
-> +                               struct max77693_led_config_data *led_cfg,
-> +                               struct v4l2_flash_config *v4l2_sd_cfg)
-> +{
-> +       struct max77693_led_device *led = sub_led_to_led(sub_led);
-> +       struct device *dev = &led->pdev->dev;
-> +       struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
-> +       struct i2c_client *i2c = iodev->i2c;
-> +       struct led_flash_setting *s;
-> +
-> +       snprintf(v4l2_sd_cfg->dev_name, sizeof(v4l2_sd_cfg->dev_name),
-> +                "%s %d-%04x", sub_led->fled_cdev.led_cdev.name,
-> +                i2c_adapter_id(i2c->adapter), i2c->addr);
-> +
-> +       s = &v4l2_sd_cfg->torch_intensity;
-> +       s->min = TORCH_IOUT_MIN;
-> +       s->max = sub_led->fled_cdev.led_cdev.max_brightness * TORCH_IOUT_STEP;
-> +       s->step = TORCH_IOUT_STEP;
-> +       s->val = s->max;
-> +
-> +       /* Init flash faults config */
-> +       v4l2_sd_cfg->flash_faults = LED_FAULT_OVER_VOLTAGE |
-> +                               LED_FAULT_SHORT_CIRCUIT |
-> +                               LED_FAULT_OVER_CURRENT;
-> +
-> +       v4l2_sd_cfg->has_external_strobe = true;
-> +}
-> +
-> +static const struct v4l2_flash_ops v4l2_flash_ops = {
-> +       .external_strobe_set = max77693_led_external_strobe_set,
-> +};
-> +#else
-> +static inline void max77693_init_v4l2_flash_config(
-> +                               struct max77693_sub_led *sub_led,
-> +                               struct max77693_led_config_data *led_cfg,
-> +                               struct v4l2_flash_config *v4l2_sd_cfg)
-> +{
-> +}
-> +static const struct v4l2_flash_ops v4l2_flash_ops;
-> +#endif
-> +
->  static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
->                                 struct max77693_led_config_data *led_cfg)
->  {
-> @@ -870,12 +947,45 @@ static void max77693_init_fled_cdev(struct max77693_sub_led *sub_led,
->         sub_led->flash_timeout = fled_cdev->timeout.val;
->  }
->
-> +static int max77693_register_led(struct max77693_sub_led *sub_led,
-> +                                struct max77693_led_config_data *led_cfg,
-> +                                struct device_node *sub_node)
-> +{
-> +       struct max77693_led_device *led = sub_led_to_led(sub_led);
-> +       struct led_classdev_flash *fled_cdev = &sub_led->fled_cdev;
-> +       struct device *dev = &led->pdev->dev;
-> +       struct v4l2_flash_config v4l2_sd_cfg = {};
-> +       int ret;
-> +
-> +       /* Register in the LED subsystem */
-> +       ret = led_classdev_flash_register(dev, fled_cdev);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
-> +
-> +       /* Register in the V4L2 subsystem. */
-> +       sub_led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
-> +                                             &v4l2_flash_ops, &v4l2_sd_cfg);
-> +       if (IS_ERR(sub_led->v4l2_flash)) {
-> +               ret = PTR_ERR(sub_led->v4l2_flash);
-> +               goto err_v4l2_flash_init;
-> +       }
-> +
-> +       return 0;
-> +
-> +err_v4l2_flash_init:
-> +       led_classdev_flash_unregister(fled_cdev);
-> +       return ret;
-> +}
-> +
->  static int max77693_led_probe(struct platform_device *pdev)
->  {
->         struct device *dev = &pdev->dev;
->         struct max77693_dev *iodev = dev_get_drvdata(dev->parent);
->         struct max77693_led_device *led;
->         struct max77693_sub_led *sub_leds;
-> +       struct device_node *sub_nodes[2] = {};
->         struct max77693_led_config_data led_cfg = {};
->         int init_fled_cdev[2], i, ret;
->
-> @@ -889,7 +999,7 @@ static int max77693_led_probe(struct platform_device *pdev)
->         sub_leds = led->sub_leds;
->
->         platform_set_drvdata(pdev, led);
-> -       ret = max77693_led_get_configuration(led, &led_cfg);
-> +       ret = max77693_led_get_configuration(led, &led_cfg, sub_nodes);
->         if (ret < 0)
->                 return ret;
->
-> @@ -911,8 +1021,12 @@ static int max77693_led_probe(struct platform_device *pdev)
->                 /* Initialize LED Flash class device */
->                 max77693_init_fled_cdev(&sub_leds[i], &led_cfg);
->
-> -               /* Register LED Flash class device */
-> -               ret = led_classdev_flash_register(dev, &sub_leds[i].fled_cdev);
-> +               /*
-> +                * Register LED Flash class device and corresponding
-> +                * V4L2 Flash device.
-> +                */
-> +               ret = max77693_register_led(&sub_leds[i], &led_cfg,
-> +                                               sub_nodes[i]);
->                 if (ret < 0) {
->                         /*
->                          * At this moment FLED1 might have been already
-> @@ -931,6 +1045,7 @@ err_register_led2:
->         /* It is possible than only FLED2 was to be registered */
->         if (!init_fled_cdev[FLED1])
->                 goto err_register_led1;
-> +       v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
->         led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
->  err_register_led1:
->         mutex_destroy(&led->lock);
-> @@ -944,11 +1059,13 @@ static int max77693_led_remove(struct platform_device *pdev)
->         struct max77693_sub_led *sub_leds = led->sub_leds;
->
->         if (led->iout_joint || max77693_fled_used(led, FLED1)) {
-> +               v4l2_flash_release(sub_leds[FLED1].v4l2_flash);
->                 led_classdev_flash_unregister(&sub_leds[FLED1].fled_cdev);
->                 cancel_work_sync(&sub_leds[FLED1].work_brightness_set);
->         }
->
->         if (!led->iout_joint && max77693_fled_used(led, FLED2)) {
-> +               v4l2_flash_release(sub_leds[FLED2].v4l2_flash);
->                 led_classdev_flash_unregister(&sub_leds[FLED2].fled_cdev);
->                 cancel_work_sync(&sub_leds[FLED2].work_brightness_set);
->         }
-> --
-> 1.7.9.5
->
+While this is now in pretty good shape, there are a few TO DOs left before it
+can be merged:
+
+- Support for CDC messages needs to be improved (wrapper functions are needed,
+  and the 'reply' functionality isn't working at the moment).
+- The documentation is out-of-sync and needs to be updated.
+- I need to verify the current driver against the CEC 2.0 spec.
+- Standby handling will need more work (should be a high-level callback, but I
+  need to check which messages would cause the device to go out of standby).
+- More testing.
+- The CEC core currently stores physical addresses that were broadcast. But these
+  are not yet communicated to userspace. I need to think about this (and how to
+  handle similar broadcast messages).
+
+Best regards,
+
+	Hans
+
+Changes since v6
+================
+- added cec-funcs.h to provide wrapper functions that fill in the cec_msg struct.
+  This header is needed both by the kernel and by applications.
+- fix a missing rc_unregister_device call.
+- added CEC support for the adv7842 and cobalt drivers.
+- added CEC operand defines. Rename CEC message defines to CEC_MSG_ and operand
+  defines now use CEC_OP_.
+- the CEC_VERSION defines are dropped since we now have the CEC_OP_VERSION defines.
+- ditto: CEC_PRIM_DEVTYPE_ is now CEC_OP_PRIM_DEVTYPE.
+- ditto: CEC_FL_ALL_DEVTYPE_ is now CEC_OP_ALL_DEVTYPE.
+- cec-ioc-g-adap-log-addrs.xml: document cec_versions field.
+- cec-ioc-g-caps.xml: drop vendor_id and version fields.
+- add MAINTAINERS entry.
+- add CDC support (not yet fully functional).
+- add a second debug level for message debugging.
+- fix a nasty kernel Oops in cec_transmit_msg while waiting for transmit completion
+  (adap->tx_queue[idx].func wasn't set to NULL).
+- add support for CEC_MSG_REPORT_FEATURES (CEC 2.0 only).
+- correctly abort unsupported messages.
+- add support for the device power status feature.
+- add support for the audio return channel (preliminary).
+- add support for the CDC hotplug message (preliminary).
+- added osd_name to struct cec_log_addrs.
+- reported physical addresses are stored internally.
+- fix enabling/disabling the CEC adapter (internal fields weren't cleared correctly).
+- zero reserved fields.
+- return an error if you try to receive/transmit and the adapter isn't configured.
+- when creating the adapter provide the owner module and the parent device.
+- add a CEC_VENDOR_ID_NONE define to signal if no vendor ID was set.
+- add new capabilities: RC (remote control), ARC (audio return channel) and CDC
+  (Capability Discovery and Control).
+- applications that want to handle messages for a logical address need to set the
+  CEC_LOG_ADDRS_FL_HANDLE_MSGS flag. Otherwise the CEC core will be the one handling
+  all messages.
+- Each logical address has its own all_device_types value. So this should be an array,
+  not a single value.
+- I'm sure I've forgotten some changes...
+
+Changes since v5
+================
+- drop struct cec_timeval in favour of a __u64 that keeps the timestamp in ns
+- remove userspace documentation from Documentation/cec.txt as userspace API
+  is described in the DocBook
+- add missing documentation for the passthrough mode to the DocBook
+- add information about the number of events that can be queued
+- fix misspelling of reply
+- fix behaviour of posting an event in cec_received_msg, such that the behaviour
+  is consistent with the documentation
+
+Changes since v4
+================
+- add sequence numbering to transmitted messages
+- add sequence number handling to event hanlding
+- add passthrough mode
+- change reserved field sizes
+- fixed CEC version defines and addec CEC 2.0 commands
+- add DocBook documentation
+
+Changes since v3
+================
+- remove the promiscuous mode
+- rewrite the devicetree patches
+- fixes, expansion and partial rewrite of the documentation
+- reorder of API structures and addition of reserved fields
+- use own struct to report time (32/64 bit safe)
+- fix of handling events
+- add cec.h to include/uapi/linux/Kbuild
+- fixes in the adv76xx driver (add missing methods, change adv7604 to adv76xx)
+- cleanup of debug messages in s5p-cec driver
+- remove non necessary claiming of a gpio in the s5p-cec driver
+- cleanup headers of the s5p-cec driver
+
+Changes since v2
+===============-
+- added promiscuous mode
+- added new key codes to the input framework
+- add vendor ID reporting
+- add the possibility to clear assigned logical addresses
+- cleanup of the rc cec map
+
+Changes since v1
+================
+- documentation edited and moved to the Documentation folder
+- added key up/down message handling
+- add missing CEC commands to the cec.h file
+
+Background
+==========
+
+The work on a common CEC framework was started over three years ago by Hans
+Verkuil. Unfortunately the work has stalled. As I have received the task of
+creating a driver for the CEC interface module present on the Exynos range of
+SoCs, I got in touch with Hans. He replied that the work stalled due to his
+lack of time.
+
+Original RFC by Hans Verkuil/Martin Bugge
+=========================================
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
+
+
+Hans Verkuil (9):
+  input.h: add BUS_CEC type
+  cec: add HDMI CEC framework
+  cec.txt: add CEC framework documentation
+  DocBook/media: add CEC documentation
+  v4l2-subdev: add HDMI CEC ops
+  cec: adv7604: add cec support.
+  adv7842: add cec support
+  cec: adv7511: add cec support.
+  cobalt: add cec support
+
+Kamil Debski (6):
+  dts: exynos4*: add HDMI CEC pin definition to pinctrl
+  dts: exynos4: add node for the HDMI CEC device
+  dts: exynos4412-odroid*: enable the HDMI CEC device
+  HID: add HDMI CEC specific keycodes
+  rc: Add HDMI CEC protocol handling
+  cec: s5p-cec: Add s5p-cec driver
+
+ Documentation/DocBook/media/Makefile               |    2 +
+ Documentation/DocBook/media/v4l/biblio.xml         |   10 +
+ Documentation/DocBook/media/v4l/cec-api.xml        |   74 +
+ Documentation/DocBook/media/v4l/cec-func-close.xml |   59 +
+ Documentation/DocBook/media/v4l/cec-func-ioctl.xml |   73 +
+ Documentation/DocBook/media/v4l/cec-func-open.xml  |   94 ++
+ Documentation/DocBook/media/v4l/cec-func-poll.xml  |   89 ++
+ .../DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml |  299 ++++
+ .../DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml |   78 +
+ .../DocBook/media/v4l/cec-ioc-g-adap-state.xml     |   87 ++
+ Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml |  138 ++
+ .../DocBook/media/v4l/cec-ioc-g-event.xml          |  125 ++
+ .../DocBook/media/v4l/cec-ioc-g-passthrough.xml    |   88 ++
+ .../DocBook/media/v4l/cec-ioc-g-vendor-id.xml      |   70 +
+ .../DocBook/media/v4l/cec-ioc-receive.xml          |  185 +++
+ Documentation/DocBook/media_api.tmpl               |    8 +-
+ Documentation/cec.txt                              |  166 ++
+ .../devicetree/bindings/media/s5p-cec.txt          |   31 +
+ MAINTAINERS                                        |   11 +
+ arch/arm/boot/dts/exynos4.dtsi                     |   12 +
+ arch/arm/boot/dts/exynos4210-pinctrl.dtsi          |    7 +
+ arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |    4 +
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |    7 +
+ drivers/media/Kconfig                              |    6 +
+ drivers/media/Makefile                             |    2 +
+ drivers/media/cec.c                                | 1580 ++++++++++++++++++++
+ drivers/media/i2c/adv7511.c                        |  350 ++++-
+ drivers/media/i2c/adv7604.c                        |  219 ++-
+ drivers/media/i2c/adv7842.c                        |  211 ++-
+ drivers/media/pci/cobalt/cobalt-driver.c           |   37 +-
+ drivers/media/pci/cobalt/cobalt-driver.h           |    2 +
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  110 +-
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/s5p-cec/Makefile            |    2 +
+ drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |   37 +
+ .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   |  208 +++
+ drivers/media/platform/s5p-cec/regs-cec.h          |   96 ++
+ drivers/media/platform/s5p-cec/s5p_cec.c           |  283 ++++
+ drivers/media/platform/s5p-cec/s5p_cec.h           |   76 +
+ drivers/media/rc/keymaps/Makefile                  |    1 +
+ drivers/media/rc/keymaps/rc-cec.c                  |  144 ++
+ drivers/media/rc/rc-main.c                         |    1 +
+ include/media/adv7511.h                            |    6 +-
+ include/media/cec.h                                |  161 ++
+ include/media/rc-core.h                            |    1 +
+ include/media/rc-map.h                             |    5 +-
+ include/media/v4l2-subdev.h                        |    9 +
+ include/uapi/linux/Kbuild                          |    2 +
+ include/uapi/linux/cec-funcs.h                     | 1516 +++++++++++++++++++
+ include/uapi/linux/cec.h                           |  709 +++++++++
+ include/uapi/linux/input.h                         |   13 +
+ 52 files changed, 7485 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-state.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-passthrough.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-vendor-id.xml
+ create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
+ create mode 100644 Documentation/cec.txt
+ create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
+ create mode 100644 drivers/media/cec.c
+ create mode 100644 drivers/media/platform/s5p-cec/Makefile
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+ create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
+ create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+ create mode 100644 include/media/cec.h
+ create mode 100644 include/uapi/linux/cec-funcs.h
+ create mode 100644 include/uapi/linux/cec.h
+
+-- 
+2.1.4
+
