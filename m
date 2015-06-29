@@ -1,54 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34231 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753347AbbF2KoC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:44:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux-samsung-soc@vger.kernel.org, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] Makefile.am: copy cec headers with make sync-with-kernel
-Date: Mon, 29 Jun 2015 12:43:13 +0200
-Message-Id: <1435574596-38029-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
-References: <1435574596-38029-1-git-send-email-hverkuil@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59031 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753142AbbF2Tpk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2015 15:45:40 -0400
+Date: Mon, 29 Jun 2015 14:45:37 -0500
+From: Felipe Balbi <balbi@ti.com>
+To: Benoit Parrot <bparrot@ti.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [Patch 1/1] media: am437x-vpfe: Fix a race condition during
+ release
+Message-ID: <20150629194537.GF1019@saruman.tx.rr.com>
+Reply-To: <balbi@ti.com>
+References: <1435606913-2279-1-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="K/NRh952CO+2tg14"
+Content-Disposition: inline
+In-Reply-To: <1435606913-2279-1-git-send-email-bparrot@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--K/NRh952CO+2tg14
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Copy the new cec headers.
+On Mon, Jun 29, 2015 at 02:41:53PM -0500, Benoit Parrot wrote:
+> There was a race condition where during cleanup/release operation
+> on-going streaming would cause a kernel panic because the hardware
+> module was disabled prematurely with IRQ still pending.
+>=20
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Makefile.am | 4 ++++
- 1 file changed, 4 insertions(+)
+should this go to stable too ?
 
-diff --git a/Makefile.am b/Makefile.am
-index 1a61592..b8c450d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -21,6 +21,8 @@ sync-with-kernel:
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-common.h -o \
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-subdev.h -o \
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/v4l2-mediabus.h -o \
-+	      ! -f $(KERNEL_DIR)/usr/include/linux/cec.h -o \
-+	      ! -f $(KERNEL_DIR)/usr/include/linux/cec-funcs.h -o \
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/ivtv.h -o \
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/frontend.h -o \
- 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h -o \
-@@ -38,6 +40,8 @@ sync-with-kernel:
- 	cp -a $(KERNEL_DIR)/usr/include/linux/v4l2-mediabus.h $(top_srcdir)/include/linux
- 	cp -a $(KERNEL_DIR)/usr/include/linux/media-bus-format.h $(top_srcdir)/include/linux
- 	cp -a $(KERNEL_DIR)/usr/include/linux/media.h $(top_srcdir)/include/linux
-+	cp -a $(KERNEL_DIR)/usr/include/linux/cec.h $(top_srcdir)/include/linux
-+	cp -a $(KERNEL_DIR)/usr/include/linux/cec-funcs.h $(top_srcdir)/include/linux
- 	cp -a $(KERNEL_DIR)/usr/include/linux/ivtv.h $(top_srcdir)/include/linux
- 	cp -a $(KERNEL_DIR)/usr/include/linux/dvb/frontend.h $(top_srcdir)/include/linux/dvb
- 	cp -a $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h $(top_srcdir)/include/linux/dvb
--- 
-2.1.4
+> ---
+>  drivers/media/platform/am437x/am437x-vpfe.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/=
+platform/am437x/am437x-vpfe.c
+> index a30cc2f..eb25c43 100644
+> --- a/drivers/media/platform/am437x/am437x-vpfe.c
+> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
+> @@ -1185,14 +1185,21 @@ static int vpfe_initialize_device(struct vpfe_dev=
+ice *vpfe)
+>  static int vpfe_release(struct file *file)
+>  {
+>  	struct vpfe_device *vpfe =3D video_drvdata(file);
+> +	bool fh_singular =3D v4l2_fh_is_singular_file(file);
+>  	int ret;
+> =20
+>  	mutex_lock(&vpfe->lock);
+> =20
+> -	if (v4l2_fh_is_singular_file(file))
+> -		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
+> +	/* the release helper will cleanup any on-going streaming */
+>  	ret =3D _vb2_fop_release(file, NULL);
+> =20
+> +	/*
+> +	 * If this was the last open file.
+> +	 * Then de-initialize hw module.
+> +	 */
+> +	if (fh_singular)
+> +		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
+> +
+>  	mutex_unlock(&vpfe->lock);
+> =20
+>  	return ret;
+> --=20
+> 1.8.5.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
+--=20
+balbi
+
+--K/NRh952CO+2tg14
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVkaBhAAoJEIaOsuA1yqREVhMP/2oIGuKT/VWvY6Zq9T3PDvmC
+Wrg4CS1CXXMUiHPMMYBsG/I60Onr4+KPXRhf4Go4iBBskCZw+sDxFHlsofzTDunz
+qYYA4pr3LTR8axFLhDAe46IzzzpEkIsU1LHjHPOYTsU8LocuIOAhBwGDZuea+ufW
+psZ4j5VkC0A1zPvj7ZAqEGKYfsH9i/6VuprojuAbJfqzr2E/YdboSN/W3JNg1qzl
+7AXjudFikNMvkQmwP24SDt6x4Ulhg5JgSrp7VixQ2lby8dGCfPu6A4YIyrDMobD8
+TbxGNuuQ/gzQQfk1riXgSX2EkTl7p2Z8tV07PvbS+4k3xme5k8qoVbTcpfgcBbFj
+edw1k29pETiTKIjd7UFPaethVv1zPnLzWSR4xpLlEuwC+BlD2em7qG0aKHybc+At
+8pQ6IBF+gQj0O2WM3dVLkRhh97HjntD4EmMoi09+uQy4iFinyHr56y/jl6Z2KjLK
+o3H0ZQl3G6qx54RcHaWe1U5pKmiRCXitInf8oGynS0i/YsiNaDyy/YpmqiDHYxVq
+N75q5flOBxmx3YSS2DeXyE5k4BHmt4gwuaCzaKnw1tHS49QX+menp4paQHICX7xc
+UsvSVWmQBoX0jtPHGGArognx9WS1Bn1E/Eyoj3itkcBW9YRNIQauEAS/szWeMGSv
+H243838roXZH0SzBCor0
+=TMQy
+-----END PGP SIGNATURE-----
+
+--K/NRh952CO+2tg14--
