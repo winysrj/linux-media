@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:34684 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626AbbFVWgU (ORCPT
+Received: from xavier.telenet-ops.be ([195.130.132.52]:58776 "EHLO
+	xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628AbbF2MXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2015 18:36:20 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: bp@suse.de, mchehab@osg.samsung.com, dledford@redhat.com
-Cc: mingo@kernel.org, fengguang.wu@intel.com,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [PATCH 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-Date: Mon, 22 Jun 2015 15:31:57 -0700
-Message-Id: <1435012318-381-2-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1435012318-381-1-git-send-email-mcgrof@do-not-panic.com>
+	Mon, 29 Jun 2015 08:23:41 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] [media] mt9v032: Add missing initialization of pdata in mt9v032_get_pdata()
+Date: Mon, 29 Jun 2015 14:23:41 +0200
+Message-Id: <1435580621-21663-1-git-send-email-geert@linux-m68k.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+drivers/media/i2c/mt9v032.c: In function ‘mt9v032_get_pdata’:
+drivers/media/i2c/mt9v032.c:885: warning: ‘pdata’ may be used uninitialized in this function
 
-On built-in kernels this will always splat. Fix that.
+If parsing the endpoint node properties fails, mt9v032_get_pdata() will
+return an uninitialized pointer value.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- drivers/infiniband/hw/ipath/ipath_driver.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/i2c/mt9v032.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_driver.c b/drivers/infiniband/hw/ipath/ipath_driver.c
-index 2d7e503..871dbe5 100644
---- a/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ b/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -31,6 +31,8 @@
-  * SOFTWARE.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/idr.h>
-@@ -399,8 +401,8 @@ static int ipath_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	u32 bar0 = 0, bar1 = 0;
- 
- #ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ipath needs PAT disabled, boot with nopat kernel parameter\n")) {
-+	if (pat_enabled()) {
-+		pr_warn("ipath needs PAT disabled, boot with nopat kernel parameter\n");
- 		ret = -ENODEV;
- 		goto bail;
- 	}
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 977f4006edbd496d..a68ce94ee097604a 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -882,7 +882,7 @@ static const struct regmap_config mt9v032_regmap_config = {
+ static struct mt9v032_platform_data *
+ mt9v032_get_pdata(struct i2c_client *client)
+ {
+-	struct mt9v032_platform_data *pdata;
++	struct mt9v032_platform_data *pdata = NULL;
+ 	struct v4l2_of_endpoint endpoint;
+ 	struct device_node *np;
+ 	struct property *prop;
 -- 
-2.3.2.209.gd67f9d5.dirty
+1.9.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
