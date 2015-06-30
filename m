@@ -1,250 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:23304 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbbF2KZt (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:33213 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbbF3T0r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2015 06:25:49 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org
-Subject: [PATCHv7 00/15] HDMI CEC framework
-Date: Mon, 29 Jun 2015 12:14:45 +0200
-Message-Id: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
+	Tue, 30 Jun 2015 15:26:47 -0400
+Received: by igcur8 with SMTP id ur8so72624010igc.0
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2015 12:26:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <55925F25.5050708@linux.intel.com>
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com>
+ <5590F276.40909@linux.intel.com> <1906172.kdU77gsF2d@avalon> <55925F25.5050708@linux.intel.com>
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Tue, 30 Jun 2015 16:26:27 -0300
+Message-ID: <CAPW4XYbQ=Jdbaz0cB79q-nFtG7A9gncu-2TfHB4QfmST18kJkA@mail.gmail.com>
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL in
+ link validate default
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Sakari and Laurent,
 
-The seventh version of this patchset addresses comments on the mailing list
-and many changes due to the work I did on the cec-compliance and cec-ctl
-utilities (will be posted in a separate patch series). Please see the
-changelog below for details.
+Thanks for reviewing this
 
-Note: I have taken over from Kamil: he no longer had the time to work on this,
-whereas I needed to get this working. Many thanks to Kamil for the work he did!
+On Tue, Jun 30, 2015 at 6:19 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Laurent,
+>
+> Laurent Pinchart wrote:
+>> Hi Sakari,
+>>
+>> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+>>> Helen Fornazier wrote:
+>>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return EPIPE
+>>>> when the pipeline configuration is invalid.
+>>>>
+>>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the error
+>>>> caused by the v4l2_subdev_link_validate_default (if it is in use), it
+>>>> should return -EPIPE if it detects a format mismatch in the pipeline
+>>>> configuration
+>>>
+>>> Only link configuration errors have yielded -EPIPE so far, sub-device
+>>> format configuration error has returned -INVAL instead as you noticed.
+>>
+>> It should also be noted that while v4l2_subdev_link_validate() will return -
+>> EINVAL in case of error, the only driver that performs custom link validation
+>> (omap3isp/ispccdc.c) will return -EPIPE.
+>
+> Good point. That has escaped me until now.
+>
+>>> There are not many sources of -EINVAL while enabling streaming and all
+>>> others are directly caused by the application; I lean towards thinking
+>>> the code is good as it was. The documentation could be improved though.
+>>> It may not be clear which error codes could be caused by different
+>>> conditions.
+>>>
+>>> The debug level messages from media module
+>>> (drivers/media/media-entity.c) do provide more information if needed,
+>>> albeit this certainly is not an application interface.
+>>>
+>>> I wonder what others think.
+>>
+>> There's a discrepancy between the implementation and the documentation, so at
+>> least one of them need to be fixed. -EPIPE would be coherent with the
+>> documentation and seems appropriately named, but another error code would
+>> allow userspace to tell link configuration and format configuration problems
+>> apart.
+>
+> That was the original intent, I think.
+>
+>> Do you think -EINVAL is the most appropriate error code for format
+>> configuration ? It's already used to indicate that the stream type is invalid
+>> or that not enough buffers have been allocated, and is also used by drivers
+>> directly for various purposes.
+>
+> That's true, it's been used also for that purpose. At the time this
+> certainly was not the primary concern. If you can think of a better
+> error code for the purpose (than EINVAL) I'm certainly fine with using one.
+>
+> I still think that -EPIPE is worse for telling about incorrect format
+> configuration than -EINVAL since it's relatively easy to avoid -EINVAL
+> for the documented reasons.
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
 
-While this is now in pretty good shape, there are a few TO DOs left before it
-can be merged:
+I'd like just to point out where in the docs EPIPE for format mismatch
+is specified, as it is not described in the streamon page as I thought
+it would, but it is in the subdev page in case anyone is looking for
+it (as I took some time to find it too):
 
-- Support for CDC messages needs to be improved (wrapper functions are needed,
-  and the 'reply' functionality isn't working at the moment).
-- The documentation is out-of-sync and needs to be updated.
-- I need to verify the current driver against the CEC 2.0 spec.
-- Standby handling will need more work (should be a high-level callback, but I
-  need to check which messages would cause the device to go out of standby).
-- More testing.
-- The CEC core currently stores physical addresses that were broadcast. But these
-  are not yet communicated to userspace. I need to think about this (and how to
-  handle similar broadcast messages).
+http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+"Applications are responsible for configuring coherent parameters on
+the whole pipeline and making sure that connected pads have compatible
+formats. The pipeline is checked for formats mismatch at
+VIDIOC_STREAMON time, and an EPIPE error code is then returned if the
+configuration is invalid"
 
-Best regards,
-
-	Hans
-
-Changes since v6
-================
-- added cec-funcs.h to provide wrapper functions that fill in the cec_msg struct.
-  This header is needed both by the kernel and by applications.
-- fix a missing rc_unregister_device call.
-- added CEC support for the adv7842 and cobalt drivers.
-- added CEC operand defines. Rename CEC message defines to CEC_MSG_ and operand
-  defines now use CEC_OP_.
-- the CEC_VERSION defines are dropped since we now have the CEC_OP_VERSION defines.
-- ditto: CEC_PRIM_DEVTYPE_ is now CEC_OP_PRIM_DEVTYPE.
-- ditto: CEC_FL_ALL_DEVTYPE_ is now CEC_OP_ALL_DEVTYPE.
-- cec-ioc-g-adap-log-addrs.xml: document cec_versions field.
-- cec-ioc-g-caps.xml: drop vendor_id and version fields.
-- add MAINTAINERS entry.
-- add CDC support (not yet fully functional).
-- add a second debug level for message debugging.
-- fix a nasty kernel Oops in cec_transmit_msg while waiting for transmit completion
-  (adap->tx_queue[idx].func wasn't set to NULL).
-- add support for CEC_MSG_REPORT_FEATURES (CEC 2.0 only).
-- correctly abort unsupported messages.
-- add support for the device power status feature.
-- add support for the audio return channel (preliminary).
-- add support for the CDC hotplug message (preliminary).
-- added osd_name to struct cec_log_addrs.
-- reported physical addresses are stored internally.
-- fix enabling/disabling the CEC adapter (internal fields weren't cleared correctly).
-- zero reserved fields.
-- return an error if you try to receive/transmit and the adapter isn't configured.
-- when creating the adapter provide the owner module and the parent device.
-- add a CEC_VENDOR_ID_NONE define to signal if no vendor ID was set.
-- add new capabilities: RC (remote control), ARC (audio return channel) and CDC
-  (Capability Discovery and Control).
-- applications that want to handle messages for a logical address need to set the
-  CEC_LOG_ADDRS_FL_HANDLE_MSGS flag. Otherwise the CEC core will be the one handling
-  all messages.
-- Each logical address has its own all_device_types value. So this should be an array,
-  not a single value.
-- I'm sure I've forgotten some changes...
-
-Changes since v5
-================
-- drop struct cec_timeval in favour of a __u64 that keeps the timestamp in ns
-- remove userspace documentation from Documentation/cec.txt as userspace API
-  is described in the DocBook
-- add missing documentation for the passthrough mode to the DocBook
-- add information about the number of events that can be queued
-- fix misspelling of reply
-- fix behaviour of posting an event in cec_received_msg, such that the behaviour
-  is consistent with the documentation
-
-Changes since v4
-================
-- add sequence numbering to transmitted messages
-- add sequence number handling to event hanlding
-- add passthrough mode
-- change reserved field sizes
-- fixed CEC version defines and addec CEC 2.0 commands
-- add DocBook documentation
-
-Changes since v3
-================
-- remove the promiscuous mode
-- rewrite the devicetree patches
-- fixes, expansion and partial rewrite of the documentation
-- reorder of API structures and addition of reserved fields
-- use own struct to report time (32/64 bit safe)
-- fix of handling events
-- add cec.h to include/uapi/linux/Kbuild
-- fixes in the adv76xx driver (add missing methods, change adv7604 to adv76xx)
-- cleanup of debug messages in s5p-cec driver
-- remove non necessary claiming of a gpio in the s5p-cec driver
-- cleanup headers of the s5p-cec driver
-
-Changes since v2
-===============-
-- added promiscuous mode
-- added new key codes to the input framework
-- add vendor ID reporting
-- add the possibility to clear assigned logical addresses
-- cleanup of the rc cec map
-
-Changes since v1
-================
-- documentation edited and moved to the Documentation folder
-- added key up/down message handling
-- add missing CEC commands to the cec.h file
-
-Background
-==========
-
-The work on a common CEC framework was started over three years ago by Hans
-Verkuil. Unfortunately the work has stalled. As I have received the task of
-creating a driver for the CEC interface module present on the Exynos range of
-SoCs, I got in touch with Hans. He replied that the work stalled due to his
-lack of time.
-
-Original RFC by Hans Verkuil/Martin Bugge
-=========================================
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg28735.html
-
-
-Hans Verkuil (9):
-  input.h: add BUS_CEC type
-  cec: add HDMI CEC framework
-  cec.txt: add CEC framework documentation
-  DocBook/media: add CEC documentation
-  v4l2-subdev: add HDMI CEC ops
-  cec: adv7604: add cec support.
-  adv7842: add cec support
-  cec: adv7511: add cec support.
-  cobalt: add cec support
-
-Kamil Debski (6):
-  dts: exynos4*: add HDMI CEC pin definition to pinctrl
-  dts: exynos4: add node for the HDMI CEC device
-  dts: exynos4412-odroid*: enable the HDMI CEC device
-  HID: add HDMI CEC specific keycodes
-  rc: Add HDMI CEC protocol handling
-  cec: s5p-cec: Add s5p-cec driver
-
- Documentation/DocBook/media/Makefile               |    2 +
- Documentation/DocBook/media/v4l/biblio.xml         |   10 +
- Documentation/DocBook/media/v4l/cec-api.xml        |   74 +
- Documentation/DocBook/media/v4l/cec-func-close.xml |   59 +
- Documentation/DocBook/media/v4l/cec-func-ioctl.xml |   73 +
- Documentation/DocBook/media/v4l/cec-func-open.xml  |   94 ++
- Documentation/DocBook/media/v4l/cec-func-poll.xml  |   89 ++
- .../DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml |  299 ++++
- .../DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml |   78 +
- .../DocBook/media/v4l/cec-ioc-g-adap-state.xml     |   87 ++
- Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml |  138 ++
- .../DocBook/media/v4l/cec-ioc-g-event.xml          |  125 ++
- .../DocBook/media/v4l/cec-ioc-g-passthrough.xml    |   88 ++
- .../DocBook/media/v4l/cec-ioc-g-vendor-id.xml      |   70 +
- .../DocBook/media/v4l/cec-ioc-receive.xml          |  185 +++
- Documentation/DocBook/media_api.tmpl               |    8 +-
- Documentation/cec.txt                              |  166 ++
- .../devicetree/bindings/media/s5p-cec.txt          |   31 +
- MAINTAINERS                                        |   11 +
- arch/arm/boot/dts/exynos4.dtsi                     |   12 +
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi          |    7 +
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi    |    4 +
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |    7 +
- drivers/media/Kconfig                              |    6 +
- drivers/media/Makefile                             |    2 +
- drivers/media/cec.c                                | 1580 ++++++++++++++++++++
- drivers/media/i2c/adv7511.c                        |  350 ++++-
- drivers/media/i2c/adv7604.c                        |  219 ++-
- drivers/media/i2c/adv7842.c                        |  211 ++-
- drivers/media/pci/cobalt/cobalt-driver.c           |   37 +-
- drivers/media/pci/cobalt/cobalt-driver.h           |    2 +
- drivers/media/pci/cobalt/cobalt-v4l2.c             |  110 +-
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/s5p-cec/Makefile            |    2 +
- drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |   37 +
- .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   |  208 +++
- drivers/media/platform/s5p-cec/regs-cec.h          |   96 ++
- drivers/media/platform/s5p-cec/s5p_cec.c           |  283 ++++
- drivers/media/platform/s5p-cec/s5p_cec.h           |   76 +
- drivers/media/rc/keymaps/Makefile                  |    1 +
- drivers/media/rc/keymaps/rc-cec.c                  |  144 ++
- drivers/media/rc/rc-main.c                         |    1 +
- include/media/adv7511.h                            |    6 +-
- include/media/cec.h                                |  161 ++
- include/media/rc-core.h                            |    1 +
- include/media/rc-map.h                             |    5 +-
- include/media/v4l2-subdev.h                        |    9 +
- include/uapi/linux/Kbuild                          |    2 +
- include/uapi/linux/cec-funcs.h                     | 1516 +++++++++++++++++++
- include/uapi/linux/cec.h                           |  709 +++++++++
- include/uapi/linux/input.h                         |   13 +
- 52 files changed, 7485 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/cec-api.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-close.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-ioctl.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-open.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-func-poll.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-log-addrs.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-phys-addr.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-adap-state.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-caps.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-event.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-passthrough.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-g-vendor-id.xml
- create mode 100644 Documentation/DocBook/media/v4l/cec-ioc-receive.xml
- create mode 100644 Documentation/cec.txt
- create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
- create mode 100644 drivers/media/cec.c
- create mode 100644 drivers/media/platform/s5p-cec/Makefile
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
- create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
- create mode 100644 include/media/cec.h
- create mode 100644 include/uapi/linux/cec-funcs.h
- create mode 100644 include/uapi/linux/cec.h
+So maybe the doc should be improved as you already stated.
 
 -- 
-2.1.4
-
+Helen Fornazier
