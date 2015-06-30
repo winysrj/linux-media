@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-240.synserver.de ([212.40.185.240]:1042 "EHLO
-	smtp-out-240.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285AbbFXQui (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:35518 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbbF3QZn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2015 12:50:38 -0400
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 1/5] [media] adv7604: Add support for control event notifications
-Date: Wed, 24 Jun 2015 18:50:27 +0200
-Message-Id: <1435164631-19924-1-git-send-email-lars@metafoo.de>
+	Tue, 30 Jun 2015 12:25:43 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v2 1/2] v4l: vsp1: Fix ref_count bug
+Date: Wed,  1 Jul 2015 01:25:05 +0900
+Message-Id: <1435681506-24296-2-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
+References: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow userspace applications to subscribe to control change events. This
-can e.g. be used to monitor the 5V detect control to be notified when a
-source is connected or disconnected.
+This patch fixes the judgement error of ref count in vsp1_pm_resume().
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+This patch was separated from the patch written by Sei Fumizono.
+
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+
 ---
- drivers/media/i2c/adv7604.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 808360f..cf1cb5a 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -41,6 +41,7 @@
- #include <media/adv7604.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-of.h>
+This patch is based on the master branch of linuxtv.org/media_tree.git.
+
+v2 [Yoshihiro Kaneko]
+* compile tested only
+
+ drivers/media/platform/vsp1/vsp1_drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 913485a..a7dfbb0 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -413,7 +413,7 @@ static int vsp1_pm_resume(struct device *dev)
  
-@@ -2356,6 +2357,8 @@ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
- static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
- 	.log_status = adv76xx_log_status,
- 	.interrupt_service_routine = adv76xx_isr,
-+	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = adv76xx_g_register,
- 	.s_register = adv76xx_s_register,
-@@ -2833,7 +2836,7 @@ static int adv76xx_probe(struct i2c_client *client,
- 	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
- 		id->name, i2c_adapter_id(client->adapter),
- 		client->addr);
--	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+ 	WARN_ON(mutex_is_locked(&vsp1->lock));
  
- 	/*
- 	 * Verify that the chip is present. On ADV7604 the RD_INFO register only
+-	if (vsp1->ref_count)
++	if (vsp1->ref_count == 0)
+ 		return 0;
+ 
+ 	return clk_prepare_enable(vsp1->clock);
 -- 
-2.1.4
+1.9.1
 
