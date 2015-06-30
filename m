@@ -1,49 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54776 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753566AbbFHTyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2015 15:54:33 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 22/26] [media] frontend: Fix a typo at the comments
-Date: Mon,  8 Jun 2015 16:54:06 -0300
-Message-Id: <0a02f00e9330b9f14a46a7b87195f8c151ad2bcf.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1433792665.git.mchehab@osg.samsung.com>
-References: <cover.1433792665.git.mchehab@osg.samsung.com>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:33764 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbbF3He3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2015 03:34:29 -0400
+Received: by laar3 with SMTP id r3so2299624laa.0
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2015 00:34:27 -0700 (PDT)
+MIME-Version: 1.0
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 30 Jun 2015 09:34:08 +0200
+Message-ID: <CAPybu_2dTaf_RF2NR1mSqzW5=Hw0m+Ngm=UxE5T-VNKfCeHcrg@mail.gmail.com>
+Subject: subdev: fps enum_frame_interval
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The description of struct dtv_stats has a spmall typo:
-	FE_SCALE_DECIBELS instead of FE_SCALE_DECIBEL
+Hello
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I have a subdevice that can produce images at a programmable interval,
+i.e. at different fps.
 
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 46c7fd1143a5..0380e62fc8b2 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -435,13 +435,13 @@ enum fecap_scale_params {
-  *
-  * In other words, for ISDB, those values should be filled like:
-  *	u.st.stat.svalue[0] = global statistics;
-- *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.scale[0] = FE_SCALE_DECIBEL;
-  *	u.st.stat.value[1] = layer A statistics;
-  *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
-  *	u.st.stat.svalue[2] = layer B statistics;
-- *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.scale[2] = FE_SCALE_DECIBEL;
-  *	u.st.stat.svalue[3] = layer C statistics;
-- *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.scale[3] = FE_SCALE_DECIBEL;
-  *	u.st.len = 4;
-  */
- struct dtv_stats {
+I was using the callback enum_frameintervals to "negotiate" the frame
+rate, but since 4.1 it is gone in favor of enum_frame_interval.
+
+
+enum_frame_interval, seems to only return one value for fps. How can I
+make the bridge driver aware of the possible fps?
+
+Regards!!!
+
 -- 
-2.4.2
-
+Ricardo Ribalda
