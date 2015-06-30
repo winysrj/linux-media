@@ -1,256 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41056 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752726AbbFFMDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2015 08:03:22 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:33236 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbbF3Q0F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2015 12:26:05 -0400
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/9] v4l2: add support for SDR transmitter
-Date: Sat,  6 Jun 2015 15:03:03 +0300
-Message-Id: <1433592188-31748-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1433592188-31748-1-git-send-email-crope@iki.fi>
-References: <1433592188-31748-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Damian Hobson-Garcia <dhobsong@igel.co.jp>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v2 2/2] v4l: vsp1: Fix Suspend-to-RAM
+Date: Wed,  1 Jul 2015 01:25:06 +0900
+Message-Id: <1435681506-24296-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
+References: <1435681506-24296-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New IOCTL ops:
-vidioc_enum_fmt_sdr_out
-vidioc_g_fmt_sdr_out
-vidioc_s_fmt_sdr_out
-vidioc_try_fmt_sdr_out
+From: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
 
-New vb2 buffertype:
-V4L2_BUF_TYPE_SDR_OUTPUT
+Fix Suspend-to-RAM
+so that VSP1 driver continues to work after resuming.
 
-New v4l2 capability:
-V4L2_CAP_SDR_OUTPUT
+Add stopping VSP1 during suspend.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Sei Fumizono <sei.fumizono.jw@hitachi-solutions.com>
+Signed-off-by: Yoshifumi Hosoya <yoshifumi.hosoya.wj@renesas.com>
+[Kaneko: Moved correction of vsp1_pm_resume() logic to separate patch]
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+
 ---
- drivers/media/v4l2-core/v4l2-dev.c      | 14 ++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c    | 25 +++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf-core.c |  4 +++-
- include/media/v4l2-ioctl.h              |  8 ++++++++
- include/trace/events/v4l2.h             |  1 +
- include/uapi/linux/videodev2.h          |  5 ++++-
- 6 files changed, 53 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 71a1b93..6b1eaed 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -637,8 +637,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_try_fmt_sliced_vbi_out)))
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
--	} else if (is_sdr) {
--		/* SDR specific ioctls */
-+	} else if (is_sdr && is_rx) {
-+		/* SDR receiver specific ioctls */
- 		if (ops->vidioc_enum_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
- 		if (ops->vidioc_g_fmt_sdr_cap)
-@@ -647,6 +647,16 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
- 		if (ops->vidioc_try_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-+	} else if (is_sdr && is_tx) {
-+		/* SDR transmitter specific ioctls */
-+		if (ops->vidioc_enum_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-+		if (ops->vidioc_g_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-+		if (ops->vidioc_s_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-+		if (ops->vidioc_try_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 	}
+This patch is based on the master branch of linuxtv.org/media_tree.git.
+
+v2 [Yoshihiro Kaneko]
+* compile tested only
+* As suggested by Laurent Pinchart
+  - separate a patch into two patches
+  - add stop/restart the video stream code to vsp1_pipelines_suspend() and
+    vsp1_pipelines_resume() function in vsp1_video.c.
+
+ drivers/media/platform/vsp1/vsp1_drv.c   |  9 ++++-
+ drivers/media/platform/vsp1/vsp1_video.c | 69 +++++++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_video.h |  5 ++-
+ 3 files changed, 79 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index a7dfbb0..caf55e4 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -1,7 +1,7 @@
+ /*
+  * vsp1_drv.c  --  R-Car VSP1 Driver
+  *
+- * Copyright (C) 2013-2014 Renesas Electronics Corporation
++ * Copyright (C) 2013-2015 Renesas Electronics Corporation
+  *
+  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+  *
+@@ -403,7 +403,9 @@ static int vsp1_pm_suspend(struct device *dev)
+ 	if (vsp1->ref_count == 0)
+ 		return 0;
  
- 	if (is_vid || is_vbi || is_sdr) {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ef42474..21e9598 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -154,6 +154,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
- 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
-+	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-@@ -327,6 +328,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 				sliced->service_lines[1][i]);
- 		break;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		sdr = &p->fmt.sdr;
- 		pr_cont(", pixelformat=%c%c%c%c\n",
- 			(sdr->pixelformat >>  0) & 0xff,
-@@ -975,6 +977,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (is_sdr && is_tx && ops->vidioc_g_fmt_sdr_out)
-+			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1324,6 +1330,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_enum_fmt_sdr_out))
-+			break;
-+		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, arg);
-+		break;
- 	}
- 	if (ret == 0)
- 		v4l_fill_fmtdesc(p);
-@@ -1418,6 +1429,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
- 			break;
- 		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_g_fmt_sdr_out))
-+			break;
-+		return ops->vidioc_g_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
++	vsp1_pipelines_suspend(vsp1);
+ 	clk_disable_unprepare(vsp1->clock);
++
+ 	return 0;
  }
-@@ -1497,6 +1512,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_s_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
+ 
+@@ -416,7 +418,10 @@ static int vsp1_pm_resume(struct device *dev)
+ 	if (vsp1->ref_count == 0)
+ 		return 0;
+ 
+-	return clk_prepare_enable(vsp1->clock);
++	clk_prepare_enable(vsp1->clock);
++	vsp1_pipelines_resume(vsp1);
++
++	return 0;
  }
-@@ -1576,6 +1596,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_try_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_try_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
+ #endif
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d91f19a..2be96cd 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -1,7 +1,7 @@
+ /*
+  * vsp1_video.c  --  R-Car VSP1 Video Node
+  *
+- * Copyright (C) 2013-2014 Renesas Electronics Corporation
++ * Copyright (C) 2013-2015 Renesas Electronics Corporation
+  *
+  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+  *
+@@ -662,6 +662,73 @@ done:
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
  }
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index 926836d..6c02989 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -576,7 +576,8 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
- 		}
- 		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
- 		    || q->type == V4L2_BUF_TYPE_VBI_OUTPUT
--		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
-+		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT
-+		    || q->type == V4L2_BUF_TYPE_SDR_OUTPUT) {
- 			buf->size = b->bytesused;
- 			buf->field = b->field;
- 			buf->ts = b->timestamp;
-@@ -1154,6 +1155,7 @@ unsigned int videobuf_poll_stream(struct file *file,
- 			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 			case V4L2_BUF_TYPE_VBI_OUTPUT:
- 			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			case V4L2_BUF_TYPE_SDR_OUTPUT:
- 				rc = POLLOUT | POLLWRNORM;
- 				break;
- 			default:
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 8fbbd76..017ffb2 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -36,6 +36,8 @@ struct v4l2_ioctl_ops {
- 					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_sdr_out)     (struct file *file, void *fh,
-+					    struct v4l2_fmtdesc *f);
  
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -60,6 +62,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_g_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
++void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
++{
++	unsigned int i;
++	unsigned long flags;
++	int ret;
++
++	/* To avoid increasing the system suspend time needlessly, loop over
++	 * the pipelines twice, first to set them all to the stopping state,
++	 * and then to wait for the stop to complete.
++	 */
++	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		struct vsp1_rwpf *wpf = vsp1->wpf[i];
++		struct vsp1_pipeline *pipe;
++
++		if (wpf == NULL)
++			continue;
++
++		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
++		if (pipe == NULL)
++			continue;
++
++		spin_lock_irqsave(&pipe->irqlock, flags);
++		if (pipe->state == VSP1_PIPELINE_RUNNING)
++			pipe->state = VSP1_PIPELINE_STOPPING;
++		spin_unlock_irqrestore(&pipe->irqlock, flags);
++	}
++
++	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		struct vsp1_rwpf *wpf = vsp1->wpf[i];
++		struct vsp1_pipeline *pipe;
++
++		if (wpf == NULL)
++			continue;
++
++		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
++		if (pipe == NULL)
++			continue;
++
++		ret = wait_event_timeout(pipe->wq,
++					 pipe->state == VSP1_PIPELINE_STOPPED,
++					 msecs_to_jiffies(500));
++		if (ret == 0)
++			dev_warn(vsp1->dev, "pipeline stop timeout\n");
++	}
++}
++
++void vsp1_pipelines_resume(struct vsp1_device *vsp1)
++{
++	unsigned int i;
++
++	/* Resume pipeline */
++	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		struct vsp1_rwpf *wpf = vsp1->wpf[i];
++		struct vsp1_pipeline *pipe;
++
++		if (wpf == NULL)
++			continue;
++
++		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
++		if (pipe == NULL)
++			continue;
++
++		if (vsp1_pipeline_ready(pipe))
++			vsp1_pipeline_run(pipe);
++	}
++}
++
+ /*
+  * Propagate the alpha value through the pipeline.
+  *
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index fd2851a..0887a4d 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -1,7 +1,7 @@
+ /*
+  * vsp1_video.h  --  R-Car VSP1 Video Node
+  *
+- * Copyright (C) 2013-2014 Renesas Electronics Corporation
++ * Copyright (C) 2013-2015 Renesas Electronics Corporation
+  *
+  * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+  *
+@@ -149,4 +149,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+ 				   struct vsp1_entity *input,
+ 				   unsigned int alpha);
  
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_s_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
- 
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -108,6 +114,8 @@ struct v4l2_ioctl_ops {
- 					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
- 					  struct v4l2_format *f);
-+	int (*vidioc_try_fmt_sdr_out)    (struct file *file, void *fh,
-+					  struct v4l2_format *f);
- 
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index 89d0497..29d64e4 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -27,6 +27,7 @@
- 	EM( V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" ) \
- 	EM( V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" )	\
- 	EM( V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" )		\
-+	EM( V4L2_BUF_TYPE_SDR_OUTPUT,           "SDR_OUTPUT" )		\
- 	EMe(V4L2_BUF_TYPE_PRIVATE,		"PRIVATE" )
- 
- SHOW_TYPE
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3310ce4..db52dc3 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -145,6 +145,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
-+	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -159,7 +160,8 @@ enum v4l2_buf_type {
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
- 	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
--	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
-+	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT		\
-+	 || (type) == V4L2_BUF_TYPE_SDR_OUTPUT)
- 
- enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
-@@ -426,6 +428,7 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
- #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
-+#define V4L2_CAP_SDR_OUTPUT		0x00400000  /* Is a SDR output device */
- 
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
++void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
++void vsp1_pipelines_resume(struct vsp1_device *vsp1);
++
+ #endif /* __VSP1_VIDEO_H__ */
 -- 
-http://palosaari.fi/
+1.9.1
 
