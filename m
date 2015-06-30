@@ -1,99 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53330 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbbFRR2c (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33055 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753704AbbF3CuJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2015 13:28:32 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] [media] au0828: Cache the decoder info at au0828 dev structure
-Date: Thu, 18 Jun 2015 14:27:56 -0300
-Message-Id: <f1db7aa1f599caa447323f2390e7ffbde5788244.1434648469.git.mchehab@osg.samsung.com>
+	Mon, 29 Jun 2015 22:50:09 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0374F2A007E
+	for <linux-media@vger.kernel.org>; Tue, 30 Jun 2015 04:49:32 +0200 (CEST)
+Date: Tue, 30 Jun 2015 04:49:31 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150630024932.0374F2A007E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of seeking for the decoder every time analog stream is
-started, cache it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index 6b469e8c4c6e..f7337dbbc59f 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -228,6 +228,10 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
- 				"au8522", 0x8e >> 1, NULL);
- 		if (sd == NULL)
- 			pr_err("analog subdev registration failed\n");
-+#if CONFIG_MEDIA_CONTROLLER
-+		if (sd)
-+			dev->decoder = &sd->entity;
-+#endif
- 	}
- 
- 	/* Setup tuners */
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 4ebe13673adf..939b2ad73501 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -641,11 +641,11 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev = dev->media_dev;
--	struct media_entity  *entity, *decoder = NULL, *source;
-+	struct media_entity  *entity, *source;
- 	struct media_link *link, *found_link = NULL;
- 	int i, ret, active_links = 0;
- 
--	if (!mdev)
-+	if (!mdev || !dev->decoder)
- 		return 0;
- 
- 	/*
-@@ -655,18 +655,9 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
- 	 * do DVB streaming while the DMA engine is being used for V4L2,
- 	 * this should be enough for the actual needs.
- 	 */
--	media_device_for_each_entity(entity, mdev) {
--		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
--			decoder = entity;
--			break;
--		}
--	}
--	if (!decoder)
--		return 0;
--
--	for (i = 0; i < decoder->num_links; i++) {
--		link = &decoder->links[i];
--		if (link->sink->entity == decoder) {
-+	for (i = 0; i < dev->decoder->num_links; i++) {
-+		link = &dev->decoder->links[i];
-+		if (link->sink->entity == dev->decoder) {
- 			found_link = link;
- 			if (link->flags & MEDIA_LNK_FL_ENABLED)
- 				active_links++;
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 7e6a3bbc68ab..d3644b3fe6fa 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -280,6 +280,7 @@ struct au0828_dev {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *media_dev;
- 	struct media_pad video_pad, vbi_pad;
-+	struct media_entity *decoder;
- #endif
- };
- 
--- 
-2.4.3
+date:		Tue Jun 30 04:00:19 CEST 2015
+git branch:	test
+git hash:	faebbd8f134f0c054f372982c8ddd1bbcc41b440
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
