@@ -1,86 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:35783 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbbFZEr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2015 00:47:59 -0400
-Date: Fri, 26 Jun 2015 10:17:49 +0530
-From: Vaishali Thakkar <vthakkar1994@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] ttpci: Replace memset with eth_zero_addr
-Message-ID: <20150626044749.GA18942@vaishali-Ideapad-Z570>
+Received: from mga02.intel.com ([134.134.136.20]:38606 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752703AbbF3JTg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2015 05:19:36 -0400
+Message-ID: <55925F25.5050708@linux.intel.com>
+Date: Tue, 30 Jun 2015 12:19:33 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of
+ -EINVAL in link validate default
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com> <5590F276.40909@linux.intel.com> <1906172.kdU77gsF2d@avalon>
+In-Reply-To: <1906172.kdU77gsF2d@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use eth_zero_addr to assign the zero address to the given address
-array instead of memset when second argument is address of zero.
-Note that the 6 in the third argument of memset appears to represent
-an ethernet address size (ETH_ALEN).
+Hi Laurent,
 
-The Coccinelle semantic patch that makes this change is as follows:
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+>> Helen Fornazier wrote:
+>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return EPIPE
+>>> when the pipeline configuration is invalid.
+>>>
+>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the error
+>>> caused by the v4l2_subdev_link_validate_default (if it is in use), it
+>>> should return -EPIPE if it detects a format mismatch in the pipeline
+>>> configuration
+>>
+>> Only link configuration errors have yielded -EPIPE so far, sub-device
+>> format configuration error has returned -INVAL instead as you noticed.
+> 
+> It should also be noted that while v4l2_subdev_link_validate() will return -
+> EINVAL in case of error, the only driver that performs custom link validation 
+> (omap3isp/ispccdc.c) will return -EPIPE.
 
-// <smpl>
-@eth_zero_addr@
-expression e;
-@@
+Good point. That has escaped me until now.
 
--memset(e,0x00,6);
-+eth_zero_addr(e);
-// </smpl>
+>> There are not many sources of -EINVAL while enabling streaming and all
+>> others are directly caused by the application; I lean towards thinking
+>> the code is good as it was. The documentation could be improved though.
+>> It may not be clear which error codes could be caused by different
+>> conditions.
+>>
+>> The debug level messages from media module
+>> (drivers/media/media-entity.c) do provide more information if needed,
+>> albeit this certainly is not an application interface.
+>>
+>> I wonder what others think.
+> 
+> There's a discrepancy between the implementation and the documentation, so at 
+> least one of them need to be fixed. -EPIPE would be coherent with the 
+> documentation and seems appropriately named, but another error code would 
+> allow userspace to tell link configuration and format configuration problems 
+> apart.
 
-Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
----
- drivers/media/pci/ttpci/budget-av.c    | 2 +-
- drivers/media/pci/ttpci/ttpci-eeprom.c | 5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+That was the original intent, I think.
 
-diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
-index 54c9910..3e469d4 100644
---- a/drivers/media/pci/ttpci/budget-av.c
-+++ b/drivers/media/pci/ttpci/budget-av.c
-@@ -1508,7 +1508,7 @@ static int budget_av_attach(struct saa7146_dev *dev, struct saa7146_pci_extensio
- 	if (i2c_readregs(&budget_av->budget.i2c_adap, 0xa0, 0x30, mac, 6)) {
- 		pr_err("KNC1-%d: Could not read MAC from KNC1 card\n",
- 		       budget_av->budget.dvb_adapter.num);
--		memset(mac, 0, 6);
-+		eth_zero_addr(mac);
- 	} else {
- 		pr_info("KNC1-%d: MAC addr = %pM\n",
- 			budget_av->budget.dvb_adapter.num, mac);
-diff --git a/drivers/media/pci/ttpci/ttpci-eeprom.c b/drivers/media/pci/ttpci/ttpci-eeprom.c
-index 32d4315..01e13c4 100644
---- a/drivers/media/pci/ttpci/ttpci-eeprom.c
-+++ b/drivers/media/pci/ttpci/ttpci-eeprom.c
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/string.h>
- #include <linux/i2c.h>
-+#include <linux/etherdevice.h>
- 
- #include "ttpci-eeprom.h"
- 
-@@ -145,7 +146,7 @@ int ttpci_eeprom_parse_mac(struct i2c_adapter *adapter, u8 *proposed_mac)
- 
- 	if (ret != 0) {		/* Will only be -ENODEV */
- 		dprintk("Couldn't read from EEPROM: not there?\n");
--		memset(proposed_mac, 0, 6);
-+		eth_zero_addr(proposed_mac);
- 		return ret;
- 	}
- 
-@@ -157,7 +158,7 @@ int ttpci_eeprom_parse_mac(struct i2c_adapter *adapter, u8 *proposed_mac)
- 			dprintk( "%.2x:", encodedMAC[i]);
- 		}
- 		dprintk("%.2x\n", encodedMAC[19]);
--		memset(proposed_mac, 0, 6);
-+		eth_zero_addr(proposed_mac);
- 		return ret;
- 	}
- 
+> Do you think -EINVAL is the most appropriate error code for format 
+> configuration ? It's already used to indicate that the stream type is invalid 
+> or that not enough buffers have been allocated, and is also used by drivers 
+> directly for various purposes.
+
+That's true, it's been used also for that purpose. At the time this
+certainly was not the primary concern. If you can think of a better
+error code for the purpose (than EINVAL) I'm certainly fine with using one.
+
+I still think that -EPIPE is worse for telling about incorrect format
+configuration than -EINVAL since it's relatively easy to avoid -EINVAL
+for the documented reasons.
+
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
