@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61643 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752176AbbGWMVs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 03/13] media: adv7604: fix probe of ADV7611/7612
-Date: Thu, 23 Jul 2015 13:21:33 +0100
-Message-Id: <1437654103-26409-4-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+Received: from smtp44.i.mail.ru ([94.100.177.104]:53063 "EHLO smtp44.i.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751982AbbGAVlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jul 2015 17:41:51 -0400
+Message-ID: <1C57786FDF8648B4A6CAD96753EFD82E@unknown>
+From: "Unembossed Name" <severe.siberian.man@mail.ru>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Steven Toth" <stoth@kernellabs.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	<linux-media@vger.kernel.org>
+References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan> <CAGoCfiyjRSxRrzdWVPREVaXoMK_iowu19n2+FJosg90UskumHA@mail.gmail.com>
+Subject: Re: XC5000C 0x14b4 status
+Date: Thu, 2 Jul 2015 04:41:33 +0700
+MIME-Version: 1.0
+Content-Type: text/plain;
+	format=flowed;
+	charset="UTF-8";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prior to commit f862f57d ("[media] media: i2c: ADV7604: Migrate to
-regmap"), the local variable 'val' contained the combined register
-reads used in the chipset version ID test. Restore this expectation
-so that the comparison works as it used to.
----
- drivers/media/i2c/adv7604.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>> IMHO, the best is to get the latest firmware licensed is the best
+>> thing to do.
+>>
+>> Does that "new" xc5000c come with a firmware pre-loaded already?
+> 
+> I've got firmware here that is indicated as being for the xc5300 (i.e.
+> 0x14b4).  That said, I am not sure if it's the same as the original
+> 5000c firmware.  Definitely makes sense to do an I2C dump and compare
+> the firmware images since using the wrong firmware can damage the
+> part.
+> 
+> I'm not against an additional #define for the 0x14b4 part ID, but it
+> shouldn't be accepted upstream until we have corresponding firmware
+> and have seen the tuner working.  Do you have digital signal lock
+> working with this device under Linux and the issue is strictly with
+> part identification?
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index bfb0b6a..0587d27 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -3108,7 +3108,7 @@ static int adv76xx_probe(struct i2c_client *client,
- 			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
- 			return -ENODEV;
- 		}
--		val2 |= val;
-+		val |= val2;
- 		if ((state->info->type == ADV7611 && val != 0x2051) ||
- 			(state->info->type == ADV7612 && val != 0x2041)) {
- 			v4l2_err(sd, "not an adv761x on address 0x%x\n",
--- 
-1.7.10.4
+Hello.
 
+There are new details.
+
+My assumption, that such behaviour of IC can be because of an old or incorrect
+(for that HW) firmware, was wrong. It does not matter which FW version we use.
+With a fresh (beginning of 2015) media_build, even with an "old" firmware, RF
+tuner always and stably returns status 0x14b4. Also it's stably detects an already
+loaded firmware from another instance of the driver (analog part initialisation).
+And there is no i2c errors.
+
+With an old media_build from beginning of 2014, there is some problem with
+detection of already loaded firmware, there is i2c errors, and it gives the 50/50 status
+either 0x1388 or 0x14b4.
+My mistake I didn't checked a fresh media_build before.
+
+So, the only thing we need is to add an additional #define for the 0x14b4 part ID to a
+driver's code, as I wrote before.
+
+If you have any more questions, please ask.
+
+Best regards.
