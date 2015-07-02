@@ -1,99 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61640 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752088AbbGWMVs (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42298 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750943AbbGBN3K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 06/13] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
-Date: Thu, 23 Jul 2015 13:21:36 +0100
-Message-Id: <1437654103-26409-7-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+	Thu, 2 Jul 2015 09:29:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 1/2] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
+Date: Thu,  2 Jul 2015 15:27:49 +0200
+Message-Id: <1fd293f65be7910a52558ca8d35b8f97baa6582f.1435842920.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1435842920.git.hans.verkuil@cisco.com>
+References: <cover.1435842920.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1435842920.git.hans.verkuil@cisco.com>
+References: <cover.1435842920.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
-which is used by the ADV7612 chip.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
+that apps can call to determine that it is indeed a V4L2 device, there
+is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
+solve that, and it will allow utilities like v4l2-compliance to be used
+with these devices as well.
 
-Modified to use MEDIA_BUS_FMT_* constants
+SUBDEV_QUERYCAP currently returns the version, device_caps and the
+entity_id of the subdevice (if there is any).
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 17 +++++++++++++++++
+ include/uapi/linux/v4l2-subdev.h      | 18 ++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index db7700b..16352a8 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -98,6 +98,7 @@
- #define VNMC_INF_YUV10_BT656	(2 << 16)
- #define VNMC_INF_YUV10_BT601	(3 << 16)
- #define VNMC_INF_YUV16		(5 << 16)
-+#define VNMC_INF_RGB888		(6 << 16)
- #define VNMC_VUP		(1 << 10)
- #define VNMC_IM_ODD		(0 << 3)
- #define VNMC_IM_ODD_EVEN	(1 << 3)
-@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	struct soc_camera_device *icd = priv->ici.icd;
- 	struct rcar_vin_cam *cam = icd->host_priv;
- 	u32 vnmc, dmr, interrupts;
--	bool progressive = false, output_is_yuv = false;
-+	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6359606..160a91a 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -25,6 +25,7 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ #include <linux/export.h>
++#include <linux/version.h>
  
- 	switch (priv->field) {
- 	case V4L2_FIELD_TOP:
-@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-+		input_is_yuv = true;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-+		input_is_yuv = true;
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+@@ -187,6 +188,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ #endif
+ 
+ 	switch (cmd) {
++	case VIDIOC_SUBDEV_QUERYCAP: {
++		struct v4l2_subdev_capability *cap = arg;
++
++		cap->version = LINUX_VERSION_CODE;
++		cap->device_caps = 0;
++		cap->entity_id = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		if (sd->entity.parent) {
++			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
++			cap->entity_id = sd->entity.id;
++		}
++#endif
++		memset(cap->reserved, 0, sizeof(cap->reserved));
 +		break;
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vnmc |= VNMC_INF_RGB888;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
- 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-+		input_is_yuv = true;
- 		break;
- 	default:
- 		break;
-@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	vnmc |= VNMC_VUP;
++	}
++
+ 	case VIDIOC_QUERYCTRL:
+ 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
  
- 	/* If input and output use the same colorspace, use bypass mode */
--	if (output_is_yuv)
-+	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index dbce2b5..d92ffbf 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -154,9 +154,27 @@ struct v4l2_subdev_selection {
+ 	__u32 reserved[8];
+ };
  
- 	/* progressive or interlaced mode */
-@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 	case MEDIA_BUS_FMT_YUYV10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
- 		if (cam->extra_fmt)
- 			break;
++/**
++ * struct v4l2_subdev_capability - subdev capabilities
++ * @version: the kernel version
++ * @device_caps: the subdev capabilities
++ * @entity_id: the entity ID if V4L2_SUBDEV_CAP_ENTITY is set
++ * @reserved: for future use, set to zero for now
++ */
++struct v4l2_subdev_capability {
++	__u32 version;
++	__u32 device_caps;
++	__u32 entity_id;
++	__u32 reserved[29];
++};
++
++/* This v4l2_subdev is also a media entity and the entity_id field is valid */
++#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
++
+ /* Backwards compatibility define --- to be removed */
+ #define v4l2_subdev_edid v4l2_edid
  
++#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
+ #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
 -- 
-1.7.10.4
+2.1.4
 
