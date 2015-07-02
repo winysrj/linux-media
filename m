@@ -1,153 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46682 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787AbbGMOz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 10:55:59 -0400
-From: Jan Kara <jack@suse.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 3/9] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
-Date: Mon, 13 Jul 2015 16:55:45 +0200
-Message-Id: <1436799351-21975-4-git-send-email-jack@suse.com>
-In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
-References: <1436799351-21975-1-git-send-email-jack@suse.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36045 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753998AbbGBCuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jul 2015 22:50:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4C30A2A0097
+	for <linux-media@vger.kernel.org>; Thu,  2 Jul 2015 04:49:41 +0200 (CEST)
+Date: Thu, 02 Jul 2015 04:49:41 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150702024941.4C30A2A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
-hand made mapping of virtual address to physical address. Also the
-function leaked page reference from get_user_pages() so fix that by
-properly release the reference when omap_vout_buffer_release() is
-called.
+Results of the daily build of media_tree:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/platform/omap/Kconfig     |  1 +
- drivers/media/platform/omap/omap_vout.c | 67 +++++++++++++++------------------
- 2 files changed, 32 insertions(+), 36 deletions(-)
+date:		Thu Jul  2 04:00:20 CEST 2015
+git branch:	test
+git hash:	5bab86243d949cf021b0f104faafc18f5d20283c
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/platform/omap/Kconfig b/drivers/media/platform/omap/Kconfig
-index dc2aaab54aef..217d613b0fe7 100644
---- a/drivers/media/platform/omap/Kconfig
-+++ b/drivers/media/platform/omap/Kconfig
-@@ -10,6 +10,7 @@ config VIDEO_OMAP2_VOUT
- 	select OMAP2_DSS if HAS_IOMEM && ARCH_OMAP2PLUS
- 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
- 	select VIDEO_OMAP2_VOUT_VRFB if VIDEO_OMAP2_VOUT && OMAP2_VRFB
-+	select FRAME_VECTOR
- 	default n
- 	---help---
- 	  V4L2 Display driver support for OMAP2/3 based boards.
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index f09c5f17a42f..b0dad941f7cb 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v4l2_pix_format *pix)
- }
- 
- /*
-- * omap_vout_uservirt_to_phys: This inline function is used to convert user
-- * space virtual address to physical address.
-+ * omap_vout_get_userptr: Convert user space virtual address to physical
-+ * address.
-  */
--static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
-+static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
-+				 u32 *physp)
- {
--	unsigned long physp = 0;
--	struct vm_area_struct *vma;
--	struct mm_struct *mm = current->mm;
-+	struct frame_vector *vec;
-+	int ret;
- 
- 	/* For kernel direct-mapped memory, take the easy way */
--	if (virtp >= PAGE_OFFSET)
--		return virt_to_phys((void *) virtp);
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(mm, virtp);
--	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
--		/* this will catch, kernel-allocated, mmaped-to-usermode
--		   addresses */
--		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
--		up_read(&current->mm->mmap_sem);
--	} else {
--		/* otherwise, use get_user_pages() for general userland pages */
--		int res, nr_pages = 1;
--		struct page *pages;
-+	if (virtp >= PAGE_OFFSET) {
-+		*physp = virt_to_phys((void *)virtp);
-+		return 0;
-+	}
- 
--		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
--				0, &pages, NULL);
--		up_read(&current->mm->mmap_sem);
-+	vec = frame_vector_create(1);
-+	if (!vec)
-+		return -ENOMEM;
- 
--		if (res == nr_pages) {
--			physp =  __pa(page_address(&pages[0]) +
--					(virtp & ~PAGE_MASK));
--		} else {
--			printk(KERN_WARNING VOUT_NAME
--					"get_user_pages failed\n");
--			return 0;
--		}
-+	ret = get_vaddr_frames(virtp, 1, true, false, vec);
-+	if (ret != 1) {
-+		frame_vector_destroy(vec);
-+		return -EINVAL;
- 	}
-+	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
-+	vb->priv = vec;
- 
--	return physp;
-+	return 0;
- }
- 
- /*
-@@ -784,11 +772,15 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
- 	 * address of the buffer
- 	 */
- 	if (V4L2_MEMORY_USERPTR == vb->memory) {
-+		int ret;
-+
- 		if (0 == vb->baddr)
- 			return -EINVAL;
- 		/* Physical address */
--		vout->queued_buf_addr[vb->i] = (u8 *)
--			omap_vout_uservirt_to_phys(vb->baddr);
-+		ret = omap_vout_get_userptr(vb, vb->baddr,
-+				(u32 *)&vout->queued_buf_addr[vb->i]);
-+		if (ret < 0)
-+			return ret;
- 	} else {
- 		unsigned long addr, dma_addr;
- 		unsigned long size;
-@@ -837,9 +829,12 @@ static void omap_vout_buffer_release(struct videobuf_queue *q,
- 	struct omap_vout_device *vout = q->priv_data;
- 
- 	vb->state = VIDEOBUF_NEEDS_INIT;
-+	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
-+		struct frame_vector *vec = vb->priv;
- 
--	if (V4L2_MEMORY_MMAP != vout->memory)
--		return;
-+		put_vaddr_frames(vec);
-+		frame_vector_destroy(vec);
-+	}
- }
- 
- /*
--- 
-2.1.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
