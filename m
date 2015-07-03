@@ -1,207 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40948 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375AbbGIKKg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:36 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 10/10] [media] coda: rework meta counting and add separate lock
-Date: Thu,  9 Jul 2015 12:10:21 +0200
-Message-Id: <1436436621-12291-10-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
-References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47172 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754977AbbGCNMu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 09:12:50 -0400
+Message-ID: <55968A26.1010102@xs4all.nl>
+Date: Fri, 03 Jul 2015 15:12:06 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+CC: mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 1/1] vb2: Only requeue buffers immediately once streaming
+ is started
+References: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Keep count of number of buffer meta structures in the list and use
-a separate spinlock for operations on this counted list instead
-of reusing the bitstream mutex in some places and none at all in
-others.
+On 07/03/2015 02:47 PM, Sakari Ailus wrote:
+> Buffers can be returned back to videobuf2 in driver's streamon handler. In
+> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+> cause the driver's buf_queue vb2 operation to be called, queueing the same
+> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+> on.
+> 
+> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    | 16 ++++++++++++++--
- drivers/media/platform/coda/coda-common.c | 21 +++++++++------------
- drivers/media/platform/coda/coda.h        |  2 ++
- 3 files changed, 25 insertions(+), 14 deletions(-)
+It's spelled as requeuing (no e). The verb is 'to queue', but the -ing form is
+queuing. Check the dictionary: http://dictionary.reference.com/browse/queuing
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 226ce4a..25910cc 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -226,6 +226,7 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- {
- 	struct vb2_buffer *src_buf;
- 	struct coda_buffer_meta *meta;
-+	unsigned long flags;
- 	u32 start;
- 
- 	if (ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG)
-@@ -274,8 +275,13 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- 				meta->start = start;
- 				meta->end = ctx->bitstream_fifo.kfifo.in &
- 					    ctx->bitstream_fifo.kfifo.mask;
-+				spin_lock_irqsave(&ctx->buffer_meta_lock,
-+						  flags);
- 				list_add_tail(&meta->list,
- 					      &ctx->buffer_meta_list);
-+				ctx->num_metas++;
-+				spin_unlock_irqrestore(&ctx->buffer_meta_lock,
-+						       flags);
- 
- 				trace_coda_bit_queue(ctx, src_buf, meta);
- 			}
-@@ -1665,6 +1671,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 	struct coda_dev *dev = ctx->dev;
- 	struct coda_q_data *q_data_dst;
- 	struct coda_buffer_meta *meta;
-+	unsigned long flags;
- 	u32 reg_addr, reg_stride;
- 
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -1743,6 +1750,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 		coda_write(dev, ctx->iram_info.axi_sram_use,
- 				CODA7_REG_BIT_AXI_SRAM_USE);
- 
-+	spin_lock_irqsave(&ctx->buffer_meta_lock, flags);
- 	meta = list_first_entry_or_null(&ctx->buffer_meta_list,
- 					struct coda_buffer_meta, list);
- 
-@@ -1762,6 +1770,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 			kfifo_in(&ctx->bitstream_fifo, buf, pad);
- 		}
- 	}
-+	spin_unlock_irqrestore(&ctx->buffer_meta_lock, flags);
- 
- 	coda_kfifo_sync_to_device_full(ctx);
- 
-@@ -1783,6 +1792,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	struct vb2_buffer *dst_buf;
- 	struct coda_buffer_meta *meta;
- 	unsigned long payload;
-+	unsigned long flags;
- 	int width, height;
- 	int decoded_idx;
- 	int display_idx;
-@@ -1908,11 +1918,13 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	} else {
- 		val = coda_read(dev, CODA_RET_DEC_PIC_FRAME_NUM) - 1;
- 		val -= ctx->sequence_offset;
--		mutex_lock(&ctx->bitstream_mutex);
-+		spin_lock_irqsave(&ctx->buffer_meta_lock, flags);
- 		if (!list_empty(&ctx->buffer_meta_list)) {
- 			meta = list_first_entry(&ctx->buffer_meta_list,
- 					      struct coda_buffer_meta, list);
- 			list_del(&meta->list);
-+			ctx->num_metas--;
-+			spin_unlock_irqrestore(&ctx->buffer_meta_lock, flags);
- 			/*
- 			 * Clamp counters to 16 bits for comparison, as the HW
- 			 * counter rolls over at this point for h.264. This
-@@ -1929,13 +1941,13 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			ctx->frame_metas[decoded_idx] = *meta;
- 			kfree(meta);
- 		} else {
-+			spin_unlock_irqrestore(&ctx->buffer_meta_lock, flags);
- 			v4l2_err(&dev->v4l2_dev, "empty timestamp list!\n");
- 			memset(&ctx->frame_metas[decoded_idx], 0,
- 			       sizeof(struct coda_buffer_meta));
- 			ctx->frame_metas[decoded_idx].sequence = val;
- 			ctx->sequence_offset++;
- 		}
--		mutex_unlock(&ctx->bitstream_mutex);
- 
- 		trace_coda_dec_pic_done(ctx, &ctx->frame_metas[decoded_idx]);
- 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 267fda7..367b6ba 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -908,9 +908,9 @@ static int coda_job_ready(void *m2m_priv)
- 	}
- 
- 	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit) {
--		struct list_head *meta;
--		bool stream_end;
--		int num_metas;
-+		bool stream_end = ctx->bit_stream_param &
-+				  CODA_BIT_STREAM_END_FLAG;
-+		int num_metas = ctx->num_metas;
- 
- 		if (ctx->hold && !src_bufs) {
- 			v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
-@@ -919,13 +919,6 @@ static int coda_job_ready(void *m2m_priv)
- 			return 0;
- 		}
- 
--		stream_end = ctx->bit_stream_param &
--			     CODA_BIT_STREAM_END_FLAG;
--
--		num_metas = 0;
--		list_for_each(meta, &ctx->buffer_meta_list)
--			num_metas++;
--
- 		if (!stream_end && (num_metas + src_bufs) < 2) {
- 			v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 				 "%d: not ready: need 2 buffers available (%d, %d)\n",
-@@ -951,6 +944,7 @@ static int coda_job_ready(void *m2m_priv)
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 			"job ready\n");
-+
- 	return 1;
- }
- 
-@@ -1267,6 +1261,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct coda_dev *dev = ctx->dev;
- 	struct vb2_buffer *buf;
-+	unsigned long flags;
- 	bool stop;
- 
- 	stop = ctx->streamon_out && ctx->streamon_cap;
-@@ -1301,14 +1296,15 @@ static void coda_stop_streaming(struct vb2_queue *q)
- 			queue_work(dev->workqueue, &ctx->seq_end_work);
- 			flush_work(&ctx->seq_end_work);
- 		}
--		mutex_lock(&ctx->bitstream_mutex);
-+		spin_lock_irqsave(&ctx->buffer_meta_lock, flags);
- 		while (!list_empty(&ctx->buffer_meta_list)) {
- 			meta = list_first_entry(&ctx->buffer_meta_list,
- 						struct coda_buffer_meta, list);
- 			list_del(&meta->list);
- 			kfree(meta);
- 		}
--		mutex_unlock(&ctx->bitstream_mutex);
-+		ctx->num_metas = 0;
-+		spin_unlock_irqrestore(&ctx->buffer_meta_lock, flags);
- 		kfifo_init(&ctx->bitstream_fifo,
- 			ctx->bitstream.vaddr, ctx->bitstream.size);
- 		ctx->runcounter = 0;
-@@ -1661,6 +1657,7 @@ static int coda_open(struct file *file)
- 	mutex_init(&ctx->bitstream_mutex);
- 	mutex_init(&ctx->buffer_mutex);
- 	INIT_LIST_HEAD(&ctx->buffer_meta_list);
-+	spin_lock_init(&ctx->buffer_meta_lock);
- 
- 	coda_lock(ctx);
- 	list_add(&ctx->list, &dev->instances);
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 8e0af22..a3d70cc 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -227,6 +227,8 @@ struct coda_ctx {
- 	struct coda_buffer_meta		frame_metas[CODA_MAX_FRAMEBUFFERS];
- 	u32				frame_errors[CODA_MAX_FRAMEBUFFERS];
- 	struct list_head		buffer_meta_list;
-+	spinlock_t			buffer_meta_lock;
-+	int				num_metas;
- 	struct coda_aux_buf		workbuf;
- 	int				num_internal_frames;
- 	int				idx;
--- 
-2.1.4
+> state argument to vb2_buffer_done(), will result in buffers queued to the
+> driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
+> was before "[media] vb2: allow requeuing buffers while streaming".
+> 
+> Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: stable@vger.kernel.org # for v4.1
+> ---
+> since v1:
+> 
+> - Instead of relying on q->start_streaming_called and q->streaming, add a
+>   new buffer state VB2_BUF_STATE_REQUEUEING, as suggested by Hans. The
+>   cobalt driver will need the new flag as it returns the buffer back to the
+>   driver's queue, the rest will continue using VB2_BUF_STATE_QUEUED.
+> 
+>  drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
+>  drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++----
+>  include/media/videobuf2-core.h           |  2 ++
+>  3 files changed, 14 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+> index e18f49e..2687cb0 100644
+> --- a/drivers/media/pci/cobalt/cobalt-irq.c
+> +++ b/drivers/media/pci/cobalt/cobalt-irq.c
+> @@ -134,7 +134,7 @@ done:
+>  	   also know about dropped frames. */
+>  	cb->vb.v4l2_buf.sequence = s->sequence++;
+>  	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
+> -			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
+> +			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
+>  }
+>  
+>  irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 1a096a6..ca8c041 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  
+>  	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+>  		    state != VB2_BUF_STATE_ERROR &&
+> -		    state != VB2_BUF_STATE_QUEUED))
+> +		    state != VB2_BUF_STATE_QUEUED &&
+> +		    state != VB2_BUF_STATE_REQUEUEING))
+>  		state = VB2_BUF_STATE_ERROR;
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -1199,15 +1200,21 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+>  		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+>  
+> -	/* Add the buffer to the done buffers list */
+>  	spin_lock_irqsave(&q->done_lock, flags);
+> -	vb->state = state;
+> -	if (state != VB2_BUF_STATE_QUEUED)
+> +	if (state == VB2_BUF_STATE_QUEUED ||
+> +	    state == VB2_BUF_STATE_REQUEUEING) {
+> +		vb->state = VB2_BUF_STATE_QUEUED;
+> +	} else {
+> +		/* Add the buffer to the done buffers list */
+>  		list_add_tail(&vb->done_entry, &q->done_list);
+> +		vb->state = state;
+> +	}
+>  	atomic_dec(&q->owned_by_drv_count);
+>  	spin_unlock_irqrestore(&q->done_lock, flags);
+>  
+>  	if (state == VB2_BUF_STATE_QUEUED) {
+> +		return;
+> +	} else if (state == VB2_BUF_STATE_REQUEUEING) {
+
+No 'else' is needed here since the 'if' just returns.
+
+Regards,
+
+	Hans
+
+>  		if (q->start_streaming_called)
+>  			__enqueue_in_driver(vb);
+>  		return;
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 22a44c2..c192e1b 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -139,6 +139,7 @@ enum vb2_io_modes {
+>   * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+>   * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+>   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
+> + * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver
+>   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+>   *				in a hardware operation
+>   * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
+> @@ -152,6 +153,7 @@ enum vb2_buffer_state {
+>  	VB2_BUF_STATE_PREPARING,
+>  	VB2_BUF_STATE_PREPARED,
+>  	VB2_BUF_STATE_QUEUED,
+> +	VB2_BUF_STATE_REQUEUEING,
+>  	VB2_BUF_STATE_ACTIVE,
+>  	VB2_BUF_STATE_DONE,
+>  	VB2_BUF_STATE_ERROR,
+> 
 
