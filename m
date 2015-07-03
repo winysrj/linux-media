@@ -1,103 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:36767 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbbGREvS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2015 00:51:18 -0400
-Received: by pdjr16 with SMTP id r16so72561287pdj.3
-        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 21:51:18 -0700 (PDT)
-Received: from shambles.windy (c122-106-152-45.carlnfd1.nsw.optusnet.com.au. [122.106.152.45])
-        by smtp.gmail.com with ESMTPSA id da3sm13015861pdb.8.2015.07.17.21.51.15
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 17 Jul 2015 21:51:17 -0700 (PDT)
-Date: Sat, 18 Jul 2015 14:51:03 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [patch] fix failure when applying backports/debug.patch
-Message-ID: <20150718045023.GA3204@shambles.windy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:59743 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754644AbbGCKF1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2015 06:05:27 -0400
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH] media: s5p-jpeg: Eliminate double kfree
+Date: Fri, 03 Jul 2015 12:04:38 +0200
+Message-id: <1435917878-27545-1-git-send-email-andrzej.p@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+video_unregister_device() calls device_unregister(), which calls
+put_device(), which calls kobject_put(), and if this is the last reference
+then kobject_release() is called, which calls kobject_cleanup(), which
+calls ktype's release method which happens to be device_release() in this
+case, which calls dev->release(), which happens to be
+v4l2_device_release() in this case, which calls vdev->release(), which
+happens to be video_device_release(). But video_device_release() is
+called explicitly both in error recovery path of s5p_jpeg_probe() and
+in s5p_jpeg_remove(). The pointers in question are not nullified between
+the two calls, so this is harmful.
 
-backports/debug.patch has gotten out of sync with the main tree.
-The last patch hunk fails:
-...
-Applying patches for kernel 3.13.0-57-generic
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-patch -s -f -N -p1 -i ../backports/debug.patch
-1 out of 1 hunk FAILED
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory `/home/vjm/git/clones/media_build/linux'
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory `/home/vjm/git/clones/media_build/v4l'
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490, <IN> line 4.
+This patch fixes the driver so that video_device_release() is not called
+twice for the same object.
 
+Rebased onto Mauro's master.
 
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-This happens because this change removed the #define DEBUG line
-
-commit 890024ad144902bfa637f23b94b396701a88ed88
-Author: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date:   Fri Jul 3 16:11:41 2015 -0300
-
-    [media] stk1160: Reduce driver verbosity
-
-    These messages are not really informational, and just makes the driver's
-    output too verbose. This commit changes some messages to a debug level,
-    removes a really useless "driver loaded" message and finally undefines
-    the DEBUG macro.
-
-    Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-
-$ git diff e3e30f63389a319ca45161b07eb74e60f1e7ea20 890024ad144902bfa637f23b94b396701a88ed88 drivers/media/usb/stk1160/stk1160.h
-diff --git a/drivers/media/usb/stk1160/stk1160.h
-b/drivers/media/usb/stk1160/stk1160.h
-index 3922a6c..72cc8e8 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -58,7 +58,6 @@
-  * new drivers should use.
-  *
-  */
--#define DEBUG
- #ifdef DEBUG
- #define stk1160_dbg(fmt, args...) \
-        printk(KERN_DEBUG "stk1160: " fmt,  ## args)
-
-
-The following should fix the issue
-
-diff --git a/backports/debug.patch b/backports/debug.patch
-index a222783..cbd9526 100644
---- a/backports/debug.patch
-+++ b/backports/debug.patch
-@@ -35,7 +35,7 @@ index fb2acc5..8edffcb 100644
-  #endif
-
- diff --git a/drivers/media/usb/stk1160/stk1160.h
-b/drivers/media/usb/stk1160/stk1160.h
--index abdea48..2eed017 100644
-+index 72cc8e8..323e5d7 100644
- --- a/drivers/media/usb/stk1160/stk1160.h
- +++ b/drivers/media/usb/stk1160/stk1160.h
- @@ -58,6 +58,7 @@
-@@ -43,6 +43,6 @@ index abdea48..2eed017 100644
-   *
-   */
- +#undef DEBUG
-- #define DEBUG
-  #ifdef DEBUG
-  #define stk1160_dbg(fmt, args...) \
-+       printk(KERN_DEBUG "stk1160: " fmt,  ## args)
-
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index bfbf157..9690f9d 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2544,7 +2544,8 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	ret = video_register_device(jpeg->vfd_encoder, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to register video device\n");
+-		goto enc_vdev_alloc_rollback;
++		video_device_release(jpeg->vfd_encoder);
++		goto vb2_allocator_rollback;
+ 	}
+ 
+ 	video_set_drvdata(jpeg->vfd_encoder, jpeg);
+@@ -2572,7 +2573,8 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	ret = video_register_device(jpeg->vfd_decoder, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to register video device\n");
+-		goto dec_vdev_alloc_rollback;
++		video_device_release(jpeg->vfd_decoder);
++		goto enc_vdev_register_rollback;
+ 	}
+ 
+ 	video_set_drvdata(jpeg->vfd_decoder, jpeg);
+@@ -2589,15 +2591,9 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-dec_vdev_alloc_rollback:
+-	video_device_release(jpeg->vfd_decoder);
+-
+ enc_vdev_register_rollback:
+ 	video_unregister_device(jpeg->vfd_encoder);
+ 
+-enc_vdev_alloc_rollback:
+-	video_device_release(jpeg->vfd_encoder);
+-
+ vb2_allocator_rollback:
+ 	vb2_dma_contig_cleanup_ctx(jpeg->alloc_ctx);
+ 
+@@ -2622,9 +2618,7 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(jpeg->dev);
+ 
+ 	video_unregister_device(jpeg->vfd_decoder);
+-	video_device_release(jpeg->vfd_decoder);
+ 	video_unregister_device(jpeg->vfd_encoder);
+-	video_device_release(jpeg->vfd_encoder);
+ 	vb2_dma_contig_cleanup_ctx(jpeg->alloc_ctx);
+ 	v4l2_m2m_release(jpeg->m2m_dev);
+ 	v4l2_device_unregister(&jpeg->v4l2_dev);
+-- 
+1.9.1
 
