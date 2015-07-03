@@ -1,121 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36045 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753998AbbGBCuV (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37735 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754319AbbGCHjH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jul 2015 22:50:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4C30A2A0097
-	for <linux-media@vger.kernel.org>; Thu,  2 Jul 2015 04:49:41 +0200 (CEST)
-Date: Thu, 02 Jul 2015 04:49:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150702024941.4C30A2A0097@tschai.lan>
+	Fri, 3 Jul 2015 03:39:07 -0400
+Message-ID: <55963BF1.7060009@xs4all.nl>
+Date: Fri, 03 Jul 2015 09:38:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Nathaniel Bezanson <myself@telcodata.us>,
+	linux-media@vger.kernel.org
+Subject: Re: Subjective maturity of tw6869, cx25821, bluecherry/softlogic
+ drivers
+References: <1435871672466752997@telcodata.us>
+In-Reply-To: <1435871672466752997@telcodata.us>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 07/02/2015 11:14 PM, Nathaniel Bezanson wrote:
+> Hi all,
+> 
+> If this isn't the appropriate venue for this question, please gently
+> steer me somewhere else. Thanks. :) I'm trying to head off the "well
+> you shouldn't have bought *that* junk in the first place!" advice by
+> doing some research ahead of time, and I'm here to check some
+> assumptions.
+> 
+> I've been tasked with recommending a capture card for our
+> hackerspace's video monitoring system. We'll be using motion so
+> anything v4l/v4l2 is fair game. We presently have 8 cameras, but a
+> 16-channel card wouldn't go to waste. Only quirk is the host system
+> is PCI-Express only, no parallel PCI.
+> 
+> I've found the much-lauded Bluecherry driver release in 2010:
+> http://ben-collins.blogspot.com/2010/06/softlogic-6010-4816-channel-mpeg-4.html
+>
+> It claims to be 90% functional, and I haven't found any updates since
+> then. Am I looking in the wrong place or is this completely orphaned?
+> Cards sometimes come up cheap and the board looks really
+> well-thought-out, but as a hardware guy I'm the last person you want
+> rooting around in driver source trying to solder some code together
+> and get the last bits working...
 
-Results of the daily build of media_tree:
+The support for the solo devices is now part of the kernel and it is
+maintained there. I still get patches from Bluecherry and it is a
+mature card.
 
-date:		Thu Jul  2 04:00:20 CEST 2015
-git branch:	test
-git hash:	5bab86243d949cf021b0f104faafc18f5d20283c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+> I found the intersil/techwell TW6869 chip on a very affordable card,
+> and there's a nice looking driver here:
+> https://github.com/igorizyumin/tw6869/ Only trouble is there only
+> seems to be the one card using it, and it's v1.0 hardware without
+> robust ESD protection on the inputs; I don't know if I'd expect it to
+> survive a decade connected to 200-foot camera leads. It's cheap
+> enough to keep spare boards around, though. Is this driver solid? Is
+> the chip? Are there other cards based on it?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+I don't know anything about this chip. Other Techwell devices give decent
+quality, but I've never used this one.
 
-Detailed results are available here:
+> I popped into #v4l on freenode, and was pointed to the cx25821 chip,
+> which seems well supported but I can't find any actual names of cards
+> that claim to use it, except possibly a line of Russian cards and
+> maybe I can get a Russian-speaking friend to help figure out their
+> shopping cart... Is there a known/recommended Cx25821-based card I
+> should look for? (And is the 25853 similar?)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+There used to be a cx25821 card on dx.com (which is where I got mine),
+but it's out of stock. I haven't been able to find one either. It's
+unclear to me whether the 25853 is similar enough to work with the
+cx25821 driver. I'm not optimistic.
 
-Full logs are available here:
+> I've seen talk of the older Geovision cards using the Bt878a chips,
+> which is of course lovely, but I can't find any info on their PCIe
+> offerings, nor even high-res photos of the board. That's a shame cuz
+> their hardware looks really solid. Any chipset info? Anyone using
+> these?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+I don't think there is any linux support for Geovision PCIe cards.
 
-The Media Infrastructure API from this daily build is here:
+> Anything else I'm missing?
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+No, I don't think so.
+
+If you want to have a well-supported card, then Bluecherry is your
+best bet. Techwell will likely work too, but the driver is not in the
+kernel (which may or may not be a problem for you). Getting it ready
+for inclusion into the kernel is a fair amount of work.
+
+Regards,
+
+	Hans
