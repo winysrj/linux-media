@@ -1,53 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atl4mhob13.myregisteredsite.com ([209.17.115.51]:33623 "EHLO
-	atl4mhob13.myregisteredsite.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752499AbbG1K5w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 06:57:52 -0400
-Received: from mailpod.hostingplatform.com ([10.30.71.207])
-	by atl4mhob13.myregisteredsite.com (8.14.4/8.14.4) with ESMTP id t6SAvowp021023
-	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 06:57:50 -0400
-From: Mike Looijmans <mike.looijmans@topic.nl>
-To: lars@metafoo.de
-Cc: linux-media@vger.kernel.org,
-	Mike Looijmans <mike.looijmans@topic.nl>
-Subject: [PATCH] [media] i2c/adv7511: Fix license, set to GPL v2
-Date: Tue, 28 Jul 2015 12:57:46 +0200
-Message-Id: <1438081066-31748-1-git-send-email-mike.looijmans@topic.nl>
+Received: from ni.piap.pl ([195.187.100.4]:52884 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755167AbbGCMOj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 08:14:39 -0400
+Received: from t19.piap.pl (OSB1819.piap.pl [10.0.9.19])
+	by ni.piap.pl (Postfix) with ESMTP id 57C8F4411F9
+	for <linux-media@vger.kernel.org>; Fri,  3 Jul 2015 14:14:37 +0200 (CEST)
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Video driver for Techwell TW686[4589]-based cards.
+Date: Fri, 03 Jul 2015 14:14:37 +0200
+Message-ID: <m3bnftphea.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Header claims GPL v2, so make the MODULE_LICENSE reflect that properly.
+I'll be attaching a driver for Techwell/Intersil TW686[4589]-based video
+frame grabbers. It's currently tested only with v4.0 (the system I'm
+using this on has problems with v4.1) but it should apply and work with
+"current" kernels (there might be a trivial conflict in Kconfig and/or
+Makefile).
 
-Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
----
- drivers/gpu/drm/i2c/adv7511_core.c | 2 +-
- drivers/media/i2c/adv7511.c        | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/i2c/adv7511_core.c b/drivers/gpu/drm/i2c/adv7511_core.c
-index 2564b5d..12e8134 100644
---- a/drivers/gpu/drm/i2c/adv7511_core.c
-+++ b/drivers/gpu/drm/i2c/adv7511_core.c
-@@ -956,4 +956,4 @@ module_exit(adv7511_exit);
- 
- MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
- MODULE_DESCRIPTION("ADV7511 HDMI transmitter driver");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 02d76c6..1a4275d 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(debug, "debug level (0-2)");
- 
- MODULE_DESCRIPTION("Analog Devices ADV7511 HDMI Transmitter Device Driver");
- MODULE_AUTHOR("Hans Verkuil");
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- 
- #define MASK_ADV7511_EDID_RDY_INT   0x04
- #define MASK_ADV7511_MSEN_INT       0x40
+Fire away.
 -- 
-1.9.1
+Krzysztof Halasa
 
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
