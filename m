@@ -1,62 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:23058 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbbGaK20 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45792 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755359AbbGCPFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2015 06:28:26 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	<linux-arm-kernel@lists.infradead.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH] media: atmel-isi: parse the DT parameters for vsync/hsync polarity
-Date: Fri, 31 Jul 2015 18:33:32 +0800
-Message-ID: <1438338812-22329-1-git-send-email-josh.wu@atmel.com>
+	Fri, 3 Jul 2015 11:05:19 -0400
+Message-ID: <5596A483.6090003@xs4all.nl>
+Date: Fri, 03 Jul 2015 17:04:35 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+CC: mchehab@osg.samsung.com
+Subject: Re: [PATCH v3 1/1] vb2: Only requeue buffers immediately once streaming
+ is started
+References: <1435935004-27261-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1435935004-27261-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch will get the DT parameters of vsync/hsync polarity, and pass to
-the platform data.
+On 07/03/2015 04:50 PM, Sakari Ailus wrote:
+> Buffers can be returned back to videobuf2 in driver's streamon handler. In
+> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+> cause the driver's buf_queue vb2 operation to be called, queueing the same
+> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+> on.
+> 
+> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+> state argument to vb2_buffer_done(), will result in buffers queued to the
+> driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
+> was before "[media] vb2: allow requeuing buffers while streaming".
+> 
+> Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: stable@vger.kernel.org # for v4.1
+> ---
+> since v2:
+> 
+> - Replace the if's at the end of v4l2_buffer_done() by a pretty-looking
+>   switch.
+> 
+>  drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
+>  drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++--------
+>  include/media/videobuf2-core.h           |  2 ++
+>  3 files changed, 19 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+> index e18f49e..2687cb0 100644
+> --- a/drivers/media/pci/cobalt/cobalt-irq.c
+> +++ b/drivers/media/pci/cobalt/cobalt-irq.c
+> @@ -134,7 +134,7 @@ done:
+>  	   also know about dropped frames. */
+>  	cb->vb.v4l2_buf.sequence = s->sequence++;
+>  	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
+> -			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
+> +			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
+>  }
+>  
+>  irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 1a096a6..bbd22ff 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  
+>  	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+>  		    state != VB2_BUF_STATE_ERROR &&
+> -		    state != VB2_BUF_STATE_QUEUED))
+> +		    state != VB2_BUF_STATE_QUEUED &&
+> +		    state != VB2_BUF_STATE_REQUEUEING))
+>  		state = VB2_BUF_STATE_ERROR;
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -1199,22 +1200,29 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+>  		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+>  
+> -	/* Add the buffer to the done buffers list */
+>  	spin_lock_irqsave(&q->done_lock, flags);
+> -	vb->state = state;
+> -	if (state != VB2_BUF_STATE_QUEUED)
+> +	if (state == VB2_BUF_STATE_QUEUED ||
+> +	    state == VB2_BUF_STATE_REQUEUEING) {
+> +		vb->state = VB2_BUF_STATE_QUEUED;
+> +	} else {
+> +		/* Add the buffer to the done buffers list */
+>  		list_add_tail(&vb->done_entry, &q->done_list);
+> +		vb->state = state;
+> +	}
+>  	atomic_dec(&q->owned_by_drv_count);
+>  	spin_unlock_irqrestore(&q->done_lock, flags);
+>  
+> -	if (state == VB2_BUF_STATE_QUEUED) {
+> +	switch (state) {
+> +	case VB2_BUF_STATE_QUEUED:
+> +		return;
+> +	case VB2_BUF_STATE_REQUEUEING:
+>  		if (q->start_streaming_called)
+>  			__enqueue_in_driver(vb);
+>  		return;
+> +	default:
+> +		/* Inform any processes that may be waiting for buffers */
+> +		wake_up(&q->done_wq);
 
-Also add a debug information for test purpose.
+Either add a break here, or keep the wake_up where it was and just have a:
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+	default:
+		break;
 
- drivers/media/platform/soc_camera/atmel-isi.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Switch cases that do not end with return or break are always bad practice since it
+is all too easy to add a new case in the future and miss that there was no
+break in the case before, thus creating an unwanted fall-through.
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index fe9247a..a7de55c 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -811,6 +811,11 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
- 
-+	dev_dbg(icd->parent, "vsync is active %s, hsyc is active %s, pix clock is sampling %s\n",
-+		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" : "high",
-+		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
-+		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "fall" : "rise");
-+
- 	if (isi->pdata.has_emb_sync)
- 		cfg1 |= ISI_CFG1_EMB_SYNC;
- 	if (isi->pdata.full_mode)
-@@ -898,6 +903,11 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
- 		goto err_probe_dt;
- 	}
- 
-+	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-+		isi->pdata.hsync_act_low = true;
-+	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-+		isi->pdata.vsync_act_low = true;
-+
- err_probe_dt:
- 	of_node_put(np);
- 
--- 
-1.9.1
+With that change:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+>  	}
+> -
+> -	/* Inform any processes that may be waiting for buffers */
+> -	wake_up(&q->done_wq);
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_buffer_done);
+>  
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 22a44c2..c192e1b 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -139,6 +139,7 @@ enum vb2_io_modes {
+>   * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+>   * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+>   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
+> + * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver
+>   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+>   *				in a hardware operation
+>   * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
+> @@ -152,6 +153,7 @@ enum vb2_buffer_state {
+>  	VB2_BUF_STATE_PREPARING,
+>  	VB2_BUF_STATE_PREPARED,
+>  	VB2_BUF_STATE_QUEUED,
+> +	VB2_BUF_STATE_REQUEUEING,
+>  	VB2_BUF_STATE_ACTIVE,
+>  	VB2_BUF_STATE_DONE,
+>  	VB2_BUF_STATE_ERROR,
+> 
 
