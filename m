@@ -1,72 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:34893 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbbGEOnX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2015 10:43:23 -0400
-Received: by wgjx7 with SMTP id x7so120580472wgj.2
-        for <linux-media@vger.kernel.org>; Sun, 05 Jul 2015 07:43:22 -0700 (PDT)
-Message-ID: <55994284.6080209@gmail.com>
-Date: Sun, 05 Jul 2015 15:43:16 +0100
-From: Andy Furniss <adf.lists@gmail.com>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:32957 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755083AbbGCOXF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2015 10:23:05 -0400
+Received: by ykdv136 with SMTP id v136so97049950ykd.0
+        for <linux-media@vger.kernel.org>; Fri, 03 Jul 2015 07:23:05 -0700 (PDT)
 MIME-Version: 1.0
-To: Peter Fassberg <pf@leissner.se>
-CC: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <5598FDDC.7020804@gmail.com> <alpine.BSF.2.20.1507051323270.71755@nic-i.leissner.se> <55991C3D.4020305@gmail.com> <alpine.BSF.2.20.1507051542470.72900@nic-i.leissner.se>
-In-Reply-To: <alpine.BSF.2.20.1507051542470.72900@nic-i.leissner.se>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
+References: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
+Date: Fri, 3 Jul 2015 17:23:04 +0300
+Message-ID: <CAM_ZknWEjUTy0btqFYhJvSJiAFV6uTJzB3ceZzEMxNkKHr2dTg@mail.gmail.com>
+Subject: Re: tw5864 driver development, help needed
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Linux Media <linux-media@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	"hans.verkuil" <hans.verkuil@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, khalasa <khalasa@piap.pl>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Peter Fassberg wrote:
+On Wed, Jun 3, 2015 at 1:03 AM, Andrey Utkin
+<andrey.utkin@corp.bluecherry.net> wrote:
+> Hi! I am working on making a Linux driver for TW5864-based video&audio
+> capture and encoding PCI boards. The driver is to be submitted for
+> inclusion to Linux upstream.
+> The following two links are links to boards available for buying:
+> http://www.provideo.com.tw/web/DVR%20Card_TW-310.htm
+> http://www.provideo.com.tw/web/DVR%20Card_TW-320.htm
+> We possess one 8-port board and we try to make it play.
 >
->> Peter Fassberg wrote:
->>>
->>>>> I'm trying to get PCTV TripleStick 292e working in a
->>>>> Raspberry Pi B+ environment.
->>>>>
->>>>> I have no problem getting DVB-T to work, but I can't tune to
->>>>> any DVB-T2 channels. I have tried with three different
->>>>> kernels: 3.18.11, 3.18.16 and 4.0.6.  Same problem.  I also
->>>>> cloned the media_build under 4.0.6 to no avail.
->>>>>
->>>>> The same physical stick works perfectly with DVB-T2 in an
->>>>> Intel platform using kernel 3.16.0.
->>>>>
->>>>> Do you have any suggestions what I can do to get this running
->>>>> or is there a known problem with Raspberry/ARM?
->>>>
->>>> What are you trying to tune with?
->>>
->>> I'm using dvbv5-scan.
->>>
->>> I use the same program on the system that works.
->>>
->>> The output for a DVB-T mux: Lock   (0x1f) Signal= -42.00dBm C/N=
->>> 20.25dB
->>>
->>> And a DVB-T2: Carrier(0x03) Signal= -35.00dBm
->>>
->>> There is a difference between Raspberry/ARM and Intel that I
->>> don't understand.
->>
->> Hmm, not sure then - maybe try md5sum on the firmware that dmesg
->> shows loading on each then if different backup/copy over etc.
->>
->> I am just a user so don't know what's different between 3.16 and
->> later.
->>
->> One thing I noticed at one point when setting mine up was (after
->> unknowingly breaking a splitter) that with the degraded splitter I
->> could get working/not on some T2 muxed by flipping the lna on off
->> with the option available with dvbv5-*.
+> http://whdd.org/tw5864/TW-3XX_Linux.rar - this is reference driver
+> code. Overwhelmingly complicated IMO.
+> http://whdd.org/tw5864/tw5864b1-ds.pdf - Datasheet.
+> http://whdd.org/tw5864/TW5864_datasheet_0.6d.pdf - Another datasheet.
+> These two differ in some minor points.
+> https://github.com/krieger-od/linux - my work in progress on this, in
+> drivers/staging/media/tw5864 directory. Derived from
+> drivers/media/pci/tw68 (which is raw video capture card), defined
+> reasonable part of registers, now trying to make device produce video
+> capture and encoding interrupts, but cannot get any interrupts except
+> GPIO and timer ones. This is currently the critical blocking issue in
+> development.
+> I hope that somebody experienced with similar boards would have
+> quesswork on how to proceed.
+> My work-on-progress code is dirty, so if you would agree to check that
+> only if it will be cleaned up, please let me know.
 >
-> Yes, I also tested that.  The firmware is identical and the LNA as
-> well.
+> I am willing to pay for productive help.
 >
-> It do work 100% of the times I scan on the Intel platform.
-
-OK - strange, is the issue reproducable with the current version of w_scan?
+> --
+> Bluecherry developer.
 
 
+Up... we are moving much slower than we expected, desperately needing help.
+
+Running reference driver with Ubuntu 9 (with kernel 2.6.28.10) with
+16-port card shows that the
+reference driver fails to work with it correctly. Also that driver is
+not complete, it requires your userland counterpart for usable
+operation, which is far from being acceptable in production.
+
+Currently what stops us with our driver is that "H264 encoding done"
+interrupt doesn't repeat, and CRC checksums mismatch for the first
+(and last) time this interrupt happens.
+We do our best to mimic what the reference driver does, but we might
+miss some point.
+
+I suspect that my initialization of video inputs or board clock
+configuration is insufficient or inconsistent with what device needs.
+
+Our work in progress is located in
+https://github.com/krieger-od/linux, directory
+drivers/staging/media/tw5864
+
+This is another request for expert help.
+The time is very important for us now.
+
+Thanks in advance and sorry for distraction.
+
+-- 
+Bluecherry developer.
