@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52772 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:52773 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751395AbbGMVvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 17:51:23 -0400
-Message-ID: <55A432D1.9060008@osg.samsung.com>
-Date: Mon, 13 Jul 2015 15:51:13 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+	id S1755031AbbGCSIx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 14:08:53 -0400
+Date: Fri, 3 Jul 2015 15:08:46 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ramakrishnan Muthukrishnan <ramakrmu@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 5/7] [media] v4l2-core: Implement
+ dev_pm_ops.prepare()
+Message-ID: <20150703150846.4eb8b032@recife.lan>
+In-Reply-To: <1428065887-16017-6-git-send-email-tomeu.vizoso@collabora.com>
+References: <1428065887-16017-1-git-send-email-tomeu.vizoso@collabora.com>
+	<1428065887-16017-6-git-send-email-tomeu.vizoso@collabora.com>
 MIME-Version: 1.0
-To: "Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Shuah Khan <shuahkh@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Media Controller - graph_mutex
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All,
+Hi,
 
-ALSA has to make media_entity_pipeline_start() call in irq
-path. I am seeing warnings that the graph_mutex is unsafe irq
-lock as expected. We have to update MC start/stop pipeline
-to be irq safe for ALSA. Maybe there are other MC interfaces
-that need to be irq safe, but I haven't seen any problems with
-my limited testing.
+Em Fri,  3 Apr 2015 14:57:54 +0200
+Tomeu Vizoso <tomeu.vizoso@collabora.com> escreveu:
 
-So as per options, graph_mutex could be changed to a spinlock.
-It looks like drivers hold this lock and it isn't abstracted to
-MC API. Unfortunate, this would require changes to drivers that
-directly hold the lock for graph walks if this mutex is changed
-to spinlock.
+> Have it return 1 so that video devices that are runtime-suspended won't
+> be suspended when the system goes to a sleep state. This can make resume
+> times considerably shorter because these devices don't need to be
+> resumed when the system is awaken.
 
-e.g: drivers/media/platform/exynos4-is/fimc-isp-video.c
+I'm not a PM exprert, but that patch doesn't sound right. Not all devices
+supported by v4l2-dev implement runtime suspend.
 
-Changes aren't complex, just that the scope isn't limited
-to MC API.
+So, I guess this need to be done at driver level, not at core level.
 
-Other ideas??
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index e2b8b3e..b74e3d3 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -219,9 +219,19 @@ static void v4l2_device_release(struct device *cd)
+>  		v4l2_device_put(v4l2_dev);
+>  }
+>  
+> +static int video_device_prepare(struct device *dev)
+> +{
+> +	return 1;
+> +}
+> +
+> +static const struct dev_pm_ops video_device_pm_ops = {
+> +	.prepare = video_device_prepare,
+> +};
+> +
+>  static struct class video_class = {
+>  	.name = VIDEO_NAME,
+>  	.dev_groups = video_device_groups,
+> +	.pm = &video_device_pm_ops,
+>  };
+>  
+>  struct video_device *video_devdata(struct file *file)
