@@ -1,134 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36913 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909AbbG0Mfe (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59981 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754756AbbGCNyz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 08:35:34 -0400
-Date: Mon, 27 Jul 2015 13:35:28 +0100 (BST)
-From: William Towle <william.towle@codethink.co.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 07/13] media: soc_camera pad-aware driver
- initialisation
-In-Reply-To: <55B24941.1040803@xs4all.nl>
-Message-ID: <alpine.DEB.2.02.1507271333570.4745@xk120.dyn.ducie.codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk> <55B24941.1040803@xs4all.nl>
+	Fri, 3 Jul 2015 09:54:55 -0400
+Message-ID: <55969405.9090207@xs4all.nl>
+Date: Fri, 03 Jul 2015 15:54:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+CC: mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 1/1] vb2: Only requeue buffers immediately once streaming
+ is started
+References: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com> <55968A26.1010102@xs4all.nl> <55968E02.3060102@linux.intel.com>
+In-Reply-To: <55968E02.3060102@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Jul 2015, Hans Verkuil wrote:
-> Why would you want to init vdev->entity? soc-camera doesn't create a media controller
-> device, so there is no point in doing this.
+On 07/03/2015 03:28 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Hans Verkuil wrote:
+>> On 07/03/2015 02:47 PM, Sakari Ailus wrote:
+>>> Buffers can be returned back to videobuf2 in driver's streamon handler. In
+>>> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+>>> cause the driver's buf_queue vb2 operation to be called, queueing the same
+>>> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+>>> on.
+>>>
+>>> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+>>
+>> It's spelled as requeuing (no e). The verb is 'to queue', but the -ing form is
+>> queuing. Check the dictionary: http://dictionary.reference.com/browse/queuing
+> 
+> My dictionary disagrees with yours. :-)
+> 
+> http://dictionary.cambridge.org/dictionary/british/queue?q=queueing
 
-   Thanks, I hadn't quite understood that about the code I was
-transplanting to/from. Please find an update below.
+$ git grep -i queueing|wc
+    655    5660   54709
+$ git grep -i queuing|wc
+    650    5623   55249
 
-Cheers,
-   Wills.
+That's not helpful either...
 
+On the other hand:
 
-...
-Subject: [PATCH] media: soc_camera pad-aware driver initialisation
+$ git grep -i queuing drivers/media/|wc
+     19     200    1846
+$ git grep -i queueing drivers/media/|wc
+      2      25     203
 
-Add detection of source pad number for drivers aware of the media
-controller API, so that the combination of soc_camera and rcar_vin
-can create device nodes to support modern drivers such as adv7604.c
-(for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+Within drivers/media there seems to be a clear preference for queuing :-)
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
+But yes, both spellings are OK, but for me queueing has way too many vowels!
+And interestingly, my spellchecker thinks queueing is wrong.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
-  drivers/media/platform/soc_camera/Kconfig      |    1 +
-  drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
-  drivers/media/platform/soc_camera/soc_camera.c |   20 +++++++++++++++++++-
-  include/media/soc_camera.h                     |    1 +
-  4 files changed, 22 insertions(+), 1 deletion(-)
+> 
+>>
+>>> state argument to vb2_buffer_done(), will result in buffers queued to the
+>>> driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
+>>> was before "[media] vb2: allow requeuing buffers while streaming".
+>>>
+>>> Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> Cc: stable@vger.kernel.org # for v4.1
+>>> ---
+>>> since v1:
+>>>
+>>> - Instead of relying on q->start_streaming_called and q->streaming, add a
+>>>    new buffer state VB2_BUF_STATE_REQUEUEING, as suggested by Hans. The
+>>>    cobalt driver will need the new flag as it returns the buffer back to the
+>>>    driver's queue, the rest will continue using VB2_BUF_STATE_QUEUED.
+>>>
+>>>   drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
+>>>   drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++----
+>>>   include/media/videobuf2-core.h           |  2 ++
+>>>   3 files changed, 14 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+>>> index e18f49e..2687cb0 100644
+>>> --- a/drivers/media/pci/cobalt/cobalt-irq.c
+>>> +++ b/drivers/media/pci/cobalt/cobalt-irq.c
+>>> @@ -134,7 +134,7 @@ done:
+>>>   	   also know about dropped frames. */
+>>>   	cb->vb.v4l2_buf.sequence = s->sequence++;
+>>>   	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
+>>> -			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
+>>> +			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
+>>>   }
+>>>
+>>>   irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>> index 1a096a6..ca8c041 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>>
+>>>   	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+>>>   		    state != VB2_BUF_STATE_ERROR &&
+>>> -		    state != VB2_BUF_STATE_QUEUED))
+>>> +		    state != VB2_BUF_STATE_QUEUED &&
+>>> +		    state != VB2_BUF_STATE_REQUEUEING))
+>>>   		state = VB2_BUF_STATE_ERROR;
+>>>
+>>>   #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>> @@ -1199,15 +1200,21 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>>   	for (plane = 0; plane < vb->num_planes; ++plane)
+>>>   		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+>>>
+>>> -	/* Add the buffer to the done buffers list */
+>>>   	spin_lock_irqsave(&q->done_lock, flags);
+>>> -	vb->state = state;
+>>> -	if (state != VB2_BUF_STATE_QUEUED)
+>>> +	if (state == VB2_BUF_STATE_QUEUED ||
+>>> +	    state == VB2_BUF_STATE_REQUEUEING) {
+>>> +		vb->state = VB2_BUF_STATE_QUEUED;
+>>> +	} else {
+>>> +		/* Add the buffer to the done buffers list */
+>>>   		list_add_tail(&vb->done_entry, &q->done_list);
+>>> +		vb->state = state;
+>>> +	}
+>>>   	atomic_dec(&q->owned_by_drv_count);
+>>>   	spin_unlock_irqrestore(&q->done_lock, flags);
+>>>
+>>>   	if (state == VB2_BUF_STATE_QUEUED) {
+>>> +		return;
+>>> +	} else if (state == VB2_BUF_STATE_REQUEUEING) {
+>>
+>> No 'else' is needed here since the 'if' just returns.
+> 
+> Will fix.
+> 
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index f2776cd..5c45c83 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
-  	depends on VIDEO_DEV && SOC_CAMERA
-  	depends on ARCH_SHMOBILE || COMPILE_TEST
-  	depends on HAS_DMA
-+	depends on MEDIA_CONTROLLER
-  	select VIDEOBUF2_DMA_CONTIG
-  	select SOC_CAMERA_SCALE_CROP
-  	---help---
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 16352a8..00c1034 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
-  		struct device *dev = icd->parent;
-  		int shift;
+Regards,
 
-+		fmt.pad = icd->src_pad_idx;
-  		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-  		if (ret < 0)
-  			return ret;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d708df4..82d3ebe 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1293,6 +1293,10 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
-  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-  	};
-  	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad pad;
-+	int pad_idx;
-+#endif
-  	int ret;
-
-  	sd->grp_id = soc_camera_grp_id(icd);
-@@ -1311,9 +1315,23 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
-  	}
-
-  	/* At this point client .probe() should have run already */
-+	icd->src_pad_idx = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags
-+				== MEDIA_PAD_FL_SOURCE)
-+			break;
-+	if (pad_idx >= sd->entity.num_pads)
-+		goto eusrfmt;
-+
-+	icd->src_pad_idx = pad_idx;
-+#endif
-+
-  	ret = soc_camera_init_user_formats(icd);
--	if (ret < 0)
-+	if (ret < 0) {
-+		icd->src_pad_idx = -1;
-  		goto eusrfmt;
-+	}
-
-  	icd->field = V4L2_FIELD_ANY;
-
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..30193cf 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -42,6 +42,7 @@ struct soc_camera_device {
-  	unsigned char devnum;		/* Device number per host */
-  	struct soc_camera_sense *sense;	/* See comment in struct definition */
-  	struct video_device *vdev;
-+	int src_pad_idx;		/* For media-controller drivers */
-  	struct v4l2_ctrl_handler ctrl_handler;
-  	const struct soc_camera_format_xlate *current_fmt;
-  	struct soc_camera_format_xlate *user_formats;
--- 
-1.7.10.4
-
+	Hans
