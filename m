@@ -1,276 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:34798 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754897AbbG3RJN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 13:09:13 -0400
-Received: by wibud3 with SMTP id ud3so29102497wib.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:11 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	m.krufky@samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, joe@perches.com
-Subject: [PATCH v2 03/11] dvb-pll: Convert struct dvb_pll_desc uses to const.
-Date: Thu, 30 Jul 2015 18:08:53 +0100
-Message-Id: <1438276141-16902-4-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
-References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:6088 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755363AbbGCMtL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 08:49:11 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@osg.samsung.com
+Subject: [PATCH v2 1/1] vb2: Only requeue buffers immediately once streaming is started
+Date: Fri,  3 Jul 2015 15:47:56 +0300
+Message-Id: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Joe Perches <joe@perches.com>
+Buffers can be returned back to videobuf2 in driver's streamon handler. In
+this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+cause the driver's buf_queue vb2 operation to be called, queueing the same
+buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+on.
 
-Convert the struct dvb_pll_desc uses to const and
-change the "entries" fixed array size from 12 to []
+Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+state argument to vb2_buffer_done(), will result in buffers queued to the
+driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
+was before "[media] vb2: allow requeuing buffers while streaming".
 
-It saves a couple KB overall and remove ~5KB of data.
-
-$ size drivers/media/dvb-frontends/dvb-pll.o*
-   text        data     bss     dec     hex filename
-   8520        1552    2120   12192    2fa0 drivers/media/dvb-frontends/dvb-pll.o.new
-   5624        6363    2120   14107    371b drivers/media/dvb-frontends/dvb-pll.o.old
-
-[PG] Patch taken from https://lkml.org/lkml/2015/6/24/721 with
-commit message updated.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
+Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stable@vger.kernel.org # for v4.1
 ---
- drivers/media/dvb-frontends/dvb-pll.c | 50 +++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+since v1:
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
-index 6d8fe88..53089e1 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -34,7 +34,7 @@ struct dvb_pll_priv {
- 	struct i2c_adapter *i2c;
- 
- 	/* the PLL descriptor */
--	struct dvb_pll_desc *pll_desc;
-+	const struct dvb_pll_desc *pll_desc;
- 
- 	/* cached frequency/bandwidth */
- 	u32 frequency;
-@@ -57,7 +57,7 @@ MODULE_PARM_DESC(id, "force pll id to use (DEBUG ONLY)");
- /* ----------------------------------------------------------- */
- 
- struct dvb_pll_desc {
--	char *name;
-+	const char *name;
- 	u32  min;
- 	u32  max;
- 	u32  iffreq;
-@@ -71,13 +71,13 @@ struct dvb_pll_desc {
- 		u32 stepsize;
- 		u8  config;
- 		u8  cb;
--	} entries[12];
-+	} entries[];
- };
- 
- /* ----------------------------------------------------------- */
- /* descriptions                                                */
- 
--static struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
-+static const struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
- 	.name  = "Thomson dtt7579",
- 	.min   = 177000000,
- 	.max   = 858000000,
-@@ -99,7 +99,7 @@ static void thomson_dtt759x_bw(struct dvb_frontend *fe, u8 *buf)
- 		buf[3] |= 0x10;
+- Instead of relying on q->start_streaming_called and q->streaming, add a
+  new buffer state VB2_BUF_STATE_REQUEUEING, as suggested by Hans. The
+  cobalt driver will need the new flag as it returns the buffer back to the
+  driver's queue, the rest will continue using VB2_BUF_STATE_QUEUED.
+
+ drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
+ drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++----
+ include/media/videobuf2-core.h           |  2 ++
+ 3 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+index e18f49e..2687cb0 100644
+--- a/drivers/media/pci/cobalt/cobalt-irq.c
++++ b/drivers/media/pci/cobalt/cobalt-irq.c
+@@ -134,7 +134,7 @@ done:
+ 	   also know about dropped frames. */
+ 	cb->vb.v4l2_buf.sequence = s->sequence++;
+ 	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
+-			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
++			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
  }
  
--static struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
-+static const struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
- 	.name  = "Thomson dtt759x",
- 	.min   = 177000000,
- 	.max   = 896000000,
-@@ -123,7 +123,7 @@ static void thomson_dtt7520x_bw(struct dvb_frontend *fe, u8 *buf)
- 		buf[3] ^= 0x10;
- }
+ irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1a096a6..ca8c041 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
  
--static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
-+static const struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
- 	.name  = "Thomson dtt7520x",
- 	.min   = 185000000,
- 	.max   = 900000000,
-@@ -141,7 +141,7 @@ static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
- 	},
- };
+ 	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+ 		    state != VB2_BUF_STATE_ERROR &&
+-		    state != VB2_BUF_STATE_QUEUED))
++		    state != VB2_BUF_STATE_QUEUED &&
++		    state != VB2_BUF_STATE_REQUEUEING))
+ 		state = VB2_BUF_STATE_ERROR;
  
--static struct dvb_pll_desc dvb_pll_lg_z201 = {
-+static const struct dvb_pll_desc dvb_pll_lg_z201 = {
- 	.name  = "LG z201",
- 	.min   = 174000000,
- 	.max   = 862000000,
-@@ -157,7 +157,7 @@ static struct dvb_pll_desc dvb_pll_lg_z201 = {
- 	},
- };
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -1199,15 +1200,21 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
  
--static struct dvb_pll_desc dvb_pll_unknown_1 = {
-+static const struct dvb_pll_desc dvb_pll_unknown_1 = {
- 	.name  = "unknown 1", /* used by dntv live dvb-t */
- 	.min   = 174000000,
- 	.max   = 862000000,
-@@ -179,7 +179,7 @@ static struct dvb_pll_desc dvb_pll_unknown_1 = {
- /* Infineon TUA6010XS
-  * used in Thomson Cable Tuner
-  */
--static struct dvb_pll_desc dvb_pll_tua6010xs = {
-+static const struct dvb_pll_desc dvb_pll_tua6010xs = {
- 	.name  = "Infineon TUA6010XS",
- 	.min   =  44250000,
- 	.max   = 858000000,
-@@ -193,7 +193,7 @@ static struct dvb_pll_desc dvb_pll_tua6010xs = {
- };
+-	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+-	vb->state = state;
+-	if (state != VB2_BUF_STATE_QUEUED)
++	if (state == VB2_BUF_STATE_QUEUED ||
++	    state == VB2_BUF_STATE_REQUEUEING) {
++		vb->state = VB2_BUF_STATE_QUEUED;
++	} else {
++		/* Add the buffer to the done buffers list */
+ 		list_add_tail(&vb->done_entry, &q->done_list);
++		vb->state = state;
++	}
+ 	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
  
- /* Panasonic env57h1xd5 (some Philips PLL ?) */
--static struct dvb_pll_desc dvb_pll_env57h1xd5 = {
-+static const struct dvb_pll_desc dvb_pll_env57h1xd5 = {
- 	.name  = "Panasonic ENV57H1XD5",
- 	.min   =  44250000,
- 	.max   = 858000000,
-@@ -217,7 +217,7 @@ static void tda665x_bw(struct dvb_frontend *fe, u8 *buf)
- 		buf[3] |= 0x08;
- }
- 
--static struct dvb_pll_desc dvb_pll_tda665x = {
-+static const struct dvb_pll_desc dvb_pll_tda665x = {
- 	.name  = "Philips TDA6650/TDA6651",
- 	.min   =  44250000,
- 	.max   = 858000000,
-@@ -251,7 +251,7 @@ static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
- 		buf[3] |= 0x08;
- }
- 
--static struct dvb_pll_desc dvb_pll_tua6034 = {
-+static const struct dvb_pll_desc dvb_pll_tua6034 = {
- 	.name  = "Infineon TUA6034",
- 	.min   =  44250000,
- 	.max   = 858000000,
-@@ -275,7 +275,7 @@ static void tded4_bw(struct dvb_frontend *fe, u8 *buf)
- 		buf[3] |= 0x04;
- }
- 
--static struct dvb_pll_desc dvb_pll_tded4 = {
-+static const struct dvb_pll_desc dvb_pll_tded4 = {
- 	.name = "ALPS TDED4",
- 	.min = 47000000,
- 	.max = 863000000,
-@@ -293,7 +293,7 @@ static struct dvb_pll_desc dvb_pll_tded4 = {
- /* ALPS TDHU2
-  * used in AverTVHD MCE A180
-  */
--static struct dvb_pll_desc dvb_pll_tdhu2 = {
-+static const struct dvb_pll_desc dvb_pll_tdhu2 = {
- 	.name = "ALPS TDHU2",
- 	.min = 54000000,
- 	.max = 864000000,
-@@ -310,7 +310,7 @@ static struct dvb_pll_desc dvb_pll_tdhu2 = {
- /* Samsung TBMV30111IN / TBMV30712IN1
-  * used in Air2PC ATSC - 2nd generation (nxt2002)
-  */
--static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
-+static const struct dvb_pll_desc dvb_pll_samsung_tbmv = {
- 	.name = "Samsung TBMV30111IN / TBMV30712IN1",
- 	.min = 54000000,
- 	.max = 860000000,
-@@ -329,7 +329,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
- /*
-  * Philips SD1878 Tuner.
-  */
--static struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
-+static const struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
- 	.name  = "Philips SD1878",
- 	.min   =  950000,
- 	.max   = 2150000,
-@@ -395,7 +395,7 @@ static void opera1_bw(struct dvb_frontend *fe, u8 *buf)
- 	return;
- }
- 
--static struct dvb_pll_desc dvb_pll_opera1 = {
-+static const struct dvb_pll_desc dvb_pll_opera1 = {
- 	.name  = "Opera Tuner",
- 	.min   =  900000,
- 	.max   = 2250000,
-@@ -442,7 +442,7 @@ static void samsung_dtos403ih102a_set(struct dvb_frontend *fe, u8 *buf)
- }
- 
- /* unknown pll used in Samsung DTOS403IH102A DVB-C tuner */
--static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
-+static const struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
- 	.name   = "Samsung DTOS403IH102A",
- 	.min    =  44250000,
- 	.max    = 858000000,
-@@ -462,7 +462,7 @@ static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
- };
- 
- /* Samsung TDTC9251DH0 DVB-T NIM, as used on AirStar 2 */
--static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
-+static const struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
- 	.name	= "Samsung TDTC9251DH0",
- 	.min	=  48000000,
- 	.max	= 863000000,
-@@ -476,7 +476,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
- };
- 
- /* Samsung TBDU18132 DVB-S NIM with TSA5059 PLL, used in SkyStar2 DVB-S 2.3 */
--static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
-+static const struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
- 	.name = "Samsung TBDU18132",
- 	.min	=  950000,
- 	.max	= 2150000, /* guesses */
-@@ -497,7 +497,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
- };
- 
- /* Samsung TBMU24112 DVB-S NIM with SL1935 zero-IF tuner */
--static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
-+static const struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
- 	.name = "Samsung TBMU24112",
- 	.min	=  950000,
- 	.max	= 2150000, /* guesses */
-@@ -518,7 +518,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
-  * 153 - 430   0  *  0   0   0   0   1   0   0x02
-  * 430 - 822   0  *  0   0   1   0   0   0   0x08
-  * 822 - 862   1  *  0   0   1   0   0   0   0x88 */
--static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
-+static const struct dvb_pll_desc dvb_pll_alps_tdee4 = {
- 	.name = "ALPS TDEE4",
- 	.min	=  47000000,
- 	.max	= 862000000,
-@@ -534,7 +534,7 @@ static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
- 
- /* ----------------------------------------------------------- */
- 
--static struct dvb_pll_desc *pll_list[] = {
-+static const struct dvb_pll_desc *pll_list[] = {
- 	[DVB_PLL_UNDEFINED]              = NULL,
- 	[DVB_PLL_THOMSON_DTT7579]        = &dvb_pll_thomson_dtt7579,
- 	[DVB_PLL_THOMSON_DTT759X]        = &dvb_pll_thomson_dtt759x,
-@@ -564,7 +564,7 @@ static int dvb_pll_configure(struct dvb_frontend *fe, u8 *buf,
- 			     const u32 frequency)
- {
- 	struct dvb_pll_priv *priv = fe->tuner_priv;
--	struct dvb_pll_desc *desc = priv->pll_desc;
-+	const struct dvb_pll_desc *desc = priv->pll_desc;
- 	u32 div;
- 	int i;
- 
-@@ -758,7 +758,7 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
- 			       .buf = b1, .len = 1 };
- 	struct dvb_pll_priv *priv = NULL;
- 	int ret;
--	struct dvb_pll_desc *desc;
-+	const struct dvb_pll_desc *desc;
- 
- 	if ((id[dvb_pll_devcount] > DVB_PLL_UNDEFINED) &&
- 	    (id[dvb_pll_devcount] < ARRAY_SIZE(pll_list)))
+ 	if (state == VB2_BUF_STATE_QUEUED) {
++		return;
++	} else if (state == VB2_BUF_STATE_REQUEUEING) {
+ 		if (q->start_streaming_called)
+ 			__enqueue_in_driver(vb);
+ 		return;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 22a44c2..c192e1b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -139,6 +139,7 @@ enum vb2_io_modes {
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+  * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
++ * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver
+  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+  *				in a hardware operation
+  * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
+@@ -152,6 +153,7 @@ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_PREPARING,
+ 	VB2_BUF_STATE_PREPARED,
+ 	VB2_BUF_STATE_QUEUED,
++	VB2_BUF_STATE_REQUEUEING,
+ 	VB2_BUF_STATE_ACTIVE,
+ 	VB2_BUF_STATE_DONE,
+ 	VB2_BUF_STATE_ERROR,
 -- 
-1.9.1
+2.1.4
 
