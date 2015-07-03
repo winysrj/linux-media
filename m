@@ -1,121 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47734 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750867AbbGEJRS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Jul 2015 05:17:18 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 04CF22A0006
-	for <linux-media@vger.kernel.org>; Sun,  5 Jul 2015 04:49:58 +0200 (CEST)
-Date: Sun, 05 Jul 2015 04:49:57 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga02.intel.com ([134.134.136.20]:39060 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755461AbbGCOvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 10:51:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150705024958.04CF22A0006@tschai.lan>
+Cc: hverkuil@xs4all.nl, mchehab@osg.samsung.com
+Subject: [PATCH v3 1/1] vb2: Only requeue buffers immediately once streaming is started
+Date: Fri,  3 Jul 2015 17:50:04 +0300
+Message-Id: <1435935004-27261-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Buffers can be returned back to videobuf2 in driver's streamon handler. In
+this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+cause the driver's buf_queue vb2 operation to be called, queueing the same
+buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+on.
 
-Results of the daily build of media_tree:
+Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+state argument to vb2_buffer_done(), will result in buffers queued to the
+driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
+was before "[media] vb2: allow requeuing buffers while streaming".
 
-date:		Sun Jul  5 04:00:18 CEST 2015
-git branch:	test
-git hash:	5bab86243d949cf021b0f104faafc18f5d20283c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stable@vger.kernel.org # for v4.1
+---
+since v2:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+- Replace the if's at the end of v4l2_buffer_done() by a pretty-looking
+  switch.
 
-Detailed results are available here:
+ drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
+ drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++--------
+ include/media/videobuf2-core.h           |  2 ++
+ 3 files changed, 19 insertions(+), 9 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+index e18f49e..2687cb0 100644
+--- a/drivers/media/pci/cobalt/cobalt-irq.c
++++ b/drivers/media/pci/cobalt/cobalt-irq.c
+@@ -134,7 +134,7 @@ done:
+ 	   also know about dropped frames. */
+ 	cb->vb.v4l2_buf.sequence = s->sequence++;
+ 	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
+-			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
++			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
+ }
+ 
+ irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1a096a6..bbd22ff 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 
+ 	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+ 		    state != VB2_BUF_STATE_ERROR &&
+-		    state != VB2_BUF_STATE_QUEUED))
++		    state != VB2_BUF_STATE_QUEUED &&
++		    state != VB2_BUF_STATE_REQUEUEING))
+ 		state = VB2_BUF_STATE_ERROR;
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -1199,22 +1200,29 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 
+-	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+-	vb->state = state;
+-	if (state != VB2_BUF_STATE_QUEUED)
++	if (state == VB2_BUF_STATE_QUEUED ||
++	    state == VB2_BUF_STATE_REQUEUEING) {
++		vb->state = VB2_BUF_STATE_QUEUED;
++	} else {
++		/* Add the buffer to the done buffers list */
+ 		list_add_tail(&vb->done_entry, &q->done_list);
++		vb->state = state;
++	}
+ 	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+-	if (state == VB2_BUF_STATE_QUEUED) {
++	switch (state) {
++	case VB2_BUF_STATE_QUEUED:
++		return;
++	case VB2_BUF_STATE_REQUEUEING:
+ 		if (q->start_streaming_called)
+ 			__enqueue_in_driver(vb);
+ 		return;
++	default:
++		/* Inform any processes that may be waiting for buffers */
++		wake_up(&q->done_wq);
+ 	}
+-
+-	/* Inform any processes that may be waiting for buffers */
+-	wake_up(&q->done_wq);
+ }
+ EXPORT_SYMBOL_GPL(vb2_buffer_done);
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 22a44c2..c192e1b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -139,6 +139,7 @@ enum vb2_io_modes {
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
+  * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
++ * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver
+  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+  *				in a hardware operation
+  * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
+@@ -152,6 +153,7 @@ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_PREPARING,
+ 	VB2_BUF_STATE_PREPARED,
+ 	VB2_BUF_STATE_QUEUED,
++	VB2_BUF_STATE_REQUEUEING,
+ 	VB2_BUF_STATE_ACTIVE,
+ 	VB2_BUF_STATE_DONE,
+ 	VB2_BUF_STATE_ERROR,
+-- 
+2.1.4
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
