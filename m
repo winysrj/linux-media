@@ -1,45 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:48245 "EHLO ni.piap.pl"
+Received: from mga01.intel.com ([192.55.52.88]:51600 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753804AbbGFGQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jul 2015 02:16:31 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: Subjective maturity of tw6869, cx25821, bluecherry/softlogic drivers
-References: <1435871672466752997@telcodata.us> <m3vbe1plhk.fsf@t19.piap.pl>
-	<CAM_ZknXDnXdh-UVjnxdui0DJyo8PJgj9Bsh_yZ7Z-BRzj8__qA@mail.gmail.com>
-Date: Mon, 06 Jul 2015 08:16:30 +0200
-In-Reply-To: <CAM_ZknXDnXdh-UVjnxdui0DJyo8PJgj9Bsh_yZ7Z-BRzj8__qA@mail.gmail.com>
-	(Andrey Utkin's message of "Sun, 5 Jul 2015 19:54:30 +0300")
-Message-ID: <m3y4itoloh.fsf@t19.piap.pl>
+	id S1755637AbbGCOtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 10:49:13 -0400
+Message-ID: <5596A09F.9030301@linux.intel.com>
+Date: Fri, 03 Jul 2015 17:47:59 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 1/1] vb2: Only requeue buffers immediately once
+ streaming is started
+References: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com> <55968A26.1010102@xs4all.nl> <55968E02.3060102@linux.intel.com> <55969405.9090207@xs4all.nl>
+In-Reply-To: <55969405.9090207@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrey Utkin <andrey.utkin@corp.bluecherry.net> writes:
+Hi Hans,
 
->> Also, TW686x are (mini) PCIe while SOLO6110 (and earlier SOLO6010 which
->> produces MPEG4 part 2 instead of H.264) are (mini) PCI.
+Hans Verkuil wrote:
+> On 07/03/2015 03:28 PM, Sakari Ailus wrote:
+>> Hi Hans,
+>>
+>> Hans Verkuil wrote:
+>>> On 07/03/2015 02:47 PM, Sakari Ailus wrote:
+>>>> Buffers can be returned back to videobuf2 in driver's streamon handler. In
+>>>> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+>>>> cause the driver's buf_queue vb2 operation to be called, queueing the same
+>>>> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+>>>> on.
+>>>>
+>>>> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+>>>
+>>> It's spelled as requeuing (no e). The verb is 'to queue', but the -ing form is
+>>> queuing. Check the dictionary: http://dictionary.reference.com/browse/queuing
+>>
+>> My dictionary disagrees with yours. :-)
+>>
+>> http://dictionary.cambridge.org/dictionary/british/queue?q=queueing
 >
-> solo6110 is PCI-E, not PCI.
+> $ git grep -i queueing|wc
+>      655    5660   54709
+> $ git grep -i queuing|wc
+>      650    5623   55249
+>
+> That's not helpful either...
+>
+> On the other hand:
+>
+> $ git grep -i queuing drivers/media/|wc
+>       19     200    1846
+> $ git grep -i queueing drivers/media/|wc
+>        2      25     203
+>
+> Within drivers/media there seems to be a clear preference for queuing :-)
 
-No, it's not, both SOLO6010 and SOLO6110 are 32-bit PCI.
+The rest of the kernel apparently prefers "queueing" with a slight 
+margin, if you don't consider V4L2. And who do you think might have 
+added those lines containing "queuing" in V4L2? :-D
 
-SOLO6110 Data Sheet
-1.2.5. PCI/HOST Interface
-     - PCI Local Bus Specification, Rev. 2.2. 32bit/33MHz(66MHz)
-     - PCI Master/Target Mode.
-     - 32bit CPU Host Interface
+The matter was discussed long time ago and my understanding was in case 
+of multiple possible spellings both should be allowed.
 
-There are probably PCIe cards using SOLO6110, but they have to use
-a PCIe-PCI bridge.
+I'll post v3, replacing the if's at the end by a single switch. I think 
+it's cleaner that way.
 
-One can also use a SOLO6x10 card with a separate converter board.
-We're using converters with PLX PEX8112 bridge chip for this.
 -- 
-Krzysztof Halasa
+Kind regards,
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Sakari Ailus
+sakari.ailus@linux.intel.com
