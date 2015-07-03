@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41271 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751435AbbGMIN3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 04:13:29 -0400
-Message-ID: <55A372EE.4040103@xs4all.nl>
-Date: Mon, 13 Jul 2015 10:12:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sadegh abbasi <sadegh612000@yahoo.co.uk>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/6] v4l2-ctrls: Add new S8, S16 and S32 compound control
- types
-References: <54C8B7A3.9050801@xs4all.nl> <532636346.4083310.1436543123211.JavaMail.yahoo@mail.yahoo.com> <1738054.4vofqz5FHv@avalon>
-In-Reply-To: <1738054.4vofqz5FHv@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:49947 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754330AbbGCKVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2015 06:21:24 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@osg.samsung.com
+Subject: [PATCH 1/1] vb2: Only requeue buffers immediately once streaming is started
+Date: Fri,  3 Jul 2015 13:20:10 +0300
+Message-Id: <1435918810-21180-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2015 12:18 AM, Laurent Pinchart wrote:
-> Hi Sadegh,
-> 
-> On Friday 10 July 2015 15:45:23 sadegh abbasi wrote:
->> Hi Hans / Laurent,
->> Just wondering what has happened to these patches. I used them in my driver
->> and can not find them in 4.1 release. Have they been rejected?
-> 
-> Not exactly. The changes to v4l2-ctrls were considered to be fine, but we have 
-> a policy not to merge core changes without at least one driver using them. As 
-> the OMAP4 ISS part of the series still needs work, nothing got merged.
-> 
-> Hans, you mentioned you wanted to look at the RGB2RGB controls in a wider 
-> context (including the adv drivers for instance). Do you have anything to 
-> report ?
+Buffers can be returned back to videobuf2 in driver's streamon handler. In
+this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
+cause the driver's buf_queue vb2 operation to be called, queueing the same
+buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
+on.
 
-Yes and no :-)
+Instead of using q->start_streamin_called to judge whether to return the
+buffer to the driver immediately, use q->streaming which is set only after
+the driver's start_streaming() vb2 operation is called.
 
-It's part of my work to support colorspace conversion hardware. Now for 4.2 I merged
-a lot of patches that pave the way for the remaining code to go in. But that remaining
-code still needs to be cleaned up. My code can be found here:
+Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stable@vger.kernel.org # for v4.1
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/log/?h=csc
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1a096a6..6957078 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1208,7 +1208,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	if (state == VB2_BUF_STATE_QUEUED) {
+-		if (q->start_streaming_called)
++		if (q->streaming)
+ 			__enqueue_in_driver(vb);
+ 		return;
+ 	}
+-- 
+2.1.4
 
-Unfortunately it's on hold because the CEC framework has priority for me (and Cisco).
-
-In addition, for drm Intel is working on color manager code as well (see the patch
-series titled "Color Manager Implementation" at dri-devel). I would like to be able
-to share the low-level matrix/vector calculation code with them. So I am waiting to
-see how that turns out.
-
-So quite some work has been done, but it's not ready for merging.
-
-Regards,
-
-	Hans
