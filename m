@@ -1,70 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46310 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752850AbbGXN00 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 09:26:26 -0400
-Message-ID: <55B23CB7.2040200@xs4all.nl>
-Date: Fri, 24 Jul 2015 15:25:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Masanari Iida <standby24x7@gmail.com>, mchehab@osg.samsung.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] DocBook: Fix typo in intro.xml
-References: <1436830610-19316-1-git-send-email-standby24x7@gmail.com>	<20150714123806.4a97894c@lwn.net>	<55B1F86F.8010304@xs4all.nl> <20150724151038.1b9e9981@lwn.net>
-In-Reply-To: <20150724151038.1b9e9981@lwn.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from smtp02.smtpout.orange.fr ([80.12.242.124]:18596 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752323AbbGESak (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2015 14:30:40 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@intel.com>
+Subject: [PATCH v2 3/4] media: pxa_camera: trivial move of dma irq functions
+Date: Sun,  5 Jul 2015 20:27:51 +0200
+Message-Id: <1436120872-24484-4-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
+References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/24/2015 03:10 PM, Jonathan Corbet wrote:
-> On Fri, 24 Jul 2015 10:33:51 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
->> Jon, would you mind if I take this patch and let it go through the media
->> tree? I'd like to apply a patch on top of this one that removes the mention of
->> devfs.
-> 
-> Fine, I'll drop it.
-> 
->> It makes more sense in general to take patches to Documentation/DocBook/media
->> via the media route.
-> 
-> OK.  I'll stick the following into MAINTAINERS so I'm not tempted to grab
-> them from you :)
-> 
-> jon
-> 
-> MAINTAINERS: Direct Documentation/DocBook/media properly
-> 
-> The media maintainers want DocBook changes to go through their tree;
-> document that wish accordingly.
+From: Robert Jarzmik <robert.jarzmik@intel.com>
 
-Thank you very much!
+This moves the dma irq handling functions up in the source file, so that
+they are available before DMA preparation functions. It prepares the
+conversion to DMA engine, where the descriptors are populated with these
+functions as callbacks.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@intel.com>
+---
+Since v1: fixed prototypes change
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 40 ++++++++++++++------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-Regards,
-
-	Hans
-
-> ---
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b9b91566380e..11e2516c2712 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3440,6 +3440,7 @@ X:	Documentation/devicetree/
->  X:	Documentation/acpi
->  X:	Documentation/power
->  X:	Documentation/spi
-> +X:	Documentation/DocBook/media
->  T:	git git://git.lwn.net/linux-2.6.git docs-next
->  
->  DOUBLETALK DRIVER
-> 
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index c0c0f0f..1ab4f9d 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -311,6 +311,28 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+ 
+ 	BUG_ON(size != 0);
+ 	return i + 1;
++static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
++			       enum pxa_camera_active_dma act_dma);
++
++static void pxa_camera_dma_irq_y(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(pcdev, DMA_Y);
++}
++
++static void pxa_camera_dma_irq_u(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(pcdev, DMA_U);
++}
++
++static void pxa_camera_dma_irq_v(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(pcdev, DMA_V);
+ }
+ 
+ /**
+@@ -810,24 +832,6 @@ out:
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+-static void pxa_camera_dma_irq_y(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+-}
+-
+-static void pxa_camera_dma_irq_u(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+-}
+-
+-static void pxa_camera_dma_irq_v(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+-}
+-
+ static struct videobuf_queue_ops pxa_videobuf_ops = {
+ 	.buf_setup      = pxa_videobuf_setup,
+ 	.buf_prepare    = pxa_videobuf_prepare,
+-- 
+2.1.4
 
