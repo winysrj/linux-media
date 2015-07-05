@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:27724 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243AbbG2Tmo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2015 15:42:44 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 0/4] media: pxa_camera conversion to dmaengine
-Date: Wed, 29 Jul 2015 21:39:00 +0200
-Message-Id: <1438198744-6150-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mailgate.leissner.se ([212.3.1.210]:12949 "EHLO
+	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbbGENpA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2015 09:45:00 -0400
+Date: Sun, 5 Jul 2015 15:44:50 +0200 (SST)
+From: Peter Fassberg <pf@leissner.se>
+To: Andy Furniss <adf.lists@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: PCTV Triplestick and Raspberry Pi B+
+In-Reply-To: <55991C3D.4020305@gmail.com>
+Message-ID: <alpine.BSF.2.20.1507051542470.72900@nic-i.leissner.se>
+References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <5598FDDC.7020804@gmail.com> <alpine.BSF.2.20.1507051323270.71755@nic-i.leissner.se> <55991C3D.4020305@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-This is the third round.
+> Peter Fassberg wrote:
+>> 
+>>>> I'm trying to get PCTV TripleStick 292e working in a Raspberry Pi
+>>>> B+ environment.
+>>>> 
+>>>> I have no problem getting DVB-T to work, but I can't tune to any
+>>>> DVB-T2 channels. I have tried with three different kernels:
+>>>> 3.18.11, 3.18.16 and 4.0.6.  Same problem.  I also cloned the
+>>>> media_build under 4.0.6 to no avail.
+>>>> 
+>>>> The same physical stick works perfectly with DVB-T2 in an Intel
+>>>> platform using kernel 3.16.0.
+>>>> 
+>>>> Do you have any suggestions what I can do to get this running or
+>>>> is there a known problem with Raspberry/ARM?
+>>> 
+>>> What are you trying to tune with?
+>> 
+>> I'm using dvbv5-scan.
+>> 
+>> I use the same program on the system that works.
+>> 
+>> The output for a DVB-T mux: Lock   (0x1f) Signal= -42.00dBm C/N=
+>> 20.25dB
+>> 
+>> And a DVB-T2: Carrier(0x03) Signal= -35.00dBm
+>> 
+>> There is a difference between Raspberry/ARM and Intel that I don't
+>> understand.
+>
+> Hmm, not sure then - maybe try md5sum on the firmware that dmesg shows
+> loading on each then if different backup/copy over etc.
+>
+> I am just a user so don't know what's different between 3.16 and later.
+>
+> One thing I noticed at one point when setting mine up was (after
+> unknowingly breaking a splitter) that with the degraded splitter I could
+> get working/not on some T2 muxed by flipping the lna on off with the
+> option available with dvbv5-*.
 
-Most of this round deals with the sg_cut() polishing.
-We still have a bit of ground to cover :
- (a) Robert: try to submit sg_split() to lib/sglist.c
- (b) Robert: following dmaengine "reuse" flag introduction, change pxa_camera
-             accordingly
- (c) Guennadi: I think you had comments about free_buffer() I never received by
-               mail, so there might be something to rework in this area.
- (d) Guennadi+Robert: continue review of the serie
+Yes, I also tested that.  The firmware is identical and the LNA as well.
 
-Happy review.
+It do work 100% of the times I scan on the Intel platform.
 
-Cheers.
 
---
-Robert
 
-Robert Jarzmik (4):
-  media: pxa_camera: fix the buffer free path
-  media: pxa_camera: move interrupt to tasklet
-  media: pxa_camera: trivial move of dma irq functions
-  media: pxa_camera: conversion to dmaengine
-
- drivers/media/platform/soc_camera/pxa_camera.c | 578 ++++++++++++++-----------
- 1 file changed, 321 insertions(+), 257 deletions(-)
-
--- 
-2.1.4
-
+// Peter
 
