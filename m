@@ -1,104 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:57501 "EHLO
-	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752873AbbGVWm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:57 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 15/19] media: v4l-core add v4l_enable_media_tuner() to check for tuner availability
-Date: Wed, 22 Jul 2015 16:42:16 -0600
-Message-Id: <1647341b774540fd9afbc7bb58e1a76510893ad4.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+Received: from mailgate.leissner.se ([212.3.1.210]:54681 "EHLO
+	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752497AbbGEPpV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2015 11:45:21 -0400
+Date: Sun, 5 Jul 2015 17:45:06 +0200 (SST)
+From: Peter Fassberg <pf@leissner.se>
+To: Andy Furniss <adf.lists@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: PCTV Triplestick and Raspberry Pi B+
+In-Reply-To: <55994284.6080209@gmail.com>
+Message-ID: <alpine.BSF.2.20.1507051721550.72900@nic-i.leissner.se>
+References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <5598FDDC.7020804@gmail.com> <alpine.BSF.2.20.1507051323270.71755@nic-i.leissner.se> <55991C3D.4020305@gmail.com> <alpine.BSF.2.20.1507051542470.72900@nic-i.leissner.se>
+ <55994284.6080209@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new interface to be used by v4l-core to invoke enable_source
-handler in the media_device to find tuner entity connected to the
-decoder and check is it is available. enable_source handler will
-activate the link if tuner is available.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/v4l2-core/v4l2-dev.c | 17 +++++++++++++++++
- include/media/v4l2-dev.h           |  3 +++
- 2 files changed, 20 insertions(+)
+> Peter Fassberg wrote:
+>> 
+>>> Peter Fassberg wrote:
+>>>> 
+>>>>>> I'm trying to get PCTV TripleStick 292e working in a
+>>>>>> Raspberry Pi B+ environment.
+>>>>>> 
+>>>>>> I have no problem getting DVB-T to work, but I can't tune to
+>>>>>> any DVB-T2 channels. I have tried with three different
+>>>>>> kernels: 3.18.11, 3.18.16 and 4.0.6.  Same problem.  I also
+>>>>>> cloned the media_build under 4.0.6 to no avail.
+>>>>>> 
+>>>>>> The same physical stick works perfectly with DVB-T2 in an
+>>>>>> Intel platform using kernel 3.16.0.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 71a1b93..00fc71d 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -230,6 +230,23 @@ struct video_device *video_devdata(struct file *file)
- }
- EXPORT_SYMBOL(video_devdata);
- 
-+int v4l_enable_media_tuner(struct video_device *vdev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = vdev->decoder->parent;
-+	int ret;
-+
-+	/* decoder */
-+	if (!mdev || !mdev->enable_source)
-+			return 0;
-+	ret = mdev->enable_source(vdev->decoder);
-+	if (ret)
-+		return -EBUSY;
-+	return 0;
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l_enable_media_tuner);
- 
- /* Priority handling */
- 
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index acbcd2f..eff3852 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -86,6 +86,7 @@ struct video_device
- {
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_entity entity;
-+	struct media_entity *decoder;
- #endif
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
-@@ -178,6 +179,8 @@ struct video_device * __must_check video_device_alloc(void);
- /* this release function frees the vdev pointer */
- void video_device_release(struct video_device *vdev);
- 
-+int v4l_enable_media_tuner(struct video_device *vdev);
-+
- /* this release function does nothing, use when the video_device is a
-    static global struct. Note that having a static video_device is
-    a dubious construction at best. */
--- 
-2.1.4
+> OK - strange, is the issue reproducable with the current version of w_scan?
+
+Yes, it is.
+
+I used the latest I could find: w_scan version 20141122 (compiled for DVB API 5.10)
+
+Excerpt from scanning:
+
+198500: (time: 02:02.219)
+205500: (time: 02:04.269)
+         (0.250sec): SC (0x3)
+         (0.250sec) signal
+         (0.920sec):  (0x0)
+         (1.180sec): SC (0x3)
+         (1.840sec):  (0x0)
+         (2.100sec): SC (0x3)
+         (2.760sec):  (0x0)
+         (3.020sec): SC (0x3)
+         (3.680sec):  (0x0)
+         (3.940sec): SC (0x3)
+212500: (time: 02:08.619)
+
+As you can see it do find Signal and Carrier, but no Lock.  Without debug (-v) it doesn't show anything.
+
+
+
+// Peter
 
