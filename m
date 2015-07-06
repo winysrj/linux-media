@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58518 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759305AbbGHQH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2015 12:07:29 -0400
-Received: from recife.lan (unknown [179.182.175.40])
-	by lists.s-osg.org (Postfix) with ESMTPSA id D2A83462EB
-	for <linux-media@vger.kernel.org>; Wed,  8 Jul 2015 09:07:27 -0700 (PDT)
-Date: Wed, 8 Jul 2015 13:07:24 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] Some updates at linuxtv.org
-Message-ID: <20150708130724.1331eecb@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail2.marcant.net ([217.14.160.186]:52891 "EHLO
+	mail2.marcant.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752715AbbGFLwq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2015 07:52:46 -0400
+Received: from localhost (mcontrol3.marcant.net [217.14.168.56])
+	by localhost (Postfix) with ESMTP id 313D71D136C
+	for <linux-media@vger.kernel.org>; Mon,  6 Jul 2015 13:23:25 +0200 (CEST)
+Received: from mail2.marcant.net ([127.0.0.1])
+ by localhost (mail2.marcant.net [127.0.0.1]) (amavisd-maia, port 10030)
+ with ESMTP id 27068-02 for <linux-media@vger.kernel.org>;
+ Mon,  6 Jul 2015 13:23:20 +0200 (CEST)
+Received: from admins.marcant.net (rossini.marcant.net [217.14.160.69])
+	by mail2.marcant.net (Postfix) with ESMTP id 1FAEA1D1365
+	for <linux-media@vger.kernel.org>; Mon,  6 Jul 2015 13:23:20 +0200 (CEST)
+To: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/devel] [media] SMI PCIe IR driver for DVBSky cards
+References: <E1ZC4UU-000265-H4@www.linuxtv.org>
+In-Reply-To: <E1ZC4UU-000265-H4@www.linuxtv.org>
+Message-Id: <20150706112320.055022802CA@admins.marcant.net>
+Date: Mon,  6 Jul 2015 13:23:19 +0200 (CEST)
+From: dnehring@marcant.net (Dirk Nehring)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Sehr geehrte Damen und Herren,
 
-There were several contents at the linuxtv website that were outdated, on
-the non-wiki pages.
+vielen Dank für Ihre E-Mail. Ich bin bis zum 22.07.2015 nicht im
+Unternehmen.
 
-I did an effort today of updating those pages, in order to reflect the
-current status of the projects hosted there.
+Bitte richten Sie Ihre E-Mail bei technischen Störungen an
+support@marcant.net.
 
-Among the changes:
+In allen weiteren dringenden Angelegenheiten wenden Sie sich bitte direkt
+an Herrn Marc-Henrik Delker (mdelker@marcant.net).
 
-- The "events 2011" page was removed. It was meant originally to announce
-  and track the events, but this is better done via news, and all latter
-  events used the news for events announce and reports. So, I moved the
-  contents of the original page into an announce:
-	http://linuxtv.org/news.php?entry=2011-10-26.mchehab
+Vielen Dank!
 
-- I added links to each part of the Linux media documentation. That
-  helps to make clearer what's actually documented there. A pointer to
-  ALSA was also added.
+Mit freundlichen Grüßen
 
-- The legacy contents on the pages are now marked with an horizontal line
-  (<hr> tag). Those contents are kept for historic reasons only.
+Dirk Nehring
+- Technischer Leiter -
+Citrix Certified Administrator (CCA)
 
-- The projects page had DTV channel scan tables and tvtime added. Legacy
-  projects was moved after the horizontal bar;
+--
+MarcanT GmbH, Herforder Straße 163a, D-33609 Bielefeld
+Fon: +49 (521) 95945-0 | Fax: +49 (521) 95945-18
+URL: http://www.marcant.net | http://www.global-m2m.com
 
-- The mailing lists now have a link to the media-workshop ML and has
-  the status of each ML seen at mailman interface;
+Internet * Netzwerk * Mobile Daten
+Citrix Silver Solution Advisor
 
-- The repositories page is now in sync with the projects page. The
-  instructions to checkout a git repository was updated and should now
-  work (it got bitrotten). I removed the instructions to get a mercurial
-  tarball, as this is something that people should not be doing anymore
-  nowadays;
-
-- The lateral menu was updated and better organized.
-
-Please report any issues.
-
-Enjoy!
-Mauro
+Geschäftsführer: Thorsten Hojas
+Handelsregister: AG Bielefeld, HRB 35827 USt-ID Nr.: DE 190203238
+___________________________________________________________
+Ausserhalb unserer Geschäftszeiten (Montag bis Freitag von 8:30 Uhr bis
+17:30 Uhr, ausgenommen gesetzliche Feiertage in NRW) stehen wir Ihnen
+gemäß Ihrer jeweiligen Service-Level-Agreements unter der Ihnen
+mitgeteilten Telefonnummer für Störungen und Notfälle zur Verfügung.
+Sie können natürlich auch gerne jederzeit unter support@marcant.net ein
+Ticket eröffnen, welches am nächsten Arbeitstag bearbeitet wird.
