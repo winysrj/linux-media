@@ -1,123 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41195 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946013AbbGYCsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 22:48:35 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 848A32A00AA
-	for <linux-media@vger.kernel.org>; Sat, 25 Jul 2015 04:47:20 +0200 (CEST)
-Date: Sat, 25 Jul 2015 04:47:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150725024720.848A32A00AA@tschai.lan>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:37728 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752341AbbGFSGv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2015 14:06:51 -0400
+Received: by wiclp1 with SMTP id lp1so28838302wic.0
+        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2015 11:06:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <559A915B.20305@vanguardiasur.com.ar>
+References: <m3bnftphea.fsf@t19.piap.pl>
+	<m37fqhpe35.fsf@t19.piap.pl>
+	<559A915B.20305@vanguardiasur.com.ar>
+Date: Mon, 6 Jul 2015 15:06:50 -0300
+Message-ID: <CAAEAJfA7hPzZ3vHUUMhHvosoGzPWq1HCcKURHMp=w+B7siex5w@mail.gmail.com>
+Subject: Re: [PATCH] [MEDIA] Add support for TW686[4589]-based frame grabbers.
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 6 July 2015 at 11:31, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> wrote:
+> Hi Krzysztof,
+>
+> First of all: thanks a lot for the good work!
+> The driver looks very clean and promising.
+>
+> I've been playing with it a lot and have quite a bit
+> of feedback.
+>
+> First of all, I've noticed you only supported TOP, BOTTOM
+> and SEQUENTIAL fields. Is there no way to get an interlaced
+> frame out of the driver?
+>
 
-Results of the daily build of media_tree:
+Answering my own question, Krzysztof already replied about
+this on another thread:
 
-date:		Sat Jul 25 04:00:18 CEST 2015
-git branch:	test
-git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+http://www.spinics.net/lists/linux-media/msg91470.html
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Quoting him:
 
-Detailed results are available here:
+""
+These (tw686x) chips aren't ideal - but they work.
+For example, in DMA SG mode, they can't produce a single continuous
+interlaced frame in memory - they can only make two separate fields.
+A limitation of their DMA engine, since in non-SG mode they can make
+(pseudo)-progressive frames.
+""
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
