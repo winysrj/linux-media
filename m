@@ -1,76 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49366 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750988AbbGMKsR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 06:48:17 -0400
-Message-ID: <55A39739.5030408@xs4all.nl>
-Date: Mon, 13 Jul 2015 12:47:21 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from ni.piap.pl ([195.187.100.4]:48245 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753804AbbGFGQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jul 2015 02:16:31 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Subjective maturity of tw6869, cx25821, bluecherry/softlogic drivers
+References: <1435871672466752997@telcodata.us> <m3vbe1plhk.fsf@t19.piap.pl>
+	<CAM_ZknXDnXdh-UVjnxdui0DJyo8PJgj9Bsh_yZ7Z-BRzj8__qA@mail.gmail.com>
+Date: Mon, 06 Jul 2015 08:16:30 +0200
+In-Reply-To: <CAM_ZknXDnXdh-UVjnxdui0DJyo8PJgj9Bsh_yZ7Z-BRzj8__qA@mail.gmail.com>
+	(Andrey Utkin's message of "Sun, 5 Jul 2015 19:54:30 +0300")
+Message-ID: <m3y4itoloh.fsf@t19.piap.pl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mats Randgaard <matrandg@cisco.com>
-CC: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 1/5] [media] tc358743: register v4l2 asynchronous subdevice
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2015 03:11 PM, Philipp Zabel wrote:
-> Add support for registering the sensor subdevice using the v4l2-async API.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/i2c/tc358743.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index 34d4f32..48d1575 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1710,6 +1710,16 @@ static int tc358743_probe(struct i2c_client *client,
->  		goto err_hdl;
->  	}
->  
-> +	state->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
-> +	if (err < 0)
-> +		goto err_hdl;
-> +
-> +	sd->dev = &client->dev;
-> +	err = v4l2_async_register_subdev(sd);
-> +	if (err < 0)
-> +		goto err_hdl;
-> +
->  	mutex_init(&state->confctl_mutex);
->  
->  	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
-> @@ -1740,6 +1750,7 @@ err_work_queues:
->  	destroy_workqueue(state->work_queues);
->  	mutex_destroy(&state->confctl_mutex);
->  err_hdl:
-> +	media_entity_cleanup(&sd->entity);
->  	v4l2_ctrl_handler_free(&state->hdl);
->  	return err;
->  }
-> @@ -1751,6 +1762,7 @@ static int tc358743_remove(struct i2c_client *client)
->  
->  	cancel_delayed_work(&state->delayed_work_enable_hotplug);
->  	destroy_workqueue(state->work_queues);
-> +	v4l2_async_unregister_subdev(sd);
+Andrey Utkin <andrey.utkin@corp.bluecherry.net> writes:
 
-Shouldn't there be a media_entity_cleanup() call in tc358743_remove() as well?
+>> Also, TW686x are (mini) PCIe while SOLO6110 (and earlier SOLO6010 which
+>> produces MPEG4 part 2 instead of H.264) are (mini) PCI.
+>
+> solo6110 is PCI-E, not PCI.
 
-Regards,
+No, it's not, both SOLO6010 and SOLO6110 are 32-bit PCI.
 
-	Hans
+SOLO6110 Data Sheet
+1.2.5. PCI/HOST Interface
+     - PCI Local Bus Specification, Rev. 2.2. 32bit/33MHz(66MHz)
+     - PCI Master/Target Mode.
+     - 32bit CPU Host Interface
 
->  	v4l2_device_unregister_subdev(sd);
->  	mutex_destroy(&state->confctl_mutex);
->  	v4l2_ctrl_handler_free(&state->hdl);
-> 
+There are probably PCIe cards using SOLO6110, but they have to use
+a PCIe-PCI bridge.
 
+One can also use a SOLO6x10 card with a separate converter board.
+We're using converters with PLX PEX8112 bridge chip for this.
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
