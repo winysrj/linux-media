@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f41.google.com ([209.85.192.41]:32913 "EHLO
-	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbbGPMI4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 08:08:56 -0400
-Received: by qged69 with SMTP id d69so1915380qge.0
-        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 05:08:56 -0700 (PDT)
+Received: from mx02.posteo.de ([89.146.194.165]:37207 "EHLO mx02.posteo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932528AbbGGPfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jul 2015 11:35:04 -0400
+Date: Tue, 7 Jul 2015 17:35:00 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Peter Fassberg <pf@leissner.se>
+Cc: Andy Furniss <adf.lists@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: PCTV Triplestick and Raspberry Pi B+
+Message-ID: <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
+In-Reply-To: <alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
+References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se>
+	<20150705184449.0017f114@lappi3.parrot.biz>
+	<alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
 MIME-Version: 1.0
-In-Reply-To: <793F9B08F3534CF1A955E5FB54C25D59@wincomm.com.tw>
-References: <c29a3c94d042b15780c33b68f71d16fc@www.kernellabs.com>
-	<CALzAhNV7EadNu6Yx78zVxwtx9u01PkrGAoyguvq=ZmLdtKZmew@mail.gmail.com>
-	<CALzAhNUohn47x6fF2i8W0CtDSz9VmhtZSCkNp2BzJXvgm9raCQ@mail.gmail.com>
-	<793F9B08F3534CF1A955E5FB54C25D59@wincomm.com.tw>
-Date: Thu, 16 Jul 2015 08:08:55 -0400
-Message-ID: <CALzAhNXv8g-cuiE0qYSu18AXksQvZY1U1JTVvYGZpPbHfoas4g@mail.gmail.com>
-Subject: Re: www.kernellabs.com Contact: Hauppauge hvr1275 TV Tuner card linux problem
-From: Steven Toth <stoth@kernellabs.com>
-To: tonyc@wincomm.com.tw
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Dear : Steven Toth
-> Thanks for your professional answer
-> Thanks a lot
-> Best Regards
+On Tue, 7 Jul 2015 17:33:01 +0200 (SST) Peter Fassberg <pf@leissner.se>
+wrote:
 
-You are welcome!
+> On Sun, 5 Jul 2015, Patrick Boettcher wrote:
+> 
+> > Your Intel platform is 64bit. I don't know the TripleStick nor the SI or
+> > the EM28xx-driver but _maybe_ there is a problem with it on 32-bit
+> > platforms. A long shot, I know, but you'll never know.
+> 
+> That was a very good point.
+> 
+> I installed the 32-bit version of the same OS (Debian 8, kernel 3.16.0, i386) and the result was a bit suprising.
+> 
+> In 32-bit I couldn't even scan a DVT-T transponder!  dvbv5-scan did Lock, but it didn't find any PSI PIDs.  So there is for sure a problem with 32-bit platforms.  And the DVT-T2 transponders didn't work either.
+> 
+> Maybe the Raspberry problem can be a Endianess problem?
 
->> It looks like Hauppauge have released an updated HVR-1275 card, as
->> indicated by the updated PCI-SubDevice ID 2A38. The hardware has
->> changed and the driver needs to be modified to support these changes.
->>
->> Modprobing with option=19 isn't going to help.
->
-> I've reached out to Hauppauge for comment on the new H/W. Stay tuned.
+No, rpi (arm) is little-endian as Intel.
 
-A sample HVR-1275 arrived yesterday, thank you Hauppauge.
+Which drivers is your device using again? 
 
-I'll add driver support for this in the coming week, DTV only, its on
-my todo list.
+regards,
+--
+Patrick.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
