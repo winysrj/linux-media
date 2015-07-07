@@ -1,270 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:36110 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754211AbbGFLkq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2015 07:40:46 -0400
-Received: by widjy10 with SMTP id jy10so158277476wid.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2015 04:40:45 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, treding@nvidia.com, sumit.semwal@linaro.org,
-	tom.cooksey@arm.com
-Cc: tom.gall@linaro.org, linaro-mm-sig@lists.linaro.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 2/2] SMAF: add CMA allocator
-Date: Mon,  6 Jul 2015 13:40:27 +0200
-Message-Id: <1436182827-6218-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1436182827-6218-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1436182827-6218-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mailgate.leissner.se ([212.3.1.210]:21048 "EHLO
+	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752916AbbGGPij (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 11:38:39 -0400
+Date: Tue, 7 Jul 2015 17:38:25 +0200 (SST)
+From: Peter Fassberg <pf@leissner.se>
+To: Patrick Boettcher <patrick.boettcher@posteo.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: PCTV Triplestick and Raspberry Pi B+
+In-Reply-To: <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
+Message-ID: <alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
+References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <20150705184449.0017f114@lappi3.parrot.biz> <alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se> <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SMAF CMA allocator implement helpers functions to allow SMAF
-to allocate contiguous memory.
+On Tue, 7 Jul 2015, Patrick Boettcher wrote:
 
-match() each if at least one of the attached devices have coherent_dma_mask
-set to DMA_BIT_MASK(32).
+>> I installed the 32-bit version of the same OS (Debian 8, kernel 3.16.0, i386) and the result was a bit suprising.
+>>
+>> In 32-bit I couldn't even scan a DVT-T transponder!  dvbv5-scan did Lock, but it didn't find any PSI PIDs.  So there is for sure a problem with 32-bit platforms.  And the DVT-T2 transponders didn't work either.
+>>
+>> Maybe the Raspberry problem can be a Endianess problem?
+>
+> No, rpi (arm) is little-endian as Intel.
+>
+> Which drivers is your device using again?
 
-For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
-dma_alloc_writecombine to be compatible with ARM 64bits architecture
+[    7.245815] em28xx: New device PCTV PCTV 292e @ 480 Mbps (2013:025f, interface 0, class 0)
+[    7.256731] em28xx: DVB interface 0 found: isoc
+[    7.262712] em28xx: chip ID is em28178
+[    9.258341] em28178 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x5110ff04
+[    9.267163] em28178 #0: EEPROM info:
+[    9.272644] em28178 #0:      microcode start address = 0x0004, boot configuration = 0x01
+[    9.291418] em28178 #0:      AC97 audio (5 sample rates)
+[    9.298231] em28178 #0:      500mA max power
+[    9.303993] em28178 #0:      Table at offset 0x27, strings=0x146a, 0x1888, 0x0a7e
+[    9.313288] em28178 #0: Identified as PCTV tripleStick (292e) (card=94)
+[    9.321852] em28178 #0: dvb set to isoc mode.
+[    9.328536] usbcore: registered new interface driver em28xx
+[    9.357476] em28178 #0: Binding DVB extension
+[    9.380909] i2c i2c-1: Added multiplexed i2c bus 2
+[    9.389469] si2168 1-0064: Silicon Labs Si2168 successfully attached
+[    9.410263] si2157 2-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+[    9.422419] DVB: registering new adapter (em28178 #0)
+[    9.428929] usb 1-1.4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+[    9.442954] em28178 #0: DVB extension successfully initialized
+[    9.450692] em28xx: Registered (Em28xx dvb Extension) extension
+[    9.482115] em28178 #0: Registering input extension
+[    9.563907] em28178 #0: Input extension successfully initalized
+[    9.571364] em28xx: Registered (Em28xx Input Extension) extension
+[  297.703612] si2168 1-0064: found a 'Silicon Labs Si2168-B40'
+[  300.998391] si2168 1-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
+[  301.275434] si2168 1-0064: firmware version: 4.0.4 [  301.284625] si2157 2-0060: found a 'Silicon Labs Si2157-A30'
+[  301.340643] si2157 2-0060: firmware version: 3.0.5
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- drivers/smaf/Kconfig    |   6 ++
- drivers/smaf/Makefile   |   1 +
- drivers/smaf/smaf-cma.c | 200 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 207 insertions(+)
- create mode 100644 drivers/smaf/smaf-cma.c
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index d36651a..058ec4c 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -3,3 +3,9 @@ config SMAF
- 	depends on DMA_SHARED_BUFFER
- 	help
- 	  Choose this option to enable Secure Memory Allocation Framework
-+
-+config SMAF_CMA
-+	tristate "SMAF CMA allocator"
-+	depends on SMAF && HAVE_DMA_ATTRS
-+	help
-+	  Choose this option to enable CMA allocation within SMAF
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 40cd882..05bab01 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
-+obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
-new file mode 100644
-index 0000000..f259a6a
---- /dev/null
-+++ b/drivers/smaf/smaf-cma.c
-@@ -0,0 +1,200 @@
-+/*
-+ * smaf-cma.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-allocator.h>
-+
-+struct smaf_cma_buffer_info {
-+	struct device *dev;
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+};
-+
-+/**
-+ * find_matching_device - iterate over the attached devices to find one
-+ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
-+ * Matching device (if any) will be used to aim CMA area.
-+ */
-+static struct device *find_matching_device(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
-+			return attach_obj->dev;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * smaf_cma_match - return true if at least one device has been found
-+ */
-+static bool smaf_cma_match(struct dma_buf *dmabuf)
-+{
-+	return !!find_matching_device(dmabuf);
-+}
-+
-+static void smaf_cma_release(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	dma_free_attrs(info->dev, info->size, info->vaddr, info->paddr, &attrs);
-+
-+	kfree(info);
-+}
-+
-+static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
-+				     enum dma_data_direction direction)
-+{
-+	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return NULL;
-+
-+	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
-+			      info->paddr, info->size);
-+	if (ret < 0)
-+		goto out;
-+
-+	sg_dma_address(sgt->sgl) = info->paddr;
-+	return sgt;
-+
-+out:
-+	kfree(sgt);
-+	return NULL;
-+}
-+
-+static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
-+			   struct sg_table *sgt,
-+			   enum dma_data_direction direction)
-+{
-+	/* do nothing */
-+}
-+
-+static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	int ret;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	if (info->size < vma->vm_end - vma->vm_start)
-+		return -EINVAL;
-+
-+	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
-+			     info->size, &attrs);
-+
-+	return ret;
-+}
-+
-+static void *smaf_cma_vmap(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return info->vaddr;
-+}
-+
-+static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return (void *)info->paddr + offset;
-+}
-+
-+static struct dma_buf_ops smaf_cma_ops = {
-+	.map_dma_buf = smaf_cma_map,
-+	.unmap_dma_buf = smaf_cma_unmap,
-+	.mmap = smaf_cma_mmap,
-+	.release = smaf_cma_release,
-+	.kmap_atomic = smaf_kmap_atomic,
-+	.kmap = smaf_kmap_atomic,
-+	.vmap = smaf_cma_vmap,
-+};
-+
-+static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
-+					 size_t length, unsigned int flags)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+	struct smaf_cma_buffer_info *info;
-+	struct dma_buf *cma_dmabuf;
-+	int ret;
-+
-+	DEFINE_DMA_BUF_EXPORT_INFO(export);
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return NULL;
-+
-+	info->size = round_up(length, PAGE_SIZE);
-+	info->dev = find_matching_device(dmabuf);
-+
-+	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
-+				      GFP_KERNEL | __GFP_NOWARN, &attrs);
-+	if (!info->vaddr) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
-+	export.ops = &smaf_cma_ops;
-+	export.size = info->size;
-+	export.flags = flags;
-+	export.priv = info;
-+
-+	cma_dmabuf = dma_buf_export(&export);
-+	if (IS_ERR(cma_dmabuf))
-+		goto error;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		dma_buf_attach(cma_dmabuf, attach_obj->dev);
-+	}
-+
-+	return cma_dmabuf;
-+
-+error:
-+	kfree(info);
-+	return NULL;
-+}
-+
-+struct smaf_allocator smaf_cma = {
-+	.match = smaf_cma_match,
-+	.allocate = smaf_cma_allocate,
-+	.name = "smaf-cma",
-+	.ranking = 0,
-+};
-+
-+static int __init smaf_cma_init(void)
-+{
-+	INIT_LIST_HEAD(&smaf_cma.list_node);
-+	return smaf_register_allocator(&smaf_cma);
-+}
-+module_init(smaf_cma_init);
-+
-+static void __exit smaf_cma_deinit(void)
-+{
-+	smaf_unregister_allocator(&smaf_cma);
-+}
-+module_exit(smaf_cma_deinit);
-+
-+MODULE_DESCRIPTION("SMAF CMA module");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
--- 
-1.9.1
+
+// Peter
 
