@@ -1,107 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:34268 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479AbbG3Lhn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 07:37:43 -0400
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36435 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753991AbbGGIsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 04:48:38 -0400
+Received: by widjy10 with SMTP id jy10so182069312wid.1
+        for <linux-media@vger.kernel.org>; Tue, 07 Jul 2015 01:48:36 -0700 (PDT)
+From: poma <pomidorabelisima@gmail.com>
+Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >= 4.1.x
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+References: <mhnd10gxck9p5yqwsxbonfty.1436213845281@email.android.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Message-ID: <559B9261.4050409@gmail.com>
+Date: Tue, 7 Jul 2015 10:48:33 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-	<1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
-	<1435195057.9377.18.camel@perches.com>
-	<20150722185811.2d718baa@recife.lan>
-	<20150730094738.GD488@griffinp-ThinkPad-X1-Carbon-2nd>
-	<1438250928.2677.10.camel@perches.com>
-	<CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
-Date: Thu, 30 Jul 2015 07:37:41 -0400
-Message-ID: <CAOcJUbwVBVxmaP-vNkw0n8Cf3-=Fn8Aou8FG81Ajab1B2h4Z4A@mail.gmail.com>
-Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X tuner.
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Joe Perches <joe@perches.com>
-Cc: Peter Griffin <peter.griffin@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media <linux-media@vger.kernel.org>,
-	devicetree@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <mhnd10gxck9p5yqwsxbonfty.1436213845281@email.android.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 30, 2015 at 7:14 AM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
-> On Thu, Jul 30, 2015 at 6:08 AM, Joe Perches <joe@perches.com> wrote:
->> On Thu, 2015-07-30 at 10:47 +0100, Peter Griffin wrote:
->>> Hi Mauro / Joe,
->>>
->>> On Wed, 22 Jul 2015, Mauro Carvalho Chehab wrote:
->>>
->>> > Em Wed, 24 Jun 2015 18:17:37 -0700
->>> > Joe Perches <joe@perches.com> escreveu:
->>> >
->>> > > On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
->>> > > > This is used in conjunction with the STV0367 demodulator on
->>> > > > the STV0367-NIM-V1.0 NIM card which can be used with the STi
->>> > > > STB SoC's.
->>> > >
->>> > > Barely associated to this specific patch, but for
->>> > > dvb-pll.c, another thing that seems possible is to
->>> > > convert the struct dvb_pll_desc uses to const and
->>> > > change the "entries" fixed array size from 12 to []
->>> > >
->>> > > It'd save a couple KB overall and remove ~5KB of data.
->>> > >
->>> > > $ size drivers/media/dvb-frontends/dvb-pll.o*
->>> > >    text      data     bss     dec     hex filename
->>> > >    8520      1552    2120   12192    2fa0 drivers/media/dvb-frontends/dvb-pll.o.new
->>> > >    5624      6363    2120   14107    371b drivers/media/dvb-frontends/dvb-pll.o.old
->>> >
->>> > Peter,
->>> >
->>> > Please add this patch on the next patch series you submit.
->>>
->>> Ok will do, I've added this patch with a slightly updated commit message
->>> to my series.
->>>
->>> Joe - Can I add your signed-off-by?
->>
->> Signed-off-by: Joe Perches <joe@perches.com>
->
-> Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
->
-> Joe, nice optimization - thanks for that.
->
-> With regards to Peter's patch, is this a digital-only tuner, or is it
-> a hybrid tuner?
->
-> The 5th byte that you send to the THOMSON DTT7546X seems to resemble
-> the 'auxiliary byte' that gets set in tuner-simple.c
->
-> I'm not sure that dvb-pll is the right place for this tuner
-> definition, if this is the case.  Maybe this definition belongs in
-> tuner-simple instead, if the pattern matches better there.
->
-> Mauro, can we hold off on merging Peter's patch until we resolve this?
+On 06.07.2015 22:17, Jose Alberto Reguero wrote:
+> I made the patch for the af9035. I have not a af9015 whith mxl5007 and dual channel. Revert it, if it cause regresions.
+> 
+> Jose Alberto
+> 
 
-This code block, specifically, I would rather not see added into dvb-pll:
+Thanks.
 
-+static int dvb_pll_get_num_regs(struct dvb_pll_priv *priv)
-+{
-+       int num_regs = 4;
+>From e19560ea038e54dc57be717db55f19d449df63f0 Mon Sep 17 00:00:00 2001
+From: poma <pomidorabelisima@gmail.com>
+Date: Tue, 7 Jul 2015 10:26:13 +0200
+Subject: [PATCH] Fix for AF9015 DVB-T USB2.0 stick
+
+This reverts commitas:
+
+- 02f9cf96df57575acea2e6eb4041e9f3ecd32548
+  "[media] [PATH,2/2] mxl5007 move loop_thru to attach"
+- fe4860af002a4516dd878f7297b61e186c475b35
+  "[media] [PATH,1/2] mxl5007 move reset to attach"
+
+This is the conclusion after extensive testing,
+these two commitas produce:
+
+mxl5007t_soft_reset: 521: failed!
+mxl5007t_attach: error -121 on line 907
+
+causing AF9015 DVB-T USB2.0 stick completely unusable.
+
+
+Tested-by: poma <pomidorabelisima@gmail.com>
+---
+ drivers/media/tuners/mxl5007t.c | 30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/media/tuners/mxl5007t.c b/drivers/media/tuners/mxl5007t.c
+index f4ae04c..f8c4ba2 100644
+--- a/drivers/media/tuners/mxl5007t.c
++++ b/drivers/media/tuners/mxl5007t.c
+@@ -374,6 +374,7 @@ static struct reg_pair_t *mxl5007t_calc_init_regs(struct mxl5007t_state *state,
+ 	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+ 	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+ 
++	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+ 	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+ 	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+ 
+@@ -530,6 +531,10 @@ static int mxl5007t_tuner_init(struct mxl5007t_state *state,
+ 	struct reg_pair_t *init_regs;
+ 	int ret;
+ 
++	ret = mxl5007t_soft_reset(state);
++	if (mxl_fail(ret))
++		goto fail;
 +
-+       if (strncmp(priv->pll_desc->name, "Thomson dtt7546x", 16) == 0)
-+               num_regs = 5;
-+
-+       return num_regs;
-+}
-+
+ 	/* calculate initialization reg array */
+ 	init_regs = mxl5007t_calc_init_regs(state, mode);
+ 
+@@ -895,32 +900,7 @@ struct dvb_frontend *mxl5007t_attach(struct dvb_frontend *fe,
+ 		/* existing tuner instance */
+ 		break;
+ 	}
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+-	ret = mxl5007t_soft_reset(state);
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	if (mxl_fail(ret))
+-		goto fail;
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+-	ret = mxl5007t_write_reg(state, 0x04,
+-		state->config->loop_thru_enable);
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	if (mxl_fail(ret))
+-		goto fail;
+-
+ 	fe->tuner_priv = state;
+-
+ 	mutex_unlock(&mxl5007t_list_mutex);
+ 
+ 	memcpy(&fe->ops.tuner_ops, &mxl5007t_tuner_ops,
+-- 
+2.4.3
 
-tuner-simple provides an infrastructure that allows this tuner to be
-added in a more elegant way without the need to add special cases to
-otherwise generic code, as done in the above.
 
-I'm sorry, Peter.  Can you take a look at tuner-simple and consider
-sending a new patch?
-
--Michael Ira Krufky
