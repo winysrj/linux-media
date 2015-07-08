@@ -1,91 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:35823 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235AbbGQHpQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 03:45:16 -0400
-Received: by lblf12 with SMTP id f12so56750313lbl.2
-        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 00:45:14 -0700 (PDT)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58759 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933610AbbGHLZH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jul 2015 07:25:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Bjornar Salberg <bsalberg@cisco.com>
+Subject: Re: [RFC] How to get current position/status of iris/focus/pan/tilt/zoom?
+Date: Wed, 08 Jul 2015 14:25:18 +0300
+Message-ID: <2062145.8YAJ1MQW9W@avalon>
+In-Reply-To: <559527D7.1030408@xs4all.nl>
+References: <559527D7.1030408@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150717071354.GO3709@valkosipuli.retiisi.org.uk>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
- <1434127598-11719-3-git-send-email-ricardo.ribalda@gmail.com> <20150717071354.GO3709@valkosipuli.retiisi.org.uk>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 17 Jul 2015 09:44:54 +0200
-Message-ID: <CAPybu_3ihYfTXnFRVLtdx9SV9HqZdm4xR8JiUkfV6Y4bQvFyqQ@mail.gmail.com>
-Subject: Re: [RFC v3 02/19] media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+Hi Hans,
 
-Thanks for your review!
+On Thursday 02 July 2015 14:00:23 Hans Verkuil wrote:
+> When using V4L2_CID_IRIS/FOCUS/PAN/TILT/ZOOM_ABSOLUTE/RELATIVE, how do you
+> know when the new position has been reached? If this is controlled through
+> a motor, then it may take some time and ideally you would like to be able
+> to get the current absolute position (if the hardware knows) and whether
+> the final position has been reached or not.
 
-On Fri, Jul 17, 2015 at 9:13 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+There's only two drivers implementing pan and tilt (pwc and uvcvideo), one 
+driver implementing focus and iris (uvcvideo) and three drivers implementing 
+zoom (uvcvideo, m5mols and s5c73m3). Both m5mols and s5c73m3 seem to use the 
+zoom control for digital zoom, so we can ignore them for this discussion. 
+Where's thus left with pwc and uvcvideo. I'll comment mainly on the latter.
 
->>  #define VIDIOC_QUERY_EXT_CTRL        _IOWR('V', 103, struct v4l2_query_ext_ctrl)
->> +#define VIDIOC_G_DEF_EXT_CTRLS       _IOWR('V', 104, struct v4l2_ext_controls)
+> In addition, it should be possible to raise fault conditions.
+
+UVC specifies a way to implement asynchronous controls and report, through a 
+USB interrupt endpoint, completion of the control set operation. This can be 
+used by devices to report that physical motion has finished, or to report 
+errors. Whether a control is implemented in a synchronous or asynchronous way 
+is device dependent.
+
+> The way the ABSOLUTE controls are defined is ambiguous since it doesn't say
+> anything about what it returns when you read it: is that the current
+> absolute position, or the last set absolute position? I suspect it is the
+> second one.
 >
-> I assume that if an application uses pointer controls, then it'd obtain the
-> default values using VIDIOC_G_DEF_EXT_CTRLS. This suggests all drivers
-> should support this from the very beginning, and the application would not
-> work on older kernels that don't have the IOCTL implemented.
+> If it is the second one, then I propose a V4L2_CID_IRIS_CURRENT control (and
+> ditto for the other variants) that is a read-only control returning the
+> current position with the same range and unit as the ABSOLUTE control.
 
-This patchset add supports for the Ioctl for all the in-tree drivers.
-out of tree drivers that use v4l2-ctrl will also work, so we are only
-leaving behind out out tree drivers that dont use v4l2-ctrl.
-Applications will neither not in old kernels if we do an
-implementation with VIDIOC_QUERY_EXT_CTRL.
+UVC doesn't explicitly define what a device should report. It hints in a 
+couple of places that it should be the current position, but I believe it 
+might be device-dependent in practice.
 
+> For the status/fault information I think the V4L2_CID_AUTO_FOCUS_STATUS
+> comes close, but it is too specific for auto focus. For manually
+> positioning things this might be more suitable:
+> 
+> V4L2_CID_IRIS_STATUS	bitmask
+> 
+> 	V4L2_IRIS_STATUS_MOVING (or perhaps _BUSY?)
+> 	V4L2_IRIS_STATUS_FAILED
+> 
+> And ditto for the other variants.
 
->
-> Instead of adding a new IOCTL, have you thought about the possibility of
-> doing this through VIDIOC_QUERY_EXT_CTRL? That's how the default control
-> value is passed to the user now, and I think it'd look odd to add a new
-> IOCTL for just that purpose.
->
-> One option could be making the default_value field a union such as the one
-> in struct v4l2_ext_control. If the control type is such that the value is
-> stored in the memory, one of the pointer fields of the union is used
-> instead.
->
-> As the user cannot be expected to know the size beforehand, the pointer
-> value may only be used if it's non-zero. This might require a new field
-> rather than making default_value a union for backward compatibility, as the
-> documentation does not instruct the user to zero the default_value field.
->
-> What do you think?
->
-> The result would be no added redundancy, and less driver modifications, as
-> the drivers also don't need to support multiple interfaces for passing
-> control default values.
+Do we need to report that the control set operation is in progress, or could 
+applications infer that information from the fact that they haven't received a 
+control change event that notifies of end of motion ?
 
-Although this also a valid option, the implementation by userland can
-be a bit tricky, I dont like the idea of passing a pointer to the
-kernel without telling it how much memory it has available for
-writing.
+Failures need to be reported, but they're not limited to the controls you 
+mention above, at least in theory. A UVC device is free to implement any 
+control as an asynchronous control and report failures. Would it make sense to 
+add a control change error event instead of creating status controls for lots 
+of V4L2 controls ?
 
-There is also the problem of legacy applications that do not memset to
-zero the reserved fields.... Those application may crash quite badly
-if we change
-VIDIOC_QUERY_EXT_CTRL the way you suggests
-
-Finally, it is difficult for the user to know if the driver supports
-this extra functionality on the ioctl before hand. On my
-implementataion -ENOTTY is a pretty good indication of what is the
-problem.
-
-
-Best regards!
-
+> Interaction between V4L2_CID_FOCUS_STATUS and AUTO_FOCUS_STATUS:
+> 
+> If auto focus is enabled, then FOCUS_STATUS is always 0, if auto focus is
+> disabled, then AUTO_FOCUS_STATUS is always IDLE.
 
 -- 
-Ricardo Ribalda
+Regards,
+
+Laurent Pinchart
+
