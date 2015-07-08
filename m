@@ -1,84 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:34800 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754577AbbGQVHl (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:45465 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757897AbbGHCwY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 17:07:41 -0400
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: mingo@elte.hu
-Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com,
-	dledford@redhat.com, dan.j.williams@intel.com,
-	benh@kernel.crashing.org, luto@amacapital.net,
-	julia.lawall@lip6.fr, jkosina@suse.cz, linux-media@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: [RESEND PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with pr_warn()
-Date: Fri, 17 Jul 2015 14:07:25 -0700
-Message-Id: <1437167245-28273-3-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
+	Tue, 7 Jul 2015 22:52:24 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DF0252A008D
+	for <linux-media@vger.kernel.org>; Wed,  8 Jul 2015 04:51:35 +0200 (CEST)
+Date: Wed, 08 Jul 2015 04:51:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150708025135.DF0252A008D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On built-in kernels this warning will always splat as this is part
-of the module init. Fix that by shifting the PAT requirement check
-out under the code that does the "quasi-probe" for the device. This
-device driver relies on an existing driver to find its own devices,
-it looks for that device driver and its own found devices, then
-uses driver_for_each_device() to try to see if it can probe each of
-those devices as a frambuffer device with ivtvfb_init_card(). We
-tuck the PAT requiremenet check then on the ivtvfb_init_card()
-call making the check at least require an ivtv device present
-before complaining.
+Results of the daily build of media_tree:
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com> [0-day test robot]
-Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
----
- drivers/media/pci/ivtv/ivtvfb.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+date:		Wed Jul  8 04:00:18 CEST 2015
+git branch:	test
+git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 4cb365d4ffdc..8b95eefb610b 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -38,6 +38,8 @@
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/fb.h>
-@@ -1171,6 +1173,13 @@ static int ivtvfb_init_card(struct ivtv *itv)
- {
- 	int rc;
- 
-+#ifdef CONFIG_X86_64
-+	if (pat_enabled()) {
-+		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
-+		return -ENODEV;
-+	}
-+#endif
-+
- 	if (itv->osd_info) {
- 		IVTVFB_ERR("Card %d already initialised\n", ivtvfb_card_id);
- 		return -EBUSY;
-@@ -1265,12 +1274,6 @@ static int __init ivtvfb_init(void)
- 	int registered = 0;
- 	int err;
- 
--#ifdef CONFIG_X86_64
--	if (WARN(pat_enabled(),
--		 "ivtvfb needs PAT disabled, boot with nopat kernel parameter\n")) {
--		return -ENODEV;
--	}
--#endif
- 
- 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
- 		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
--- 
-2.3.2.209.gd67f9d5.dirty
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
