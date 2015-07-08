@@ -1,57 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33759 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753672AbbGXOPh (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33211 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933677AbbGHIse (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 10:15:37 -0400
-Message-ID: <55B24840.5000508@xs4all.nl>
-Date: Fri, 24 Jul 2015 16:14:24 +0200
+	Wed, 8 Jul 2015 04:48:34 -0400
+Message-ID: <559CE38C.4090706@xs4all.nl>
+Date: Wed, 08 Jul 2015 10:47:08 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 09/13] media: soc_camera: soc_scale_crop: Use correct
- pad number in try_fmt
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-10-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-10-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
+To: linux-media <linux-media@vger.kernel.org>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] DocBook media: fix typo in V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2015 02:21 PM, William Towle wrote:
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
-> 
-> Fix calls to subdev try_fmt function to use valid pad numbers, fixing
-> the case where subdevs (eg. ADV7612) have valid pad numbers that are
-> non-zero.
-> 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Fix small typo (missing 'it') in the documentation for
+V4L2_CTRL_FLAG_EXECUTE_ON_WRITE.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/soc_camera/soc_scale_crop.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> index bda29bc..2772215 100644
-> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> @@ -225,6 +225,7 @@ static int client_set_fmt(struct soc_camera_device *icd,
->  	bool host_1to1;
->  	int ret;
->  
-> +	format->pad = icd->src_pad_idx;
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  					 soc_camera_grp_id(icd), pad,
->  					 set_fmt, NULL, format);
-> 
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index dc83ad7..6ec39c6 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -616,7 +616,7 @@ pointer to memory containing the payload of the control.</entry>
+ 	    <entry><constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant></entry>
+ 	    <entry>0x0200</entry>
+ 	    <entry>The value provided to the control will be propagated to the driver
+-even if remains constant. This is required when the control represents an action
++even if it remains constant. This is required when the control represents an action
+ on the hardware. For example: clearing an error flag or triggering the flash. All the
+ controls of the type <constant>V4L2_CTRL_TYPE_BUTTON</constant> have this flag set.</entry>
+ 	  </row>
