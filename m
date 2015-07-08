@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:59006 "EHLO
-	resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752524AbbGVWmv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:51 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 11/19] staging media: davinci_vpfe: Update graph_mutex to graph_lock spinlock
-Date: Wed, 22 Jul 2015 16:42:12 -0600
-Message-Id: <8e4896bee216cc4aa30a16d799b6ea896e99c919.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58518 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759305AbbGHQH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jul 2015 12:07:29 -0400
+Received: from recife.lan (unknown [179.182.175.40])
+	by lists.s-osg.org (Postfix) with ESMTPSA id D2A83462EB
+	for <linux-media@vger.kernel.org>; Wed,  8 Jul 2015 09:07:27 -0700 (PDT)
+Date: Wed, 8 Jul 2015 13:07:24 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] Some updates at linuxtv.org
+Message-ID: <20150708130724.1331eecb@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update graph_mutex to graph_lock spinlock to be in sync with
-the Media Conttroller change for the same.
+Hi,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+There were several contents at the linuxtv website that were outdated, on
+the non-wiki pages.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 87048a1..2511614 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -143,7 +143,7 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 	else
- 		pipe->outputs[pipe->output_num++] = video;
- 
--	mutex_lock(&mdev->graph_mutex);
-+	spin_lock(&mdev->graph_lock);
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
-@@ -156,7 +156,7 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 		else
- 			pipe->outputs[pipe->output_num++] = far_end;
- 	}
--	mutex_unlock(&mdev->graph_mutex);
-+	spin_unlock(&mdev->graph_lock);
- }
- 
- /* update pipe state selected by user */
-@@ -289,7 +289,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 		entity = &pipe->inputs[0]->video_dev.entity;
- 
- 	mdev = entity->parent;
--	mutex_lock(&mdev->graph_mutex);
-+	spin_lock(&mdev->graph_lock);
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 
-@@ -300,7 +300,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 		if (ret < 0 && ret != -ENOIOCTLCMD)
- 			break;
- 	}
--	mutex_unlock(&mdev->graph_mutex);
-+	spin_unlock(&mdev->graph_lock);
- 	return ret;
- }
- 
-@@ -329,7 +329,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 		entity = &pipe->inputs[0]->video_dev.entity;
- 
- 	mdev = entity->parent;
--	mutex_lock(&mdev->graph_mutex);
-+	spin_lock(&mdev->graph_lock);
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-@@ -341,7 +341,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 		if (ret < 0 && ret != -ENOIOCTLCMD)
- 			break;
- 	}
--	mutex_unlock(&mdev->graph_mutex);
-+	spin_unlock(&mdev->graph_lock);
- 
- 	return ret ? -ETIMEDOUT : 0;
- }
--- 
-2.1.4
+I did an effort today of updating those pages, in order to reflect the
+current status of the projects hosted there.
 
+Among the changes:
+
+- The "events 2011" page was removed. It was meant originally to announce
+  and track the events, but this is better done via news, and all latter
+  events used the news for events announce and reports. So, I moved the
+  contents of the original page into an announce:
+	http://linuxtv.org/news.php?entry=2011-10-26.mchehab
+
+- I added links to each part of the Linux media documentation. That
+  helps to make clearer what's actually documented there. A pointer to
+  ALSA was also added.
+
+- The legacy contents on the pages are now marked with an horizontal line
+  (<hr> tag). Those contents are kept for historic reasons only.
+
+- The projects page had DTV channel scan tables and tvtime added. Legacy
+  projects was moved after the horizontal bar;
+
+- The mailing lists now have a link to the media-workshop ML and has
+  the status of each ML seen at mailman interface;
+
+- The repositories page is now in sync with the projects page. The
+  instructions to checkout a git repository was updated and should now
+  work (it got bitrotten). I removed the instructions to get a mercurial
+  tarball, as this is something that people should not be doing anymore
+  nowadays;
+
+- The lateral menu was updated and better organized.
+
+Please report any issues.
+
+Enjoy!
+Mauro
