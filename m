@@ -1,39 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36835 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932178AbbGJNLs (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37896 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750708AbbGHVyF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 09:11:48 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mats Randgaard <matrandg@cisco.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 2/5] [media] tc358743: enable v4l2 subdevice devnode
-Date: Fri, 10 Jul 2015 15:11:34 +0200
-Message-Id: <1436533897-3060-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 8 Jul 2015 17:54:05 -0400
+Date: Thu, 9 Jul 2015 00:53:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org,
+	alsa-devel <alsa-devel@alsa-project.org>
+Subject: Re: [media-workshop] [ANNOUNCE] Media Controller workshop in Helsinki
+Message-ID: <20150708215333.GE3709@valkosipuli.retiisi.org.uk>
+References: <20150708081622.63e333bd@recife.lan>
+ <559D14EB.4090108@metafoo.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <559D14EB.4090108@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hello folks,
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 48d1575..0be6d9f 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1668,7 +1668,7 @@ static int tc358743_probe(struct i2c_client *client,
- 	state->i2c_client = client;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tc358743_ops);
--	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
- 
- 	/* i2c access */
- 	if ((i2c_rd16(sd, CHIPID) & MASK_CHIPID) != 0) {
+Please let me know if you're planning to attend.
+
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
