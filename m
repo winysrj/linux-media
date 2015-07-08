@@ -1,49 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50207 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751873AbbG1IeF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 04:34:05 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A0E1B2A0089
-	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 10:33:55 +0200 (CEST)
-Message-ID: <55B73E73.2050006@xs4all.nl>
-Date: Tue, 28 Jul 2015 10:33:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:60044 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758144AbbGHUIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jul 2015 16:08:48 -0400
+Received: from recife.lan (unknown [179.182.175.40])
+	by lists.s-osg.org (Postfix) with ESMTPSA id 9E110462EB
+	for <linux-media@vger.kernel.org>; Wed,  8 Jul 2015 13:08:46 -0700 (PDT)
+Date: Wed, 8 Jul 2015 17:08:43 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] Some updates at linuxtv.org
+Message-ID: <20150708170843.70aec9cd@recife.lan>
+In-Reply-To: <20150708130724.1331eecb@recife.lan>
+References: <20150708130724.1331eecb@recife.lan>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] mt9v032: fix uninitialized variable warning
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/i2c/mt9v032.c: In function ‘mt9v032_probe’:
-  CC [M]  drivers/media/i2c/s5k4ecgx.o
-drivers/media/i2c/mt9v032.c:996:20: warning: ‘pdata’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  if (pdata && pdata->link_freqs) {
-                    ^
+Em Wed, 8 Jul 2015 13:07:24 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-It can indeed be uninitialized in one corner case. Initialize to NULL.
+> Hi,
+> 
+> There were several contents at the linuxtv website that were outdated, on
+> the non-wiki pages.
+> 
+> I did an effort today of updating those pages, in order to reflect the
+> current status of the projects hosted there.
+> 
+> Among the changes:
+> 
+> - The "events 2011" page was removed. It was meant originally to announce
+>   and track the events, but this is better done via news, and all latter
+>   events used the news for events announce and reports. So, I moved the
+>   contents of the original page into an announce:
+> 	http://linuxtv.org/news.php?entry=2011-10-26.mchehab
+> 
+> - I added links to each part of the Linux media documentation. That
+>   helps to make clearer what's actually documented there. A pointer to
+>   ALSA was also added.
+> 
+> - The legacy contents on the pages are now marked with an horizontal line
+>   (<hr> tag). Those contents are kept for historic reasons only.
+> 
+> - The projects page had DTV channel scan tables and tvtime added. Legacy
+>   projects was moved after the horizontal bar;
+> 
+> - The mailing lists now have a link to the media-workshop ML and has
+>   the status of each ML seen at mailman interface;
+> 
+> - The repositories page is now in sync with the projects page. The
+>   instructions to checkout a git repository was updated and should now
+>   work (it got bitrotten). I removed the instructions to get a mercurial
+>   tarball, as this is something that people should not be doing anymore
+>   nowadays;
+> 
+> - The lateral menu was updated and better organized.
+> 
+> Please report any issues.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/mt9v032.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Ah, I also updated the certificates used there, as they expired on 2007!
+The new ones will only expire in 2025. They're still fake certs, though.
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 977f400..a68ce94 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -882,7 +882,7 @@ static const struct regmap_config mt9v032_regmap_config = {
- static struct mt9v032_platform_data *
- mt9v032_get_pdata(struct i2c_client *client)
- {
--	struct mt9v032_platform_data *pdata;
-+	struct mt9v032_platform_data *pdata = NULL;
- 	struct v4l2_of_endpoint endpoint;
- 	struct device_node *np;
- 	struct property *prop;
--- 
-2.1.4
+Probably anytime before 2025 we'll be using real certs, maybe
+via https://letsencrypt.org/ ;)
 
+> 
+> Enjoy!
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
