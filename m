@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.leissner.se ([212.3.1.210]:56164 "EHLO
-	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349AbbGGPdL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 11:33:11 -0400
-Date: Tue, 7 Jul 2015 17:33:01 +0200 (SST)
-From: Peter Fassberg <pf@leissner.se>
-To: Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Andy Furniss <adf.lists@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-In-Reply-To: <20150705184449.0017f114@lappi3.parrot.biz>
-Message-ID: <alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <20150705184449.0017f114@lappi3.parrot.biz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36590 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890AbbGIKKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 04/10] [media] coda: keep buffers on the queue in bitstream end mode
+Date: Thu,  9 Jul 2015 12:10:15 +0200
+Message-Id: <1436436621-12291-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 5 Jul 2015, Patrick Boettcher wrote:
+In stream end mode the hardware will read the bitstream to its end,
+overshooting the write pointer. Do not write additional data into
+the bitstream in this mode.
 
-> Your Intel platform is 64bit. I don't know the TripleStick nor the SI or
-> the EM28xx-driver but _maybe_ there is a problem with it on 32-bit
-> platforms. A long shot, I know, but you'll never know.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-That was a very good point.
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 47fc2f1..0f8dcea 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -228,6 +228,9 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
+ 	struct coda_buffer_meta *meta;
+ 	u32 start;
+ 
++	if (ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG)
++		return;
++
+ 	while (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) > 0) {
+ 		/*
+ 		 * Only queue a single JPEG into the bitstream buffer, except
+-- 
+2.1.4
 
-I installed the 32-bit version of the same OS (Debian 8, kernel 3.16.0, i386) and the result was a bit suprising.
-
-In 32-bit I couldn't even scan a DVT-T transponder!  dvbv5-scan did Lock, but it didn't find any PSI PIDs.  So there is for sure a problem with 32-bit platforms.  And the DVT-T2 transponders didn't work either.
-
-Maybe the Raspberry problem can be a Endianess problem?
-
-
-
-On Mon, 6 Jul 2015, Andy Furniss wrote:
-
-> Clutching at straws now, but maybe it's possible that the Pi is electrically more noisy then the intel.
-> 
-> The USB lead on the 292e doesn't have a ferrite core - maybe if you have an extension lead that does you could try adding that.
-
-That was actually also a good point.  I installed a 50 cm extension but no difference. :(
-
-
-Can anyone suggest a DVB-T2 USB stick that works on the Raspberry Pi B+?
-
-
-
-// Peter
