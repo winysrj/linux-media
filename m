@@ -1,36 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pidgey.mudkips.net ([74.113.27.5]:41759 "EHLO
-	pidgey.mudkips.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490AbbGBVTh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2015 17:19:37 -0400
-From: Nathaniel Bezanson <myself@telcodata.us>
-Date: Thu, 2 Jul 2015 17:14:32 -0400
-To: linux-media@vger.kernel.org
-Message-ID: <1435871672466752997@telcodata.us>
-Subject: Subjective maturity of tw6869, cx25821, bluecherry/softlogic drivers
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Content-Disposition: inline
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56368 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752262AbbGIKKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 07/10] [media] coda: drop custom list of pixel format descriptions
+Date: Thu,  9 Jul 2015 12:10:18 +0200
+Message-Id: <1436436621-12291-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Since commit ba3002045f80 ("[media] v4l2-ioctl: fill in the description
+for VIDIOC_ENUM_FMT"), all pixel formats are assigned their description
+in a central place. We can now drop the custom list.
 
-If this isn't the appropriate venue for this question, please gently steer me somewhere else. Thanks. :) I'm trying to head off the "well you shouldn't have bought *that* junk in the first place!" advice by doing some research ahead of time, and I'm here to check some assumptions.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 75 +++----------------------------
+ 1 file changed, 7 insertions(+), 68 deletions(-)
 
-I've been tasked with recommending a capture card for our hackerspace's video monitoring system. We'll be using motion so anything v4l/v4l2 is fair game. We presently have 8 cameras, but a 16-channel card wouldn't go to waste. Only quirk is the host system is PCI-Express only, no parallel PCI. 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 8b91bda..b265edd 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -61,11 +61,6 @@ int coda_debug;
+ module_param(coda_debug, int, 0644);
+ MODULE_PARM_DESC(coda_debug, "Debug level (0-2)");
+ 
+-struct coda_fmt {
+-	char *name;
+-	u32 fourcc;
+-};
+-
+ void coda_write(struct coda_dev *dev, u32 data, u32 reg)
+ {
+ 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
+@@ -111,40 +106,6 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
+ 	coda_write(ctx->dev, base_cr, reg_y + 8);
+ }
+ 
+-/*
+- * Array of all formats supported by any version of Coda:
+- */
+-static const struct coda_fmt coda_formats[] = {
+-	{
+-		.name = "YUV 4:2:0 Planar, YCbCr",
+-		.fourcc = V4L2_PIX_FMT_YUV420,
+-	},
+-	{
+-		.name = "YUV 4:2:0 Planar, YCrCb",
+-		.fourcc = V4L2_PIX_FMT_YVU420,
+-	},
+-	{
+-		.name = "YUV 4:2:0 Partial interleaved Y/CbCr",
+-		.fourcc = V4L2_PIX_FMT_NV12,
+-	},
+-	{
+-		.name = "YUV 4:2:2 Planar, YCbCr",
+-		.fourcc = V4L2_PIX_FMT_YUV422P,
+-	},
+-	{
+-		.name = "H264 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_H264,
+-	},
+-	{
+-		.name = "MPEG4 Encoded Stream",
+-		.fourcc = V4L2_PIX_FMT_MPEG4,
+-	},
+-	{
+-		.name = "JPEG Encoded Images",
+-		.fourcc = V4L2_PIX_FMT_JPEG,
+-	},
+-};
+-
+ #define CODA_CODEC(mode, src_fourcc, dst_fourcc, max_w, max_h) \
+ 	{ mode, src_fourcc, dst_fourcc, max_w, max_h }
+ 
+@@ -261,40 +222,23 @@ static const struct coda_video_device *coda9_video_devices[] = {
+ 	&coda_bit_decoder,
+ };
+ 
+-static bool coda_format_is_yuv(u32 fourcc)
++/*
++ * Normalize all supported YUV 4:2:0 formats to the value used in the codec
++ * tables.
++ */
++static u32 coda_format_normalize_yuv(u32 fourcc)
+ {
+ 	switch (fourcc) {
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+ 	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV422P:
+-		return true;
++		return V4L2_PIX_FMT_YUV420;
+ 	default:
+-		return false;
++		return fourcc;
+ 	}
+ }
+ 
+-static const char *coda_format_name(u32 fourcc)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(coda_formats); i++) {
+-		if (coda_formats[i].fourcc == fourcc)
+-			return coda_formats[i].name;
+-	}
+-
+-	return NULL;
+-}
+-
+-/*
+- * Normalize all supported YUV 4:2:0 formats to the value used in the codec
+- * tables.
+- */
+-static u32 coda_format_normalize_yuv(u32 fourcc)
+-{
+-	return coda_format_is_yuv(fourcc) ? V4L2_PIX_FMT_YUV420 : fourcc;
+-}
+-
+ static const struct coda_codec *coda_find_codec(struct coda_dev *dev,
+ 						int src_fourcc, int dst_fourcc)
+ {
+@@ -396,7 +340,6 @@ static int coda_enum_fmt(struct file *file, void *priv,
+ 	struct video_device *vdev = video_devdata(file);
+ 	const struct coda_video_device *cvd = to_coda_video_device(vdev);
+ 	const u32 *formats;
+-	const char *name;
+ 
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		formats = cvd->src_formats;
+@@ -408,11 +351,7 @@ static int coda_enum_fmt(struct file *file, void *priv,
+ 	if (f->index >= CODA_MAX_FORMATS || formats[f->index] == 0)
+ 		return -EINVAL;
+ 
+-	name = coda_format_name(formats[f->index]);
+-	strlcpy(f->description, name, sizeof(f->description));
+ 	f->pixelformat = formats[f->index];
+-	if (!coda_format_is_yuv(formats[f->index]))
+-		f->flags |= V4L2_FMT_FLAG_COMPRESSED;
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
 
-I've found the much-lauded Bluecherry driver release in 2010: http://ben-collins.blogspot.com/2010/06/softlogic-6010-4816-channel-mpeg-4.html
-It claims to be 90% functional, and I haven't found any updates since then. Am I looking in the wrong place or is this completely orphaned? Cards sometimes come up cheap and the board looks really well-thought-out, but as a hardware guy I'm the last person you want rooting around in driver source trying to solder some code together and get the last bits working...
-
-I found the intersil/techwell TW6869 chip on a very affordable card, and there's a nice looking driver here: https://github.com/igorizyumin/tw6869/ Only trouble is there only seems to be the one card using it, and it's v1.0 hardware without robust ESD protection on the inputs; I don't know if I'd expect it to survive a decade connected to 200-foot camera leads. It's cheap enough to keep spare boards around, though. Is this driver solid? Is the chip? Are there other cards based on it?
-
-I popped into #v4l on freenode, and was pointed to the cx25821 chip, which seems well supported but I can't find any actual names of cards that claim to use it, except possibly a line of Russian cards and maybe I can get a Russian-speaking friend to help figure out their shopping cart... Is there a known/recommended Cx25821-based card I should look for? (And is the 25853 similar?) 
-
-I've seen talk of the older Geovision cards using the Bt878a chips, which is of course lovely, but I can't find any info on their PCIe offerings, nor even high-res photos of the board. That's a shame cuz their hardware looks really solid. Any chipset info? Anyone using these? 
-
-Anything else I'm missing? 
-
-Thanks a bunch in advance,
--Nate B-
