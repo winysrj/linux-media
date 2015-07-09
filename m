@@ -1,129 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9138 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815AbbGJGUM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:20:12 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 6/7] [media] tuners: Drop owner assignment from i2c_driver
-Date: Fri, 10 Jul 2015 15:19:47 +0900
-Message-id: <1436509188-23320-7-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
-References: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36535 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750955AbbGIEG4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jul 2015 00:06:56 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/12] tda10071: protect firmware command exec with mutex
+Date: Thu,  9 Jul 2015 07:06:30 +0300
+Message-Id: <1436414792-9716-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1436414792-9716-1-git-send-email-crope@iki.fi>
+References: <1436414792-9716-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_driver does not need to set an owner because i2c_register_driver()
-will set it.
+There should be clearly some lock in order to make sure firmware
+command in execution is not disturbed by another command. It has
+worked as callbacks are serialized somehow pretty well and command
+execution happens usually without any delays.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
+ drivers/media/dvb-frontends/tda10071.c      | 12 +++++++++---
+ drivers/media/dvb-frontends/tda10071_priv.h |  1 +
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
----
- drivers/media/tuners/e4000.c      | 1 -
- drivers/media/tuners/fc2580.c     | 1 -
- drivers/media/tuners/it913x.c     | 1 -
- drivers/media/tuners/m88rs6000t.c | 1 -
- drivers/media/tuners/si2157.c     | 1 -
- drivers/media/tuners/tda18212.c   | 1 -
- drivers/media/tuners/tua9001.c    | 1 -
- 7 files changed, 7 deletions(-)
-
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 03538f88f488..564a000f503e 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -752,7 +752,6 @@ MODULE_DEVICE_TABLE(i2c, e4000_id_table);
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index c1507cc..c8feb58 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -62,15 +62,17 @@ static int tda10071_cmd_execute(struct tda10071_dev *dev,
+ 		goto error;
+ 	}
  
- static struct i2c_driver e4000_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "e4000",
- 		.suppress_bind_attrs = true,
- 	},
-diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-index 12f916e53150..f4d4665de168 100644
---- a/drivers/media/tuners/fc2580.c
-+++ b/drivers/media/tuners/fc2580.c
-@@ -632,7 +632,6 @@ MODULE_DEVICE_TABLE(i2c, fc2580_id_table);
++	mutex_lock(&dev->cmd_execute_mutex);
++
+ 	/* write cmd and args for firmware */
+ 	ret = regmap_bulk_write(dev->regmap, 0x00, cmd->args, cmd->len);
+ 	if (ret)
+-		goto error;
++		goto error_mutex_unlock;
  
- static struct i2c_driver fc2580_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "fc2580",
- 		.suppress_bind_attrs = true,
- 	},
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index a076c87eda7a..5c96da693289 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -463,7 +463,6 @@ MODULE_DEVICE_TABLE(i2c, it913x_id_table);
+ 	/* start cmd execution */
+ 	ret = regmap_write(dev->regmap, 0x1f, 1);
+ 	if (ret)
+-		goto error;
++		goto error_mutex_unlock;
  
- static struct i2c_driver it913x_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "it913x",
- 	},
- 	.probe		= it913x_probe,
-diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
-index d4c13fe6e7b3..504bfbc4027a 100644
---- a/drivers/media/tuners/m88rs6000t.c
-+++ b/drivers/media/tuners/m88rs6000t.c
-@@ -729,7 +729,6 @@ MODULE_DEVICE_TABLE(i2c, m88rs6000t_id);
+ 	/* wait cmd execution terminate */
+ 	#define CMD_EXECUTE_TIMEOUT 30
+@@ -78,8 +80,9 @@ static int tda10071_cmd_execute(struct tda10071_dev *dev,
+ 	for (uitmp = 1; !time_after(jiffies, timeout) && uitmp;) {
+ 		ret = regmap_read(dev->regmap, 0x1f, &uitmp);
+ 		if (ret)
+-			goto error;
++			goto error_mutex_unlock;
+ 	}
++	mutex_unlock(&dev->cmd_execute_mutex);
  
- static struct i2c_driver m88rs6000t_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "m88rs6000t",
- 	},
- 	.probe		= m88rs6000t_probe,
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index a6245ef379c4..507382160e5e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -469,7 +469,6 @@ MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+ 	dev_dbg(&client->dev, "cmd execution took %u ms\n",
+ 		jiffies_to_msecs(jiffies) -
+@@ -91,6 +94,8 @@ static int tda10071_cmd_execute(struct tda10071_dev *dev,
+ 	}
  
- static struct i2c_driver si2157_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "si2157",
- 	},
- 	.probe		= si2157_probe,
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index d93e0667b46b..7b8068354fea 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -277,7 +277,6 @@ MODULE_DEVICE_TABLE(i2c, tda18212_id);
+ 	return ret;
++error_mutex_unlock:
++	mutex_unlock(&dev->cmd_execute_mutex);
+ error:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+@@ -1170,6 +1175,7 @@ static int tda10071_probe(struct i2c_client *client,
+ 	}
  
- static struct i2c_driver tda18212_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "tda18212",
- 	},
- 	.probe		= tda18212_probe,
-diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
-index d4f6ca0c4d92..9d70378fe2d3 100644
---- a/drivers/media/tuners/tua9001.c
-+++ b/drivers/media/tuners/tua9001.c
-@@ -267,7 +267,6 @@ MODULE_DEVICE_TABLE(i2c, tua9001_id_table);
- 
- static struct i2c_driver tua9001_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "tua9001",
- 		.suppress_bind_attrs = true,
- 	},
+ 	dev->client = client;
++	mutex_init(&dev->cmd_execute_mutex);
+ 	dev->clk = pdata->clk;
+ 	dev->i2c_wr_max = pdata->i2c_wr_max;
+ 	dev->ts_mode = pdata->ts_mode;
+diff --git a/drivers/media/dvb-frontends/tda10071_priv.h b/drivers/media/dvb-frontends/tda10071_priv.h
+index 30143c8..cf5b433 100644
+--- a/drivers/media/dvb-frontends/tda10071_priv.h
++++ b/drivers/media/dvb-frontends/tda10071_priv.h
+@@ -30,6 +30,7 @@ struct tda10071_dev {
+ 	struct dvb_frontend fe;
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
++	struct mutex cmd_execute_mutex;
+ 	u32 clk;
+ 	u16 i2c_wr_max;
+ 	u8 ts_mode;
 -- 
-1.9.1
+http://palosaari.fi/
 
