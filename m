@@ -1,127 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37823 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463AbbGOVEv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2015 17:04:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
-Date: Thu, 16 Jul 2015 00:05:14 +0300
-Message-ID: <2206042.E86xyoYRaG@avalon>
-In-Reply-To: <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34802 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752343AbbGIKKg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:36 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 08/10] [media] coda: use event class to deduplicate v4l2 trace events
+Date: Thu,  9 Jul 2015 12:10:19 +0200
+Message-Id: <1436436621-12291-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Trace events with exactly the same parameters and trace output, such as
+coda_enc_pic_run and coda_enc_pic_done, are supposed to use the
+DECLARE_EVENT_CLASS and DEFINE_EVENT macros instead of duplicated
+TRACE_EVENT macro calls.
+This patch changes the order of parameters to coda_dec_rot_done and adds
+a timestamp so it can share an event class with coda_bit_queue.
 
-Thank you for the patch.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c |  2 +-
+ drivers/media/platform/coda/trace.h    | 89 ++++++++++------------------------
+ 2 files changed, 26 insertions(+), 65 deletions(-)
 
-On Friday 12 June 2015 18:46:23 Ricardo Ribalda Delgado wrote:
-> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
-> use the controller framework.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index 2764f43607c1..e2698a77138a 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
-> void *fh, return uvc_ctrl_rollback(handle);
->  }
-> 
-> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
-> +				     struct v4l2_ext_controls *ctrls)
-> +{
-> +	struct uvc_fh *handle = fh;
-> +	struct uvc_video_chain *chain = handle->chain;
-> +	struct v4l2_ext_control *ctrl = ctrls->controls;
-> +	unsigned int i;
-> +	int ret;
-> +	struct v4l2_queryctrl qc;
-> +
-> +	ret = uvc_ctrl_begin(chain);
-
-There's no need to call uvc_ctrl_begin() here (and if there was, you'd have to 
-call uvc_ctrl_rollback() or uvc_ctrl_commit() before returning).
-
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> +		qc.id = ctrl->id;
-> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
-> +		if (ret < 0) {
-> +			ctrls->error_idx = i;
-> +			return ret;
-> +		}
-> +		ctrl->value = qc.default_value;
-> +	}
-> +
-> +	ctrls->error_idx = 0;
-> +
-> +	return 0;
-> +}
-
-Instead of open-coding this in multiple drivers, how about adding a helper 
-function to the core ? Something like (totally untested)
-
-int v4l2_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
-                               struct v4l2_ext_controls *ctrls)
-{
-	struct video_device *vdev = video_devdata(file);
-	unsigned int i;
-	int ret;
-
-	for (i = 0; i < ctrls->count; ++i) {
-		struct v4l2_queryctrl qc;
-
-		qc.id = ctrl->id;
-		ret = vdev->ioctl_ops->vidioc_queryctrl(file, fh, &qc);
-		if (ret < 0) {
-			ctrls->error_idx = i;
-			return ret;
-		}
-
-		ctrls->controls[i].value = qc.default_value;
-	}
-
-	ctrls->error_idx = 0;
-
-	return 0;
-}
-
-The function could be called by v4l_g_def_ext_ctrls() when ops-
->vidioc_g_def_ext_ctrls is NULL.
-
->  static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
->  				     struct v4l2_ext_controls *ctrls,
->  				     bool commit)
-> @@ -1500,6 +1529,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
->  	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
->  	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
->  	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
-> +	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
->  	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
->  	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
->  	.vidioc_querymenu = uvc_ioctl_querymenu,
-
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index ac4dcb1..226ce4a 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1978,7 +1978,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		dst_buf->v4l2_buf.timecode = meta->timecode;
+ 		dst_buf->v4l2_buf.timestamp = meta->timestamp;
+ 
+-		trace_coda_dec_rot_done(ctx, meta, dst_buf);
++		trace_coda_dec_rot_done(ctx, dst_buf, meta);
+ 
+ 		switch (q_data_dst->fourcc) {
+ 		case V4L2_PIX_FMT_YUV420:
+diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
+index 781bf72..d9099a0 100644
+--- a/drivers/media/platform/coda/trace.h
++++ b/drivers/media/platform/coda/trace.h
+@@ -48,7 +48,7 @@ TRACE_EVENT(coda_bit_done,
+ 	TP_printk("minor = %d, ctx = %d", __entry->minor, __entry->ctx)
+ );
+ 
+-TRACE_EVENT(coda_enc_pic_run,
++DECLARE_EVENT_CLASS(coda_buf_class,
+ 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
+ 
+ 	TP_ARGS(ctx, buf),
+@@ -69,28 +69,17 @@ TRACE_EVENT(coda_enc_pic_run,
+ 		  __entry->minor, __entry->index, __entry->ctx)
+ );
+ 
+-TRACE_EVENT(coda_enc_pic_done,
++DEFINE_EVENT(coda_buf_class, coda_enc_pic_run,
+ 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
++	TP_ARGS(ctx, buf)
++);
+ 
+-	TP_ARGS(ctx, buf),
+-
+-	TP_STRUCT__entry(
+-		__field(int, minor)
+-		__field(int, index)
+-		__field(int, ctx)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->minor = ctx->fh.vdev->minor;
+-		__entry->index = buf->v4l2_buf.index;
+-		__entry->ctx = ctx->idx;
+-	),
+-
+-	TP_printk("minor = %d, index = %d, ctx = %d",
+-		  __entry->minor, __entry->index, __entry->ctx)
++DEFINE_EVENT(coda_buf_class, coda_enc_pic_done,
++	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
++	TP_ARGS(ctx, buf)
+ );
+ 
+-TRACE_EVENT(coda_bit_queue,
++DECLARE_EVENT_CLASS(coda_buf_meta_class,
+ 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
+ 		 struct coda_buffer_meta *meta),
+ 
+@@ -117,7 +106,13 @@ TRACE_EVENT(coda_bit_queue,
+ 		  __entry->ctx)
+ );
+ 
+-TRACE_EVENT(coda_dec_pic_run,
++DEFINE_EVENT(coda_buf_meta_class, coda_bit_queue,
++	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		 struct coda_buffer_meta *meta),
++	TP_ARGS(ctx, buf, meta)
++);
++
++DECLARE_EVENT_CLASS(coda_meta_class,
+ 	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
+ 
+ 	TP_ARGS(ctx, meta),
+@@ -140,54 +135,20 @@ TRACE_EVENT(coda_dec_pic_run,
+ 		  __entry->minor, __entry->start, __entry->end, __entry->ctx)
+ );
+ 
+-TRACE_EVENT(coda_dec_pic_done,
++DEFINE_EVENT(coda_meta_class, coda_dec_pic_run,
+ 	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
+-
+-	TP_ARGS(ctx, meta),
+-
+-	TP_STRUCT__entry(
+-		__field(int, minor)
+-		__field(int, start)
+-		__field(int, end)
+-		__field(int, ctx)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->minor = ctx->fh.vdev->minor;
+-		__entry->start = meta->start;
+-		__entry->end = meta->end;
+-		__entry->ctx = ctx->idx;
+-	),
+-
+-	TP_printk("minor = %d, start = 0x%x, end = 0x%x, ctx = %d",
+-		  __entry->minor, __entry->start, __entry->end, __entry->ctx)
++	TP_ARGS(ctx, meta)
+ );
+ 
+-TRACE_EVENT(coda_dec_rot_done,
+-	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta,
+-		 struct vb2_buffer *buf),
+-
+-	TP_ARGS(ctx, meta, buf),
+-
+-	TP_STRUCT__entry(
+-		__field(int, minor)
+-		__field(int, start)
+-		__field(int, end)
+-		__field(int, index)
+-		__field(int, ctx)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->minor = ctx->fh.vdev->minor;
+-		__entry->start = meta->start;
+-		__entry->end = meta->end;
+-		__entry->index = buf->v4l2_buf.index;
+-		__entry->ctx = ctx->idx;
+-	),
++DEFINE_EVENT(coda_meta_class, coda_dec_pic_done,
++	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
++	TP_ARGS(ctx, meta)
++);
+ 
+-	TP_printk("minor = %d, start = 0x%x, end = 0x%x, index = %d, ctx = %d",
+-		  __entry->minor, __entry->start, __entry->end, __entry->index,
+-		  __entry->ctx)
++DEFINE_EVENT(coda_buf_meta_class, coda_dec_rot_done,
++	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
++		 struct coda_buffer_meta *meta),
++	TP_ARGS(ctx, buf, meta)
+ );
+ 
+ #endif /* __CODA_TRACE_H__ */
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
