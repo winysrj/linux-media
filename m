@@ -1,162 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:52570 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753627AbbGTTQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 15:16:53 -0400
-Subject: [PATCH 5/7] [PATCH FIXES] Revert "[media] rc: ir-rc5-decoder: Add
- encode capability"
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com
-Date: Mon, 20 Jul 2015 21:16:51 +0200
-Message-ID: <20150720191651.24633.63217.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
-References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40795 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752326AbbGIKKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:35 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 06/10] [media] coda: reset stream end in stop_streaming
+Date: Thu,  9 Jul 2015 12:10:17 +0200
+Message-Id: <1436436621-12291-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit a0466f15b4654cf1ac9e387d7c1a401eff494b4f.
+Otherwise a restarted stream won't queue buffers.
 
-The current code is not mature enough, the API should allow a single
-protocol to be specified. Also, the current code contains heuristics
-that will depend on module load order.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/rc/ir-rc5-decoder.c |  116 -------------------------------------
- 1 file changed, 116 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 8939ebd..84fa6e9 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -184,125 +184,9 @@ out:
- 	return -EINVAL;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index de0e245..8b91bda 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1378,6 +1378,9 @@ static void coda_stop_streaming(struct vb2_queue *q)
+ 		ctx->runcounter = 0;
+ 		ctx->aborting = 0;
+ 	}
++
++	if (!ctx->streamon_out && !ctx->streamon_cap)
++		ctx->bit_stream_param &= ~CODA_BIT_STREAM_END_FLAG;
  }
  
--static struct ir_raw_timings_manchester ir_rc5_timings = {
--	.leader			= RC5_UNIT,
--	.pulse_space_start	= 0,
--	.clock			= RC5_UNIT,
--	.trailer_space		= RC5_UNIT * 10,
--};
--
--static struct ir_raw_timings_manchester ir_rc5x_timings[2] = {
--	{
--		.leader			= RC5_UNIT,
--		.pulse_space_start	= 0,
--		.clock			= RC5_UNIT,
--		.trailer_space		= RC5X_SPACE,
--	},
--	{
--		.clock			= RC5_UNIT,
--		.trailer_space		= RC5_UNIT * 10,
--	},
--};
--
--static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
--	.leader				= RC5_UNIT,
--	.pulse_space_start		= 0,
--	.clock				= RC5_UNIT,
--	.trailer_space			= RC5_UNIT * 10,
--};
--
--static int ir_rc5_validate_filter(const struct rc_scancode_filter *scancode,
--				  unsigned int important_bits)
--{
--	/* all important bits of scancode should be set in mask */
--	if (~scancode->mask & important_bits)
--		return -EINVAL;
--	/* extra bits in mask should be zero in data */
--	if (scancode->mask & scancode->data & ~important_bits)
--		return -EINVAL;
--	return 0;
--}
--
--/**
-- * ir_rc5_encode() - Encode a scancode as a stream of raw events
-- *
-- * @protocols:	allowed protocols
-- * @scancode:	scancode filter describing scancode (helps distinguish between
-- *		protocol subtypes when scancode is ambiguous)
-- * @events:	array of raw ir events to write into
-- * @max:	maximum size of @events
-- *
-- * Returns:	The number of events written.
-- *		-ENOBUFS if there isn't enough space in the array to fit the
-- *		encoding. In this case all @max events will have been written.
-- *		-EINVAL if the scancode is ambiguous or invalid.
-- */
--static int ir_rc5_encode(u64 protocols,
--			 const struct rc_scancode_filter *scancode,
--			 struct ir_raw_event *events, unsigned int max)
--{
--	int ret;
--	struct ir_raw_event *e = events;
--	unsigned int data, xdata, command, commandx, system;
--
--	/* Detect protocol and convert scancode to raw data */
--	if (protocols & RC_BIT_RC5 &&
--	    !ir_rc5_validate_filter(scancode, 0x1f7f)) {
--		/* decode scancode */
--		command  = (scancode->data & 0x003f) >> 0;
--		commandx = (scancode->data & 0x0040) >> 6;
--		system   = (scancode->data & 0x1f00) >> 8;
--		/* encode data */
--		data = !commandx << 12 | system << 6 | command;
--
--		/* Modulate the data */
--		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_timings, RC5_NBITS,
--					    data);
--		if (ret < 0)
--			return ret;
--	} else if (protocols & RC_BIT_RC5X &&
--		   !ir_rc5_validate_filter(scancode, 0x1f7f3f)) {
--		/* decode scancode */
--		xdata    = (scancode->data & 0x00003f) >> 0;
--		command  = (scancode->data & 0x003f00) >> 8;
--		commandx = (scancode->data & 0x004000) >> 14;
--		system   = (scancode->data & 0x1f0000) >> 16;
--		/* commandx and system overlap, bits must match when encoded */
--		if (commandx == (system & 0x1))
--			return -EINVAL;
--		/* encode data */
--		data = 1 << 18 | system << 12 | command << 6 | xdata;
--
--		/* Modulate the data */
--		ret = ir_raw_gen_manchester(&e, max, &ir_rc5x_timings[0],
--					CHECK_RC5X_NBITS,
--					data >> (RC5X_NBITS-CHECK_RC5X_NBITS));
--		if (ret < 0)
--			return ret;
--		ret = ir_raw_gen_manchester(&e, max - (e - events),
--					&ir_rc5x_timings[1],
--					RC5X_NBITS - CHECK_RC5X_NBITS,
--					data);
--		if (ret < 0)
--			return ret;
--	} else if (protocols & RC_BIT_RC5_SZ &&
--		   !ir_rc5_validate_filter(scancode, 0x2fff)) {
--		/* RC5-SZ scancode is raw enough for Manchester as it is */
--		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings,
--					RC5_SZ_NBITS, scancode->data & 0x2fff);
--		if (ret < 0)
--			return ret;
--	} else {
--		return -EINVAL;
--	}
--
--	return e - events;
--}
--
- static struct ir_raw_handler rc5_handler = {
- 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
--	.encode		= ir_rc5_encode,
- };
- 
- static int __init ir_rc5_decode_init(void)
+ static const struct vb2_ops coda_qops = {
+-- 
+2.1.4
 
