@@ -1,74 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57690 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932443AbbGHLQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2015 07:16:27 -0400
-Date: Wed, 8 Jul 2015 08:16:22 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org
-Subject: [ANNOUNCE] Media Controller workshop in Helsinki
-Message-ID: <20150708081622.63e333bd@recife.lan>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:59052 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753695AbbGJI3e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2015 04:29:34 -0400
+From: Fabien Dessenne <fabien.dessenne@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	<hugues.fruchet@st.com>, <kernel@stlinux.com>
+Subject: [PATCH 1/2] [media] bdisp: composing support
+Date: Fri, 10 Jul 2015 10:29:22 +0200
+Message-ID: <1436516962-28099-1-git-send-email-fabien.dessenne@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Support the composing (at VIDEO_CAPTURE) with the _selection API.
+v4l2-compliance successfully run ("test Composing: OK")
 
-As discussed on our IRC #v4l channel at Freenode, we'll be running a 3-day 
-Media Controller workshop in Helsinki between July 29-31.
-
-The main goal of this workshop is to fixup the problems with the Media
-Controller API to properly represent device nodes and the control tree,
-as this is a requirement for the Media Controller to be used by DVB, ALSA
-and radio devices.
-
-This is an invitation-only event, as we want to be sure that we'll have
-there people that are actively working with the Media Controller, DVB
-and/or ALSA. So, if you think this is for you, please send us an e-mail.
-
-Also, even if you're not able to participate, feel free to submit relevant
-topics related to the Media Controller, in order to help us to build
-the workshop's agenda and take other needs into account when working on
-the needed API changes.
-
-As usual, we'll be using the media-workshop@linuxtv.org ML for the
-specific discussions about that, so the ones interested on participate
-on such discussions and/or be present there are requested to subscribe
-it, and to submit themes of interest via the mailing lists.
-
-For those interested on this theme, I'll add a list of the most relevant
-past discussions about this theme.
-
-Hope to see you there!
-
-Regards,
-Mauro
-
+Signed-off-by: Fabien Dessenne <fabien.dessenne@st.com>
 ---
+ drivers/media/platform/sti/bdisp/bdisp-hw.c   |  8 +--
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 76 ++++++++++++++++++---------
+ 2 files changed, 55 insertions(+), 29 deletions(-)
 
-The DVB needs with regards to MC are mapped on those two blog entries:
-	http://blogs.s-osg.org/media-controller-support-for-dvb-part-1/
-	http://blogs.s-osg.org/the-role-of-dtv-network-interfaces-in-media-controller-support-for-dvb/
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
+index 465828e..c83f9c2 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
+@@ -336,8 +336,8 @@ static int bdisp_hw_get_hv_inc(struct bdisp_ctx *ctx, u16 *h_inc, u16 *v_inc)
+ 
+ 	src_w = ctx->src.crop.width;
+ 	src_h = ctx->src.crop.height;
+-	dst_w = ctx->dst.width;
+-	dst_h = ctx->dst.height;
++	dst_w = ctx->dst.crop.width;
++	dst_h = ctx->dst.crop.height;
+ 
+ 	if (bdisp_hw_get_inc(src_w, dst_w, h_inc) ||
+ 	    bdisp_hw_get_inc(src_h, dst_h, v_inc)) {
+@@ -483,9 +483,9 @@ static void bdisp_hw_build_node(struct bdisp_ctx *ctx,
+ 	src_rect.width -= src_x_offset;
+ 	src_rect.width = min_t(__s32, MAX_SRC_WIDTH, src_rect.width);
+ 
+-	dst_x_offset = (src_x_offset * dst->width) / ctx->src.crop.width;
++	dst_x_offset = (src_x_offset * dst_width) / ctx->src.crop.width;
+ 	dst_rect.left += dst_x_offset;
+-	dst_rect.width = (src_rect.width * dst->width) / ctx->src.crop.width;
++	dst_rect.width = (src_rect.width * dst_width) / ctx->src.crop.width;
+ 
+ 	/* General */
+ 	src_fmt = src->fmt->pixelformat;
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index 9e782eb..df61355 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -851,33 +851,56 @@ static int bdisp_g_selection(struct file *file, void *fh,
+ 	struct bdisp_frame *frame;
+ 	struct bdisp_ctx *ctx = fh_to_ctx(fh);
+ 
+-	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		/* Composing  / capture is not supported */
+-		dev_dbg(ctx->bdisp_dev->dev, "Not supported for capture\n");
+-		return -EINVAL;
+-	}
+-
+ 	frame = ctx_get_frame(ctx, s->type);
+ 	if (IS_ERR(frame)) {
+ 		dev_err(ctx->bdisp_dev->dev, "Invalid frame (%p)\n", frame);
+ 		return PTR_ERR(frame);
+ 	}
+ 
+-	switch (s->target) {
+-	case V4L2_SEL_TGT_CROP:
+-		/* cropped frame */
+-		s->r = frame->crop;
++	switch (s->type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		switch (s->target) {
++		case V4L2_SEL_TGT_CROP:
++			/* cropped frame */
++			s->r = frame->crop;
++			break;
++		case V4L2_SEL_TGT_CROP_DEFAULT:
++		case V4L2_SEL_TGT_CROP_BOUNDS:
++			/* complete frame */
++			s->r.left = 0;
++			s->r.top = 0;
++			s->r.width = frame->width;
++			s->r.height = frame->height;
++			break;
++		default:
++			dev_err(ctx->bdisp_dev->dev, "Invalid target\n");
++			return -EINVAL;
++		}
+ 		break;
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+-	case V4L2_SEL_TGT_CROP_BOUNDS:
+-		/* complete frame */
+-		s->r.left = 0;
+-		s->r.top = 0;
+-		s->r.width = frame->width;
+-		s->r.height = frame->height;
++
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		switch (s->target) {
++		case V4L2_SEL_TGT_COMPOSE:
++		case V4L2_SEL_TGT_COMPOSE_PADDED:
++			/* composed (cropped) frame */
++			s->r = frame->crop;
++			break;
++		case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++		case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++			/* complete frame */
++			s->r.left = 0;
++			s->r.top = 0;
++			s->r.width = frame->width;
++			s->r.height = frame->height;
++			break;
++		default:
++			dev_err(ctx->bdisp_dev->dev, "Invalid target\n");
++			return -EINVAL;
++		}
+ 		break;
++
+ 	default:
+-		dev_dbg(ctx->bdisp_dev->dev, "Invalid target\n");
++		dev_err(ctx->bdisp_dev->dev, "Invalid type\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -906,15 +929,18 @@ static int bdisp_s_selection(struct file *file, void *fh,
+ 	struct bdisp_frame *frame;
+ 	struct bdisp_ctx *ctx = fh_to_ctx(fh);
+ 	struct v4l2_rect *in, out;
++	bool valid = false;
+ 
+-	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-		/* Composing  / capture is not supported */
+-		dev_dbg(ctx->bdisp_dev->dev, "Not supported for capture\n");
+-		return -EINVAL;
+-	}
++	if ((s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) &&
++	    (s->target == V4L2_SEL_TGT_CROP))
++		valid = true;
++
++	if ((s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (s->target == V4L2_SEL_TGT_COMPOSE))
++		valid = true;
+ 
+-	if (s->target != V4L2_SEL_TGT_CROP) {
+-		dev_dbg(ctx->bdisp_dev->dev, "Invalid target\n");
++	if (!valid) {
++		dev_err(ctx->bdisp_dev->dev, "Invalid type / target\n");
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.9.1
 
-We had two discussions about MC on our last mini-summit, back on March, 26.
-The discussions and slides can be found at:
-	http://linuxtv.org/news.php?entry=2015-05-05.mchehab
-	http://www.linuxtv.org/downloads/presentations/media_summit_2015_US/dtv_media_controller_discussion_v1.pdf
-
-A summary of the issues can also be seen on the emails below:
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg85979.html
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg83883.html
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg83884.html
-
-Patches that minimally expose DVB via MC were merged on Kernel 4.1,
-although it is currently marked as BROKEN, in order to tag those API
-extensions as likely to change on future versions.
-
-The initial patchset proposal for ALSA support on MC is there at:
-	http://www.spinics.net/lists/linux-media/msg89574.html
-
-The most recent proposal for such fixup can be seen at:
-	http://www.spinics.net/lists/linux-media/msg91365.html
