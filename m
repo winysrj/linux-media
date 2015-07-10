@@ -1,96 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:49998 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751715AbbG1QRz (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9716 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752236AbbGJGel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 12:17:55 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org
-Subject: [PATCH 1/2] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
-Date: Tue, 28 Jul 2015 17:17:43 +0100
-Message-Id: <1438100264-17280-2-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1438100264-17280-1-git-send-email-william.towle@codethink.co.uk>
-References: <1438100264-17280-1-git-send-email-william.towle@codethink.co.uk>
+	Fri, 10 Jul 2015 02:34:41 -0400
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Lars-Peter Clausen <lars@metafoo.de>,
+	Michael Hennerich <Michael.Hennerich@analog.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Antti Palosaari <crope@iki.fi>, linux-iio@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 2/3] staging: media: Drop owner assignment from i2c_driver
+Date: Fri, 10 Jul 2015 15:34:27 +0900
+Message-id: <1436510068-5284-3-git-send-email-k.kozlowski@samsung.com>
+In-reply-to: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
+References: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT entries for vin0, vin0_pins, and adv7612
+i2c_driver does not need to set an owner because i2c_register_driver()
+will set it.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+
 ---
- arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index e02b523..aec7db6 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -378,7 +378,12 @@
- 		renesas,function = "usb2";
- 	};
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 1 -
+ drivers/staging/media/mn88472/mn88472.c | 1 -
+ drivers/staging/media/mn88473/mn88473.c | 1 -
+ 3 files changed, 3 deletions(-)
+
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 261e27d6b054..d032745081ee 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1367,7 +1367,6 @@ static const struct i2c_device_id ir_transceiver_id[] = {
  
--	vin1_pins: vin {
-+	vin0_pins: vin0 {
-+		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
-+		renesas,function = "vin0";
-+	};
-+
-+	vin1_pins: vin1 {
- 		renesas,groups = "vin1_data8", "vin1_clk";
- 		renesas,function = "vin1";
- 	};
-@@ -539,6 +544,18 @@
- 		reg = <0x12>;
- 	};
+ static struct i2c_driver driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "Zilog/Hauppauge i2c IR",
+ 	},
+ 	.probe		= ir_probe,
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+index a8d45f44765c..cf2e96bcf395 100644
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ b/drivers/staging/media/mn88472/mn88472.c
+@@ -561,7 +561,6 @@ MODULE_DEVICE_TABLE(i2c, mn88472_id_table);
  
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		remote = <&vin0>;
-+
-+		port {
-+			hdmi_in_ep: endpoint {
-+				remote-endpoint = <&vin0ep0>;
-+			};
-+		};
-+	};
-+
- 	composite-in@20 {
- 		compatible = "adi,adv7180";
- 		reg = <0x20>;
-@@ -654,6 +671,28 @@
- 	status = "okay";
- };
+ static struct i2c_driver mn88472_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "mn88472",
+ 	},
+ 	.probe		= mn88472_probe,
+diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
+index f9146a146d07..a222e99935d2 100644
+--- a/drivers/staging/media/mn88473/mn88473.c
++++ b/drivers/staging/media/mn88473/mn88473.c
+@@ -507,7 +507,6 @@ MODULE_DEVICE_TABLE(i2c, mn88473_id_table);
  
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "ok";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep0: endpoint {
-+			remote-endpoint = <&hdmi_in_ep>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
+ static struct i2c_driver mn88473_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "mn88473",
+ 	},
+ 	.probe		= mn88473_probe,
 -- 
-1.7.10.4
+1.9.1
 
