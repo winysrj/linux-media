@@ -1,54 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56116 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751622AbbGQLqY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56246 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753924AbbGJLme (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 07:46:24 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B41CF2A0091
-	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 13:45:22 +0200 (CEST)
-Message-ID: <55A8EAD2.1050202@xs4all.nl>
-Date: Fri, 17 Jul 2015 13:45:22 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] cobalt: allow fewer than 8 PCIe lanes
-Content-Type: text/plain; charset=utf-8
+	Fri, 10 Jul 2015 07:42:34 -0400
+Message-ID: <1436528552.3850.44.camel@pengutronix.de>
+Subject: Re: [RFC v04] Driver for Toshiba TC358743
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: matrandg@cisco.com
+Cc: linux-media@vger.kernel.org, hansverk@cisco.com,
+	kernel@pengutronix.de
+Date: Fri, 10 Jul 2015 13:42:32 +0200
+In-Reply-To: <1436431547-27319-1-git-send-email-matrandg@cisco.com>
+References: <1436431547-27319-1-git-send-email-matrandg@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the cobalt driver refuses to load if fewer than 8 PCIe lanes
-are assigned. This patch changes this and just issues a warning. The
-only time it will refuse to load is if the number of assigned lanes is less
-than what the PCIe host is capable of since this suggests that the card
-isn't seated correctly in the slot.
+Hi Mats,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+thanks for the update! With a few changes on top
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
-index b994b8e..8fed61e 100644
---- a/drivers/media/pci/cobalt/cobalt-driver.c
-+++ b/drivers/media/pci/cobalt/cobalt-driver.c
-@@ -339,15 +339,16 @@ static int cobalt_setup_pci(struct cobalt *cobalt, struct pci_dev *pci_dev,
- 	}
- 
- 	if (pcie_link_get_lanes(cobalt) != 8) {
--		cobalt_err("PCI Express link width is not 8 lanes (%d)\n",
-+		cobalt_warn("PCI Express link width is %d lanes.\n",
- 				pcie_link_get_lanes(cobalt));
- 		if (pcie_bus_link_get_lanes(cobalt) < 8)
--			cobalt_err("The current slot only supports %d lanes, at least 8 are needed\n",
-+			cobalt_warn("The current slot only supports %d lanes, for best performance 8 are needed\n",
- 					pcie_bus_link_get_lanes(cobalt));
--		else
-+		if (pcie_link_get_lanes(cobalt) != pcie_bus_link_get_lanes(cobalt)) {
- 			cobalt_err("The card is most likely not seated correctly in the PCIe slot\n");
--		ret = -EIO;
--		goto err_disable;
-+			ret = -EIO;
-+			goto err_disable;
-+		}
- 	}
- 
- 	if (pci_set_dma_mask(pci_dev, DMA_BIT_MASK(64))) {
+Am Donnerstag, den 09.07.2015, 10:45 +0200 schrieb matrandg@cisco.com:
+> From: Mats Randgaard <matrandg@cisco.com>
+> 
+> Improvements based on feedback from Hans Verkuil:
+> - Use functions in linux/hdmi.h to print AVI info frames
+> - Replace private format change event with V4L2_EVENT_SOURCE_CHANGE
+> - Rewrite set_fmt/get_fmt
+> - Remove V4L2_SUBDEV_FL_HAS_DEVNODE
+
+I had to add that back again together with initializing the media entity
+to make it configurable with media-ctl --set-dv.
+
+regards
+Philipp
+
