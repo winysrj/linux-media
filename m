@@ -1,199 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:47084 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752541AbbGVWmm (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51234 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662AbbGJNgs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:42 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 06/19] media: platform exynos4-is: Update graph_mutex to graph_lock spinlock
-Date: Wed, 22 Jul 2015 16:42:07 -0600
-Message-Id: <5a8cfe7719b00195cfca2d140ff1030eca5e9fbd.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+	Fri, 10 Jul 2015 09:36:48 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 01/53] [media] coda: Use S_PARM to set nominal framerate for h.264 encoder
+Date: Fri, 10 Jul 2015 15:35:54 +0200
+Message-Id: <1436535406-13575-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update graph_mutex to graph_lock spinlock to be in sync with
-the Media Conttroller change for the same.
+The encoder needs to know the nominal framerate for the constant bitrate
+control mechanism to work. Currently the only way to set the framerate is
+by using VIDIOC_S_PARM on the output queue.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/exynos4-is/fimc-isp-video.c |  8 ++++----
- drivers/media/platform/exynos4-is/fimc-lite.c      |  8 ++++----
- drivers/media/platform/exynos4-is/media-dev.c      | 14 +++++++-------
- drivers/media/platform/exynos4-is/media-dev.h      |  4 ++--
- 4 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 102 ++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/coda_regs.h   |   4 ++
+ 2 files changed, 106 insertions(+)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index 76b6b4d..5ff0a54 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -288,7 +288,7 @@ static int isp_video_open(struct file *file)
- 		goto rel_fh;
- 
- 	if (v4l2_fh_is_singular_file(file)) {
--		mutex_lock(&me->parent->graph_mutex);
-+		spin_lock(&me->parent->graph_lock);
- 
- 		ret = fimc_pipeline_call(ve, open, me, true);
- 
-@@ -296,7 +296,7 @@ static int isp_video_open(struct file *file)
- 		if (ret == 0)
- 			me->use_count++;
- 
--		mutex_unlock(&me->parent->graph_mutex);
-+		spin_unlock(&me->parent->graph_lock);
- 	}
- 	if (!ret)
- 		goto unlock;
-@@ -326,9 +326,9 @@ static int isp_video_release(struct file *file)
- 	if (v4l2_fh_is_singular_file(file)) {
- 		fimc_pipeline_call(&ivc->ve, close);
- 
--		mutex_lock(&mdev->graph_mutex);
-+		spin_lock(&mdev->graph_lock);
- 		entity->use_count--;
--		mutex_unlock(&mdev->graph_mutex);
-+		spin_unlock(&mdev->graph_lock);
- 	}
- 
- 	pm_runtime_put(&isp->pdev->dev);
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index ca6261a..cb1ea29 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -500,7 +500,7 @@ static int fimc_lite_open(struct file *file)
- 	    atomic_read(&fimc->out_path) != FIMC_IO_DMA)
- 		goto unlock;
- 
--	mutex_lock(&me->parent->graph_mutex);
-+	spin_lock(&me->parent->graph_lock);
- 
- 	ret = fimc_pipeline_call(&fimc->ve, open, me, true);
- 
-@@ -508,7 +508,7 @@ static int fimc_lite_open(struct file *file)
- 	if (ret == 0)
- 		me->use_count++;
- 
--	mutex_unlock(&me->parent->graph_mutex);
-+	spin_unlock(&me->parent->graph_lock);
- 
- 	if (!ret) {
- 		fimc_lite_clear_event_counters(fimc);
-@@ -541,9 +541,9 @@ static int fimc_lite_release(struct file *file)
- 		fimc_pipeline_call(&fimc->ve, close);
- 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
- 
--		mutex_lock(&entity->parent->graph_mutex);
-+		spin_lock(&entity->parent->graph_lock);
- 		entity->use_count--;
--		mutex_unlock(&entity->parent->graph_mutex);
-+		spin_unlock(&entity->parent->graph_lock);
- 	}
- 
- 	_vb2_fop_release(file, NULL);
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 4f5586a..3e296e8 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1046,7 +1046,7 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
- 	return ret;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 367b6ba..351b4124 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -15,6 +15,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
++#include <linux/gcd.h>
+ #include <linux/genalloc.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+@@ -770,6 +771,104 @@ static int coda_decoder_cmd(struct file *file, void *fh,
+ 	return 0;
  }
  
--/* Locking: called with entity->parent->graph_mutex mutex held. */
-+/* Locking: called with entity->parent->graph_lock lock held. */
- static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
++static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct v4l2_fract *tpf;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL,
++
++	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
++	tpf = &a->parm.output.timeperframe;
++	tpf->denominator = ctx->params.framerate & CODA_FRATE_RES_MASK;
++	tpf->numerator = 1 + (ctx->params.framerate >>
++			      CODA_FRATE_DIV_OFFSET);
++
++	return 0;
++}
++
++/*
++ * Approximate timeperframe v4l2_fract with values that can be written
++ * into the 16-bit CODA_FRATE_DIV and CODA_FRATE_RES fields.
++ */
++static void coda_approximate_timeperframe(struct v4l2_fract *timeperframe)
++{
++	struct v4l2_fract s = *timeperframe;
++	struct v4l2_fract f0;
++	struct v4l2_fract f1 = { 1, 0 };
++	struct v4l2_fract f2 = { 0, 1 };
++	unsigned int i, div, s_denominator;
++
++	/* Lower bound is 1/65535 */
++	if (s.numerator == 0 || s.denominator / s.numerator > 65535) {
++		timeperframe->numerator = 1;
++		timeperframe->denominator = 65535;
++		return;
++	}
++
++	/* Upper bound is 65536/1, map everything above to infinity */
++	if (s.denominator == 0 || s.numerator / s.denominator > 65536) {
++		timeperframe->numerator = 1;
++		timeperframe->denominator = 0;
++		return;
++	}
++
++	/* Reduce fraction to lowest terms */
++	div = gcd(s.numerator, s.denominator);
++	if (div > 1) {
++		s.numerator /= div;
++		s.denominator /= div;
++	}
++
++	if (s.numerator <= 65536 && s.denominator < 65536) {
++		*timeperframe = s;
++		return;
++	}
++
++	/* Find successive convergents from continued fraction expansion */
++	while (f2.numerator <= 65536 && f2.denominator < 65536) {
++		f0 = f1;
++		f1 = f2;
++
++		/* Stop when f2 exactly equals timeperframe */
++		if (s.numerator == 0)
++			break;
++
++		i = s.denominator / s.numerator;
++
++		f2.numerator = f0.numerator + i * f1.numerator;
++		f2.denominator = f0.denominator + i * f2.denominator;
++
++		s_denominator = s.numerator;
++		s.numerator = s.denominator % s.numerator;
++		s.denominator = s_denominator;
++	}
++
++	*timeperframe = f1;
++}
++
++static uint32_t coda_timeperframe_to_frate(struct v4l2_fract *timeperframe)
++{
++	return ((timeperframe->numerator - 1) << CODA_FRATE_DIV_OFFSET) |
++		timeperframe->denominator;
++}
++
++static int coda_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct v4l2_fract *tpf;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	tpf = &a->parm.output.timeperframe;
++	coda_approximate_timeperframe(tpf);
++	ctx->params.framerate = coda_timeperframe_to_frate(tpf);
++
++	return 0;
++}
++
+ static int coda_subscribe_event(struct v4l2_fh *fh,
+ 				const struct v4l2_event_subscription *sub)
  {
- 	struct media_entity *entity_err = entity;
-@@ -1305,7 +1305,7 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
- 	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
- 	int ret;
+@@ -810,6 +909,9 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+ 	.vidioc_decoder_cmd	= coda_decoder_cmd,
  
--	mutex_lock(&fmd->media_dev.graph_mutex);
-+	spin_lock(&fmd->media_dev.graph_lock);
- 
- 	ret = fimc_md_create_links(fmd);
- 	if (ret < 0)
-@@ -1313,7 +1313,7 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
- 
- 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
- unlock:
--	mutex_unlock(&fmd->media_dev.graph_mutex);
-+	spin_unlock(&fmd->media_dev.graph_lock);
- 	return ret;
- }
- 
-@@ -1371,21 +1371,21 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, fmd);
- 
- 	/* Protect the media graph while we're registering entities */
--	mutex_lock(&fmd->media_dev.graph_mutex);
-+	spin_lock(&fmd->media_dev.graph_lock);
- 
- 	ret = fimc_md_register_platform_entities(fmd, dev->of_node);
- 	if (ret) {
--		mutex_unlock(&fmd->media_dev.graph_mutex);
-+		spin_unlock(&fmd->media_dev.graph_lock);
- 		goto err_clk;
- 	}
- 
- 	ret = fimc_md_register_sensor_entities(fmd);
- 	if (ret) {
--		mutex_unlock(&fmd->media_dev.graph_mutex);
-+		spin_unlock(&fmd->media_dev.graph_lock);
- 		goto err_m_ent;
- 	}
- 
--	mutex_unlock(&fmd->media_dev.graph_mutex);
-+	spin_unlock(&fmd->media_dev.graph_lock);
- 
- 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
- 	if (ret)
-diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
-index 0321454..91edd9b 100644
---- a/drivers/media/platform/exynos4-is/media-dev.h
-+++ b/drivers/media/platform/exynos4-is/media-dev.h
-@@ -175,12 +175,12 @@ static inline struct fimc_md *notifier_to_fimc_md(struct v4l2_async_notifier *n)
- 
- static inline void fimc_md_graph_lock(struct exynos_video_entity *ve)
- {
--	mutex_lock(&ve->vdev.entity.parent->graph_mutex);
-+	spin_lock(&ve->vdev.entity.parent->graph_lock);
- }
- 
- static inline void fimc_md_graph_unlock(struct exynos_video_entity *ve)
- {
--	mutex_unlock(&ve->vdev.entity.parent->graph_mutex);
-+	spin_unlock(&ve->vdev.entity.parent->graph_lock);
- }
- 
- int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
++	.vidioc_g_parm		= coda_g_parm,
++	.vidioc_s_parm		= coda_s_parm,
++
+ 	.vidioc_subscribe_event = coda_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
+index 7d02624..00e4f51 100644
+--- a/drivers/media/platform/coda/coda_regs.h
++++ b/drivers/media/platform/coda/coda_regs.h
+@@ -263,6 +263,10 @@
+ #define		CODADX6_PICHEIGHT_MASK				0x3ff
+ #define		CODA7_PICHEIGHT_MASK				0xffff
+ #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
++#define		CODA_FRATE_RES_OFFSET				0
++#define		CODA_FRATE_RES_MASK				0xffff
++#define		CODA_FRATE_DIV_OFFSET				16
++#define		CODA_FRATE_DIV_MASK				0xffff
+ #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
+ #define		CODA_MP4PARAM_VERID_OFFSET			6
+ #define		CODA_MP4PARAM_VERID_MASK			0x01
 -- 
 2.1.4
 
