@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61667 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752255AbbGWMVs (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61943 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbbGJGee (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 11/13] media: soc_camera: Fix error reporting in expbuf
-Date: Thu, 23 Jul 2015 13:21:41 +0100
-Message-Id: <1437654103-26409-12-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+	Fri, 10 Jul 2015 02:34:34 -0400
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Lars-Peter Clausen <lars@metafoo.de>,
+	Michael Hennerich <Michael.Hennerich@analog.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Antti Palosaari <crope@iki.fi>, linux-iio@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH] Drop owner assignment from i2c_driver (and platform left-overs)
+Date: Fri, 10 Jul 2015 15:34:25 +0900
+Message-id: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Remove unnecessary check and fix the error code for vb1 drivers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/soc_camera.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+The i2c drivers also do not have to set 'owner' field because
+i2c_register_driver() will do it instead.
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 7971388..bb181c1 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -470,14 +470,10 @@ static int soc_camera_expbuf(struct file *file, void *priv,
- 	struct soc_camera_device *icd = file->private_data;
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 
--	if (icd->streamer != file)
--		return -EBUSY;
--
- 	/* videobuf2 only */
- 	if (ici->ops->init_videobuf)
--		return -EINVAL;
--	else
--		return vb2_expbuf(&icd->vb2_vidq, p);
-+		return -ENOTTY;
-+	return vb2_expbuf(&icd->vb2_vidq, p);
- }
- 
- /* Always entered with .host_lock held */
+'owner' is removed from i2c drivers, which I was able to compile
+with allyesconfig (arm, arm64, i386, x86_64, ppc64).
+Only compile-tested.
+
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+
+
+Best regards,
+Krzysztof
+
+
+Krzysztof Kozlowski (3):
+  staging: iio: Drop owner assignment from i2c_driver
+  staging: media: Drop owner assignment from i2c_driver
+  staging: Drop owner assignment from i2c_driver
+
+ drivers/staging/iio/addac/adt7316-i2c.c       | 1 -
+ drivers/staging/iio/light/isl29018.c          | 1 -
+ drivers/staging/iio/light/isl29028.c          | 1 -
+ drivers/staging/media/lirc/lirc_zilog.c       | 1 -
+ drivers/staging/media/mn88472/mn88472.c       | 1 -
+ drivers/staging/media/mn88473/mn88473.c       | 1 -
+ drivers/staging/ste_rmi4/synaptics_i2c_rmi4.c | 1 -
+ 7 files changed, 7 deletions(-)
+
 -- 
-1.7.10.4
+1.9.1
 
