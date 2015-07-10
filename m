@@ -1,123 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41684 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172AbbG2CwY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57714 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932413AbbGJNtp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 22:52:24 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D066F2A0089
-	for <linux-media@vger.kernel.org>; Wed, 29 Jul 2015 04:52:13 +0200 (CEST)
-Date: Wed, 29 Jul 2015 04:52:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150729025213.D066F2A0089@tschai.lan>
+	Fri, 10 Jul 2015 09:49:45 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 1/3] [media] v4l2-dev: use event class to deduplicate v4l2 trace events
+Date: Fri, 10 Jul 2015 15:49:24 +0200
+Message-Id: <1436536166-3307-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Trace events with exactly the same parameters and trace output, such as
+v4l2_qbuf and v4l2_dqbuf, are supposed to use the DECLARE_EVENT_CLASS and
+DEFINE_EVENT macros instead of duplicated TRACE_EVENT macro calls.
 
-Results of the daily build of media_tree:
+Suggested-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ include/trace/events/v4l2.h | 160 +++++++++++++++++++++-----------------------
+ 1 file changed, 78 insertions(+), 82 deletions(-)
 
-date:		Wed Jul 29 04:00:58 CEST 2015
-git branch:	test
-git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index 89d0497..4c88a32 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -93,90 +93,86 @@ SHOW_FIELD
+ 		{ V4L2_TC_USERBITS_USERDEFINED,	"USERBITS_USERDEFINED" }, \
+ 		{ V4L2_TC_USERBITS_8BITCHARS,	"USERBITS_8BITCHARS" })
+ 
+-#define V4L2_TRACE_EVENT(event_name)					\
+-	TRACE_EVENT(event_name,						\
+-		TP_PROTO(int minor, struct v4l2_buffer *buf),		\
+-									\
+-		TP_ARGS(minor, buf),					\
+-									\
+-		TP_STRUCT__entry(					\
+-			__field(int, minor)				\
+-			__field(u32, index)				\
+-			__field(u32, type)				\
+-			__field(u32, bytesused)				\
+-			__field(u32, flags)				\
+-			__field(u32, field)				\
+-			__field(s64, timestamp)				\
+-			__field(u32, timecode_type)			\
+-			__field(u32, timecode_flags)			\
+-			__field(u8, timecode_frames)			\
+-			__field(u8, timecode_seconds)			\
+-			__field(u8, timecode_minutes)			\
+-			__field(u8, timecode_hours)			\
+-			__field(u8, timecode_userbits0)			\
+-			__field(u8, timecode_userbits1)			\
+-			__field(u8, timecode_userbits2)			\
+-			__field(u8, timecode_userbits3)			\
+-			__field(u32, sequence)				\
+-		),							\
+-									\
+-		TP_fast_assign(						\
+-			__entry->minor = minor;				\
+-			__entry->index = buf->index;			\
+-			__entry->type = buf->type;			\
+-			__entry->bytesused = buf->bytesused;		\
+-			__entry->flags = buf->flags;			\
+-			__entry->field = buf->field;			\
+-			__entry->timestamp =				\
+-				timeval_to_ns(&buf->timestamp);		\
+-			__entry->timecode_type = buf->timecode.type;	\
+-			__entry->timecode_flags = buf->timecode.flags;	\
+-			__entry->timecode_frames =			\
+-				buf->timecode.frames;			\
+-			__entry->timecode_seconds =			\
+-				buf->timecode.seconds;			\
+-			__entry->timecode_minutes =			\
+-				buf->timecode.minutes;			\
+-			__entry->timecode_hours = buf->timecode.hours;	\
+-			__entry->timecode_userbits0 =			\
+-				buf->timecode.userbits[0];		\
+-			__entry->timecode_userbits1 =			\
+-				buf->timecode.userbits[1];		\
+-			__entry->timecode_userbits2 =			\
+-				buf->timecode.userbits[2];		\
+-			__entry->timecode_userbits3 =			\
+-				buf->timecode.userbits[3];		\
+-			__entry->sequence = buf->sequence;		\
+-		),							\
+-									\
+-		TP_printk("minor = %d, index = %u, type = %s, "		\
+-			  "bytesused = %u, flags = %s, "		\
+-			  "field = %s, timestamp = %llu, timecode = { "	\
+-			  "type = %s, flags = %s, frames = %u, "	\
+-			  "seconds = %u, minutes = %u, hours = %u, "	\
+-			  "userbits = { %u %u %u %u } }, "		\
+-			  "sequence = %u", __entry->minor,		\
+-			  __entry->index, show_type(__entry->type),	\
+-			  __entry->bytesused,				\
+-			  show_flags(__entry->flags),			\
+-			  show_field(__entry->field),			\
+-			  __entry->timestamp,				\
+-			  show_timecode_type(__entry->timecode_type),	\
+-			  show_timecode_flags(__entry->timecode_flags),	\
+-			  __entry->timecode_frames,			\
+-			  __entry->timecode_seconds,			\
+-			  __entry->timecode_minutes,			\
+-			  __entry->timecode_hours,			\
+-			  __entry->timecode_userbits0,			\
+-			  __entry->timecode_userbits1,			\
+-			  __entry->timecode_userbits2,			\
+-			  __entry->timecode_userbits3,			\
+-			  __entry->sequence				\
+-		)							\
++DECLARE_EVENT_CLASS(v4l2_event_class,
++	TP_PROTO(int minor, struct v4l2_buffer *buf),
++
++	TP_ARGS(minor, buf),
++
++	TP_STRUCT__entry(
++		__field(int, minor)
++		__field(u32, index)
++		__field(u32, type)
++		__field(u32, bytesused)
++		__field(u32, flags)
++		__field(u32, field)
++		__field(s64, timestamp)
++		__field(u32, timecode_type)
++		__field(u32, timecode_flags)
++		__field(u8, timecode_frames)
++		__field(u8, timecode_seconds)
++		__field(u8, timecode_minutes)
++		__field(u8, timecode_hours)
++		__field(u8, timecode_userbits0)
++		__field(u8, timecode_userbits1)
++		__field(u8, timecode_userbits2)
++		__field(u8, timecode_userbits3)
++		__field(u32, sequence)
++	),
++
++	TP_fast_assign(
++		__entry->minor = minor;
++		__entry->index = buf->index;
++		__entry->type = buf->type;
++		__entry->bytesused = buf->bytesused;
++		__entry->flags = buf->flags;
++		__entry->field = buf->field;
++		__entry->timestamp = timeval_to_ns(&buf->timestamp);
++		__entry->timecode_type = buf->timecode.type;
++		__entry->timecode_flags = buf->timecode.flags;
++		__entry->timecode_frames = buf->timecode.frames;
++		__entry->timecode_seconds = buf->timecode.seconds;
++		__entry->timecode_minutes = buf->timecode.minutes;
++		__entry->timecode_hours = buf->timecode.hours;
++		__entry->timecode_userbits0 = buf->timecode.userbits[0];
++		__entry->timecode_userbits1 = buf->timecode.userbits[1];
++		__entry->timecode_userbits2 = buf->timecode.userbits[2];
++		__entry->timecode_userbits3 = buf->timecode.userbits[3];
++		__entry->sequence = buf->sequence;
++	),
++
++	TP_printk("minor = %d, index = %u, type = %s, bytesused = %u, "
++		  "flags = %s, field = %s, timestamp = %llu, "
++		  "timecode = { type = %s, flags = %s, frames = %u, "
++		  "seconds = %u, minutes = %u, hours = %u, "
++		  "userbits = { %u %u %u %u } }, sequence = %u", __entry->minor,
++		  __entry->index, show_type(__entry->type),
++		  __entry->bytesused,
++		  show_flags(__entry->flags),
++		  show_field(__entry->field),
++		  __entry->timestamp,
++		  show_timecode_type(__entry->timecode_type),
++		  show_timecode_flags(__entry->timecode_flags),
++		  __entry->timecode_frames,
++		  __entry->timecode_seconds,
++		  __entry->timecode_minutes,
++		  __entry->timecode_hours,
++		  __entry->timecode_userbits0,
++		  __entry->timecode_userbits1,
++		  __entry->timecode_userbits2,
++		  __entry->timecode_userbits3,
++		  __entry->sequence
+ 	)
++)
+ 
+-V4L2_TRACE_EVENT(v4l2_dqbuf);
+-V4L2_TRACE_EVENT(v4l2_qbuf);
++DEFINE_EVENT(v4l2_event_class, v4l2_dqbuf,
++	TP_PROTO(int minor, struct v4l2_buffer *buf),
++	TP_ARGS(minor, buf)
++);
++
++DEFINE_EVENT(v4l2_event_class, v4l2_qbuf,
++	TP_PROTO(int minor, struct v4l2_buffer *buf),
++	TP_ARGS(minor, buf)
++);
+ 
+ #endif /* if !defined(_TRACE_V4L2_H) || defined(TRACE_HEADER_MULTI_READ) */
+ 
+-- 
+2.1.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
