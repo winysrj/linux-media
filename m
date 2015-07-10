@@ -1,67 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49632 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753738AbbGYGFG (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33014 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932443AbbGJNLw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2015 02:05:06 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NS100I3Y4WDV560@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 25 Jul 2015 15:05:01 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung SoC media driver updates for 4.3
-Date: Sat, 25 Jul 2015 08:04:02 +0200
-Message-id: <1437804242-29656-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 10 Jul 2015 09:11:52 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mats Randgaard <matrandg@cisco.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 5/5] [media] tc358743: allow event subscription
+Date: Fri, 10 Jul 2015 15:11:37 +0200
+Message-Id: <1436533897-3060-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is useful to subscribe to HDMI hotplug events via the
+V4L2_CID_DV_RX_POWER_PRESENT control.
 
-The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-  [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v4.3/media/next-1
-
-for you to fetch changes up to 689b0b369a78dc85cb7b8cdaa412cee455b0c650:
-
-  s5p-jpeg: Eliminate double kfree() (2015-07-25 07:12:31 +0200)
-
-----------------------------------------------------------------
-Andrzej Pietrasiewicz (1):
-      s5p-jpeg: Eliminate double kfree()
-
-Krzysztof Kozlowski (1):
-      s5p-tv: Drop owner assignment from i2c_driver
-
-Marek Szyprowski (2):
-      s5p-mfc: add return value check in mfc_sys_init_cmd
-      s5p-mfc: add additional check for incorrect memory configuration
-
-Nicholas Mc Guire (1):
-      s5p-tv: fix wait_event_timeout return handling
-
-Seung-Woo Kim (1):
-      s5p-mfc: fix state check from encoder queue_setup
-
- drivers/media/platform/s5p-jpeg/jpeg-core.c     |   14 ++++----------
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    6 +++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    9 +++++----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |   11 +++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   12 +++++++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 +++++---
- drivers/media/platform/s5p-tv/hdmiphy_drv.c     |    1 -
- drivers/media/platform/s5p-tv/mixer_reg.c       |   12 +++++-------
- drivers/media/platform/s5p-tv/sii9234_drv.c     |    1 -
- 10 files changed, 41 insertions(+), 35 deletions(-)
-
---
-Regards,
-Sylwester
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 4a889d4..91fffa8 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -40,6 +40,7 @@
+ #include <media/v4l2-dv-timings.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-of.h>
+ #include <media/tc358743.h>
+ 
+@@ -1604,6 +1605,8 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
+ 	.s_register = tc358743_s_register,
+ #endif
+ 	.interrupt_service_routine = tc358743_isr,
++	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+ };
+ 
+ static const struct v4l2_subdev_video_ops tc358743_video_ops = {
+-- 
+2.1.4
 
