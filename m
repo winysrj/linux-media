@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53247 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752520AbbGPCwI (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59035 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751229AbbGJCv5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2015 22:52:08 -0400
+	Thu, 9 Jul 2015 22:51:57 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5FBAA2A0097
-	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 04:51:06 +0200 (CEST)
-Date: Thu, 16 Jul 2015 04:51:06 +0200
+	by tschai.lan (Postfix) with ESMTPSA id 2F9D52A0376
+	for <linux-media@vger.kernel.org>; Fri, 10 Jul 2015 04:51:06 +0200 (CEST)
+Date: Fri, 10 Jul 2015 04:51:06 +0200
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: OK
-Message-Id: <20150716025106.5FBAA2A0097@tschai.lan>
+Message-Id: <20150710025106.2F9D52A0376@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -20,11 +20,11 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Thu Jul 16 04:00:15 CEST 2015
+date:		Fri Jul 10 04:00:17 CEST 2015
 git branch:	test
 git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
 gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
+sparse version:	v0.5.0-44-g40791b9
 smatch version:	0.4.1-3153-g7d56ab3
 host hardware:	x86_64
 host os:	4.0.0-3.slh.1-amd64
@@ -112,11 +112,11 @@ smatch: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
