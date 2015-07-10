@@ -1,84 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:32957 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083AbbGCOXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2015 10:23:05 -0400
-Received: by ykdv136 with SMTP id v136so97049950ykd.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Jul 2015 07:23:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
-References: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
-Date: Fri, 3 Jul 2015 17:23:04 +0300
-Message-ID: <CAM_ZknWEjUTy0btqFYhJvSJiAFV6uTJzB3ceZzEMxNkKHr2dTg@mail.gmail.com>
-Subject: Re: tw5864 driver development, help needed
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Linux Media <linux-media@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	"hans.verkuil" <hans.verkuil@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, khalasa <khalasa@piap.pl>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9138 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815AbbGJGUM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2015 02:20:12 -0400
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 6/7] [media] tuners: Drop owner assignment from i2c_driver
+Date: Fri, 10 Jul 2015 15:19:47 +0900
+Message-id: <1436509188-23320-7-git-send-email-k.kozlowski@samsung.com>
+In-reply-to: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+References: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 3, 2015 at 1:03 AM, Andrey Utkin
-<andrey.utkin@corp.bluecherry.net> wrote:
-> Hi! I am working on making a Linux driver for TW5864-based video&audio
-> capture and encoding PCI boards. The driver is to be submitted for
-> inclusion to Linux upstream.
-> The following two links are links to boards available for buying:
-> http://www.provideo.com.tw/web/DVR%20Card_TW-310.htm
-> http://www.provideo.com.tw/web/DVR%20Card_TW-320.htm
-> We possess one 8-port board and we try to make it play.
->
-> http://whdd.org/tw5864/TW-3XX_Linux.rar - this is reference driver
-> code. Overwhelmingly complicated IMO.
-> http://whdd.org/tw5864/tw5864b1-ds.pdf - Datasheet.
-> http://whdd.org/tw5864/TW5864_datasheet_0.6d.pdf - Another datasheet.
-> These two differ in some minor points.
-> https://github.com/krieger-od/linux - my work in progress on this, in
-> drivers/staging/media/tw5864 directory. Derived from
-> drivers/media/pci/tw68 (which is raw video capture card), defined
-> reasonable part of registers, now trying to make device produce video
-> capture and encoding interrupts, but cannot get any interrupts except
-> GPIO and timer ones. This is currently the critical blocking issue in
-> development.
-> I hope that somebody experienced with similar boards would have
-> quesswork on how to proceed.
-> My work-on-progress code is dirty, so if you would agree to check that
-> only if it will be cleaned up, please let me know.
->
-> I am willing to pay for productive help.
->
-> --
-> Bluecherry developer.
+i2c_driver does not need to set an owner because i2c_register_driver()
+will set it.
 
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Up... we are moving much slower than we expected, desperately needing help.
+---
 
-Running reference driver with Ubuntu 9 (with kernel 2.6.28.10) with
-16-port card shows that the
-reference driver fails to work with it correctly. Also that driver is
-not complete, it requires your userland counterpart for usable
-operation, which is far from being acceptable in production.
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+---
+ drivers/media/tuners/e4000.c      | 1 -
+ drivers/media/tuners/fc2580.c     | 1 -
+ drivers/media/tuners/it913x.c     | 1 -
+ drivers/media/tuners/m88rs6000t.c | 1 -
+ drivers/media/tuners/si2157.c     | 1 -
+ drivers/media/tuners/tda18212.c   | 1 -
+ drivers/media/tuners/tua9001.c    | 1 -
+ 7 files changed, 7 deletions(-)
 
-Currently what stops us with our driver is that "H264 encoding done"
-interrupt doesn't repeat, and CRC checksums mismatch for the first
-(and last) time this interrupt happens.
-We do our best to mimic what the reference driver does, but we might
-miss some point.
-
-I suspect that my initialization of video inputs or board clock
-configuration is insufficient or inconsistent with what device needs.
-
-Our work in progress is located in
-https://github.com/krieger-od/linux, directory
-drivers/staging/media/tw5864
-
-This is another request for expert help.
-The time is very important for us now.
-
-Thanks in advance and sorry for distraction.
-
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 03538f88f488..564a000f503e 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -752,7 +752,6 @@ MODULE_DEVICE_TABLE(i2c, e4000_id_table);
+ 
+ static struct i2c_driver e4000_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "e4000",
+ 		.suppress_bind_attrs = true,
+ 	},
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index 12f916e53150..f4d4665de168 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -632,7 +632,6 @@ MODULE_DEVICE_TABLE(i2c, fc2580_id_table);
+ 
+ static struct i2c_driver fc2580_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "fc2580",
+ 		.suppress_bind_attrs = true,
+ 	},
+diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
+index a076c87eda7a..5c96da693289 100644
+--- a/drivers/media/tuners/it913x.c
++++ b/drivers/media/tuners/it913x.c
+@@ -463,7 +463,6 @@ MODULE_DEVICE_TABLE(i2c, it913x_id_table);
+ 
+ static struct i2c_driver it913x_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "it913x",
+ 	},
+ 	.probe		= it913x_probe,
+diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
+index d4c13fe6e7b3..504bfbc4027a 100644
+--- a/drivers/media/tuners/m88rs6000t.c
++++ b/drivers/media/tuners/m88rs6000t.c
+@@ -729,7 +729,6 @@ MODULE_DEVICE_TABLE(i2c, m88rs6000t_id);
+ 
+ static struct i2c_driver m88rs6000t_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "m88rs6000t",
+ 	},
+ 	.probe		= m88rs6000t_probe,
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index a6245ef379c4..507382160e5e 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -469,7 +469,6 @@ MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+ 
+ static struct i2c_driver si2157_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "si2157",
+ 	},
+ 	.probe		= si2157_probe,
+diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+index d93e0667b46b..7b8068354fea 100644
+--- a/drivers/media/tuners/tda18212.c
++++ b/drivers/media/tuners/tda18212.c
+@@ -277,7 +277,6 @@ MODULE_DEVICE_TABLE(i2c, tda18212_id);
+ 
+ static struct i2c_driver tda18212_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "tda18212",
+ 	},
+ 	.probe		= tda18212_probe,
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index d4f6ca0c4d92..9d70378fe2d3 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -267,7 +267,6 @@ MODULE_DEVICE_TABLE(i2c, tua9001_id_table);
+ 
+ static struct i2c_driver tua9001_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "tua9001",
+ 		.suppress_bind_attrs = true,
+ 	},
 -- 
-Bluecherry developer.
+1.9.1
+
