@@ -1,36 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33211 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933677AbbGHIse (ORCPT
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:32975 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080AbbGJMUb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2015 04:48:34 -0400
-Message-ID: <559CE38C.4090706@xs4all.nl>
-Date: Wed, 08 Jul 2015 10:47:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] DocBook media: fix typo in V4L2_CTRL_FLAG_EXECUTE_ON_WRITE
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 10 Jul 2015 08:20:31 -0400
+From: Masanari Iida <standby24x7@gmail.com>
+To: linux-kernel@vger.kernel.org, corbet@lwn.net,
+	linux-media@vger.kernel.org, rob@landley.net,
+	netdev@vger.kernel.org, davem@davemloft.net
+Cc: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] Doc: z8530book: Fix typo in API-z8530-sync-txdma-open.html
+Date: Fri, 10 Jul 2015 21:20:28 +0900
+Message-Id: <1436530828-7734-1-git-send-email-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix small typo (missing 'it') in the documentation for
-V4L2_CTRL_FLAG_EXECUTE_ON_WRITE.
+This patch fix a spelling typo found in API-z8530-sync-txdma-open.html.
+It is because this file was generated from comment in source,
+I have to fix comment in source.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ drivers/net/wan/z85230.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index dc83ad7..6ec39c6 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -616,7 +616,7 @@ pointer to memory containing the payload of the control.</entry>
- 	    <entry><constant>V4L2_CTRL_FLAG_EXECUTE_ON_WRITE</constant></entry>
- 	    <entry>0x0200</entry>
- 	    <entry>The value provided to the control will be propagated to the driver
--even if remains constant. This is required when the control represents an action
-+even if it remains constant. This is required when the control represents an action
- on the hardware. For example: clearing an error flag or triggering the flash. All the
- controls of the type <constant>V4L2_CTRL_TYPE_BUTTON</constant> have this flag set.</entry>
- 	  </row>
+diff --git a/drivers/net/wan/z85230.c b/drivers/net/wan/z85230.c
+index feacc3b..2f0bd69 100644
+--- a/drivers/net/wan/z85230.c
++++ b/drivers/net/wan/z85230.c
+@@ -1044,7 +1044,7 @@ EXPORT_SYMBOL(z8530_sync_dma_close);
+  *	@dev: The network device to attach
+  *	@c: The Z8530 channel to configure in sync DMA mode.
+  *
+- *	Set up a Z85x30 device for synchronous DMA tranmission. One
++ *	Set up a Z85x30 device for synchronous DMA transmission. One
+  *	ISA DMA channel must be available for this to work. The receive
+  *	side is run in PIO mode, but then it has the bigger FIFO.
+  */
+-- 
+2.5.0.rc1
+
