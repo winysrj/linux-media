@@ -1,72 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:35111 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754251AbbGBXCS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2015 19:02:18 -0400
-Received: by wgjx7 with SMTP id x7so74572818wgj.2
-        for <linux-media@vger.kernel.org>; Thu, 02 Jul 2015 16:02:17 -0700 (PDT)
-From: poma <pomidorabelisima@gmail.com>
-Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >= 4.1.x
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61460 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525AbbGJGT4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2015 02:19:56 -0400
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 To: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-References: <554C8E04.5090007@gmail.com> <554C9704.2040503@gmail.com>
- <554F352F.10301@gmail.com> <554FDAE7.4010906@gmail.com>
- <5550F842.3050604@gmail.com> <55520A08.1010605@iki.fi>
- <5552CB67.8070106@gmail.com> <5557CDBE.2030806@iki.fi>
- <555A3A48.2010002@gmail.com> <555E4CEF.4000901@gmail.com>
- <556465E1.8000009@gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-Message-ID: <5595C2F5.3090508@gmail.com>
-Date: Fri, 3 Jul 2015 01:02:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <556465E1.8000009@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Olli Salonen <olli.salonen@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 1/7] [media] dvb-frontends: Drop owner assignment from
+ i2c_driver
+Date: Fri, 10 Jul 2015 15:19:42 +0900
+Message-id: <1436509188-23320-2-git-send-email-k.kozlowski@samsung.com>
+In-reply-to: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+References: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26.05.2015 14:24, poma wrote:
-> 
-> If it is not taken into account the already known problem of unreliable operation of the first tuner of the two,
-> the device works reliably within kernel 4.0.4 with mxl5007t.ko reverted to
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/drivers/media/tuners/mxl5007t.c?id=ccae7af
-> that is in the same state as is in the longterm kernel - 3.18.14,
-> which is in correspondence with the aforementioned results.
-> 
-> 
+i2c_driver does not need to set an owner because i2c_register_driver()
+will set it.
 
-http://git.linuxtv.org/cgit.cgi/media_tree.git/log/drivers/media/tuners/mxl5007t.c
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
+---
 
-5. 2014-11-11   [media] [PATH,2/2] mxl5007 move loop_thru to attach
-   02f9cf9      Jose Alberto Reguero
-   
-4. 2014-11-11   [media] [PATH,1/2] mxl5007 move reset to attach
-   fe4860a      Jose Alberto Reguero
+The coccinelle script which generated the patch was sent here:
+http://www.spinics.net/lists/kernel/msg2029903.html
+---
+ drivers/media/dvb-frontends/a8293.c          | 1 -
+ drivers/media/dvb-frontends/af9033.c         | 1 -
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 -
+ drivers/media/dvb-frontends/m88ds3103.c      | 1 -
+ drivers/media/dvb-frontends/rtl2830.c        | 1 -
+ drivers/media/dvb-frontends/rtl2832.c        | 1 -
+ drivers/media/dvb-frontends/si2168.c         | 1 -
+ drivers/media/dvb-frontends/sp2.c            | 1 -
+ drivers/media/dvb-frontends/tda10071.c       | 1 -
+ drivers/media/dvb-frontends/ts2020.c         | 1 -
+ 10 files changed, 10 deletions(-)
 
-3. 2013-02-08   Revert "[media] [PATH,1/2] mxl5007 move reset to attach"
-   db5c05b      Mauro Carvalho Chehab
-
-2. 2013-02-08   [media] [PATH,1/2] mxl5007 move reset to attach
-   0a32377      Jose Alberto Reguero
-
-1. 2012-08-14   [media] common: move media/common/tuners to media/tuners
-   ccae7af      Mauro Carvalho Chehab
-
-
-This is the conclusion after extensive testing,
-commitas 5. 4. and 2. produce:
-
-mxl5007t_soft_reset: 521: failed!
-mxl5007t_attach: error -121 on line 907
-
-causing the device completely unusable - AF9015 DVB-T USB2.0 stick
-
-
-Do you need a patch to revert to commita 3. or 1. - again for the third time,
-or you have a better solution?
-
+diff --git a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
+index 97ecbe01034c..df3c9758a903 100644
+--- a/drivers/media/dvb-frontends/a8293.c
++++ b/drivers/media/dvb-frontends/a8293.c
+@@ -234,7 +234,6 @@ MODULE_DEVICE_TABLE(i2c, a8293_id_table);
+ 
+ static struct i2c_driver a8293_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "a8293",
+ 		.suppress_bind_attrs = true,
+ 	},
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 59018afaa95f..bc35206a0821 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -1387,7 +1387,6 @@ MODULE_DEVICE_TABLE(i2c, af9033_id_table);
+ 
+ static struct i2c_driver af9033_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "af9033",
+ 	},
+ 	.probe		= af9033_probe,
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 33aa9410b624..28d7dc2fee34 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -820,7 +820,6 @@ MODULE_DEVICE_TABLE(i2c, au8522_id);
+ 
+ static struct i2c_driver au8522_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "au8522",
+ 	},
+ 	.probe		= au8522_probe,
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index e9b2d2b69b1d..ff31e7a01ca9 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1495,7 +1495,6 @@ MODULE_DEVICE_TABLE(i2c, m88ds3103_id_table);
+ 
+ static struct i2c_driver m88ds3103_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "m88ds3103",
+ 		.suppress_bind_attrs = true,
+ 	},
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 3d01f4f22aca..b792f305cf15 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -915,7 +915,6 @@ MODULE_DEVICE_TABLE(i2c, rtl2830_id_table);
+ 
+ static struct i2c_driver rtl2830_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "rtl2830",
+ 	},
+ 	.probe		= rtl2830_probe,
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 822ea4b7a7ff..78b87b260d74 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1319,7 +1319,6 @@ MODULE_DEVICE_TABLE(i2c, rtl2832_id_table);
+ 
+ static struct i2c_driver rtl2832_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "rtl2832",
+ 	},
+ 	.probe		= rtl2832_probe,
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 25e238c370e5..81788c5a44d8 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -757,7 +757,6 @@ MODULE_DEVICE_TABLE(i2c, si2168_id_table);
+ 
+ static struct i2c_driver si2168_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "si2168",
+ 	},
+ 	.probe		= si2168_probe,
+diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
+index 8fd42767e263..43d47dfcc7b8 100644
+--- a/drivers/media/dvb-frontends/sp2.c
++++ b/drivers/media/dvb-frontends/sp2.c
+@@ -426,7 +426,6 @@ MODULE_DEVICE_TABLE(i2c, sp2_id);
+ 
+ static struct i2c_driver sp2_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "sp2",
+ 	},
+ 	.probe		= sp2_probe,
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index f6dc6307d35a..2b7d6ca69945 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -1409,7 +1409,6 @@ MODULE_DEVICE_TABLE(i2c, tda10071_id_table);
+ 
+ static struct i2c_driver tda10071_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "tda10071",
+ 		.suppress_bind_attrs = true,
+ 	},
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index f61b143a0052..7979e5d6498b 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -726,7 +726,6 @@ MODULE_DEVICE_TABLE(i2c, ts2020_id_table);
+ 
+ static struct i2c_driver ts2020_driver = {
+ 	.driver = {
+-		.owner	= THIS_MODULE,
+ 		.name	= "ts2020",
+ 	},
+ 	.probe		= ts2020_probe,
+-- 
+1.9.1
 
