@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:43728 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933233AbbGHHde (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2015 03:33:34 -0400
-Date: Wed, 8 Jul 2015 09:33:30 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Peter Fassberg <pf@leissner.se>
-Cc: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-Message-ID: <20150708093330.4e06d388@dibcom294.coe.adi.dibcom.com>
-In-Reply-To: <alpine.BSF.2.20.1507071845250.72900@nic-i.leissner.se>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se>
-	<20150705184449.0017f114@lappi3.parrot.biz>
-	<alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
-	<20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
-	<alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
-	<20150707182541.0960177f@lappi3.parrot.biz>
-	<alpine.BSF.2.20.1507071845250.72900@nic-i.leissner.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:43335 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750711AbbGKGJU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jul 2015 02:09:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E8FEF2A00AA
+	for <linux-media@vger.kernel.org>; Sat, 11 Jul 2015 04:52:20 +0200 (CEST)
+Date: Sat, 11 Jul 2015 04:52:20 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150711025220.E8FEF2A00AA@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Jul 2015 18:51:16 +0200 (SST) Peter Fassberg <pf@leissner.se>
-wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Tue, 7 Jul 2015, Patrick Boettcher wrote:
-> 
-> > Might be the RF frequency that is truncated on 32bit platforms
-> > somewhere. That could explain that there is no crash but simply not
-> > tuning.
-> 
-> This is the current status:
-> 
-> ARM 32-bit, kernel 4.0.6, updated media_tree: Works with DVB-T, no lock on DVB-T2.
-> 
-> Intel 32-bit, kernel 3.16.0, standard media_tree: Locks, but no PSIs detected.
-> 
-> Intel 64-bit, kernel 3.16.0, standard media_tree: Works like a charm.
-> 
-> 
-> So I don't think that en RF freq is truncated.
+Results of the daily build of media_tree:
 
-Yes, it was an assumption - not a right one as it turned out. I didn't
-find any obvious 32/64-problem in the si*-drivers you are using.
+date:		Sat Jul 11 04:00:14 CEST 2015
+git branch:	test
+git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-I'm too afraid to look into the em*-drivers and I doubt that there is
-any obvious 32/64-bit-problem.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-If I were you, I would try to compare the usb-traffic (using
-usbmon with wireshark) between a working tune on one frequency with one
-standard on each of the 3 scenarios (maybe starting with the intel 32
-and 64 platform).
+Detailed results are available here:
 
-For example
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-on each platform:
+Full logs are available here:
 
-1) start wireshark-capture on the right USB-port,
-2) plug the device, 
-3) tune (tzap) a valid DVB-T frequency
-4) stop capturing
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Then compare the traffic log. Most outgoing data should be
-identical. Incoming data (except monitoring values and TS) should be
-equal as well.
+The Media Infrastructure API from this daily build is here:
 
-If you see differences in data-buffer-sizes or during the
-firmware-download-phase or anywhere else, we can try to find the code
-which corresponds and place debug messages. You are lucky, your drivers
-are using embedded firmwares which simplifies the communication between
-the driver and the device.
-
-regards,
---
-Patrick.
+http://www.xs4all.nl/~hverkuil/spec/media.html
