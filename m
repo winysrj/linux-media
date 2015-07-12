@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:36438 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754990AbbG3RJc (ORCPT
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:29150 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875AbbGLOi3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 13:09:32 -0400
-Received: by wicgb10 with SMTP id gb10so577743wic.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:31 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	m.krufky@samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, joe@perches.com
-Subject: [PATCH v2 11/11] MAINTAINERS: Add c8sectpfe driver directory to STi section
-Date: Thu, 30 Jul 2015 18:09:01 +0100
-Message-Id: <1438276141-16902-12-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
-References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+	Sun, 12 Jul 2015 10:38:29 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@intel.com>
+Subject: Re: [PATCH v2 1/4] media: pxa_camera: fix the buffer free path
+References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
+	<1436120872-24484-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.1507121557210.32193@axis700.grange>
+Date: Sun, 12 Jul 2015 16:35:42 +0200
+In-Reply-To: <Pine.LNX.4.64.1507121557210.32193@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun, 12 Jul 2015 15:58:06 +0200 (CEST)")
+Message-ID: <87380tl9z5.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the new c8sectpfe demux driver to the STi section of the
-MAINTAINERS file.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+> Hi Robert,
+>
+> On Sun, 5 Jul 2015, Robert Jarzmik wrote:
+>
+>> From: Robert Jarzmik <robert.jarzmik@intel.com>
+>> 
+>> Fix the error path where the video buffer wasn't allocated nor
+>> mapped. In this case, in the driver free path don't try to unmap memory
+>> which was not mapped in the first place.
+>
+> Have I missed your reply to my comments to v1 of this patch? This one 
+> seems to be its exact copy?
+Yeah, that's because I don't have any ... reply from you on v1.
+At least I don't remember it and in [1] I don't see it.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a226416..a9f2f37 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1506,6 +1506,7 @@ F:	arch/arm/boot/dts/sti*
- F:	drivers/clocksource/arm_global_timer.c
- F:	drivers/i2c/busses/i2c-st.c
- F:	drivers/media/rc/st_rc.c
-+F:	drivers/media/platform/sti/c8sectpfe/
- F:	drivers/mmc/host/sdhci-st.c
- F:	drivers/phy/phy-miphy28lp.c
- F:	drivers/phy/phy-miphy365x.c
--- 
-1.9.1
+Cheers.
 
+--
+Robert
+
+[1] http://www.spinics.net/lists/linux-media/msg88021.html
