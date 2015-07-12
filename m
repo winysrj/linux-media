@@ -1,123 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54142 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752238AbbGSCV6 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46222 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751093AbbGLKib (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2015 22:21:58 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6201C2A0006
-	for <linux-media@vger.kernel.org>; Sun, 19 Jul 2015 04:20:53 +0200 (CEST)
-Date: Sun, 19 Jul 2015 04:20:53 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 12 Jul 2015 06:38:31 -0400
+Message-ID: <1436697509.2446.14.camel@xs4all.nl>
+Subject: DVBSky T980C CI issues (kernel 4.0.x)
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150719022053.6201C2A0006@tschai.lan>
+Date: Sun, 12 Jul 2015 12:38:29 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+I have been running a couple of DVBSky T980C's with CIs with success
+using an older kernel (3.17.8) with media-build and some added patches
+from the mailing list.
 
-Results of the daily build of media_tree:
+I thought lets try a current 4.0 kernel to see if I no longer need to be
+running a custom kernel. Everything works just fine except the CAM
+module. I am seeing these:
 
-date:		Sun Jul 19 04:00:17 CEST 2015
-git branch:	test
-git hash:	6727d4fce95586e60922bdaf57b8a0eb99482557
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+[  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
+[  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
+[  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+The normal 'CAM detected and initialised' messages to do show up with
+4.0.8
 
-Detailed results are available here:
+I am not sure what changed in the recent kernels, what is needed to
+debug this?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Jurgen
 
-Full logs are available here:
+Relevant kernel messages:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+[   14.899827] cx25840 9-0044: loaded v4l-cx23885-avcore-01.fw firmware
+(16382 bytes)
+[   14.915384] cx23885_dvb_register() allocating 1 frontend(s)
+[   14.915386] cx23885[0]: cx23885 based dvb card
+[   15.326745] i2c i2c-8: Added multiplexed i2c bus 10
+[   15.326747] si2168 8-0064: Silicon Labs Si2168 successfully attached
+[   15.390538] si2157 10-0060: Silicon Labs Si2147/2148/2157/2158
+successfully attached
+[   15.390542] DVB: registering new adapter (cx23885[0])
+[   15.390544] cx23885 0000:02:00.0: DVB: registering adapter 0 frontend
+0 (Silicon Labs Si2168)...
+[   15.758330] sp2 8-0040: CIMaX SP2 successfully attached
+[   15.785785] DVBSky T980C MAC address: 00:17:42:54:09:88
+[   15.785789] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[   15.785792] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+latency: 0, mmio: 0xf7c00000
+[   15.785883] CORE cx23885[1]: subsystem: 4254:980c, board: DVBSky
+T980C [card=46,autodetected]
+[   15.996981] EXT4-fs (sda2): mounted filesystem with ordered data
+mode. Opts: (null)
+[   16.015395] cx25840 13-0044: cx23885 A/V decoder found @ 0x88
+(cx23885[1])
+[   16.642705] cx25840 13-0044: loaded v4l-cx23885-avcore-01.fw firmware
+(16382 bytes)
+[   16.658240] cx23885_dvb_register() allocating 1 frontend(s)
+[   16.658242] cx23885[1]: cx23885 based dvb card
+[   16.659004] i2c i2c-12: Added multiplexed i2c bus 14
+[   16.659006] si2168 12-0064: Silicon Labs Si2168 successfully attached
+[   16.660689] si2157 14-0060: Silicon Labs Si2147/2148/2157/2158
+successfully attached
+[   16.660692] DVB: registering new adapter (cx23885[1])
+[   16.660693] cx23885 0000:03:00.0: DVB: registering adapter 1 frontend
+0 (Silicon Labs Si2168)...
+[   16.667337] sp2 12-0040: CIMaX SP2 successfully attached
+[   16.694845] DVBSky T980C MAC address: 00:17:42:54:09:88
+[   16.694848] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[   16.694852] cx23885[1]/0: found at 0000:03:00.0, rev: 4, irq: 17,
+latency: 0, mmio: 0xf7a00000
+[   16.694986] CORE cx23885[2]: subsystem: 4254:980c, board: DVBSky
+T980C [card=46,autodetected]
+[   16.924320] cx25840 17-0044: cx23885 A/V decoder found @ 0x88
+(cx23885[2])
+[   17.551377] cx25840 17-0044: loaded v4l-cx23885-avcore-01.fw firmware
+(16382 bytes)
+[   17.566994] cx23885_dvb_register() allocating 1 frontend(s)
+[   17.566996] cx23885[2]: cx23885 based dvb card
+[   17.567898] i2c i2c-16: Added multiplexed i2c bus 18
+[   17.567900] si2168 16-0064: Silicon Labs Si2168 successfully attached
+[   17.569710] si2157 18-0060: Silicon Labs Si2147/2148/2157/2158
+successfully attached
+[   17.569714] DVB: registering new adapter (cx23885[2])
+[   17.569715] cx23885 0000:05:00.0: DVB: registering adapter 2 frontend
+0 (Silicon Labs Si2168)...
+[   17.576684] sp2 16-0040: CIMaX SP2 successfully attached
+[   17.604168] DVBSky T980C MAC address: 00:17:42:54:09:88
+[   17.604171] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[   17.604174] cx23885[2]/0: found at 0000:05:00.0, rev: 4, irq: 19,
+latency: 0, mmio: 0xf7800000
 
-The Media Infrastructure API from this daily build is here:
+[  220.616002] si2168 8-0064: found a 'Silicon Labs Si2168-A30'
+[  220.635026] si2168 8-0064: downloading firmware from file
+'dvb-demod-si2168-a30-01.fw'
+[  223.744845] si2168 8-0064: firmware version: 3.0.16
+[  223.753441] si2157 10-0060: found a 'Silicon Labs Si2158-A20'
+[  223.777443] si2157 10-0060: downloading firmware from file
+'dvb-tuner-si2158-a20-01.fw'
+[  224.577779] si2157 10-0060: firmware version: 2.1.6
+[  224.683600] si2168 12-0064: found a 'Silicon Labs Si2168-A30'
+[  224.683633] si2168 12-0064: downloading firmware from file
+'dvb-demod-si2168-a30-01.fw'
+[  227.797635] si2168 12-0064: firmware version: 3.0.16
+[  227.806235] si2157 14-0060: found a 'Silicon Labs Si2158-A20'
+[  227.806249] si2157 14-0060: downloading firmware from file
+'dvb-tuner-si2158-a20-01.fw'
+[  228.606280] si2157 14-0060: firmware version: 2.1.6
+[  228.644496] si2168 16-0064: found a 'Silicon Labs Si2168-A30'
+[  228.644521] si2168 16-0064: downloading firmware from file
+'dvb-demod-si2168-a30-01.fw'
+[  231.763081] si2168 16-0064: firmware version: 3.0.16
+[  231.771685] si2157 18-0060: found a 'Silicon Labs Si2158-A20'
+[  231.771711] si2157 18-0060: downloading firmware from file
+'dvb-tuner-si2158-a20-01.fw'
+[  232.571684] si2157 18-0060: firmware version: 2.1.6
+[  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
+[  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
+[  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
+[  481.638979] dvb_ca adapter 0: Invalid PC card inserted :(
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
