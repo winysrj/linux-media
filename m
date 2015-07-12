@@ -1,88 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:56754 "EHLO imap.netup.ru"
+Received: from mout.gmx.net ([212.227.17.22]:64448 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755627AbbG1O5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 10:57:32 -0400
-From: serjk@netup.ru
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
-	Kozlov Sergey <serjk@netup.ru>
-Subject: [PATCH v3 0/5] [media] NetUP Universal DVB PCIe card support
-Date: Tue, 28 Jul 2015 17:32:59 +0300
-Message-Id: <cover.1438090209.git.serjk@netup.ru>
+	id S1750780AbbGLRGE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jul 2015 13:06:04 -0400
+Date: Sun, 12 Jul 2015 19:05:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] media: pxa_camera: conversion to dmaengine
+In-Reply-To: <1436120872-24484-5-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.1507121859030.32193@axis700.grange>
+References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
+ <1436120872-24484-5-git-send-email-robert.jarzmik@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kozlov Sergey <serjk@netup.ru>
+Hi Robert,
 
-Add support for NetUP Universal Dual DVB-CI PCIe board.
-The board has:
+On Sun, 5 Jul 2015, Robert Jarzmik wrote:
 
-    - two CI slots
+> Convert pxa_camera to dmaengine. This removes all DMA registers
+> manipulation in favor of the more generic dmaengine API.
+> 
+> The functional level should be the same as before. The biggest change is
+> in the videobuf_sg_splice() function, which splits a videobuf-dma into
+> several scatterlists for 3 planes captures (Y, U, V).
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+> Since v1: Guennadi's fixes
+>           dma tasklet functions prototypes change (trivial move)
+> ---
+>  drivers/media/platform/soc_camera/pxa_camera.c | 438 ++++++++++++-------------
+>  1 file changed, 215 insertions(+), 223 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> index 1ab4f9d..76b2b7b 100644
+> --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
 
-    - Altera FPGA-based PCIe bridge
+[snip]
 
-    - two independent multistandard DTV demodulators based on
-      Sony CXD2841ER chip
+> @@ -498,9 +499,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  
+>  	if (vb->state == VIDEOBUF_NEEDS_INIT) {
+>  		int size = vb->size;
+> -		int next_ofs = 0;
+>  		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
+> -		struct scatterlist *sg;
+>  
+>  		ret = videobuf_iolock(vq, vb, NULL);
+>  		if (ret)
+> @@ -513,11 +512,9 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  			size_y = size;
+>  		}
+>  
+> -		sg = dma->sglist;
+> -
+>  		/* init DMA for Y channel */
 
-    - two Sony Horus3a DVB-S/S2 tuner chips
+How about taking the loop over the sg list out of pxa_init_dma_channel() 
+to avoid having to iterate it from the beginning each time? Then you would 
+be able to split it into channels inside that global loop? Would that 
+work? Of course you might need to rearrange functions to avoid too deep 
+code nesting.
 
-    - two Sony Ascot2e DVB-T/T2/C/C2 tuner chips
+Thanks
+Guennadi
 
-    - two LNBH25 SEC controller chips
-
-DVB-C2 is supported by hardware but not yet implemented in the driver.
-Product webpages are
-http://www.netup.tv/en-EN/netup-universal-dual-dvb-ci (official)
-http://linuxtv.org/wiki/index.php/NetUP_Dual_Universal_CI (LinuxTV WIKI)
-
-Kozlov Sergey (5):
-  [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
-  [media] ascot2e: Sony Ascot2e DVB-C/T/T2 tuner driver
-  [media] lnbh25: LNBH25 SEC controller driver
-  [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
-  [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card
-    driver
-
- MAINTAINERS                                        |   45 +
- drivers/media/dvb-frontends/Kconfig                |   29 +
- drivers/media/dvb-frontends/Makefile               |    4 +
- drivers/media/dvb-frontends/ascot2e.c              |  540 ++++
- drivers/media/dvb-frontends/ascot2e.h              |   58 +
- drivers/media/dvb-frontends/cxd2841er.c            | 2719 ++++++++++++++++++++
- drivers/media/dvb-frontends/cxd2841er.h            |   65 +
- drivers/media/dvb-frontends/cxd2841er_priv.h       |   43 +
- drivers/media/dvb-frontends/horus3a.c              |  421 +++
- drivers/media/dvb-frontends/horus3a.h              |   58 +
- drivers/media/dvb-frontends/lnbh25.c               |  189 ++
- drivers/media/dvb-frontends/lnbh25.h               |   56 +
- drivers/media/pci/Kconfig                          |    1 +
- drivers/media/pci/Makefile                         |    3 +-
- drivers/media/pci/netup_unidvb/Kconfig             |   12 +
- drivers/media/pci/netup_unidvb/Makefile            |    9 +
- drivers/media/pci/netup_unidvb/netup_unidvb.h      |  133 +
- drivers/media/pci/netup_unidvb/netup_unidvb_ci.c   |  248 ++
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 1001 +++++++
- drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c  |  381 +++
- drivers/media/pci/netup_unidvb/netup_unidvb_spi.c  |  252 ++
- 21 files changed, 6266 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/dvb-frontends/ascot2e.c
- create mode 100644 drivers/media/dvb-frontends/ascot2e.h
- create mode 100644 drivers/media/dvb-frontends/cxd2841er.c
- create mode 100644 drivers/media/dvb-frontends/cxd2841er.h
- create mode 100644 drivers/media/dvb-frontends/cxd2841er_priv.h
- create mode 100644 drivers/media/dvb-frontends/horus3a.c
- create mode 100644 drivers/media/dvb-frontends/horus3a.h
- create mode 100644 drivers/media/dvb-frontends/lnbh25.c
- create mode 100644 drivers/media/dvb-frontends/lnbh25.h
- create mode 100644 drivers/media/pci/netup_unidvb/Kconfig
- create mode 100644 drivers/media/pci/netup_unidvb/Makefile
- create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb.h
- create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_ci.c
- create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_core.c
- create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c
- create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
-
--- 
-1.7.10.4
-
+> -		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0, size_y,
+> -					   &sg, &next_ofs);
+> +		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0,
+> +					   size_y, 0);
+>  		if (ret) {
+>  			dev_err(dev, "DMA initialization for Y/RGB failed\n");
+>  			goto fail;
+> @@ -526,19 +523,19 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  		/* init DMA for U channel */
+>  		if (size_u)
+>  			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, CIBR1,
+> -						   size_u, &sg, &next_ofs);
+> +						   size_u, size_y);
+>  		if (ret) {
+>  			dev_err(dev, "DMA initialization for U failed\n");
+> -			goto fail_u;
+> +			goto fail;
+>  		}
+>  
+>  		/* init DMA for V channel */
+>  		if (size_v)
+>  			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, CIBR2,
+> -						   size_v, &sg, &next_ofs);
+> +						   size_v, size_y + size_u);
+>  		if (ret) {
+>  			dev_err(dev, "DMA initialization for V failed\n");
+> -			goto fail_v;
+> +			goto fail;
+>  		}
+>  
+>  		vb->state = VIDEOBUF_PREPARED;
+> @@ -549,12 +546,6 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  
+>  	return 0;
+>  
+> -fail_v:
+> -	dma_free_coherent(dev, buf->dmas[1].sg_size,
+> -			  buf->dmas[1].sg_cpu, buf->dmas[1].sg_dma);
+> -fail_u:
+> -	dma_free_coherent(dev, buf->dmas[0].sg_size,
+> -			  buf->dmas[0].sg_cpu, buf->dmas[0].sg_dma);
+>  fail:
+>  	free_buffer(vq, buf);
+>  out:
