@@ -1,55 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37839 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbbGIKKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Lucas Stach <l.stach@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 01/10] [media] coda: clamp frame sequence counters to 16 bit
-Date: Thu,  9 Jul 2015 12:10:12 +0200
-Message-Id: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:33652 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbbGMBan (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jul 2015 21:30:43 -0400
+Received: by obbgp5 with SMTP id gp5so108301007obb.0
+        for <linux-media@vger.kernel.org>; Sun, 12 Jul 2015 18:30:43 -0700 (PDT)
+Message-ID: <55A314BF.7000407@lwfinger.net>
+Date: Sun, 12 Jul 2015 20:30:39 -0500
+From: Larry Finger <Larry.Finger@lwfinger.net>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+CC: Hans Verkuil <hverkuil@xs4all.nl>, Kamil Debski <kamil@wypas.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] vb2: Fix compilation breakage when !CONFIG_BUG
+References: <1436742514-16396-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1436742514-16396-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lucas Stach <l.stach@pengutronix.de>
+On 07/12/2015 06:08 PM, Laurent Pinchart wrote:
+> Commit 77a3c6fd90c9 ("[media] vb2: Don't WARN when v4l2_buffer.bytesused
+> is 0 for multiplanar buffers") uses the __WARN() macro which isn't
+> defined when CONFIG_BUG isn't set. This introduces a compilation
+> breakage. Fix it by using WARN_ON() instead.
+>
+> The commit was also broken in that it merged v1 of the patch while a new
+> v2 version had been submitted, reviewed and acked. Fix it by
+> incorporating the changes from v1 to v2.
+>
+> Fixes: 77a3c6fd90c9 ("[media] vb2: Don't WARN when v4l2_buffer.bytesused is 0 for multiplanar buffers")
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c | 14 +++++++-------
+>   1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> Mauro,
+>
+> Commit 77a3c6fd90c9 was merged in v4.2-rc1, so this is a v4.2 regression. The
+> commit was also marked with a Fixes: line for commit f61bf13b6a07, which was
+> merged in v4.1-rc1. It might thus get backported to the v4.1 stable series, in
+> which case this fix needs to be backported as well. I'll let you sort this out.
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 93b315459098..db11d853b060 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1244,19 +1244,19 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
 
-This is already done for one side of the comparison with the expectation
-that the HW counter rolls over at the 16 bit boundary. This is true when
-decoding a h.264 stream, but doesn't hold for at least MJPEG. As we don't
-know the exact wrap-around point for this format just clamp the HW counter
-to the same 16 bits. This should be enough to detect most of the errors
-and saves us from doing different comparisons based on the decoded format.
+Changing from __WARN to WARN_ON fixes the problem that I found. For that part
 
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Acked-by: Larry Finger <Larry.Finger@lwfinger.net>
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 109797b..9fbff24 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1902,7 +1902,14 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			meta = list_first_entry(&ctx->buffer_meta_list,
- 					      struct coda_buffer_meta, list);
- 			list_del(&meta->list);
--			if (val != (meta->sequence & 0xffff)) {
-+			/*
-+			 * Clamp counters to 16 bits for comparison, as the HW
-+			 * counter rolls over at this point for h.264. This
-+			 * may be different for other formats, but using 16 bits
-+			 * should be enough to detect most errors and saves us
-+			 * from doing different things based on the format.
-+			 */
-+			if ((val & 0xffff) != (meta->sequence & 0xffff)) {
- 				v4l2_err(&dev->v4l2_dev,
- 					 "sequence number mismatch (%d(%d) != %d)\n",
- 					 val, ctx->sequence_offset,
--- 
-2.1.4
+Larry
+
+>
+>   static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+>   {
+> -	static bool __check_once __read_mostly;
+> +	static bool check_once;
+>
+> -	if (__check_once)
+> +	if (check_once)
+>   		return;
+>
+> -	__check_once = true;
+> -	__WARN();
+> +	check_once = true;
+> +	WARN_ON(1);
+>
+> -	pr_warn_once("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+> +	pr_warn("use of bytesused == 0 is deprecated and will be removed in the future,\n");
+>   	if (vb->vb2_queue->allow_zero_bytesused)
+> -		pr_warn_once("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+> +		pr_warn("use VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP) instead.\n");
+>   	else
+> -		pr_warn_once("use the actual size instead.\n");
+> +		pr_warn("use the actual size instead.\n");
+>   }
+>
+>   /**
+>
 
