@@ -1,80 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56629 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754006AbbG1KAJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 06:00:09 -0400
-Message-ID: <55B752A0.9060301@xs4all.nl>
-Date: Tue, 28 Jul 2015 12:00:00 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org
-CC: pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v10.1] media: Add registration helpers for V4L2 flash
- sub-devices
-References: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com>
-In-Reply-To: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from cantor2.suse.de ([195.135.220.15]:46706 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751123AbbGMO4B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 10:56:01 -0400
+From: Jan Kara <jack@suse.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 8/9] media: vb2: Remove unused functions
+Date: Mon, 13 Jul 2015 16:55:50 +0200
+Message-Id: <1436799351-21975-9-git-send-email-jack@suse.com>
+In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
+References: <1436799351-21975-1-git-send-email-jack@suse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2015 09:31 AM, Jacek Anaszewski wrote:
-> This patch adds helper functions for registering/unregistering
-> LED Flash class devices as V4L2 sub-devices. The functions should
-> be called from the LED subsystem device driver. In case the
-> support for V4L2 Flash sub-devices is disabled in the kernel
-> config the functions' empty versions will be used.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> - fixed possible NULL fled_cdev pointer dereference
->   in the v4l2_flash_init function
-> 
->  drivers/media/v4l2-core/Kconfig                |   11 +
->  drivers/media/v4l2-core/Makefile               |    2 +
->  drivers/media/v4l2-core/v4l2-flash-led-class.c |  710 ++++++++++++++++++++++++
->  include/media/v4l2-flash-led-class.h           |  148 +++++
->  4 files changed, 871 insertions(+)
->  create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
->  create mode 100644 include/media/v4l2-flash-led-class.h
-> 
+From: Jan Kara <jack@suse.cz>
 
-<snip>
+Conversion to the use of pinned pfns made some functions unused. Remove
+them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
 
-> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> new file mode 100644
-> index 0000000..5bdfb8d
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
+ include/media/videobuf2-memops.h           |   6 --
+ 2 files changed, 120 deletions(-)
 
-<snip>
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 0ec186d41b9b..48c6a49c4928 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -23,120 +23,6 @@
+ #include <media/videobuf2-memops.h>
+ 
+ /**
+- * vb2_get_vma() - acquire and lock the virtual memory area
+- * @vma:	given virtual memory area
+- *
+- * This function attempts to acquire an area mapped in the userspace for
+- * the duration of a hardware operation. The area is "locked" by performing
+- * the same set of operation that are done when process calls fork() and
+- * memory areas are duplicated.
+- *
+- * Returns a copy of a virtual memory region on success or NULL.
+- */
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
+-{
+-	struct vm_area_struct *vma_copy;
+-
+-	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
+-	if (vma_copy == NULL)
+-		return NULL;
+-
+-	if (vma->vm_ops && vma->vm_ops->open)
+-		vma->vm_ops->open(vma);
+-
+-	if (vma->vm_file)
+-		get_file(vma->vm_file);
+-
+-	memcpy(vma_copy, vma, sizeof(*vma));
+-
+-	vma_copy->vm_mm = NULL;
+-	vma_copy->vm_next = NULL;
+-	vma_copy->vm_prev = NULL;
+-
+-	return vma_copy;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_vma);
+-
+-/**
+- * vb2_put_userptr() - release a userspace virtual memory area
+- * @vma:	virtual memory region associated with the area to be released
+- *
+- * This function releases the previously acquired memory area after a hardware
+- * operation.
+- */
+-void vb2_put_vma(struct vm_area_struct *vma)
+-{
+-	if (!vma)
+-		return;
+-
+-	if (vma->vm_ops && vma->vm_ops->close)
+-		vma->vm_ops->close(vma);
+-
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-
+-	kfree(vma);
+-}
+-EXPORT_SYMBOL_GPL(vb2_put_vma);
+-
+-/**
+- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
+- * @vaddr:	starting virtual address of the area to be verified
+- * @size:	size of the area
+- * @res_paddr:	will return physical address for the given vaddr
+- * @res_vma:	will return locked copy of struct vm_area for the given area
+- *
+- * This function will go through memory area of size @size mapped at @vaddr and
+- * verify that the underlying physical pages are contiguous. If they are
+- * contiguous the virtual memory area is locked and a @res_vma is filled with
+- * the copy and @res_pa set to the physical address of the buffer.
+- *
+- * Returns 0 on success.
+- */
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long offset, start, end;
+-	unsigned long this_pfn, prev_pfn;
+-	dma_addr_t pa = 0;
+-
+-	start = vaddr;
+-	offset = start & ~PAGE_MASK;
+-	end = start + size;
+-
+-	vma = find_vma(mm, start);
+-
+-	if (vma == NULL || vma->vm_end < end)
+-		return -EFAULT;
+-
+-	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
+-		int ret = follow_pfn(vma, start, &this_pfn);
+-		if (ret)
+-			return ret;
+-
+-		if (prev_pfn == 0)
+-			pa = this_pfn << PAGE_SHIFT;
+-		else if (this_pfn != prev_pfn + 1)
+-			return -EFAULT;
+-
+-		prev_pfn = this_pfn;
+-	}
+-
+-	/*
+-	 * Memory is contigous, lock vma and return to the caller
+-	 */
+-	*res_vma = vb2_get_vma(vma);
+-	if (*res_vma == NULL)
+-		return -ENOMEM;
+-
+-	*res_pa = pa + offset;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+-
+-/**
+  * vb2_create_framevec() - map virtual addresses to pfns
+  * @start:	Virtual user address where we start mapping
+  * @length:	Length of a range to map
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 2f0564ff5f31..830b5239fd8b 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -31,12 +31,6 @@ struct vb2_vmarea_handler {
+ 
+ extern const struct vm_operations_struct vb2_common_vm_ops;
+ 
+-int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+-			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+-
+-struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+-void vb2_put_vma(struct vm_area_struct *vma);
+-
+ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 					 unsigned long length,
+ 					 bool write);
+-- 
+2.1.4
 
-> +static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
-> +	.queryctrl = v4l2_subdev_queryctrl,
-> +	.querymenu = v4l2_subdev_querymenu,
-
-Why are these here? This should not be necessary. As long as the sd.ctrl_handler
-pointer is set, this is handled automatically.
-
-> +};
-> +
-> +static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
-> +	.core = &v4l2_flash_core_ops,
-> +};
-> +
-
-And if v4l2_flash_core_ops goes away, then this can go away as well.
-
-I know this driver has been merged, but I just noticed this while looking at
-something else.
-
-Regards,
-
-	Hans
