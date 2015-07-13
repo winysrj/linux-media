@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54094 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753070AbbGWSNX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 14:13:23 -0400
-Message-ID: <55B12EB8.9030708@osg.samsung.com>
-Date: Thu, 23 Jul 2015 12:13:12 -0600
-From: Shuah Khan <shuahkh@osg.samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60974 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751451AbbGMLIM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 07:08:12 -0400
+Message-ID: <55A39BE3.2070905@xs4all.nl>
+Date: Mon, 13 Jul 2015 13:07:15 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-CC: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH v2 00/19] Update ALSA, and au0828 drivers to use Managed
- Media Controller API
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Mats Randgaard <matrandg@cisco.com>
+CC: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 5/5] [media] tc358743: allow event subscription
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de> <1436533897-3060-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1436533897-3060-5-git-send-email-p.zabel@pengutronix.de>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2015 04:42 PM, Shuah Khan wrote:
-> This patch series updates ALSA driver, and au0828 core driver to
-> use Managed Media controller API to share tuner. Please note that
-> Managed Media Controller API and DVB and V4L2 drivers updates to
-> use Media Controller API have been added in a prior patch series.
+On 07/10/2015 03:11 PM, Philipp Zabel wrote:
+> This is useful to subscribe to HDMI hotplug events via the
+> V4L2_CID_DV_RX_POWER_PRESENT control.
 > 
-> Media Controller API is enhanced with two new interfaces to
-> register and unregister entity_notify hooks to allow drivers
-> to take appropriate actions when as new entities get added to
-> the shared media device.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/i2c/tc358743.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> Tested exclusion between digital, analog, and audio to ensure
-> when tuner has an active link to DVB FE, analog, and audio will
-> detect and honor the tuner busy conditions and vice versa.
+> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+> index 4a889d4..91fffa8 100644
+> --- a/drivers/media/i2c/tc358743.c
+> +++ b/drivers/media/i2c/tc358743.c
+> @@ -40,6 +40,7 @@
+>  #include <media/v4l2-dv-timings.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-event.h>
+>  #include <media/v4l2-of.h>
+>  #include <media/tc358743.h>
+>  
+> @@ -1604,6 +1605,8 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
+>  	.s_register = tc358743_s_register,
+>  #endif
+>  	.interrupt_service_routine = tc358743_isr,
+> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+
+Ah, they are set here.
+
+But note that v4l2_ctrl_subdev_subscribe_event is not enough, since this driver
+also issues the V4L2_EVENT_SOURCE_CHANGE event.
+
+See this patch on how to do that:
+
+http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=for-v4.3a&id=85c9b0b83795dac3d27043619a727af5c7313fe7
+
+Note: requires the new v4l2_subdev_notify_event function that's not yet
+merged (just posted the pull request for that).
+
+Regards,
+
+	Hans
+
+> +	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+>  };
+>  
+>  static const struct v4l2_subdev_video_ops tc358743_video_ops = {
 > 
-> Changes since v1:
-> Link to v1: http://www.spinics.net/lists/linux-media/msg91697.html
 
-I uploaded this patch series to my linux.git media_controller branch
-on kernel.org:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/shuah/linux.git
-media_controller branch
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
