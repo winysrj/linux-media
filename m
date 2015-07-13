@@ -1,97 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56038 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932251AbbGJNhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 09:37:54 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: implement VBV delay and buffer size controls
-Date: Fri, 10 Jul 2015 15:37:52 +0200
-Message-Id: <1436535472-6687-1-git-send-email-p.zabel@pengutronix.de>
+Received: from cantor2.suse.de ([195.135.220.15]:46683 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750856AbbGMOz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 10:55:59 -0400
+From: Jan Kara <jack@suse.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/9 v7] Helper to abstract vma handling in media layer
+Date: Mon, 13 Jul 2015 16:55:42 +0200
+Message-Id: <1436799351-21975-1-git-send-email-jack@suse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The encoder allows to specify the VBV model reference decoder's initial
-delay and buffer size. Export the corresponding V4L2 controls.
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    |  5 ++++-
- drivers/media/platform/coda/coda-common.c | 14 ++++++++++++++
- drivers/media/platform/coda/coda.h        |  2 ++
- 3 files changed, 20 insertions(+), 1 deletion(-)
+  Hello,
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index bcb9911..b14affc 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -922,6 +922,9 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 		value = (ctx->params.bitrate & CODA_RATECONTROL_BITRATE_MASK)
- 			<< CODA_RATECONTROL_BITRATE_OFFSET;
- 		value |=  1 & CODA_RATECONTROL_ENABLE_MASK;
-+		value |= (ctx->params.vbv_delay &
-+			  CODA_RATECONTROL_INITIALDELAY_MASK)
-+			 << CODA_RATECONTROL_INITIALDELAY_OFFSET;
- 		if (dev->devtype->product == CODA_960)
- 			value |= BIT(31); /* disable autoskip */
- 	} else {
-@@ -929,7 +932,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_RC_PARA);
- 
--	coda_write(dev, 0, CODA_CMD_ENC_SEQ_RC_BUF_SIZE);
-+	coda_write(dev, ctx->params.vbv_size, CODA_CMD_ENC_SEQ_RC_BUF_SIZE);
- 	coda_write(dev, ctx->params.intra_refresh,
- 		   CODA_CMD_ENC_SEQ_INTRA_REFRESH);
- 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 351b4124..913dba9 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1502,6 +1502,12 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:
- 		ctx->params.jpeg_restart_interval = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:
-+		ctx->params.vbv_delay = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
-+		ctx->params.vbv_size = min(ctrl->val * 8192, 0x7fffffff);
-+		break;
- 	default:
- 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 			"Invalid control, id=%d, val=%d\n",
-@@ -1561,6 +1567,14 @@ static void coda_encode_ctrls(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB, 0,
- 		1920 * 1088 / 256, 1, 0);
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_VBV_DELAY, 0, 0x7fff, 1, 0);
-+	/*
-+	 * The maximum VBV size value is 0x7fffffff bits,
-+	 * one bit less than 262144 KiB
-+	 */
-+	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-+		V4L2_CID_MPEG_VIDEO_VBV_SIZE, 0, 262144, 1, 0);
- }
- 
- static void coda_jpeg_encode_ctrls(struct coda_ctx *ctx)
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index a3d70cc..26c9c4b 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -128,6 +128,8 @@ struct coda_params {
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
- 	u32			framerate;
- 	u16			bitrate;
-+	u16			vbv_delay;
-+	u32			vbv_size;
- 	u32			slice_max_bits;
- 	u32			slice_max_mb;
- };
--- 
-2.1.4
+I'm sending the seventh version of my patch series to abstract vma handling
+from the various media drivers. Since the previous version there are just
+minor cleanups and fixes (see detailed changelog at the end of the email).
 
+After this patch set drivers have to know much less details about vmas, their
+types, and locking. Also quite some code is removed from them. As a bonus
+drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
+this series is to remove knowledge about mmap_sem locking from as many places a
+possible so that we can change it with reasonable effort.
+
+The core of the series is the new helper get_vaddr_frames() which is given a
+virtual address and it fills in PFNs / struct page pointers (depending on VMA
+type) into the provided array. If PFNs correspond to normal pages it also grabs
+references to these pages. The difference from get_user_pages() is that this
+function can also deal with pfnmap, and io mappings which is what the media
+drivers need.
+
+I have tested the patches with vivid driver so at least vb2 code got some
+exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
+exynos driver which is only for Samsung platform is completely untested).
+
+Hans, can you please pull the changes? Thanks!
+
+								Honza
+
+Changes since v6:
+* Fixed compilation error introduced into exynos driver
+* Folded patch allowing get_vaddr_pfn() code to be selected by a config option
+  into previous patches
+* Rebased on top of linux-media tree
+
+Changes since v5:
+* Moved mm helper into a separate file and behind a config option
+* Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
+  possible deadlock
+
+Changes since v4:
+* Minor cleanups and fixes pointed out by Mel and Vlasta
+* Added Acked-by tags
+
+Changes since v3:
+* Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
+* Fixed error path for exynos driver
+
+Changes since v2:
+* Renamed functions and structures as Mel suggested
+* Other minor changes suggested by Mel
+* Rebased on top of 4.1-rc2
+* Changed functions to get pointer to array of pages / pfns to perform
+  conversion if necessary. This fixes possible issue in the omap I may have
+  introduced in v2 and generally makes the API less errorprone.
