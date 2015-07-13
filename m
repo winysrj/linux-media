@@ -1,113 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:63823 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751280AbbGLMXv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2015 08:23:51 -0400
-Date: Sun, 12 Jul 2015 14:23:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 10/15] media: rcar_vin: Use correct pad number in try_fmt
-In-Reply-To: <1435224669-23672-11-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <Pine.LNX.4.64.1507121410160.32193@axis700.grange>
-References: <1435224669-23672-1-git-send-email-william.towle@codethink.co.uk>
- <1435224669-23672-11-git-send-email-william.towle@codethink.co.uk>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52088 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751096AbbGMMLl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 08:11:41 -0400
+Message-ID: <55A3AABF.4030403@xs4all.nl>
+Date: Mon, 13 Jul 2015 14:10:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 25 Jun 2015, William Towle wrote:
+Laurent,
 
-> Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-> the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+Can you review/ack this since it touches on uvc?
+
+Thanks!
+
+	Hans
+
+On 06/12/2015 06:46 PM, Ricardo Ribalda Delgado wrote:
+> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
+> use the controller framework.
 > 
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
-> Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
->  drivers/media/platform/soc_camera/rcar_vin.c |   20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
+>  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
 > 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 00c1034..1023c5b 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1697,14 +1697,18 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  	const struct soc_camera_format_xlate *xlate;
->  	struct v4l2_pix_format *pix = &f->fmt.pix;
->  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> -	struct v4l2_subdev_pad_config pad_cfg;
-> +	struct v4l2_subdev_pad_config *pad_cfg;
->  	struct v4l2_subdev_format format = {
->  		.which = V4L2_SUBDEV_FORMAT_TRY,
->  	};
->  	struct v4l2_mbus_framefmt *mf = &format.format;
->  	__u32 pixfmt = pix->pixelformat;
->  	int width, height;
-> -	int ret;
-> +	int ret= -ENOMEM;
-
-Uhm, I find this very superfluous...
-
-> +
-> +	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-> +	if (pad_cfg == NULL)
-> +		goto out;
-
-I like the addition of the "cleanup" label instead of freeing the 
-allocated pad on each error, but here please just do
-
-+		return -ENOMEN;
-
-and remove the "out" label.
-
-Thanks
-Guennadi
-
->  
->  	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
->  	if (!xlate) {
-> @@ -1734,10 +1738,11 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  	mf->code = xlate->code;
->  	mf->colorspace = pix->colorspace;
->  
-> +	format.pad = icd->src_pad_idx;
->  	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
-> -					 pad, set_fmt, &pad_cfg, &format);
-> +					 pad, set_fmt, pad_cfg, &format);
->  	if (ret < 0)
-> -		return ret;
-> +		goto cleanup;
->  
->  	/* Adjust only if VIN cannot scale */
->  	if (pix->width > mf->width * 2)
-> @@ -1761,12 +1766,12 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  			mf->height = VIN_MAX_HEIGHT;
->  			ret = v4l2_device_call_until_err(sd->v4l2_dev,
->  							 soc_camera_grp_id(icd),
-> -							 pad, set_fmt, &pad_cfg,
-> +							 pad, set_fmt, pad_cfg,
->  							 &format);
->  			if (ret < 0) {
->  				dev_err(icd->parent,
->  					"client try_fmt() = %d\n", ret);
-> -				return ret;
-> +				goto cleanup;
->  			}
->  		}
->  		/* We will scale exactly */
-> @@ -1776,6 +1781,9 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
->  			pix->height = height;
->  	}
->  
-> +cleanup:
-> +	v4l2_subdev_free_pad_config(pad_cfg);
-> +out:
->  	return ret;
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index 2764f43607c1..e2698a77138a 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>  	return uvc_ctrl_rollback(handle);
 >  }
 >  
-> -- 
-> 1.7.10.4
+> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+> +				     struct v4l2_ext_controls *ctrls)
+> +{
+> +	struct uvc_fh *handle = fh;
+> +	struct uvc_video_chain *chain = handle->chain;
+> +	struct v4l2_ext_control *ctrl = ctrls->controls;
+> +	unsigned int i;
+> +	int ret;
+> +	struct v4l2_queryctrl qc;
+> +
+> +	ret = uvc_ctrl_begin(chain);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> +		qc.id = ctrl->id;
+> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
+> +		if (ret < 0) {
+> +			ctrls->error_idx = i;
+> +			return ret;
+> +		}
+> +		ctrl->value = qc.default_value;
+> +	}
+> +
+> +	ctrls->error_idx = 0;
+> +
+> +	return 0;
+> +}
+> +
+>  static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>  				     struct v4l2_ext_controls *ctrls,
+>  				     bool commit)
+> @@ -1500,6 +1529,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
+>  	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
+>  	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
+>  	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
+> +	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
+>  	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
+>  	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
+>  	.vidioc_querymenu = uvc_ioctl_querymenu,
 > 
+
