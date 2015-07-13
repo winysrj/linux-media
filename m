@@ -1,102 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38781 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754925AbbGYWNQ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35171 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751117AbbGMJQC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2015 18:13:16 -0400
-Date: Sun, 26 Jul 2015 01:12:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, j.anaszewski@samsung.com
-Subject: Re: [PATCH 1/1] v4l: subdev: Serialise open and release internal ops
-Message-ID: <20150725221243.GE12092@valkosipuli.retiisi.org.uk>
-References: <1437581650-1422-1-git-send-email-sakari.ailus@linux.intel.com>
- <55B20076.6090809@xs4all.nl>
+	Mon, 13 Jul 2015 05:16:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL in link validate default
+Date: Mon, 13 Jul 2015 12:16:20 +0300
+Message-ID: <2554154.DgWWXcvFRT@avalon>
+In-Reply-To: <55A370DF.2080500@linux.intel.com>
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com> <CAPW4XYYETmTK8MfZd941B0rb1DWODH=ZqAJu=FdmkVFrO_=dXQ@mail.gmail.com> <55A370DF.2080500@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55B20076.6090809@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-On Fri, Jul 24, 2015 at 11:08:06AM +0200, Hans Verkuil wrote:
-> Hi Sakari,
-> 
-> On 07/22/2015 06:14 PM, Sakari Ailus wrote:
-> > By default, serialise open and release internal ops using a mutex.
+On Monday 13 July 2015 11:03:43 Sakari Ailus wrote:
+> Helen Fornazier wrote:
+> > On Tue, Jun 30, 2015 at 4:26 PM, Helen Fornazier wrote:
+> >> On Tue, Jun 30, 2015 at 6:19 AM, Sakari Ailus wrote:
+> >>> Laurent Pinchart wrote:
+> >>>> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+> >>>>> Helen Fornazier wrote:
+> >>>>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return
+> >>>>>> EPIPE when the pipeline configuration is invalid.
+> >>>>>> 
+> >>>>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the
+> >>>>>> error caused by the v4l2_subdev_link_validate_default (if it is in
+> >>>>>> use), it should return -EPIPE if it detects a format mismatch in the
+> >>>>>> pipeline configuration
+> >>>>> 
+> >>>>> Only link configuration errors have yielded -EPIPE so far, sub-device
+> >>>>> format configuration error has returned -INVAL instead as you noticed.
+> >>>> 
+> >>>> It should also be noted that while v4l2_subdev_link_validate() will
+> >>>> return -EINVAL in case of error, the only driver that performs custom
+> >>>> link validation (omap3isp/ispccdc.c) will return -EPIPE.
+> >>> 
+> >>> Good point. That has escaped me until now.
+> >>> 
+> >>>>> There are not many sources of -EINVAL while enabling streaming and all
+> >>>>> others are directly caused by the application; I lean towards thinking
+> >>>>> the code is good as it was. The documentation could be improved
+> >>>>> though. It may not be clear which error codes could be caused by
+> >>>>> different conditions.
+> >>>>> 
+> >>>>> The debug level messages from media module
+> >>>>> (drivers/media/media-entity.c) do provide more information if needed,
+> >>>>> albeit this certainly is not an application interface.
+> >>>>> 
+> >>>>> I wonder what others think.
+> >>>> 
+> >>>> There's a discrepancy between the implementation and the documentation,
+> >>>> so at least one of them need to be fixed. -EPIPE would be coherent with
+> >>>> the documentation and seems appropriately named, but another error code
+> >>>> would allow userspace to tell link configuration and format
+> >>>> configuration problems apart.
+> >>> 
+> >>> That was the original intent, I think.
+> >>> 
+> >>>> Do you think -EINVAL is the most appropriate error code for format
+> >>>> configuration ? It's already used to indicate that the stream type is
+> >>>> invalid or that not enough buffers have been allocated, and is also
+> >>>> used by drivers directly for various purposes.
+> >>> 
+> >>> That's true, it's been used also for that purpose. At the time this
+> >>> certainly was not the primary concern. If you can think of a better
+> >>> error code for the purpose (than EINVAL) I'm certainly fine with using
+> >>> one.
+> >>>
+> >>> I still think that -EPIPE is worse for telling about incorrect format
+> >>> configuration than -EINVAL since it's relatively easy to avoid -EINVAL
+> >>> for the documented reasons.
+> >>> 
+> >> 
+> >> I'd like just to point out where in the docs EPIPE for format mismatch
+> >> is specified, as it is not described in the streamon page as I thought
+> >> it would, but it is in the subdev page in case anyone is looking for
+> >> it (as I took some time to find it too):
+> >> 
+> >> http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+> >> "Applications are responsible for configuring coherent parameters on
+> >> the whole pipeline and making sure that connected pads have compatible
+> >> formats. The pipeline is checked for formats mismatch at
+> >> VIDIOC_STREAMON time, and an EPIPE error code is then returned if the
+> >> configuration is invalid"
+> >> 
+> >> So maybe the doc should be improved as you already stated.
 > > 
-> > The underlying problem is that a large proportion of the drivers do use
-> > v4l2_fh_is_singular() in their open() handlers (struct
-> > v4l2_subdev_internal_ops). v4l2_subdev_open(), .open file operation handler
-> > of the V4L2 sub-device framework, calls v4l2_fh_add() which adds the file
-> > handle to the list of open file handles of the device. Later on in the
-> > open() handler of the sub-device driver uses v4l2_fh_is_singular() to
-> > determine whether it was the file handle which was first opened. The check
-> > may go wrong if the device was opened by multiple process closely enough in
-> > time.
-> 
-> I don't like this patch for a few reasons: first of all it makes open/close
-> different from the open/close handling for normal v4l2 drivers. The decision
-> was made to use a core lock to serialize ioctls, but not the file operations.
-> 
-> The reason was that not all file operations need to take a lock, and that
-> drivers often need to do special things in the open/close anyway and using
-> the core lock for this caused more headaches than it solved.
-> 
-> I think we need to stick to the same scheme here. Note that I wouldn't mind
-> introducing a serialization lock for subdev ioctls. There isn't one at the
-> moment, and I think that that will simplify locking for subdevs, just as it
-> did for non-subdev drivers.
-> 
-> The second problem is that this depends on a new flag which is fairly ugly.
-> 
-> Drivers should just take a lock before calling fh_add and fh_singular.
+> > I would like to revive this subject.
+> > 
+> > Should we change the docs? Change the -EINVAL to -EPIPE, or create another
+> > error code? What are your opinion?
+> > 
+> > I read in the docs of dev-kmsg that EPIPE is returned when messages get
+> > overwritten, and in other parts of the code EPIPE is returned when there
+> > is an error in the pipeline communication level while trying to send
+> > information through the pipe or a pipe broken error.
+> > 
+> > But in the error-codes.txt files, the EPIPE error is defined as:
+> > *EPIPE "The pipe type specified in the URB doesn't match the endpoint's
+> > actual type"*
 
-The sub-device drivers cannot take the lock since the open/close handlers
-often perform actions that themselves require serialisation. The
-v4l2_subdev_fh is already initialised and added by the framework before the
-driver has a chance to do anything.
+Just a bit of background information first. The Linux kernel uses error codes 
+standardized by POSIX. A limited number of additional error codes have been 
+added over time, but the usual approach when an error that doesn't match POSIX 
+semantics is to reuse an existing error code whose name matches the error 
+relatively well. EPIPE in USB is such an example, POSIX error codes have no 
+knowledge of USB. We have similarly selected EPIPE for the media controller 
+API as it seemed a good match to report errors related to the pipeline.
 
+> This exact definition sound USB specific to me.
+
+Yes, error-codes.txt is in Documentation/usb/, so that's expected :-)
+
+> > Then, if EPIPE is used when types don't match between two endpoints, it
+> > seems reasonable to me to use EPIPE when formats don't match either. Or do
+> > "types" in this context have a specific definition? I don't know much
+> > about URB, you may be able to judge this better.
 > 
-> Things can be simplified a bit with the v4l2-fh functions: I think it makes
-> sense if v4l2_fh_add and v4l2_fh_del both return a bool which is true if it
-> was the first or last filehandle.
+> A short recap of the current situation as far as I understand it:
 > 
-> That way you can just do:
+> - MC link validation failure yields EPIPE to the user space,
 > 
-> 	mutex_lock(&lock);
-> 	if (v4l2_fh_add()) {
-> 		...
-> 	}
-> 	mutex_unlock(&lock);
+> - V4L2 sub-device format validation failure generally results in EINVAL,
+> except that
 > 
-> Same with v4l2_fh_del().
-
-This does not work for sub-devices. For video devices it does.
-
+> - omap3isp CCDC driver returns EPIPE instead and
 > 
-> While we're at it: v4l2_fh_is_singular(_file) should return a bool, not an int.
-
-Agreed. I think it was written in an era when people didn't think bool
-existed. :-)
-
+> - EINVAL is used for many other purposes.
 > 
-> Hmm, let me make a patch series for these fh changes, shouldn't be too difficult.
+> The issues are inconsistency between omap3isp CCDC and other drivers in
+> informing the user the sub-device format configuration is wrong. Also
+> V4L2 sub-device format validation error cannot be told apart from other
+> errors. These problems should be fixed, so that all three sources of
+> errors yield a different error code (MC link validation, V4L2 format
+> configuration and other plain V4L2 related errors).
+> 
+> V4L2 will continue using EINVAL, that's for sure.
+> 
+> Another error code I could think of is EMLINK ("Too many links"), which
 
-I'll review it.
+ENOLINK might be better.
 
-I think the API change (return singularity from v4l2_fh_add() and
-v4l2_fh_release()) is good IMO). I might even consider removing
-v4l2_fh_is_singular() or at least deprecate it since it begs misuse in form
-of completely ignoring proper serialisation, and it's also made redundant.
+> is not a perfect match, but could be used. This is a better match for a
+> link validation failure; V4L2 sub-device link validation failure would
+> then use EPIPE (as omap3isp CCDC driver already does).
+> 
+> Another option could be that V4L2 format validation failure would use
+> ENOEXEC ("Exec format error") instead, and EPIPE would be left to link
+> validation failures.
 
-Also, your patchset does not address the problem on sub-device drivers.
+Granted, ENOEXEC mentions the word "format" in its documentation, but it's a 
+bit far-fetched :-)
+
+> Better suggestions are welcome of course. I think I'm leaning towards
+> the first option, but from backwards compatibility point of view the
+> latter is better. The MC is no longer experimental so the latter might
+> be the only option.
+> 
+> My view is that this boils down to picking the most suitable error
+> codes. Then fixing the documentation is easy.
+> 
+> I wonder what Laurent and Hans think.
+
+Using three different error codes as you mention above has my preference, but 
+we need to care about backward compatibility. No solution will be perfect 
+though, as the OMAP3 ISP returns different error codes for the same error 
+depending on which entity is concerned, so unifying the error codes will 
+result in user-visible changes.
+
+Replacing EPIPE with EMLINK or ENOLINK is tempting but might be too risky in 
+terms of backward compatibility. If we can't do that, I'd prefer using EPIPE 
+to indicate broken pipelines due to both link setup issues and format 
+validation failures. This would at least match the documentation.
+
+Hans, any opinion ?
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
