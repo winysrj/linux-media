@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:33337 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932400AbbG1KT2 (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:33129 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284AbbGMM5c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 06:19:28 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F2C232A0089
-	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 12:19:19 +0200 (CEST)
-Message-ID: <55B75727.2040705@xs4all.nl>
-Date: Tue, 28 Jul 2015 12:19:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 13 Jul 2015 08:57:32 -0400
+Received: by lbbyj8 with SMTP id yj8so39374421lbb.0
+        for <linux-media@vger.kernel.org>; Mon, 13 Jul 2015 05:57:31 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR v4.2] Fix vb2 compilation breakage when !CONFIG_BUG
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <03c101d0739c$71eeeb40$55ccc1c0$%debski@samsung.com>
+References: <1426607290-13380-1-git-send-email-p.zabel@pengutronix.de>
+	<03c101d0739c$71eeeb40$55ccc1c0$%debski@samsung.com>
+Date: Mon, 13 Jul 2015 09:57:31 -0300
+Message-ID: <CAOMZO5Do770FtGTTh-hwvpy4qCJAem21yzw+X0x++WsZVBq_=g@mail.gmail.com>
+Subject: Re: [PATCH 0/5] i.MX5/6 mem2mem scaler
+From: Fabio Estevam <festevam@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
+Hi Philipp,
 
-  [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
+On Fri, Apr 10, 2015 at 11:41 AM, Kamil Debski <k.debski@samsung.com> wrote:
+> Hi,
+>
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Philipp Zabel
+> Sent: Tuesday, March 17, 2015 4:48 PM
+>>
+>> Hi,
+>>
+>> this series uses the IPU IC post-processing task, to implement a
+>> mem2mem device for scaling and colorspace conversion.
+>
+> This patchset makes changes in two subsystems - media and gpu.
+> It would be good to merge these patchset through a single subsystem.
+>
+> The media part of this patchset is good, are there any comments to
+> the gpu part of this patchset?
+>
+> I talked with Mauro on the IRC and he acked that this patchset could be
+> merged via the gpu subsystem.
 
-are available in the git repository at:
+Do you plan to resend this series?
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.2a
+It is still not applied.
 
-for you to fetch changes up to 900ac77d06e648f5a284d96023e4b9e9fcd88422:
+Regards,
 
-  vb2: Fix compilation breakage when !CONFIG_BUG (2015-07-28 11:41:11 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      vb2: Fix compilation breakage when !CONFIG_BUG
-
- drivers/media/v4l2-core/videobuf2-core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Fabio Estevam
