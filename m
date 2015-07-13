@@ -1,119 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36435 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753991AbbGGIsi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 04:48:38 -0400
-Received: by widjy10 with SMTP id jy10so182069312wid.1
-        for <linux-media@vger.kernel.org>; Tue, 07 Jul 2015 01:48:36 -0700 (PDT)
-From: poma <pomidorabelisima@gmail.com>
-Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >= 4.1.x
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-References: <mhnd10gxck9p5yqwsxbonfty.1436213845281@email.android.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <559B9261.4050409@gmail.com>
-Date: Tue, 7 Jul 2015 10:48:33 +0200
+Received: from cantor2.suse.de ([195.135.220.15]:39737 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751115AbbGMNgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 09:36:11 -0400
+Date: Mon, 13 Jul 2015 15:36:07 +0200
+From: Jan Kara <jack@suse.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jan Kara <jack@suse.cz>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/10 v6] Helper to abstract vma handling in media layer
+Message-ID: <20150713133607.GA17075@quack.suse.cz>
+References: <1434636520-25116-1-git-send-email-jack@suse.cz>
+ <20150709114848.GA9189@quack.suse.cz>
+ <559E6538.9080100@xs4all.nl>
+ <55A37AA5.1020809@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <mhnd10gxck9p5yqwsxbonfty.1436213845281@email.android.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55A37AA5.1020809@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.07.2015 22:17, Jose Alberto Reguero wrote:
-> I made the patch for the af9035. I have not a af9015 whith mxl5007 and dual channel. Revert it, if it cause regresions.
+On Mon 13-07-15 10:45:25, Hans Verkuil wrote:
+> On 07/09/2015 02:12 PM, Hans Verkuil wrote:
+> > On 07/09/2015 01:48 PM, Jan Kara wrote:
+> >>   Hello,
+> >>
+> >>   Hans, did you have a chance to look at these patches? I have tested them
+> >> with the vivid driver but it would be good if you could run them through
+> >> your standard testing procedure as well. Andrew has updated the patches in
+> >> his tree but some ack from you would be welcome...
+> > 
+> > I've planned a 'patch day' for Monday. So hopefully you'll see a pull request
+> > by then.
 > 
-> Jose Alberto
+> OK, I'm confused. I thought the non-vb2 patches would go in for 4.2? That
+> didn't happen, so I guess the plan is to merge the whole lot for 4.3 via
+> our media tree? If that's the case, can you post a new patch series on
+
+I guess Andrew wasn't sure what to push and what not so he just chose the
+safe option to not push anything.
+
+> top of the master branch of the media tree? I want to make sure I use the
+> right patches. Also, if you do make a new patch series, then it would be
+> better if patch 10/10 is folded into patch 2/10.
+
+OK, I'll rebase patches on top of media tree.
+
+								Honza
+
+> >> On Thu 18-06-15 16:08:30, Jan Kara wrote:
+> >>>   Hello,
+> >>>
+> >>> I'm sending the sixth version of my patch series to abstract vma handling from
+> >>> the various media drivers. Since the previous version I have added a patch to
+> >>> move mm helpers into a separate file and behind a config option. I also
+> >>> changed patch pushing mmap_sem down in videobuf2 core to avoid lockdep warning
+> >>> and NULL dereference Hans found in his testing. I've also included small
+> >>> fixups Andrew was carrying.
+> >>>
+> >>> After this patch set drivers have to know much less details about vmas, their
+> >>> types, and locking. Also quite some code is removed from them. As a bonus
+> >>> drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
+> >>> this series is to remove knowledge about mmap_sem locking from as many places a
+> >>> possible so that we can change it with reasonable effort.
+> >>>
+> >>> The core of the series is the new helper get_vaddr_frames() which is given a
+> >>> virtual address and it fills in PFNs / struct page pointers (depending on VMA
+> >>> type) into the provided array. If PFNs correspond to normal pages it also grabs
+> >>> references to these pages. The difference from get_user_pages() is that this
+> >>> function can also deal with pfnmap, and io mappings which is what the media
+> >>> drivers need.
+> >>>
+> >>> I have tested the patches with vivid driver so at least vb2 code got some
+> >>> exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
+> >>> exynos driver which is only for Samsung platform is completely untested).
+> >>>
+> >>> Andrew, can you please update the patches in mm three? Thanks!
+> >>>
+> >>> 								Honza
+> >>>
+> >>> Changes since v5:
+> >>> * Moved mm helper into a separate file and behind a config option
+> >>> * Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
+> >>>   possible deadlock
+> >>>
+> >>> Changes since v4:
+> >>> * Minor cleanups and fixes pointed out by Mel and Vlasta
+> >>> * Added Acked-by tags
+> >>>
+> >>> Changes since v3:
+> >>> * Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
+> >>> * Fixed error path for exynos driver
+> >>>
+> >>> Changes since v2:
+> >>> * Renamed functions and structures as Mel suggested
+> >>> * Other minor changes suggested by Mel
+> >>> * Rebased on top of 4.1-rc2
+> >>> * Changed functions to get pointer to array of pages / pfns to perform
+> >>>   conversion if necessary. This fixes possible issue in the omap I may have
+> >>>   introduced in v2 and generally makes the API less errorprone.
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-
-Thanks.
-
->From e19560ea038e54dc57be717db55f19d449df63f0 Mon Sep 17 00:00:00 2001
-From: poma <pomidorabelisima@gmail.com>
-Date: Tue, 7 Jul 2015 10:26:13 +0200
-Subject: [PATCH] Fix for AF9015 DVB-T USB2.0 stick
-
-This reverts commitas:
-
-- 02f9cf96df57575acea2e6eb4041e9f3ecd32548
-  "[media] [PATH,2/2] mxl5007 move loop_thru to attach"
-- fe4860af002a4516dd878f7297b61e186c475b35
-  "[media] [PATH,1/2] mxl5007 move reset to attach"
-
-This is the conclusion after extensive testing,
-these two commitas produce:
-
-mxl5007t_soft_reset: 521: failed!
-mxl5007t_attach: error -121 on line 907
-
-causing AF9015 DVB-T USB2.0 stick completely unusable.
-
-
-Tested-by: poma <pomidorabelisima@gmail.com>
----
- drivers/media/tuners/mxl5007t.c | 30 +++++-------------------------
- 1 file changed, 5 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/media/tuners/mxl5007t.c b/drivers/media/tuners/mxl5007t.c
-index f4ae04c..f8c4ba2 100644
---- a/drivers/media/tuners/mxl5007t.c
-+++ b/drivers/media/tuners/mxl5007t.c
-@@ -374,6 +374,7 @@ static struct reg_pair_t *mxl5007t_calc_init_regs(struct mxl5007t_state *state,
- 	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
- 	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
- 
-+	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
- 	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
- 	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
- 
-@@ -530,6 +531,10 @@ static int mxl5007t_tuner_init(struct mxl5007t_state *state,
- 	struct reg_pair_t *init_regs;
- 	int ret;
- 
-+	ret = mxl5007t_soft_reset(state);
-+	if (mxl_fail(ret))
-+		goto fail;
-+
- 	/* calculate initialization reg array */
- 	init_regs = mxl5007t_calc_init_regs(state, mode);
- 
-@@ -895,32 +900,7 @@ struct dvb_frontend *mxl5007t_attach(struct dvb_frontend *fe,
- 		/* existing tuner instance */
- 		break;
- 	}
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
--	ret = mxl5007t_soft_reset(state);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	if (mxl_fail(ret))
--		goto fail;
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
--	ret = mxl5007t_write_reg(state, 0x04,
--		state->config->loop_thru_enable);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	if (mxl_fail(ret))
--		goto fail;
--
- 	fe->tuner_priv = state;
--
- 	mutex_unlock(&mxl5007t_list_mutex);
- 
- 	memcpy(&fe->ops.tuner_ops, &mxl5007t_tuner_ops,
 -- 
-2.4.3
-
-
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
