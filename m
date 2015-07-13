@@ -1,77 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49571 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172AbbGXKWy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 06:22:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/7] v4l2-fh: change int to bool for v4l2_fh_is_singular(_file)
-Date: Fri, 24 Jul 2015 12:21:30 +0200
-Message-Id: <1437733296-38198-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+Received: from cantor2.suse.de ([195.135.220.15]:46686 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751031AbbGMOz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 10:55:59 -0400
+From: Jan Kara <jack@suse.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 6/9] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
+Date: Mon, 13 Jul 2015 16:55:48 +0200
+Message-Id: <1436799351-21975-7-git-send-email-jack@suse.com>
+In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
+References: <1436799351-21975-1-git-send-email-jack@suse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Jan Kara <jack@suse.cz>
 
-This function really returns a bool, so use that as the return type
-instead of int.
+Convert vb2_vmalloc_get_userptr() to use frame vector infrastructure.
+When we are doing that there's no need to allocate page array and some
+code can be simplified.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- drivers/media/v4l2-core/v4l2-fh.c |  6 +++---
- include/media/v4l2-fh.h           | 10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/videobuf2-vmalloc.c | 92 +++++++++++------------------
+ 1 file changed, 36 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-index c97067a..20c0a0c 100644
---- a/drivers/media/v4l2-core/v4l2-fh.c
-+++ b/drivers/media/v4l2-core/v4l2-fh.c
-@@ -110,13 +110,13 @@ int v4l2_fh_release(struct file *filp)
- }
- EXPORT_SYMBOL_GPL(v4l2_fh_release);
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 63bef959623e..ecb8f0c7f025 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -23,11 +23,9 @@
  
--int v4l2_fh_is_singular(struct v4l2_fh *fh)
-+bool v4l2_fh_is_singular(struct v4l2_fh *fh)
+ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
+-	struct page			**pages;
+-	struct vm_area_struct		*vma;
++	struct frame_vector		*vec;
+ 	enum dma_data_direction		dma_dir;
+ 	unsigned long			size;
+-	unsigned int			n_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ 	struct dma_buf			*dbuf;
+@@ -76,10 +74,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				     enum dma_data_direction dma_dir)
  {
- 	unsigned long flags;
--	int is_singular;
-+	bool is_singular;
+ 	struct vb2_vmalloc_buf *buf;
+-	unsigned long first, last;
+-	int n_pages, offset;
+-	struct vm_area_struct *vma;
+-	dma_addr_t physp;
++	struct frame_vector *vec;
++	int n_pages, offset, i;
  
- 	if (fh == NULL || fh->vdev == NULL)
--		return 0;
-+		return false;
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	is_singular = list_is_singular(&fh->list);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-index 8035167..13dcaae 100644
---- a/include/media/v4l2-fh.h
-+++ b/include/media/v4l2-fh.h
-@@ -91,15 +91,15 @@ void v4l2_fh_exit(struct v4l2_fh *fh);
-  */
- int v4l2_fh_release(struct file *filp);
- /*
-- * Returns 1 if this filehandle is the only filehandle opened for the
-- * associated video_device. If fh is NULL, then it returns 0.
-+ * Returns true if this filehandle is the only filehandle opened for the
-+ * associated video_device. If fh is NULL, then it returns false.
-  */
--int v4l2_fh_is_singular(struct v4l2_fh *fh);
-+bool v4l2_fh_is_singular(struct v4l2_fh *fh);
- /*
-  * Helper function with struct file as argument. If filp->private_data is
-- * NULL, then it will return 0.
-+ * NULL, then it will return false.
-  */
--static inline int v4l2_fh_is_singular_file(struct file *filp)
-+static inline bool v4l2_fh_is_singular_file(struct file *filp)
- {
- 	return v4l2_fh_is_singular(filp->private_data);
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -88,53 +84,36 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	buf->dma_dir = dma_dir;
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+-		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+-			goto fail_pages_array_alloc;
+-		buf->vma = vma;
+-		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
+-		if (!buf->vaddr)
+-			goto fail_pages_array_alloc;
++	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto fail_pfnvec_create;
++	buf->vec = vec;
++	n_pages = frame_vector_count(vec);
++	if (frame_vector_to_pages(vec) < 0) {
++		unsigned long *nums = frame_vector_pfns(vec);
++
++		/*
++		 * We cannot get page pointers for these pfns. Check memory is
++		 * physically contiguous and use direct mapping.
++		 */
++		for (i = 1; i < n_pages; i++)
++			if (nums[i-1] + 1 != nums[i])
++				goto fail_map;
++		buf->vaddr = (__force void *)
++				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
+ 	} else {
+-		first = vaddr >> PAGE_SHIFT;
+-		last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-		buf->n_pages = last - first + 1;
+-		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
+-				     GFP_KERNEL);
+-		if (!buf->pages)
+-			goto fail_pages_array_alloc;
+-
+-		/* current->mm->mmap_sem is taken by videobuf2 core */
+-		n_pages = get_user_pages(current, current->mm,
+-					 vaddr & PAGE_MASK, buf->n_pages,
+-					 dma_dir == DMA_FROM_DEVICE,
+-					 1, /* force */
+-					 buf->pages, NULL);
+-		if (n_pages != buf->n_pages)
+-			goto fail_get_user_pages;
+-
+-		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
+ 					PAGE_KERNEL);
+-		if (!buf->vaddr)
+-			goto fail_get_user_pages;
+ 	}
+-	up_read(&current->mm->mmap_sem);
+ 
++	if (!buf->vaddr)
++		goto fail_map;
+ 	buf->vaddr += offset;
+ 	return buf;
+ 
+-fail_get_user_pages:
+-	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
+-		 buf->n_pages);
+-	while (--n_pages >= 0)
+-		put_page(buf->pages[n_pages]);
+-	kfree(buf->pages);
+-
+-fail_pages_array_alloc:
+-	up_read(&current->mm->mmap_sem);
++fail_map:
++	vb2_destroy_framevec(vec);
++fail_pfnvec_create:
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -145,20 +124,21 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	struct vb2_vmalloc_buf *buf = buf_priv;
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
++	struct page **pages;
++	unsigned int n_pages;
+ 
+-	if (buf->pages) {
++	if (!buf->vec->is_pfns) {
++		n_pages = frame_vector_count(buf->vec);
++		pages = frame_vector_pages(buf->vec);
+ 		if (vaddr)
+-			vm_unmap_ram((void *)vaddr, buf->n_pages);
+-		for (i = 0; i < buf->n_pages; ++i) {
+-			if (buf->dma_dir == DMA_FROM_DEVICE)
+-				set_page_dirty_lock(buf->pages[i]);
+-			put_page(buf->pages[i]);
+-		}
+-		kfree(buf->pages);
++			vm_unmap_ram((void *)vaddr, n_pages);
++		if (buf->dma_dir == DMA_FROM_DEVICE)
++			for (i = 0; i < n_pages; i++)
++				set_page_dirty_lock(pages[i]);
+ 	} else {
+-		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
  }
+ 
 -- 
 2.1.4
 
