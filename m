@@ -1,83 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44080 "EHLO mx1.redhat.com"
+Received: from cantor2.suse.de ([195.135.220.15]:46680 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755749AbbGTSIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 14:08:19 -0400
-Subject: Re: [RESEND PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E"; protocol="application/pgp-signature"; micalg=pgp-sha512
-From: Doug Ledford <dledford@redhat.com>
-In-Reply-To: <1437167245-28273-2-git-send-email-mcgrof@do-not-panic.com>
-Date: Mon, 20 Jul 2015 14:08:21 -0400
-Cc: Ingo Molnar <mingo@elte.hu>, Borislav Petkov <bp@suse.de>,
-	andy@silverblocksystems.net,
+	id S1750792AbbGMOz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 10:55:59 -0400
+From: Jan Kara <jack@suse.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	dan.j.williams@intel.com, benh@kernel.crashing.org,
-	luto <luto@amacapital.net>, Julia Lawall <julia.lawall@lip6.fr>,
-	Jiri Kosina <jkosina@suse.cz>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-rdma <linux-rdma@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"Luis R. Rodriguez" <mcgrof@suse.com>
-Message-Id: <9F0E52A4-A8E9-4308-B4DC-A10AA7637915@redhat.com>
-References: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com> <1437167245-28273-2-git-send-email-mcgrof@do-not-panic.com>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jan Kara <jack@suse.cz>
+Subject: [PATCH 4/9] vb2: Provide helpers for mapping virtual addresses
+Date: Mon, 13 Jul 2015 16:55:46 +0200
+Message-Id: <1436799351-21975-5-git-send-email-jack@suse.com>
+In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
+References: <1436799351-21975-1-git-send-email-jack@suse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Jan Kara <jack@suse.cz>
 
---Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
+Provide simple helper functions to map virtual address range into an
+array of pfns / pages.
 
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ drivers/media/v4l2-core/Kconfig            |  1 +
+ drivers/media/v4l2-core/videobuf2-memops.c | 58 ++++++++++++++++++++++++++++++
+ include/media/videobuf2-memops.h           |  5 +++
+ 3 files changed, 64 insertions(+)
 
-> On Jul 17, 2015, at 5:07 PM, Luis R. Rodriguez =
-<mcgrof@do-not-panic.com> wrote:
->=20
-> From: "Luis R. Rodriguez" <mcgrof@suse.com>
->=20
-> WARN() may confuse users, fix that. ipath_init_one() is part the
-> device's probe so this would only be triggered if a corresponding
-> device was found.
->=20
-> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index b4b022933e29..82876a67f144 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -84,6 +84,7 @@ config VIDEOBUF2_CORE
+ 
+ config VIDEOBUF2_MEMOPS
+ 	tristate
++	select FRAME_VECTOR
+ 
+ config VIDEOBUF2_DMA_CONTIG
+ 	tristate
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 81c1ad8b2cf1..0ec186d41b9b 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+ 
+ /**
++ * vb2_create_framevec() - map virtual addresses to pfns
++ * @start:	Virtual user address where we start mapping
++ * @length:	Length of a range to map
++ * @write:	Should we map for writing into the area
++ *
++ * This function allocates and fills in a vector with pfns corresponding to
++ * virtual address range passed in arguments. If pfns have corresponding pages,
++ * page references are also grabbed to pin pages in memory. The function
++ * returns pointer to the vector on success and error pointer in case of
++ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
++ */
++struct frame_vector *vb2_create_framevec(unsigned long start,
++					 unsigned long length,
++					 bool write)
++{
++	int ret;
++	unsigned long first, last;
++	unsigned long nr;
++	struct frame_vector *vec;
++
++	first = start >> PAGE_SHIFT;
++	last = (start + length - 1) >> PAGE_SHIFT;
++	nr = last - first + 1;
++	vec = frame_vector_create(nr);
++	if (!vec)
++		return ERR_PTR(-ENOMEM);
++	ret = get_vaddr_frames(start, nr, write, 1, vec);
++	if (ret < 0)
++		goto out_destroy;
++	/* We accept only complete set of PFNs */
++	if (ret != nr) {
++		ret = -EFAULT;
++		goto out_release;
++	}
++	return vec;
++out_release:
++	put_vaddr_frames(vec);
++out_destroy:
++	frame_vector_destroy(vec);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(vb2_create_framevec);
++
++/**
++ * vb2_destroy_framevec() - release vector of mapped pfns
++ * @vec:	vector of pfns / pages to release
++ *
++ * This releases references to all pages in the vector @vec (if corresponding
++ * pfns are backed by pages) and frees the passed vector.
++ */
++void vb2_destroy_framevec(struct frame_vector *vec)
++{
++	put_vaddr_frames(vec);
++	frame_vector_destroy(vec);
++}
++EXPORT_SYMBOL(vb2_destroy_framevec);
++
++/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index f05444ca8c0c..2f0564ff5f31 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -15,6 +15,7 @@
+ #define _MEDIA_VIDEOBUF2_MEMOPS_H
+ 
+ #include <media/videobuf2-core.h>
++#include <linux/mm.h>
+ 
+ /**
+  * vb2_vmarea_handler - common vma refcount tracking handler
+@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
+ 
++struct frame_vector *vb2_create_framevec(unsigned long start,
++					 unsigned long length,
++					 bool write);
++void vb2_destroy_framevec(struct frame_vector *vec);
+ 
+ #endif
+-- 
+2.1.4
 
-Acked-by: Doug Ledford <dledford@redhat.com>
-
-=E2=80=94
-Doug Ledford <dledford@redhat.com>
-	GPG Key ID: 0E572FDD
-
-
-
-
-
-
---Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - https://gpgtools.org
-
-iQIcBAEBCgAGBQJVrTkWAAoJELgmozMOVy/dPMEP/jYkT46rdwL0nSuMdzf7QWoG
-6gl6k0xZcT8KUoklQGh5W6CEDwzXa1zt1G2HiEr/mUM1sQhW5iGCRpekdsQ0Hr5J
-z0kXbDS7JDaV8yDBheK2HiJkJbdDOeW7zjfIcbFlbNuFWdAB0eRie5WeXJyTyTn7
-p7qH+yypZo8ejLMds9iokrX1JbQfFB2H/NPRrxRdntqXVLckXW6Nk715pGRVeweQ
-B1J9N8Ix2sc7eGLs15SgJ1JOtPAzcgOH3Q0xFYlbw5TI+bO9XyTSEmHmyF2kzTFM
-hw27q3p6jXdS2V8LSjTAE0JAETwgse02r16LtJ6OdMsErfJ1zLLJEEmCE9csejC6
-zLy3QFVJ+Ihh7mz+wmZHduUeuAT5L4yf0MdMy3Pz4QhJTJWyBUT8K9csGIuu/5Hv
-g9kZxVtUx7bcbKDA+mP/8zmdZQWdEsBhpBzTIaB0ljfaGv33hSb5ihrrUNBquQ4u
-SKYBjcrb3XUt2iprflUf/QbXLOMTFROKCjaLIeaSdb6cpwGqilz2ENj2c+ZcCPAo
-359S13Qg+GLp6647sFi//Lc5WpuEaqUikRfgQ5TWyQanC5yO9ZUrjsd3We0+PLCI
-YbQ3aWE5H++0UXkeXvs5atxzCV1zE4oq8M0p+T5D/OVzSbAxlpmWTzhke78C9aYs
-/6GiQ/BAB9WP4iI+0ucD
-=QXLd
------END PGP SIGNATURE-----
-
---Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E--
