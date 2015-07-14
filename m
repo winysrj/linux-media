@@ -1,67 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:38282 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754824AbbG3Jrq (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37896 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754976AbbGNKRZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 05:47:46 -0400
-Received: by wibxm9 with SMTP id xm9so60848689wib.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 02:47:45 -0700 (PDT)
-Date: Thu, 30 Jul 2015 10:47:38 +0100
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Joe Perches <joe@perches.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X
- tuner.
-Message-ID: <20150730094738.GD488@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
- <1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
- <1435195057.9377.18.camel@perches.com>
- <20150722185811.2d718baa@recife.lan>
+	Tue, 14 Jul 2015 06:17:25 -0400
+Message-ID: <55A4E154.8020309@xs4all.nl>
+Date: Tue, 14 Jul 2015 12:15:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150722185811.2d718baa@recife.lan>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>	 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>	 <55A39982.3030006@xs4all.nl> <1436868605.3793.24.camel@pengutronix.de>
+In-Reply-To: <1436868605.3793.24.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro / Joe,
-
-On Wed, 22 Jul 2015, Mauro Carvalho Chehab wrote:
-
-> Em Wed, 24 Jun 2015 18:17:37 -0700
-> Joe Perches <joe@perches.com> escreveu:
+On 07/14/15 12:10, Philipp Zabel wrote:
+> Hi Hans,
 > 
-> > On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
-> > > This is used in conjunction with the STV0367 demodulator on
-> > > the STV0367-NIM-V1.0 NIM card which can be used with the STi
-> > > STB SoC's.
-> > 
-> > Barely associated to this specific patch, but for
-> > dvb-pll.c, another thing that seems possible is to
-> > convert the struct dvb_pll_desc uses to const and
-> > change the "entries" fixed array size from 12 to []
-> > 
-> > It'd save a couple KB overall and remove ~5KB of data.
-> > 
-> > $ size drivers/media/dvb-frontends/dvb-pll.o*
-> >    text	   data	    bss	    dec	    hex	filename
-> >    8520	   1552	   2120	  12192	   2fa0	drivers/media/dvb-frontends/dvb-pll.o.new
-> >    5624	   6363	   2120	  14107	   371b	drivers/media/dvb-frontends/dvb-pll.o.old
+> Am Montag, den 13.07.2015, 12:57 +0200 schrieb Hans Verkuil:
+> [...]
+>>> @@ -69,6 +72,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
+>>>  
+>>>  struct tc358743_state {
+>>>  	struct tc358743_platform_data pdata;
+>>> +	struct v4l2_of_bus_mipi_csi2 bus;
+>>
+>> Where is this bus struct set?
 > 
-> Peter,
+> Uh-oh, I have accidentally dropped setting the bus struct when switching
+> to v4l2_of_alloc_parse_endpoint.
 > 
-> Please add this patch on the next patch series you submit.
+> [...]
+>>> @@ -700,7 +706,8 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
+>>>  			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
+>>>  			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
+>>>  
+>>> -	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
+>>> +	i2c_wr32(sd, TXOPTIONCNTRL, (state->bus.flags &
+>>> +		 V4L2_MBUS_CSI2_CONTINUOUS_CLOCK) ? MASK_CONTCLKMODE : 0);
+>>
+>> It's used here.
+>>
+>> BTW, since I don't see state->bus being set, that means bus.flags == 0 and
+>> so this register is now set to 0 instead of MASK_CONTCLKMODE.
+>>
+>> When using platform data I guess bus.flags should be set to
+>> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK to prevent breakage.
+> 
+> Ok.
+> 
+> [..]
+>>> +	/*
+>>> +	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
+>>> +	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
+>>> +	 */
+>>> +	bps_pr_lane = 2 * endpoint->link_frequencies[0];
+>>> +	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
+>>> +		dev_err(dev, "unsupported bps per lane: %u bps\n", bps_pr_lane);
+>>> +		goto disable_clk;
+>>> +	}
+>>> +
+>>> +	/* The CSI speed per lane is refclk / pll_prd * pll_fbd */
+>>> +	state->pdata.pll_fbd = bps_pr_lane /
+>>> +			       state->pdata.refclk_hz * state->pdata.pll_prd;
+>>> +
+>>> +	/*
+>>> +	 * FIXME: These timings are from REF_02 for 594 Mbps per lane (297 MHz
+>>> +	 * link frequency). In principle it should be possible to calculate
+>>> +	 * them based on link frequency and resolution.
+>>> +	 */
+>>> +	if (bps_pr_lane != 594000000U)
+>>> +		dev_warn(dev, "untested bps per lane: %u bps\n", bps_pr_lane);
+>>> +	state->pdata.lineinitcnt = 0xe80;
+>>> +	state->pdata.lptxtimecnt = 0x003;
+>>> +	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
+>>> +	state->pdata.tclk_headercnt = 0x1403;
+>>> +	state->pdata.tclk_trailcnt = 0x00;
+>>> +	/* ths-preparecnt: 3, ths-zerocnt: 1 */
+>>> +	state->pdata.ths_headercnt = 0x0103;
+>>> +	state->pdata.twakeup = 0x4882;
+>>> +	state->pdata.tclk_postcnt = 0x008;
+>>> +	state->pdata.ths_trailcnt = 0x2;
+>>> +	state->pdata.hstxvregcnt = 0;
+> 
+> Do you have any suggestion how to handle this? AFAIK REF_02 is not
+> public, and I do not know the formulas it uses internally to calculate
+> these timings. I wouldn't want to add all the timing parameters to the
+> device tree just because of that.
 
-Ok will do, I've added this patch with a slightly updated commit message
-to my series.
+As you said, it's not public and without the formulas there is nothing you
+can do but hardcode it.
 
-Joe - Can I add your signed-off-by?
+If I understand this correctly these values depend on the link frequency,
+so the DT should contain the link frequency and the driver can hardcode the
+values based on that. Which means that if someone needs to support a new
+link frequency the driver needs to be extended for that frequency.
 
-regards,
+As long as Toshiba keeps the formulas under NDA there isn't much else you can
+do.
 
-Peter.
+Regards,
+
+	Hans
+
+> 
+> [...]
+>>> @@ -1658,14 +1794,19 @@ static int tc358743_probe(struct i2c_client *client,
+>>>  	if (!state)
+>>>  		return -ENOMEM;
+>>>  
+>>> +	state->i2c_client = client;
+>>> +
+>>>  	/* platform data */
+>>> -	if (!pdata) {
+>>> -		v4l_err(client, "No platform data!\n");
+>>> -		return -ENODEV;
+>>> +	if (pdata) {
+>>> +		state->pdata = *pdata;
+>>> +	} else {
+>>> +		err = tc358743_probe_of(state);
+>>> +		if (err == -ENODEV)
+>>> +			v4l_err(client, "No platform data!\n");
+>>
+>> I'd replace this with "No device tree data!" or something like that.
+> 
+> I'll do that, thank you.
+> 
+> regards
+> Philipp
+> 
