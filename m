@@ -1,146 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61639 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752172AbbGWMVs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:52843 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752304AbbGNPDC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2015 11:03:02 -0400
+Message-ID: <55A524A4.8090905@osg.samsung.com>
+Date: Tue, 14 Jul 2015 09:03:00 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Mauro Carvalho Chehab (m.chehab@samsung.com)" <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 07/13] media: soc_camera pad-aware driver initialisation
-Date: Thu, 23 Jul 2015 13:21:37 +0100
-Message-Id: <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: Media Controller - graph_mutex
+References: <55A432D1.9060008@osg.samsung.com> <55A51763.8010506@linux.intel.com>
+In-Reply-To: <55A51763.8010506@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media
-controller API, so that the combination of soc_camera and rcar_vin
-can create device nodes to support modern drivers such as adv7604.c
-(for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+On 07/14/2015 08:06 AM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> Shuah Khan wrote:
+>> All,
+>>
+>> ALSA has to make media_entity_pipeline_start() call in irq
+>> path. I am seeing warnings that the graph_mutex is unsafe irq
+>> lock as expected. We have to update MC start/stop pipeline
+>> to be irq safe for ALSA. Maybe there are other MC interfaces
+>> that need to be irq safe, but I haven't seen any problems with
+>> my limited testing.
+>>
+>> So as per options, graph_mutex could be changed to a spinlock.
+>> It looks like drivers hold this lock and it isn't abstracted to
+>> MC API. Unfortunate, this would require changes to drivers that
+>> directly hold the lock for graph walks if this mutex is changed
+>> to spinlock.
+>>
+>> e.g: drivers/media/platform/exynos4-is/fimc-isp-video.c
+>>
+>> Changes aren't complex, just that the scope isn't limited
+>> to MC API.
+>>
+>> Other ideas??
+> 
+> Do you have (preliminary?) patches and / or more information? I'd like
+> to understand why would ALSA need this.
+> 
+> The graph_mutex is currently also taken when the link state is modified,
+> and the callbacks to the drivers may involve power state changes and
+> device initialisation. On some busses such as I2C these are blocking
+> operations.
+> 
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
+I am getting close to sending the RFC patches for review. I am looking
+at one last issue in addition to this mutex problem. I have dmesg logs
+to send and I will send them when I send the patches, so you have code
+to look at as well as the dmesg.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/Kconfig      |    1 +
- drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
- drivers/media/platform/soc_camera/soc_camera.c |   36 ++++++++++++++++++++++++
- include/media/soc_camera.h                     |    1 +
- 4 files changed, 39 insertions(+)
+thanks,
+-- Shuah
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index f2776cd..5c45c83 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
- 	depends on VIDEO_DEV && SOC_CAMERA
- 	depends on ARCH_SHMOBILE || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on MEDIA_CONTROLLER
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SOC_CAMERA_SCALE_CROP
- 	---help---
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 16352a8..00c1034 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 		struct device *dev = icd->parent;
- 		int shift;
- 
-+		fmt.pad = icd->src_pad_idx;
- 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 		if (ret < 0)
- 			return ret;
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d708df4..8d4d20c 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1293,6 +1293,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad pad;
-+#endif
- 	int ret;
- 
- 	sd->grp_id = soc_camera_grp_id(icd);
-@@ -1310,8 +1313,33 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
-+	icd->src_pad_idx = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
- 	/* At this point client .probe() should have run already */
-+	ret = media_entity_init(&icd->vdev->entity, 1, &pad, 0);
-+	if (ret < 0) {
-+		goto eusrfmt;
-+	} else {
-+		int pad_idx;
-+
-+		for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+			if (sd->entity.pads[pad_idx].flags
-+					== MEDIA_PAD_FL_SOURCE)
-+				break;
-+		if (pad_idx >= sd->entity.num_pads)
-+			goto eusrfmt;
-+
-+		icd->src_pad_idx = pad_idx;
-+		ret = soc_camera_init_user_formats(icd);
-+		if (ret < 0) {
-+			icd->src_pad_idx = -1;
-+			goto eusrfmt;
-+		}
-+	}
-+#else
- 	ret = soc_camera_init_user_formats(icd);
-+#endif
-+
- 	if (ret < 0)
- 		goto eusrfmt;
- 
-@@ -1335,6 +1363,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- evidstart:
- 	soc_camera_free_user_formats(icd);
- eusrfmt:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&icd->vdev->entity);
-+#endif
- 	soc_camera_remove_device(icd);
- 
- 	return ret;
-@@ -1856,6 +1887,11 @@ static int soc_camera_remove(struct soc_camera_device *icd)
- 	if (icd->num_user_formats)
- 		soc_camera_free_user_formats(icd);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (icd->vdev->entity.num_pads)
-+		media_entity_cleanup(&icd->vdev->entity);
-+#endif
-+
- 	if (icd->clk) {
- 		/* For the synchronous case */
- 		v4l2_clk_unregister(icd->clk);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2f6261f..30193cf 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -42,6 +42,7 @@ struct soc_camera_device {
- 	unsigned char devnum;		/* Device number per host */
- 	struct soc_camera_sense *sense;	/* See comment in struct definition */
- 	struct video_device *vdev;
-+	int src_pad_idx;		/* For media-controller drivers */
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	const struct soc_camera_format_xlate *current_fmt;
- 	struct soc_camera_format_xlate *user_formats;
 -- 
-1.7.10.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
