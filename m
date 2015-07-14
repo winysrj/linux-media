@@ -1,53 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38173 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbbGPHfJ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39334 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754172AbbGNKKK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:35:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Timur Tabi <timur@codeaurora.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	mittals@codeaurora.org
-Subject: Re: [PATCH 1/1] omap3isp: Fix async notifier registration order
-Date: Thu, 16 Jul 2015 10:35:32 +0300
-Message-ID: <1470564.5NvpJEivI3@avalon>
-In-Reply-To: <CAOZdJXV84Uap3S6wfsdM4LTsBgW3QZpmf7HN1wvNMB_syTVFBw@mail.gmail.com>
-References: <1432076885-5107-1-git-send-email-sakari.ailus@iki.fi> <CAOZdJXV84Uap3S6wfsdM4LTsBgW3QZpmf7HN1wvNMB_syTVFBw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 14 Jul 2015 06:10:10 -0400
+Message-ID: <1436868605.3793.24.camel@pengutronix.de>
+Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kernel@pengutronix.de
+Date: Tue, 14 Jul 2015 12:10:05 +0200
+In-Reply-To: <55A39982.3030006@xs4all.nl>
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
+	 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>
+	 <55A39982.3030006@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Timur,
+Hi Hans,
 
-On Wednesday 15 July 2015 16:04:01 Timur Tabi wrote:
-> On Tue, May 19, 2015 at 6:08 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > @@ -2557,18 +2553,27 @@ static int isp_probe(struct platform_device *pdev)
-> >         if (ret < 0)
-> >                 goto error_iommu;
-> > 
-> > -       isp->notifier.bound = isp_subdev_notifier_bound;
-> > -       isp->notifier.complete = isp_subdev_notifier_complete;
-> > -
-> >         ret = isp_register_entities(isp);
-> >         if (ret < 0)
-> >                 goto error_modules;
-> > 
-> > +       if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
+Am Montag, den 13.07.2015, 12:57 +0200 schrieb Hans Verkuil:
+[...]
+> > @@ -69,6 +72,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
+> >  
+> >  struct tc358743_state {
+> >  	struct tc358743_platform_data pdata;
+> > +	struct v4l2_of_bus_mipi_csi2 bus;
 > 
-> So I have a question (for Laurent, I guess) that's unrelated to this patch.
+> Where is this bus struct set?
+
+Uh-oh, I have accidentally dropped setting the bus struct when switching
+to v4l2_of_alloc_parse_endpoint.
+
+[...]
+> > @@ -700,7 +706,8 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
+> >  			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
+> >  			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
+> >  
+> > -	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
+> > +	i2c_wr32(sd, TXOPTIONCNTRL, (state->bus.flags &
+> > +		 V4L2_MBUS_CSI2_CONTINUOUS_CLOCK) ? MASK_CONTCLKMODE : 0);
 > 
-> Why is the "IS_ENABLED(CONFIG_OF)" important?  If CONFIG_OF is
-> disabled, isn't pdev->dev.of_node always NULL anyway?
+> It's used here.
+> 
+> BTW, since I don't see state->bus being set, that means bus.flags == 0 and
+> so this register is now set to 0 instead of MASK_CONTCLKMODE.
+> 
+> When using platform data I guess bus.flags should be set to
+> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK to prevent breakage.
 
-IS_ENABLED(CONFIG_OF) can be evaluated at compile time, so it will allow the 
-compiler to remove the code block completely when OF support is disabled. 
-pdev->dev.of_node is a runtime-only check which would allow the same 
-optimization.
+Ok.
 
--- 
-Regards,
+[..]
+> > +	/*
+> > +	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
+> > +	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
+> > +	 */
+> > +	bps_pr_lane = 2 * endpoint->link_frequencies[0];
+> > +	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
+> > +		dev_err(dev, "unsupported bps per lane: %u bps\n", bps_pr_lane);
+> > +		goto disable_clk;
+> > +	}
+> > +
+> > +	/* The CSI speed per lane is refclk / pll_prd * pll_fbd */
+> > +	state->pdata.pll_fbd = bps_pr_lane /
+> > +			       state->pdata.refclk_hz * state->pdata.pll_prd;
+> > +
+> > +	/*
+> > +	 * FIXME: These timings are from REF_02 for 594 Mbps per lane (297 MHz
+> > +	 * link frequency). In principle it should be possible to calculate
+> > +	 * them based on link frequency and resolution.
+> > +	 */
+> > +	if (bps_pr_lane != 594000000U)
+> > +		dev_warn(dev, "untested bps per lane: %u bps\n", bps_pr_lane);
+> > +	state->pdata.lineinitcnt = 0xe80;
+> > +	state->pdata.lptxtimecnt = 0x003;
+> > +	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
+> > +	state->pdata.tclk_headercnt = 0x1403;
+> > +	state->pdata.tclk_trailcnt = 0x00;
+> > +	/* ths-preparecnt: 3, ths-zerocnt: 1 */
+> > +	state->pdata.ths_headercnt = 0x0103;
+> > +	state->pdata.twakeup = 0x4882;
+> > +	state->pdata.tclk_postcnt = 0x008;
+> > +	state->pdata.ths_trailcnt = 0x2;
+> > +	state->pdata.hstxvregcnt = 0;
 
-Laurent Pinchart
+Do you have any suggestion how to handle this? AFAIK REF_02 is not
+public, and I do not know the formulas it uses internally to calculate
+these timings. I wouldn't want to add all the timing parameters to the
+device tree just because of that.
+
+[...]
+> > @@ -1658,14 +1794,19 @@ static int tc358743_probe(struct i2c_client *client,
+> >  	if (!state)
+> >  		return -ENOMEM;
+> >  
+> > +	state->i2c_client = client;
+> > +
+> >  	/* platform data */
+> > -	if (!pdata) {
+> > -		v4l_err(client, "No platform data!\n");
+> > -		return -ENODEV;
+> > +	if (pdata) {
+> > +		state->pdata = *pdata;
+> > +	} else {
+> > +		err = tc358743_probe_of(state);
+> > +		if (err == -ENODEV)
+> > +			v4l_err(client, "No platform data!\n");
+> 
+> I'd replace this with "No device tree data!" or something like that.
+
+I'll do that, thank you.
+
+regards
+Philipp
 
