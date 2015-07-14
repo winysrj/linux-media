@@ -1,68 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:38573 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932482AbbGVHjA (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48150 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751018AbbGNHwm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 03:39:00 -0400
-Received: by wibxm9 with SMTP id xm9so88368630wib.1
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2015 00:38:59 -0700 (PDT)
-Date: Wed, 22 Jul 2015 08:38:56 +0100
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	lee.jones@linaro.org, hugues.fruchet@st.com,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH 11/12] [media] tsin: c8sectpfe: Add Kconfig and Makefile
- for the driver.
-Message-ID: <20150722073856.GA32601@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
- <1435158670-7195-12-git-send-email-peter.griffin@linaro.org>
- <1435216998.4528.100.camel@tiscali.nl>
+	Tue, 14 Jul 2015 03:52:42 -0400
+Message-ID: <55A4BF6B.2070106@xs4all.nl>
+Date: Tue, 14 Jul 2015 09:51:07 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1435216998.4528.100.camel@tiscali.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Bjornar Salberg <bsalberg@cisco.com>
+Subject: Re: [RFC] How to get current position/status of iris/focus/pan/tilt/zoom?
+References: <559527D7.1030408@xs4all.nl> <2062145.8YAJ1MQW9W@avalon>
+In-Reply-To: <2062145.8YAJ1MQW9W@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+Hi Laurent,
 
-Thanks for reviewing.
-
-On Thu, 25 Jun 2015, Paul Bolle wrote:
-
-> On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
-> > --- /dev/null
-> > +++ b/drivers/media/tsin/c8sectpfe/Makefile
+On 07/08/15 13:25, Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> > +c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o
-> > +
-> > +obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
-> > +
-> > +ifneq ($(CONFIG_DVB_C8SECTPFE),)
-> > +	c8sectpfe-y += c8sectpfe-debugfs.o
-> > +endif
+> On Thursday 02 July 2015 14:00:23 Hans Verkuil wrote:
+>> When using V4L2_CID_IRIS/FOCUS/PAN/TILT/ZOOM_ABSOLUTE/RELATIVE, how do you
+>> know when the new position has been reached? If this is controlled through
+>> a motor, then it may take some time and ideally you would like to be able
+>> to get the current absolute position (if the hardware knows) and whether
+>> the final position has been reached or not.
 > 
-> Isn't the above equivalent to
->     c8sectpfe-y += c8sectpfe-core.o c8sectpfe-common.o c8sectpfe-dvb.o c8sectpfe-debugfs.o
+> There's only two drivers implementing pan and tilt (pwc and uvcvideo), one 
+> driver implementing focus and iris (uvcvideo) and three drivers implementing 
+> zoom (uvcvideo, m5mols and s5c73m3). Both m5mols and s5c73m3 seem to use the 
+> zoom control for digital zoom, so we can ignore them for this discussion. 
+> Where's thus left with pwc and uvcvideo. I'll comment mainly on the latter.
 > 
->     obj-$(CONFIG_DVB_C8SECTPFE) += c8sectpfe.o
+>> In addition, it should be possible to raise fault conditions.
 > 
-> Or am I missing something subtle here?
+> UVC specifies a way to implement asynchronous controls and report, through a 
+> USB interrupt endpoint, completion of the control set operation. This can be 
+> used by devices to report that physical motion has finished, or to report 
+> errors. Whether a control is implemented in a synchronous or asynchronous way 
+> is device dependent.
+> 
+>> The way the ABSOLUTE controls are defined is ambiguous since it doesn't say
+>> anything about what it returns when you read it: is that the current
+>> absolute position, or the last set absolute position? I suspect it is the
+>> second one.
+>>
+>> If it is the second one, then I propose a V4L2_CID_IRIS_CURRENT control (and
+>> ditto for the other variants) that is a read-only control returning the
+>> current position with the same range and unit as the ABSOLUTE control.
+> 
+> UVC doesn't explicitly define what a device should report. It hints in a 
+> couple of places that it should be the current position, but I believe it 
+> might be device-dependent in practice.
 
-No I think I just messed up. Will fix in v2.
+What does the uvc driver do today when an application asks for the IRIS_ABSOLUTE
+value? Does it pass that request on to the webcam or does it return the last
+set value?
 
-I suspect what happened  was I was starting to add a CONFIG_DVB_C8SECTPFE_DEBUGFS
-Kconfig option, and then forgot ;)
+We can choose to have the control type determine what the control does:
 
-In v2 I have added a "select DEBUG_FS" to Kconfig for the driver, and put it all on one
-line. Also at the same time fixing some other Kconfig dependencies I noticed so
-it now has 'select LIBELF_32' and 'select FW_LOADER'.
+if it is just a normal integer control, then it returns the last set value. If
+the hardware can return the current position, then it can set the new
+V4L2_CTRL_FLAG_EXECUTE_ON_WRITE flag, which means that when you read it you get
+the actual position, and when you write it you set the desired position.
 
-regards,
+But I don't know if the UVC driver can use this. I guess from your description
+that it can determine this based on whether the control is synchronous or
+asynchronous.
 
-Peter.
+>> For the status/fault information I think the V4L2_CID_AUTO_FOCUS_STATUS
+>> comes close, but it is too specific for auto focus. For manually
+>> positioning things this might be more suitable:
+>>
+>> V4L2_CID_IRIS_STATUS	bitmask
+>>
+>> 	V4L2_IRIS_STATUS_MOVING (or perhaps _BUSY?)
+>> 	V4L2_IRIS_STATUS_FAILED
+>>
+>> And ditto for the other variants.
+> 
+> Do we need to report that the control set operation is in progress, or could 
+> applications infer that information from the fact that they haven't received a 
+> control change event that notifies of end of motion ?
 
+You do need some sort of 'in progress' control or status. You don't want to
+require applications to check control change events for the new value and compare
+it to the end-value to determine if it is moving. And you can't use that anyway
+if an error occurs that forces the motor to stop moving before the final position
+has been reached.
 
+> 
+> Failures need to be reported, but they're not limited to the controls you 
+> mention above, at least in theory. A UVC device is free to implement any 
+> control as an asynchronous control and report failures. Would it make sense to 
+> add a control change error event instead of creating status controls for lots 
+> of V4L2 controls ?
+
+Hmm, interesting, need to think about this.
+
+Question: when you set an asynchronous uvc control, does it report back that
+the new value was set OK, or does it only report back errors? And what sort
+of errors are defined?
+
+Regards,
+
+	Hans
