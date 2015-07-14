@@ -1,91 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58602 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753177AbbGAJOa (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58975 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752036AbbGNOVe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jul 2015 05:14:30 -0400
-Message-ID: <5593AF28.4030303@xs4all.nl>
-Date: Wed, 01 Jul 2015 11:13:12 +0200
+	Tue, 14 Jul 2015 10:21:34 -0400
+Message-ID: <55A51A86.9010800@xs4all.nl>
+Date: Tue, 14 Jul 2015 16:19:50 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jouni Karvo <Jouni.Karvo@iki.fi>,
-	=?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: cx23885 risc op code error with DvbSKY T982
-References: <55870014.90902@iki.fi> <5587D8A5.70905@iki.fi> <5587DB9F.4020008@gmail.com> <55911239.4000709@iki.fi> <5593AEA6.7020901@iki.fi>
-In-Reply-To: <5593AEA6.7020901@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Helen Fornazier <helen.fornazier@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL
+ in link validate default
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com> <5590F276.40909@linux.intel.com> <1906172.kdU77gsF2d@avalon> <55925F25.5050708@linux.intel.com> <CAPW4XYbQ=Jdbaz0cB79q-nFtG7A9gncu-2TfHB4QfmST18kJkA@mail.gmail.com> <CAPW4XYYETmTK8MfZd941B0rb1DWODH=ZqAJu=FdmkVFrO_=dXQ@mail.gmail.com> <55A370DF.2080500@linux.intel.com>
+In-Reply-To: <55A370DF.2080500@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/15 11:11, Jouni Karvo wrote:
-> 29.06.2015, 12:39, Jouni Karvo kirjoitti:
->> 22.06.2015, 12:55, Tycho Lürsen kirjoitti:
->>> I've got a couple of T982 cards. Running Debian Jessie, with kernel 4.1-rc8, I cannot reproduce your errors.
->>> Only difference might be:
->>> I synced the silabs drivers with upstream and used the patch from:
->>
->> hi,
->>
->> I tested with 4.1.0 (which produced the errors.  4.1.0 with media_build produced the errors.  I did not test that with the patch, as because of another kernel bug (in mdraid) I switched to 4.0.6.
->>
->> With 4.0.6 this error does not seem to happen with neither card.
+On 07/13/15 10:03, Sakari Ailus wrote:
+> Hi Helen,
 > 
-> Just as I reported, it happened.  Then I got the media_build driver from Jun 25 (which seems to include the IF selection patch), and there it happens again...
+> Helen Fornazier wrote:
+>> Hi,
+>>
+>> On Tue, Jun 30, 2015 at 4:26 PM, Helen Fornazier <helen.fornazier@gmail.com>
+>> wrote:
+>>
+>>> Hi Sakari and Laurent,
+>>>
+>>> Thanks for reviewing this
+>>>
+>>> On Tue, Jun 30, 2015 at 6:19 AM, Sakari Ailus
+>>> <sakari.ailus@linux.intel.com> wrote:
+>>>> Hi Laurent,
+>>>>
+>>>> Laurent Pinchart wrote:
+>>>>> Hi Sakari,
+>>>>>
+>>>>> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+>>>>>> Helen Fornazier wrote:
+>>>>>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return
+>>> EPIPE
+>>>>>>> when the pipeline configuration is invalid.
+>>>>>>>
+>>>>>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the
+>>> error
+>>>>>>> caused by the v4l2_subdev_link_validate_default (if it is in use), it
+>>>>>>> should return -EPIPE if it detects a format mismatch in the pipeline
+>>>>>>> configuration
+>>>>>>
+>>>>>> Only link configuration errors have yielded -EPIPE so far, sub-device
+>>>>>> format configuration error has returned -INVAL instead as you noticed.
+>>>>>
+>>>>> It should also be noted that while v4l2_subdev_link_validate() will
+>>> return -
+>>>>> EINVAL in case of error, the only driver that performs custom link
+>>> validation
+>>>>> (omap3isp/ispccdc.c) will return -EPIPE.
+>>>>
+>>>> Good point. That has escaped me until now.
+>>>>
+>>>>>> There are not many sources of -EINVAL while enabling streaming and all
+>>>>>> others are directly caused by the application; I lean towards thinking
+>>>>>> the code is good as it was. The documentation could be improved though.
+>>>>>> It may not be clear which error codes could be caused by different
+>>>>>> conditions.
+>>>>>>
+>>>>>> The debug level messages from media module
+>>>>>> (drivers/media/media-entity.c) do provide more information if needed,
+>>>>>> albeit this certainly is not an application interface.
+>>>>>>
+>>>>>> I wonder what others think.
+>>>>>
+>>>>> There's a discrepancy between the implementation and the documentation,
+>>> so at
+>>>>> least one of them need to be fixed. -EPIPE would be coherent with the
+>>>>> documentation and seems appropriately named, but another error code
+>>> would
+>>>>> allow userspace to tell link configuration and format configuration
+>>> problems
+>>>>> apart.
+>>>>
+>>>> That was the original intent, I think.
+>>>>
+>>>>> Do you think -EINVAL is the most appropriate error code for format
+>>>>> configuration ? It's already used to indicate that the stream type is
+>>> invalid
+>>>>> or that not enough buffers have been allocated, and is also used by
+>>> drivers
+>>>>> directly for various purposes.
+>>>>
+>>>> That's true, it's been used also for that purpose. At the time this
+>>>> certainly was not the primary concern. If you can think of a better
+>>>> error code for the purpose (than EINVAL) I'm certainly fine with using
+>>> one.
+>>>>
+>>>> I still think that -EPIPE is worse for telling about incorrect format
+>>>> configuration than -EINVAL since it's relatively easy to avoid -EINVAL
+>>>> for the documented reasons.
+>>>>
+>>>> --
+>>>> Kind regards,
+>>>>
+>>>> Sakari Ailus
+>>>> sakari.ailus@linux.intel.com
+>>>
+>>> I'd like just to point out where in the docs EPIPE for format mismatch
+>>> is specified, as it is not described in the streamon page as I thought
+>>> it would, but it is in the subdev page in case anyone is looking for
+>>> it (as I took some time to find it too):
+>>>
+>>> http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+>>> "Applications are responsible for configuring coherent parameters on
+>>> the whole pipeline and making sure that connected pads have compatible
+>>> formats. The pipeline is checked for formats mismatch at
+>>> VIDIOC_STREAMON time, and an EPIPE error code is then returned if the
+>>> configuration is invalid"
+>>>
+>>> So maybe the doc should be improved as you already stated.
+>>>
+>>> --
+>>> Helen Fornazier
+>>>
+>>
+>> I would like to revive this subject.
+>>
+>> Should we change the docs? Change the -EINVAL to -EPIPE, or create another
+>> error code? What are your opinion?
+>>
+>> I read in the docs of dev-kmsg that EPIPE is returned when messages get
+>> overwritten, and in other parts of the code EPIPE is returned when there is
+>> an error in the pipeline communication level while trying to send
+>> information through the pipe or a pipe broken error.
+>>
+>> But in the error-codes.txt files, the EPIPE error is defined as:
+>> *EPIPE "The pipe type specified in the URB doesn't match the endpoint's
+>> actual type"*
+> 
+> This exact definition sound USB specific to me.
+> 
+>> Then, if EPIPE is used when types don't match between two endpoints, it
+>> seems reasonable to me to use EPIPE when formats don't match either. Or do
+>> "types" in this context have a specific definition? I don't know much about
+>> URB, you may be able to judge this better.
+> 
+> A short recap of the current situation as far as I understand it:
+> 
+> - MC link validation failure yields EPIPE to the user space,
+> 
+> - V4L2 sub-device format validation failure generally results in EINVAL,
+> except that
 
-Do you actually see any visual artifacts, or is it just messages in the log?
+I think that returning EINVAL here is wrong. EINVAL is returned when you
+set e.g. a format and the format is invalid. In this case the format for
+each subdev is perfectly fine, it's just that the sink and source formats
+do not match.
+
+Rather than returning EINVAL I think ENOLINK would work well here as you
+can't setup a link between two entities. And EPIPE can still be used
+for other higher-level pipeline errors.
+
+> - omap3isp CCDC driver returns EPIPE instead and
+
+That seems definitely the wrong thing to do.
+
+> - EINVAL is used for many other purposes.
+> 
+> The issues are inconsistency between omap3isp CCDC and other drivers in
+> informing the user the sub-device format configuration is wrong. Also
+> V4L2 sub-device format validation error cannot be told apart from other
+> errors. These problems should be fixed, so that all three sources of
+> errors yield a different error code (MC link validation, V4L2 format
+> configuration and other plain V4L2 related errors).
+> 
+> V4L2 will continue using EINVAL, that's for sure.
+> 
+> Another error code I could think of is EMLINK ("Too many links"), which
+> is not a perfect match, but could be used. This is a better match for a
+> link validation failure; V4L2 sub-device link validation failure would
+> then use EPIPE (as omap3isp CCDC driver already does).
+> 
+> Another option could be that V4L2 format validation failure would use
+> ENOEXEC ("Exec format error") instead, and EPIPE would be left to link
+> validation failures.
+> 
+> Better suggestions are welcome of course. I think I'm leaning towards
+> the first option, but from backwards compatibility point of view the
+> latter is better. The MC is no longer experimental so the latter might
+> be the only option.
+> 
+> My view is that this boils down to picking the most suitable error
+> codes. Then fixing the documentation is easy.
+> 
+> I wonder what Laurent and Hans think.
+> 
 
 Regards,
 
 	Hans
-
-> 
-> Jun 30 21:16:40 xpc kernel: [11870.833240] cx23885[1]: mpeg risc op code error
-> Jun 30 21:16:40 xpc kernel: [11870.833244] cx23885[1]: TS1 B - dma channel status dump
-> Jun 30 21:16:40 xpc kernel: [11870.833247] cx23885[1]:   cmds: init risc lo   : 0x924d0000
-> Jun 30 21:16:40 xpc kernel: [11870.833248] cx23885[1]:   cmds: init risc hi   : 0x00000000
-> Jun 30 21:16:40 xpc kernel: [11870.833250] cx23885[1]:   cmds: cdt base       : 0x00010580
-> Jun 30 21:16:40 xpc kernel: [11870.833252] cx23885[1]:   cmds: cdt size       : 0x0000000a
-> Jun 30 21:16:40 xpc kernel: [11870.833254] cx23885[1]:   cmds: iq base        : 0x00010400
-> Jun 30 21:16:40 xpc kernel: [11870.833256] cx23885[1]:   cmds: iq size        : 0x00000010
-> Jun 30 21:16:40 xpc kernel: [11870.833257] cx23885[1]:   cmds: risc pc lo     : 0x924d000c
-> Jun 30 21:16:40 xpc kernel: [11870.833259] cx23885[1]:   cmds: risc pc hi     : 0x00000000
-> Jun 30 21:16:40 xpc kernel: [11870.833261] cx23885[1]:   cmds: iq wr ptr      : 0x00004103
-> Jun 30 21:16:40 xpc kernel: [11870.833263] cx23885[1]:   cmds: iq rd ptr      : 0x00004100
-> Jun 30 21:16:40 xpc kernel: [11870.833264] cx23885[1]:   cmds: cdt current    : 0x000105c8
-> Jun 30 21:16:40 xpc kernel: [11870.833266] cx23885[1]:   cmds: pci target lo  : 0xaed882f0
-> Jun 30 21:16:40 xpc kernel: [11870.833268] cx23885[1]:   cmds: pci target hi  : 0x00000000
-> Jun 30 21:16:40 xpc kernel: [11870.833270] cx23885[1]:   cmds: line / byte    : 0x01610000
-> Jun 30 21:16:40 xpc kernel: [11870.833272] cx23885[1]:   risc0: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833275] cx23885[1]:   risc1: 0xaed882f0 [ readc sol eol irq2 23 22 20 19 resync count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833279] cx23885[1]:   risc2: 0x00000000 [ INVALID count=0 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833281] cx23885[1]:   risc3: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833284] cx23885[1]: (0x00010400) iq 0: 0x80200080 [ sync 21 count=128 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833286] cx23885[1]: (0x00010404) iq 1: 0x87ff3140 [ sync eol irq2 irq1 23 22 21 20 19 18 cnt1 cnt0 13 12 count=320 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833291] cx23885[1]: (0x00010408) iq 2: 0x01000000 [ INVALID irq1 count=0 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833293] cx23885[1]: (0x0001040c) iq 3: 0x00000000 [ INVALID count=0 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833295] cx23885[1]: (0x00010410) iq 4: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833298] cx23885[1]:   iq 5: 0xaed88bc0 [ arg #1 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833300] cx23885[1]:   iq 6: 0x00000000 [ arg #2 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833301] cx23885[1]: (0x0001041c) iq 7: 0x71000000 [ jump irq1 count=0 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833304] cx23885[1]:   iq 8: 0x1c0002f0 [ arg #1 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833306] cx23885[1]:   iq 9: 0xaed88000 [ arg #2 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833307] cx23885[1]: (0x00010428) iq a: 0x00000000 [ INVALID count=0 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833309] cx23885[1]: (0x0001042c) iq b: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833312] cx23885[1]:   iq c: 0xaed882f0 [ arg #1 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833314] cx23885[1]:   iq d: 0x00000000 [ arg #2 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833315] cx23885[1]: (0x00010438) iq e: 0x1c0002f0 [ write sol eol count=752 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833318] cx23885[1]:   iq f: 0xaed885e0 [ arg #1 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833320] cx23885[1]:   iq 10: 0x9beae2ae [ arg #2 ]
-> Jun 30 21:16:40 xpc kernel: [11870.833320] cx23885[1]: fifo: 0x00005000 -> 0x6000
-> Jun 30 21:16:40 xpc kernel: [11870.833321] cx23885[1]: ctrl: 0x00010400 -> 0x10460
-> Jun 30 21:16:40 xpc kernel: [11870.833323] cx23885[1]:   ptr1_reg: 0x00005bf0
-> Jun 30 21:16:40 xpc kernel: [11870.833325] cx23885[1]:   ptr2_reg: 0x000105c8
-> Jun 30 21:16:40 xpc kernel: [11870.833326] cx23885[1]:   cnt1_reg: 0x00000003
-> Jun 30 21:16:40 xpc kernel: [11870.833328] cx23885[1]:   cnt2_reg: 0x00000001
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
