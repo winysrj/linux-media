@@ -1,105 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55168 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754003AbbG3RN4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 13:13:56 -0400
-Subject: Re: [PATCH 00/27] Export I2C and OF module aliases in missing drivers
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
- <20150730163517.GA13165@dtor-ws> <20150730163708.GB13165@dtor-ws>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-	Mark Brown <broonie@kernel.org>, linux-iio@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-leds@vger.kernel.org,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	lm-sensors@lm-sensors.org, Sebastian Reichel <sre@kernel.org>,
-	linux-input@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jean Delvare <jdelvare@suse.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
-	linux-pm@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Takashi Iwai <tiwai@suse.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
-	Lee Jones <lee.jones@linaro.org>,
-	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
-	linux-spi@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	MyungJoo Ham <myungjoo.ham@samsung.com>,
-	linuxppc-dev@lists.ozlabs.org
-Message-ID: <55BA5B48.1050005@osg.samsung.com>
-Date: Thu, 30 Jul 2015 19:13:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <20150730163708.GB13165@dtor-ws>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37041 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751929AbbGNCv4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2015 22:51:56 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D9FD02A066F
+	for <linux-media@vger.kernel.org>; Tue, 14 Jul 2015 04:50:58 +0200 (CEST)
+Date: Tue, 14 Jul 2015 04:50:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150714025058.D9FD02A066F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dmitry,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks a lot for your feedback.
+Results of the daily build of media_tree:
 
-On 07/30/2015 06:37 PM, Dmitry Torokhov wrote:
-> On Thu, Jul 30, 2015 at 09:35:17AM -0700, Dmitry Torokhov wrote:
->> Hi Javier,
->>
->> On Thu, Jul 30, 2015 at 06:18:25PM +0200, Javier Martinez Canillas wrote:
->>> Hello,
->>>
->>> Short version:
->>>
->>> This series add the missing MODULE_DEVICE_TABLE() for OF and I2C tables
->>> to export that information so modules have the correct aliases built-in
->>> and autoloading works correctly.
->>>
->>> Longer version:
->>>
->>> Currently it's mandatory for I2C drivers to have an I2C device ID table
->>> regardless if the device was registered using platform data or OF. This
->>> is because the I2C core needs an I2C device ID table for two reasons:
->>>
->>> 1) Match the I2C client with a I2C device ID so a struct i2c_device_id
->>>    is passed to the I2C driver probe() function.
->>>
->>> 2) Export the module aliases from the I2C device ID table so userspace
->>>    can auto-load the correct module. This is because i2c_device_uevent
->>>    always reports a MODALIAS of the form i2c:<client->name>.
->>
->> Why are we not fixing this? We emit specially carved uevent for
->> ACPI-based devices, why not the same for OF? Platform bus does this...
-> 
-> Ah, now I see the 27/27 patch. I think it is exactly what we need. And
+date:		Tue Jul 14 04:00:16 CEST 2015
+git branch:	test
+git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Yes, patch 27/27 is needed but the problem is as I explained before that
-there are drivers relying on the current behavior. The item c) in the list
-of issues that I mentioned. So those drivers need to be fixed before that
-patch is merged...
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> probably for SPI bus as well.
->
+Detailed results are available here:
 
-Yes, I didn't mention SPI because the cover letter became too long
-already but it does indeed have the same issue and I discussed this
-with  Mark already some time ago [0].
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Once I2C uevent report is fixed, I plan to do the same for SPI.
+Full logs are available here:
 
-> Thanks.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-[0]: https://lkml.org/lkml/2014/9/11/458
+The Media Infrastructure API from this daily build is here:
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+http://www.xs4all.nl/~hverkuil/spec/media.html
