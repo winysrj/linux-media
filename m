@@ -1,338 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49556 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398AbbGQKVx (ORCPT
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:35843 "EHLO
+	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751782AbbGNMvW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 06:21:53 -0400
-Message-ID: <55A8D700.9080203@xs4all.nl>
-Date: Fri, 17 Jul 2015 12:20:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 14 Jul 2015 08:51:22 -0400
+Received: by qkdv3 with SMTP id v3so5264572qkd.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Jul 2015 05:51:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Jan Kara <jack@suse.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>
-Subject: Re: [PATCH 9/9] drm/exynos: Convert g2d_userptr_get_dma_addr() to
- use get_vaddr_frames()
-References: <1436799351-21975-1-git-send-email-jack@suse.com> <1436799351-21975-10-git-send-email-jack@suse.com>
-In-Reply-To: <1436799351-21975-10-git-send-email-jack@suse.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <c29a3c94d042b15780c33b68f71d16fc@www.kernellabs.com>
+References: <c29a3c94d042b15780c33b68f71d16fc@www.kernellabs.com>
+Date: Tue, 14 Jul 2015 08:51:21 -0400
+Message-ID: <CALzAhNV7EadNu6Yx78zVxwtx9u01PkrGAoyguvq=ZmLdtKZmew@mail.gmail.com>
+Subject: Re: www.kernellabs.com Contact: Hauppauge hvr1275 TV Tuner card linux problem
+From: Steven Toth <stoth@kernellabs.com>
+To: tonyc@wincomm.com.tw
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2015 04:55 PM, Jan Kara wrote:
-> From: Jan Kara <jack@suse.cz>
-> 
-> Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
-> This removes the knowledge about vmas and mmap_sem locking from exynos
-> driver. Also it fixes a problem that the function has been mapping user
-> provided address without holding mmap_sem.
+Adding in the linux-media mailing list
 
-I'd like to see an Ack from one of the exynos drm driver maintainers before
-I merge this.
+> Subject:
+> Hauppauge hvr1275 TV Tuner card linux problem
+>
+> Message:
+> I had one trouble about Hauppauge hvr1275 TV Tuner card
+>
+> Because of I want use tvtime app to play this TV Tuner card with ATI
+> V4900 VGA Card under centos 6.5 linux 2.6.32-431.el6.i686
+>
+> First I have download Firmeare from:
+>
+> # wget
+> http://steventoth.net/linux/hvr1200/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+>
+> # wget http://steventoth.net/linux/hvr1200/extract.sh
+>
+> # /bin/sh extract.sh
+>
+> # sudo cp v4l-cx23885-enc.fw v4l-cx23885-avcore-01.fw
+> dvb-fe-tda10048-1.0.fw /lib/firmware
+>
+> Second create cx23885.conf in /etc/modprobe.d/
+>
+> Options cx23885 card=19
+>
+> Type modprobe cx23885 in terminal
+>
+> When I execute tvtime app always show can’t open /dev/video0
+>
+> When I use dmesg in terminal show below
+>
+> Linux video capture interface: v2.00
+>
+> cx23885 driver version 0.0.2 loaded
+>
+> cx23885 0000:04:00.0: PCI INT A -_ GSI 16 (level, low) -_ IRQ 16
+>
+> CORE cx23885[0]: subsystem: 0070:2a38, board: Hauppauge WinTV-HVR1275
+> [card=19,insmod option]
+>
+> IR NEC protocol handler initialized
+>
+> IR RC5(x) protocol handler initialized
+>
+> IR RC6 protocol handler initialized
+>
+> IR JVC protocol handler initialized
+>
+> IR Sony protocol handler initialized
+>
+> lirc_dev: IR Remote Control driver registered, major 248
+>
+> IR LIRC bridge handler initialized
+>
+> tveeprom 11-0050: Hauppauge model 161100, rev A1I6, serial# 9140928
+>
+> tveeprom 11-0050: MAC address is 00:0d:fe:8b:7a:c0
+>
+> tveeprom 11-0050: tuner model is unknown (idx 186, type 4)
+>
+> tveeprom 11-0050: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L')
+> PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+>
+> tveeprom 11-0050: audio processor is CX23888 (idx 40)
+>
+> tveeprom 11-0050: decoder processor is CX23888 (idx 34)
+>
+> tveeprom 11-0050: has no radio, has IR receiver, has no IR
+> transmitter
+>
+> cx23885[0]: warning: unknown hauppauge model #161100
+>
+> cx23885[0]: hauppauge eeprom: model=161100
+>
+> cx23885_dvb_register() allocating 1 frontend(s)
+>
+> cx23885[0]: cx23885 based dvb card
+>
+> lgdt3305_attach: unable to detect LGDT3305 hardware
+>
+> cx23885[0]: frontend initialization failed
+>
+> cx23885_dvb_register() dvb_register failed err = -1
+>
+> cx23885_dev_setup() Failed to register dvb on VID_C
+>
+> cx23885_dev_checkrevision() Hardware revision = 0xd0
+>
+> cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 16, latency: 0,
+> mmio: 0xfbe00000
+>
+> cx23885 0000:04:00.0: setting latency timer to 64
+>
+>  alloc irq_desc for 34 on node -1
+>
+>  alloc kstat_irqs on node -1
+>
+> if use dmesg | grep cx23885 in terminal show below
+>
+> cx23885 driver version 0.0.2 loaded
+>
+> cx23885 0000:05:00.0: PCI INT A -_ GSI 16 (level, low) -_ IRQ 16
+>
+> CORE cx23885[0]: subsystem: 0070:2a38, board: Hauppauge WinTV-HVR1275
+> [card=19,insmod option]
+>
+> cx23885[0]: warning: unknown hauppauge model #161100
+>
+> cx23885[0]: hauppauge eeprom: model=161100
+>
+> cx23885_dvb_register() allocating 1 frontend(s)
+>
+> cx23885[0]: cx23885 based dvb card
+>
+> cx23885[0]: frontend initialization failed
+>
+> cx23885_dvb_register() dvb_register failed err = -1
+>
+> cx23885_dev_setup() Failed to register dvb on VID_C
+>
+> cx23885_dev_checkrevision() Hardware revision = 0xd0
+>
+> cx23885[0]/0: found at 0000:05:00.0, rev: 4, irq: 16, latency: 0,
+> mmio: 0xfbe00000
+>
+> cx23885 0000:05:00.0: setting latency timer to 64
+>
+> cx23885 0000:05:00.0: irq 35 for MSI/MSI-X
+>
+> sorry I don’t know how can I do .. can you help me to fix the
+> problem?
 
-Inki, Marek?
+Please ensure that all communication include the linux media mailing list.
 
-Regards,
+It looks like Hauppauge have released an updated HVR-1275 card, as
+indicated by the updated PCI-SubDevice ID 2A38. The hardware has
+changed and the driver needs to be modified to support these changes.
 
-	Hans
+Modprobing with option=19 isn't going to help.
 
-> 
-> Signed-off-by: Jan Kara <jack@suse.cz>
-> ---
->  drivers/gpu/drm/exynos/Kconfig          |  1 +
->  drivers/gpu/drm/exynos/exynos_drm_g2d.c | 91 ++++++++++---------------------
->  drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
->  3 files changed, 30 insertions(+), 159 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
-> index 43003c4ad80b..b364562dc6c1 100644
-> --- a/drivers/gpu/drm/exynos/Kconfig
-> +++ b/drivers/gpu/drm/exynos/Kconfig
-> @@ -77,6 +77,7 @@ config DRM_EXYNOS_VIDI
->  config DRM_EXYNOS_G2D
->  	bool "Exynos DRM G2D"
->  	depends on DRM_EXYNOS && !VIDEO_SAMSUNG_S5P_G2D
-> +	select FRAME_VECTOR
->  	help
->  	  Choose this option if you want to use Exynos G2D for DRM.
->  
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> index 81a250830808..1d8d9a508373 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> @@ -190,10 +190,8 @@ struct g2d_cmdlist_userptr {
->  	dma_addr_t		dma_addr;
->  	unsigned long		userptr;
->  	unsigned long		size;
-> -	struct page		**pages;
-> -	unsigned int		npages;
-> +	struct frame_vector	*vec;
->  	struct sg_table		*sgt;
-> -	struct vm_area_struct	*vma;
->  	atomic_t		refcount;
->  	bool			in_pool;
->  	bool			out_of_list;
-> @@ -363,6 +361,7 @@ static void g2d_userptr_put_dma_addr(struct drm_device *drm_dev,
->  {
->  	struct g2d_cmdlist_userptr *g2d_userptr =
->  					(struct g2d_cmdlist_userptr *)obj;
-> +	struct page **pages;
->  
->  	if (!obj)
->  		return;
-> @@ -382,19 +381,21 @@ out:
->  	exynos_gem_unmap_sgt_from_dma(drm_dev, g2d_userptr->sgt,
->  					DMA_BIDIRECTIONAL);
->  
-> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
-> -					g2d_userptr->npages,
-> -					g2d_userptr->vma);
-> +	pages = frame_vector_pages(g2d_userptr->vec);
-> +	if (!IS_ERR(pages)) {
-> +		int i;
->  
-> -	exynos_gem_put_vma(g2d_userptr->vma);
-> +		for (i = 0; i < frame_vector_count(g2d_userptr->vec); i++)
-> +			set_page_dirty_lock(pages[i]);
-> +	}
-> +	put_vaddr_frames(g2d_userptr->vec);
-> +	frame_vector_destroy(g2d_userptr->vec);
->  
->  	if (!g2d_userptr->out_of_list)
->  		list_del_init(&g2d_userptr->list);
->  
->  	sg_free_table(g2d_userptr->sgt);
->  	kfree(g2d_userptr->sgt);
-> -
-> -	drm_free_large(g2d_userptr->pages);
->  	kfree(g2d_userptr);
->  }
->  
-> @@ -408,9 +409,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
->  	struct exynos_drm_g2d_private *g2d_priv = file_priv->g2d_priv;
->  	struct g2d_cmdlist_userptr *g2d_userptr;
->  	struct g2d_data *g2d;
-> -	struct page **pages;
->  	struct sg_table	*sgt;
-> -	struct vm_area_struct *vma;
->  	unsigned long start, end;
->  	unsigned int npages, offset;
->  	int ret;
-> @@ -456,65 +455,38 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
->  		return ERR_PTR(-ENOMEM);
->  
->  	atomic_set(&g2d_userptr->refcount, 1);
-> +	g2d_userptr->size = size;
->  
->  	start = userptr & PAGE_MASK;
->  	offset = userptr & ~PAGE_MASK;
->  	end = PAGE_ALIGN(userptr + size);
->  	npages = (end - start) >> PAGE_SHIFT;
-> -	g2d_userptr->npages = npages;
-> -
-> -	pages = drm_calloc_large(npages, sizeof(struct page *));
-> -	if (!pages) {
-> -		DRM_ERROR("failed to allocate pages.\n");
-> -		ret = -ENOMEM;
-> +	g2d_userptr->vec = frame_vector_create(npages);
-> +	if (!g2d_userptr->vec)
->  		goto err_free;
-> -	}
->  
-> -	down_read(&current->mm->mmap_sem);
-> -	vma = find_vma(current->mm, userptr);
-> -	if (!vma) {
-> -		up_read(&current->mm->mmap_sem);
-> -		DRM_ERROR("failed to get vm region.\n");
-> +	ret = get_vaddr_frames(start, npages, true, true, g2d_userptr->vec);
-> +	if (ret != npages) {
-> +		DRM_ERROR("failed to get user pages from userptr.\n");
-> +		if (ret < 0)
-> +			goto err_destroy_framevec;
->  		ret = -EFAULT;
-> -		goto err_free_pages;
-> +		goto err_put_framevec;
->  	}
-> -
-> -	if (vma->vm_end < userptr + size) {
-> -		up_read(&current->mm->mmap_sem);
-> -		DRM_ERROR("vma is too small.\n");
-> +	if (frame_vector_to_pages(g2d_userptr->vec) < 0) {
->  		ret = -EFAULT;
-> -		goto err_free_pages;
-> +		goto err_put_framevec;
->  	}
->  
-> -	g2d_userptr->vma = exynos_gem_get_vma(vma);
-> -	if (!g2d_userptr->vma) {
-> -		up_read(&current->mm->mmap_sem);
-> -		DRM_ERROR("failed to copy vma.\n");
-> -		ret = -ENOMEM;
-> -		goto err_free_pages;
-> -	}
-> -
-> -	g2d_userptr->size = size;
-> -
-> -	ret = exynos_gem_get_pages_from_userptr(start & PAGE_MASK,
-> -						npages, pages, vma);
-> -	if (ret < 0) {
-> -		up_read(&current->mm->mmap_sem);
-> -		DRM_ERROR("failed to get user pages from userptr.\n");
-> -		goto err_put_vma;
-> -	}
-> -
-> -	up_read(&current->mm->mmap_sem);
-> -	g2d_userptr->pages = pages;
-> -
->  	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
->  	if (!sgt) {
->  		ret = -ENOMEM;
-> -		goto err_free_userptr;
-> +		goto err_put_framevec;
->  	}
->  
-> -	ret = sg_alloc_table_from_pages(sgt, pages, npages, offset,
-> -					size, GFP_KERNEL);
-> +	ret = sg_alloc_table_from_pages(sgt,
-> +					frame_vector_pages(g2d_userptr->vec),
-> +					npages, offset, size, GFP_KERNEL);
->  	if (ret < 0) {
->  		DRM_ERROR("failed to get sgt from pages.\n");
->  		goto err_free_sgt;
-> @@ -549,16 +521,11 @@ err_sg_free_table:
->  err_free_sgt:
->  	kfree(sgt);
->  
-> -err_free_userptr:
-> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
-> -					g2d_userptr->npages,
-> -					g2d_userptr->vma);
-> -
-> -err_put_vma:
-> -	exynos_gem_put_vma(g2d_userptr->vma);
-> +err_put_framevec:
-> +	put_vaddr_frames(g2d_userptr->vec);
->  
-> -err_free_pages:
-> -	drm_free_large(pages);
-> +err_destroy_framevec:
-> +	frame_vector_destroy(g2d_userptr->vec);
->  
->  err_free:
->  	kfree(g2d_userptr);
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-> index 0d5b9698d384..47068ae44ced 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
-> @@ -378,103 +378,6 @@ int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
->  	return 0;
->  }
->  
-> -struct vm_area_struct *exynos_gem_get_vma(struct vm_area_struct *vma)
-> -{
-> -	struct vm_area_struct *vma_copy;
-> -
-> -	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
-> -	if (!vma_copy)
-> -		return NULL;
-> -
-> -	if (vma->vm_ops && vma->vm_ops->open)
-> -		vma->vm_ops->open(vma);
-> -
-> -	if (vma->vm_file)
-> -		get_file(vma->vm_file);
-> -
-> -	memcpy(vma_copy, vma, sizeof(*vma));
-> -
-> -	vma_copy->vm_mm = NULL;
-> -	vma_copy->vm_next = NULL;
-> -	vma_copy->vm_prev = NULL;
-> -
-> -	return vma_copy;
-> -}
-> -
-> -void exynos_gem_put_vma(struct vm_area_struct *vma)
-> -{
-> -	if (!vma)
-> -		return;
-> -
-> -	if (vma->vm_ops && vma->vm_ops->close)
-> -		vma->vm_ops->close(vma);
-> -
-> -	if (vma->vm_file)
-> -		fput(vma->vm_file);
-> -
-> -	kfree(vma);
-> -}
-> -
-> -int exynos_gem_get_pages_from_userptr(unsigned long start,
-> -						unsigned int npages,
-> -						struct page **pages,
-> -						struct vm_area_struct *vma)
-> -{
-> -	int get_npages;
-> -
-> -	/* the memory region mmaped with VM_PFNMAP. */
-> -	if (vma_is_io(vma)) {
-> -		unsigned int i;
-> -
-> -		for (i = 0; i < npages; ++i, start += PAGE_SIZE) {
-> -			unsigned long pfn;
-> -			int ret = follow_pfn(vma, start, &pfn);
-> -			if (ret)
-> -				return ret;
-> -
-> -			pages[i] = pfn_to_page(pfn);
-> -		}
-> -
-> -		if (i != npages) {
-> -			DRM_ERROR("failed to get user_pages.\n");
-> -			return -EINVAL;
-> -		}
-> -
-> -		return 0;
-> -	}
-> -
-> -	get_npages = get_user_pages(current, current->mm, start,
-> -					npages, 1, 1, pages, NULL);
-> -	get_npages = max(get_npages, 0);
-> -	if (get_npages != npages) {
-> -		DRM_ERROR("failed to get user_pages.\n");
-> -		while (get_npages)
-> -			put_page(pages[--get_npages]);
-> -		return -EFAULT;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
-> -void exynos_gem_put_pages_to_userptr(struct page **pages,
-> -					unsigned int npages,
-> -					struct vm_area_struct *vma)
-> -{
-> -	if (!vma_is_io(vma)) {
-> -		unsigned int i;
-> -
-> -		for (i = 0; i < npages; i++) {
-> -			set_page_dirty_lock(pages[i]);
-> -
-> -			/*
-> -			 * undo the reference we took when populating
-> -			 * the table.
-> -			 */
-> -			put_page(pages[i]);
-> -		}
-> -	}
-> -}
-> -
->  int exynos_gem_map_sgt_with_dma(struct drm_device *drm_dev,
->  				struct sg_table *sgt,
->  				enum dma_data_direction dir)
-> 
+- Steve
 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
