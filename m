@@ -1,80 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-101.synserver.de ([212.40.185.101]:1080 "EHLO
-	smtp-out-101.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758292AbbGHMN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jul 2015 08:13:26 -0400
-Message-ID: <559D14EB.4090108@metafoo.de>
-Date: Wed, 08 Jul 2015 14:17:47 +0200
-From: Lars-Peter Clausen <lars@metafoo.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>, media-workshop@linuxtv.org,
-	alsa-devel <alsa-devel@alsa-project.org>
-Subject: Re: [ANNOUNCE] Media Controller workshop in Helsinki
-References: <20150708081622.63e333bd@recife.lan>
-In-Reply-To: <20150708081622.63e333bd@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:36620 "EHLO
+	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751904AbbGOAe1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2015 20:34:27 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, dan.carpenter@oracle.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
+	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
+	pmatilai@laiskiainen.org, takamichiho@gmail.com,
+	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
+	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 4/7] media: change dvb-frontend to honor MC tuner enable error
+Date: Tue, 14 Jul 2015 18:34:03 -0600
+Message-Id: <3fd487dbc197e7bcba390dc0d820b4264f426ff0.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: ALSA ML
+Change dvb_frontend_thread() to honor MC tuner enable error and
+return as opposed to ignoring the error and continuing to use it.
 
-On 07/08/2015 01:16 PM, Mauro Carvalho Chehab wrote:
-> Hi,
-> 
-> As discussed on our IRC #v4l channel at Freenode, we'll be running a 3-day
->  Media Controller workshop in Helsinki between July 29-31.
-> 
-> The main goal of this workshop is to fixup the problems with the Media 
-> Controller API to properly represent device nodes and the control tree, as
-> this is a requirement for the Media Controller to be used by DVB, ALSA and
-> radio devices.
-> 
-> This is an invitation-only event, as we want to be sure that we'll have 
-> there people that are actively working with the Media Controller, DVB 
-> and/or ALSA. So, if you think this is for you, please send us an e-mail.
-> 
-> Also, even if you're not able to participate, feel free to submit
-> relevant topics related to the Media Controller, in order to help us to
-> build the workshop's agenda and take other needs into account when working
-> on the needed API changes.
-> 
-> As usual, we'll be using the media-workshop@linuxtv.org ML for the 
-> specific discussions about that, so the ones interested on participate on
-> such discussions and/or be present there are requested to subscribe it,
-> and to submit themes of interest via the mailing lists.
-> 
-> For those interested on this theme, I'll add a list of the most relevant 
-> past discussions about this theme.
-> 
-> Hope to see you there!
-> 
-> Regards, Mauro
-> 
-> ---
-> 
-> The DVB needs with regards to MC are mapped on those two blog entries: 
-> http://blogs.s-osg.org/media-controller-support-for-dvb-part-1/ 
-> http://blogs.s-osg.org/the-role-of-dtv-network-interfaces-in-media-controller-support-for-dvb/
->
->  We had two discussions about MC on our last mini-summit, back on March,
-> 26. The discussions and slides can be found at: 
-> http://linuxtv.org/news.php?entry=2015-05-05.mchehab 
-> http://www.linuxtv.org/downloads/presentations/media_summit_2015_US/dtv_media_controller_discussion_v1.pdf
->
->  A summary of the issues can also be seen on the emails below: 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg85910.html 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg85979.html 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83883.html 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg83884.html
-> 
-> Patches that minimally expose DVB via MC were merged on Kernel 4.1, 
-> although it is currently marked as BROKEN, in order to tag those API 
-> extensions as likely to change on future versions.
-> 
-> The initial patchset proposal for ALSA support on MC is there at: 
-> http://www.spinics.net/lists/linux-media/msg89574.html
-> 
-> The most recent proposal for such fixup can be seen at: 
-> http://www.spinics.net/lists/linux-media/msg91365.html
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 842b9c8..5a86211 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -713,9 +713,8 @@ static int dvb_frontend_thread(void *data)
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	ret = dvb_enable_media_tuner(fe);
+ 	if (ret) {
+-		/* FIXME: return an error if it fails */
+-		dev_info(fe->dvb->device,
+-			"proceeding with FE task\n");
++		dev_err(fe->dvb->device, "Tuner is busy. Error %d\n", ret);
++		return ret;
+ 	} else if (fepriv->pipe_start_entity) {
+ 		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
+ 						  &fepriv->pipe);
+-- 
+2.1.4
+
