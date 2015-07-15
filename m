@@ -1,83 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:36206 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919AbbGPI4s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 04:56:48 -0400
-Received: by lagw2 with SMTP id w2so39446729lag.3
-        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 01:56:47 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC v4 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
-Date: Thu, 16 Jul 2015 10:56:43 +0200
-Message-Id: <1437037003-6113-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57215 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753534AbbGOVAQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2015 17:00:16 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	<linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>,
+	<stable@vger.kernel.org>
+Subject: [Patch v4] media: am437x-vpfe: Fix a race condition during release
+Date: Wed, 15 Jul 2015 16:00:06 -0500
+Message-ID: <1436994006-10120-1-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
-use the controller framework.
+There was a race condition where during cleanup/release operation
+on-going streaming would cause a kernel panic because the hardware
+module was disabled prematurely with IRQ still pending.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Fixes: 417d2e507edc ("[media] media: platform: add VPFE capture driver support for AM437X")
+Cc: <stable@vger.kernel.org> # v4.0+
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
-Changelog
+Changes since v3:
+- fix review comment to protect v4l2_fh_is_singular_file()
 
-v4: Comments by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Remove unneeded  uvc_ctrl_begin()
+ drivers/media/platform/am437x/am437x-vpfe.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-
- drivers/media/usb/uvc/uvc_v4l2.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
-
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 2764f43607c1..7ec7d45b24ed 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1001,6 +1001,31 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
- 	return uvc_ctrl_rollback(handle);
- }
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index a30cc2f7e4f1..5ab50c6babe2 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -1185,14 +1185,24 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe)
+ static int vpfe_release(struct file *file)
+ {
+ 	struct vpfe_device *vpfe = video_drvdata(file);
++	bool fh_singular;
+ 	int ret;
  
-+static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
-+				     struct v4l2_ext_controls *ctrls)
-+{
-+	struct uvc_fh *handle = fh;
-+	struct uvc_video_chain *chain = handle->chain;
-+	struct v4l2_ext_control *ctrl = ctrls->controls;
-+	unsigned int i;
-+	int ret;
-+	struct v4l2_queryctrl qc;
+ 	mutex_lock(&vpfe->lock);
+ 
+-	if (v4l2_fh_is_singular_file(file))
+-		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
++	/* Save the singular status before we call the clean-up helper */
++	fh_singular = v4l2_fh_is_singular_file(file);
 +
-+	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-+		qc.id = ctrl->id;
-+		ret = uvc_query_v4l2_ctrl(chain, &qc);
-+		if (ret < 0) {
-+			ctrls->error_idx = i;
-+			return ret;
-+		}
-+		ctrl->value = qc.default_value;
-+	}
++	/* the release helper will cleanup any on-going streaming */
+ 	ret = _vb2_fop_release(file, NULL);
+ 
++	/*
++	 * If this was the last open file.
++	 * Then de-initialize hw module.
++	 */
++	if (fh_singular)
++		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
 +
-+	ctrls->error_idx = 0;
-+
-+	return 0;
-+}
-+
- static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
- 				     struct v4l2_ext_controls *ctrls,
- 				     bool commit)
-@@ -1500,6 +1525,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
- 	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
- 	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
- 	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
-+	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
- 	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
- 	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
- 	.vidioc_querymenu = uvc_ioctl_querymenu,
+ 	mutex_unlock(&vpfe->lock);
+ 
+ 	return ret;
 -- 
-2.1.4
+1.8.5.1
 
