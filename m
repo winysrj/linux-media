@@ -1,74 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37552 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbbGPQZE (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37823 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463AbbGOVEv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 12:25:04 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: David Airlie <airlied@linux.ie>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	Wed, 15 Jul 2015 17:04:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 0/5] i.MX5/6 mem2mem scaler
-Date: Thu, 16 Jul 2015 18:24:38 +0200
-Message-Id: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+Date: Thu, 16 Jul 2015 00:05:14 +0300
+Message-ID: <2206042.E86xyoYRaG@avalon>
+In-Reply-To: <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Ricardo,
 
-this series uses the IPU IC post-processing task to implement
-a mem2mem device for scaling and colorspace conversion. This
-version addresses a few review commends, and includes some
-further cleanup.
+Thank you for the patch.
 
-Changes since v2:
- - Limit downscaling to 4:1
- - Disabled USERPTR memory
- - Set icc pointer to NULL on error
- - Dropped currently unused IDMAC channels
- - Fixed scaler module description
- - Embedded struct video_device
+On Friday 12 June 2015 18:46:23 Ricardo Ribalda Delgado wrote:
+> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
+> use the controller framework.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index 2764f43607c1..e2698a77138a 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+> void *fh, return uvc_ctrl_rollback(handle);
+>  }
+> 
+> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+> +				     struct v4l2_ext_controls *ctrls)
+> +{
+> +	struct uvc_fh *handle = fh;
+> +	struct uvc_video_chain *chain = handle->chain;
+> +	struct v4l2_ext_control *ctrl = ctrls->controls;
+> +	unsigned int i;
+> +	int ret;
+> +	struct v4l2_queryctrl qc;
+> +
+> +	ret = uvc_ctrl_begin(chain);
 
-If it is acceptable, I'd like to merge this through drm-next via imx-drm.
-Mauro reportedly would be ok with that, and currently the potential for
-conflicts is limited to drivers/media/{Kconfig,Makefile}. If not, I'll
-postpone the two [media] patches for a release.
+There's no need to call uvc_ctrl_begin() here (and if there was, you'd have to 
+call uvc_ctrl_rollback() or uvc_ctrl_commit() before returning).
 
-regards
-Philipp
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> +		qc.id = ctrl->id;
+> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
+> +		if (ret < 0) {
+> +			ctrls->error_idx = i;
+> +			return ret;
+> +		}
+> +		ctrl->value = qc.default_value;
+> +	}
+> +
+> +	ctrls->error_idx = 0;
+> +
+> +	return 0;
+> +}
 
-Philipp Zabel (3):
-  gpu: ipu-v3: Add missing IDMAC channel names
-  gpu: ipu-v3: Add mem2mem image conversion support to IC
-  gpu: ipu-v3: Register scaler platform device
+Instead of open-coding this in multiple drivers, how about adding a helper 
+function to the core ? Something like (totally untested)
 
-Sascha Hauer (2):
-  [media] imx-ipu: Add ipu media common code
-  [media] imx-ipu: Add i.MX IPUv3 scaler driver
+int v4l2_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+                               struct v4l2_ext_controls *ctrls)
+{
+	struct video_device *vdev = video_devdata(file);
+	unsigned int i;
+	int ret;
 
- drivers/gpu/ipu-v3/ipu-common.c             |   2 +
- drivers/gpu/ipu-v3/ipu-ic.c                 | 754 +++++++++++++++++++++++-
- drivers/media/platform/Kconfig              |   2 +
- drivers/media/platform/Makefile             |   1 +
- drivers/media/platform/imx/Kconfig          |  11 +
- drivers/media/platform/imx/Makefile         |   2 +
- drivers/media/platform/imx/imx-ipu-scaler.c | 859 ++++++++++++++++++++++++++++
- drivers/media/platform/imx/imx-ipu.c        | 313 ++++++++++
- drivers/media/platform/imx/imx-ipu.h        |  36 ++
- include/video/imx-ipu-v3.h                  |  49 +-
- 10 files changed, 2012 insertions(+), 17 deletions(-)
- create mode 100644 drivers/media/platform/imx/Kconfig
- create mode 100644 drivers/media/platform/imx/Makefile
- create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
- create mode 100644 drivers/media/platform/imx/imx-ipu.c
- create mode 100644 drivers/media/platform/imx/imx-ipu.h
+	for (i = 0; i < ctrls->count; ++i) {
+		struct v4l2_queryctrl qc;
+
+		qc.id = ctrl->id;
+		ret = vdev->ioctl_ops->vidioc_queryctrl(file, fh, &qc);
+		if (ret < 0) {
+			ctrls->error_idx = i;
+			return ret;
+		}
+
+		ctrls->controls[i].value = qc.default_value;
+	}
+
+	ctrls->error_idx = 0;
+
+	return 0;
+}
+
+The function could be called by v4l_g_def_ext_ctrls() when ops-
+>vidioc_g_def_ext_ctrls is NULL.
+
+>  static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>  				     struct v4l2_ext_controls *ctrls,
+>  				     bool commit)
+> @@ -1500,6 +1529,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
+>  	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
+>  	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
+>  	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
+> +	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
+>  	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
+>  	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
+>  	.vidioc_querymenu = uvc_ioctl_querymenu,
 
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
