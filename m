@@ -1,88 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52294 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:05:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2 3/9] DocBook: document tuner RF gain control
-Date: Thu, 16 Jul 2015 10:04:52 +0300
-Message-Id: <1437030298-20944-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:35978 "EHLO
+	omr1.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752722AbbGOXBc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2015 19:01:32 -0400
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+cc: contact@demhlyr.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ov519.c - allow setting i2c_detect_tries
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Date: Wed, 15 Jul 2015 18:51:53 -0400
+Message-ID: <43010.1437000713@turing-police.cc.vt.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add brief description for tuner RF gain control.
+I encountered a user who was having troubles getting a PlayStation EyeToy
+(USB ID 054c:0155) working as a webcam. They reported that repeated attempts
+would often make it work.  Looking at the code, there was support for
+repeated attempts at I2C transactions - but only if you rebuilt the
+module from source.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
- Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
- 3 files changed, 19 insertions(+)
+Added module parameter support so that users running a distro kernel
+can tune it for recalcitrant devices.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index f56faf5..eb091c7 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
- <constant>V4L2_TUNER_ADC</constant> is deprecated now.
- 	  </para>
- 	</listitem>
-+	<listitem>
-+	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
-+RF Tuner control.</para>
-+	</listitem>
-       </orderedlist>
-     </section>
+While we're at it, fix the comment to reflect the error message actually issued.
+
+Testing:
+
+[/usr/src/linux-next] insmod drivers/media/usb/gspca/gspca_ov519.ko
+[/usr/src/linux-next] cat /sys/module/gspca_ov519/parameters/i2c_detect_tries
+10
+[/usr/src/linux-next] rmmod gspca_ov519
+[/usr/src/linux-next] insmod drivers/media/usb/gspca/gspca_ov519.ko i2c_detect_tries=50
+[/usr/src/linux-next] cat /sys/module/gspca_ov519/parameters/i2c_detect_tries
+50
+[/usr/src/linux-next] modinfo drivers/media/usb/gspca/gspca_ov519.ko | grep parm
+parm:           i2c_detect_tries:Number of times to try to init I2C (default 10) (int)
+parm:           frame_rate:Frame rate (5, 10, 15, 20 or 30 fps) (int)
+
+Reported-By: Demhlyr <contact@demhlyr.de>
+Signed-Off-By: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+
+--- a/drivers/media/usb/gspca/ov519.c	2014-10-21 10:06:09.359806243 -0400
++++ b/drivers/media/usb/gspca/ov519.c	2015-07-15 18:35:21.063790541 -0400
+@@ -57,8 +57,10 @@ MODULE_LICENSE("GPL");
+ static int frame_rate;
  
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 6e1667b..7cae933 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
-               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
-             </row>
-             <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">The RF amplifier is the very first
-+amplifier on the receiver signal path, just right after the antenna input.
-+The difference between the LNA gain and the RF gain in this document is that
-+the LNA gain is integrated in the tuner chip while the RF gain is a separate
-+chip. There may be both RF and LNA gain controls in the same device.
-+The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
-               <entry>integer</entry>
-             </row>
-@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
-               <entry spanname="descr">LNA (low noise amplifier) gain is first
- gain stage on the RF tuner signal path. It is located very close to tuner
- antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
-+See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
-+and LNA gain differs from the each others.
- The range and step are driver-specific.</entry>
-             </row>
-             <row>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index c9eedc1..ab9fca4 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -156,6 +156,7 @@ applications. -->
- 	<date>2015-05-26</date>
- 	<authorinitials>ap</authorinitials>
- 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-+Added V4L2_CID_RF_TUNER_RF_GAIN control.
- 	</revremark>
-       </revision>
+ /* Number of times to retry a failed I2C transaction. Increase this if you
+- * are getting "Failed to read sensor ID..." */
++ * are getting "Can't determine sensor slave IDs" */
+ static int i2c_detect_tries = 10;
++module_param(i2c_detect_tries, int, 0644);
++MODULE_PARM_DESC(i2c_detect_tries,"Number of times to try to init I2C (default 10)");
  
--- 
-http://palosaari.fi/
+ /* ov519 device descriptor */
+ struct sd {
 
