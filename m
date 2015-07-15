@@ -1,174 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49342 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754945AbbGPQNc (ORCPT
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:53120 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751904AbbGOAeW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 12:13:32 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2] [media] coda: Use S_PARM to set nominal framerate for h.264 encoder
-Date: Thu, 16 Jul 2015 18:13:24 +0200
-Message-Id: <1437063204-17127-1-git-send-email-p.zabel@pengutronix.de>
+	Tue, 14 Jul 2015 20:34:22 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH] media-ctl: Update to add support for ALSA devices
+Date: Tue, 14 Jul 2015 18:33:59 -0600
+Message-Id: <1436920452-7548-1-git-send-email-shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The encoder needs to know the nominal framerate for the constant bitrate
-control mechanism to work. Currently the only way to set the framerate is
-by using VIDIOC_S_PARM on the output queue.
+Add support to recognize ALSA media nodes and generate
+media graph that includes ALSA pcm and mixer devices.
+This patch depends on kernel Media Controller changes
+to support ALSA.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
-Changes since v1:
- - Fixed typo in coda_g_parm
----
- drivers/media/platform/coda/coda-common.c | 102 ++++++++++++++++++++++++++++++
- drivers/media/platform/coda/coda_regs.h   |   4 ++
- 2 files changed, 106 insertions(+)
+ utils/media-ctl/libmediactl.c | 18 ++++++++++++------
+ utils/media-ctl/media-ctl.c   |  3 +++
+ utils/media-ctl/mediactl.h    |  4 +++-
+ 3 files changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 367b6ba..5290313 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -15,6 +15,7 @@
- #include <linux/debugfs.h>
- #include <linux/delay.h>
- #include <linux/firmware.h>
-+#include <linux/gcd.h>
- #include <linux/genalloc.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
-@@ -770,6 +771,104 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 	return 0;
- }
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index dce8eeb..329a41a 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -153,7 +153,9 @@ struct media_entity *media_get_default_entity(struct media_device *media,
+ 		return media->def.v4l;
+ 	case MEDIA_ENT_T_DEVNODE_FB:
+ 		return media->def.fb;
+-	case MEDIA_ENT_T_DEVNODE_ALSA:
++	case MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE:
++	case MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK:
++	case MEDIA_ENT_T_DEVNODE_ALSA_MIXER:
+ 		return media->def.alsa;
+ 	case MEDIA_ENT_T_DEVNODE_DVB_FE:
+ 	case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
+@@ -481,7 +483,6 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+ 	if (p == NULL)
+ 		return -EINVAL;
  
-+static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct v4l2_fract *tpf;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
-+	tpf = &a->parm.output.timeperframe;
-+	tpf->denominator = ctx->params.framerate & CODA_FRATE_RES_MASK;
-+	tpf->numerator = 1 + (ctx->params.framerate >>
-+			      CODA_FRATE_DIV_OFFSET);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Approximate timeperframe v4l2_fract with values that can be written
-+ * into the 16-bit CODA_FRATE_DIV and CODA_FRATE_RES fields.
-+ */
-+static void coda_approximate_timeperframe(struct v4l2_fract *timeperframe)
-+{
-+	struct v4l2_fract s = *timeperframe;
-+	struct v4l2_fract f0;
-+	struct v4l2_fract f1 = { 1, 0 };
-+	struct v4l2_fract f2 = { 0, 1 };
-+	unsigned int i, div, s_denominator;
-+
-+	/* Lower bound is 1/65535 */
-+	if (s.numerator == 0 || s.denominator / s.numerator > 65535) {
-+		timeperframe->numerator = 1;
-+		timeperframe->denominator = 65535;
-+		return;
-+	}
-+
-+	/* Upper bound is 65536/1, map everything above to infinity */
-+	if (s.denominator == 0 || s.numerator / s.denominator > 65536) {
-+		timeperframe->numerator = 1;
-+		timeperframe->denominator = 0;
-+		return;
-+	}
-+
-+	/* Reduce fraction to lowest terms */
-+	div = gcd(s.numerator, s.denominator);
-+	if (div > 1) {
-+		s.numerator /= div;
-+		s.denominator /= div;
-+	}
-+
-+	if (s.numerator <= 65536 && s.denominator < 65536) {
-+		*timeperframe = s;
-+		return;
-+	}
-+
-+	/* Find successive convergents from continued fraction expansion */
-+	while (f2.numerator <= 65536 && f2.denominator < 65536) {
-+		f0 = f1;
-+		f1 = f2;
-+
-+		/* Stop when f2 exactly equals timeperframe */
-+		if (s.numerator == 0)
-+			break;
-+
-+		i = s.denominator / s.numerator;
-+
-+		f2.numerator = f0.numerator + i * f1.numerator;
-+		f2.denominator = f0.denominator + i * f2.denominator;
-+
-+		s_denominator = s.numerator;
-+		s.numerator = s.denominator % s.numerator;
-+		s.denominator = s_denominator;
-+	}
-+
-+	*timeperframe = f1;
-+}
-+
-+static uint32_t coda_timeperframe_to_frate(struct v4l2_fract *timeperframe)
-+{
-+	return ((timeperframe->numerator - 1) << CODA_FRATE_DIV_OFFSET) |
-+		timeperframe->denominator;
-+}
-+
-+static int coda_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct v4l2_fract *tpf;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	tpf = &a->parm.output.timeperframe;
-+	coda_approximate_timeperframe(tpf);
-+	ctx->params.framerate = coda_timeperframe_to_frate(tpf);
-+
-+	return 0;
-+}
-+
- static int coda_subscribe_event(struct v4l2_fh *fh,
- 				const struct v4l2_event_subscription *sub)
- {
-@@ -810,6 +909,9 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
+-	sprintf(devname, "/dev/%s", p + 1);
+ 	if (strstr(p + 1, "dvb")) {
+ 		char *s = p + 1;
  
-+	.vidioc_g_parm		= coda_g_parm,
-+	.vidioc_s_parm		= coda_s_parm,
-+
- 	.vidioc_subscribe_event = coda_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 7d02624..00e4f51 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -263,6 +263,10 @@
- #define		CODADX6_PICHEIGHT_MASK				0x3ff
- #define		CODA7_PICHEIGHT_MASK				0xffff
- #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
-+#define		CODA_FRATE_RES_OFFSET				0
-+#define		CODA_FRATE_RES_MASK				0xffff
-+#define		CODA_FRATE_DIV_OFFSET				16
-+#define		CODA_FRATE_DIV_MASK				0xffff
- #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
- #define		CODA_MP4PARAM_VERID_OFFSET			6
- #define		CODA_MP4PARAM_VERID_MASK			0x01
+@@ -493,6 +494,8 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+ 			return -EINVAL;
+ 		*p = '/';
+ 		sprintf(devname, "/dev/dvb/adapter%s", s);
++	} else if (strstr(p + 1, "pcm") || strstr(p + 1, "control")) {
++		sprintf(devname, "/dev/snd/%s", p + 1);
+ 	} else {
+ 		sprintf(devname, "/dev/%s", p + 1);
+ 	}
+@@ -562,7 +565,9 @@ static int media_enum_entities(struct media_device *media)
+ 			case MEDIA_ENT_T_DEVNODE_FB:
+ 				media->def.fb = entity;
+ 				break;
+-			case MEDIA_ENT_T_DEVNODE_ALSA:
++			case MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE:
++			case MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK:
++			case MEDIA_ENT_T_DEVNODE_ALSA_MIXER:
+ 				media->def.alsa = entity;
+ 				break;
+ 			case MEDIA_ENT_T_DEVNODE_DVB_FE:
+@@ -577,8 +582,7 @@ static int media_enum_entities(struct media_device *media)
+ 
+ 		/* Find the corresponding device name. */
+ 		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE &&
+-		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV &&
+-		    entity->info.type == MEDIA_ENT_T_DEVNODE_ALSA)
++		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			continue;
+ 
+ 		/* Try to get the device name via udev */
+@@ -774,7 +778,9 @@ int media_device_add_entity(struct media_device *media,
+ 		defent = &media->def.fb;
+ 		entity->info.fb = desc->fb;
+ 		break;
+-	case MEDIA_ENT_T_DEVNODE_ALSA:
++	case MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE:
++	case MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK:
++	case MEDIA_ENT_T_DEVNODE_ALSA_MIXER:
+ 		defent = &media->def.alsa;
+ 		entity->info.alsa = desc->alsa;
+ 		break;
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 602486f..85151b5 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -290,6 +290,9 @@ static const char *media_entity_subtype_to_string(unsigned type)
+ 		"DVB DVR",
+ 		"DVB CA",
+ 		"DVB NET",
++		"ALSA CAPTURE",
++		"ALSA PLAYBACK",
++		"ALSA MIXER",
+ 	};
+ 	static const char *subdev_types[] = {
+ 		"Unknown",
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 03d9f70..3ac91eb 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -305,7 +305,9 @@ struct media_entity *media_get_entity(struct media_device *media, unsigned int i
+  *
+  *	MEDIA_ENT_T_DEVNODE_V4L
+  *	MEDIA_ENT_T_DEVNODE_FB
+- *	MEDIA_ENT_T_DEVNODE_ALSA
++ *	MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE
++ *	MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK
++ *	MEDIA_ENT_T_DEVNODE_ALSA_MIXER
+  *	MEDIA_ENT_T_DEVNODE_DVB_FE
+  *	MEDIA_ENT_T_DEVNODE_DVB_DEMUX
+  *	MEDIA_ENT_T_DEVNODE_DVB_DVR
 -- 
 2.1.4
 
