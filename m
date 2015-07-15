@@ -1,82 +1,123 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <severe.siberian.man@mail.ru>) id 1Z13K4-0004Yg-L3
-	for linux-dvb@linuxtv.org; Sat, 06 Jun 2015 03:54:57 +0200
-Received: from f396.i.mail.ru ([185.5.136.67])
-	by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
-	[UNKNOWN:AES256-GCM-SHA384:256] for <linux-dvb@linuxtv.org>
-	id 1Z13K2-0006MV-7V; Sat, 06 Jun 2015 03:54:55 +0200
-Received: from [171.33.253.112] (ident=mail)
-	by f396.i.mail.ru with local (envelope-from
-	<severe.siberian.man@mail.ru>) id 1Z13Jz-0001bL-PV
-	for linux-dvb@linuxtv.org; Sat, 06 Jun 2015 04:54:52 +0300
-From: =?UTF-8?B?U2V2ZXJlIFNpYmVyaWFu?= <severe.siberian.man@mail.ru>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Date: Sat, 06 Jun 2015 04:54:51 +0300
-Message-ID: <1433555691.386561465@f396.i.mail.ru>
-Subject: [linux-dvb] =?utf-8?q?New_Si2168_B40_frimware=2E?=
-Reply-To: linux-media@vger.kernel.org,
-	=?UTF-8?B?U2V2ZXJlIFNpYmVyaWFu?= <severe.siberian.man@mail.ru>
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1035928577=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48099 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751541AbbGOCwb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2015 22:52:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 83ABA2A0089
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2015 04:51:32 +0200 (CEST)
+Date: Wed, 15 Jul 2015 04:51:32 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150715025132.83ABA2A0089@tschai.lan>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---===============1035928577==
-Content-Type: multipart/alternative;
-	boundary="--ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691"
+Results of the daily build of media_tree:
 
+date:		Wed Jul 15 04:00:15 CEST 2015
+git branch:	test
+git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-44-g40791b9
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-IEhpLAoKWWVzdGVyZGF5IEkgZXh0cmFjdGVkIGEgbmV3IGZpcm13YXJlIGZvciBTaTIxNjggQjQw
-IHJldi4gZnJvbSBXaW5kb3dzIGRyaXZlci4KSXQncyBkZXNpZ25lZCBmb3IgUk9NIHZlcnNpb24g
-NC4wLjIgYW5kIGhhcyBhIHZlcnNpb24gYnVpbGQgNC4wLjE5CkhlcmUgaXMgYSBuYW1lIG9mIGZp
-bGU6ZHZiLWRlbW9kLXNpMjE2OC1iNDAtcm9tNF8wXzItcGF0Y2gtYnVpbGQ0XzBfMTkuZncudGFy
-Lmd6CkFuZCBhIGxpbmsgZm9yIGRvd25sb2FkOiAgaHR0cDovL2JlaG9sZGVyLnJ1L2JiL2Rvd25s
-b2FkL2ZpbGUucGhwP2lkPTg1NApBbnlib2R5IHdhbnQgdG8gdGVzdCBpdD8gVW5mb3J0dW5hdGVs
-eSwgSSBjYW4gbm90IGRvIGl0IG15c2VsZiwgYmVjYXVzZSBJIGRvIG5vdCBvd24gaGFyZHdhcmUg
-d2l0aCBCNDAgcmV2aXNpb24uCgpCZXN0IHJlZ2FyZHMuCg==
+Detailed results are available here:
 
-----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: base64
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-CjxIVE1MPjxCT0RZPkhpLDxicj4KPGJyPgpZZXN0ZXJkYXkgSSBleHRyYWN0ZWQgYSBuZXcgZmly
-bXdhcmUgZm9yIFNpMjE2OCBCNDAgcmV2LiBmcm9tIFdpbmRvd3MgZHJpdmVyLjxicj4KSXQncyBk
-ZXNpZ25lZCBmb3IgUk9NIHZlcnNpb24gNC4wLjIgYW5kIGhhcyBhIHZlcnNpb24gYnVpbGQgNC4w
-LjE5PGJyPgpIZXJlIGlzIGEgbmFtZSBvZiBmaWxlOmR2Yi1kZW1vZC1zaTIxNjgtYjQwLXJvbTRf
-MF8yLXBhdGNoLWJ1aWxkNF8wXzE5LmZ3LnRhci5nejxicj4KQW5kIGEgbGluayBmb3IgZG93bmxv
-YWQ6IDxhIGhyZWY9Imh0dHA6Ly9iZWhvbGRlci5ydS9iYi9kb3dubG9hZC9maWxlLnBocD9pZD04
-NTQiIHRhcmdldD0iX2JsYW5rIj5odHRwOi8vYmVob2xkZXIucnUvYmIvZG93bmxvYWQvZmlsZS5w
-aHA/aWQ9ODU0PC9hPjxicj4KQW55Ym9keSB3YW50IHRvIHRlc3QgaXQ/IFVuZm9ydHVuYXRlbHks
-IEkgY2FuIG5vdCBkbyBpdCBteXNlbGYsIGJlY2F1c2UgSSBkbyBub3Qgb3duIGhhcmR3YXJlIHdp
-dGggQjQwIHJldmlzaW9uLjxicj48YnI+QmVzdCByZWdhcmRzLjxicj48L0JPRFk+PC9IVE1MPgo=
+Full logs are available here:
 
-----ALT--NuiYtQKIMEQgO17DXEVLzkPNz4nWJVW01433555691--
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
---===============1035928577==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1035928577==--
+http://www.xs4all.nl/~hverkuil/spec/media.html
