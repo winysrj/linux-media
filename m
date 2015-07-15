@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:35314 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342AbbGNPmx (ORCPT
+Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:58471 "EHLO
+	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752047AbbGOAe1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 11:42:53 -0400
-Received: by ykdu72 with SMTP id u72so11369265ykd.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Jul 2015 08:42:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAM_ZknU-emTOt3c2mS1cC+YZ4hTbev-W-z9GLAP5wHuqF2pfCw@mail.gmail.com>
-References: <CAM_ZknV+AEpxbPkKjDo68kRq-5fg1b7p77s+gfF3XGLZS9Tvyg@mail.gmail.com>
-	<CAM_ZknWEjUTy0btqFYhJvSJiAFV6uTJzB3ceZzEMxNkKHr2dTg@mail.gmail.com>
-	<CAM_ZknU-emTOt3c2mS1cC+YZ4hTbev-W-z9GLAP5wHuqF2pfCw@mail.gmail.com>
-Date: Tue, 14 Jul 2015 18:42:52 +0300
-Message-ID: <CAM_ZknWx8fAZAsUJLATY-As9yRWBos8JcuP_G4Z2r_MWS6GpjA@mail.gmail.com>
-Subject: Re: tw5864 driver development, help needed
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Linux Media <linux-media@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 14 Jul 2015 20:34:27 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, dan.carpenter@oracle.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
+	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
+	pmatilai@laiskiainen.org, takamichiho@gmail.com,
+	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
+	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 3/7] media: Add ALSA Media Controller devnodes
+Date: Tue, 14 Jul 2015 18:34:02 -0600
+Message-Id: <78cb5dd3bb7d5e531c66384c48ee35aa89903b75.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An update with a request for help.
+Add ALSA Media Controller capture, playback, and mixer
+devnode defines.
 
-Asking for help with h264 headers generation. Both copying headers
-from similar videos and porting headers generation code from reference
-driver don't work for me (ref driver is weird and very complicated, so
-porting involved importing of lots of code, but still in my case the
-generated header differs from the one produced by reference driver,
-and resulting files are not decodable).
-Wireshark seems not able to dissect raw h264 files, so that I could
-compare headers bitfield-wise.
-I have dumped 64 first encoded frames as they appear from hardware, so
-that you could look at it.
-This is archive: http://lizard.bluecherry.net/~autkin/vlc.tar.gz and
-this is contents list of archive
-http://lizard.bluecherry.net/~autkin/vlc.contents
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ include/uapi/linux/media.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Only one camera is attached to this multi-channel video grabber and
-encoder, and i don't know which chip has it (4, 5, 6 or 7).
-The produced frames should have the same settings as this file:
-http://lizard.bluecherry.net/~autkin/test_main.h264
-This is PAL D1, 720x576.
-Thanks in advance for any help. At last, the ability to look at
-visualization of those h264 streams would be great.
-
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4e816be..4a30ea3 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -49,12 +49,17 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
+ #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
++/* Legacy ALSA symbol. Keep it to avoid userspace compilation breakages */
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+ #define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+ #define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+ #define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+ #define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+ #define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
++/* ALSA devnodes */
++#define MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE	(MEDIA_ENT_T_DEVNODE + 9)
++#define MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK	(MEDIA_ENT_T_DEVNODE + 10)
++#define MEDIA_ENT_T_DEVNODE_ALSA_MIXER		(MEDIA_ENT_T_DEVNODE + 11)
+ 
+ /* Legacy symbol. Use it to avoid userspace compilation breakages */
+ #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
 -- 
-Bluecherry developer.
+2.1.4
+
