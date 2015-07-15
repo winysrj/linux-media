@@ -1,136 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:33712 "EHLO
-	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439AbbGVWnA (ORCPT
+Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:59398 "EHLO
+	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751558AbbGOAkI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:43:00 -0400
+	Tue, 14 Jul 2015 20:40:08 -0400
 From: Shuah Khan <shuahkh@osg.samsung.com>
 To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, dan.carpenter@oracle.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
+	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
+	pmatilai@laiskiainen.org, takamichiho@gmail.com,
+	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
+	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
 Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 17/19] media: dvb-frontend change to check for tuner availability from open
-Date: Wed, 22 Jul 2015 16:42:18 -0600
-Message-Id: <0d159793e88737e4b1774ebcb4eb8a1d2f8ed1a0.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+	alsa-devel@alsa-project.org
+Subject: [PATCH 6/7] media: au0828 change to use Managed Media Controller API
+Date: Tue, 14 Jul 2015 18:34:05 -0600
+Message-Id: <3643452be528b2e53cea592db22b4e0ada32456b.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Checking for tuner availability from frontend thread start
-disrupts video stream. Change to check for tuner and start
-pipeline from frontend open instead and stop pipeline from
-frontend release.
+Change au0828 to use Managed Media Controller API to coordinate
+creating/deleting media device on parent usb device it shares
+with the snd-usb-audio driver. With this change, au0828 uses
+media_device_get_devres() to allocate a new media device devres
+or return an existing one, if it finds one.
+
+In addition, au0828 registers entity_notify hook to create media
+graph for the device. It creates necessary links from video, vbi,
+and ALSA entities to decoder and links tuner and decoder entities.
 
 Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 43 ++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 24 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 132 ++++++++++++++++++++-------------
+ drivers/media/usb/au0828/au0828.h      |   5 ++
+ 2 files changed, 85 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 842b9c8..b394e1e 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -694,10 +694,6 @@ static int dvb_frontend_thread(void *data)
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	enum fe_status s;
- 	enum dvbfe_algo algo;
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 0378a2c..492e910 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include "au0828.h"
++#include "au8522.h"
+ 
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -131,10 +132,12 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ {
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	if (dev->media_dev) {
+-		media_device_unregister(dev->media_dev);
+-		kfree(dev->media_dev);
+-		dev->media_dev = NULL;
++	if (dev->media_dev &&
++		media_devnode_is_registered(&dev->media_dev->devnode)) {
++			media_device_unregister_entity_notify(dev->media_dev,
++							&dev->entity_notify);
++			media_device_unregister(dev->media_dev);
++			dev->media_dev = NULL;
+ 	}
+ #endif
+ }
+@@ -196,53 +199,23 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	au0828_usb_release(dev);
+ }
+ 
+-static void au0828_media_device_register(struct au0828_dev *dev,
+-					  struct usb_device *udev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_device *mdev;
 -	int ret;
--#endif
 -
- 	bool re_tune = false;
- 	bool semheld = false;
- 
-@@ -710,20 +706,6 @@ static int dvb_frontend_thread(void *data)
- 	fepriv->wakeup = 0;
- 	fepriv->reinitialise = 0;
- 
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	ret = dvb_enable_media_tuner(fe);
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+-	if (!mdev)
+-		return;
+-
+-	mdev->dev = &udev->dev;
+-
+-	if (!dev->board.name)
+-		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
+-	else
+-		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
+-	if (udev->serial)
+-		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+-	strcpy(mdev->bus_info, udev->devpath);
+-	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+-	mdev->driver_version = LINUX_VERSION_CODE;
+-
+-	ret = media_device_register(mdev);
 -	if (ret) {
--		/* FIXME: return an error if it fails */
--		dev_info(fe->dvb->device,
--			"proceeding with FE task\n");
--	} else if (fepriv->pipe_start_entity) {
--		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
--						  &fepriv->pipe);
--		if (ret)
--			return ret;
+-		pr_err(
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
 -	}
--#endif
 -
- 	dvb_frontend_init(fe);
+-	dev->media_dev = mdev;
+-#endif
+-}
+-
+-
+-static void au0828_create_media_graph(struct au0828_dev *dev)
++void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
++	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *entity;
+ 	struct media_entity *tuner = NULL, *decoder = NULL;
++	struct media_entity *alsa_capture = NULL;
++	int ret = 0;
  
- 	set_freezable();
-@@ -833,12 +815,6 @@ restart:
+ 	if (!mdev)
+ 		return;
+ 
++	if (dev->tuner_linked && dev->vdev_linked && dev->vbi_linked &&
++		dev->alsa_capture_linked)
++		return;
++
+ 	media_device_for_each_entity(entity, mdev) {
+ 		switch (entity->type) {
+ 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+@@ -251,6 +224,9 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+ 		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
+ 			decoder = entity;
+ 			break;
++		case MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE:
++			alsa_capture = entity;
++			break;
  		}
  	}
  
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	if (fepriv->pipe_start_entity)
--		media_entity_pipeline_stop(fepriv->pipe_start_entity);
--	fepriv->pipe_start_entity = NULL;
--#endif
--
- 	if (dvb_powerdown_on_sleep) {
- 		if (fe->ops.set_voltage)
- 			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
-@@ -2616,6 +2592,20 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
- 		fepriv->tone = -1;
- 		fepriv->voltage = -1;
+@@ -259,15 +235,69 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+ 	if (!decoder)
+ 		return;
  
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		ret = dvb_enable_media_tuner(fe);
+-	if (tuner)
+-		media_entity_create_link(tuner, 0, decoder, 0,
++	if (tuner && !dev->tuner_linked) {
++		ret = media_entity_create_link(tuner, 0, decoder, 0,
+ 					 MEDIA_LNK_FL_ENABLED);
+-	if (dev->vdev.entity.links)
+-		media_entity_create_link(decoder, 1, &dev->vdev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
+-	if (dev->vbi_dev.entity.links)
+-		media_entity_create_link(decoder, 2, &dev->vbi_dev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->tuner_linked = 1;
++	}
++	if (dev->vdev.entity.links && !dev->vdev_linked) {
++		ret = media_entity_create_link(decoder, AU8522_PAD_VID_OUT,
++				&dev->vdev.entity, 0, MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->vdev_linked = 1;
++	}
++	if (dev->vbi_dev.entity.links && !dev->vbi_linked) {
++		ret = media_entity_create_link(decoder, AU8522_PAD_VBI_OUT,
++				&dev->vbi_dev.entity, 0, MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->vbi_linked = 1;
++	}
++	if (alsa_capture && !dev->alsa_capture_linked) {
++		ret = media_entity_create_link(decoder, AU8522_PAD_AUDIO_OUT,
++						alsa_capture, 0,
++						MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->alsa_capture_linked = 1;
++	}
++#endif
++}
++
++static void au0828_media_device_register(struct au0828_dev *dev,
++					  struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev;
++	int ret;
++
++	mdev = media_device_get_devres(&udev->dev);
++	if (!mdev)
++		return;
++
++	if (!media_devnode_is_registered(&mdev->devnode)) {
++		/* register media device */
++		mdev->dev = &udev->dev;
++		if (udev->product)
++			strlcpy(mdev->model, udev->product,
++				sizeof(mdev->model));
++		if (udev->serial)
++			strlcpy(mdev->serial, udev->serial,
++				sizeof(mdev->serial));
++		strcpy(mdev->bus_info, udev->devpath);
++		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++		ret = media_device_register(mdev);
 +		if (ret) {
-+			dev_err(fe->dvb->device,
-+				"Tuner is busy. Error %d\n", ret);
-+			goto err1;
-+		} else if (fepriv->pipe_start_entity) {
-+			ret = media_entity_pipeline_start(
-+						fepriv->pipe_start_entity,
-+						&fepriv->pipe);
-+			if (ret)
-+				goto err1;
++			dev_err(&udev->dev,
++				"Couldn't create a media device. Error: %d\n",
++				ret);
++			return;
 +		}
-+#endif
- 		ret = dvb_frontend_start (fe);
- 		if (ret)
- 			goto err2;
-@@ -2659,6 +2649,11 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
- 		wake_up(&fepriv->wait_queue);
- 		if (fe->exit != DVB_FE_NO_EXIT)
- 			wake_up(&dvbdev->wait_queue);
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		if (fepriv->pipe_start_entity)
-+			media_entity_pipeline_stop(fepriv->pipe_start_entity);
-+		fepriv->pipe_start_entity = NULL;
-+#endif
- 		if (fe->ops.ts_bus_ctrl)
- 			fe->ops.ts_bus_ctrl(fe, 0);
- 	}
++		/* register entity_notify callback */
++		dev->entity_notify.notify_data = (void *) dev;
++		dev->entity_notify.notify = au0828_create_media_graph;
++		media_device_register_entity_notify(mdev, &dev->entity_notify);
++	}
++	dev->media_dev = mdev;
+ #endif
+ }
+ 
+@@ -383,8 +413,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 
+ 	mutex_unlock(&dev->lock);
+ 
+-	au0828_create_media_graph(dev);
+-
+ 	return retval;
+ }
+ 
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index d3644b3..a59ba08 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -281,6 +281,11 @@ struct au0828_dev {
+ 	struct media_device *media_dev;
+ 	struct media_pad video_pad, vbi_pad;
+ 	struct media_entity *decoder;
++	struct media_entity_notify entity_notify;
++	bool tuner_linked;
++	bool vdev_linked;
++	bool vbi_linked;
++	bool alsa_capture_linked;
+ #endif
+ };
+ 
 -- 
 2.1.4
 
