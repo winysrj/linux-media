@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40105 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbbGASHL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2015 14:07:11 -0400
-Message-ID: <55942C4C.70209@infradead.org>
-Date: Wed, 01 Jul 2015 11:07:08 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:36009 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753502AbbGOXR7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2015 19:17:59 -0400
+Received: by ieik3 with SMTP id k3so44918568iei.3
+        for <linux-media@vger.kernel.org>; Wed, 15 Jul 2015 16:17:58 -0700 (PDT)
 MIME-Version: 1.0
-To: Jim Davis <jim.epost@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>, pawel@osciak.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	mchehab@osg.samsung.com, linux-media <linux-media@vger.kernel.org>
-Subject: Re: randconfig build error with next-20150620, in drivers/media/v4l2-core/videobuf2-core.c
-References: <CA+r1Zhheo-_o_AJ2sji6FPKNLiHYmjP81__saW7Jv63wMex9BQ@mail.gmail.com>
-In-Reply-To: <CA+r1Zhheo-_o_AJ2sji6FPKNLiHYmjP81__saW7Jv63wMex9BQ@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1435318645-20565-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+References: <1435318645-20565-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Date: Thu, 16 Jul 2015 02:17:58 +0300
+Message-ID: <CALi4nhrbYb9Mo+vgQuhDUN2YA+16kcQgLojf-a8_yZne_X3iTA@mail.gmail.com>
+Subject: Re: [PATCH v4 1/1] V4L2: platform: Add Renesas R-Car JPEG codec driver.
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"j.anaszewski" <j.anaszewski@samsung.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/15 09:44, Jim Davis wrote:
-> Building with the attached random configuration file,
-> 
-> drivers/media/v4l2-core/videobuf2-core.c: In function ‘vb2_warn_zero_bytesused’:
-> drivers/media/v4l2-core/videobuf2-core.c:1253:2: error: implicit declaration of
-> function ‘__WARN’ [-Werror=implicit-function-declaration]
->   __WARN();
->   ^
-> 
+Hello,
 
-When CONFIG_BUG is not enabled, there is no definition of __WARN().
+If you have any comments or suggestion, please let me know :)
+Asking because it seems stuck for nearly a 3 weeks...
 
-Should be add an empty stub for __WARN() or just change the only
-user (caller) of it to do something different?
+
+2015-06-26 14:37 GMT+03:00 Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>:
+> Here's the driver for the Renesas R-Car JPEG processing unit.
+
+[snip]
 
 -- 
-~Randy
+W.B.R, Mikhail.
