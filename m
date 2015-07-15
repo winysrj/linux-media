@@ -1,71 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:56623 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbbGLN6W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2015 09:58:22 -0400
-Date: Sun, 12 Jul 2015 15:58:06 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@intel.com>
-Subject: Re: [PATCH v2 1/4] media: pxa_camera: fix the buffer free path
-In-Reply-To: <1436120872-24484-2-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.1507121557210.32193@axis700.grange>
-References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
- <1436120872-24484-2-git-send-email-robert.jarzmik@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:37228 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752044AbbGOAe0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2015 20:34:26 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, dan.carpenter@oracle.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
+	agoode@google.com, pierre-louis.bossart@linux.intel.com,
+	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
+	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
+	pmatilai@laiskiainen.org, takamichiho@gmail.com,
+	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
+	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 2/7] media: Media Controller register/unregister entity_notify API
+Date: Tue, 14 Jul 2015 18:34:01 -0600
+Message-Id: <21da4006a0f95ec7aad81539e58df5ef04a173cb.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Add new interfaces to register and unregister entity_notify
+hook to media device to allow drivers to take appropriate
+actions when as new entities get added to the shared media
+device.When a new entity is registered, all registered
+entity_notify hooks are invoked to allow drivers or modules
+that registered hook to take appropriate action. For example,
+ALSA driver registers an entity_notify hook to parse the list
+of registered entities to determine if decoder has been linked
+to ALSA entity. au0828 bridge driver registers an entity_notify
+hook to create media graph for the device.
 
-On Sun, 5 Jul 2015, Robert Jarzmik wrote:
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 45 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h | 23 ++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
 
-> From: Robert Jarzmik <robert.jarzmik@intel.com>
-> 
-> Fix the error path where the video buffer wasn't allocated nor
-> mapped. In this case, in the driver free path don't try to unmap memory
-> which was not mapped in the first place.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c55ab50..22565a8 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
++	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 
+@@ -411,9 +412,12 @@ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
++	struct media_entity_notify *notify, *nextp;
+ 
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, list)
+ 		media_device_unregister_entity(entity);
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		media_device_unregister_entity_notify(mdev, notify);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	media_devnode_unregister(&mdev->devnode);
+@@ -421,6 +425,39 @@ void media_device_unregister(struct media_device *mdev)
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+ /**
++ * media_device_register_entity_notify - Register a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:	The media device
++ * @nptr:	The media_entity_notify
++ */
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	spin_unlock(&mdev->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/**
++ * media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:	The media device
++ * @nptr:	The media_entity_notify
++ */
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_del(&nptr->list);
++	spin_unlock(&mdev->lock);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
++
++/**
+  * media_device_register_entity - Register an entity with a media device
+  * @mdev:	The media device
+  * @entity:	The entity
+@@ -428,6 +465,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity_notify *notify, *next;
++
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->parent != NULL);
+ 	entity->parent = mdev;
+@@ -440,6 +479,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	list_add_tail(&entity->list, &mdev->entities);
+ 	spin_unlock(&mdev->lock);
+ 
++	/* invoke entity_notify callbacks */
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
++		(notify)->notify(entity, notify->notify_data);
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity);
+@@ -462,6 +506,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
++	/* invoke entity_notify callbacks to handle entity removal?? */
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index a44f18f..a3854f6 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -32,6 +32,12 @@
+ 
+ struct device;
+ 
++struct media_entity_notify {
++	struct list_head list;
++	void *notify_data;
++	void (*notify)(struct media_entity *entity, void *notify_data);
++};
++
+ /**
+  * struct media_device - Media device
+  * @dev:	Parent device
+@@ -70,6 +76,8 @@ struct media_device {
+ 
+ 	u32 entity_id;
+ 	struct list_head entities;
++	/* notify callback list invoked when a new entity is registered */
++	struct list_head entity_notify;
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
+@@ -94,6 +102,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+ #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
+ void media_device_unregister(struct media_device *mdev);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity);
+ void media_device_unregister_entity(struct media_entity *entity);
+@@ -112,6 +124,17 @@ static inline int media_device_register(struct media_device *mdev)
+ static inline void media_device_unregister(struct media_device *mdev)
+ {
+ }
++static inline int media_device_register_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++}
+ static inline int media_device_register_entity(struct media_device *mdev,
+ 						struct media_entity *entity)
+ {
+-- 
+2.1.4
 
-Have I missed your reply to my comments to v1 of this patch? This one 
-seems to be its exact copy?
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/platform/soc_camera/pxa_camera.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> index 8d6e343..3ca33f0 100644
-> --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> @@ -272,8 +272,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  	 * longer in STATE_QUEUED or STATE_ACTIVE
->  	 */
->  	videobuf_waiton(vq, &buf->vb, 0, 0);
-> -	videobuf_dma_unmap(vq->dev, dma);
-> -	videobuf_dma_free(dma);
-> +	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
-> +		return;
->  
->  	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
->  		if (buf->dmas[i].sg_cpu)
-> @@ -283,6 +283,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  					  buf->dmas[i].sg_dma);
->  		buf->dmas[i].sg_cpu = NULL;
->  	}
-> +	videobuf_dma_unmap(vq->dev, dma);
-> +	videobuf_dma_free(dma);
->  
->  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
-> -- 
-> 2.1.4
-> 
