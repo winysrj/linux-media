@@ -1,66 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36891 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbbGQODG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47873 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752319AbbGPQDM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 10:03:06 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 1/4] [media] tc358743: register v4l2 asynchronous subdevice
-Date: Fri, 17 Jul 2015 16:02:53 +0200
-Message-Id: <1437141776-8967-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 16 Jul 2015 12:03:12 -0400
+Message-ID: <55A7D56E.3000200@iki.fi>
+Date: Thu, 16 Jul 2015 19:01:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Tony Lindgren <tony@atomide.com>, mike@compulab.co.il,
+	grinberg@compulab.co.il
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
+References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com> <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com> <55A7D192.7080301@iki.fi> <2232801.mhgotKSpyF@avalon>
+In-Reply-To: <2232801.mhgotKSpyF@avalon>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for registering the sensor subdevice using the v4l2-async API.
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Thursday 16 July 2015 18:45:22 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> The OMAP3 ISP is now fully supported in DT, remove its instantiation
+>>> from C code.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  arch/arm/mach-omap2/devices.c | 53 --------------------------------------
+>>>  arch/arm/mach-omap2/devices.h | 19 ----------------
+>>>  2 files changed, 72 deletions(-)
+>>>  delete mode 100644 arch/arm/mach-omap2/devices.h
+>>
+>> If you remove the definitions, arch/arm/mach-omap2/board-cm-t35.c will
+>> no longer compile. Could you remove the camera support there as well?
+>>
+>> My understanding is the board might be supported in DT but I'm not sure
+>> about camera.
+>>
+>> Cc Mike and Igor.
+> 
+> commit 11cd7b8c2773d01e4b40e38568ae62c471a2ea10
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Mon May 4 10:48:07 2015 -0700
+> 
+>     ARM: OMAP2+: Remove legacy booting support for cm-t35
+> 
+> 
+> Merged in v4.2-rc1 :-)
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tc358743.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Oh, I missed that one. Good!
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 34d4f32..8d9906b 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1710,6 +1710,16 @@ static int tc358743_probe(struct i2c_client *client,
- 		goto err_hdl;
- 	}
- 
-+	state->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
-+	if (err < 0)
-+		goto err_hdl;
-+
-+	sd->dev = &client->dev;
-+	err = v4l2_async_register_subdev(sd);
-+	if (err < 0)
-+		goto err_hdl;
-+
- 	mutex_init(&state->confctl_mutex);
- 
- 	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
-@@ -1740,6 +1750,7 @@ err_work_queues:
- 	destroy_workqueue(state->work_queues);
- 	mutex_destroy(&state->confctl_mutex);
- err_hdl:
-+	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(&state->hdl);
- 	return err;
- }
-@@ -1751,8 +1762,10 @@ static int tc358743_remove(struct i2c_client *client)
- 
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
-+	v4l2_async_unregister_subdev(sd);
- 	v4l2_device_unregister_subdev(sd);
- 	mutex_destroy(&state->confctl_mutex);
-+	media_entity_cleanup(&sd->entity);
- 	v4l2_ctrl_handler_free(&state->hdl);
- 
- 	return 0;
 -- 
-2.1.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
