@@ -1,62 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.leissner.se ([212.3.1.210]:21048 "EHLO
-	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916AbbGGPij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 11:38:39 -0400
-Date: Tue, 7 Jul 2015 17:38:25 +0200 (SST)
-From: Peter Fassberg <pf@leissner.se>
-To: Patrick Boettcher <patrick.boettcher@posteo.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-In-Reply-To: <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
-Message-ID: <alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <20150705184449.0017f114@lappi3.parrot.biz> <alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se> <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45423 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752086AbbGPHjv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2015 03:39:51 -0400
+Message-ID: <55A75F63.1020304@xs4all.nl>
+Date: Thu, 16 Jul 2015 09:38:11 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com> <2206042.E86xyoYRaG@avalon>
+In-Reply-To: <2206042.E86xyoYRaG@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Jul 2015, Patrick Boettcher wrote:
-
->> I installed the 32-bit version of the same OS (Debian 8, kernel 3.16.0, i386) and the result was a bit suprising.
+On 07/15/15 23:05, Laurent Pinchart wrote:
+> Hi Ricardo,
+> 
+> Thank you for the patch.
+> 
+> On Friday 12 June 2015 18:46:23 Ricardo Ribalda Delgado wrote:
+>> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
+>> use the controller framework.
 >>
->> In 32-bit I couldn't even scan a DVT-T transponder!  dvbv5-scan did Lock, but it didn't find any PSI PIDs.  So there is for sure a problem with 32-bit platforms.  And the DVT-T2 transponders didn't work either.
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
+>>  1 file changed, 30 insertions(+)
 >>
->> Maybe the Raspberry problem can be a Endianess problem?
->
-> No, rpi (arm) is little-endian as Intel.
->
-> Which drivers is your device using again?
+>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+>> b/drivers/media/usb/uvc/uvc_v4l2.c index 2764f43607c1..e2698a77138a 100644
+>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+>> void *fh, return uvc_ctrl_rollback(handle);
+>>  }
+>>
+>> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+>> +				     struct v4l2_ext_controls *ctrls)
+>> +{
+>> +	struct uvc_fh *handle = fh;
+>> +	struct uvc_video_chain *chain = handle->chain;
+>> +	struct v4l2_ext_control *ctrl = ctrls->controls;
+>> +	unsigned int i;
+>> +	int ret;
+>> +	struct v4l2_queryctrl qc;
+>> +
+>> +	ret = uvc_ctrl_begin(chain);
+> 
+> There's no need to call uvc_ctrl_begin() here (and if there was, you'd have to 
+> call uvc_ctrl_rollback() or uvc_ctrl_commit() before returning).
+> 
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+>> +		qc.id = ctrl->id;
+>> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
+>> +		if (ret < 0) {
+>> +			ctrls->error_idx = i;
+>> +			return ret;
+>> +		}
+>> +		ctrl->value = qc.default_value;
+>> +	}
+>> +
+>> +	ctrls->error_idx = 0;
+>> +
+>> +	return 0;
+>> +}
+> 
+> Instead of open-coding this in multiple drivers, how about adding a helper 
+> function to the core ? Something like (totally untested)
 
-[    7.245815] em28xx: New device PCTV PCTV 292e @ 480 Mbps (2013:025f, interface 0, class 0)
-[    7.256731] em28xx: DVB interface 0 found: isoc
-[    7.262712] em28xx: chip ID is em28178
-[    9.258341] em28178 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x5110ff04
-[    9.267163] em28178 #0: EEPROM info:
-[    9.272644] em28178 #0:      microcode start address = 0x0004, boot configuration = 0x01
-[    9.291418] em28178 #0:      AC97 audio (5 sample rates)
-[    9.298231] em28178 #0:      500mA max power
-[    9.303993] em28178 #0:      Table at offset 0x27, strings=0x146a, 0x1888, 0x0a7e
-[    9.313288] em28178 #0: Identified as PCTV tripleStick (292e) (card=94)
-[    9.321852] em28178 #0: dvb set to isoc mode.
-[    9.328536] usbcore: registered new interface driver em28xx
-[    9.357476] em28178 #0: Binding DVB extension
-[    9.380909] i2c i2c-1: Added multiplexed i2c bus 2
-[    9.389469] si2168 1-0064: Silicon Labs Si2168 successfully attached
-[    9.410263] si2157 2-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
-[    9.422419] DVB: registering new adapter (em28178 #0)
-[    9.428929] usb 1-1.4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
-[    9.442954] em28178 #0: DVB extension successfully initialized
-[    9.450692] em28xx: Registered (Em28xx dvb Extension) extension
-[    9.482115] em28178 #0: Registering input extension
-[    9.563907] em28178 #0: Input extension successfully initalized
-[    9.571364] em28xx: Registered (Em28xx Input Extension) extension
-[  297.703612] si2168 1-0064: found a 'Silicon Labs Si2168-B40'
-[  300.998391] si2168 1-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-[  301.275434] si2168 1-0064: firmware version: 4.0.4 [  301.284625] si2157 2-0060: found a 'Silicon Labs Si2157-A30'
-[  301.340643] si2157 2-0060: firmware version: 3.0.5
+It's only open-coded in drivers that do not use the control framework. For
+drivers that use the control framework it is completely transparent.
 
+Regards,
 
+	Hans
 
-// Peter
-
+> 
+> int v4l2_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+>                                struct v4l2_ext_controls *ctrls)
+> {
+> 	struct video_device *vdev = video_devdata(file);
+> 	unsigned int i;
+> 	int ret;
+> 
+> 	for (i = 0; i < ctrls->count; ++i) {
+> 		struct v4l2_queryctrl qc;
+> 
+> 		qc.id = ctrl->id;
+> 		ret = vdev->ioctl_ops->vidioc_queryctrl(file, fh, &qc);
+> 		if (ret < 0) {
+> 			ctrls->error_idx = i;
+> 			return ret;
+> 		}
+> 
+> 		ctrls->controls[i].value = qc.default_value;
+> 	}
+> 
+> 	ctrls->error_idx = 0;
+> 
+> 	return 0;
+> }
+> 
+> The function could be called by v4l_g_def_ext_ctrls() when ops-
+>> vidioc_g_def_ext_ctrls is NULL.
+> 
+>>  static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>>  				     struct v4l2_ext_controls *ctrls,
+>>  				     bool commit)
+>> @@ -1500,6 +1529,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
+>>  	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
+>>  	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
+>>  	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
+>> +	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
+>>  	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
+>>  	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
+>>  	.vidioc_querymenu = uvc_ioctl_querymenu,
+> 
