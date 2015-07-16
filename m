@@ -1,49 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:37471 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934139AbbGVBTy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2015 21:19:54 -0400
-Received: by igbpg9 with SMTP id pg9so121497567igb.0
-        for <linux-media@vger.kernel.org>; Tue, 21 Jul 2015 18:19:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20150722004105.GD25644@verge.net.au>
-References: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-	<20150722004105.GD25644@verge.net.au>
-Date: Wed, 22 Jul 2015 04:19:53 +0300
-Message-ID: <CALi4nhrJcDV6gLKVOtt8Y9CBqstAmg=HL5-60EQaem6gC4qhYA@mail.gmail.com>
-Subject: Re: [PATCH 0/3] R-Car JPEG Processing Unit
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-To: Simon Horman <horms@verge.net.au>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, robh+dt@kernel.org,
-	pawel.moll@arm.com, mark.rutland@arm.com,
-	mchehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"j.anaszewski" <j.anaszewski@samsung.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:52294 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753502AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2015 03:05:31 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv2 3/9] DocBook: document tuner RF gain control
+Date: Thu, 16 Jul 2015 10:04:52 +0300
+Message-Id: <1437030298-20944-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
+References: <1437030298-20944-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+Add brief description for tuner RF gain control.
 
-2015-07-22 3:41 GMT+03:00 Simon Horman <horms@verge.net.au>:
-> Hi Mikhail,
->
-> On Tue, Jul 21, 2015 at 05:00:19AM +0300, Mikhail Ulyanov wrote:
->> This series of patches contains a driver for the JPEG codec integrated
->> peripheral found in the Renesas R-Car SoCs and associated DT documentation.
->
-> I am wondering if you have any plans to post patches to integrate this
-> change on any Reneas boards - by which I mean patches to update dts and/or
-> dtsi files. I would be very happy to see such patches submitted for review.
-Yes, i have such plans. I suppose it was already (partially)reviewed.
-https://www.marc.info/?l=linux-sh&m=140867246726948&w=4
-As soon as driver patches will be accepted i will resubmit this patches.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+ Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+ 3 files changed, 19 insertions(+)
 
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index f56faf5..eb091c7 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+ <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+ 	  </para>
+ 	</listitem>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
++RF Tuner control.</para>
++	</listitem>
+       </orderedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 6e1667b..7cae933 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">The RF amplifier is the very first
++amplifier on the receiver signal path, just right after the antenna input.
++The difference between the LNA gain and the RF gain in this document is that
++the LNA gain is integrated in the tuner chip while the RF gain is a separate
++chip. There may be both RF and LNA gain controls in the same device.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+               <entry>integer</entry>
+             </row>
+@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">LNA (low noise amplifier) gain is first
+ gain stage on the RF tuner signal path. It is located very close to tuner
+ antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
++See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
++and LNA gain differs from the each others.
+ The range and step are driver-specific.</entry>
+             </row>
+             <row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index c9eedc1..ab9fca4 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -156,6 +156,7 @@ applications. -->
+ 	<date>2015-05-26</date>
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++Added V4L2_CID_RF_TUNER_RF_GAIN control.
+ 	</revremark>
+       </revision>
+ 
 -- 
-W.B.R, Mikhail.
+http://palosaari.fi/
+
