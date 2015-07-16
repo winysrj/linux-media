@@ -1,108 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:36150 "EHLO
-	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058AbbGTQcr convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43890 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203AbbGPQTt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 12:32:47 -0400
-Received: by qkdv3 with SMTP id v3so115462713qkd.3
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 09:32:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <55AD1C77.6030208@gmail.com>
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-	<55AB5320.8030100@gmail.com>
-	<CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>
-	<55AD1C77.6030208@gmail.com>
-Date: Mon, 20 Jul 2015 12:32:46 -0400
-Message-ID: <CALzAhNVmmAy=4r0Vd=T82HPUrOzxK9Rg2-M=DQ8gUa-DXKsS6w@mail.gmail.com>
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-From: Steven Toth <stoth@kernellabs.com>
-To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
-Cc: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 16 Jul 2015 12:19:49 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 3/3] [media] coda: make NV12 format default
+Date: Thu, 16 Jul 2015 18:19:39 +0200
+Message-Id: <1437063579-10064-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1437063579-10064-1-git-send-email-p.zabel@pengutronix.de>
+References: <1437063579-10064-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 20, 2015 at 12:06 PM, Tycho Lürsen <tycholursen@gmail.com> wrote:
-> Hi Steven,
-> I was not aware of the fact that your patch depends on dvb-core as in
-> 4.2-RC2 (and up, I guess)
-> I tested against 3.18.18 and 4.1.2. That might explain the failures.
-> Anyhow, as soon as Antti and you are on the same page regarding this patch,
-> I'll test again against a 4.2-RC>1
-> Regards,
-> Tycho.
+The chroma interleaved NV12 format has higher memory bandwidth efficiency
+because the chroma planes can be read/written with longer burst lengths.
+Use NV12 as default format if available and consistently sort it first.
 
-Thank you Tycho.
+This patch also shortens the NV12 format name to fit into the fixed
+length string.
 
-I specifically only tested on 4.2, with the entire tree. No attempt
-was made to backport or otherwise test in environments outside on
-prior kernels.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-- Steve
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index d62b828..04310cd 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -90,17 +90,17 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
+ 	u32 base_cb, base_cr;
+ 
+ 	switch (q_data->fourcc) {
+-	case V4L2_PIX_FMT_YVU420:
+-		/* Switch Cb and Cr for YVU420 format */
+-		base_cr = base_y + q_data->bytesperline * q_data->height;
+-		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
+-		break;
+-	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_YUV420:
+ 	default:
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
+ 		break;
++	case V4L2_PIX_FMT_YVU420:
++		/* Switch Cb and Cr for YVU420 format */
++		base_cr = base_y + q_data->bytesperline * q_data->height;
++		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
++		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 2;
+@@ -156,9 +156,9 @@ static const struct coda_video_device coda_bit_encoder = {
+ 	.type = CODA_INST_ENCODER,
+ 	.ops = &coda_bit_encode_ops,
+ 	.src_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 	},
+ 	.dst_formats = {
+ 		V4L2_PIX_FMT_H264,
+@@ -171,9 +171,9 @@ static const struct coda_video_device coda_bit_jpeg_encoder = {
+ 	.type = CODA_INST_ENCODER,
+ 	.ops = &coda_bit_encode_ops,
+ 	.src_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV422P,
+ 	},
+ 	.dst_formats = {
+@@ -190,9 +190,9 @@ static const struct coda_video_device coda_bit_decoder = {
+ 		V4L2_PIX_FMT_MPEG4,
+ 	},
+ 	.dst_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 	},
+ };
+ 
+@@ -204,9 +204,9 @@ static const struct coda_video_device coda_bit_jpeg_decoder = {
+ 		V4L2_PIX_FMT_JPEG,
+ 	},
+ 	.dst_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV422P,
+ 	},
+ };
+@@ -234,9 +234,9 @@ static const struct coda_video_device *coda9_video_devices[] = {
+ static u32 coda_format_normalize_yuv(u32 fourcc)
+ {
+ 	switch (fourcc) {
++	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+-	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		return V4L2_PIX_FMT_YUV420;
+ 	default:
+@@ -448,9 +448,9 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+ 			      S_ALIGN);
+ 
+ 	switch (f->fmt.pix.pixelformat) {
++	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+-	case V4L2_PIX_FMT_NV12:
+ 		/*
+ 		 * Frame stride must be at least multiple of 8,
+ 		 * but multiple of 16 for h.264 or JPEG 4:2:x
+@@ -1099,8 +1099,8 @@ static void set_default_params(struct coda_ctx *ctx)
+ 	ctx->params.framerate = 30;
+ 
+ 	/* Default formats for output and input queues */
+-	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->codec->src_fourcc;
+-	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->codec->dst_fourcc;
++	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->cvd->src_formats[0];
++	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->cvd->dst_formats[0];
+ 	ctx->q_data[V4L2_M2M_SRC].width = max_w;
+ 	ctx->q_data[V4L2_M2M_SRC].height = max_h;
+ 	ctx->q_data[V4L2_M2M_DST].width = max_w;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+2.1.4
 
-
->
-> Op 20-07-15 om 15:13 schreef Steven Toth:
->>
->> On Sun, Jul 19, 2015 at 3:34 AM, Tycho Lürsen <tycholursen@gmail.com>
->> wrote:
->>>
->>> Hi Steven,
->>>
->>> Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using
->>> European DVB-C
->>> Since MythTV can't handle multistandard frontends (yet), I've disabled
->>> DVB-T/T2 like this (I always do that):
->>>
->>> sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/'
->>> drivers/media/dvb-frontends/si2168.c
->>>
->>> Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no
->>> lock,
->>> no tune.
->>>
->>> Regards,
->>> Tycho.
->>>
->>> Op 19-07-15 om 00:21 schreef Steven Toth:
->>>>
->>>> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
->>>>
->>>> Patches above are available for test.
->>>>
->>>> Antti, note the change to SI2168 to add support for enabling and
->>>> disabling the SI2168 transport bus dynamically.
->>>>
->>>> I've tested with a combo card, switching back and forward between QAM
->>>> and DVB-T, this works fine, just remember to select a different
->>>> frontend as we have two frontends on the same adapter,
->>>> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
->>>>
->>>> If any testers have the ATSC or DVB-T, I'd expect these to work
->>>> equally well, replease report feedback here.
->>>>
->>>> Thanks,
->>>>
->>>> - Steve
->>
->> Interesting, although I'm slightly confused.
->>
->> My patch mere added the ability for dvb-core to tri-state the tsport
->> out bus, similar to other digital demodulator drivers in the tree....
->> and testing with both azap and tzap (and dvbtraffic) showed no tuning,
->> lock or other issues.
->>
->> What happens if you tzap/czap a known good frequency, before and after
->> my patch, without your sed replacement, leaving T/T2 and A fully
->> enabled?
->>
->> - Steve
->>
->
