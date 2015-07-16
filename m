@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:32983 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752773AbbGBMBk (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38173 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186AbbGPHfJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jul 2015 08:01:40 -0400
-Message-ID: <559527D7.1030408@xs4all.nl>
-Date: Thu, 02 Jul 2015 14:00:23 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 16 Jul 2015 03:35:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	mittals@codeaurora.org
+Subject: Re: [PATCH 1/1] omap3isp: Fix async notifier registration order
+Date: Thu, 16 Jul 2015 10:35:32 +0300
+Message-ID: <1470564.5NvpJEivI3@avalon>
+In-Reply-To: <CAOZdJXV84Uap3S6wfsdM4LTsBgW3QZpmf7HN1wvNMB_syTVFBw@mail.gmail.com>
+References: <1432076885-5107-1-git-send-email-sakari.ailus@iki.fi> <CAOZdJXV84Uap3S6wfsdM4LTsBgW3QZpmf7HN1wvNMB_syTVFBw@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: Bjornar Salberg <bsalberg@cisco.com>
-Subject: [RFC] How to get current position/status of iris/focus/pan/tilt/zoom?
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using V4L2_CID_IRIS/FOCUS/PAN/TILT/ZOOM_ABSOLUTE/RELATIVE, how do you know
-when the new position has been reached? If this is controlled through a motor,
-then it may take some time and ideally you would like to be able to get the
-current absolute position (if the hardware knows) and whether the final position
-has been reached or not.
+Hi Timur,
 
-In addition, it should be possible to raise fault conditions.
+On Wednesday 15 July 2015 16:04:01 Timur Tabi wrote:
+> On Tue, May 19, 2015 at 6:08 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > @@ -2557,18 +2553,27 @@ static int isp_probe(struct platform_device *pdev)
+> >         if (ret < 0)
+> >                 goto error_iommu;
+> > 
+> > -       isp->notifier.bound = isp_subdev_notifier_bound;
+> > -       isp->notifier.complete = isp_subdev_notifier_complete;
+> > -
+> >         ret = isp_register_entities(isp);
+> >         if (ret < 0)
+> >                 goto error_modules;
+> > 
+> > +       if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
+> 
+> So I have a question (for Laurent, I guess) that's unrelated to this patch.
+> 
+> Why is the "IS_ENABLED(CONFIG_OF)" important?  If CONFIG_OF is
+> disabled, isn't pdev->dev.of_node always NULL anyway?
 
-The way the ABSOLUTE controls are defined is ambiguous since it doesn't say
-anything about what it returns when you read it: is that the current absolute
-position, or the last set absolute position? I suspect it is the second one.
+IS_ENABLED(CONFIG_OF) can be evaluated at compile time, so it will allow the 
+compiler to remove the code block completely when OF support is disabled. 
+pdev->dev.of_node is a runtime-only check which would allow the same 
+optimization.
 
-If it is the second one, then I propose a V4L2_CID_IRIS_CURRENT control (and
-ditto for the other variants) that is a read-only control returning the current
-position with the same range and unit as the ABSOLUTE control.
-
-For the status/fault information I think the V4L2_CID_AUTO_FOCUS_STATUS comes
-close, but it is too specific for auto focus. For manually positioning things
-this might be more suitable:
-
-V4L2_CID_IRIS_STATUS	bitmask
-
-	V4L2_IRIS_STATUS_MOVING (or perhaps _BUSY?)
-	V4L2_IRIS_STATUS_FAILED
-
-And ditto for the other variants.
-
-Interaction between V4L2_CID_FOCUS_STATUS and AUTO_FOCUS_STATUS:
-
-If auto focus is enabled, then FOCUS_STATUS is always 0, if auto focus is
-disabled, then AUTO_FOCUS_STATUS is always IDLE.
-
-Comments? Ideas?
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
