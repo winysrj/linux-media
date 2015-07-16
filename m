@@ -1,62 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58970 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757967AbbGQLAO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 07:00:14 -0400
-Message-ID: <1437130811.3254.1.camel@pengutronix.de>
-Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kernel@pengutronix.de
-Date: Fri, 17 Jul 2015 13:00:11 +0200
-In-Reply-To: <55A4E154.8020309@xs4all.nl>
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
-		 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>
-		 <55A39982.3030006@xs4all.nl> <1436868605.3793.24.camel@pengutronix.de>
-	 <55A4E154.8020309@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:48651 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753523AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2015 03:05:31 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv2 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+Date: Thu, 16 Jul 2015 10:04:50 +0300
+Message-Id: <1437030298-20944-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
+References: <1437030298-20944-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 14.07.2015, 12:15 +0200 schrieb Hans Verkuil:
-[...]
-> As you said, it's not public and without the formulas there is nothing you
-> can do but hardcode it.
-> 
-> If I understand this correctly these values depend on the link frequency,
-> so the DT should contain the link frequency and the driver can hardcode the
-> values based on that. Which means that if someone needs to support a new
-> link frequency the driver needs to be extended for that frequency.
-> 
-> As long as Toshiba keeps the formulas under NDA there isn't much else you can
-> do.
+SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+has DAC (Digital-to-Analog Converter) . Originally I though it could
+be good idea to have own type for receiver and transmitter, but now I
+feel one common type for SDR is enough. So lets rename it.
 
-Ok.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+ Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+ include/uapi/linux/videodev2.h              |  5 ++++-
+ 5 files changed, 29 insertions(+), 7 deletions(-)
 
-[...]
-> >>>  	/* platform data */
-> >>> -	if (!pdata) {
-> >>> -		v4l_err(client, "No platform data!\n");
-> >>> -		return -ENODEV;
-> >>> +	if (pdata) {
-> >>> +		state->pdata = *pdata;
-> >>> +	} else {
-> >>> +		err = tc358743_probe_of(state);
-> >>> +		if (err == -ENODEV)
-> >>> +			v4l_err(client, "No platform data!\n");
-> >>
-> >> I'd replace this with "No device tree data!" or something like that.
-> > 
-> > I'll do that, thank you.
-
-On second thought, I'll keep it as is. The tc358743_probe_of function
-prints its own error messages. In the platform data case it returns
--ENODEV, so that'd still be the correct message, then.
-
-regards
-Philipp
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index a0aef85..f56faf5 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 4.2</title>
++      <orderedlist>
++	<listitem>
++	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
++<constant>V4L2_TUNER_SDR</constant>. The use of
++<constant>V4L2_TUNER_ADC</constant> is deprecated now.
++	  </para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index f890356..3344921 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -44,10 +44,10 @@ frequency.
+     </para>
+ 
+     <para>
+-The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+ the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+-Normally the ADC tuner is #0 and the RF tuner is #1.
++tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
+ 
+     <para>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1..c9eedc1 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+ structs, ioctls) must be noted in more detail in the history chapter
+ (compat.xml), along with the possible impact on existing drivers and
+ applications. -->
++      <revision>
++	<revnumber>4.2</revnumber>
++	<date>2015-05-26</date>
++	<authorinitials>ap</authorinitials>
++	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++	</revremark>
++      </revision>
+ 
+       <revision>
+ 	<revnumber>3.21</revnumber>
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 85de455..ef42474 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_frequency *p = arg;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR)
+-		p->type = V4L2_TUNER_ADC;
++		p->type = V4L2_TUNER_SDR;
+ 	else
+ 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+@@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 	} else {
+ 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+@@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	int err;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 		type = p->type;
+ 	} else {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3228fbe..467816cb 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
+-	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_SDR               = 4,
+ 	V4L2_TUNER_RF                = 5,
+ };
+ 
++/* Deprecated, do not use */
++#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
++
+ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+-- 
+http://palosaari.fi/
 
