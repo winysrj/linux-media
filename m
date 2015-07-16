@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60044 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758144AbbGHUIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2015 16:08:48 -0400
-Received: from recife.lan (unknown [179.182.175.40])
-	by lists.s-osg.org (Postfix) with ESMTPSA id 9E110462EB
-	for <linux-media@vger.kernel.org>; Wed,  8 Jul 2015 13:08:46 -0700 (PDT)
-Date: Wed, 8 Jul 2015 17:08:43 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] Some updates at linuxtv.org
-Message-ID: <20150708170843.70aec9cd@recife.lan>
-In-Reply-To: <20150708130724.1331eecb@recife.lan>
-References: <20150708130724.1331eecb@recife.lan>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:34850 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753693AbbGPImH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2015 04:42:07 -0400
+Received: by lblf12 with SMTP id f12so39463109lbl.2
+        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 01:42:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1628799.CQBSk2GIHo@avalon>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+ <3162887.2tIlvOM8NK@avalon> <55A769E7.8010308@xs4all.nl> <1628799.CQBSk2GIHo@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 16 Jul 2015 10:41:46 +0200
+Message-ID: <CAPybu_0Jw_wz_POrzupXqCRVJUP-7d+ntDQYxgdzmj2jQ6VUAQ@mail.gmail.com>
+Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 8 Jul 2015 13:07:24 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Hello Laurent
 
-> Hi,
-> 
-> There were several contents at the linuxtv website that were outdated, on
-> the non-wiki pages.
-> 
-> I did an effort today of updating those pages, in order to reflect the
-> current status of the projects hosted there.
-> 
-> Among the changes:
-> 
-> - The "events 2011" page was removed. It was meant originally to announce
->   and track the events, but this is better done via news, and all latter
->   events used the news for events announce and reports. So, I moved the
->   contents of the original page into an announce:
-> 	http://linuxtv.org/news.php?entry=2011-10-26.mchehab
-> 
-> - I added links to each part of the Linux media documentation. That
->   helps to make clearer what's actually documented there. A pointer to
->   ALSA was also added.
-> 
-> - The legacy contents on the pages are now marked with an horizontal line
->   (<hr> tag). Those contents are kept for historic reasons only.
-> 
-> - The projects page had DTV channel scan tables and tvtime added. Legacy
->   projects was moved after the horizontal bar;
-> 
-> - The mailing lists now have a link to the media-workshop ML and has
->   the status of each ML seen at mailman interface;
-> 
-> - The repositories page is now in sync with the projects page. The
->   instructions to checkout a git repository was updated and should now
->   work (it got bitrotten). I removed the instructions to get a mercurial
->   tarball, as this is something that people should not be doing anymore
->   nowadays;
-> 
-> - The lateral menu was updated and better organized.
-> 
-> Please report any issues.
+On Thu, Jul 16, 2015 at 10:27 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
 
-Ah, I also updated the certificates used there, as they expired on 2007!
-The new ones will only expire in 2025. They're still fake certs, though.
+> I'd argue that even just two drivers would be enough :-) Especially given that
+> the proposed implementation for uvcvideo is wrong.
 
-Probably anytime before 2025 we'll be using real certs, maybe
-via https://letsencrypt.org/ ;)
+This is why we have the review process :P. I do my best, but you are
+the expert on your driver.
 
-> 
-> Enjoy!
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A core implementation cannot be completely correct, as it will not
+support array controls.
+
+I will resend this patch ASAP.
+
+
+Thanks for your comments!
+
+
+-- 
+Ricardo Ribalda
