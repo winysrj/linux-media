@@ -1,176 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:33815 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335AbbG1H5C convert rfc822-to-8bit (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38475 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752593AbbGPMy6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 03:57:02 -0400
-Received: by lbbzr7 with SMTP id zr7so69133863lbb.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 00:57:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <da0dde9a302342e5a13ce7ac3069419e@MBX05B-IAD3.mex08.mlsrvr.com>
-References: <1436531290-23191-1-git-send-email-benjamin.gaignard@linaro.org>
-	<CA+M3ks7X++to23mXjRaB_wUJUo0TDLFh2hMbziEGeMDkVBx-7w@mail.gmail.com>
-	<da0dde9a302342e5a13ce7ac3069419e@MBX05B-IAD3.mex08.mlsrvr.com>
-Date: Tue, 28 Jul 2015 09:56:59 +0200
-Message-ID: <CA+M3ks5TUEQi2iv9aPsQT7Tsf63kaJh7enoSN=oV12M-33zoLA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH v3 0/2] RFC: Secure Memory Allocation Framework
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: Xiaoquan Li <xiaoquan.li@vivantecorp.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Rob Clark <robdclark@gmail.com>,
-	Thierry Reding <treding@nvidia.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Cooksey <tom.cooksey@arm.com>,
-	Daniel Stone <daniel.stone@collabora.com>,
-	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 16 Jul 2015 08:54:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Tony Lindgren <tony@atomide.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
+Date: Thu, 16 Jul 2015 15:55:18 +0300
+Message-Id: <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is an API to do the same operation on kernel side than on userland.
-You can get an dmabuf handle, select the allocator if required, and
-secure it on kernel side.
+The OMAP3 ISP is now fully supported in DT, remove its instantiation
+from C code.
 
-Your question makes me realize that I have forget to add an
-EXPORT_SYMBOL for smaf_create_handle function, I will fix that.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/devices.c | 53 -------------------------------------------
+ arch/arm/mach-omap2/devices.h | 19 ----------------
+ 2 files changed, 72 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/devices.h
 
-Benjamin
-
-2015-07-28 4:22 GMT+02:00 Xiaoquan Li <xiaoquan.li@vivantecorp.com>:
-> Hi Benjamin,
->
-> It looks like this framework only allows user space client to talk with trust application, it there a plan to provide kernel side APIs for kernel space client?
->
-> Please correct me if my understanding is wrong.
->
-> Thanks
->
-> Xiaoquan
->
-> -----Original Message-----
-> From: Linaro-mm-sig [mailto:linaro-mm-sig-bounces@lists.linaro.org] On Behalf Of Benjamin Gaignard
-> Sent: Monday, July 27, 2015 6:12 PM
-> To: linux-media@vger.kernel.org; Linux Kernel Mailing List; dri-devel@lists.freedesktop.org; Hans Verkuil; Laurent Pinchart; Daniel Vetter; Rob Clark; Thierry Reding; Sumit Semwal; Tom Cooksey; Daniel Stone
-> Cc: Linaro MM SIG Mailman List
-> Subject: Re: [Linaro-mm-sig] [PATCH v3 0/2] RFC: Secure Memory Allocation Framework
->
-> Hi all,
->
-> This thread doesn't get any feedback...
->
-> What would be great is to know if this framework proposal fir with
-> your platform needs.
->
-> Maybe I haven't copy the good mailing lists so if you think there is
-> better ones do not hesitate to forward.
->
-> Regards,
-> Benjamin
->
->
-> 2015-07-10 14:28 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.org>:
->> version 3 changes:
->>  - Remove ioctl for allocator selection instead provide the name of
->>    the targeted allocator with allocation request.
->>    Selecting allocator from userland isn't the prefered way of working
->>    but is needed when the first user of the buffer is a software component.
->>  - Fix issues in case of error while creating smaf handle.
->>  - Fix module license.
->>  - Update libsmaf and tests to care of the SMAF API evolution
->>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->>
->> version 2 changes:
->>  - Add one ioctl to allow allocator selection from userspace.
->>    This is required for the uses case where the first user of
->>    the buffer is a software IP which can't perform dma_buf attachement.
->>  - Add name and ranking to allocator structure to be able to sort them.
->>  - Create a tiny library to test SMAF:
->>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->>  - Fix one issue when try to secure buffer without secure module registered
->>
->> The outcome of the previous RFC about how do secure data path was the need
->> of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
->>
->> SMAF goal is to provide a framework that allow allocating and securing
->> memory by using dma_buf. Each platform have it own way to perform those two
->> features so SMAF design allow to register helper modules to perform them.
->>
->> To be sure to select the best allocation method for devices SMAF implement
->> deferred allocation mechanism: memory allocation is only done when the first
->> device effectively required it.
->> Allocator modules have to implement a match() to let SMAF know if they are
->> compatibles with devices needs.
->> This patch set provide an example of allocator module which use
->> dma_{alloc/free/mmap}_attrs() and check if at least one device have
->> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
->> I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if
->> a better name could be found for this file.
->>
->> Secure modules are responsibles of granting and revoking devices access rights
->> on the memory. Secure module is also called to check if CPU map memory into
->> kernel and user address spaces.
->> An example of secure module implementation can be found here:
->> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
->> This code isn't yet part of the patch set because it depends on generic TEE
->> which is still under discussion (https://lwn.net/Articles/644646/)
->>
->> For allocation part of SMAF code I get inspirated by Sumit Semwal work about
->> constraint aware allocator.
->>
->> Benjamin Gaignard (2):
->>   create SMAF module
->>   SMAF: add CMA allocator
->>
->>  drivers/Kconfig                |   2 +
->>  drivers/Makefile               |   1 +
->>  drivers/smaf/Kconfig           |  11 +
->>  drivers/smaf/Makefile          |   2 +
->>  drivers/smaf/smaf-cma.c        | 200 +++++++++++
->>  drivers/smaf/smaf-core.c       | 735 +++++++++++++++++++++++++++++++++++++++++
->>  include/linux/smaf-allocator.h |  54 +++
->>  include/linux/smaf-secure.h    |  62 ++++
->>  include/uapi/linux/smaf.h      |  52 +++
->>  9 files changed, 1119 insertions(+)
->>  create mode 100644 drivers/smaf/Kconfig
->>  create mode 100644 drivers/smaf/Makefile
->>  create mode 100644 drivers/smaf/smaf-cma.c
->>  create mode 100644 drivers/smaf/smaf-core.c
->>  create mode 100644 include/linux/smaf-allocator.h
->>  create mode 100644 include/linux/smaf-secure.h
->>  create mode 100644 include/uapi/linux/smaf.h
->>
->> --
->> 1.9.1
->>
->
->
->
-> --
-> Benjamin Gaignard
->
-> Graphic Working Group
->
-> Linaro.org │ Open source software for ARM SoCs
->
-> Follow Linaro: Facebook | Twitter | Blog
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
-
-
-
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index a69bd67e9028..9374da313e8e 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -33,7 +33,6 @@
+ #include "common.h"
+ #include "mux.h"
+ #include "control.h"
+-#include "devices.h"
+ #include "display.h"
+ 
+ #define L3_MODULES_MAX_LEN 12
+@@ -67,58 +66,6 @@ static int __init omap3_l3_init(void)
+ }
+ omap_postcore_initcall(omap3_l3_init);
+ 
+-#if defined(CONFIG_IOMMU_API)
+-
+-#include <linux/platform_data/iommu-omap.h>
+-
+-static struct resource omap3isp_resources[] = {
+-	{
+-		.start		= OMAP3430_ISP_BASE,
+-		.end		= OMAP3430_ISP_BASE + 0x12fc,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3430_ISP_BASE2,
+-		.end		= OMAP3430_ISP_BASE2 + 0x0600,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= 24 + OMAP_INTC_START,
+-		.flags		= IORESOURCE_IRQ,
+-	}
+-};
+-
+-static struct platform_device omap3isp_device = {
+-	.name		= "omap3isp",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+-	.resource	= omap3isp_resources,
+-};
+-
+-static struct omap_iommu_arch_data omap3_isp_iommu = {
+-	.name = "mmu_isp",
+-};
+-
+-int omap3_init_camera(struct isp_platform_data *pdata)
+-{
+-	if (of_have_populated_dt())
+-		omap3_isp_iommu.name = "480bd400.mmu";
+-
+-	omap3isp_device.dev.platform_data = pdata;
+-	omap3isp_device.dev.archdata.iommu = &omap3_isp_iommu;
+-
+-	return platform_device_register(&omap3isp_device);
+-}
+-
+-#else /* !CONFIG_IOMMU_API */
+-
+-int omap3_init_camera(struct isp_platform_data *pdata)
+-{
+-	return 0;
+-}
+-
+-#endif
+-
+ #if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
+ static inline void __init omap_init_mbox(void)
+ {
+diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
+deleted file mode 100644
+index f61eb6e5d136..000000000000
+--- a/arch/arm/mach-omap2/devices.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/*
+- * arch/arm/mach-omap2/devices.h
+- *
+- * OMAP2 platform device setup/initialization
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
+-#define __ARCH_ARM_MACH_OMAP_DEVICES_H
+-
+-struct isp_platform_data;
+-
+-int omap3_init_camera(struct isp_platform_data *pdata);
+-
+-#endif
 -- 
-Benjamin Gaignard
+2.3.6
 
-Graphic Working Group
-
-Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
