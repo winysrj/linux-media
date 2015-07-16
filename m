@@ -1,69 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38958 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334AbbGQO7z (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38219 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875AbbGPIX3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 10:59:55 -0400
-Message-ID: <55A9182D.2020800@xs4all.nl>
-Date: Fri, 17 Jul 2015 16:58:53 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 16 Jul 2015 04:23:29 -0400
+Received: from avalon.localnet (89-27-67-84.bb.dnainternet.fi [89.27.67.84])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 315FF2005B
+	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 10:22:53 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.3] VSP1 fixes
+Date: Thu, 16 Jul 2015 11:23:54 +0300
+Message-ID: <2206125.JSWmO800Ro@avalon>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 5/5] [media] tc358743: allow event subscription
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>	 <1436533897-3060-5-git-send-email-p.zabel@pengutronix.de>	 <55A39BE3.2070905@xs4all.nl> <1436868609.3793.25.camel@pengutronix.de>
-In-Reply-To: <1436868609.3793.25.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/14/2015 12:10 PM, Philipp Zabel wrote:
-> Am Montag, den 13.07.2015, 13:07 +0200 schrieb Hans Verkuil:
->> On 07/10/2015 03:11 PM, Philipp Zabel wrote:
->>> This is useful to subscribe to HDMI hotplug events via the
->>> V4L2_CID_DV_RX_POWER_PRESENT control.
->>>
->>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->>> ---
->>>  drivers/media/i2c/tc358743.c | 3 +++
->>>  1 file changed, 3 insertions(+)
->>>
->>> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
->>> index 4a889d4..91fffa8 100644
->>> --- a/drivers/media/i2c/tc358743.c
->>> +++ b/drivers/media/i2c/tc358743.c
->>> @@ -40,6 +40,7 @@
->>>  #include <media/v4l2-dv-timings.h>
->>>  #include <media/v4l2-device.h>
->>>  #include <media/v4l2-ctrls.h>
->>> +#include <media/v4l2-event.h>
->>>  #include <media/v4l2-of.h>
->>>  #include <media/tc358743.h>
->>>  
->>> @@ -1604,6 +1605,8 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
->>>  	.s_register = tc358743_s_register,
->>>  #endif
->>>  	.interrupt_service_routine = tc358743_isr,
->>> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
->>
->> Ah, they are set here.
->>
->> But note that v4l2_ctrl_subdev_subscribe_event is not enough, since this driver
->> also issues the V4L2_EVENT_SOURCE_CHANGE event.
->>
->> See this patch on how to do that:
->>
->> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=for-v4.3a&id=85c9b0b83795dac3d27043619a727af5c7313fe7
->>
->> Note: requires the new v4l2_subdev_notify_event function that's not yet
->> merged (just posted the pull request for that).
-> 
-> Ok, I think I'll split this up and send patch 5 separately, then.
+Hi Mauro,
 
-FYI: the v4l2_subdev_notify_event was just merged today.
+The following changes since commit 8783b9c50400c6279d7c3b716637b98e83d3c933:
 
+  [media] SMI PCIe IR driver for DVBSky cards (2015-07-06 08:26:16 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git vsp1/next
+
+for you to fetch changes up to 9bb44c299a19725e3ce0a7f15521a4fea898c0dc:
+
+  v4l: vsp1: Don't sleep in atomic context (2015-07-16 11:21:25 +0300)
+
+----------------------------------------------------------------
+Laurent Pinchart (2):
+      v4l: vsp1: Fix plane stride and size checks
+      v4l: vsp1: Don't sleep in atomic context
+
+ drivers/media/platform/vsp1/vsp1_entity.c | 18 +++++++++---------
+ drivers/media/platform/vsp1/vsp1_entity.h |  4 ++--
+ drivers/media/platform/vsp1/vsp1_video.c  |  2 +-
+ 3 files changed, 12 insertions(+), 12 deletions(-)
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
