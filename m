@@ -1,128 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43941 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751398AbbGBNBe (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49342 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945AbbGPQNc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jul 2015 09:01:34 -0400
-Date: Thu, 2 Jul 2015 16:01:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/3] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-Message-ID: <20150702130100.GV5904@valkosipuli.retiisi.org.uk>
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl>
- <1430480030-29136-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1430480030-29136-2-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 Jul 2015 12:13:32 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <kamil@wypas.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2] [media] coda: Use S_PARM to set nominal framerate for h.264 encoder
+Date: Thu, 16 Jul 2015 18:13:24 +0200
+Message-Id: <1437063204-17127-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The encoder needs to know the nominal framerate for the constant bitrate
+control mechanism to work. Currently the only way to set the framerate is
+by using VIDIOC_S_PARM on the output queue.
 
-Thanks for the patch!
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Fixed typo in coda_g_parm
+---
+ drivers/media/platform/coda/coda-common.c | 102 ++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/coda_regs.h   |   4 ++
+ 2 files changed, 106 insertions(+)
 
-On Fri, May 01, 2015 at 01:33:48PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
-> that apps can call to determine that it is indeed a V4L2 device, there
-> is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
-> solve that, and it will allow utilities like v4l2-compliance to be used
-> with these devices as well.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 19 +++++++++++++++++++
->  include/uapi/linux/v4l2-subdev.h      | 12 ++++++++++++
->  2 files changed, 31 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 6359606..2ab1f7d 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -25,6 +25,7 @@
->  #include <linux/types.h>
->  #include <linux/videodev2.h>
->  #include <linux/export.h>
-> +#include <linux/version.h>
->  
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> @@ -187,6 +188,24 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  #endif
->  
->  	switch (cmd) {
-> +	case VIDIOC_SUBDEV_QUERYCAP: {
-> +		struct v4l2_subdev_capability *cap = arg;
-> +
-> +		cap->version = LINUX_VERSION_CODE;
-> +		cap->device_caps = 0;
-> +		cap->pads = 0;
-> +		cap->entity_id = 0;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		if (sd->entity.parent) {
-> +			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
-> +			cap->pads = sd->entity.num_pads;
-> +			cap->entity_id = sd->entity.id;
-> +		}
-> +#endif
-> +		memset(cap->reserved, 0, sizeof(cap->reserved));
-> +		break;
-> +	}
-> +
->  	case VIDIOC_QUERYCTRL:
->  		return v4l2_queryctrl(vfh->ctrl_handler, arg);
->  
-> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-> index dbce2b5..e48b9fd 100644
-> --- a/include/uapi/linux/v4l2-subdev.h
-> +++ b/include/uapi/linux/v4l2-subdev.h
-> @@ -154,9 +154,21 @@ struct v4l2_subdev_selection {
->  	__u32 reserved[8];
->  };
->  
-> +struct v4l2_subdev_capability {
-> +	__u32 version;
-> +	__u32 device_caps;
-
-This is called capabilities in struct v4l2_capability. I'd follow the same
-pattern.
-
-> +	__u32 pads;
-> +	__u32 entity_id;
-
-What's the use case for the entity_id field btw.? Supposing that the user
-wouldn't be using the MC interface to obtain it, is the entity_id relevant
-in this context? Or is your intent first open the sub-device, and then find
-out more information on the entity?
-
-> +	__u32 reserved[48];
-
-Why 48?
-
-As memory is typically allocated in powers of two (or n^2 + (n-1)^2), how
-about aligning it accordingly? I don't think we lose anything by making this
-e.g. 60. Although 28 would probably suffice as well (or 29 with the pads
-field removed as discussed). Even that much sounds like a lot.
-
-> +};
-> +
-> +/* This v4l2_subdev is also a media entity and the entity_id field is valid */
-> +#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
-> +
->  /* Backwards compatibility define --- to be removed */
->  #define v4l2_subdev_edid v4l2_edid
->  
-> +#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
->  #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
->  #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
->  #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 367b6ba..5290313 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -15,6 +15,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
++#include <linux/gcd.h>
+ #include <linux/genalloc.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+@@ -770,6 +771,104 @@ static int coda_decoder_cmd(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct v4l2_fract *tpf;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
++	tpf = &a->parm.output.timeperframe;
++	tpf->denominator = ctx->params.framerate & CODA_FRATE_RES_MASK;
++	tpf->numerator = 1 + (ctx->params.framerate >>
++			      CODA_FRATE_DIV_OFFSET);
++
++	return 0;
++}
++
++/*
++ * Approximate timeperframe v4l2_fract with values that can be written
++ * into the 16-bit CODA_FRATE_DIV and CODA_FRATE_RES fields.
++ */
++static void coda_approximate_timeperframe(struct v4l2_fract *timeperframe)
++{
++	struct v4l2_fract s = *timeperframe;
++	struct v4l2_fract f0;
++	struct v4l2_fract f1 = { 1, 0 };
++	struct v4l2_fract f2 = { 0, 1 };
++	unsigned int i, div, s_denominator;
++
++	/* Lower bound is 1/65535 */
++	if (s.numerator == 0 || s.denominator / s.numerator > 65535) {
++		timeperframe->numerator = 1;
++		timeperframe->denominator = 65535;
++		return;
++	}
++
++	/* Upper bound is 65536/1, map everything above to infinity */
++	if (s.denominator == 0 || s.numerator / s.denominator > 65536) {
++		timeperframe->numerator = 1;
++		timeperframe->denominator = 0;
++		return;
++	}
++
++	/* Reduce fraction to lowest terms */
++	div = gcd(s.numerator, s.denominator);
++	if (div > 1) {
++		s.numerator /= div;
++		s.denominator /= div;
++	}
++
++	if (s.numerator <= 65536 && s.denominator < 65536) {
++		*timeperframe = s;
++		return;
++	}
++
++	/* Find successive convergents from continued fraction expansion */
++	while (f2.numerator <= 65536 && f2.denominator < 65536) {
++		f0 = f1;
++		f1 = f2;
++
++		/* Stop when f2 exactly equals timeperframe */
++		if (s.numerator == 0)
++			break;
++
++		i = s.denominator / s.numerator;
++
++		f2.numerator = f0.numerator + i * f1.numerator;
++		f2.denominator = f0.denominator + i * f2.denominator;
++
++		s_denominator = s.numerator;
++		s.numerator = s.denominator % s.numerator;
++		s.denominator = s_denominator;
++	}
++
++	*timeperframe = f1;
++}
++
++static uint32_t coda_timeperframe_to_frate(struct v4l2_fract *timeperframe)
++{
++	return ((timeperframe->numerator - 1) << CODA_FRATE_DIV_OFFSET) |
++		timeperframe->denominator;
++}
++
++static int coda_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct v4l2_fract *tpf;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	tpf = &a->parm.output.timeperframe;
++	coda_approximate_timeperframe(tpf);
++	ctx->params.framerate = coda_timeperframe_to_frate(tpf);
++
++	return 0;
++}
++
+ static int coda_subscribe_event(struct v4l2_fh *fh,
+ 				const struct v4l2_event_subscription *sub)
+ {
+@@ -810,6 +909,9 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+ 	.vidioc_decoder_cmd	= coda_decoder_cmd,
+ 
++	.vidioc_g_parm		= coda_g_parm,
++	.vidioc_s_parm		= coda_s_parm,
++
+ 	.vidioc_subscribe_event = coda_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
+index 7d02624..00e4f51 100644
+--- a/drivers/media/platform/coda/coda_regs.h
++++ b/drivers/media/platform/coda/coda_regs.h
+@@ -263,6 +263,10 @@
+ #define		CODADX6_PICHEIGHT_MASK				0x3ff
+ #define		CODA7_PICHEIGHT_MASK				0xffff
+ #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
++#define		CODA_FRATE_RES_OFFSET				0
++#define		CODA_FRATE_RES_MASK				0xffff
++#define		CODA_FRATE_DIV_OFFSET				16
++#define		CODA_FRATE_DIV_MASK				0xffff
+ #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
+ #define		CODA_MP4PARAM_VERID_OFFSET			6
+ #define		CODA_MP4PARAM_VERID_MASK			0x01
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
