@@ -1,125 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:54031 "EHLO butterbrot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbbGEJk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Jul 2015 05:40:59 -0400
-Message-ID: <55982493.6030004@butterbrot.org>
-Date: Sat, 04 Jul 2015 20:23:15 +0200
-From: Florian Echtler <floe@butterbrot.org>
-MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: sur40.c:undefined reference to `video_unregister_device'
-References: <201507050102.8Tn01fIF%fengguang.wu@intel.com>
-In-Reply-To: <201507050102.8Tn01fIF%fengguang.wu@intel.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="73DW8wRLnfedk7JKX12u5GTTEC8hjKOxb"
+Received: from mail-la0-f51.google.com ([209.85.215.51]:36206 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919AbbGPI4s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2015 04:56:48 -0400
+Received: by lagw2 with SMTP id w2so39446729lag.3
+        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2015 01:56:47 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [RFC v4 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+Date: Thu, 16 Jul 2015 10:56:43 +0200
+Message-Id: <1437037003-6113-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---73DW8wRLnfedk7JKX12u5GTTEC8hjKOxb
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
+use the controller framework.
 
-I do still plan to fix this, but I have no idea right now how this can
-actually happen: if TOUCHSCREEN_SUR40 is enabled, then this will enable
-VIDEOBUF2_DMA_SG, and that will select most of the other V4L2 modules in
-turn - or am I missing something here?
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+Changelog
 
-Best, Florian1
-
-On 04.07.2015 19:56, kbuild test robot wrote:
-> Hi Florian,
->=20
-> FYI, the error/warning still remains. You may either fix it or ask me t=
-o silently ignore in future.
->=20
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.gi=
-t master
-> head:   14a6f1989dae9445d4532941bdd6bbad84f4c8da
-> commit: e831cd251fb91d6c25352d322743db0d17ea11dd [media] add raw video =
-stream support for Samsung SUR40
-> date:   3 months ago
-> config: i386-randconfig-x006-201527 (attached as .config)
-> reproduce:
->   git checkout e831cd251fb91d6c25352d322743db0d17ea11dd
->   # save the attached .config to linux build tree
->   make ARCH=3Di386=20
->=20
-> All error/warnings (new ones prefixed by >>):
->=20
->    drivers/built-in.o: In function `sur40_disconnect':
->>> sur40.c:(.text+0x2ba09b): undefined reference to `video_unregister_de=
-vice'
->>> sur40.c:(.text+0x2ba0a3): undefined reference to `v4l2_device_unregis=
-ter'
->>> sur40.c:(.text+0x2ba0ae): undefined reference to `vb2_dma_sg_cleanup_=
-ctx'
->    drivers/built-in.o: In function `sur40_stop_streaming':
->>> sur40.c:(.text+0x2ba4bc): undefined reference to `vb2_buffer_done'
->    drivers/built-in.o: In function `sur40_probe':
->>> sur40.c:(.text+0x2ba84a): undefined reference to `v4l2_device_registe=
-r'
->>> sur40.c:(.text+0x2ba8bd): undefined reference to `vb2_dma_sg_memops'
->>> sur40.c:(.text+0x2ba8e9): undefined reference to `vb2_queue_init'
->>> sur40.c:(.text+0x2ba912): undefined reference to `vb2_dma_sg_init_ctx=
-'
->>> sur40.c:(.text+0x2ba9a4): undefined reference to `video_device_releas=
-e_empty'
->>> sur40.c:(.text+0x2ba9da): undefined reference to `__video_register_de=
-vice'
->    sur40.c:(.text+0x2baa0d): undefined reference to `video_unregister_d=
-evice'
->    sur40.c:(.text+0x2baa71): undefined reference to `v4l2_device_unregi=
-ster'
->    drivers/built-in.o: In function `sur40_process_video':
->>> sur40.c:(.text+0x2bac03): undefined reference to `vb2_plane_cookie'
->>> sur40.c:(.text+0x2bac94): undefined reference to `v4l2_get_timestamp'=
-
->    sur40.c:(.text+0x2baccd): undefined reference to `vb2_buffer_done'
->    drivers/built-in.o: In function `sur40_vidioc_querycap':
->>> sur40.c:(.text+0x2bacf7): undefined reference to `video_devdata'
->>> drivers/built-in.o:(.rodata+0x6d140): undefined reference to `vb2_ioc=
-tl_reqbufs'
->>> drivers/built-in.o:(.rodata+0x6d144): undefined reference to `vb2_ioc=
-tl_querybuf'
->>> drivers/built-in.o:(.rodata+0x6d148): undefined reference to `vb2_ioc=
-tl_qbuf'
->>> drivers/built-in.o:(.rodata+0x6d14c): undefined reference to `vb2_ioc=
-tl_expbuf'
->>> drivers/built-in.o:(.rodata+0x6d150): undefined reference to `vb2_ioc=
-tl_dqbuf'
->>> drivers/built-in.o:(.rodata+0x6d154): undefined reference to `vb2_ioc=
-tl_create_bufs'
->>> drivers/built-in.o:(.rodata+0x6d168): undefined reference to `vb2_ioc=
-tl_streamon'
->=20
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology =
-Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corpo=
-ration
->=20
+v4: Comments by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Remove unneeded  uvc_ctrl_begin()
 
 
---=20
-SENT FROM MY DEC VT50 TERMINAL
+ drivers/media/usb/uvc/uvc_v4l2.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 2764f43607c1..7ec7d45b24ed 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1001,6 +1001,31 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+ 	return uvc_ctrl_rollback(handle);
+ }
+ 
++static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
++				     struct v4l2_ext_controls *ctrls)
++{
++	struct uvc_fh *handle = fh;
++	struct uvc_video_chain *chain = handle->chain;
++	struct v4l2_ext_control *ctrl = ctrls->controls;
++	unsigned int i;
++	int ret;
++	struct v4l2_queryctrl qc;
++
++	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
++		qc.id = ctrl->id;
++		ret = uvc_query_v4l2_ctrl(chain, &qc);
++		if (ret < 0) {
++			ctrls->error_idx = i;
++			return ret;
++		}
++		ctrl->value = qc.default_value;
++	}
++
++	ctrls->error_idx = 0;
++
++	return 0;
++}
++
+ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+ 				     struct v4l2_ext_controls *ctrls,
+ 				     bool commit)
+@@ -1500,6 +1525,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
+ 	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
+ 	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
+ 	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
++	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
+ 	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
+ 	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
+ 	.vidioc_querymenu = uvc_ioctl_querymenu,
+-- 
+2.1.4
 
---73DW8wRLnfedk7JKX12u5GTTEC8hjKOxb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlWYJJMACgkQ7CzyshGvatg6OgCfVinCRSmiEWuvWjQf5uq8T5Qg
-0OoAoOgmfYjzaX4O7cNJ7Q6itVT9NApb
-=j/Ze
------END PGP SIGNATURE-----
-
---73DW8wRLnfedk7JKX12u5GTTEC8hjKOxb--
