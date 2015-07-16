@@ -1,127 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46823 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755565AbbGTNBE (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38230 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752798AbbGPI1d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 09:01:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/12] usbvision: fix DMA from stack warnings.
-Date: Mon, 20 Jul 2015 14:59:36 +0200
-Message-Id: <1437397178-5013-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 Jul 2015 04:27:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
+Date: Thu, 16 Jul 2015 11:27:58 +0300
+Message-ID: <1628799.CQBSk2GIHo@avalon>
+In-Reply-To: <55A769E7.8010308@xs4all.nl>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <3162887.2tIlvOM8NK@avalon> <55A769E7.8010308@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thursday 16 July 2015 10:23:03 Hans Verkuil wrote:
+> On 07/16/15 10:11, Laurent Pinchart wrote:
+> > On Thursday 16 July 2015 09:38:11 Hans Verkuil wrote:
+> >> On 07/15/15 23:05, Laurent Pinchart wrote:
+> >>> On Friday 12 June 2015 18:46:23 Ricardo Ribalda Delgado wrote:
+> >>>> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
+> >>>> use the controller framework.
+> >>>> 
+> >>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> >>>> ---
+> >>>> 
+> >>>>  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
+> >>>>  1 file changed, 30 insertions(+)
+> >>>> 
+> >>>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> >>>> b/drivers/media/usb/uvc/uvc_v4l2.c index 2764f43607c1..e2698a77138a
+> >>>> 100644
+> >>>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> >>>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> >>>> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file
+> >>>> *file, void *fh,
+> >>>>  	return uvc_ctrl_rollback(handle);
+> >>>>  }
+> >>>> 
+> >>>> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
+> >>>> +				     struct v4l2_ext_controls *ctrls)
+> >>>> +{
+> >>>> +	struct uvc_fh *handle = fh;
+> >>>> +	struct uvc_video_chain *chain = handle->chain;
+> >>>> +	struct v4l2_ext_control *ctrl = ctrls->controls;
+> >>>> +	unsigned int i;
+> >>>> +	int ret;
+> >>>> +	struct v4l2_queryctrl qc;
+> >>>> +
+> >>>> +	ret = uvc_ctrl_begin(chain);
+> >>> 
+> >>> There's no need to call uvc_ctrl_begin() here (and if there was, you'd
+> >>> have to call uvc_ctrl_rollback() or uvc_ctrl_commit() before returning).
+> >>> 
+> >>>> +	if (ret < 0)
+> >>>> +		return ret;
+> >>>> +
+> >>>> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> >>>> +		qc.id = ctrl->id;
+> >>>> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
+> >>>> +		if (ret < 0) {
+> >>>> +			ctrls->error_idx = i;
+> >>>> +			return ret;
+> >>>> +		}
+> >>>> +		ctrl->value = qc.default_value;
+> >>>> +	}
+> >>>> +
+> >>>> +	ctrls->error_idx = 0;
+> >>>> +
+> >>>> +	return 0;
+> >>>> +}
+> >>> 
+> >>> Instead of open-coding this in multiple drivers, how about adding a
+> >>> helper function to the core ? Something like (totally untested)
+> >> 
+> >> It's only open-coded in drivers that do not use the control framework.
+> >> For drivers that use the control framework it is completely transparent.
+> > 
+> > Sure, but still, the same function is implemented several times while a
+> > single implementation could do. I'd prefer having it in the core until
+> > all (or all but one) drivers are converted to the control framework.
+> 
+> There are only three drivers that need to implement this manually: uvc,
+> saa7164 and pvrusb2. That's not enough to warrant moving this into the
+> core.
 
-In various places the stack was used to provide buffers for USB data, but
-this should be allocated memory.
+I'd argue that even just two drivers would be enough :-) Especially given that 
+the proposed implementation for uvcvideo is wrong.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/usbvision/usbvision-core.c | 18 ++++++++++--------
- drivers/media/usb/usbvision/usbvision-i2c.c  |  2 +-
- 2 files changed, 11 insertions(+), 9 deletions(-)
+> One of these days I should sit down and convert saa7164 to the control
+> framework. That shouldn't be too difficult.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
-index ec50984..9f4e630 100644
---- a/drivers/media/usb/usbvision/usbvision-core.c
-+++ b/drivers/media/usb/usbvision/usbvision-core.c
-@@ -1367,7 +1367,7 @@ static void usbvision_isoc_irq(struct urb *urb)
- int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg)
- {
- 	int err_code = 0;
--	unsigned char buffer[1];
-+	unsigned char *buffer = usbvision->ctrl_urb_buffer;
- 
- 	if (!USBVISION_IS_OPERATIONAL(usbvision))
- 		return -1;
-@@ -1401,10 +1401,12 @@ int usbvision_write_reg(struct usb_usbvision *usbvision, unsigned char reg,
- 	if (!USBVISION_IS_OPERATIONAL(usbvision))
- 		return 0;
- 
-+	usbvision->ctrl_urb_buffer[0] = value;
- 	err_code = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
- 				USBVISION_OP_CODE,
- 				USB_DIR_OUT | USB_TYPE_VENDOR |
--				USB_RECIP_ENDPOINT, 0, (__u16) reg, &value, 1, HZ);
-+				USB_RECIP_ENDPOINT, 0, (__u16) reg,
-+				usbvision->ctrl_urb_buffer, 1, HZ);
- 
- 	if (err_code < 0) {
- 		dev_err(&usbvision->dev->dev,
-@@ -1596,7 +1598,7 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
- 		{ 0x27, 0x00, 0x00 }, { 0x28, 0x00, 0x00 }, { 0x29, 0x00, 0x00 }, { 0x08, 0x80, 0x60 },
- 		{ 0x0f, 0x2d, 0x24 }, { 0x0c, 0x80, 0x80 }
- 	};
--	char value[3];
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 
- 	/* the only difference between PAL and NTSC init_values */
- 	if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_NTSC)
-@@ -1635,8 +1637,8 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
- static int usbvision_set_video_format(struct usb_usbvision *usbvision, int format)
- {
- 	static const char proc[] = "usbvision_set_video_format";
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 	int rc;
--	unsigned char value[2];
- 
- 	if (!USBVISION_IS_OPERATIONAL(usbvision))
- 		return 0;
-@@ -1677,7 +1679,7 @@ int usbvision_set_output(struct usb_usbvision *usbvision, int width,
- 	int err_code = 0;
- 	int usb_width, usb_height;
- 	unsigned int frame_rate = 0, frame_drop = 0;
--	unsigned char value[4];
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 
- 	if (!USBVISION_IS_OPERATIONAL(usbvision))
- 		return 0;
-@@ -1872,7 +1874,7 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- {
- 	static const char proc[] = "usbvision_set_compresion_params: ";
- 	int rc;
--	unsigned char value[6];
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 
- 	value[0] = 0x0F;    /* Intra-Compression cycle */
- 	value[1] = 0x01;    /* Reg.45 one line per strip */
-@@ -1946,7 +1948,7 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
- {
- 	static const char proc[] = "usbvision_set_input: ";
- 	int rc;
--	unsigned char value[8];
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 	unsigned char dvi_yuv_value;
- 
- 	if (!USBVISION_IS_OPERATIONAL(usbvision))
-@@ -2062,8 +2064,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
- 
- static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
- {
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 	int rc;
--	unsigned char value[8];
- 
- 	if (usbvision->isoc_mode == ISOC_MODE_COMPRESS) {
- 		value[0] = 0x42;
-diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
-index 26dbcb1..120de2e 100644
---- a/drivers/media/usb/usbvision/usbvision-i2c.c
-+++ b/drivers/media/usb/usbvision/usbvision-i2c.c
-@@ -343,7 +343,7 @@ static int usbvision_i2c_write_max4(struct usb_usbvision *usbvision,
- {
- 	int rc, retries;
- 	int i;
--	unsigned char value[6];
-+	unsigned char *value = usbvision->ctrl_urb_buffer;
- 	unsigned char ser_cont;
- 
- 	ser_cont = (len & 0x07) | 0x10;
+How about pvrusb2, is there a good reason not to use the control framework 
+there ?
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
