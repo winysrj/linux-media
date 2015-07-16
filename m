@@ -1,53 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54650 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37552 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbbG1IPU (ORCPT
+	with ESMTP id S1751236AbbGPQZE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 04:15:20 -0400
-Message-ID: <1438071306.3193.9.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] v4l2: export videobuf2 trace points
+	Thu, 16 Jul 2015 12:25:04 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+To: David Airlie <airlied@linux.ie>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Steve Longerbeam <slongerbeam@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Kamil Debski <kamil@wypas.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Date: Tue, 28 Jul 2015 10:15:06 +0200
-In-Reply-To: <55B73724.4040500@xs4all.nl>
-References: <1438070104-24084-1-git-send-email-p.zabel@pengutronix.de>
-	 <55B73724.4040500@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Ian Molton <imolton@ad-holdings.co.uk>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 0/5] i.MX5/6 mem2mem scaler
+Date: Thu, 16 Jul 2015 18:24:38 +0200
+Message-Id: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 28.07.2015, 10:02 +0200 schrieb Hans Verkuil:
-> On 07/28/2015 09:55 AM, Philipp Zabel wrote:
-> > If videobuf2-core is built as a module, the vb2 trace points must be
-> > exported from videodev.o to avoid errors when linking videobuf2-core.
-> 
-> I'm no tracepoint expert, so I'll just ask: if the tracepoint functionality
-> is disabled in the kernel, will this still compile OK?
-> 
-> That is, will the EXPORT_TRACEPOINT_SYMBOL_GPL() code disappear in that
-> case or will it point to absent code/data?
+Hi,
 
-No traces left if CONFIG_TRACEPOINTS not set. include/linux/tracepoint.h
-contains:
+this series uses the IPU IC post-processing task to implement
+a mem2mem device for scaling and colorspace conversion. This
+version addresses a few review commends, and includes some
+further cleanup.
 
-#ifdef CONFIG_TRACEPOINTS
-#define EXPORT_TRACEPOINT_SYMBOL_GPL(name)         \
-        EXPORT_SYMBOL_GPL(__tracepoint_##name)
-#else /* !CONFIG_TRACEPOINTS */
-#define EXPORT_TRACEPOINT_SYMBOL_GPL(name)
-#endif
+Changes since v2:
+ - Limit downscaling to 4:1
+ - Disabled USERPTR memory
+ - Set icc pointer to NULL on error
+ - Dropped currently unused IDMAC channels
+ - Fixed scaler module description
+ - Embedded struct video_device
+
+If it is acceptable, I'd like to merge this through drm-next via imx-drm.
+Mauro reportedly would be ok with that, and currently the potential for
+conflicts is limited to drivers/media/{Kconfig,Makefile}. If not, I'll
+postpone the two [media] patches for a release.
 
 regards
 Philipp
+
+Philipp Zabel (3):
+  gpu: ipu-v3: Add missing IDMAC channel names
+  gpu: ipu-v3: Add mem2mem image conversion support to IC
+  gpu: ipu-v3: Register scaler platform device
+
+Sascha Hauer (2):
+  [media] imx-ipu: Add ipu media common code
+  [media] imx-ipu: Add i.MX IPUv3 scaler driver
+
+ drivers/gpu/ipu-v3/ipu-common.c             |   2 +
+ drivers/gpu/ipu-v3/ipu-ic.c                 | 754 +++++++++++++++++++++++-
+ drivers/media/platform/Kconfig              |   2 +
+ drivers/media/platform/Makefile             |   1 +
+ drivers/media/platform/imx/Kconfig          |  11 +
+ drivers/media/platform/imx/Makefile         |   2 +
+ drivers/media/platform/imx/imx-ipu-scaler.c | 859 ++++++++++++++++++++++++++++
+ drivers/media/platform/imx/imx-ipu.c        | 313 ++++++++++
+ drivers/media/platform/imx/imx-ipu.h        |  36 ++
+ include/video/imx-ipu-v3.h                  |  49 +-
+ 10 files changed, 2012 insertions(+), 17 deletions(-)
+ create mode 100644 drivers/media/platform/imx/Kconfig
+ create mode 100644 drivers/media/platform/imx/Makefile
+ create mode 100644 drivers/media/platform/imx/imx-ipu-scaler.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.h
+
+-- 
+2.1.4
 
