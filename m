@@ -1,35 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 165.48-245-23.rdns.scalabledns.com ([23.245.48.165]:1208 "HELO
-	a.shangpuso.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750779AbbGWCzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 22:55:18 -0400
-Date: Thu, 23 Jul 2015 10:49:49 +0800
-From: "E&J-Tech Lucy" <ejtechgroup@yeah.net>
-Reply-To: ejtechgroup@yeah.net
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Battery manufacturer since 1998
-Message-ID: <201507231049496127891@a.shangpuso.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60794 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812AbbGQODG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 10:03:06 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 2/4] [media] tc358743: enable v4l2 subdevice devnode
+Date: Fri, 17 Jul 2015 16:02:54 +0200
+Message-Id: <1437141776-8967-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1437141776-8967-1-git-send-email-p.zabel@pengutronix.de>
+References: <1437141776-8967-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciBQdXJjaGFzaW5nIE1hbmFnZXIsDQoNCkdvb2QgZGF5ISANCg0KVGhpcyBpcyBMdWN5IGZy
-b20gQ2hpbmEuIFdlIGFyZSB3cml0aW5nIHRvIHlvdSB0byBlc3RhYmxpc2ggbG9uZy10ZXJtIHRy
-YWRlIHJlbGF0aW9ucyB3aXRoIHlvdS4NCg0KV2UgYXJlIGxlYW5kaW5nIG1hbnVmYWN0dXJlciBv
-ZiBsaWZlcG80IGJhdHRlcnksbGl0aGl1bS1UaXRhbmF0ZSBiYXR0ZXJ5LHVuaXZlcnNhbCBiYXR0
-ZXJ5IEJNUy9QQ00gYW5kIGJhdHRlcnkgbW9uaXRvci9iYXR0ZXJ5IFNPQyBkaXNwbGF5LGJhdHRl
-cnkgY2hhcmdlci4NCg0KV291bGQgeW91IGhlbHAgdG8gY2hlY2sgd2hldGhlciB5b3UgaGF2ZSBh
-bnkgaW50ZXJlc3Qgb24gdGhlIGJlbG93IHByb2R1Y3RzIHdlIG1hbnVmYWN0dXJlLg0KDQoxLiAy
-LjRWIExUTyhMaXRoaXVtIFRpdGFudGlhdGUpIGJhdHRlcnk6IDNDIGNoYXJnZSwxMEMgZGlzY2hh
-cmdlLHVwIHRvIDMwLDAwMCBjeWNlbGUgbGlmZQ0KDQoyLiAzLjJWIExpRmVQTzQgYmF0dGVyeTog
-Y3lsaW5kcmljYWwscHJpbWFzdGljLHBvdWNoIGNlbGwsdXAgdG8gMiwwMDAgY3ljbGUgbGlmZQ0K
-DQozLiAxQS03NTBBIEJhdHRlcnkgbW9uaXRvci9iYXR0ZXJ5IGZ1ZWwgZ2F1Z2Ugc3VpdGFibGUg
-YWxsIHR5cGUgb2YgYmF0dGVyeQ0KDQo0LiBVbml2ZXJzYWwgYmF0dGVyeSBCTVM6IDNTLThTIGFs
-bCBpbiBvbmUgbW9kZWwsIDRTLTE2UyBhbGwgaW4gb25lIG1vZGVsDQoNCklmIGN1c3RvbSBkZXZl
-bG9wbWVudHMgYXJlIG5lZWRlZCxwbGVhc2UgY29udGFjdCBtZSBmcmVlbHkuDQoNCkhvcGUgdG8g
-ZXN0YWJsaXNoIHRoZSBsb25nLXRlcm0gY29vcGVyYXRpb24gcmVhbGl0aGlvbnNoaXAgd2l0aCB5
-b3UuIFRoYW5rcy4NCg0KDQpCZXN0IFJlZ2FyZHMsDQoNCkx1Y3kNCg0KRW1haWw6ZWp0ZWNoZ3Jv
-dXBAeWVhaC5uZXQNClNreXBlOiBlanRlY2hncm91cA==
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 8d9906b..a7542e5 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1668,7 +1668,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	state->i2c_client = client;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &tc358743_ops);
+-	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+ 
+ 	/* i2c access */
+ 	if ((i2c_rd16(sd, CHIPID) & MASK_CHIPID) != 0) {
+-- 
+2.1.4
+
