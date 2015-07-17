@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55635 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752275AbbGaCLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 22:11:11 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3 12/13] DocBook: fix S_FREQUENCY => G_FREQUENCY
-Date: Fri, 31 Jul 2015 05:10:49 +0300
-Message-Id: <1438308650-2702-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1438308650-2702-1-git-send-email-crope@iki.fi>
-References: <1438308650-2702-1-git-send-email-crope@iki.fi>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:50772 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755122AbbGQPAt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 11:00:49 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CFF382A0091
+	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 16:59:46 +0200 (CEST)
+Message-ID: <55A91862.3000901@xs4all.nl>
+Date: Fri, 17 Jul 2015 16:59:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.3] tc358743: add DT support
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is VIDIOC_G_FREQUENCY which does not use type to identify tuner,
-not VIDIOC_S_FREQUENCY. VIDIOC_S_FREQUENCY uses both tuner and type
-fields. One of these V4L API weirdness...
+The following changes since commit 6727d4fce95586e60922bdaf57b8a0eb99482557:
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/common.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+  [media] coda: make NV12 format default (2015-07-17 11:29:39 -0300)
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 8b5e014..f7008ea 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -428,7 +428,7 @@ zero, no video outputs.</para>
- modulator. Two separate device nodes will have to be used for such
- hardware, one that supports the tuner functionality and one that supports
- the modulator functionality. The reason is a limitation with the
--&VIDIOC-S-FREQUENCY; ioctl where you cannot specify whether the frequency
-+&VIDIOC-G-FREQUENCY; ioctl where you cannot specify whether the frequency
- is for a tuner or a modulator.</para>
- 
-       <para>To query and change modulator properties applications use
--- 
-http://palosaari.fi/
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.3c
+
+for you to fetch changes up to df9d259dcf8c000878e04ffd3ed6a22bfc0fb02f:
+
+  tc358743: add direct interrupt handling (2015-07-17 16:52:28 +0200)
+
+----------------------------------------------------------------
+Philipp Zabel (4):
+      tc358743: register v4l2 asynchronous subdevice
+      tc358743: enable v4l2 subdevice devnode
+      tc358743: support probe from device tree
+      tc358743: add direct interrupt handling
+
+ Documentation/devicetree/bindings/media/i2c/tc358743.txt |  48 +++++++++++++++++
+ drivers/media/i2c/tc358743.c                             | 192 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 233 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tc358743.txt
