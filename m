@@ -1,96 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f65.google.com ([209.85.215.65]:36293 "EHLO
-	mail-la0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753450AbbG3LRW (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58970 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757967AbbGQLAO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 07:17:22 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
-References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
-	<1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
-	<1435195057.9377.18.camel@perches.com>
-	<20150722185811.2d718baa@recife.lan>
-	<20150730094738.GD488@griffinp-ThinkPad-X1-Carbon-2nd>
-	<1438250928.2677.10.camel@perches.com>
-	<CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
-Date: Thu, 30 Jul 2015 07:17:20 -0400
-Message-ID: <CAOcJUbzhL2LXro9cwazZxtH=-=FndNARi7TSsFi+DGCPP3uEdA@mail.gmail.com>
-Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X tuner.
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Joe Perches <joe@perches.com>
-Cc: Peter Griffin <peter.griffin@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media <linux-media@vger.kernel.org>,
-	devicetree@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Fri, 17 Jul 2015 07:00:14 -0400
+Message-ID: <1437130811.3254.1.camel@pengutronix.de>
+Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kernel@pengutronix.de
+Date: Fri, 17 Jul 2015 13:00:11 +0200
+In-Reply-To: <55A4E154.8020309@xs4all.nl>
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
+		 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>
+		 <55A39982.3030006@xs4all.nl> <1436868605.3793.24.camel@pengutronix.de>
+	 <55A4E154.8020309@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 30, 2015 at 7:14 AM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
-> On Thu, Jul 30, 2015 at 6:08 AM, Joe Perches <joe@perches.com> wrote:
->> On Thu, 2015-07-30 at 10:47 +0100, Peter Griffin wrote:
->>> Hi Mauro / Joe,
->>>
->>> On Wed, 22 Jul 2015, Mauro Carvalho Chehab wrote:
->>>
->>> > Em Wed, 24 Jun 2015 18:17:37 -0700
->>> > Joe Perches <joe@perches.com> escreveu:
->>> >
->>> > > On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
->>> > > > This is used in conjunction with the STV0367 demodulator on
->>> > > > the STV0367-NIM-V1.0 NIM card which can be used with the STi
->>> > > > STB SoC's.
->>> > >
->>> > > Barely associated to this specific patch, but for
->>> > > dvb-pll.c, another thing that seems possible is to
->>> > > convert the struct dvb_pll_desc uses to const and
->>> > > change the "entries" fixed array size from 12 to []
->>> > >
->>> > > It'd save a couple KB overall and remove ~5KB of data.
->>> > >
->>> > > $ size drivers/media/dvb-frontends/dvb-pll.o*
->>> > >    text      data     bss     dec     hex filename
->>> > >    8520      1552    2120   12192    2fa0 drivers/media/dvb-frontends/dvb-pll.o.new
->>> > >    5624      6363    2120   14107    371b drivers/media/dvb-frontends/dvb-pll.o.old
->>> >
->>> > Peter,
->>> >
->>> > Please add this patch on the next patch series you submit.
->>>
->>> Ok will do, I've added this patch with a slightly updated commit message
->>> to my series.
->>>
->>> Joe - Can I add your signed-off-by?
->>
->> Signed-off-by: Joe Perches <joe@perches.com>
->
-> Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
->
-> Joe, nice optimization - thanks for that.
->
-> With regards to Peter's patch, is this a digital-only tuner, or is it
-> a hybrid tuner?
->
-> The 5th byte that you send to the THOMSON DTT7546X seems to resemble
-> the 'auxiliary byte' that gets set in tuner-simple.c
->
-> I'm not sure that dvb-pll is the right place for this tuner
-> definition, if this is the case.  Maybe this definition belongs in
-> tuner-simple instead, if the pattern matches better there.
->
-> Mauro, can we hold off on merging Peter's patch until we resolve this?
->
-> -Michael Ira Krufky
+Am Dienstag, den 14.07.2015, 12:15 +0200 schrieb Hans Verkuil:
+[...]
+> As you said, it's not public and without the formulas there is nothing you
+> can do but hardcode it.
+> 
+> If I understand this correctly these values depend on the link frequency,
+> so the DT should contain the link frequency and the driver can hardcode the
+> values based on that. Which means that if someone needs to support a new
+> link frequency the driver needs to be extended for that frequency.
+> 
+> As long as Toshiba keeps the formulas under NDA there isn't much else you can
+> do.
 
-eek!  I mispelled my own email address.
+Ok.
 
+[...]
+> >>>  	/* platform data */
+> >>> -	if (!pdata) {
+> >>> -		v4l_err(client, "No platform data!\n");
+> >>> -		return -ENODEV;
+> >>> +	if (pdata) {
+> >>> +		state->pdata = *pdata;
+> >>> +	} else {
+> >>> +		err = tc358743_probe_of(state);
+> >>> +		if (err == -ENODEV)
+> >>> +			v4l_err(client, "No platform data!\n");
+> >>
+> >> I'd replace this with "No device tree data!" or something like that.
+> > 
+> > I'll do that, thank you.
 
-With regards to Joe's patch - I'd like to see that merged.  ...and
-here is my correctly spelled email address:
+On second thought, I'll keep it as is. The tc358743_probe_of function
+prints its own error messages. In the platform data case it returns
+-ENODEV, so that'd still be the correct message, then.
 
+regards
+Philipp
 
-Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
