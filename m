@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43247 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753500AbbGWW3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 18:29:06 -0400
-From: Laura Abbott <labbott@fedoraproject.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laura Abbott <labbott@fedoraproject.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [RESEND][PATCHv2] v4l2-ioctl: Give more information when device_caps are missing
-Date: Thu, 23 Jul 2015 15:28:48 -0700
-Message-Id: <1437690528-32520-1-git-send-email-labbott@fedoraproject.org>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33583 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757487AbbGQKB6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 06:01:58 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E5FE72A0091
+	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 12:00:55 +0200 (CEST)
+Message-ID: <55A8D257.7060004@xs4all.nl>
+Date: Fri, 17 Jul 2015 12:00:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.3] coda driver fixes/enhancements
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, the warning for missing device_caps gives a backtrace like so:
+The following changes since commit 8783b9c50400c6279d7c3b716637b98e83d3c933:
 
-[<ffffffff8175c199>] dump_stack+0x45/0x57
-[<ffffffff8109ad5a>] warn_slowpath_common+0x8a/0xc0
-[<ffffffff8109ae8a>] warn_slowpath_null+0x1a/0x20
-[<ffffffffa0237453>] v4l_querycap+0x43/0x80 [videodev]
-[<ffffffffa0237734>] __video_do_ioctl+0x2a4/0x320 [videodev]
-[<ffffffff812207e5>] ? do_last+0x195/0x1210
-[<ffffffffa023a11e>] video_usercopy+0x22e/0x5b0 [videodev]
-[<ffffffffa0237490>] ? v4l_querycap+0x80/0x80 [videodev]
-[<ffffffffa023a4b5>] video_ioctl2+0x15/0x20 [videodev]
-[<ffffffffa0233733>] v4l2_ioctl+0x113/0x150 [videodev]
-[<ffffffff81225798>] do_vfs_ioctl+0x2f8/0x4f0
-[<ffffffff8113b2d4>] ? __audit_syscall_entry+0xb4/0x110
-[<ffffffff81022d7c>] ? do_audit_syscall_entry+0x6c/0x70
-[<ffffffff81225a11>] SyS_ioctl+0x81/0xa0
-[<ffffffff8113b526>] ? __audit_syscall_exit+0x1f6/0x2a0
-[<ffffffff81763549>] system_call_fastpath+0x12/0x17
+  [media] SMI PCIe IR driver for DVBSky cards (2015-07-06 08:26:16 -0300)
 
-This indicates that device_caps are missing but doesn't give
-much of a clue which driver is actually at fault. Improve
-the warning output by showing the capabilities and the
-responsible driver.
+are available in the git repository at:
 
-Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
----
-I sent this out right before I went on vacation but I never saw any follow up.
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+  git://linuxtv.org/hverkuil/media_tree.git coda
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 85de455..ad7e929 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1025,8 +1025,9 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 	 * Drivers MUST fill in device_caps, so check for this and
- 	 * warn if it was forgotten.
- 	 */
--	WARN_ON(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
--		!cap->device_caps);
-+	WARN(!(cap->capabilities & V4L2_CAP_DEVICE_CAPS) ||
-+		!cap->device_caps, "Bad caps for driver %s, %x %x",
-+		cap->driver, cap->capabilities, cap->device_caps);
- 	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
- 
- 	return ret;
--- 
-2.4.3
+for you to fetch changes up to 841847fa5b355add85a0d925ad63156347d422e5:
 
+  coda: make NV12 format default (2015-07-17 11:54:04 +0200)
+
+----------------------------------------------------------------
+Lucas Stach (1):
+      coda: clamp frame sequence counters to 16 bit
+
+Philipp Zabel (15):
+      coda: fix mvcol buffer for MPEG4 decoding
+      coda: fix bitstream preloading for MPEG4 decoding
+      coda: keep buffers on the queue in bitstream end mode
+      coda: avoid calling SEQ_END twice
+      coda: reset stream end in stop_streaming
+      coda: drop custom list of pixel format descriptions
+      coda: use event class to deduplicate v4l2 trace events
+      coda: reuse src_bufs in coda_job_ready
+      coda: rework meta counting and add separate lock
+      coda: reset CODA960 hardware after sequence end
+      coda: implement VBV delay and buffer size controls
+      coda: Use S_PARM to set nominal framerate for h.264 encoder
+      coda: move cache setup into coda9_set_frame_cache, also use it in start_encoding
+      coda: add macroblock tiling support
+      coda: make NV12 format default
+
+ drivers/media/platform/coda/Makefile      |   2 +-
+ drivers/media/platform/coda/coda-bit.c    | 140 +++++++++++++++++++++++++---------
+ drivers/media/platform/coda/coda-common.c | 336 ++++++++++++++++++++++++++++++++++++++++++++--------------------------------------
+ drivers/media/platform/coda/coda-gdi.c    | 150 +++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/coda.h        |  15 ++--
+ drivers/media/platform/coda/coda_regs.h   |  10 +++
+ drivers/media/platform/coda/trace.h       |  89 +++++++---------------
+ 7 files changed, 478 insertions(+), 264 deletions(-)
+ create mode 100644 drivers/media/platform/coda/coda-gdi.c
