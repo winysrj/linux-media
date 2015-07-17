@@ -1,55 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53535 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752270AbbGaCLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 22:11:11 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3 11/13] hackrf: do not set human readable name for formats
-Date: Fri, 31 Jul 2015 05:10:48 +0300
-Message-Id: <1438308650-2702-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1438308650-2702-1-git-send-email-crope@iki.fi>
-References: <1438308650-2702-1-git-send-email-crope@iki.fi>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42338 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757964AbbGQPhX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 11:37:23 -0400
+Message-ID: <55A920F5.2030407@xs4all.nl>
+Date: Fri, 17 Jul 2015 17:36:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>, kernel@pengutronix.de,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] tc358743: allow event subscription
+References: <1437145614-4313-1-git-send-email-p.zabel@pengutronix.de>	 <55A91B47.10308@xs4all.nl> <1437146322.3254.12.camel@pengutronix.de>
+In-Reply-To: <1437146322.3254.12.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format names are set by core nowadays. Remove name from driver.
+On 07/17/2015 05:18 PM, Philipp Zabel wrote:
+> Am Freitag, den 17.07.2015, 17:12 +0200 schrieb Hans Verkuil:
+>> On 07/17/2015 05:06 PM, Philipp Zabel wrote:
+>>> This is useful to subscribe to HDMI hotplug events via the
+>>> V4L2_CID_DV_RX_POWER_PRESENT control.
+>>
+>> Very quick, but it doesn't apply. You need to combine the original
+>> "[PATCH 5/5] [media] tc358743: allow event subscription" together with
+>> this patch.
+> 
+> I clearly shouldn't be allowed to send patches today. I'll merge these
+> and then I'll take my hands off the keyboard.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/hackrf/hackrf.c | 3 ---
- 1 file changed, 3 deletions(-)
+Thanks for the v3, I've reposted my pull request to include this patch as
+well.
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index f4b5606..475eb22 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -69,7 +69,6 @@ static const struct v4l2_frequency_band bands_rx_tx[] = {
- 
- /* stream formats */
- struct hackrf_format {
--	char	*name;
- 	u32	pixelformat;
- 	u32	buffersize;
- };
-@@ -77,7 +76,6 @@ struct hackrf_format {
- /* format descriptions for capture and preview */
- static struct hackrf_format formats[] = {
- 	{
--		.name		= "Complex S8",
- 		.pixelformat	= V4L2_SDR_FMT_CS8,
- 		.buffersize	= BULK_BUFFER_SIZE,
- 	},
-@@ -996,7 +994,6 @@ static int hackrf_enum_fmt_sdr_cap(struct file *file, void *priv,
- 	if (f->index >= NUM_FORMATS)
- 		return -EINVAL;
- 
--	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
- 	f->pixelformat = formats[f->index].pixelformat;
- 
- 	return 0;
--- 
-http://palosaari.fi/
+The weekend starts, so this is a pretty good time to take your hands off the
+keyboard. In fact, I think I'll join you :-)
 
+Regards,
+
+	Hans
