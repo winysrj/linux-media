@@ -1,108 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36991 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751596AbbGMIqW (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42287 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757860AbbGQPNJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 04:46:22 -0400
-Message-ID: <55A37AA5.1020809@xs4all.nl>
-Date: Mon, 13 Jul 2015 10:45:25 +0200
+	Fri, 17 Jul 2015 11:13:09 -0400
+Message-ID: <55A91B47.10308@xs4all.nl>
+Date: Fri, 17 Jul 2015 17:12:07 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jan Kara <jack@suse.cz>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 0/10 v6] Helper to abstract vma handling in media layer
-References: <1434636520-25116-1-git-send-email-jack@suse.cz> <20150709114848.GA9189@quack.suse.cz> <559E6538.9080100@xs4all.nl>
-In-Reply-To: <559E6538.9080100@xs4all.nl>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+CC: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH v2] [media] tc358743: allow event subscription
+References: <1437145614-4313-1-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1437145614-4313-1-git-send-email-p.zabel@pengutronix.de>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2015 02:12 PM, Hans Verkuil wrote:
-> On 07/09/2015 01:48 PM, Jan Kara wrote:
->>   Hello,
->>
->>   Hans, did you have a chance to look at these patches? I have tested them
->> with the vivid driver but it would be good if you could run them through
->> your standard testing procedure as well. Andrew has updated the patches in
->> his tree but some ack from you would be welcome...
-> 
-> I've planned a 'patch day' for Monday. So hopefully you'll see a pull request
-> by then.
+On 07/17/2015 05:06 PM, Philipp Zabel wrote:
+> This is useful to subscribe to HDMI hotplug events via the
+> V4L2_CID_DV_RX_POWER_PRESENT control.
 
-OK, I'm confused. I thought the non-vb2 patches would go in for 4.2? That didn't
-happen, so I guess the plan is to merge the whole lot for 4.3 via our media
-tree? If that's the case, can you post a new patch series on top of the master
-branch of the media tree? I want to make sure I use the right patches. Also, if
-you do make a new patch series, then it would be better if patch 10/10 is folded
-into patch 2/10.
-
-If that's not the case, then you have to let me know what I should do.
+Very quick, but it doesn't apply. You need to combine the original
+"[PATCH 5/5] [media] tc358743: allow event subscription" together with
+this patch.
 
 Regards,
 
 	Hans
 
->>
->> 								Honza
->> On Thu 18-06-15 16:08:30, Jan Kara wrote:
->>>   Hello,
->>>
->>> I'm sending the sixth version of my patch series to abstract vma handling from
->>> the various media drivers. Since the previous version I have added a patch to
->>> move mm helpers into a separate file and behind a config option. I also
->>> changed patch pushing mmap_sem down in videobuf2 core to avoid lockdep warning
->>> and NULL dereference Hans found in his testing. I've also included small
->>> fixups Andrew was carrying.
->>>
->>> After this patch set drivers have to know much less details about vmas, their
->>> types, and locking. Also quite some code is removed from them. As a bonus
->>> drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
->>> this series is to remove knowledge about mmap_sem locking from as many places a
->>> possible so that we can change it with reasonable effort.
->>>
->>> The core of the series is the new helper get_vaddr_frames() which is given a
->>> virtual address and it fills in PFNs / struct page pointers (depending on VMA
->>> type) into the provided array. If PFNs correspond to normal pages it also grabs
->>> references to these pages. The difference from get_user_pages() is that this
->>> function can also deal with pfnmap, and io mappings which is what the media
->>> drivers need.
->>>
->>> I have tested the patches with vivid driver so at least vb2 code got some
->>> exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
->>> exynos driver which is only for Samsung platform is completely untested).
->>>
->>> Andrew, can you please update the patches in mm three? Thanks!
->>>
->>> 								Honza
->>>
->>> Changes since v5:
->>> * Moved mm helper into a separate file and behind a config option
->>> * Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
->>>   possible deadlock
->>>
->>> Changes since v4:
->>> * Minor cleanups and fixes pointed out by Mel and Vlasta
->>> * Added Acked-by tags
->>>
->>> Changes since v3:
->>> * Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
->>> * Fixed error path for exynos driver
->>>
->>> Changes since v2:
->>> * Renamed functions and structures as Mel suggested
->>> * Other minor changes suggested by Mel
->>> * Rebased on top of 4.1-rc2
->>> * Changed functions to get pointer to array of pages / pfns to perform
->>>   conversion if necessary. This fixes possible issue in the omap I may have
->>>   introduced in v2 and generally makes the API less errorprone.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v1:
+>  - Make use of v4l2_subdev_notify_event, v4l2_src_change_event_subdev_subscribe,
+>    and v4l2_ctrl_subdev_subscribe_event.
+> ---
+>  drivers/media/i2c/tc358743.c | 18 +++++++++++++++---
+>  1 file changed, 15 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+> index 0c3c8aa..0d31a4f 100644
+> --- a/drivers/media/i2c/tc358743.c
+> +++ b/drivers/media/i2c/tc358743.c
+> @@ -860,8 +860,7 @@ static void tc358743_format_change(struct v4l2_subdev *sd)
+>  				&timings, false);
+>  	}
+>  
+> -	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT,
+> -			(void *)&tc358743_ev_fmt);
+> +	v4l2_subdev_notify_event(sd, &tc358743_ev_fmt);
+>  }
+>  
+>  static void tc358743_init_interrupts(struct v4l2_subdev *sd)
+> @@ -1318,6 +1317,19 @@ static irqreturn_t tc358743_irq_handler(int irq, void *dev_id)
+>  	return handled ? IRQ_HANDLED : IRQ_NONE;
+>  }
+>  
+> +static int tc358743_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+> +				    struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+>  /* --------------- VIDEO OPS --------------- */
+>  
+>  static int tc358743_g_input_status(struct v4l2_subdev *sd, u32 *status)
+> @@ -1605,7 +1617,7 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
+>  	.s_register = tc358743_s_register,
+>  #endif
+>  	.interrupt_service_routine = tc358743_isr,
+> -	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+> +	.subscribe_event = tc358743_subscribe_event,
+>  	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
+>  };
+>  
 > 
 
