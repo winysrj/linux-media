@@ -1,197 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53648 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757023AbbGQHN7 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53172 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752398AbbGQIvX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 03:13:59 -0400
-Date: Fri, 17 Jul 2015 10:13:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v3 02/19] media/v4l2-core: add new ioctl
- VIDIOC_G_DEF_EXT_CTRLS
-Message-ID: <20150717071354.GO3709@valkosipuli.retiisi.org.uk>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
- <1434127598-11719-3-git-send-email-ricardo.ribalda@gmail.com>
+	Fri, 17 Jul 2015 04:51:23 -0400
+Message-ID: <55A8C1C8.9040909@xs4all.nl>
+Date: Fri, 17 Jul 2015 10:50:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1434127598-11719-3-git-send-email-ricardo.ribalda@gmail.com>
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com
+CC: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
+	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v4 1/1] V4L2: platform: Add Renesas R-Car JPEG codec driver.
+References: <1435318645-20565-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1435318645-20565-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Hi Mikhail,
 
-Thanks for the set, and my apologies for the late review!
-
-On Fri, Jun 12, 2015 at 06:46:21PM +0200, Ricardo Ribalda Delgado wrote:
-> This ioctl returns the default value of one or more extended controls.
-> It has the same interface as VIDIOC_EXT_CTRLS.
+On 06/26/2015 01:37 PM, Mikhail Ulyanov wrote:
+> Here's the driver for the Renesas R-Car JPEG processing unit.
 > 
-> It is needed due to the fact that QUERYCTRL was not enough to
-> provide the initial value of pointer type controls.
+> The driver is implemented within the V4L2 framework as a memory-to-memory
+> device.  It presents two video nodes to userspace, one for the encoding part,
+> and one for the decoding part.
 > 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> It was found that the only working mode for encoding is no markers output, so we
+> generate markers with software. In the current version of driver we also use
+> software JPEG header parsing because with hardware parsing performance is lower
+> than desired.
+> 
+> From a userspace point of view the process is typical (S_FMT, REQBUF,
+> optionally QUERYBUF, QBUF, STREAMON, DQBUF) for both the source and destination
+> queues. STREAMON can return -EINVAL in case of mismatch of output and capture
+> queues format. Also during decoding driver can return buffers if queued
+> buffer with JPEG image contains image with inappropriate subsampling (e.g.
+> 4:2:0 in JPEG and 4:2:2 in capture).  If JPEG image and queue format dimensions
+> differ driver will return buffer on QBUF with VB2_BUF_STATE_ERROR flag.
+> 
+> During encoding the available formats are: V4L2_PIX_FMT_NV12M,
+> V4L2_PIX_FMT_NV12, V4L2_PIX_FMT_NV16, V4L2_PIX_FMT_NV16M for source and
+> V4L2_PIX_FMT_JPEG for destination.
+> 
+> During decoding the available formats are: V4L2_PIX_FMT_JPEG for source and
+> V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_NV16M, V4L2_PIX_FMT_NV12, V4L2_PIX_FMT_NV16
+> for destination.
+> 
+> Performance of current version:
+> 1280x800 NV12 image encoding/decoding
+> 	decoding ~122 FPS
+> 	encoding ~191 FPS
+> 
+> Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
 > ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++++
->  drivers/media/v4l2-core/v4l2-ioctl.c          | 21 +++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-subdev.c         |  3 +++
->  include/media/v4l2-ioctl.h                    |  2 ++
->  include/uapi/linux/videodev2.h                |  1 +
->  5 files changed, 31 insertions(+)
+>  Changes since v3:
+>     - driver file renamed to rcar_jpu.c
+>     - semiplanar formats NV12 and NV16 support
+>     - new callbacks streamon, job_abort and stop_streaming
+>     - extra processing error information printout irq handler
+>     - fill in JPEG header for encoded buffer in buf_finish
+>     - wrapped reading/writing to registers
+>     - vb2_set_plane_payload only for necessary buffer in buf_prepare
+>     - multiple buffers now supported
+>     - removed format setup with parsed info; rely only on users info
+>     - JPEG header parser redesigned
+>     - video_device structs embedded
+>     - video_device_alloc/release removed
+>     - "name" filed in format description removed
+>     - remove g_selection
+>     - start_streaming removed
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index af635430524e..b7ab852b642f 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -817,6 +817,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
->  #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
->  #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
->  #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
-> +#define VIDIOC_G_DEF_EXT_CTRLS32 _IOWR('V', 104, struct v4l2_ext_controls32)
->  
->  #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
->  #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-> @@ -858,6 +859,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->  	case VIDIOC_ENUMINPUT32: cmd = VIDIOC_ENUMINPUT; break;
->  	case VIDIOC_TRY_FMT32: cmd = VIDIOC_TRY_FMT; break;
->  	case VIDIOC_G_EXT_CTRLS32: cmd = VIDIOC_G_EXT_CTRLS; break;
-> +	case VIDIOC_G_DEF_EXT_CTRLS32: cmd = VIDIOC_G_DEF_EXT_CTRLS; break;
->  	case VIDIOC_S_EXT_CTRLS32: cmd = VIDIOC_S_EXT_CTRLS; break;
->  	case VIDIOC_TRY_EXT_CTRLS32: cmd = VIDIOC_TRY_EXT_CTRLS; break;
->  	case VIDIOC_DQEVENT32: cmd = VIDIOC_DQEVENT; break;
-> @@ -935,6 +937,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->  		break;
->  
->  	case VIDIOC_G_EXT_CTRLS:
-> +	case VIDIOC_G_DEF_EXT_CTRLS:
->  	case VIDIOC_S_EXT_CTRLS:
->  	case VIDIOC_TRY_EXT_CTRLS:
->  		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
-> @@ -962,6 +965,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->  	   contain information on which control failed. */
->  	switch (cmd) {
->  	case VIDIOC_G_EXT_CTRLS:
-> +	case VIDIOC_G_DEF_EXT_CTRLS:
->  	case VIDIOC_S_EXT_CTRLS:
->  	case VIDIOC_TRY_EXT_CTRLS:
->  		if (put_v4l2_ext_controls32(&karg.v2ecs, up))
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index a675ccc8f27a..5ed03b8588ec 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1991,6 +1991,25 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  					-EINVAL;
->  }
->  
-> +static int v4l_g_def_ext_ctrls(const struct v4l2_ioctl_ops *ops,
-> +				struct file *file, void *fh, void *arg)
-> +{
-> +	struct video_device *vfd = video_devdata(file);
-> +	struct v4l2_ext_controls *p = arg;
-> +	struct v4l2_fh *vfh =
-> +		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
-> +
-> +	p->error_idx = p->count;
-> +	if (vfh && vfh->ctrl_handler)
-> +		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p, true);
-> +	if (vfd->ctrl_handler)
-> +		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p, true);
-> +	if (ops->vidioc_g_def_ext_ctrls == NULL)
-> +		return -ENOTTY;
-> +	return check_ext_ctrls(p, 0) ?
-> +		ops->vidioc_g_def_ext_ctrls(file, fh, p) : -EINVAL;
-> +}
-> +
->  static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
-> @@ -2435,6 +2454,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->  	IOCTL_INFO_FNC(VIDIOC_G_SLICED_VBI_CAP, v4l_g_sliced_vbi_cap, v4l_print_sliced_vbi_cap, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
->  	IOCTL_INFO_FNC(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
->  	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-> +	IOCTL_INFO_FNC(VIDIOC_G_DEF_EXT_CTRLS, v4l_g_def_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
->  	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
->  	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
->  	IOCTL_INFO_STD(VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes, v4l_print_frmsizeenum, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
-> @@ -2643,6 +2663,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->  
->  	case VIDIOC_S_EXT_CTRLS:
->  	case VIDIOC_G_EXT_CTRLS:
-> +	case VIDIOC_G_DEF_EXT_CTRLS:
->  	case VIDIOC_TRY_EXT_CTRLS: {
->  		struct v4l2_ext_controls *ctrls = parg;
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 90ed61e6df34..8d75620e4603 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -205,6 +205,9 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  	case VIDIOC_G_EXT_CTRLS:
->  		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg, false);
->  
-> +	case VIDIOC_G_DEF_EXT_CTRLS:
-> +		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg, true);
-> +
->  	case VIDIOC_S_EXT_CTRLS:
->  		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
->  
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index 8fbbd76d78e8..16d7eeec9ff6 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -160,6 +160,8 @@ struct v4l2_ioctl_ops {
->  					struct v4l2_control *a);
->  	int (*vidioc_g_ext_ctrls)      (struct file *file, void *fh,
->  					struct v4l2_ext_controls *a);
-> +	int (*vidioc_g_def_ext_ctrls)  (struct file *file, void *fh,
-> +					struct v4l2_ext_controls *a);
->  	int (*vidioc_s_ext_ctrls)      (struct file *file, void *fh,
->  					struct v4l2_ext_controls *a);
->  	int (*vidioc_try_ext_ctrls)    (struct file *file, void *fh,
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3d5fc72d53a7..b9468a3b833e 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -2269,6 +2269,7 @@ struct v4l2_create_buffers {
->  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->  
->  #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-> +#define VIDIOC_G_DEF_EXT_CTRLS	_IOWR('V', 104, struct v4l2_ext_controls)
+> Changes since v2:
+>     - Kconfig entry reordered
+>     - unnecessary clk_disable_unprepare(jpu->clk) removed
+>     - ref_count fixed in jpu_resume
+>     - enable DMABUF in src_vq->io_modes
+>     - remove jpu_s_priority jpu_g_priority
+>     - jpu_g_selection fixed
+>     - timeout in jpu_reset added and hardware reset reworked
+>     - remove unused macros
+>     - JPEG header parsing now is software because of performance issues
+>       based on s5p-jpeg code
+>     - JPEG header generation redesigned:
+>       JPEG header(s) pre-generated and memcpy'ed on encoding
+>       we only fill the necessary fields
+>       more "transparent" header format description
+>     - S_FMT, G_FMT and TRY_FMT hooks redesigned
+>       partially inspired by VSP1 driver code
+>     - some code was reformatted
+>     - image formats handling redesigned
+>     - multi-planar V4L2 API now in use
+>     - now passes v4l2-compliance tool check
+> 
+> Cnanges since v1:
+>     - s/g_fmt function simplified
+>     - default format for queues added
+>     - dumb vidioc functions added to be in compliance with standard api:
+>         jpu_s_priority, jpu_g_priority
+>     - standard v4l2_ctrl_subscribe_event and v4l2_event_unsubscribe
+>       now in use by the same reason
+> 
+>  drivers/media/platform/Kconfig    |   11 +
+>  drivers/media/platform/Makefile   |    1 +
+>  drivers/media/platform/rcar_jpu.c | 1753 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 1765 insertions(+)
+>  create mode 100644 drivers/media/platform/rcar_jpu.c
+> 
 
-I assume that if an application uses pointer controls, then it'd obtain the
-default values using VIDIOC_G_DEF_EXT_CTRLS. This suggests all drivers
-should support this from the very beginning, and the application would not
-work on older kernels that don't have the IOCTL implemented.
+This patch looks good. There are a few small things checkpatch gave me:
 
-Instead of adding a new IOCTL, have you thought about the possibility of
-doing this through VIDIOC_QUERY_EXT_CTRL? That's how the default control
-value is passed to the user now, and I think it'd look odd to add a new
-IOCTL for just that purpose.
+WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+#82: 
+new file mode 100644
 
-One option could be making the default_value field a union such as the one
-in struct v4l2_ext_control. If the control type is such that the value is
-stored in the memory, one of the pointer fields of the union is used
-instead.
+WARNING: DT compatible string "renesas,jpu-r8a7790" appears un-documented -- check ./Documentation/devicetree/bindings/
+#1645: FILE: drivers/media/platform/rcar_jpu.c:1559:
++       { .compatible = "renesas,jpu-r8a7790" }, /* H2 */
 
-As the user cannot be expected to know the size beforehand, the pointer
-value may only be used if it's non-zero. This might require a new field
-rather than making default_value a union for backward compatibility, as the
-documentation does not instruct the user to zero the default_value field.
+WARNING: DT compatible string "renesas,jpu-r8a7791" appears un-documented -- check ./Documentation/devicetree/bindings/
+#1646: FILE: drivers/media/platform/rcar_jpu.c:1560:
++       { .compatible = "renesas,jpu-r8a7791" }, /* M2-W */
 
-What do you think?
+WARNING: DT compatible string "renesas,jpu-r8a7792" appears un-documented -- check ./Documentation/devicetree/bindings/
+#1647: FILE: drivers/media/platform/rcar_jpu.c:1561:
++       { .compatible = "renesas,jpu-r8a7792" }, /* V2H */
 
-The result would be no added redundancy, and less driver modifications, as
-the drivers also don't need to support multiple interfaces for passing
-control default values.
+WARNING: DT compatible string "renesas,jpu-r8a7793" appears un-documented -- check ./Documentation/devicetree/bindings/
+#1648: FILE: drivers/media/platform/rcar_jpu.c:1562:
++       { .compatible = "renesas,jpu-r8a7793" }, /* M2-N */
 
--- 
-Kind regards,
+So before I can commit I need a MAINTAINERS patch and DT documentation.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+I also noticed that the Kconfig patch says that the driver module is called jpu,
+but I think that should be rcar_jpu. If you can fix that?
+
+I would also like to have the v4l2-compliance output for both encoder and decoder.
+
+Try 'v4l2-compliance -s' for the encoder. This won't work for the decoder (v4l2-compliance
+can't generate JPEG images), so just run 'v4l2-compliance' for that one.
+
+Regards,
+
+	Hans
