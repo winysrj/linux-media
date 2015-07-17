@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61644 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752151AbbGWMVs (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54425 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbbGQOGl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 02/13] ARM: shmobile: lager dts: specify default-input for ADV7612
-Date: Thu, 23 Jul 2015 13:21:32 +0100
-Message-Id: <1437654103-26409-3-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+	Fri, 17 Jul 2015 10:06:41 -0400
+Message-ID: <1437141997.3254.6.camel@pengutronix.de>
+Subject: Re: [PATCH v2 3/4] [media] tc358743: support probe from device tree
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de
+Date: Fri, 17 Jul 2015 16:06:37 +0200
+In-Reply-To: <55A8F3A6.5030000@xs4all.nl>
+References: <1437130692-8256-1-git-send-email-p.zabel@pengutronix.de>
+	 <1437130692-8256-3-git-send-email-p.zabel@pengutronix.de>
+	 <55A8F3A6.5030000@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set 'default-input' property for ADV7612. Enables image/video capture
-without the need to have userspace specifying routing.
+Hi Hans,
 
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Tested-by: William Towle <william.towle@codethink.co.uk>
----
- arch/arm/boot/dts/r8a7790-lager.dts |    1 +
- 1 file changed, 1 insertion(+)
+Am Freitag, den 17.07.2015, 14:23 +0200 schrieb Hans Verkuil:
+[...]
+> > +	endpoint = v4l2_of_alloc_parse_endpoint(ep);
+> > +	if (IS_ERR(endpoint)) {
+> > +		dev_err(dev, "failed to parse endpoint\n");
+> > +		return PTR_ERR(endpoint);
+> > +	}
+> > +
+> > +	if (endpoint->bus_type != V4L2_MBUS_CSI2 ||
+> > +	    endpoint->bus.mipi_csi2.num_data_lanes == 0 ||
+> > +	    endpoint->nr_of_link_frequencies == 0) {
+> > +		dev_err(dev, "missing CSI-2 properties in endpoint\n");
+> > +		goto free_endpoint;
+> > +	}
+> > +
+> > +	state->bus = endpoint.bus.mipi_csi2;
+> 
+> This should be endpoint->bus. You clearly didn't compile it.
+> 
+> Please make a v3, ensure that it compiles and please test it as well.
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index aec7db6..e537052 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -552,6 +552,7 @@
- 		port {
- 			hdmi_in_ep: endpoint {
- 				remote-endpoint = <&vin0ep0>;
-+				default-input = <0>;
- 			};
- 		};
- 	};
--- 
-1.7.10.4
+Sorry, fixed, tested, and resent.
+
+regards
+Philipp
 
