@@ -1,113 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:36570 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbbGTSyE (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44291 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753397AbbGQCwM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 14:54:04 -0400
-Received: by qgy5 with SMTP id 5so77063547qgy.3
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 11:54:03 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH] tw68: Move PCI vendor and device IDs to pci_ids.h
-Date: Mon, 20 Jul 2015 15:49:55 -0300
-Message-Id: <1437418195-2897-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	Thu, 16 Jul 2015 22:52:12 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 173BB2A00AF
+	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 04:51:10 +0200 (CEST)
+Date: Fri, 17 Jul 2015 04:51:10 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150717025110.173BB2A00AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commits moves the Intersil/Techwell PCI vendor ID, and
-the device IDs for the TW68 PCI video capture cards.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This will allow to support future Intersil/Techwell devices
-without duplicating the IDs.
+Results of the daily build of media_tree:
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
----
- drivers/media/pci/tw68/tw68-core.c | 15 ++++++++-------
- drivers/media/pci/tw68/tw68.h      | 16 ----------------
- include/linux/pci_ids.h            |  9 +++++++++
- 3 files changed, 17 insertions(+), 23 deletions(-)
+date:		Fri Jul 17 04:00:19 CEST 2015
+git branch:	test
+git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
-index c135165..93ebefd 100644
---- a/drivers/media/pci/tw68/tw68-core.c
-+++ b/drivers/media/pci/tw68/tw68-core.c
-@@ -37,6 +37,7 @@
- #include <linux/delay.h>
- #include <linux/mutex.h>
- #include <linux/dma-mapping.h>
-+#include <linux/pci_ids.h>
- #include <linux/pm.h>
- 
- #include <media/v4l2-dev.h>
-@@ -70,13 +71,13 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
-  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
-  */
- static const struct pci_device_id tw68_pci_tbl[] = {
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6800)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6801)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6804)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_1)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_2)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_3)},
--	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_4)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6800)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6801)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6804)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_1)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_2)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_3)},
-+	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_4)},
- 	{0,}
- };
- 
-diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
-index 93f2335..ef51e4d 100644
---- a/drivers/media/pci/tw68/tw68.h
-+++ b/drivers/media/pci/tw68/tw68.h
-@@ -42,22 +42,6 @@
- 
- #define	UNSET	(-1U)
- 
--/* system vendor and device ID's */
--#define	PCI_VENDOR_ID_TECHWELL	0x1797
--#define	PCI_DEVICE_ID_6800	0x6800
--#define	PCI_DEVICE_ID_6801	0x6801
--#define	PCI_DEVICE_ID_AUDIO2	0x6802
--#define	PCI_DEVICE_ID_TS3	0x6803
--#define	PCI_DEVICE_ID_6804	0x6804
--#define	PCI_DEVICE_ID_AUDIO5	0x6805
--#define	PCI_DEVICE_ID_TS6	0x6806
--
--/* tw6816 based cards */
--#define	PCI_DEVICE_ID_6816_1   0x6810
--#define	PCI_DEVICE_ID_6816_2   0x6811
--#define	PCI_DEVICE_ID_6816_3   0x6812
--#define	PCI_DEVICE_ID_6816_4   0x6813
--
- #define TW68_NORMS ( \
- 	V4L2_STD_NTSC    | V4L2_STD_PAL       | V4L2_STD_SECAM    | \
- 	V4L2_STD_PAL_M   | V4L2_STD_PAL_Nc    | V4L2_STD_PAL_60)
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index fcff8f8..d9ba49c 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -2332,6 +2332,15 @@
- 
- #define PCI_VENDOR_ID_CAVIUM		0x177d
- 
-+#define PCI_VENDOR_ID_TECHWELL		0x1797
-+#define PCI_DEVICE_ID_TECHWELL_6800	0x6800
-+#define PCI_DEVICE_ID_TECHWELL_6801	0x6801
-+#define PCI_DEVICE_ID_TECHWELL_6804	0x6804
-+#define PCI_DEVICE_ID_TECHWELL_6816_1	0x6810
-+#define PCI_DEVICE_ID_TECHWELL_6816_2	0x6811
-+#define PCI_DEVICE_ID_TECHWELL_6816_3	0x6812
-+#define PCI_DEVICE_ID_TECHWELL_6816_4	0x6813
-+
- #define PCI_VENDOR_ID_BELKIN		0x1799
- #define PCI_DEVICE_ID_BELKIN_F5D7010V7	0x701f
- 
--- 
-2.4.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
