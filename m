@@ -1,143 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57664 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752253AbbGaCLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 22:11:11 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3 01/13] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-Date: Fri, 31 Jul 2015 05:10:38 +0300
-Message-Id: <1438308650-2702-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1438308650-2702-1-git-send-email-crope@iki.fi>
-References: <1438308650-2702-1-git-send-email-crope@iki.fi>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:33265 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752728AbbGQVHe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 17:07:34 -0400
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: mingo@elte.hu
+Cc: bp@suse.de, andy@silverblocksystems.net, mchehab@osg.samsung.com,
+	dledford@redhat.com, dan.j.williams@intel.com,
+	benh@kernel.crashing.org, luto@amacapital.net,
+	julia.lawall@lip6.fr, jkosina@suse.cz, linux-media@vger.kernel.org,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	"Luis R. Rodriguez" <mcgrof@suse.com>
+Subject: [RESEND PATCH v2 0/2] x86/mm/pat: modify nopat requirement warning
+Date: Fri, 17 Jul 2015 14:07:23 -0700
+Message-Id: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
-has DAC (Digital-to-Analog Converter). Originally I though it could
-be good idea to have own type for receiver and transmitter, but now I
-feel one common type for SDR is enough. So lets rename it.
+From: "Luis R. Rodriguez" <mcgrof@suse.com>
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
- Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
- Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
- drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
- include/uapi/linux/videodev2.h              |  5 ++++-
- 5 files changed, 29 insertions(+), 7 deletions(-)
+Ingo,
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index a0aef85..f56faf5 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 4.2</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
-+<constant>V4L2_TUNER_SDR</constant>. The use of
-+<constant>V4L2_TUNER_ADC</constant> is deprecated now.
-+	  </para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index f890356..3344921 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -44,10 +44,10 @@ frequency.
-     </para>
- 
-     <para>
--The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-+The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
- the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
--tuner index of the RF tuner (if any) must always follow the ADC tuner index.
--Normally the ADC tuner is #0 and the RF tuner is #1.
-+tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-+Normally the SDR tuner is #0 and the RF tuner is #1.
-     </para>
- 
-     <para>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e98caa1..c9eedc1 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
- structs, ioctls) must be noted in more detail in the history chapter
- (compat.xml), along with the possible impact on existing drivers and
- applications. -->
-+      <revision>
-+	<revnumber>4.2</revnumber>
-+	<date>2015-05-26</date>
-+	<authorinitials>ap</authorinitials>
-+	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-+	</revremark>
-+      </revision>
- 
-       <revision>
- 	<revnumber>3.21</revnumber>
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 85de455..ef42474 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_frequency *p = arg;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
--		p->type = V4L2_TUNER_ADC;
-+		p->type = V4L2_TUNER_SDR;
- 	else
- 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-@@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	enum v4l2_tuner_type type;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 	} else {
- 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-@@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	int err;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 		type = p->type;
- 	} else {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3228fbe..467816cb 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
--	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_SDR               = 4,
- 	V4L2_TUNER_RF                = 5,
- };
- 
-+/* Deprecated, do not use */
-+#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
-+
- enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
+Boris is on vacation so sending this through you. This is just a resend of
+the v2 series. The issue here was the WARN() splat on built-in kernels due
+to ivtv's funky probe which will trigger even if you don't have any ivtv
+hardware. I've moved this to only trigger upon a device detection.
+
+We also spoke about not doing any of this and and letting it silently fail
+for these drivers but since this is only for two drivers and the ipath diver
+will be removed only the ivtv driver would be left with this work around. I'd
+like to enforce the semantics for usage of arch_phys_wc_add() with ioremap_wc()
+and making an exception just for ivtv does not seem worth the gains of having
+strong semantics. After all the ioremap_wc() + arch_phys_wc_add() are in I'll
+then try to add an SmPL rule check to enforce semantics on the ioremap_wc() +
+arch_phys_wc_add() API. Hope is that maintainers can vet new code for its
+correct usage in the future with 'make coccicheck M=path' on their subsystems.
+
+For your reference we discussed this and I mentioned my semantics preference
+and you were OK with this [0] so just resending this series as it fell through
+the cracks as Boris is on vacation now.
+
+Although the WARN() --> pr_warn() change is not techically needed for ipath,
+we make both checks consistent and less chatty. Since the ivtv change is
+splattering all v4.2 kernels that patch may be worthy for v4.2 inclusion. I
+did not peg the Cc: stable tag so leave this up to you to decide.
+
+Please let me know if this is OK or if there are any other oustandind issues.
+
+[0] http://lkml.kernel.org/r/20150707070306.GB9784@gmail.com
+
+Luis R. Rodriguez (2):
+  x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+  x86/mm/pat, drivers/media/ivtv: move pat warn and replace WARN() with
+    pr_warn()
+
+ drivers/infiniband/hw/ipath/ipath_driver.c |  6 ++++--
+ drivers/media/pci/ivtv/ivtvfb.c            | 15 +++++++++------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
+
 -- 
-http://palosaari.fi/
+2.3.2.209.gd67f9d5.dirty
 
