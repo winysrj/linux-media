@@ -1,206 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55023 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508AbbG3QTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 12:19:39 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>,
-	linux-iio@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-leds@vger.kernel.org,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	lm-sensors@lm-sensors.org, Sebastian Reichel <sre@kernel.org>,
-	linux-input@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jean Delvare <jdelvare@suse.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
-	linux-pm@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Takashi Iwai <tiwai@suse.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
-	Lee Jones <lee.jones@linaro.org>,
-	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
-	linux-spi@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	MyungJoo Ham <myungjoo.ham@samsung.com>,
-	linuxppc-dev@lists.ozlabs.org
-Subject: [PATCH 00/27] Export I2C and OF module aliases in missing drivers
-Date: Thu, 30 Jul 2015 18:18:25 +0200
-Message-Id: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53673 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757795AbbGQOdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 10:33:41 -0400
+Message-ID: <55A91206.7090907@xs4all.nl>
+Date: Fri, 17 Jul 2015 16:32:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+References: <1437030298-20944-1-git-send-email-crope@iki.fi> <1437030298-20944-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1437030298-20944-2-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 07/16/2015 09:04 AM, Antti Palosaari wrote:
+> SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+> has DAC (Digital-to-Analog Converter) . Originally I though it could
+> be good idea to have own type for receiver and transmitter, but now I
+> feel one common type for SDR is enough. So lets rename it.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+>  Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+>  Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+>  include/uapi/linux/videodev2.h              |  5 ++++-
+>  5 files changed, 29 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index a0aef85..f56faf5 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+>        </orderedlist>
+>      </section>
+>  
+> +    <section>
+> +      <title>V4L2 in Linux 4.2</title>
+> +      <orderedlist>
+> +	<listitem>
+> +	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
+> +<constant>V4L2_TUNER_SDR</constant>. The use of
+> +<constant>V4L2_TUNER_ADC</constant> is deprecated now.
+> +	  </para>
+> +	</listitem>
+> +      </orderedlist>
+> +    </section>
+> +
+>      <section id="other">
+>        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> index f890356..3344921 100644
+> --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+> @@ -44,10 +44,10 @@ frequency.
+>      </para>
+>  
+>      <para>
+> -The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
+> +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+>  the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+> -tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+> -Normally the ADC tuner is #0 and the RF tuner is #1.
+> +tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+> +Normally the SDR tuner is #0 and the RF tuner is #1.
+>      </para>
+>  
+>      <para>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index e98caa1..c9eedc1 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+>  structs, ioctls) must be noted in more detail in the history chapter
+>  (compat.xml), along with the possible impact on existing drivers and
+>  applications. -->
+> +      <revision>
+> +	<revnumber>4.2</revnumber>
+> +	<date>2015-05-26</date>
+> +	<authorinitials>ap</authorinitials>
+> +	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+> +	</revremark>
+> +      </revision>
+>  
+>        <revision>
+>  	<revnumber>3.21</revnumber>
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 85de455..ef42474 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>  	struct v4l2_frequency *p = arg;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR)
+> -		p->type = V4L2_TUNER_ADC;
+> +		p->type = V4L2_TUNER_SDR;
+>  	else
+>  		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>  				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> @@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+>  	enum v4l2_tuner_type type;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+>  			return -EINVAL;
+>  	} else {
+>  		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> @@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+>  	int err;
+>  
+>  	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+>  			return -EINVAL;
+>  		type = p->type;
+>  	} else {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 3228fbe..467816cb 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+>  	V4L2_TUNER_RADIO	     = 1,
+>  	V4L2_TUNER_ANALOG_TV	     = 2,
+>  	V4L2_TUNER_DIGITAL_TV	     = 3,
+> -	V4L2_TUNER_ADC               = 4,
+> +	V4L2_TUNER_SDR               = 4,
+>  	V4L2_TUNER_RF                = 5,
 
-Short version:
+I noticed that the new tuner types (SDR/RF) are not documented at all in the
+VIDIOC_G_TUNER DocBook spec. Can you document them in vidioc-g-tuner.xml? In
+fact, there is currently not even a description for the RADIO and ANALOG_TV
+tuner types!
 
-This series add the missing MODULE_DEVICE_TABLE() for OF and I2C tables
-to export that information so modules have the correct aliases built-in
-and autoloading works correctly.
+Note that DIGITAL_TV isn't documented either, but that's OK since it shouldn't
+be used anymore.
 
-Longer version:
+While adding support for SDR output to v4l2-compliance I noticed that struct
+v4l2_modulator doesn't have a type field, so there is no way to tell TUNER_SDR
+and TUNER_RF apart! (I *knew* the lack of a type field would cause problems at
+some point in time...)
 
-Currently it's mandatory for I2C drivers to have an I2C device ID table
-regardless if the device was registered using platform data or OF. This
-is because the I2C core needs an I2C device ID table for two reasons:
+I think a type should be added to v4l2_modulator. If it is 0 then it is set
+equal to V4L2_TUNER_RADIO for backwards compatibility.
 
-1) Match the I2C client with a I2C device ID so a struct i2c_device_id
-   is passed to the I2C driver probe() function.
+You need to know the type of the modulator because you need that when calling
+ENUM_FREQ_BANDS and G/S_FREQUENCY.
 
-2) Export the module aliases from the I2C device ID table so userspace
-   can auto-load the correct module. This is because i2c_device_uevent
-   always reports a MODALIAS of the form i2c:<client->name>.
+Note that vidioc-g-frequency.xml and vidioc-enum-freq-bands.xml need to be
+updated since they say that currently only radio modulators (V4L2_TUNER_RADIO)
+are supported, which is no longer correct since TUNER_SDR/RF are now also
+allowed.
 
-Lee Jones posted a patch series [0] to solve 1) by allowing the I2C
-drivers to have a probe() function that does not get a i2c_device_id.
+Regards,
 
-The problem is that his series didn't take into account 2) so if that
-was merged and the I2C ID table is removed from all the drivers that
-don't needed it, module auto-loading will break for those.
+	Hans
 
-But even now there are many I2C drivers were module auto-loading is
-not working because of the fact that the I2C core always reports the
-MODALIAS as i2c:<client->name> and many developers didn't expect this.
-
-I've identified I2C drivers with 3 types of different issues:
-
-a) Those that have an i2c_table but are not exported. The match works
-   and the correct i2c_device_id is passed on probe but since the ID
-   table is not exported, module auto-load won't work.
-
-b) Those that have a of_table but are not exported. This is currently
-   not an issue since even when the of_table is used to match the dev
-   with the driver, an OF modalias is not reported by the I2C core.
-   But if the I2C core is changed to report the MODALIAS of the form
-   of:N*T*C as it's made by other subsystems, then module auto-load
-   will break for these drivers.
-
-c) Those that don't have a of_table but should since are OF drivers
-   with DT bindings doc for them. Since the I2C core does not report
-   a OF modalias and since i2c_device_match() fallbacks to match the
-   device part of the compatible string with the I2C device ID table,
-   many OF drivers don't have an of_table to match. After all having
-   a I2C device ID table is mandatory so it works without a of_table.
-
-So, in order to not make mandatory to have a I2C device ID table, at
-least a) and b) needs to be addressed, this series does that.
-
-c) should be fixed too since it seems wrong that a driver with a DT
-binding document, does not have a OF table and export it to modules.
-
-Also stripping the vendor part from the compatible string to match
-with the I2C devices ID table and reporting only the device name to
-user-space doesn't seem to be correct. I've identified at least two
-drivers that have the same name on their I2C device ID table so the
-manufacturer prefix is important. But I've not tried to fix c) yet
-since that is not so easy to automate due drivers not having all the
-information (i.e: the device name can match a documented compatible
-string device part but without the vendor prefix is hard to tell).
-
-I split the changes so the patches in this series are independent and
-can be picked individually by subsystem maintainers. Patch #27 changes
-the logic of i2c_device_uevent() to report an OF modalias if the device
-was registered using OF. But this patch is included in the series only
-as an RFC for illustration purposes since changing that without fixing
-c) will break module auto-loading for the drivers of devices registered
-with OF but that don't have a of_match_table.
-
-Although arguably, those drivers were relying on the assumption that a
-MODALIAS=i2c:<foo> would always be reported even for the OF case which
-is not the true on other subsystems.
-
-[0]: https://lkml.org/lkml/2014/8/28/283
-
-Best regards,
-Javier
-
-
-Javier Martinez Canillas (27):
-  mfd: stw481x: Export I2C module alias information
-  spi: xcomm: Export I2C module alias information
-  iio: Export I2C module alias information in missing drivers
-  [media] Export I2C module alias information in missing drivers
-  macintosh: therm_windtunnel: Export I2C module alias information
-  misc: eeprom: Export I2C module alias information in missing drivers
-  Input: Export I2C module alias information in missing drivers
-  power: Export I2C module alias information in missing drivers
-  i2c: core: Export I2C module alias information in dummy driver
-  backlight: tosa: Export I2C module alias information
-  [media] staging: media: lirc: Export I2C module alias information
-  usb: phy: isp1301: Export I2C module alias information
-  ALSA: ppc: keywest: Export I2C module alias information
-  hwmon: (nct7904) Export I2C module alias information
-  regulator: fan53555: Export I2C module alias information
-  mfd: Export OF module alias information in missing drivers
-  iio: Export OF module alias information in missing drivers
-  hwmon: (g762) Export OF module alias information
-  extcon: Export OF module alias information in missing drivers
-  ASoC: Export OF module alias information in missing codec drivers
-  rtc: Export OF module alias information in missing drivers
-  macintosh: therm_windtunnel: Export OF module alias information
-  leds: Export OF module alias information in missing drivers
-  [media] smiapp: Export OF module alias information
-  Input: touchscreen - Export OF module alias information
-  regulator: isl9305: Export OF module alias information
-  i2c: (RFC, don't apply) report OF style modalias when probing using DT
-
- drivers/extcon/extcon-rt8973a.c         | 1 +
- drivers/extcon/extcon-sm5502.c          | 1 +
- drivers/hwmon/g762.c                    | 1 +
- drivers/hwmon/nct7904.c                 | 1 +
- drivers/i2c/i2c-core.c                  | 9 +++++++++
- drivers/iio/accel/mma8452.c             | 1 +
- drivers/iio/accel/stk8312.c             | 1 +
- drivers/iio/accel/stk8ba50.c            | 1 +
- drivers/iio/light/cm32181.c             | 1 +
- drivers/iio/light/cm3232.c              | 1 +
- drivers/iio/light/cm36651.c             | 1 +
- drivers/iio/light/gp2ap020a00f.c        | 1 +
- drivers/iio/light/stk3310.c             | 1 +
- drivers/input/misc/gp2ap002a00f.c       | 1 +
- drivers/input/touchscreen/egalax_ts.c   | 1 +
- drivers/input/touchscreen/goodix.c      | 1 +
- drivers/input/touchscreen/mms114.c      | 1 +
- drivers/leds/leds-pca963x.c             | 1 +
- drivers/leds/leds-tca6507.c             | 1 +
- drivers/macintosh/therm_windtunnel.c    | 2 ++
- drivers/media/i2c/ir-kbd-i2c.c          | 1 +
- drivers/media/i2c/s5k6a3.c              | 1 +
- drivers/media/i2c/smiapp/smiapp-core.c  | 1 +
- drivers/mfd/rt5033.c                    | 1 +
- drivers/mfd/stw481x.c                   | 1 +
- drivers/mfd/tps65217.c                  | 1 +
- drivers/mfd/tps65218.c                  | 1 +
- drivers/misc/eeprom/eeprom.c            | 1 +
- drivers/misc/eeprom/max6875.c           | 1 +
- drivers/power/bq24190_charger.c         | 1 +
- drivers/power/rt5033_battery.c          | 2 +-
- drivers/regulator/fan53555.c            | 1 +
- drivers/regulator/isl9305.c             | 1 +
- drivers/rtc/rtc-ab-b5ze-s3.c            | 1 +
- drivers/rtc/rtc-isl12022.c              | 1 +
- drivers/rtc/rtc-isl12057.c              | 1 +
- drivers/spi/spi-xcomm.c                 | 1 +
- drivers/staging/media/lirc/lirc_zilog.c | 1 +
- drivers/usb/phy/phy-isp1301.c           | 1 +
- drivers/video/backlight/tosa_bl.c       | 1 +
- sound/ppc/keywest.c                     | 1 +
- sound/soc/codecs/da9055.c               | 1 +
- sound/soc/codecs/wm8510.c               | 1 +
- sound/soc/codecs/wm8523.c               | 1 +
- sound/soc/codecs/wm8580.c               | 1 +
- 45 files changed, 54 insertions(+), 1 deletion(-)
-
--- 
-2.4.3
+>  };
+>  
+> +/* Deprecated, do not use */
+> +#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
+> +
+>  enum v4l2_memory {
+>  	V4L2_MEMORY_MMAP             = 1,
+>  	V4L2_MEMORY_USERPTR          = 2,
+> 
 
