@@ -1,55 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50891 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753567AbbGPHFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:05:32 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 9/9] hackrf: do not set human readable name for formats
-Date: Thu, 16 Jul 2015 10:04:58 +0300
-Message-Id: <1437030298-20944-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54216 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757544AbbGQK6X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 06:58:23 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 2/4] [media] tc358743: enable v4l2 subdevice devnode
+Date: Fri, 17 Jul 2015 12:58:10 +0200
+Message-Id: <1437130692-8256-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1437130692-8256-1-git-send-email-p.zabel@pengutronix.de>
+References: <1437130692-8256-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format names are set by core nowadays. Remove name from driver.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/hackrf/hackrf.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/i2c/tc358743.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index 97de9cb6..b7e910e 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -69,7 +69,6 @@ static const struct v4l2_frequency_band bands_rx_tx[] = {
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 8d9906b..a7542e5 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1668,7 +1668,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	state->i2c_client = client;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &tc358743_ops);
+-	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
  
- /* stream formats */
- struct hackrf_format {
--	char	*name;
- 	u32	pixelformat;
- 	u32	buffersize;
- };
-@@ -77,7 +76,6 @@ struct hackrf_format {
- /* format descriptions for capture and preview */
- static struct hackrf_format formats[] = {
- 	{
--		.name		= "Complex S8",
- 		.pixelformat	= V4L2_SDR_FMT_CS8,
- 		.buffersize	= BULK_BUFFER_SIZE,
- 	},
-@@ -985,7 +983,6 @@ static int hackrf_enum_fmt_sdr_cap(struct file *file, void *priv,
- 	if (f->index >= NUM_FORMATS)
- 		return -EINVAL;
- 
--	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
- 	f->pixelformat = formats[f->index].pixelformat;
- 
- 	return 0;
+ 	/* i2c access */
+ 	if ((i2c_rd16(sd, CHIPID) & MASK_CHIPID) != 0) {
 -- 
-http://palosaari.fi/
+2.1.4
 
