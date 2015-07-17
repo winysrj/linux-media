@@ -1,49 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47653 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755895AbbGPPqo (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38044 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757502AbbGQK6X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 11:46:44 -0400
-Message-ID: <55A7D192.7080301@iki.fi>
-Date: Thu, 16 Jul 2015 18:45:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Tony Lindgren <tony@atomide.com>, mike@compulab.co.il,
-	grinberg@compulab.co.il
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
-References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com> <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1437051319-9904-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Fri, 17 Jul 2015 06:58:23 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 4/4] [media] tc358743: add direct interrupt handling
+Date: Fri, 17 Jul 2015 12:58:12 +0200
+Message-Id: <1437130692-8256-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1437130692-8256-1-git-send-email-p.zabel@pengutronix.de>
+References: <1437130692-8256-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+When probed from device tree, the i2c client driver can handle the interrupt
+on its own.
 
-Laurent Pinchart wrote:
-> The OMAP3 ISP is now fully supported in DT, remove its instantiation
-> from C code.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  arch/arm/mach-omap2/devices.c | 53 -------------------------------------------
->  arch/arm/mach-omap2/devices.h | 19 ----------------
->  2 files changed, 72 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/devices.h
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-If you remove the definitions, arch/arm/mach-omap2/board-cm-t35.c will
-no longer compile. Could you remove the camera support there as well?
-
-My understanding is the board might be supported in DT but I'm not sure
-about camera.
-
-Cc Mike and Igor.
-
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 822f45b..2a3e3bb 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -32,6 +32,7 @@
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/interrupt.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <linux/v4l2-dv-timings.h>
+@@ -1306,6 +1307,16 @@ static int tc358743_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	return 0;
+ }
+ 
++static irqreturn_t tc358743_irq_handler(int irq, void *dev_id)
++{
++	struct tc358743_state *state = dev_id;
++	bool handled;
++
++	tc358743_isr(&state->sd, 0, &handled);
++
++	return handled ? IRQ_HANDLED : IRQ_NONE;
++}
++
+ /* --------------- VIDEO OPS --------------- */
+ 
+ static int tc358743_g_input_status(struct v4l2_subdev *sd, u32 *status)
+@@ -1877,6 +1888,17 @@ static int tc358743_probe(struct i2c_client *client,
+ 	tc358743_set_csi_color_space(sd);
+ 
+ 	tc358743_init_interrupts(sd);
++
++	if (state->i2c_client->irq) {
++		err = devm_request_threaded_irq(&client->dev,
++						state->i2c_client->irq,
++						NULL, tc358743_irq_handler,
++						IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
++						"tc358743", state);
++		if (err)
++			goto err_work_queues;
++	}
++
+ 	tc358743_enable_interrupts(sd, tx_5v_power_present(sd));
+ 	i2c_wr16(sd, INTMASK, ~(MASK_HDMI_MSK | MASK_CSI_MSK) & 0xffff);
+ 
 -- 
-Regards,
+2.1.4
 
-Sakari Ailus
-sakari.ailus@iki.fi
