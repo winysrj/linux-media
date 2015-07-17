@@ -1,146 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:56037 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346AbbGBNIR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2015 09:08:17 -0400
-Message-ID: <55953779.8030205@cisco.com>
-Date: Thu, 02 Jul 2015 15:07:05 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:35823 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235AbbGQHpQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 03:45:16 -0400
+Received: by lblf12 with SMTP id f12so56750313lbl.2
+        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 00:45:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/3] v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
-References: <1430480030-29136-1-git-send-email-hverkuil@xs4all.nl> <1430480030-29136-2-git-send-email-hverkuil@xs4all.nl> <20150702130100.GV5904@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20150702130100.GV5904@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150717071354.GO3709@valkosipuli.retiisi.org.uk>
+References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1434127598-11719-3-git-send-email-ricardo.ribalda@gmail.com> <20150717071354.GO3709@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 17 Jul 2015 09:44:54 +0200
+Message-ID: <CAPybu_3ihYfTXnFRVLtdx9SV9HqZdm4xR8JiUkfV6Y4bQvFyqQ@mail.gmail.com>
+Subject: Re: [RFC v3 02/19] media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Sakari
 
-On 07/02/15 15:01, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the patch!
-> 
-> On Fri, May 01, 2015 at 01:33:48PM +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> While normal video/radio/vbi/swradio nodes have a proper QUERYCAP ioctl
->> that apps can call to determine that it is indeed a V4L2 device, there
->> is currently no equivalent for v4l-subdev nodes. Adding this ioctl will
->> solve that, and it will allow utilities like v4l2-compliance to be used
->> with these devices as well.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/v4l2-core/v4l2-subdev.c | 19 +++++++++++++++++++
->>  include/uapi/linux/v4l2-subdev.h      | 12 ++++++++++++
->>  2 files changed, 31 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->> index 6359606..2ab1f7d 100644
->> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->> @@ -25,6 +25,7 @@
->>  #include <linux/types.h>
->>  #include <linux/videodev2.h>
->>  #include <linux/export.h>
->> +#include <linux/version.h>
->>  
->>  #include <media/v4l2-ctrls.h>
->>  #include <media/v4l2-device.h>
->> @@ -187,6 +188,24 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>  #endif
->>  
->>  	switch (cmd) {
->> +	case VIDIOC_SUBDEV_QUERYCAP: {
->> +		struct v4l2_subdev_capability *cap = arg;
->> +
->> +		cap->version = LINUX_VERSION_CODE;
->> +		cap->device_caps = 0;
->> +		cap->pads = 0;
->> +		cap->entity_id = 0;
->> +#if defined(CONFIG_MEDIA_CONTROLLER)
->> +		if (sd->entity.parent) {
->> +			cap->device_caps = V4L2_SUBDEV_CAP_ENTITY;
->> +			cap->pads = sd->entity.num_pads;
->> +			cap->entity_id = sd->entity.id;
->> +		}
->> +#endif
->> +		memset(cap->reserved, 0, sizeof(cap->reserved));
->> +		break;
->> +	}
->> +
->>  	case VIDIOC_QUERYCTRL:
->>  		return v4l2_queryctrl(vfh->ctrl_handler, arg);
->>  
->> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
->> index dbce2b5..e48b9fd 100644
->> --- a/include/uapi/linux/v4l2-subdev.h
->> +++ b/include/uapi/linux/v4l2-subdev.h
->> @@ -154,9 +154,21 @@ struct v4l2_subdev_selection {
->>  	__u32 reserved[8];
->>  };
->>  
->> +struct v4l2_subdev_capability {
->> +	__u32 version;
->> +	__u32 device_caps;
-> 
-> This is called capabilities in struct v4l2_capability. I'd follow the same
-> pattern.
+Thanks for your review!
 
-No, it's called device_caps in struct v4l2_capability. The capabilities field
-in that same structure contains the capabilities of the device as a whole: so
-not just of the device node in question, but the union of the capabilities of
-all device nodes created by the driver.
+On Fri, Jul 17, 2015 at 9:13 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-> 
->> +	__u32 pads;
->> +	__u32 entity_id;
-> 
-> What's the use case for the entity_id field btw.? Supposing that the user
-> wouldn't be using the MC interface to obtain it, is the entity_id relevant
-> in this context? Or is your intent first open the sub-device, and then find
-> out more information on the entity?
+>>  #define VIDIOC_QUERY_EXT_CTRL        _IOWR('V', 103, struct v4l2_query_ext_ctrl)
+>> +#define VIDIOC_G_DEF_EXT_CTRLS       _IOWR('V', 104, struct v4l2_ext_controls)
+>
+> I assume that if an application uses pointer controls, then it'd obtain the
+> default values using VIDIOC_G_DEF_EXT_CTRLS. This suggests all drivers
+> should support this from the very beginning, and the application would not
+> work on older kernels that don't have the IOCTL implemented.
 
-Right, the latter. I want to be able to do v4l2-compliance -d /dev/v4l-subdev0
-and it should be able to figure everything out from there.
+This patchset add supports for the Ioctl for all the in-tree drivers.
+out of tree drivers that use v4l2-ctrl will also work, so we are only
+leaving behind out out tree drivers that dont use v4l2-ctrl.
+Applications will neither not in old kernels if we do an
+implementation with VIDIOC_QUERY_EXT_CTRL.
 
-> 
->> +	__u32 reserved[48];
-> 
-> Why 48?
 
-Can't remember :-)
+>
+> Instead of adding a new IOCTL, have you thought about the possibility of
+> doing this through VIDIOC_QUERY_EXT_CTRL? That's how the default control
+> value is passed to the user now, and I think it'd look odd to add a new
+> IOCTL for just that purpose.
+>
+> One option could be making the default_value field a union such as the one
+> in struct v4l2_ext_control. If the control type is such that the value is
+> stored in the memory, one of the pointer fields of the union is used
+> instead.
+>
+> As the user cannot be expected to know the size beforehand, the pointer
+> value may only be used if it's non-zero. This might require a new field
+> rather than making default_value a union for backward compatibility, as the
+> documentation does not instruct the user to zero the default_value field.
+>
+> What do you think?
+>
+> The result would be no added redundancy, and less driver modifications, as
+> the drivers also don't need to support multiple interfaces for passing
+> control default values.
 
-> 
-> As memory is typically allocated in powers of two (or n^2 + (n-1)^2), how
-> about aligning it accordingly? I don't think we lose anything by making this
-> e.g. 60. Although 28 would probably suffice as well (or 29 with the pads
-> field removed as discussed). Even that much sounds like a lot.
+Although this also a valid option, the implementation by userland can
+be a bit tricky, I dont like the idea of passing a pointer to the
+kernel without telling it how much memory it has available for
+writing.
 
-29 would work fine as well. In general I am more generous with reserved fields
-these days since we've hit the limits of it too often.
+There is also the problem of legacy applications that do not memset to
+zero the reserved fields.... Those application may crash quite badly
+if we change
+VIDIOC_QUERY_EXT_CTRL the way you suggests
 
-Regards,
+Finally, it is difficult for the user to know if the driver supports
+this extra functionality on the ioctl before hand. On my
+implementataion -ENOTTY is a pretty good indication of what is the
+problem.
 
-	Hans
 
-> 
->> +};
->> +
->> +/* This v4l2_subdev is also a media entity and the entity_id field is valid */
->> +#define V4L2_SUBDEV_CAP_ENTITY		(1 << 0)
->> +
->>  /* Backwards compatibility define --- to be removed */
->>  #define v4l2_subdev_edid v4l2_edid
->>  
->> +#define VIDIOC_SUBDEV_QUERYCAP			 _IOR('V',  0, struct v4l2_subdev_capability)
->>  #define VIDIOC_SUBDEV_G_FMT			_IOWR('V',  4, struct v4l2_subdev_format)
->>  #define VIDIOC_SUBDEV_S_FMT			_IOWR('V',  5, struct v4l2_subdev_format)
->>  #define VIDIOC_SUBDEV_G_FRAME_INTERVAL		_IOWR('V', 21, struct v4l2_subdev_frame_interval)
-> 
+Best regards!
+
+
+-- 
+Ricardo Ribalda
