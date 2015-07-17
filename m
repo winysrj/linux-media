@@ -1,69 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52279 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752086AbbGPHNU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:13:20 -0400
-From: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 2/9] v4l2: add RF gain control
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1433592188-31748-1-git-send-email-crope@iki.fi>
- <1433592188-31748-2-git-send-email-crope@iki.fi> <55755A6A.9080300@xs4all.nl>
-Message-ID: <55A7598D.9050004@iki.fi>
-Date: Thu, 16 Jul 2015 10:13:17 +0300
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38958 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751334AbbGQO7z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2015 10:59:55 -0400
+Message-ID: <55A9182D.2020800@xs4all.nl>
+Date: Fri, 17 Jul 2015 16:58:53 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <55755A6A.9080300@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 5/5] [media] tc358743: allow event subscription
+References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>	 <1436533897-3060-5-git-send-email-p.zabel@pengutronix.de>	 <55A39BE3.2070905@xs4all.nl> <1436868609.3793.25.camel@pengutronix.de>
+In-Reply-To: <1436868609.3793.25.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/08/2015 12:03 PM, Hans Verkuil wrote:
-> On 06/06/2015 02:03 PM, Antti Palosaari wrote:
->> Add new RF tuner gain control named RF gain. That is aimed for
->> external LNA (amplifier) chip just right after antenna connector.
->
-> I don't follow. Do you mean:
->
-> This feeds into the external LNA...
->
-> But if that's the case, then the LNA chip isn't right after the antenna connector,
-> since there is a RF amplified in between.
+On 07/14/2015 12:10 PM, Philipp Zabel wrote:
+> Am Montag, den 13.07.2015, 13:07 +0200 schrieb Hans Verkuil:
+>> On 07/10/2015 03:11 PM, Philipp Zabel wrote:
+>>> This is useful to subscribe to HDMI hotplug events via the
+>>> V4L2_CID_DV_RX_POWER_PRESENT control.
+>>>
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> ---
+>>>  drivers/media/i2c/tc358743.c | 3 +++
+>>>  1 file changed, 3 insertions(+)
+>>>
+>>> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+>>> index 4a889d4..91fffa8 100644
+>>> --- a/drivers/media/i2c/tc358743.c
+>>> +++ b/drivers/media/i2c/tc358743.c
+>>> @@ -40,6 +40,7 @@
+>>>  #include <media/v4l2-dv-timings.h>
+>>>  #include <media/v4l2-device.h>
+>>>  #include <media/v4l2-ctrls.h>
+>>> +#include <media/v4l2-event.h>
+>>>  #include <media/v4l2-of.h>
+>>>  #include <media/tc358743.h>
+>>>  
+>>> @@ -1604,6 +1605,8 @@ static const struct v4l2_subdev_core_ops tc358743_core_ops = {
+>>>  	.s_register = tc358743_s_register,
+>>>  #endif
+>>>  	.interrupt_service_routine = tc358743_isr,
+>>> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
+>>
+>> Ah, they are set here.
+>>
+>> But note that v4l2_ctrl_subdev_subscribe_event is not enough, since this driver
+>> also issues the V4L2_EVENT_SOURCE_CHANGE event.
+>>
+>> See this patch on how to do that:
+>>
+>> http://git.linuxtv.org/cgit.cgi/hverkuil/media_tree.git/commit/?h=for-v4.3a&id=85c9b0b83795dac3d27043619a727af5c7313fe7
+>>
+>> Note: requires the new v4l2_subdev_notify_event function that's not yet
+>> merged (just posted the pull request for that).
+> 
+> Ok, I think I'll split this up and send patch 5 separately, then.
 
-On that case, there is amplifier between antenna and tuner chip. And I 
-named it as a RF gain. It is quite same thing than LNA gain, but I would 
-call LNA gain as a "RF gain" inside the tuner chip - integrated into 
-tuner chip. These terms are not 100% established as LNA gain and RF gain 
-are considered as a same thing very often.
+FYI: the v4l2_subdev_notify_event was just merged today.
 
-The fact is that almost every silicon tuner nowadays has integrated 
-RF/LNA amplifier, but there is devices having still separate amplifier 
-between tuner and antenna. For DVB side there is multiple such devices, 
-for example PCTV 290e and PCTV 292. HackRF SDR has separate RF amplifier 
-and multiple other amplifiers.
+Regards,
 
-So all in all, I needed second "LNA/RF" gain control and as LNA gain was 
-already defined, I defined another as a RF gain.
-
-
-  RF in   +----+     +-----+     +-------+     +----+  IF out
--------> | RF | --> | LNA | --> | Mixer | --> | IF | -------->
-          +----+     +-----+     +-------+     +----+
-
-Those boxes (RF/LNA/Mixer/IF) are gain controls and signal travels in 
-order shown from gain to gain. In real life there is usually even more 
-gains withing gain stage, eg. Mixer gain stage could contain 3 different 
-amplifiers.
-
-
-RF in = antenna input
-IF out = connected to ADC (demod)
-
-
-Hope the RF gain / LNA gain documentation is now a bit better.
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+	Hans
