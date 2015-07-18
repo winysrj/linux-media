@@ -1,175 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53673 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757795AbbGQOdl (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59504 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751901AbbGRCVu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 10:33:41 -0400
-Message-ID: <55A91206.7090907@xs4all.nl>
-Date: Fri, 17 Jul 2015 16:32:38 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 1/9] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-References: <1437030298-20944-1-git-send-email-crope@iki.fi> <1437030298-20944-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 17 Jul 2015 22:21:50 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 745342A0091
+	for <linux-media@vger.kernel.org>; Sat, 18 Jul 2015 04:20:47 +0200 (CEST)
+Date: Sat, 18 Jul 2015 04:20:47 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20150718022047.745342A0091@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2015 09:04 AM, Antti Palosaari wrote:
-> SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
-> has DAC (Digital-to-Analog Converter) . Originally I though it could
-> be good idea to have own type for receiver and transmitter, but now I
-> feel one common type for SDR is enough. So lets rename it.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
->  Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
->  Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
->  include/uapi/linux/videodev2.h              |  5 ++++-
->  5 files changed, 29 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index a0aef85..f56faf5 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
->        </orderedlist>
->      </section>
->  
-> +    <section>
-> +      <title>V4L2 in Linux 4.2</title>
-> +      <orderedlist>
-> +	<listitem>
-> +	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
-> +<constant>V4L2_TUNER_SDR</constant>. The use of
-> +<constant>V4L2_TUNER_ADC</constant> is deprecated now.
-> +	  </para>
-> +	</listitem>
-> +      </orderedlist>
-> +    </section>
-> +
->      <section id="other">
->        <title>Relation of V4L2 to other Linux multimedia APIs</title>
->  
-> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> index f890356..3344921 100644
-> --- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> @@ -44,10 +44,10 @@ frequency.
->      </para>
->  
->      <para>
-> -The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-> +The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
->  the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
-> -tuner index of the RF tuner (if any) must always follow the ADC tuner index.
-> -Normally the ADC tuner is #0 and the RF tuner is #1.
-> +tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-> +Normally the SDR tuner is #0 and the RF tuner is #1.
->      </para>
->  
->      <para>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index e98caa1..c9eedc1 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
->  structs, ioctls) must be noted in more detail in the history chapter
->  (compat.xml), along with the possible impact on existing drivers and
->  applications. -->
-> +      <revision>
-> +	<revnumber>4.2</revnumber>
-> +	<date>2015-05-26</date>
-> +	<authorinitials>ap</authorinitials>
-> +	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-> +	</revremark>
-> +      </revision>
->  
->        <revision>
->  	<revnumber>3.21</revnumber>
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 85de455..ef42474 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_frequency *p = arg;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR)
-> -		p->type = V4L2_TUNER_ADC;
-> +		p->type = V4L2_TUNER_SDR;
->  	else
->  		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->  				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> @@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
->  	enum v4l2_tuner_type type;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
->  			return -EINVAL;
->  	} else {
->  		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> @@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->  	int err;
->  
->  	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> -		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
->  			return -EINVAL;
->  		type = p->type;
->  	} else {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3228fbe..467816cb 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -165,10 +165,13 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> -	V4L2_TUNER_ADC               = 4,
-> +	V4L2_TUNER_SDR               = 4,
->  	V4L2_TUNER_RF                = 5,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I noticed that the new tuner types (SDR/RF) are not documented at all in the
-VIDIOC_G_TUNER DocBook spec. Can you document them in vidioc-g-tuner.xml? In
-fact, there is currently not even a description for the RADIO and ANALOG_TV
-tuner types!
+Results of the daily build of media_tree:
 
-Note that DIGITAL_TV isn't documented either, but that's OK since it shouldn't
-be used anymore.
+date:		Sat Jul 18 04:00:17 CEST 2015
+git branch:	test
+git hash:	6727d4fce95586e60922bdaf57b8a0eb99482557
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-While adding support for SDR output to v4l2-compliance I noticed that struct
-v4l2_modulator doesn't have a type field, so there is no way to tell TUNER_SDR
-and TUNER_RF apart! (I *knew* the lack of a type field would cause problems at
-some point in time...)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-rc1-i686: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-I think a type should be added to v4l2_modulator. If it is 0 then it is set
-equal to V4L2_TUNER_RADIO for backwards compatibility.
+Detailed results are available here:
 
-You need to know the type of the modulator because you need that when calling
-ENUM_FREQ_BANDS and G/S_FREQUENCY.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Note that vidioc-g-frequency.xml and vidioc-enum-freq-bands.xml need to be
-updated since they say that currently only radio modulators (V4L2_TUNER_RADIO)
-are supported, which is no longer correct since TUNER_SDR/RF are now also
-allowed.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
 
->  };
->  
-> +/* Deprecated, do not use */
-> +#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
-> +
->  enum v4l2_memory {
->  	V4L2_MEMORY_MMAP             = 1,
->  	V4L2_MEMORY_USERPTR          = 2,
-> 
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
