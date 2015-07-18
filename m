@@ -1,254 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:59398 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751558AbbGOAkI (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:59584 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090AbbGRXEC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 20:40:08 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
-	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
-	chehabrafael@gmail.com, dan.carpenter@oracle.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
-	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
-	pmatilai@laiskiainen.org, takamichiho@gmail.com,
-	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
-	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 6/7] media: au0828 change to use Managed Media Controller API
-Date: Tue, 14 Jul 2015 18:34:05 -0600
-Message-Id: <3643452be528b2e53cea592db22b4e0ada32456b.1436917513.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
-References: <cover.1436917513.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
-References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+	Sat, 18 Jul 2015 19:04:02 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] media: pxa_camera: conversion to dmaengine
+References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
+	<1436120872-24484-5-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.1507121859030.32193@axis700.grange>
+	<87y4iljn6y.fsf@belgarion.home>
+Date: Sun, 19 Jul 2015 01:00:55 +0200
+In-Reply-To: <87y4iljn6y.fsf@belgarion.home> (Robert Jarzmik's message of
+	"Sun, 12 Jul 2015 19:33:09 +0200")
+Message-ID: <87a8utgjfc.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828 to use Managed Media Controller API to coordinate
-creating/deleting media device on parent usb device it shares
-with the snd-usb-audio driver. With this change, au0828 uses
-media_device_get_devres() to allocate a new media device devres
-or return an existing one, if it finds one.
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-In addition, au0828 registers entity_notify hook to create media
-graph for the device. It creates necessary links from video, vbi,
-and ALSA entities to decoder and links tuner and decoder entities.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+>
+>>>  		/* init DMA for Y channel */
+>>
+>> How about taking the loop over the sg list out of pxa_init_dma_channel() 
+>> to avoid having to iterate it from the beginning each time? Then you would 
+>> be able to split it into channels inside that global loop? Would that 
+>> work? Of course you might need to rearrange functions to avoid too deep 
+>> code nesting.
+>
+> Ok, will try that.
+> The more I think of it, the more it looks to me like a generic thing : take an
+> sglist, and an array of sizes, and split the sglist into several sglists, each
+> of the defined size in the array.
+>
+> Or more code-like speaking :
+>   - sglist_split(struct scatterlist *sg_int, size_t *sizes, int nb_sizes,
+>                  struct scatterlist **sg_out)
+>   - and sg_out is an array of nb_sizes (struct scatterlist *sg)
+>
+> So I will try that out. Maybe if that works out for pxa_camera, Jens or Russell
+> would accept that into lib/scatterlist.c.
+Ok, I made the code ... and I hate it.
+It's in [1], which is an incremental patch over patch 4/4.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 132 ++++++++++++++++++++-------------
- drivers/media/usb/au0828/au0828.h      |   5 ++
- 2 files changed, 85 insertions(+), 52 deletions(-)
+If that's what you had in mind, tell me.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 0378a2c..492e910 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -20,6 +20,7 @@
-  */
- 
- #include "au0828.h"
-+#include "au8522.h"
- 
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -131,10 +132,12 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- {
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (dev->media_dev) {
--		media_device_unregister(dev->media_dev);
--		kfree(dev->media_dev);
--		dev->media_dev = NULL;
-+	if (dev->media_dev &&
-+		media_devnode_is_registered(&dev->media_dev->devnode)) {
-+			media_device_unregister_entity_notify(dev->media_dev,
-+							&dev->entity_notify);
-+			media_device_unregister(dev->media_dev);
-+			dev->media_dev = NULL;
- 	}
- #endif
+Cheers.
+
+--
+Robert
+
+[1] The despised patch
+---<8---
+commit 43bbb9a4e3ac
+Author: Robert Jarzmik <robert.jarzmik@free.fr>
+Date:   Tue Jul 14 20:17:51 2015 +0200
+
+    tmp: pxa_camera: working on sg_split
+    
+    Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 26a66b9ff570..83efd284e976 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -287,64 +287,110 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 		&buf->vb, buf->vb.baddr, buf->vb.bsize);
  }
-@@ -196,53 +199,23 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	au0828_usb_release(dev);
- }
  
--static void au0828_media_device_register(struct au0828_dev *dev,
--					  struct usb_device *udev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev;
--	int ret;
--
--	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
--	if (!mdev)
--		return;
--
--	mdev->dev = &udev->dev;
--
--	if (!dev->board.name)
--		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
--	else
--		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
--	if (udev->serial)
--		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
--	strcpy(mdev->bus_info, udev->devpath);
--	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
--	mdev->driver_version = LINUX_VERSION_CODE;
--
--	ret = media_device_register(mdev);
--	if (ret) {
--		pr_err(
--			"Couldn't create a media device. Error: %d\n",
--			ret);
--		kfree(mdev);
--		return;
--	}
--
--	dev->media_dev = mdev;
--#endif
--}
--
--
--static void au0828_create_media_graph(struct au0828_dev *dev)
-+void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+-static struct scatterlist *videobuf_sg_cut(struct scatterlist *sglist,
+-					   int sglen, int offset, int size,
+-					   int *new_sg_len)
++
++struct sg_splitter {
++	struct scatterlist *in_sg0;
++	int nents;
++	off_t skip_sg0;
++	size_t len_last_sg;
++	struct scatterlist *out_sg;
++};
++
++static struct sg_splitter *
++sg_calculate_split(struct scatterlist *in, off_t skip,
++		   const size_t *sizes, int nb_splits, gfp_t gfp_mask)
  {
- #ifdef CONFIG_MEDIA_CONTROLLER
-+	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
- 	struct media_device *mdev = dev->media_dev;
- 	struct media_entity *entity;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
-+	struct media_entity *alsa_capture = NULL;
-+	int ret = 0;
- 
- 	if (!mdev)
- 		return;
- 
-+	if (dev->tuner_linked && dev->vdev_linked && dev->vbi_linked &&
-+		dev->alsa_capture_linked)
-+		return;
+-	struct scatterlist *sg0, *sg, *sg_first = NULL;
+-	int i, dma_len, dropped_xfer_len, dropped_remain, remain;
+-	int nfirst = -1, nfirst_offset = 0, xfer_len;
+-
+-	*new_sg_len = 0;
+-	dropped_remain = offset;
+-	remain = size;
+-	for_each_sg(sglist, sg, sglen, i) {
+-		dma_len = sg_dma_len(sg);
+-		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
+-		dropped_xfer_len = roundup(min(dma_len, dropped_remain), 8);
+-		if (dropped_remain)
+-			dropped_remain -= dropped_xfer_len;
+-		xfer_len = dma_len - dropped_xfer_len;
+-
+-		if (nfirst < 0 && xfer_len > 0) {
+-			sg_first = sg;
+-			nfirst = i;
+-			nfirst_offset = dropped_xfer_len;
++	int i, nents;
++	size_t size, len;
++	struct sg_splitter *splitters, *curr;
++	struct scatterlist *sg;
 +
- 	media_device_for_each_entity(entity, mdev) {
- 		switch (entity->type) {
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-@@ -251,6 +224,9 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
- 		case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
- 			decoder = entity;
- 			break;
-+		case MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE:
-+			alsa_capture = entity;
-+			break;
- 		}
- 	}
- 
-@@ -259,15 +235,69 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
- 	if (!decoder)
- 		return;
- 
--	if (tuner)
--		media_entity_create_link(tuner, 0, decoder, 0,
-+	if (tuner && !dev->tuner_linked) {
-+		ret = media_entity_create_link(tuner, 0, decoder, 0,
- 					 MEDIA_LNK_FL_ENABLED);
--	if (dev->vdev.entity.links)
--		media_entity_create_link(decoder, 1, &dev->vdev.entity, 0,
--				 MEDIA_LNK_FL_ENABLED);
--	if (dev->vbi_dev.entity.links)
--		media_entity_create_link(decoder, 2, &dev->vbi_dev.entity, 0,
--				 MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->tuner_linked = 1;
-+	}
-+	if (dev->vdev.entity.links && !dev->vdev_linked) {
-+		ret = media_entity_create_link(decoder, AU8522_PAD_VID_OUT,
-+				&dev->vdev.entity, 0, MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->vdev_linked = 1;
-+	}
-+	if (dev->vbi_dev.entity.links && !dev->vbi_linked) {
-+		ret = media_entity_create_link(decoder, AU8522_PAD_VBI_OUT,
-+				&dev->vbi_dev.entity, 0, MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->vbi_linked = 1;
-+	}
-+	if (alsa_capture && !dev->alsa_capture_linked) {
-+		ret = media_entity_create_link(decoder, AU8522_PAD_AUDIO_OUT,
-+						alsa_capture, 0,
-+						MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->alsa_capture_linked = 1;
-+	}
-+#endif
-+}
++	splitters = kcalloc(nb_splits, sizeof(*splitters), gfp_mask);
++	if (!splitters)
++		return NULL;
 +
-+static void au0828_media_device_register(struct au0828_dev *dev,
-+					  struct usb_device *udev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev;
-+	int ret;
-+
-+	mdev = media_device_get_devres(&udev->dev);
-+	if (!mdev)
-+		return;
-+
-+	if (!media_devnode_is_registered(&mdev->devnode)) {
-+		/* register media device */
-+		mdev->dev = &udev->dev;
-+		if (udev->product)
-+			strlcpy(mdev->model, udev->product,
-+				sizeof(mdev->model));
-+		if (udev->serial)
-+			strlcpy(mdev->serial, udev->serial,
-+				sizeof(mdev->serial));
-+		strcpy(mdev->bus_info, udev->devpath);
-+		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
-+		ret = media_device_register(mdev);
-+		if (ret) {
-+			dev_err(&udev->dev,
-+				"Couldn't create a media device. Error: %d\n",
-+				ret);
-+			return;
++	nents = 0;
++	size = *sizes;
++	curr = splitters;
++	for_each_sg(in, sg, sg_nents(in), i) {
++		if (skip > sg_dma_len(sg)) {
++			skip -= sg_dma_len(sg);
++			continue;
 +		}
-+		/* register entity_notify callback */
-+		dev->entity_notify.notify_data = (void *) dev;
-+		dev->entity_notify.notify = au0828_create_media_graph;
-+		media_device_register_entity_notify(mdev, &dev->entity_notify);
++		len = min_t(size_t, size, sg_dma_len(sg) - skip);
++		if (!curr->in_sg0) {
++			curr->in_sg0 = sg;
++			curr->skip_sg0 = sg_dma_len(sg) - len;
+ 		}
+-		if (xfer_len > 0) {
+-			(*new_sg_len)++;
+-			remain -= xfer_len;
++		size -= len;
++		nents++;
++		if (!size) {
++			curr->nents = nents;
++			curr->len_last_sg = len;
++			nents = 0;
++			size = *(++sizes);
++
++			if (!--nb_splits)
++				break;
++
++			if (len < curr->len_last_sg) {
++				(splitters + 1)->in_sg0 = sg;
++				(splitters + 1)->skip_sg0 = 0;
++			}
++			curr++;
+ 		}
+-		if (remain <= 0)
+-			break;
+ 	}
+-	WARN_ON(nfirst >= sglen);
+ 
+-	sg0 = kmalloc_array(*new_sg_len, sizeof(struct scatterlist),
+-			    GFP_KERNEL);
+-	if (!sg0)
+-		return NULL;
++	return splitters;
++}
+ 
+-	remain = size;
+-	for_each_sg(sg_first, sg, *new_sg_len, i) {
+-		dma_len = sg_dma_len(sg);
+-		sg0[i] = *sg;
++static int sg_split(struct scatterlist *in, const int nb_splits,
++		    const size_t *split_sizes, struct scatterlist **out,
++		    gfp_t gfp_mask)
++{
++	int i, j;
++	struct scatterlist *in_sg, *out_sg;
++	struct sg_splitter *splitters, *split;
+ 
+-		sg0[i].offset = nfirst_offset;
+-		nfirst_offset = 0;
++	splitters = sg_calculate_split(in, 0, split_sizes, nb_splits, gfp_mask);
++	if (!splitters)
++		return -ENOMEM;
+ 
+-		xfer_len = min_t(int, remain, dma_len - sg0[i].offset);
+-		xfer_len = roundup(xfer_len, 8);
+-		sg_dma_len(&sg0[i]) = xfer_len;
++	for (i = 0; i < nb_splits; i++) {
++		(splitters + i)->out_sg =
++			kmalloc_array((splitters + i)->nents,
++				      sizeof(struct scatterlist), gfp_mask);
++		if (!(splitters + i)->out_sg)
++			goto err;
 +	}
-+	dev->media_dev = mdev;
- #endif
+ 
+-		remain -= xfer_len;
+-		if (remain <= 0) {
+-			sg_mark_end(&sg0[i]);
+-			break;
++	for (i = 0; i < nb_splits; i++) {
++		split = splitters + i;
++		in_sg = split->in_sg0;
++		out_sg = split->out_sg;
++		out[i] = out_sg;
++		for (j = 0; j < split->nents; j++) {
++			out_sg[j] = *in_sg;
++			if (!j) {
++				out_sg[j].offset = split->skip_sg0;
++				sg_dma_len(&out_sg[j]) -= split->skip_sg0;
++			} else {
++				out_sg[j].offset = 0;
++			}
++			in_sg = sg_next(in_sg);
+ 		}
++		sg_dma_len(out_sg + split->nents - 1) = split->len_last_sg;
++		sg_mark_end(out_sg + split->nents - 1);
+ 	}
+ 
+-	return sg0;
++	kfree(splitters);
++	return 0;
++
++err:
++	for (i = 0; i < nb_splits; i++)
++		kfree((splitters + i)->out_sg);
++	kfree(splitters);
++	return -ENOMEM;
  }
  
-@@ -383,8 +413,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+@@ -391,14 +437,11 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
+ 				int cibr, int size, int offset)
+ {
+ 	struct dma_chan *dma_chan = pcdev->dma_chans[channel];
+-	struct scatterlist *sg;
++	struct scatterlist *sg = buf->sg[channel];
+ 	int sglen;
+ 	struct dma_async_tx_descriptor *tx;
  
- 	mutex_unlock(&dev->lock);
- 
--	au0828_create_media_graph(dev);
+-	sg = videobuf_sg_cut(dma->sglist, dma->sglen, offset, size, &sglen);
+-	if (!sg)
+-		goto fail;
 -
- 	return retval;
- }
++	sglen = sg_nents(sg);
+ 	tx = dmaengine_prep_slave_sg(dma_chan, sg, sglen, DMA_DEV_TO_MEM,
+ 				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+ 	if (!tx) {
+@@ -421,7 +464,6 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
+ 	}
  
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index d3644b3..a59ba08 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -281,6 +281,11 @@ struct au0828_dev {
- 	struct media_device *media_dev;
- 	struct media_pad video_pad, vbi_pad;
- 	struct media_entity *decoder;
-+	struct media_entity_notify entity_notify;
-+	bool tuner_linked;
-+	bool vdev_linked;
-+	bool vbi_linked;
-+	bool alsa_capture_linked;
- #endif
- };
+ 	buf->descs[channel] = tx;
+-	buf->sg[channel] = sg;
+ 	buf->sg_len[channel] = sglen;
+ 	return 0;
+ fail:
+@@ -458,6 +500,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
+ 	int ret;
+ 	int size_y, size_u = 0, size_v = 0;
++	size_t sizes[3];
  
--- 
-2.1.4
-
+ 	dev_dbg(dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+ 		vb, vb->baddr, vb->bsize);
+@@ -513,6 +556,16 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 			size_y = size;
+ 		}
+ 
++		sizes[0] = size_y;
++		sizes[1] = size_u;
++		sizes[2] = size_v;
++		ret = sg_split(dma->sglist, pcdev->channels, sizes, buf->sg,
++			       GFP_KERNEL);
++		if (ret) {
++			dev_err(dev, "sg_split failed: %d\n", ret);
++			goto fail;
++		}
++
+ 		/* init DMA for Y channel */
+ 		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0,
+ 					   size_y, 0);
