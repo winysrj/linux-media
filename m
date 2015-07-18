@@ -1,135 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47172 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754977AbbGCNMu (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:36767 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751590AbbGREvS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2015 09:12:50 -0400
-Message-ID: <55968A26.1010102@xs4all.nl>
-Date: Fri, 03 Jul 2015 15:12:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 18 Jul 2015 00:51:18 -0400
+Received: by pdjr16 with SMTP id r16so72561287pdj.3
+        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2015 21:51:18 -0700 (PDT)
+Received: from shambles.windy (c122-106-152-45.carlnfd1.nsw.optusnet.com.au. [122.106.152.45])
+        by smtp.gmail.com with ESMTPSA id da3sm13015861pdb.8.2015.07.17.21.51.15
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 17 Jul 2015 21:51:17 -0700 (PDT)
+Date: Sat, 18 Jul 2015 14:51:03 +1000
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [patch] fix failure when applying backports/debug.patch
+Message-ID: <20150718045023.GA3204@shambles.windy>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-CC: mchehab@osg.samsung.com
-Subject: Re: [PATCH v2 1/1] vb2: Only requeue buffers immediately once streaming
- is started
-References: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/2015 02:47 PM, Sakari Ailus wrote:
-> Buffers can be returned back to videobuf2 in driver's streamon handler. In
-> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
-> cause the driver's buf_queue vb2 operation to be called, queueing the same
-> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
-> on.
-> 
-> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
+Hi,
 
-It's spelled as requeuing (no e). The verb is 'to queue', but the -ing form is
-queuing. Check the dictionary: http://dictionary.reference.com/browse/queuing
+backports/debug.patch has gotten out of sync with the main tree.
+The last patch hunk fails:
+...
+Applying patches for kernel 3.13.0-57-generic
+patch -s -f -N -p1 -i ../backports/api_version.patch
+patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+patch -s -f -N -p1 -i ../backports/debug.patch
+1 out of 1 hunk FAILED
+make[2]: *** [apply_patches] Error 1
+make[2]: Leaving directory `/home/vjm/git/clones/media_build/linux'
+make[1]: *** [allyesconfig] Error 2
+make[1]: Leaving directory `/home/vjm/git/clones/media_build/v4l'
+make: *** [allyesconfig] Error 2
+can't select all drivers at ./build line 490, <IN> line 4.
 
-> state argument to vb2_buffer_done(), will result in buffers queued to the
-> driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
-> was before "[media] vb2: allow requeuing buffers while streaming".
-> 
-> Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: stable@vger.kernel.org # for v4.1
-> ---
-> since v1:
-> 
-> - Instead of relying on q->start_streaming_called and q->streaming, add a
->   new buffer state VB2_BUF_STATE_REQUEUEING, as suggested by Hans. The
->   cobalt driver will need the new flag as it returns the buffer back to the
->   driver's queue, the rest will continue using VB2_BUF_STATE_QUEUED.
-> 
->  drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
->  drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++----
->  include/media/videobuf2-core.h           |  2 ++
->  3 files changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
-> index e18f49e..2687cb0 100644
-> --- a/drivers/media/pci/cobalt/cobalt-irq.c
-> +++ b/drivers/media/pci/cobalt/cobalt-irq.c
-> @@ -134,7 +134,7 @@ done:
->  	   also know about dropped frames. */
->  	cb->vb.v4l2_buf.sequence = s->sequence++;
->  	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
-> -			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
-> +			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
->  }
->  
->  irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 1a096a6..ca8c041 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  
->  	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
->  		    state != VB2_BUF_STATE_ERROR &&
-> -		    state != VB2_BUF_STATE_QUEUED))
-> +		    state != VB2_BUF_STATE_QUEUED &&
-> +		    state != VB2_BUF_STATE_REQUEUEING))
->  		state = VB2_BUF_STATE_ERROR;
->  
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> @@ -1199,15 +1200,21 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  	for (plane = 0; plane < vb->num_planes; ++plane)
->  		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
->  
-> -	/* Add the buffer to the done buffers list */
->  	spin_lock_irqsave(&q->done_lock, flags);
-> -	vb->state = state;
-> -	if (state != VB2_BUF_STATE_QUEUED)
-> +	if (state == VB2_BUF_STATE_QUEUED ||
-> +	    state == VB2_BUF_STATE_REQUEUEING) {
-> +		vb->state = VB2_BUF_STATE_QUEUED;
-> +	} else {
-> +		/* Add the buffer to the done buffers list */
->  		list_add_tail(&vb->done_entry, &q->done_list);
-> +		vb->state = state;
-> +	}
->  	atomic_dec(&q->owned_by_drv_count);
->  	spin_unlock_irqrestore(&q->done_lock, flags);
->  
->  	if (state == VB2_BUF_STATE_QUEUED) {
-> +		return;
-> +	} else if (state == VB2_BUF_STATE_REQUEUEING) {
 
-No 'else' is needed here since the 'if' just returns.
 
-Regards,
+This happens because this change removed the #define DEBUG line
 
-	Hans
+commit 890024ad144902bfa637f23b94b396701a88ed88
+Author: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date:   Fri Jul 3 16:11:41 2015 -0300
 
->  		if (q->start_streaming_called)
->  			__enqueue_in_driver(vb);
->  		return;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 22a44c2..c192e1b 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -139,6 +139,7 @@ enum vb2_io_modes {
->   * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf
->   * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
->   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
-> + * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver
->   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
->   *				in a hardware operation
->   * @VB2_BUF_STATE_DONE:		buffer returned from driver to videobuf, but
-> @@ -152,6 +153,7 @@ enum vb2_buffer_state {
->  	VB2_BUF_STATE_PREPARING,
->  	VB2_BUF_STATE_PREPARED,
->  	VB2_BUF_STATE_QUEUED,
-> +	VB2_BUF_STATE_REQUEUEING,
->  	VB2_BUF_STATE_ACTIVE,
->  	VB2_BUF_STATE_DONE,
->  	VB2_BUF_STATE_ERROR,
-> 
+    [media] stk1160: Reduce driver verbosity
+
+    These messages are not really informational, and just makes the driver's
+    output too verbose. This commit changes some messages to a debug level,
+    removes a really useless "driver loaded" message and finally undefines
+    the DEBUG macro.
+
+    Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+
+$ git diff e3e30f63389a319ca45161b07eb74e60f1e7ea20 890024ad144902bfa637f23b94b396701a88ed88 drivers/media/usb/stk1160/stk1160.h
+diff --git a/drivers/media/usb/stk1160/stk1160.h
+b/drivers/media/usb/stk1160/stk1160.h
+index 3922a6c..72cc8e8 100644
+--- a/drivers/media/usb/stk1160/stk1160.h
++++ b/drivers/media/usb/stk1160/stk1160.h
+@@ -58,7 +58,6 @@
+  * new drivers should use.
+  *
+  */
+-#define DEBUG
+ #ifdef DEBUG
+ #define stk1160_dbg(fmt, args...) \
+        printk(KERN_DEBUG "stk1160: " fmt,  ## args)
+
+
+The following should fix the issue
+
+diff --git a/backports/debug.patch b/backports/debug.patch
+index a222783..cbd9526 100644
+--- a/backports/debug.patch
++++ b/backports/debug.patch
+@@ -35,7 +35,7 @@ index fb2acc5..8edffcb 100644
+  #endif
+
+ diff --git a/drivers/media/usb/stk1160/stk1160.h
+b/drivers/media/usb/stk1160/stk1160.h
+-index abdea48..2eed017 100644
++index 72cc8e8..323e5d7 100644
+ --- a/drivers/media/usb/stk1160/stk1160.h
+ +++ b/drivers/media/usb/stk1160/stk1160.h
+ @@ -58,6 +58,7 @@
+@@ -43,6 +43,6 @@ index abdea48..2eed017 100644
+   *
+   */
+ +#undef DEBUG
+- #define DEBUG
+  #ifdef DEBUG
+  #define stk1160_dbg(fmt, args...) \
++       printk(KERN_DEBUG "stk1160: " fmt,  ## args)
+
 
