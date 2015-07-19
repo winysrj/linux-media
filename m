@@ -1,80 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58848 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031AbbGTNKs (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38043 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbbGSHfA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 09:10:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Anatolij Gustschin <agust@denx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/6] fsl-viu: fill in colorspace, always set field to interlaced.
-Date: Mon, 20 Jul 2015 15:09:30 +0200
-Message-Id: <1437397773-5752-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437397773-5752-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437397773-5752-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 19 Jul 2015 03:35:00 -0400
+Received: by wibxm9 with SMTP id xm9so1383212wib.1
+        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2015 00:34:58 -0700 (PDT)
+Message-ID: <55AB5320.8030100@gmail.com>
+Date: Sun, 19 Jul 2015 09:34:56 +0200
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>, tonyc@wincomm.com.tw,
+	Antti Palosaari <crope@iki.fi>
+CC: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants - testers
+ reqd.
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+In-Reply-To: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Steven,
 
-- fill in the missing colorspace value.
-- don't reject incorrect field values, always replace with a valid value.
+Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using 
+European DVB-C
+Since MythTV can't handle multistandard frontends (yet), I've disabled 
+DVB-T/T2 like this (I always do that):
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/fsl-viu.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/' 
+drivers/media/dvb-frontends/si2168.c
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index ab8012c..7d0e360 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -597,6 +597,7 @@ static int vidioc_g_fmt_cap(struct file *file, void *priv,
- 	f->fmt.pix.bytesperline =
- 			(f->fmt.pix.width * fh->fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage	= fh->sizeimage;
-+	f->fmt.pix.colorspace	= V4L2_COLORSPACE_SMPTE170M;
- 	return 0;
- }
- 
-@@ -604,7 +605,6 @@ static int vidioc_try_fmt_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
- 	struct viu_fmt *fmt;
--	enum v4l2_field field;
- 	unsigned int maxw, maxh;
- 
- 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
-@@ -614,19 +614,10 @@ static int vidioc_try_fmt_cap(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	field = f->fmt.pix.field;
--
--	if (field == V4L2_FIELD_ANY) {
--		field = V4L2_FIELD_INTERLACED;
--	} else if (field != V4L2_FIELD_INTERLACED) {
--		dprintk(1, "Field type invalid.\n");
--		return -EINVAL;
--	}
--
- 	maxw  = norm_maxw();
- 	maxh  = norm_maxh();
- 
--	f->fmt.pix.field = field;
-+	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
- 	if (f->fmt.pix.height < 32)
- 		f->fmt.pix.height = 32;
- 	if (f->fmt.pix.height > maxh)
-@@ -638,6 +629,7 @@ static int vidioc_try_fmt_cap(struct file *file, void *priv,
- 	f->fmt.pix.width &= ~0x03;
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * fmt->depth) >> 3;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
- 	return 0;
- }
--- 
-2.1.4
+Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no 
+lock, no tune.
+
+Regards,
+Tycho.
+
+Op 19-07-15 om 00:21 schreef Steven Toth:
+> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+>
+> Patches above are available for test.
+>
+> Antti, note the change to SI2168 to add support for enabling and
+> disabling the SI2168 transport bus dynamically.
+>
+> I've tested with a combo card, switching back and forward between QAM
+> and DVB-T, this works fine, just remember to select a different
+> frontend as we have two frontends on the same adapter,
+> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
+>
+> If any testers have the ATSC or DVB-T, I'd expect these to work
+> equally well, replease report feedback here.
+>
+> Thanks,
+>
+> - Steve
+>
 
