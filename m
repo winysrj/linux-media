@@ -1,94 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47917 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750990AbbGXIMs (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46480 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172AbbGTCwB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 04:12:48 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0B4B52A00AA
-	for <linux-media@vger.kernel.org>; Fri, 24 Jul 2015 10:11:36 +0200 (CEST)
-Message-ID: <55B1F337.6030604@xs4all.nl>
-Date: Fri, 24 Jul 2015 10:11:35 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.3] usbvision/zoran/fsl-viu: convert to the control
- framework
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 19 Jul 2015 22:52:01 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 182DA2A1C0F
+	for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 04:50:55 +0200 (CEST)
+Date: Mon, 20 Jul 2015 04:50:55 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150720025055.182DA2A1C0F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've cleaned up some old patch series of mine that convert the usbvision, zoran
-and fsl-viu drivers to the control framework.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I have tested the zoran and usbvision drivers, the fsl-viu driver has been tested
-back in 2013: http://www.spinics.net/lists/linux-media/msg61898.html
+Results of the daily build of media_tree:
 
-I said these patch series were old :-)
+date:		Mon Jul 20 04:00:18 CEST 2015
+git branch:	test
+git hash:	6727d4fce95586e60922bdaf57b8a0eb99482557
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Note that the usbvision driver is in a pretty bad state, but let's get this patch
-series in and I'll see if I can continue cleaning it up.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-The best thing for this driver would be to convert it to vb2 as I don't think
-the current streaming code (not even using vb1!) is salvageable.
+Detailed results are available here:
 
-After this patch series is merged only three drivers remain that do not use the
-control framework: uvc, pvrusb2 and saa7164. Next up will be saa7164 since that
-one shouldn't be too difficult to convert. The other two are very difficult to
-do, but converting pvrusb2 would be really, really nice since I could get rid
-of the last legacy control ops in the subdev drivers.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
+The Media Infrastructure API from this daily build is here:
 
-  [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git convertctrl
-
-for you to fetch changes up to 6c37fa7df8e46e296a51833dcfb705dde61558e6:
-
-  bt819/saa7110/vpx3220: remove legacy control ops (2015-07-24 09:58:44 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (22):
-      usbvision: remove power_on_at_open and timed power off
-      usbvision: convert to the control framework
-      usbvision: return valid error in usbvision_register_video()
-      usbvision: remove g/s_audio and for radio remove enum/g/s_input
-      usbvision: the radio device node has wrong caps
-      usbvision: frequency fixes.
-      usbvision: set field and colorspace.
-      usbvision: fix locking error
-      usbvision: fix DMA from stack warnings.
-      usbvision: fix standards for S-Video/Composite inputs.
-      usbvision: move init code to probe()
-      fsl-viu: convert to the control framework.
-      fsl-viu: fill in bus_info in vidioc_querycap.
-      fsl-viu: fill in colorspace, always set field to interlaced.
-      fsl-viu: add control event support.
-      fsl-viu: small fixes.
-      fsl-viu: drop format names
-      zoran: remove unnecessary memset
-      zoran: remove unused read/write functions
-      zoran: use standard core lock
-      zoran: convert to the control framework and to v4l2_fh
-      bt819/saa7110/vpx3220: remove legacy control ops
-
- drivers/media/i2c/bt819.c                     |  11 ---
- drivers/media/i2c/saa7110.c                   |  11 ---
- drivers/media/i2c/vpx3220.c                   |   7 --
- drivers/media/pci/zoran/zoran.h               |   7 +-
- drivers/media/pci/zoran/zoran_card.c          |  11 ++-
- drivers/media/pci/zoran/zoran_driver.c        | 344 ++++++++++++++++--------------------------------------------------------------
- drivers/media/platform/fsl-viu.c              | 160 ++++++++++--------------------------
- drivers/media/usb/usbvision/usbvision-core.c  |  71 +++-------------
- drivers/media/usb/usbvision/usbvision-i2c.c   |   2 +-
- drivers/media/usb/usbvision/usbvision-video.c | 246 ++++++++++++++++++++------------------------------------
- drivers/media/usb/usbvision/usbvision.h       |  10 +--
- 11 files changed, 226 insertions(+), 654 deletions(-)
+http://www.xs4all.nl/~hverkuil/spec/media.html
