@@ -1,176 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34802 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343AbbGIKKg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:36 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 08/10] [media] coda: use event class to deduplicate v4l2 trace events
-Date: Thu,  9 Jul 2015 12:10:19 +0200
-Message-Id: <1436436621-12291-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
-References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+Received: from vader.hardeman.nu ([95.142.160.32]:52562 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753074AbbGTTQd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:16:33 -0400
+Subject: [PATCH 1/7] [PATCH FIXES] Revert "[media] rc: nuvoton-cir: Add
+ support for writing wakeup samples via sysfs filter callback"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 20 Jul 2015 21:16:31 +0200
+Message-ID: <20150720191631.24633.58589.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trace events with exactly the same parameters and trace output, such as
-coda_enc_pic_run and coda_enc_pic_done, are supposed to use the
-DECLARE_EVENT_CLASS and DEFINE_EVENT macros instead of duplicated
-TRACE_EVENT macro calls.
-This patch changes the order of parameters to coda_dec_rot_done and adds
-a timestamp so it can share an event class with coda_bit_queue.
+This reverts commit da7ee60b03bd66bb10974d7444aa444de6391312.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The current code is not mature enough, the API should allow a single
+protocol to be specified. Also, the current code contains heuristics
+that will depend on module load order.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/platform/coda/coda-bit.c |  2 +-
- drivers/media/platform/coda/trace.h    | 89 ++++++++++------------------------
- 2 files changed, 26 insertions(+), 65 deletions(-)
+ drivers/media/rc/nuvoton-cir.c |  127 ----------------------------------------
+ drivers/media/rc/nuvoton-cir.h |    1 
+ include/media/rc-core.h        |    1 
+ 3 files changed, 129 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index ac4dcb1..226ce4a 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1978,7 +1978,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		dst_buf->v4l2_buf.timecode = meta->timecode;
- 		dst_buf->v4l2_buf.timestamp = meta->timestamp;
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index baeb597..85af7a8 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -526,130 +526,6 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 	return 0;
+ }
  
--		trace_coda_dec_rot_done(ctx, meta, dst_buf);
-+		trace_coda_dec_rot_done(ctx, dst_buf, meta);
- 
- 		switch (q_data_dst->fourcc) {
- 		case V4L2_PIX_FMT_YUV420:
-diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
-index 781bf72..d9099a0 100644
---- a/drivers/media/platform/coda/trace.h
-+++ b/drivers/media/platform/coda/trace.h
-@@ -48,7 +48,7 @@ TRACE_EVENT(coda_bit_done,
- 	TP_printk("minor = %d, ctx = %d", __entry->minor, __entry->ctx)
- );
- 
--TRACE_EVENT(coda_enc_pic_run,
-+DECLARE_EVENT_CLASS(coda_buf_class,
- 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
- 
- 	TP_ARGS(ctx, buf),
-@@ -69,28 +69,17 @@ TRACE_EVENT(coda_enc_pic_run,
- 		  __entry->minor, __entry->index, __entry->ctx)
- );
- 
--TRACE_EVENT(coda_enc_pic_done,
-+DEFINE_EVENT(coda_buf_class, coda_enc_pic_run,
- 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
-+	TP_ARGS(ctx, buf)
-+);
- 
--	TP_ARGS(ctx, buf),
+-static int nvt_write_wakeup_codes(struct rc_dev *dev,
+-				  const u8 *wakeup_sample_buf, int count)
+-{
+-	int i = 0;
+-	u8 reg, reg_learn_mode;
+-	unsigned long flags;
+-	struct nvt_dev *nvt = dev->priv;
 -
--	TP_STRUCT__entry(
--		__field(int, minor)
--		__field(int, index)
--		__field(int, ctx)
--	),
+-	nvt_dbg_wake("writing wakeup samples");
 -
--	TP_fast_assign(
--		__entry->minor = ctx->fh.vdev->minor;
--		__entry->index = buf->v4l2_buf.index;
--		__entry->ctx = ctx->idx;
--	),
+-	reg = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
+-	reg_learn_mode = reg & ~CIR_WAKE_IRCON_MODE0;
+-	reg_learn_mode |= CIR_WAKE_IRCON_MODE1;
 -
--	TP_printk("minor = %d, index = %d, ctx = %d",
--		  __entry->minor, __entry->index, __entry->ctx)
-+DEFINE_EVENT(coda_buf_class, coda_enc_pic_done,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
-+	TP_ARGS(ctx, buf)
- );
+-	/* Lock the learn area to prevent racing with wake-isr */
+-	spin_lock_irqsave(&nvt->nvt_lock, flags);
+-
+-	/* Enable fifo writes */
+-	nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON);
+-
+-	/* Clear cir wake rx fifo */
+-	nvt_clear_cir_wake_fifo(nvt);
+-
+-	if (count > WAKE_FIFO_LEN) {
+-		nvt_dbg_wake("HW FIFO too small for all wake samples");
+-		count = WAKE_FIFO_LEN;
+-	}
+-
+-	if (count)
+-		pr_info("Wake samples (%d) =", count);
+-	else
+-		pr_info("Wake sample fifo cleared");
+-
+-	/* Write wake samples to fifo */
+-	for (i = 0; i < count; i++) {
+-		pr_cont(" %02x", wakeup_sample_buf[i]);
+-		nvt_cir_wake_reg_write(nvt, wakeup_sample_buf[i],
+-				       CIR_WAKE_WR_FIFO_DATA);
+-	}
+-	pr_cont("\n");
+-
+-	/* Switch cir to wakeup mode and disable fifo writing */
+-	nvt_cir_wake_reg_write(nvt, reg, CIR_WAKE_IRCON);
+-
+-	/* Set number of bytes needed for wake */
+-	nvt_cir_wake_reg_write(nvt, count ? count :
+-			       CIR_WAKE_FIFO_CMP_BYTES,
+-			       CIR_WAKE_FIFO_CMP_DEEP);
+-
+-	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+-
+-	return 0;
+-}
+-
+-static int nvt_ir_raw_set_wakeup_filter(struct rc_dev *dev,
+-					struct rc_scancode_filter *sc_filter)
+-{
+-	u8 *reg_buf;
+-	u8 buf_val;
+-	int i, ret, count;
+-	unsigned int val;
+-	struct ir_raw_event *raw;
+-	bool complete;
+-
+-	/* Require both mask and data to be set before actually committing */
+-	if (!sc_filter->mask || !sc_filter->data)
+-		return 0;
+-
+-	raw = kmalloc_array(WAKE_FIFO_LEN, sizeof(*raw), GFP_KERNEL);
+-	if (!raw)
+-		return -ENOMEM;
+-
+-	ret = ir_raw_encode_scancode(dev->enabled_wakeup_protocols, sc_filter,
+-				     raw, WAKE_FIFO_LEN);
+-	complete = (ret != -ENOBUFS);
+-	if (!complete)
+-		ret = WAKE_FIFO_LEN;
+-	else if (ret < 0)
+-		goto out_raw;
+-
+-	reg_buf = kmalloc_array(WAKE_FIFO_LEN, sizeof(*reg_buf), GFP_KERNEL);
+-	if (!reg_buf) {
+-		ret = -ENOMEM;
+-		goto out_raw;
+-	}
+-
+-	/* Inspect the ir samples */
+-	for (i = 0, count = 0; i < ret && count < WAKE_FIFO_LEN; ++i) {
+-		val = NS_TO_US((raw[i]).duration) / SAMPLE_PERIOD;
+-
+-		/* Split too large values into several smaller ones */
+-		while (val > 0 && count < WAKE_FIFO_LEN) {
+-
+-			/* Skip last value for better comparison tolerance */
+-			if (complete && i == ret - 1 && val < BUF_LEN_MASK)
+-				break;
+-
+-			/* Clamp values to BUF_LEN_MASK at most */
+-			buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
+-
+-			reg_buf[count] = buf_val;
+-			val -= buf_val;
+-			if ((raw[i]).pulse)
+-				reg_buf[count] |= BUF_PULSE_BIT;
+-			count++;
+-		}
+-	}
+-
+-	ret = nvt_write_wakeup_codes(dev, reg_buf, count);
+-
+-	kfree(reg_buf);
+-out_raw:
+-	kfree(raw);
+-
+-	return ret;
+-}
+-
+-/* Dummy implementation. nuvoton is agnostic to the protocol used */
+-static int nvt_ir_raw_change_wakeup_protocol(struct rc_dev *dev,
+-					     u64 *rc_type)
+-{
+-	return 0;
+-}
+-
+ /*
+  * nvt_tx_ir
+  *
+@@ -1167,14 +1043,11 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	/* Set up the rc device */
+ 	rdev->priv = nvt;
+ 	rdev->driver_type = RC_DRIVER_IR_RAW;
+-	rdev->encode_wakeup = true;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = nvt_open;
+ 	rdev->close = nvt_close;
+ 	rdev->tx_ir = nvt_tx_ir;
+ 	rdev->s_tx_carrier = nvt_set_tx_carrier;
+-	rdev->s_wakeup_filter = nvt_ir_raw_set_wakeup_filter;
+-	rdev->change_wakeup_protocol = nvt_ir_raw_change_wakeup_protocol;
+ 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
+ 	rdev->input_phys = "nuvoton/cir0";
+ 	rdev->input_id.bustype = BUS_HOST;
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 9d0e161..e1cf23c 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -63,7 +63,6 @@ static int debug;
+  */
+ #define TX_BUF_LEN 256
+ #define RX_BUF_LEN 32
+-#define WAKE_FIFO_LEN 67
  
--TRACE_EVENT(coda_bit_queue,
-+DECLARE_EVENT_CLASS(coda_buf_meta_class,
- 	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
- 		 struct coda_buffer_meta *meta),
+ struct nvt_dev {
+ 	struct pnp_dev *pdev;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 5642fbe..9a9beb8 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -246,7 +246,6 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ #define US_TO_NS(usec)		((usec) * 1000)
+ #define MS_TO_US(msec)		((msec) * 1000)
+ #define MS_TO_NS(msec)		((msec) * 1000 * 1000)
+-#define NS_TO_US(nsec)		DIV_ROUND_UP(nsec, 1000L)
  
-@@ -117,7 +106,13 @@ TRACE_EVENT(coda_bit_queue,
- 		  __entry->ctx)
- );
- 
--TRACE_EVENT(coda_dec_pic_run,
-+DEFINE_EVENT(coda_buf_meta_class, coda_bit_queue,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+		 struct coda_buffer_meta *meta),
-+	TP_ARGS(ctx, buf, meta)
-+);
-+
-+DECLARE_EVENT_CLASS(coda_meta_class,
- 	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
- 
- 	TP_ARGS(ctx, meta),
-@@ -140,54 +135,20 @@ TRACE_EVENT(coda_dec_pic_run,
- 		  __entry->minor, __entry->start, __entry->end, __entry->ctx)
- );
- 
--TRACE_EVENT(coda_dec_pic_done,
-+DEFINE_EVENT(coda_meta_class, coda_dec_pic_run,
- 	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
--
--	TP_ARGS(ctx, meta),
--
--	TP_STRUCT__entry(
--		__field(int, minor)
--		__field(int, start)
--		__field(int, end)
--		__field(int, ctx)
--	),
--
--	TP_fast_assign(
--		__entry->minor = ctx->fh.vdev->minor;
--		__entry->start = meta->start;
--		__entry->end = meta->end;
--		__entry->ctx = ctx->idx;
--	),
--
--	TP_printk("minor = %d, start = 0x%x, end = 0x%x, ctx = %d",
--		  __entry->minor, __entry->start, __entry->end, __entry->ctx)
-+	TP_ARGS(ctx, meta)
- );
- 
--TRACE_EVENT(coda_dec_rot_done,
--	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta,
--		 struct vb2_buffer *buf),
--
--	TP_ARGS(ctx, meta, buf),
--
--	TP_STRUCT__entry(
--		__field(int, minor)
--		__field(int, start)
--		__field(int, end)
--		__field(int, index)
--		__field(int, ctx)
--	),
--
--	TP_fast_assign(
--		__entry->minor = ctx->fh.vdev->minor;
--		__entry->start = meta->start;
--		__entry->end = meta->end;
--		__entry->index = buf->v4l2_buf.index;
--		__entry->ctx = ctx->idx;
--	),
-+DEFINE_EVENT(coda_meta_class, coda_dec_pic_done,
-+	TP_PROTO(struct coda_ctx *ctx, struct coda_buffer_meta *meta),
-+	TP_ARGS(ctx, meta)
-+);
- 
--	TP_printk("minor = %d, start = 0x%x, end = 0x%x, index = %d, ctx = %d",
--		  __entry->minor, __entry->start, __entry->end, __entry->index,
--		  __entry->ctx)
-+DEFINE_EVENT(coda_buf_meta_class, coda_dec_rot_done,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+		 struct coda_buffer_meta *meta),
-+	TP_ARGS(ctx, buf, meta)
- );
- 
- #endif /* __CODA_TRACE_H__ */
--- 
-2.1.4
+ void ir_raw_event_handle(struct rc_dev *dev);
+ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
 
