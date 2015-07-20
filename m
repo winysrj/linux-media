@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59057 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbbGaObx (ORCPT
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:36441 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131AbbGTNNd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2015 10:31:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
-Date: Fri, 31 Jul 2015 17:32:28 +0300
-Message-ID: <5801982.V6EPzmjqi1@avalon>
-In-Reply-To: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
-References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+	Mon, 20 Jul 2015 09:13:33 -0400
+Received: by qgy5 with SMTP id 5so72054792qgy.3
+        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 06:13:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <55AB5320.8030100@gmail.com>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+	<55AB5320.8030100@gmail.com>
+Date: Mon, 20 Jul 2015 09:13:32 -0400
+Message-ID: <CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+From: Steven Toth <stoth@kernellabs.com>
+To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
+Cc: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On Sun, Jul 19, 2015 at 3:34 AM, Tycho Lürsen <tycholursen@gmail.com> wrote:
+> Hi Steven,
+>
+> Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using
+> European DVB-C
+> Since MythTV can't handle multistandard frontends (yet), I've disabled
+> DVB-T/T2 like this (I always do that):
+>
+> sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/'
+> drivers/media/dvb-frontends/si2168.c
+>
+> Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no lock,
+> no tune.
+>
+> Regards,
+> Tycho.
+>
+> Op 19-07-15 om 00:21 schreef Steven Toth:
+>>
+>> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+>>
+>> Patches above are available for test.
+>>
+>> Antti, note the change to SI2168 to add support for enabling and
+>> disabling the SI2168 transport bus dynamically.
+>>
+>> I've tested with a combo card, switching back and forward between QAM
+>> and DVB-T, this works fine, just remember to select a different
+>> frontend as we have two frontends on the same adapter,
+>> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
+>>
+>> If any testers have the ATSC or DVB-T, I'd expect these to work
+>> equally well, replease report feedback here.
+>>
+>> Thanks,
+>>
+>> - Steve
 
-Thank you for the patch.
+Interesting, although I'm slightly confused.
 
-On Wednesday 17 June 2015 18:39:38 Josh Wu wrote:
-> In the function configure_geometry(), we will setup the ISI CFG2
-> according to the sensor output format.
-> 
-> It make no sense to just read back the CFG2 register and just set part
-> of it.
-> 
-> So just set up this register directly makes things simpler.
-> Currently only support YUV format from camera sensor.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+My patch mere added the ability for dvb-core to tri-state the tsport
+out bus, similar to other digital demodulator drivers in the tree....
+and testing with both azap and tzap (and dvbtraffic) showed no tuning,
+lock or other issues.
 
-The default value of the register is all 0 so this should be good.
+What happens if you tzap/czap a known good frequency, before and after
+my patch, without your sed replacement, leaving T/T2 and A fully
+enabled?
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
->  1 file changed, 7 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index 9070172..8bc40ca
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->  static int configure_geometry(struct atmel_isi *isi, u32 width,
->  			u32 height, u32 code)
->  {
-> -	u32 cfg2, cr;
-> +	u32 cfg2;
-> 
-> +	/* According to sensor's output format to set cfg2 */
->  	switch (code) {
->  	/* YUV, including grey */
->  	case MEDIA_BUS_FMT_Y8_1X8:
-> -		cr = ISI_CFG2_GRAYSCALE;
-> +		cfg2 = ISI_CFG2_GRAYSCALE;
->  		break;
->  	case MEDIA_BUS_FMT_VYUY8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_3;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
->  		break;
->  	case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_2;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
->  		break;
->  	case MEDIA_BUS_FMT_YVYU8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_1;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
->  		break;
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
->  		break;
->  	/* RGB, TODO */
->  	default:
-> @@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi,
-> u32 width, }
-> 
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> -
-> -	cfg2 = isi_readl(isi, ISI_CFG2);
-> -	/* Set YCC swap mode */
-> -	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
-> -	cfg2 |= cr;
->  	/* Set width */
-> -	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
->  	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
->  			ISI_CFG2_IM_HSIZE_MASK;
->  	/* Set height */
-> -	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
->  	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
->  			& ISI_CFG2_IM_VSIZE_MASK;
->  	isi_writel(isi, ISI_CFG2, cfg2);
+- Steve
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
