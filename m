@@ -1,94 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37735 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319AbbGCHjH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2015 03:39:07 -0400
-Message-ID: <55963BF1.7060009@xs4all.nl>
-Date: Fri, 03 Jul 2015 09:38:25 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from vader.hardeman.nu ([95.142.160.32]:52572 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753674AbbGTTQ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:16:58 -0400
+Subject: [PATCH 6/7] [PATCH FIXES] Revert "[media] rc: rc-ir-raw: Add
+ Manchester encoder (phase encoder) helper"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 20 Jul 2015 21:16:56 +0200
+Message-ID: <20150720191656.24633.55454.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-To: Nathaniel Bezanson <myself@telcodata.us>,
-	linux-media@vger.kernel.org
-Subject: Re: Subjective maturity of tw6869, cx25821, bluecherry/softlogic
- drivers
-References: <1435871672466752997@telcodata.us>
-In-Reply-To: <1435871672466752997@telcodata.us>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/02/2015 11:14 PM, Nathaniel Bezanson wrote:
-> Hi all,
-> 
-> If this isn't the appropriate venue for this question, please gently
-> steer me somewhere else. Thanks. :) I'm trying to head off the "well
-> you shouldn't have bought *that* junk in the first place!" advice by
-> doing some research ahead of time, and I'm here to check some
-> assumptions.
-> 
-> I've been tasked with recommending a capture card for our
-> hackerspace's video monitoring system. We'll be using motion so
-> anything v4l/v4l2 is fair game. We presently have 8 cameras, but a
-> 16-channel card wouldn't go to waste. Only quirk is the host system
-> is PCI-Express only, no parallel PCI.
-> 
-> I've found the much-lauded Bluecherry driver release in 2010:
-> http://ben-collins.blogspot.com/2010/06/softlogic-6010-4816-channel-mpeg-4.html
->
-> It claims to be 90% functional, and I haven't found any updates since
-> then. Am I looking in the wrong place or is this completely orphaned?
-> Cards sometimes come up cheap and the board looks really
-> well-thought-out, but as a hardware guy I'm the last person you want
-> rooting around in driver source trying to solder some code together
-> and get the last bits working...
+This reverts commit 1d971d927efa2e10194c96ed0475b6d6054342d8.
 
-The support for the solo devices is now part of the kernel and it is
-maintained there. I still get patches from Bluecherry and it is a
-mature card.
+The current code is not mature enough, the API should allow a single
+protocol to be specified. Also, the current code contains heuristics
+that will depend on module load order.
 
-> I found the intersil/techwell TW6869 chip on a very affordable card,
-> and there's a nice looking driver here:
-> https://github.com/igorizyumin/tw6869/ Only trouble is there only
-> seems to be the one card using it, and it's v1.0 hardware without
-> robust ESD protection on the inputs; I don't know if I'd expect it to
-> survive a decade connected to 200-foot camera leads. It's cheap
-> enough to keep spare boards around, though. Is this driver solid? Is
-> the chip? Are there other cards based on it?
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-core-priv.h |   33 ---------------
+ drivers/media/rc/rc-ir-raw.c    |   85 ---------------------------------------
+ 2 files changed, 118 deletions(-)
 
-I don't know anything about this chip. Other Techwell devices give decent
-quality, but I've never used this one.
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 5266ecc7..122c25f 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -152,39 +152,6 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+ #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ 
+-/* functions for IR encoders */
+-
+-static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
+-					      unsigned int pulse,
+-					      u32 duration)
+-{
+-	init_ir_raw_event(ev);
+-	ev->duration = duration;
+-	ev->pulse = pulse;
+-}
+-
+-/**
+- * struct ir_raw_timings_manchester - Manchester coding timings
+- * @leader:		duration of leader pulse (if any) 0 if continuing
+- *			existing signal (see @pulse_space_start)
+- * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
+- * @clock:		duration of each pulse/space in ns
+- * @invert:		if set clock logic is inverted
+- *			(0 = space + pulse, 1 = pulse + space)
+- * @trailer_space:	duration of trailer space in ns
+- */
+-struct ir_raw_timings_manchester {
+-	unsigned int leader;
+-	unsigned int pulse_space_start:1;
+-	unsigned int clock;
+-	unsigned int invert:1;
+-	unsigned int trailer_space;
+-};
+-
+-int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
+-			  const struct ir_raw_timings_manchester *timings,
+-			  unsigned int n, unsigned int data);
+-
+ /*
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 72dd6b6..f426f16 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -247,91 +247,6 @@ static int change_protocol(struct rc_dev *dev, u64 *rc_type)
+ }
+ 
+ /**
+- * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
+- * @ev:		Pointer to pointer to next free event. *@ev is incremented for
+- *		each raw event filled.
+- * @max:	Maximum number of raw events to fill.
+- * @timings:	Manchester modulation timings.
+- * @n:		Number of bits of data.
+- * @data:	Data bits to encode.
+- *
+- * Encodes the @n least significant bits of @data using Manchester (bi-phase)
+- * modulation with the timing characteristics described by @timings, writing up
+- * to @max raw IR events using the *@ev pointer.
+- *
+- * Returns:	0 on success.
+- *		-ENOBUFS if there isn't enough space in the array to fit the
+- *		full encoded data. In this case all @max events will have been
+- *		written.
+- */
+-int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
+-			  const struct ir_raw_timings_manchester *timings,
+-			  unsigned int n, unsigned int data)
+-{
+-	bool need_pulse;
+-	unsigned int i;
+-	int ret = -ENOBUFS;
+-
+-	i = 1 << (n - 1);
+-
+-	if (timings->leader) {
+-		if (!max--)
+-			return ret;
+-		if (timings->pulse_space_start) {
+-			init_ir_raw_event_duration((*ev)++, 1, timings->leader);
+-
+-			if (!max--)
+-				return ret;
+-			init_ir_raw_event_duration((*ev), 0, timings->leader);
+-		} else {
+-			init_ir_raw_event_duration((*ev), 1, timings->leader);
+-		}
+-		i >>= 1;
+-	} else {
+-		/* continue existing signal */
+-		--(*ev);
+-	}
+-	/* from here on *ev will point to the last event rather than the next */
+-
+-	while (n && i > 0) {
+-		need_pulse = !(data & i);
+-		if (timings->invert)
+-			need_pulse = !need_pulse;
+-		if (need_pulse == !!(*ev)->pulse) {
+-			(*ev)->duration += timings->clock;
+-		} else {
+-			if (!max--)
+-				goto nobufs;
+-			init_ir_raw_event_duration(++(*ev), need_pulse,
+-						   timings->clock);
+-		}
+-
+-		if (!max--)
+-			goto nobufs;
+-		init_ir_raw_event_duration(++(*ev), !need_pulse,
+-					   timings->clock);
+-		i >>= 1;
+-	}
+-
+-	if (timings->trailer_space) {
+-		if (!(*ev)->pulse)
+-			(*ev)->duration += timings->trailer_space;
+-		else if (!max--)
+-			goto nobufs;
+-		else
+-			init_ir_raw_event_duration(++(*ev), 0,
+-						   timings->trailer_space);
+-	}
+-
+-	ret = 0;
+-nobufs:
+-	/* point to the next event rather than last event before returning */
+-	++(*ev);
+-	return ret;
+-}
+-EXPORT_SYMBOL(ir_raw_gen_manchester);
+-
+-/**
+  * ir_raw_encode_scancode() - Encode a scancode as raw events
+  *
+  * @protocols:		permitted protocols
 
-> I popped into #v4l on freenode, and was pointed to the cx25821 chip,
-> which seems well supported but I can't find any actual names of cards
-> that claim to use it, except possibly a line of Russian cards and
-> maybe I can get a Russian-speaking friend to help figure out their
-> shopping cart... Is there a known/recommended Cx25821-based card I
-> should look for? (And is the 25853 similar?)
-
-There used to be a cx25821 card on dx.com (which is where I got mine),
-but it's out of stock. I haven't been able to find one either. It's
-unclear to me whether the 25853 is similar enough to work with the
-cx25821 driver. I'm not optimistic.
-
-> I've seen talk of the older Geovision cards using the Bt878a chips,
-> which is of course lovely, but I can't find any info on their PCIe
-> offerings, nor even high-res photos of the board. That's a shame cuz
-> their hardware looks really solid. Any chipset info? Anyone using
-> these?
-
-I don't think there is any linux support for Geovision PCIe cards.
-
-> Anything else I'm missing?
-
-No, I don't think so.
-
-If you want to have a well-supported card, then Bluecherry is your
-best bet. Techwell will likely work too, but the driver is not in the
-kernel (which may or may not be a problem for you). Getting it ready
-for inclusion into the kernel is a fair amount of work.
-
-Regards,
-
-	Hans
