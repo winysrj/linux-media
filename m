@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f175.google.com ([209.85.220.175]:34356 "EHLO
-	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbbGRWVb (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:51213 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333AbbGTIsz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2015 18:21:31 -0400
-Received: by qkfc129 with SMTP id c129so47921087qkf.1
-        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2015 15:21:30 -0700 (PDT)
+	Mon, 20 Jul 2015 04:48:55 -0400
+Date: Mon, 20 Jul 2015 11:47:46 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 7/7] sound/usb: Update ALSA driver to use Managed Media
+ Controller API
+Message-ID: <20150720084746.GH5422@mwanda>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+ <656c6578247d86262b7999d85db9f9995058eb36.1436917513.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Date: Sat, 18 Jul 2015 18:21:30 -0400
-Message-ID: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-Subject: Adding support for three new Hauppauge HVR-1275 variants - testers reqd.
-From: Steven Toth <stoth@kernellabs.com>
-To: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <656c6578247d86262b7999d85db9f9995058eb36.1436917513.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+On Tue, Jul 14, 2015 at 06:34:06PM -0600, Shuah Khan wrote:
+> +		ret = media_entity_setup_link(link, flags);
+> +		if (ret) {
+> +			dev_err(mctl->media_dev->dev,
+> +				"Couldn't change tuner link",
+> +				"%s->%s to %s. Error %d\n",
 
-Patches above are available for test.
+Add a space after "link".
 
-Antti, note the change to SI2168 to add support for enabling and
-disabling the SI2168 transport bus dynamically.
+				"Couldn't change tuner link ",
+				"%s->%s to %s. Error %d\n",
 
-I've tested with a combo card, switching back and forward between QAM
-and DVB-T, this works fine, just remember to select a different
-frontend as we have two frontends on the same adapter,
-adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
-
-If any testers have the ATSC or DVB-T, I'd expect these to work
-equally well, replease report feedback here.
-
-Thanks,
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+regards,
+dan carpenter
