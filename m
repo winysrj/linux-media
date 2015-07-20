@@ -1,171 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51234 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754662AbbGJNgs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 09:36:48 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 01/53] [media] coda: Use S_PARM to set nominal framerate for h.264 encoder
-Date: Fri, 10 Jul 2015 15:35:54 +0200
-Message-Id: <1436535406-13575-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:44080 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755749AbbGTSIT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 14:08:19 -0400
+Subject: Re: [RESEND PATCH v2 1/2] x86/mm/pat, drivers/infiniband/ipath: replace WARN() with pr_warn()
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E"; protocol="application/pgp-signature"; micalg=pgp-sha512
+From: Doug Ledford <dledford@redhat.com>
+In-Reply-To: <1437167245-28273-2-git-send-email-mcgrof@do-not-panic.com>
+Date: Mon, 20 Jul 2015 14:08:21 -0400
+Cc: Ingo Molnar <mingo@elte.hu>, Borislav Petkov <bp@suse.de>,
+	andy@silverblocksystems.net,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	dan.j.williams@intel.com, benh@kernel.crashing.org,
+	luto <luto@amacapital.net>, Julia Lawall <julia.lawall@lip6.fr>,
+	Jiri Kosina <jkosina@suse.cz>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-rdma <linux-rdma@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	"Luis R. Rodriguez" <mcgrof@suse.com>
+Message-Id: <9F0E52A4-A8E9-4308-B4DC-A10AA7637915@redhat.com>
+References: <1437167245-28273-1-git-send-email-mcgrof@do-not-panic.com> <1437167245-28273-2-git-send-email-mcgrof@do-not-panic.com>
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The encoder needs to know the nominal framerate for the constant bitrate
-control mechanism to work. Currently the only way to set the framerate is
-by using VIDIOC_S_PARM on the output queue.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 102 ++++++++++++++++++++++++++++++
- drivers/media/platform/coda/coda_regs.h   |   4 ++
- 2 files changed, 106 insertions(+)
+--Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 367b6ba..351b4124 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -15,6 +15,7 @@
- #include <linux/debugfs.h>
- #include <linux/delay.h>
- #include <linux/firmware.h>
-+#include <linux/gcd.h>
- #include <linux/genalloc.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
-@@ -770,6 +771,104 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct v4l2_fract *tpf;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL,
-+
-+	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
-+	tpf = &a->parm.output.timeperframe;
-+	tpf->denominator = ctx->params.framerate & CODA_FRATE_RES_MASK;
-+	tpf->numerator = 1 + (ctx->params.framerate >>
-+			      CODA_FRATE_DIV_OFFSET);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Approximate timeperframe v4l2_fract with values that can be written
-+ * into the 16-bit CODA_FRATE_DIV and CODA_FRATE_RES fields.
-+ */
-+static void coda_approximate_timeperframe(struct v4l2_fract *timeperframe)
-+{
-+	struct v4l2_fract s = *timeperframe;
-+	struct v4l2_fract f0;
-+	struct v4l2_fract f1 = { 1, 0 };
-+	struct v4l2_fract f2 = { 0, 1 };
-+	unsigned int i, div, s_denominator;
-+
-+	/* Lower bound is 1/65535 */
-+	if (s.numerator == 0 || s.denominator / s.numerator > 65535) {
-+		timeperframe->numerator = 1;
-+		timeperframe->denominator = 65535;
-+		return;
-+	}
-+
-+	/* Upper bound is 65536/1, map everything above to infinity */
-+	if (s.denominator == 0 || s.numerator / s.denominator > 65536) {
-+		timeperframe->numerator = 1;
-+		timeperframe->denominator = 0;
-+		return;
-+	}
-+
-+	/* Reduce fraction to lowest terms */
-+	div = gcd(s.numerator, s.denominator);
-+	if (div > 1) {
-+		s.numerator /= div;
-+		s.denominator /= div;
-+	}
-+
-+	if (s.numerator <= 65536 && s.denominator < 65536) {
-+		*timeperframe = s;
-+		return;
-+	}
-+
-+	/* Find successive convergents from continued fraction expansion */
-+	while (f2.numerator <= 65536 && f2.denominator < 65536) {
-+		f0 = f1;
-+		f1 = f2;
-+
-+		/* Stop when f2 exactly equals timeperframe */
-+		if (s.numerator == 0)
-+			break;
-+
-+		i = s.denominator / s.numerator;
-+
-+		f2.numerator = f0.numerator + i * f1.numerator;
-+		f2.denominator = f0.denominator + i * f2.denominator;
-+
-+		s_denominator = s.numerator;
-+		s.numerator = s.denominator % s.numerator;
-+		s.denominator = s_denominator;
-+	}
-+
-+	*timeperframe = f1;
-+}
-+
-+static uint32_t coda_timeperframe_to_frate(struct v4l2_fract *timeperframe)
-+{
-+	return ((timeperframe->numerator - 1) << CODA_FRATE_DIV_OFFSET) |
-+		timeperframe->denominator;
-+}
-+
-+static int coda_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct v4l2_fract *tpf;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	tpf = &a->parm.output.timeperframe;
-+	coda_approximate_timeperframe(tpf);
-+	ctx->params.framerate = coda_timeperframe_to_frate(tpf);
-+
-+	return 0;
-+}
-+
- static int coda_subscribe_event(struct v4l2_fh *fh,
- 				const struct v4l2_event_subscription *sub)
- {
-@@ -810,6 +909,9 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
- 
-+	.vidioc_g_parm		= coda_g_parm,
-+	.vidioc_s_parm		= coda_s_parm,
-+
- 	.vidioc_subscribe_event = coda_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 7d02624..00e4f51 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -263,6 +263,10 @@
- #define		CODADX6_PICHEIGHT_MASK				0x3ff
- #define		CODA7_PICHEIGHT_MASK				0xffff
- #define CODA_CMD_ENC_SEQ_SRC_F_RATE				0x194
-+#define		CODA_FRATE_RES_OFFSET				0
-+#define		CODA_FRATE_RES_MASK				0xffff
-+#define		CODA_FRATE_DIV_OFFSET				16
-+#define		CODA_FRATE_DIV_MASK				0xffff
- #define CODA_CMD_ENC_SEQ_MP4_PARA				0x198
- #define		CODA_MP4PARAM_VERID_OFFSET			6
- #define		CODA_MP4PARAM_VERID_MASK			0x01
--- 
-2.1.4
 
+> On Jul 17, 2015, at 5:07 PM, Luis R. Rodriguez =
+<mcgrof@do-not-panic.com> wrote:
+>=20
+> From: "Luis R. Rodriguez" <mcgrof@suse.com>
+>=20
+> WARN() may confuse users, fix that. ipath_init_one() is part the
+> device's probe so this would only be triggered if a corresponding
+> device was found.
+>=20
+> Signed-off-by: Luis R. Rodriguez <mcgrof@suse.com>
+
+Acked-by: Doug Ledford <dledford@redhat.com>
+
+=E2=80=94
+Doug Ledford <dledford@redhat.com>
+	GPG Key ID: 0E572FDD
+
+
+
+
+
+
+--Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
+
+iQIcBAEBCgAGBQJVrTkWAAoJELgmozMOVy/dPMEP/jYkT46rdwL0nSuMdzf7QWoG
+6gl6k0xZcT8KUoklQGh5W6CEDwzXa1zt1G2HiEr/mUM1sQhW5iGCRpekdsQ0Hr5J
+z0kXbDS7JDaV8yDBheK2HiJkJbdDOeW7zjfIcbFlbNuFWdAB0eRie5WeXJyTyTn7
+p7qH+yypZo8ejLMds9iokrX1JbQfFB2H/NPRrxRdntqXVLckXW6Nk715pGRVeweQ
+B1J9N8Ix2sc7eGLs15SgJ1JOtPAzcgOH3Q0xFYlbw5TI+bO9XyTSEmHmyF2kzTFM
+hw27q3p6jXdS2V8LSjTAE0JAETwgse02r16LtJ6OdMsErfJ1zLLJEEmCE9csejC6
+zLy3QFVJ+Ihh7mz+wmZHduUeuAT5L4yf0MdMy3Pz4QhJTJWyBUT8K9csGIuu/5Hv
+g9kZxVtUx7bcbKDA+mP/8zmdZQWdEsBhpBzTIaB0ljfaGv33hSb5ihrrUNBquQ4u
+SKYBjcrb3XUt2iprflUf/QbXLOMTFROKCjaLIeaSdb6cpwGqilz2ENj2c+ZcCPAo
+359S13Qg+GLp6647sFi//Lc5WpuEaqUikRfgQ5TWyQanC5yO9ZUrjsd3We0+PLCI
+YbQ3aWE5H++0UXkeXvs5atxzCV1zE4oq8M0p+T5D/OVzSbAxlpmWTzhke78C9aYs
+/6GiQ/BAB9WP4iI+0ucD
+=QXLd
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_0C699670-D12C-465D-8B38-FB7FE5EA8E1E--
