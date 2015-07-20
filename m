@@ -1,116 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62828 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074AbbGZKBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jul 2015 06:01:04 -0400
-Date: Sun, 26 Jul 2015 12:00:45 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
-In-Reply-To: <55B24650.5090401@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
- <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
- <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl>
- <Pine.LNX.4.64.1506220920280.13683@axis700.grange> <5587B93C.1030106@xs4all.nl>
- <55B24650.5090401@xs4all.nl>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:33664 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753698AbbGTPAQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 11:00:16 -0400
+Received: by qged69 with SMTP id d69so44380208qge.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 08:00:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <55AD0617.7060007@iki.fi>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+	<55AD0617.7060007@iki.fi>
+Date: Mon, 20 Jul 2015 11:00:15 -0400
+Message-ID: <CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+From: Steven Toth <stoth@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: tonyc@wincomm.com.tw, Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, Jul 20, 2015 at 10:30 AM, Antti Palosaari <crope@iki.fi> wrote:
+> On 07/19/2015 01:21 AM, Steven Toth wrote:
+>>
+>> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+>>
+>> Patches above are available for test.
+>>
+>> Antti, note the change to SI2168 to add support for enabling and
+>> disabling the SI2168 transport bus dynamically.
+>>
+>> I've tested with a combo card, switching back and forward between QAM
+>> and DVB-T, this works fine, just remember to select a different
+>> frontend as we have two frontends on the same adapter,
+>> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
+>>
+>> If any testers have the ATSC or DVB-T, I'd expect these to work
+>> equally well, replease report feedback here.
+>
+>
+> That does not work. I added debug to see what it does and result is that
+> whole si2168_set_ts_mode() function is called only once - when frontend is
+> opened first time. I used dvbv5-scan.
 
-On Fri, 24 Jul 2015, Hans Verkuil wrote:
+That works very reliably for me, in the 4.2 rc kernel, when using
+azap, tzap and dvbtraffic. They're v3 api's of course, but dvb-core
+should take care of the differences. Specifically, dvb_frontend.c
+dvb_frontend_open() and dvb_frontend_release().
 
-> Guennadi,
-> 
-> I want to make a pull request for this patch series. This patch is the only
-> outstanding one.
+With additional debug added, I clearly saw the syncronization and
+acquiring and releasing (via ts_bus_control) of the bus, with each
+demodulator.
 
-Right, sorry for the delay. Replying to your explanation below:
+>
+> I am not sure why you even want to that. Is it because of 2 demods are
+> connected to same TS bus? So you want disable always another? Or is is just
+> power-management, as leaving TS active leaks potentially some current.
 
-> Or do you have to review more patches? I only got Acks for patches 1 and 
-> 2.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 06/22/2015 09:29 AM, Hans Verkuil wrote:
-> > On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
-> >> Hi Hans,
-> >>
-> >> On Mon, 22 Jun 2015, Hans Verkuil wrote:
-> >>
-> >>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
-> >>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
-> >>>>
-> >>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>>
-> >>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
-> >>>>>
-> >>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>> ---
-> >>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
-> >>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
-> >>>>>
-> >>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>> index df66417..e939c24 100644
-> >>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
-> >>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
-> >>>>>  
-> >>>>>  	priv->norm = V4L2_STD_NTSC;
-> >>>>> +	priv->scale = &tw9910_ntsc_scales[0];
-> >>>>
-> >>>> Why do you need this? So far everywhere in the code priv->scale is either 
-> >>>> checked or set before use. Don't see why an additional initialisation is 
-> >>>> needed.
-> >>>
-> >>> If you just start streaming without explicitly setting up formats (which is
-> >>> allowed), then priv->scale is still NULL.
-> >>
-> >> Yes, it can well be NULL, but it is also unused. Before it is used it will 
-> >> be set, while it is unused it is allowed to stay NULL.
-> > 
-> > No. If you start streaming without the set_fmt op having been called, then
-> > s_stream will return an error since priv->scale is NULL. This is wrong. Since
-> > this driver defaults to NTSC the initial setup should be for NTSC and it should
-> > be ready for streaming.
-> > 
-> > So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
-> > E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
-> > case. It's how I found this bug.
-> > 
-> > It's a trivial one liner to ensure a valid priv->scale pointer.
+Two demods are on the same bus, so we need to disable the non-active
+demod, to ensure the active demodulator can correctly drive the
+transport interface.
 
-Yes, you're right, now I see how this can happen. But there's also another 
-possibility: if S_FMT fails priv->scale will be set to NULL. If you then 
-directly start streaming wouldn't the same problem arise? Or is it valid 
-to fail STREAMON after a failed S_FMT? If it is, then of course
+>
+> Anyway, if you want control TS as runtime why you just don't add TS disable
+> to si2168_sleep()? If you enable TS on si2168_init() then correct place to
+> disable it is si2168_sleep().
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+That's what dvb-core does, today in:
 
-If that's invalid, then maybe a more extensive fix is needed?
+dvb_frontend_open()
+....
+if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl) {
+if ((ret = fe->ops.ts_bus_ctrl(fe, 1)) < 0)
+goto err0;
 
-Thanks
-Guennadi
+and in dvb_frontend_release()...
 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> >>
-> >> Thanks
-> >> Guennadi
-> >>
-> >>> V4L2 always assumes that there is some initial format configured, and this line
-> >>> enables that for this driver (NTSC).
-> >>>
-> >>> Regards,
-> >>>
-> >>> 	Hans
+if (fe->ops.ts_bus_ctrl)
+fe->ops.ts_bus_ctrl(fe, 0);
+
+The first user of the device ensures ts_bus_control is called when its
+enabled, bring the demodulator on to the bus.
+The last user of the device ensures ts_bus_control is called when the
+device is no longer required.
+
+Why build tristating mode control into the demod specific driver when
+its been supported in the core for a long time?
+
+It won't prevent multiple callers from opening two different frontends
+(0/1) at the same time, but lack of shared resource management has
+been the case on dvb-core (and v4l2) for quite a while.
+
+If you have use case that isn't working, I'm happy to discuss.
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
