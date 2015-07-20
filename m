@@ -1,93 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61650 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752127AbbGWMVs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 08/13] media: rcar_vin: Use correct pad number in try_fmt
-Date: Thu, 23 Jul 2015 13:21:38 +0100
-Message-Id: <1437654103-26409-9-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+Received: from vader.hardeman.nu ([95.142.160.32]:52568 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753074AbbGTTQs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:16:48 -0400
+Subject: [PATCH 4/7] [PATCH FIXES] Revert "[media] rc: ir-rc6-decoder: Add
+ encode capability"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 20 Jul 2015 21:16:46 +0200
+Message-ID: <20150720191646.24633.3638.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+This reverts commit cf257e288ad3a134d4bb809c542a3ae6c87ddfa3.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+The current code is not mature enough, the API should allow a single
+protocol to be specified. Also, the current code contains heuristics
+that will depend on module load order.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/platform/soc_camera/rcar_vin.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/media/rc/ir-rc6-decoder.c |  122 -------------------------------------
+ 1 file changed, 122 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 00c1034..dab729a 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1697,7 +1697,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct v4l2_subdev_pad_config pad_cfg;
-+	struct v4l2_subdev_pad_config *pad_cfg;
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_TRY,
- 	};
-@@ -1706,6 +1706,10 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	int width, height;
- 	int ret;
- 
-+	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-+	if (pad_cfg == NULL)
-+		return -ENOMEM;
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (!xlate) {
- 		xlate = icd->current_fmt;
-@@ -1734,10 +1738,11 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 	mf->code = xlate->code;
- 	mf->colorspace = pix->colorspace;
- 
-+	format.pad = icd->src_pad_idx;
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
--					 pad, set_fmt, &pad_cfg, &format);
-+					 pad, set_fmt, pad_cfg, &format);
- 	if (ret < 0)
--		return ret;
-+		goto cleanup;
- 
- 	/* Adjust only if VIN cannot scale */
- 	if (pix->width > mf->width * 2)
-@@ -1761,12 +1766,12 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			mf->height = VIN_MAX_HEIGHT;
- 			ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 							 soc_camera_grp_id(icd),
--							 pad, set_fmt, &pad_cfg,
-+							 pad, set_fmt, pad_cfg,
- 							 &format);
- 			if (ret < 0) {
- 				dev_err(icd->parent,
- 					"client try_fmt() = %d\n", ret);
--				return ret;
-+				goto cleanup;
- 			}
- 		}
- 		/* We will scale exactly */
-@@ -1776,6 +1781,8 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
- 			pix->height = height;
- 	}
- 
-+cleanup:
-+	v4l2_subdev_free_pad_config(pad_cfg);
- 	return ret;
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index f9c70ba..d16bc67 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -291,133 +291,11 @@ out:
+ 	return -EINVAL;
  }
  
--- 
-1.7.10.4
+-static struct ir_raw_timings_manchester ir_rc6_timings[4] = {
+-	{
+-		.leader			= RC6_PREFIX_PULSE,
+-		.pulse_space_start	= 0,
+-		.clock			= RC6_UNIT,
+-		.invert			= 1,
+-		.trailer_space		= RC6_PREFIX_SPACE,
+-	},
+-	{
+-		.clock			= RC6_UNIT,
+-		.invert			= 1,
+-	},
+-	{
+-		.clock			= RC6_UNIT * 2,
+-		.invert			= 1,
+-	},
+-	{
+-		.clock			= RC6_UNIT,
+-		.invert			= 1,
+-		.trailer_space		= RC6_SUFFIX_SPACE,
+-	},
+-};
+-
+-static int ir_rc6_validate_filter(const struct rc_scancode_filter *scancode,
+-				  unsigned int important_bits)
+-{
+-	/* all important bits of scancode should be set in mask */
+-	if (~scancode->mask & important_bits)
+-		return -EINVAL;
+-	/* extra bits in mask should be zero in data */
+-	if (scancode->mask & scancode->data & ~important_bits)
+-		return -EINVAL;
+-	return 0;
+-}
+-
+-/**
+- * ir_rc6_encode() - Encode a scancode as a stream of raw events
+- *
+- * @protocols:	allowed protocols
+- * @scancode:	scancode filter describing scancode (helps distinguish between
+- *		protocol subtypes when scancode is ambiguous)
+- * @events:	array of raw ir events to write into
+- * @max:	maximum size of @events
+- *
+- * Returns:	The number of events written.
+- *		-ENOBUFS if there isn't enough space in the array to fit the
+- *		encoding. In this case all @max events will have been written.
+- *		-EINVAL if the scancode is ambiguous or invalid.
+- */
+-static int ir_rc6_encode(u64 protocols,
+-			 const struct rc_scancode_filter *scancode,
+-			 struct ir_raw_event *events, unsigned int max)
+-{
+-	int ret;
+-	struct ir_raw_event *e = events;
+-
+-	if (protocols & RC_BIT_RC6_0 &&
+-	    !ir_rc6_validate_filter(scancode, 0xffff)) {
+-
+-		/* Modulate the preamble */
+-		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate the header (Start Bit & Mode-0) */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[1],
+-					    RC6_HEADER_NBITS, (1 << 3));
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate Trailer Bit */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[2], 1, 0);
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate rest of the data */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[3], RC6_0_NBITS,
+-					    scancode->data);
+-		if (ret < 0)
+-			return ret;
+-
+-	} else if (protocols & (RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
+-				RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE) &&
+-		   !ir_rc6_validate_filter(scancode, 0x8fffffff)) {
+-
+-		/* Modulate the preamble */
+-		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate the header (Start Bit & Header-version 6 */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[1],
+-					    RC6_HEADER_NBITS, (1 << 3 | 6));
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate Trailer Bit */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[2], 1, 0);
+-		if (ret < 0)
+-			return ret;
+-
+-		/* Modulate rest of the data */
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					    &ir_rc6_timings[3],
+-					    fls(scancode->mask),
+-					    scancode->data);
+-		if (ret < 0)
+-			return ret;
+-
+-	} else {
+-		return -EINVAL;
+-	}
+-
+-	return e - events;
+-}
+-
+ static struct ir_raw_handler rc6_handler = {
+ 	.protocols	= RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 |
+ 			  RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32 |
+ 			  RC_BIT_RC6_MCE,
+ 	.decode		= ir_rc6_decode,
+-	.encode		= ir_rc6_encode,
+ };
+ 
+ static int __init ir_rc6_decode_init(void)
 
