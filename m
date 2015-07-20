@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp02.smtpout.orange.fr ([80.12.242.124]:30697 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbbGESaj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2015 14:30:39 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@intel.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v2 1/4] media: pxa_camera: fix the buffer free path
-Date: Sun,  5 Jul 2015 20:27:49 +0200
-Message-Id: <1436120872-24484-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
-References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail.kapsi.fi ([217.30.184.167]:35272 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751052AbbGTQzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 12:55:00 -0400
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+ <55AD0617.7060007@iki.fi>
+ <CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
+ <55AD234E.5010904@iki.fi>
+ <CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
+Cc: Steven Toth <stoth@kernellabs.com>, tonyc@wincomm.com.tw,
+	Linux-Media <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55AD27E0.6080102@iki.fi>
+Date: Mon, 20 Jul 2015 19:54:56 +0300
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Jarzmik <robert.jarzmik@intel.com>
+On 07/20/2015 07:45 PM, Devin Heitmueller wrote:
+>> Look at the em28xx driver and you will probably see why it does not work as
+>> expected. For my eyes, according to em28xx driver, it looks like that bus
+>> control is aimed for bridge driver. You or em28xx is wrong.
+>
+> Neither are wrong.  In some cases the call needs to be intercepted by
+> the frontend in order to disable its TS output.  In other cases it
+> needs to be intercepted by the bridge to control a MUX chip which
+> dictates which demodulator's TS output to route from (typically by
+> toggling a GPIO).
 
-Fix the error path where the video buffer wasn't allocated nor
-mapped. In this case, in the driver free path don't try to unmap memory
-which was not mapped in the first place.
+Quickly looking the existing use cases and I found only lgdt3306a demod 
+which uses that callback to control its TS interface. All the rest seems 
+to be somehow more related to bridge driver, mostly changing bridge TS 
+IF or leds etc.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/pxa_camera.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I don't simply see that correct solution for disabling demod TS IF - 
+there is sleep() for this kind of things - and as I pointed out it does 
+not even work for me em28xx based device because em28xx uses that 
+routine to switch own TS mode.
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 8d6e343..3ca33f0 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -272,8 +272,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
- 	 * longer in STATE_QUEUED or STATE_ACTIVE
- 	 */
- 	videobuf_waiton(vq, &buf->vb, 0, 0);
--	videobuf_dma_unmap(vq->dev, dma);
--	videobuf_dma_free(dma);
-+	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
-+		return;
- 
- 	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
- 		if (buf->dmas[i].sg_cpu)
-@@ -283,6 +283,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
- 					  buf->dmas[i].sg_dma);
- 		buf->dmas[i].sg_cpu = NULL;
- 	}
-+	videobuf_dma_unmap(vq->dev, dma);
-+	videobuf_dma_free(dma);
- 
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
- }
+regards
+Antti
+
 -- 
-2.1.4
-
+http://palosaari.fi/
