@@ -1,105 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60997 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753544AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:05:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 6/9] hackrf: add control for RF amplifier
-Date: Thu, 16 Jul 2015 10:04:55 +0300
-Message-Id: <1437030298-20944-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+Received: from mail-qg0-f53.google.com ([209.85.192.53]:36570 "EHLO
+	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899AbbGTSyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 14:54:04 -0400
+Received: by qgy5 with SMTP id 5so77063547qgy.3
+        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 11:54:03 -0700 (PDT)
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH] tw68: Move PCI vendor and device IDs to pci_ids.h
+Date: Mon, 20 Jul 2015 15:49:55 -0300
+Message-Id: <1437418195-2897-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is Avago MGA-81563 amplifier just right after antenna connector.
-It could be turned on/off and its gain is around 12dB.
+This commits moves the Intersil/Techwell PCI vendor ID, and
+the device IDs for the TW68 PCI video capture cards.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This will allow to support future Intersil/Techwell devices
+without duplicating the IDs.
+
+Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 ---
- drivers/media/usb/hackrf/hackrf.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ drivers/media/pci/tw68/tw68-core.c | 15 ++++++++-------
+ drivers/media/pci/tw68/tw68.h      | 16 ----------------
+ include/linux/pci_ids.h            |  9 +++++++++
+ 3 files changed, 17 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index fd1fa41..136de9a 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -31,6 +31,7 @@ enum {
- 	CMD_BOARD_ID_READ                  = 0x0e,
- 	CMD_VERSION_STRING_READ            = 0x0f,
- 	CMD_SET_FREQ                       = 0x10,
-+	CMD_AMP_ENABLE                     = 0x11,
- 	CMD_SET_LNA_GAIN                   = 0x13,
- 	CMD_SET_VGA_GAIN                   = 0x14,
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index c135165..93ebefd 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -37,6 +37,7 @@
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <linux/dma-mapping.h>
++#include <linux/pci_ids.h>
+ #include <linux/pm.h>
+ 
+ #include <media/v4l2-dev.h>
+@@ -70,13 +71,13 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
+  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
+  */
+ static const struct pci_device_id tw68_pci_tbl[] = {
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6800)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6801)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6804)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_1)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_2)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_3)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_4)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6800)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6801)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6804)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_1)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_2)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_3)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_4)},
+ 	{0,}
  };
-@@ -133,6 +134,7 @@ struct hackrf_dev {
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_ctrl *bandwidth_auto;
- 	struct v4l2_ctrl *bandwidth;
-+	struct v4l2_ctrl *rf_gain;
- 	struct v4l2_ctrl *lna_gain;
- 	struct v4l2_ctrl *if_gain;
  
-@@ -164,6 +166,7 @@ static int hackrf_ctrl_msg(struct hackrf_dev *dev, u8 request, u16 value,
- 	switch (request) {
- 	case CMD_SET_TRANSCEIVER_MODE:
- 	case CMD_SET_FREQ:
-+	case CMD_AMP_ENABLE:
- 	case CMD_SAMPLE_RATE_SET:
- 	case CMD_BASEBAND_FILTER_BANDWIDTH_SET:
- 		pipe = usb_sndctrlpipe(dev->udev, 0);
-@@ -949,6 +952,22 @@ static int hackrf_set_bandwidth(struct hackrf_dev *dev)
- 	return ret;
- }
+diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
+index 93f2335..ef51e4d 100644
+--- a/drivers/media/pci/tw68/tw68.h
++++ b/drivers/media/pci/tw68/tw68.h
+@@ -42,22 +42,6 @@
  
-+static int hackrf_set_rf_gain(struct hackrf_dev *dev)
-+{
-+	int ret;
-+	u8 u8tmp;
-+
-+	dev_dbg(dev->dev, "rf val=%d->%d\n",
-+		dev->rf_gain->cur.val, dev->rf_gain->val);
-+
-+	u8tmp = (dev->rf_gain->val) ? 1 : 0;
-+	ret = hackrf_ctrl_msg(dev, CMD_AMP_ENABLE, u8tmp, 0, NULL, 0);
-+	if (ret)
-+		dev_dbg(dev->dev, "failed=%d\n", ret);
-+
-+	return ret;
-+}
-+
- static int hackrf_set_lna_gain(struct hackrf_dev *dev)
- {
- 	int ret;
-@@ -992,6 +1011,9 @@ static int hackrf_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:
- 		ret = hackrf_set_bandwidth(dev);
- 		break;
-+	case  V4L2_CID_RF_TUNER_RF_GAIN:
-+		ret = hackrf_set_rf_gain(dev);
-+		break;
- 	case  V4L2_CID_RF_TUNER_LNA_GAIN:
- 		ret = hackrf_set_lna_gain(dev);
- 		break;
-@@ -1077,13 +1099,15 @@ static int hackrf_probe(struct usb_interface *intf,
- 	}
+ #define	UNSET	(-1U)
  
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&dev->hdl, 4);
-+	v4l2_ctrl_handler_init(&dev->hdl, 5);
- 	dev->bandwidth_auto = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
- 	dev->bandwidth = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH,
- 			1750000, 28000000, 50000, 1750000);
- 	v4l2_ctrl_auto_cluster(2, &dev->bandwidth_auto, 0, false);
-+	dev->rf_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
-+			V4L2_CID_RF_TUNER_RF_GAIN, 0, 12, 12, 0);
- 	dev->lna_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
- 			V4L2_CID_RF_TUNER_LNA_GAIN, 0, 40, 8, 0);
- 	dev->if_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+-/* system vendor and device ID's */
+-#define	PCI_VENDOR_ID_TECHWELL	0x1797
+-#define	PCI_DEVICE_ID_6800	0x6800
+-#define	PCI_DEVICE_ID_6801	0x6801
+-#define	PCI_DEVICE_ID_AUDIO2	0x6802
+-#define	PCI_DEVICE_ID_TS3	0x6803
+-#define	PCI_DEVICE_ID_6804	0x6804
+-#define	PCI_DEVICE_ID_AUDIO5	0x6805
+-#define	PCI_DEVICE_ID_TS6	0x6806
+-
+-/* tw6816 based cards */
+-#define	PCI_DEVICE_ID_6816_1   0x6810
+-#define	PCI_DEVICE_ID_6816_2   0x6811
+-#define	PCI_DEVICE_ID_6816_3   0x6812
+-#define	PCI_DEVICE_ID_6816_4   0x6813
+-
+ #define TW68_NORMS ( \
+ 	V4L2_STD_NTSC    | V4L2_STD_PAL       | V4L2_STD_SECAM    | \
+ 	V4L2_STD_PAL_M   | V4L2_STD_PAL_Nc    | V4L2_STD_PAL_60)
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index fcff8f8..d9ba49c 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -2332,6 +2332,15 @@
+ 
+ #define PCI_VENDOR_ID_CAVIUM		0x177d
+ 
++#define PCI_VENDOR_ID_TECHWELL		0x1797
++#define PCI_DEVICE_ID_TECHWELL_6800	0x6800
++#define PCI_DEVICE_ID_TECHWELL_6801	0x6801
++#define PCI_DEVICE_ID_TECHWELL_6804	0x6804
++#define PCI_DEVICE_ID_TECHWELL_6816_1	0x6810
++#define PCI_DEVICE_ID_TECHWELL_6816_2	0x6811
++#define PCI_DEVICE_ID_TECHWELL_6816_3	0x6812
++#define PCI_DEVICE_ID_TECHWELL_6816_4	0x6813
++
+ #define PCI_VENDOR_ID_BELKIN		0x1799
+ #define PCI_DEVICE_ID_BELKIN_F5D7010V7	0x701f
+ 
 -- 
-http://palosaari.fi/
+2.4.3
 
