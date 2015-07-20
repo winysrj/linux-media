@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45148 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754616AbbGJNhr (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58815 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753031AbbGTNKl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 09:37:47 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: reset CODA960 hardware after sequence end
-Date: Fri, 10 Jul 2015 15:37:44 +0200
-Message-Id: <1436535464-3452-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 20 Jul 2015 09:10:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Anatolij Gustschin <agust@denx.de>
+Subject: [PATCH 0/6] fsl-viu: convert to the control framework
+Date: Mon, 20 Jul 2015 15:09:27 +0200
+Message-Id: <1437397773-5752-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On i.MX6, sometimes after decoding a stream, encoding will produce macroblock
-errors caused by missing 8-byte sequences in the output stream. Until the cause
-for this is found, reset the hardware after sequence end, which seems to help.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Convert this driver to the control framework and do a few more fixes to
+make v4l2-compliance happy.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 25910cc..bcb9911 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1347,6 +1347,14 @@ static void coda_seq_end_work(struct work_struct *work)
- 			 "CODA_COMMAND_SEQ_END failed\n");
- 	}
- 
-+	/*
-+	 * FIXME: Sometimes h.264 encoding fails with 8-byte sequences missing
-+	 * from the output stream after the h.264 decoder has run. Resetting the
-+	 * hardware after the decoder has finished seems to help.
-+	 */
-+	if (dev->devtype->product == CODA_960)
-+		coda_hw_reset(ctx);
-+
- 	kfifo_init(&ctx->bitstream_fifo,
- 		ctx->bitstream.vaddr, ctx->bitstream.size);
- 
+Most of these patches have been posted before over two years ago but I never
+made a pull request for it.
+
+This is the original patch series:
+
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/60922
+
+This patch series is basically the same, except rebased and patch 6 was added.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (6):
+  fsl-viu: convert to the control framework.
+  fsl-viu: fill in bus_info in vidioc_querycap.
+  fsl-viu: fill in colorspace, always set field to interlaced.
+  fsl-viu: add control event support.
+  fsl-viu: small fixes.
+  fsl-viu: drop format names
+
+ drivers/media/platform/fsl-viu.c | 160 ++++++++++-----------------------------
+ 1 file changed, 41 insertions(+), 119 deletions(-)
+
 -- 
 2.1.4
 
