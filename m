@@ -1,62 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp44.i.mail.ru ([94.100.177.104]:53063 "EHLO smtp44.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751982AbbGAVlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jul 2015 17:41:51 -0400
-Message-ID: <1C57786FDF8648B4A6CAD96753EFD82E@unknown>
-From: "Unembossed Name" <severe.siberian.man@mail.ru>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
-	"Steven Toth" <stoth@kernellabs.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	<linux-media@vger.kernel.org>
-References: <DB7ACFD5239247FCB3C1CA323B56E88D@unknown><20150626062210.6ee035ec@recife.lan> <CAGoCfiyjRSxRrzdWVPREVaXoMK_iowu19n2+FJosg90UskumHA@mail.gmail.com>
-Subject: Re: XC5000C 0x14b4 status
-Date: Thu, 2 Jul 2015 04:41:33 +0700
+Received: from userp1040.oracle.com ([156.151.31.81]:33075 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578AbbGTTCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:02:44 -0400
+Date: Mon, 20 Jul 2015 22:01:28 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
+	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
+	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 6/7] media: au0828 change to use Managed Media Controller
+ API
+Message-ID: <20150720190128.GM5422@mwanda>
+References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+ <3643452be528b2e53cea592db22b4e0ada32456b.1436917513.git.shuahkh@osg.samsung.com>
+ <20150720084220.GG5422@mwanda>
+ <55AD1A06.3040902@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="UTF-8";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55AD1A06.3040902@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> IMHO, the best is to get the latest firmware licensed is the best
->> thing to do.
->>
->> Does that "new" xc5000c come with a firmware pre-loaded already?
+On Mon, Jul 20, 2015 at 09:55:50AM -0600, Shuah Khan wrote:
+> >>  #ifdef CONFIG_MEDIA_CONTROLLER
+> >> -	if (dev->media_dev) {
+> >> -		media_device_unregister(dev->media_dev);
+> >> -		kfree(dev->media_dev);
+> >> -		dev->media_dev = NULL;
+> >> +	if (dev->media_dev &&
+> >> +		media_devnode_is_registered(&dev->media_dev->devnode)) {
+> >> +			media_device_unregister_entity_notify(dev->media_dev,
+> >> +							&dev->entity_notify);
+> >> +			media_device_unregister(dev->media_dev);
+> >> +			dev->media_dev = NULL;
+> > 
+> > 
+> > The indenting is slightly off here.  It should be:
+> > 
+> > 	if (dev->media_dev &&
+> > 	    media_devnode_is_registered(&dev->media_dev->devnode)) {
+> > 		media_device_unregister_entity_notify(dev->media_dev,
+> > 						      &dev->entity_notify);
+> > 		media_device_unregister(dev->media_dev);
+> > 		dev->media_dev = NULL;
+> > 	}
+> > 
+> > Aligning if statements using spaces like that is nicer and checkpatch.pl
+> > won't complain.
+> > 
 > 
-> I've got firmware here that is indicated as being for the xc5300 (i.e.
-> 0x14b4).  That said, I am not sure if it's the same as the original
-> 5000c firmware.  Definitely makes sense to do an I2C dump and compare
-> the firmware images since using the wrong firmware can damage the
-> part.
-> 
-> I'm not against an additional #define for the 0x14b4 part ID, but it
-> shouldn't be accepted upstream until we have corresponding firmware
-> and have seen the tuner working.  Do you have digital signal lock
-> working with this device under Linux and the issue is strictly with
-> part identification?
+> Yeah. I try to do that whenever. In this case, if I align, the line
+> becomes longer than 80 chars adding more things to worry about. In
+> such cases, I tend to not worry about aligning.
 
-Hello.
+The main thing is that the body of the if statement is intended 16
+spaces instead of 8.  Otherwise I wouldn't have commented.
 
-There are new details.
-
-My assumption, that such behaviour of IC can be because of an old or incorrect
-(for that HW) firmware, was wrong. It does not matter which FW version we use.
-With a fresh (beginning of 2015) media_build, even with an "old" firmware, RF
-tuner always and stably returns status 0x14b4. Also it's stably detects an already
-loaded firmware from another instance of the driver (analog part initialisation).
-And there is no i2c errors.
-
-With an old media_build from beginning of 2014, there is some problem with
-detection of already loaded firmware, there is i2c errors, and it gives the 50/50 status
-either 0x1388 or 0x14b4.
-My mistake I didn't checked a fresh media_build before.
-
-So, the only thing we need is to add an additional #define for the 0x14b4 part ID to a
-driver's code, as I wrote before.
-
-If you have any more questions, please ask.
-
-Best regards.
+regards,
+dan carpenter
