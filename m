@@ -1,121 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57651 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752797AbbGXKXB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 06:23:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/7] am437x/exynos4-is/marvell-ccic/sh_vou: simplify release()
-Date: Fri, 24 Jul 2015 12:21:35 +0200
-Message-Id: <1437733296-38198-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:51870 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756112AbbGTQfa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 12:35:30 -0400
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+To: Steven Toth <stoth@kernellabs.com>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+ <55AD0617.7060007@iki.fi>
+ <CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
+Cc: tonyc@wincomm.com.tw, Linux-Media <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55AD234E.5010904@iki.fi>
+Date: Mon, 20 Jul 2015 19:35:26 +0300
+MIME-Version: 1.0
+In-Reply-To: <CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 07/20/2015 06:00 PM, Steven Toth wrote:
+> On Mon, Jul 20, 2015 at 10:30 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 07/19/2015 01:21 AM, Steven Toth wrote:
+>>>
+>>> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+>>>
+>>> Patches above are available for test.
+>>>
+>>> Antti, note the change to SI2168 to add support for enabling and
+>>> disabling the SI2168 transport bus dynamically.
+>>>
+>>> I've tested with a combo card, switching back and forward between QAM
+>>> and DVB-T, this works fine, just remember to select a different
+>>> frontend as we have two frontends on the same adapter,
+>>> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
+>>>
+>>> If any testers have the ATSC or DVB-T, I'd expect these to work
+>>> equally well, replease report feedback here.
+>>
+>>
+>> That does not work. I added debug to see what it does and result is that
+>> whole si2168_set_ts_mode() function is called only once - when frontend is
+>> opened first time. I used dvbv5-scan.
+>
+> That works very reliably for me, in the 4.2 rc kernel, when using
+> azap, tzap and dvbtraffic. They're v3 api's of course, but dvb-core
+> should take care of the differences. Specifically, dvb_frontend.c
+> dvb_frontend_open() and dvb_frontend_release().
+>
+> With additional debug added, I clearly saw the syncronization and
+> acquiring and releasing (via ts_bus_control) of the bus, with each
+> demodulator.
+>
+>>
+>> I am not sure why you even want to that. Is it because of 2 demods are
+>> connected to same TS bus? So you want disable always another? Or is is just
+>> power-management, as leaving TS active leaks potentially some current.
+>
+> Two demods are on the same bus, so we need to disable the non-active
+> demod, to ensure the active demodulator can correctly drive the
+> transport interface.
+>
+>>
+>> Anyway, if you want control TS as runtime why you just don't add TS disable
+>> to si2168_sleep()? If you enable TS on si2168_init() then correct place to
+>> disable it is si2168_sleep().
+>
+> That's what dvb-core does, today in:
+>
+> dvb_frontend_open()
+> ....
+> if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl) {
+> if ((ret = fe->ops.ts_bus_ctrl(fe, 1)) < 0)
+> goto err0;
+>
+> and in dvb_frontend_release()...
+>
+> if (fe->ops.ts_bus_ctrl)
+> fe->ops.ts_bus_ctrl(fe, 0);
+>
+> The first user of the device ensures ts_bus_control is called when its
+> enabled, bring the demodulator on to the bus.
+> The last user of the device ensures ts_bus_control is called when the
+> device is no longer required.
+>
+> Why build tristating mode control into the demod specific driver when
+> its been supported in the core for a long time?
+>
+> It won't prevent multiple callers from opening two different frontends
+> (0/1) at the same time, but lack of shared resource management has
+> been the case on dvb-core (and v4l2) for quite a while.
+>
+> If you have use case that isn't working, I'm happy to discuss.
 
-Use the _vb2_fop_release() return code to determine if this was
-the last close or not.
+Look at the em28xx driver and you will probably see why it does not work 
+as expected. For my eyes, according to em28xx driver, it looks like that 
+bus control is aimed for bridge driver. You or em28xx is wrong.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/am437x/am437x-vpfe.c      | 13 +++----------
- drivers/media/platform/exynos4-is/fimc-capture.c |  5 +----
- drivers/media/platform/marvell-ccic/mcam-core.c  |  5 +----
- drivers/media/platform/sh_vou.c                  |  5 +----
- 4 files changed, 6 insertions(+), 22 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 210c779..14b9289 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1186,21 +1186,14 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe)
- static int vpfe_release(struct file *file)
- {
- 	struct vpfe_device *vpfe = video_drvdata(file);
--	bool fh_singular;
- 
- 	mutex_lock(&vpfe->lock);
- 
--	/* Save the singular status before we call the clean-up helper */
--	fh_singular = v4l2_fh_is_singular_file(file);
--
--	/* the release helper will cleanup any on-going streaming */
--	_vb2_fop_release(file, NULL);
--
- 	/*
--	 * If this was the last open file.
--	 * Then de-initialize hw module.
-+	 * The release helper will cleanup any on-going streaming.
-+	 * If this was the last open file, then de-initialize hw module.
- 	 */
--	if (fh_singular)
-+	if (_vb2_fop_release(file, NULL))
- 		vpfe_ccdc_close(&vpfe->ccdc, vpfe->pdev);
- 
- 	mutex_unlock(&vpfe->lock);
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index f4458b0..f654b1c 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -537,7 +537,6 @@ static int fimc_capture_release(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
- 	struct fimc_vid_cap *vc = &fimc->vid_cap;
--	bool close = v4l2_fh_is_singular_file(file);
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
-@@ -548,9 +547,7 @@ static int fimc_capture_release(struct file *file)
- 		vc->streaming = false;
- 	}
- 
--	_vb2_fop_release(file, NULL);
--
--	if (close) {
-+	if (_vb2_fop_release(file, NULL)) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
- 		fimc_pipeline_call(&vc->ve, close);
- 		clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 5e2b4df..13d4f7f 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1631,12 +1631,9 @@ out:
- static int mcam_v4l_release(struct file *filp)
- {
- 	struct mcam_camera *cam = video_drvdata(filp);
--	bool last_open;
- 
- 	mutex_lock(&cam->s_mutex);
--	last_open = v4l2_fh_is_singular_file(filp);
--	_vb2_fop_release(filp, NULL);
--	if (last_open) {
-+	if (_vb2_fop_release(filp, NULL)) {
- 		mcam_disable_mipi(cam);
- 		mcam_ctlr_power_down(cam);
- 		if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index fe5c8ab..da1d78c 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1157,12 +1157,9 @@ done_open:
- static int sh_vou_release(struct file *file)
- {
- 	struct sh_vou_device *vou_dev = video_drvdata(file);
--	bool is_last;
- 
- 	mutex_lock(&vou_dev->fop_lock);
--	is_last = v4l2_fh_is_singular_file(file);
--	_vb2_fop_release(file, NULL);
--	if (is_last) {
-+	if (_vb2_fop_release(file, NULL)) {
- 		/* Last close */
- 		vou_dev->status = SH_VOU_INITIALISING;
- 		sh_vou_reg_a_set(vou_dev, VOUER, 0, 0x101);
 -- 
-2.1.4
-
+http://palosaari.fi/
