@@ -1,46 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:35237 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754701AbbGVFGX (ORCPT
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:33299 "EHLO
+	mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752782AbbGTROC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 01:06:23 -0400
-Received: by wibxm9 with SMTP id xm9so146047538wib.0
-        for <linux-media@vger.kernel.org>; Tue, 21 Jul 2015 22:06:22 -0700 (PDT)
-From: Ioan-Adrian Ratiu <adi@adirat.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	gregkh@linuxfoundation.org, Adi Ratiu <adi@adirat.com>
-Subject: [PATCH v2] staging: lirc: sasem: fix whitespace style issue
-Date: Wed, 22 Jul 2015 08:06:34 +0300
-Message-Id: <1437541594-4220-1-git-send-email-adi@adirat.com>
-In-Reply-To: <20150718075744.5a4d5603@adipc>
-References: <20150718075744.5a4d5603@adipc>
+	Mon, 20 Jul 2015 13:14:02 -0400
+Received: by qkdl129 with SMTP id l129so116308582qkd.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 10:14:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <55AD27E0.6080102@iki.fi>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+	<55AD0617.7060007@iki.fi>
+	<CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
+	<55AD234E.5010904@iki.fi>
+	<CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
+	<55AD27E0.6080102@iki.fi>
+Date: Mon, 20 Jul 2015 13:14:01 -0400
+Message-ID: <CALzAhNV6mq6V-jYdjjwrYqtwkKQTgvAFOUhxBvHuAK0jAXZ7gQ@mail.gmail.com>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+From: Steven Toth <stoth@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	tonyc@wincomm.com.tw, Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Adi Ratiu <adi@adirat.com>
+On Mon, Jul 20, 2015 at 12:54 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 07/20/2015 07:45 PM, Devin Heitmueller wrote:
+>>>
+>>> Look at the em28xx driver and you will probably see why it does not work
+>>> as
+>>> expected. For my eyes, according to em28xx driver, it looks like that bus
+>>> control is aimed for bridge driver. You or em28xx is wrong.
+>>
+>>
+>> Neither are wrong.  In some cases the call needs to be intercepted by
+>> the frontend in order to disable its TS output.  In other cases it
+>> needs to be intercepted by the bridge to control a MUX chip which
+>> dictates which demodulator's TS output to route from (typically by
+>> toggling a GPIO).
+>
+>
+> Quickly looking the existing use cases and I found only lgdt3306a demod
+> which uses that callback to control its TS interface. All the rest seems to
+> be somehow more related to bridge driver, mostly changing bridge TS IF or
+> leds etc.
 
-checkpatch.pl gives an error on line 188 because it uses more than
-8 spaces indentation. This patch converts the 8 spaces to a tab.
+The API is flexible enough to be used by either the bridge
+intercepting the dvb_frontent_open operation, or by allowing the
+demodulator itself to act upon it. The API itself specifically
+describes the "TS BUS CONTROL" access, and whether something upstream
+of the demodulator wants a downstream device attached, or detached
+from the transport electrical interface.
 
-Signed-off-by: Adi Ratiu <adi@adirat.com>
----
- drivers/staging/media/lirc/lirc_sasem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I see little point adding more bridge glue to route each dvb frontend
+into the cx23885-bridge and making a judgement based on the board
+type, when dvb-core is already effectively doing this, and has been
+for sometime. The caveat to this, is if you find a use-case that
+breaks the current driver in the current tip kernel. I currently do
+not see that.
 
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index 8ebee96..c14ca7e 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
- 		       __func__, retval);
- 	else
- 		dev_info(&context->dev->dev,
--		         "Deregistered Sasem driver (minor:%d)\n", minor);
-+			 "Deregistered Sasem driver (minor:%d)\n", minor);
- 
- }
- 
+>
+> I don't simply see that correct solution for disabling demod TS IF - there
+> is sleep() for this kind of things - and as I pointed out it does not even
+> work for me em28xx based device because em28xx uses that routine to switch
+> own TS mode.
+
+Asking a demodulator to sleep/wake is absolutely not the same thing as
+asking it to stop/start driving electrical signals on a bus.
+
+We can agree or disagree about whether a part should be tri-stated in
+init/sleep() and under what circumstances, but why bother when someone
+has gone to the trouble of declaring a perfectly good tr-state
+interface in dvb-core, taht automatically asserts and de-asserts any
+dvb_frontend device from the bus, optionally.
+
 -- 
-2.4.6
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
