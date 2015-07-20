@@ -1,115 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:35885 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933235AbbGHHwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jul 2015 03:52:10 -0400
-Received: by igrv9 with SMTP id v9so194233878igr.1
-        for <linux-media@vger.kernel.org>; Wed, 08 Jul 2015 00:52:09 -0700 (PDT)
+Received: from vader.hardeman.nu ([95.142.160.32]:52566 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753074AbbGTTQn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:16:43 -0400
+Subject: [PATCH 3/7] [PATCH FIXES] Revert "[media] rc: rc-core: Add support
+ for encode_wakeup drivers"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 20 Jul 2015 21:16:41 +0200
+Message-ID: <20150720191641.24633.15030.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
 MIME-Version: 1.0
-In-Reply-To: <20150708093330.4e06d388@dibcom294.coe.adi.dibcom.com>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se>
-	<20150705184449.0017f114@lappi3.parrot.biz>
-	<alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
-	<20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
-	<alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
-	<20150707182541.0960177f@lappi3.parrot.biz>
-	<alpine.BSF.2.20.1507071845250.72900@nic-i.leissner.se>
-	<20150708093330.4e06d388@dibcom294.coe.adi.dibcom.com>
-Date: Wed, 8 Jul 2015 09:52:09 +0200
-Message-ID: <CAAZRmGw6amOSBiABpVspD5rDLme_uN4au0jDx4Jt-crOQk3npQ@mail.gmail.com>
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Patrick Boettcher <patrick.boettcher@posteo.de>
-Cc: Peter Fassberg <pf@leissner.se>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick has suggested many things here worth trying. In addition, you
-can load the modules with more debugging enabled:
+This reverts commit 0d830b2d1295fee82546d57185da5a6604f11ae2.
 
-unload the modules first
-modprobe si2168 dyndbg==pmf
-modprobe si2157 dyndbg==pmf
-modprobe em28xx debug=1
+The current code is not mature enough, the API should allow a single
+protocol to be specified. Also, the current code contains heuristics
+that will depend on module load order.
 
-If you are willing to try, TechnoTrend CT2-4400 has the same si2168
-and si2157 chips, but instead of the EM28xx it uses another USB
-bridge. There are at least a few reports of people having a working
-CT2-4400 with RPi2 here:
-http://openelec.tv/forum/71-pvr-live-tv/72071-experimental-support-for-tt-ct2-4400-dvb-t2-c?start=30
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-core-priv.h |    1 -
+ drivers/media/rc/rc-ir-raw.c    |   17 -----------------
+ drivers/media/rc/rc-main.c      |    7 +------
+ include/media/rc-core.h         |    3 ---
+ 4 files changed, 1 insertion(+), 27 deletions(-)
 
-Furthermore, kernel 3.16 was the first one to support the TripleStick
-and the Si2168/si2157 chips. The drivers for those SiLabs devices have
-improved quite significantly since that. Also, be extra careful with
-the firmwares - I remember there was something different in the way
-kernel 3.16 handled the Si2168 firmware compared to anything newer
-than that. If you could try to upgrade the intel devices to 3.17 at
-least (or with the latest media-build), download the firmware from
-http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-and place it in /lib/firmware and then redo your test, it would be
-helpful.
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 4b994aa..5266ecc7 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -189,7 +189,6 @@ int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+ u64 ir_raw_get_allowed_protocols(void);
+-u64 ir_raw_get_encode_protocols(void);
+ int ir_raw_event_register(struct rc_dev *dev);
+ void ir_raw_event_unregister(struct rc_dev *dev);
+ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 1068f2b..72dd6b6 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -30,7 +30,6 @@ static LIST_HEAD(ir_raw_client_list);
+ static DEFINE_MUTEX(ir_raw_handler_lock);
+ static LIST_HEAD(ir_raw_handler_list);
+ static u64 available_protocols;
+-static u64 encode_protocols;
+ 
+ static int ir_raw_event_thread(void *data)
+ {
+@@ -241,18 +240,6 @@ ir_raw_get_allowed_protocols(void)
+ 	return protocols;
+ }
+ 
+-/* used internally by the sysfs interface */
+-u64
+-ir_raw_get_encode_protocols(void)
+-{
+-	u64 protocols;
+-
+-	mutex_lock(&ir_raw_handler_lock);
+-	protocols = encode_protocols;
+-	mutex_unlock(&ir_raw_handler_lock);
+-	return protocols;
+-}
+-
+ static int change_protocol(struct rc_dev *dev, u64 *rc_type)
+ {
+ 	/* the caller will update dev->enabled_protocols */
+@@ -463,8 +450,6 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
+ 		list_for_each_entry(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_register(raw->dev);
+ 	available_protocols |= ir_raw_handler->protocols;
+-	if (ir_raw_handler->encode)
+-		encode_protocols |= ir_raw_handler->protocols;
+ 	mutex_unlock(&ir_raw_handler_lock);
+ 
+ 	return 0;
+@@ -481,8 +466,6 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+ 		list_for_each_entry(raw, &ir_raw_client_list, list)
+ 			ir_raw_handler->raw_unregister(raw->dev);
+ 	available_protocols &= ~ir_raw_handler->protocols;
+-	if (ir_raw_handler->encode)
+-		encode_protocols &= ~ir_raw_handler->protocols;
+ 	mutex_unlock(&ir_raw_handler_lock);
+ }
+ EXPORT_SYMBOL(ir_raw_handler_unregister);
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index c808165..ecaee02 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -865,8 +865,6 @@ static ssize_t show_protocols(struct device *device,
+ 	} else {
+ 		enabled = dev->enabled_wakeup_protocols;
+ 		allowed = dev->allowed_wakeup_protocols;
+-		if (dev->encode_wakeup && !allowed)
+-			allowed = ir_raw_get_encode_protocols();
+ 	}
+ 
+ 	mutex_unlock(&dev->lock);
+@@ -1411,16 +1409,13 @@ int rc_register_device(struct rc_dev *dev)
+ 		path ? path : "N/A");
+ 	kfree(path);
+ 
+-	if (dev->driver_type == RC_DRIVER_IR_RAW || dev->encode_wakeup) {
++	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 		/* Load raw decoders, if they aren't already */
+ 		if (!raw_init) {
+ 			IR_dprintk(1, "Loading raw decoders\n");
+ 			ir_raw_init();
+ 			raw_init = true;
+ 		}
+-	}
+-
+-	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 		/* calls ir_register_device so unlock mutex here*/
+ 		mutex_unlock(&dev->lock);
+ 		rc = ir_raw_event_register(dev);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 9a9beb8..93713ca 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -74,8 +74,6 @@ enum rc_filter_type {
+  * @input_dev: the input child device used to communicate events to userspace
+  * @driver_type: specifies if protocol decoding is done in hardware or software
+  * @idle: used to keep track of RX state
+- * @encode_wakeup: wakeup filtering uses IR encode API, therefore the allowed
+- *	wakeup protocols is the set of all raw encoders
+  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
+  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
+  * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
+@@ -136,7 +134,6 @@ struct rc_dev {
+ 	struct input_dev		*input_dev;
+ 	enum rc_driver_type		driver_type;
+ 	bool				idle;
+-	bool				encode_wakeup;
+ 	u64				allowed_protocols;
+ 	u64				enabled_protocols;
+ 	u64				allowed_wakeup_protocols;
 
-Cheers,
--olli
-
-
-On 8 July 2015 at 09:33, Patrick Boettcher <patrick.boettcher@posteo.de> wrote:
-> On Tue, 7 Jul 2015 18:51:16 +0200 (SST) Peter Fassberg <pf@leissner.se>
-> wrote:
->
->> On Tue, 7 Jul 2015, Patrick Boettcher wrote:
->>
->> > Might be the RF frequency that is truncated on 32bit platforms
->> > somewhere. That could explain that there is no crash but simply not
->> > tuning.
->>
->> This is the current status:
->>
->> ARM 32-bit, kernel 4.0.6, updated media_tree: Works with DVB-T, no lock on DVB-T2.
->>
->> Intel 32-bit, kernel 3.16.0, standard media_tree: Locks, but no PSIs detected.
->>
->> Intel 64-bit, kernel 3.16.0, standard media_tree: Works like a charm.
->>
->>
->> So I don't think that en RF freq is truncated.
->
-> Yes, it was an assumption - not a right one as it turned out. I didn't
-> find any obvious 32/64-problem in the si*-drivers you are using.
->
-> I'm too afraid to look into the em*-drivers and I doubt that there is
-> any obvious 32/64-bit-problem.
->
-> If I were you, I would try to compare the usb-traffic (using
-> usbmon with wireshark) between a working tune on one frequency with one
-> standard on each of the 3 scenarios (maybe starting with the intel 32
-> and 64 platform).
->
-> For example
->
-> on each platform:
->
-> 1) start wireshark-capture on the right USB-port,
-> 2) plug the device,
-> 3) tune (tzap) a valid DVB-T frequency
-> 4) stop capturing
->
-> Then compare the traffic log. Most outgoing data should be
-> identical. Incoming data (except monitoring values and TS) should be
-> equal as well.
->
-> If you see differences in data-buffer-sizes or during the
-> firmware-download-phase or anywhere else, we can try to find the code
-> which corresponds and place debug messages. You are lucky, your drivers
-> are using embedded firmwares which simplifies the communication between
-> the driver and the device.
->
-> regards,
-> --
-> Patrick.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
