@@ -1,175 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38859 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbbGIEG4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jul 2015 00:06:56 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51022 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755370AbbGTNAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 09:00:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/12] a8293: use i2c_master_send / i2c_master_recv for I2C I/O
-Date: Thu,  9 Jul 2015 07:06:23 +0300
-Message-Id: <1436414792-9716-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1436414792-9716-1-git-send-email-crope@iki.fi>
-References: <1436414792-9716-1-git-send-email-crope@iki.fi>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 01/12] [media] coda: make NV12 format default
+Date: Mon, 20 Jul 2015 14:59:27 +0200
+Message-Id: <1437397178-5013-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As driver is now proper I2C client driver, we could use correct
-functions for I2C I/O. Also rename state from priv to dev. Fix
-logging too.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The chroma interleaved NV12 format has higher memory bandwidth efficiency
+because the chroma planes can be read/written with longer burst lengths.
+Use NV12 as default format if available and consistently sort it first.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/dvb-frontends/a8293.c | 80 +++++++++----------------------------
- 1 file changed, 18 insertions(+), 62 deletions(-)
+ drivers/media/platform/coda/coda-common.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
-index 522b0d1..d99ea4d 100644
---- a/drivers/media/dvb-frontends/a8293.c
-+++ b/drivers/media/dvb-frontends/a8293.c
-@@ -20,94 +20,53 @@
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index d62b828..04310cd 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -90,17 +90,17 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
+ 	u32 base_cb, base_cr;
  
- #include "a8293.h"
- 
--struct a8293_priv {
--	u8 i2c_addr;
--	struct i2c_adapter *i2c;
-+struct a8293_dev {
- 	struct i2c_client *client;
- 	u8 reg[2];
+ 	switch (q_data->fourcc) {
+-	case V4L2_PIX_FMT_YVU420:
+-		/* Switch Cb and Cr for YVU420 format */
+-		base_cr = base_y + q_data->bytesperline * q_data->height;
+-		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
+-		break;
+-	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_YUV420:
+ 	default:
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
+ 		break;
++	case V4L2_PIX_FMT_YVU420:
++		/* Switch Cb and Cr for YVU420 format */
++		base_cr = base_y + q_data->bytesperline * q_data->height;
++		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
++		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		base_cb = base_y + q_data->bytesperline * q_data->height;
+ 		base_cr = base_cb + q_data->bytesperline * q_data->height / 2;
+@@ -156,9 +156,9 @@ static const struct coda_video_device coda_bit_encoder = {
+ 	.type = CODA_INST_ENCODER,
+ 	.ops = &coda_bit_encode_ops,
+ 	.src_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 	},
+ 	.dst_formats = {
+ 		V4L2_PIX_FMT_H264,
+@@ -171,9 +171,9 @@ static const struct coda_video_device coda_bit_jpeg_encoder = {
+ 	.type = CODA_INST_ENCODER,
+ 	.ops = &coda_bit_encode_ops,
+ 	.src_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV422P,
+ 	},
+ 	.dst_formats = {
+@@ -190,9 +190,9 @@ static const struct coda_video_device coda_bit_decoder = {
+ 		V4L2_PIX_FMT_MPEG4,
+ 	},
+ 	.dst_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 	},
  };
  
--static int a8293_i2c(struct a8293_priv *priv, u8 *val, int len, bool rd)
--{
--	int ret;
--	struct i2c_msg msg[1] = {
--		{
--			.addr = priv->i2c_addr,
--			.len = len,
--			.buf = val,
--		}
--	};
--
--	if (rd)
--		msg[0].flags = I2C_M_RD;
--	else
--		msg[0].flags = 0;
--
--	ret = i2c_transfer(priv->i2c, msg, 1);
--	if (ret == 1) {
--		ret = 0;
--	} else {
--		dev_warn(&priv->i2c->dev, "%s: i2c failed=%d rd=%d\n",
--				KBUILD_MODNAME, ret, rd);
--		ret = -EREMOTEIO;
--	}
--
--	return ret;
--}
--
--static int a8293_wr(struct a8293_priv *priv, u8 *val, int len)
--{
--	return a8293_i2c(priv, val, len, 0);
--}
--
--static int a8293_rd(struct a8293_priv *priv, u8 *val, int len)
--{
--	return a8293_i2c(priv, val, len, 1);
--}
--
- static int a8293_set_voltage(struct dvb_frontend *fe,
- 	enum fe_sec_voltage fe_sec_voltage)
+@@ -204,9 +204,9 @@ static const struct coda_video_device coda_bit_jpeg_decoder = {
+ 		V4L2_PIX_FMT_JPEG,
+ 	},
+ 	.dst_formats = {
++		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV420,
+ 		V4L2_PIX_FMT_YVU420,
+-		V4L2_PIX_FMT_NV12,
+ 		V4L2_PIX_FMT_YUV422P,
+ 	},
+ };
+@@ -234,9 +234,9 @@ static const struct coda_video_device *coda9_video_devices[] = {
+ static u32 coda_format_normalize_yuv(u32 fourcc)
  {
--	struct a8293_priv *priv = fe->sec_priv;
-+	struct a8293_dev *dev = fe->sec_priv;
-+	struct i2c_client *client = dev->client;
- 	int ret;
- 
--	dev_dbg(&priv->i2c->dev, "%s: fe_sec_voltage=%d\n", __func__,
--			fe_sec_voltage);
-+	dev_dbg(&client->dev, "fe_sec_voltage=%d\n", fe_sec_voltage);
- 
- 	switch (fe_sec_voltage) {
- 	case SEC_VOLTAGE_OFF:
- 		/* ENB=0 */
--		priv->reg[0] = 0x10;
-+		dev->reg[0] = 0x10;
- 		break;
- 	case SEC_VOLTAGE_13:
- 		/* VSEL0=1, VSEL1=0, VSEL2=0, VSEL3=0, ENB=1*/
--		priv->reg[0] = 0x31;
-+		dev->reg[0] = 0x31;
- 		break;
- 	case SEC_VOLTAGE_18:
- 		/* VSEL0=0, VSEL1=0, VSEL2=0, VSEL3=1, ENB=1*/
--		priv->reg[0] = 0x38;
-+		dev->reg[0] = 0x38;
- 		break;
+ 	switch (fourcc) {
++	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+-	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		return V4L2_PIX_FMT_YUV420;
  	default:
- 		ret = -EINVAL;
- 		goto err;
- 	}
+@@ -448,9 +448,9 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+ 			      S_ALIGN);
  
--	ret = a8293_wr(priv, &priv->reg[0], 1);
--	if (ret)
-+	ret = i2c_master_send(client, &dev->reg[0], 1);
-+	if (ret < 0)
- 		goto err;
+ 	switch (f->fmt.pix.pixelformat) {
++	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+-	case V4L2_PIX_FMT_NV12:
+ 		/*
+ 		 * Frame stride must be at least multiple of 8,
+ 		 * but multiple of 16 for h.264 or JPEG 4:2:x
+@@ -1099,8 +1099,8 @@ static void set_default_params(struct coda_ctx *ctx)
+ 	ctx->params.framerate = 30;
  
- 	usleep_range(1500, 50000);
--
--	return ret;
-+	return 0;
- err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
- static int a8293_probe(struct i2c_client *client,
- 		       const struct i2c_device_id *id)
- {
--	struct a8293_priv *dev;
-+	struct a8293_dev *dev;
- 	struct a8293_platform_data *pdata = client->dev.platform_data;
- 	struct dvb_frontend *fe = pdata->dvb_frontend;
- 	int ret;
-@@ -120,29 +79,26 @@ static int a8293_probe(struct i2c_client *client,
- 	}
- 
- 	dev->client = client;
--	dev->i2c = client->adapter;
--	dev->i2c_addr = client->addr;
- 
- 	/* check if the SEC is there */
--	ret = a8293_rd(dev, buf, 2);
--	if (ret)
-+	ret = i2c_master_recv(client, buf, 2);
-+	if (ret < 0)
- 		goto err_kfree;
- 
- 	/* ENB=0 */
- 	dev->reg[0] = 0x10;
--	ret = a8293_wr(dev, &dev->reg[0], 1);
--	if (ret)
-+	ret = i2c_master_send(client, &dev->reg[0], 1);
-+	if (ret < 0)
- 		goto err_kfree;
- 
- 	/* TMODE=0, TGATE=1 */
- 	dev->reg[1] = 0x82;
--	ret = a8293_wr(dev, &dev->reg[1], 1);
--	if (ret)
-+	ret = i2c_master_send(client, &dev->reg[1], 1);
-+	if (ret < 0)
- 		goto err_kfree;
- 
- 	/* override frontend ops */
- 	fe->ops.set_voltage = a8293_set_voltage;
--
- 	fe->sec_priv = dev;
- 	i2c_set_clientdata(client, dev);
- 
+ 	/* Default formats for output and input queues */
+-	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->codec->src_fourcc;
+-	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->codec->dst_fourcc;
++	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->cvd->src_formats[0];
++	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->cvd->dst_formats[0];
+ 	ctx->q_data[V4L2_M2M_SRC].width = max_w;
+ 	ctx->q_data[V4L2_M2M_SRC].height = max_h;
+ 	ctx->q_data[V4L2_M2M_DST].width = max_w;
 -- 
-http://palosaari.fi/
+2.1.4
 
