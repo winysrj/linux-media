@@ -1,81 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61950 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207AbbGJGeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:34:37 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	Michael Hennerich <Michael.Hennerich@analog.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Antti Palosaari <crope@iki.fi>, linux-iio@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 1/3] staging: iio: Drop owner assignment from i2c_driver
-Date: Fri, 10 Jul 2015 15:34:26 +0900
-Message-id: <1436510068-5284-2-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
-References: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
+Received: from vader.hardeman.nu ([95.142.160.32]:52570 "EHLO hardeman.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753627AbbGTTQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 15:16:53 -0400
+Subject: [PATCH 5/7] [PATCH FIXES] Revert "[media] rc: ir-rc5-decoder: Add
+ encode capability"
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com
+Date: Mon, 20 Jul 2015 21:16:51 +0200
+Message-ID: <20150720191651.24633.63217.stgit@zeus.muc.hardeman.nu>
+In-Reply-To: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+References: <20150720191238.24633.85293.stgit@zeus.muc.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_driver does not need to set an owner because i2c_register_driver()
-will set it.
+This reverts commit a0466f15b4654cf1ac9e387d7c1a401eff494b4f.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+The current code is not mature enough, the API should allow a single
+protocol to be specified. Also, the current code contains heuristics
+that will depend on module load order.
 
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
+ drivers/media/rc/ir-rc5-decoder.c |  116 -------------------------------------
+ 1 file changed, 116 deletions(-)
 
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
----
- drivers/staging/iio/addac/adt7316-i2c.c | 1 -
- drivers/staging/iio/light/isl29018.c    | 1 -
- drivers/staging/iio/light/isl29028.c    | 1 -
- 3 files changed, 3 deletions(-)
-
-diff --git a/drivers/staging/iio/addac/adt7316-i2c.c b/drivers/staging/iio/addac/adt7316-i2c.c
-index 75ddd4f801a3..78fe0b557280 100644
---- a/drivers/staging/iio/addac/adt7316-i2c.c
-+++ b/drivers/staging/iio/addac/adt7316-i2c.c
-@@ -124,7 +124,6 @@ static struct i2c_driver adt7316_driver = {
- 	.driver = {
- 		.name = "adt7316",
- 		.pm = ADT7316_PM_OPS,
--		.owner  = THIS_MODULE,
- 	},
- 	.probe = adt7316_i2c_probe,
- 	.id_table = adt7316_i2c_id,
-diff --git a/drivers/staging/iio/light/isl29018.c b/drivers/staging/iio/light/isl29018.c
-index e646c5d24004..019ba5245c23 100644
---- a/drivers/staging/iio/light/isl29018.c
-+++ b/drivers/staging/iio/light/isl29018.c
-@@ -838,7 +838,6 @@ static struct i2c_driver isl29018_driver = {
- 			.name = "isl29018",
- 			.acpi_match_table = ACPI_PTR(isl29018_acpi_match),
- 			.pm = ISL29018_PM_OPS,
--			.owner = THIS_MODULE,
- 			.of_match_table = isl29018_of_match,
- 		    },
- 	.probe	 = isl29018_probe,
-diff --git a/drivers/staging/iio/light/isl29028.c b/drivers/staging/iio/light/isl29028.c
-index e5b2fdc2334b..cd6f2727aa58 100644
---- a/drivers/staging/iio/light/isl29028.c
-+++ b/drivers/staging/iio/light/isl29028.c
-@@ -547,7 +547,6 @@ static struct i2c_driver isl29028_driver = {
- 	.class	= I2C_CLASS_HWMON,
- 	.driver  = {
- 		.name = "isl29028",
--		.owner = THIS_MODULE,
- 		.of_match_table = isl29028_of_match,
- 	},
- 	.probe	 = isl29028_probe,
--- 
-1.9.1
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index 8939ebd..84fa6e9 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -184,125 +184,9 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static struct ir_raw_timings_manchester ir_rc5_timings = {
+-	.leader			= RC5_UNIT,
+-	.pulse_space_start	= 0,
+-	.clock			= RC5_UNIT,
+-	.trailer_space		= RC5_UNIT * 10,
+-};
+-
+-static struct ir_raw_timings_manchester ir_rc5x_timings[2] = {
+-	{
+-		.leader			= RC5_UNIT,
+-		.pulse_space_start	= 0,
+-		.clock			= RC5_UNIT,
+-		.trailer_space		= RC5X_SPACE,
+-	},
+-	{
+-		.clock			= RC5_UNIT,
+-		.trailer_space		= RC5_UNIT * 10,
+-	},
+-};
+-
+-static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
+-	.leader				= RC5_UNIT,
+-	.pulse_space_start		= 0,
+-	.clock				= RC5_UNIT,
+-	.trailer_space			= RC5_UNIT * 10,
+-};
+-
+-static int ir_rc5_validate_filter(const struct rc_scancode_filter *scancode,
+-				  unsigned int important_bits)
+-{
+-	/* all important bits of scancode should be set in mask */
+-	if (~scancode->mask & important_bits)
+-		return -EINVAL;
+-	/* extra bits in mask should be zero in data */
+-	if (scancode->mask & scancode->data & ~important_bits)
+-		return -EINVAL;
+-	return 0;
+-}
+-
+-/**
+- * ir_rc5_encode() - Encode a scancode as a stream of raw events
+- *
+- * @protocols:	allowed protocols
+- * @scancode:	scancode filter describing scancode (helps distinguish between
+- *		protocol subtypes when scancode is ambiguous)
+- * @events:	array of raw ir events to write into
+- * @max:	maximum size of @events
+- *
+- * Returns:	The number of events written.
+- *		-ENOBUFS if there isn't enough space in the array to fit the
+- *		encoding. In this case all @max events will have been written.
+- *		-EINVAL if the scancode is ambiguous or invalid.
+- */
+-static int ir_rc5_encode(u64 protocols,
+-			 const struct rc_scancode_filter *scancode,
+-			 struct ir_raw_event *events, unsigned int max)
+-{
+-	int ret;
+-	struct ir_raw_event *e = events;
+-	unsigned int data, xdata, command, commandx, system;
+-
+-	/* Detect protocol and convert scancode to raw data */
+-	if (protocols & RC_BIT_RC5 &&
+-	    !ir_rc5_validate_filter(scancode, 0x1f7f)) {
+-		/* decode scancode */
+-		command  = (scancode->data & 0x003f) >> 0;
+-		commandx = (scancode->data & 0x0040) >> 6;
+-		system   = (scancode->data & 0x1f00) >> 8;
+-		/* encode data */
+-		data = !commandx << 12 | system << 6 | command;
+-
+-		/* Modulate the data */
+-		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_timings, RC5_NBITS,
+-					    data);
+-		if (ret < 0)
+-			return ret;
+-	} else if (protocols & RC_BIT_RC5X &&
+-		   !ir_rc5_validate_filter(scancode, 0x1f7f3f)) {
+-		/* decode scancode */
+-		xdata    = (scancode->data & 0x00003f) >> 0;
+-		command  = (scancode->data & 0x003f00) >> 8;
+-		commandx = (scancode->data & 0x004000) >> 14;
+-		system   = (scancode->data & 0x1f0000) >> 16;
+-		/* commandx and system overlap, bits must match when encoded */
+-		if (commandx == (system & 0x1))
+-			return -EINVAL;
+-		/* encode data */
+-		data = 1 << 18 | system << 12 | command << 6 | xdata;
+-
+-		/* Modulate the data */
+-		ret = ir_raw_gen_manchester(&e, max, &ir_rc5x_timings[0],
+-					CHECK_RC5X_NBITS,
+-					data >> (RC5X_NBITS-CHECK_RC5X_NBITS));
+-		if (ret < 0)
+-			return ret;
+-		ret = ir_raw_gen_manchester(&e, max - (e - events),
+-					&ir_rc5x_timings[1],
+-					RC5X_NBITS - CHECK_RC5X_NBITS,
+-					data);
+-		if (ret < 0)
+-			return ret;
+-	} else if (protocols & RC_BIT_RC5_SZ &&
+-		   !ir_rc5_validate_filter(scancode, 0x2fff)) {
+-		/* RC5-SZ scancode is raw enough for Manchester as it is */
+-		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings,
+-					RC5_SZ_NBITS, scancode->data & 0x2fff);
+-		if (ret < 0)
+-			return ret;
+-	} else {
+-		return -EINVAL;
+-	}
+-
+-	return e - events;
+-}
+-
+ static struct ir_raw_handler rc5_handler = {
+ 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
+ 	.decode		= ir_rc5_decode,
+-	.encode		= ir_rc5_encode,
+ };
+ 
+ static int __init ir_rc5_decode_init(void)
 
