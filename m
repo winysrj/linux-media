@@ -1,123 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:43335 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711AbbGKGJU (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46823 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755565AbbGTNBE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jul 2015 02:09:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E8FEF2A00AA
-	for <linux-media@vger.kernel.org>; Sat, 11 Jul 2015 04:52:20 +0200 (CEST)
-Date: Sat, 11 Jul 2015 04:52:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 20 Jul 2015 09:01:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150711025220.E8FEF2A00AA@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 10/12] usbvision: fix DMA from stack warnings.
+Date: Mon, 20 Jul 2015 14:59:36 +0200
+Message-Id: <1437397178-5013-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+In various places the stack was used to provide buffers for USB data, but
+this should be allocated memory.
 
-date:		Sat Jul 11 04:00:14 CEST 2015
-git branch:	test
-git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/usbvision/usbvision-core.c | 18 ++++++++++--------
+ drivers/media/usb/usbvision/usbvision-i2c.c  |  2 +-
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index ec50984..9f4e630 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1367,7 +1367,7 @@ static void usbvision_isoc_irq(struct urb *urb)
+ int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg)
+ {
+ 	int err_code = 0;
+-	unsigned char buffer[1];
++	unsigned char *buffer = usbvision->ctrl_urb_buffer;
+ 
+ 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+ 		return -1;
+@@ -1401,10 +1401,12 @@ int usbvision_write_reg(struct usb_usbvision *usbvision, unsigned char reg,
+ 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+ 		return 0;
+ 
++	usbvision->ctrl_urb_buffer[0] = value;
+ 	err_code = usb_control_msg(usbvision->dev, usb_sndctrlpipe(usbvision->dev, 1),
+ 				USBVISION_OP_CODE,
+ 				USB_DIR_OUT | USB_TYPE_VENDOR |
+-				USB_RECIP_ENDPOINT, 0, (__u16) reg, &value, 1, HZ);
++				USB_RECIP_ENDPOINT, 0, (__u16) reg,
++				usbvision->ctrl_urb_buffer, 1, HZ);
+ 
+ 	if (err_code < 0) {
+ 		dev_err(&usbvision->dev->dev,
+@@ -1596,7 +1598,7 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
+ 		{ 0x27, 0x00, 0x00 }, { 0x28, 0x00, 0x00 }, { 0x29, 0x00, 0x00 }, { 0x08, 0x80, 0x60 },
+ 		{ 0x0f, 0x2d, 0x24 }, { 0x0c, 0x80, 0x80 }
+ 	};
+-	char value[3];
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 
+ 	/* the only difference between PAL and NTSC init_values */
+ 	if (usbvision_device_data[usbvision->dev_model].video_norm == V4L2_STD_NTSC)
+@@ -1635,8 +1637,8 @@ static int usbvision_init_webcam(struct usb_usbvision *usbvision)
+ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int format)
+ {
+ 	static const char proc[] = "usbvision_set_video_format";
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	int rc;
+-	unsigned char value[2];
+ 
+ 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+ 		return 0;
+@@ -1677,7 +1679,7 @@ int usbvision_set_output(struct usb_usbvision *usbvision, int width,
+ 	int err_code = 0;
+ 	int usb_width, usb_height;
+ 	unsigned int frame_rate = 0, frame_drop = 0;
+-	unsigned char value[4];
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 
+ 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+ 		return 0;
+@@ -1872,7 +1874,7 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ {
+ 	static const char proc[] = "usbvision_set_compresion_params: ";
+ 	int rc;
+-	unsigned char value[6];
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 
+ 	value[0] = 0x0F;    /* Intra-Compression cycle */
+ 	value[1] = 0x01;    /* Reg.45 one line per strip */
+@@ -1946,7 +1948,7 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ {
+ 	static const char proc[] = "usbvision_set_input: ";
+ 	int rc;
+-	unsigned char value[8];
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	unsigned char dvi_yuv_value;
+ 
+ 	if (!USBVISION_IS_OPERATIONAL(usbvision))
+@@ -2062,8 +2064,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 
+ static int usbvision_set_dram_settings(struct usb_usbvision *usbvision)
+ {
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	int rc;
+-	unsigned char value[8];
+ 
+ 	if (usbvision->isoc_mode == ISOC_MODE_COMPRESS) {
+ 		value[0] = 0x42;
+diff --git a/drivers/media/usb/usbvision/usbvision-i2c.c b/drivers/media/usb/usbvision/usbvision-i2c.c
+index 26dbcb1..120de2e 100644
+--- a/drivers/media/usb/usbvision/usbvision-i2c.c
++++ b/drivers/media/usb/usbvision/usbvision-i2c.c
+@@ -343,7 +343,7 @@ static int usbvision_i2c_write_max4(struct usb_usbvision *usbvision,
+ {
+ 	int rc, retries;
+ 	int i;
+-	unsigned char value[6];
++	unsigned char *value = usbvision->ctrl_urb_buffer;
+ 	unsigned char ser_cont;
+ 
+ 	ser_cont = (len & 0x07) | 0x10;
+-- 
+2.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
