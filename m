@@ -1,92 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53013 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753090AbbGBM3D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2015 08:29:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [RFCv2 PATCH 0/8] Add VIDIOC_SUBDEV_QUERYCAP and use MEDIA_IOC_DEVICE_INFO
-Date: Thu, 02 Jul 2015 15:29:07 +0300
-Message-ID: <14360550.BzyYl6Itqi@avalon>
-In-Reply-To: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
-References: <1430895443-41839-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:36150 "EHLO
+	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058AbbGTQcr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 12:32:47 -0400
+Received: by qkdv3 with SMTP id v3so115462713qkd.3
+        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 09:32:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <55AD1C77.6030208@gmail.com>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+	<55AB5320.8030100@gmail.com>
+	<CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>
+	<55AD1C77.6030208@gmail.com>
+Date: Mon, 20 Jul 2015 12:32:46 -0400
+Message-ID: <CALzAhNVmmAy=4r0Vd=T82HPUrOzxK9Rg2-M=DQ8gUa-DXKsS6w@mail.gmail.com>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+From: Steven Toth <stoth@kernellabs.com>
+To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
+Cc: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, Jul 20, 2015 at 12:06 PM, Tycho Lürsen <tycholursen@gmail.com> wrote:
+> Hi Steven,
+> I was not aware of the fact that your patch depends on dvb-core as in
+> 4.2-RC2 (and up, I guess)
+> I tested against 3.18.18 and 4.1.2. That might explain the failures.
+> Anyhow, as soon as Antti and you are on the same page regarding this patch,
+> I'll test again against a 4.2-RC>1
+> Regards,
+> Tycho.
 
-Thank you for the patches.
+Thank you Tycho.
 
-On Wednesday 06 May 2015 08:57:15 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series adds the VIDIOC_SUBDEV_QUERYCAP ioctl for v4l-subdev
-> devices as discussed during the ELC in San Jose and as discussed here:
-> 
-> http://www.spinics.net/lists/linux-media/msg88009.html
-> 
-> It also add support for MEDIA_IOC_DEVICE_INFO to any media entities so
-> applications can use that to find the media controller and detailed
-> information about the entity.
-> 
-> This is the second RFC patch series. The main changes are:
-> 
-> - Drop the entity ID from the querycap ioctls
-> - Instead have every entity device implement MEDIA_IOC_DEVICE_INFO
-> - Add major, minor and entity_id fields to struct media_device_info:
->   this allows applications to find the MC device and to determine
->   the entity ID of the device for which they called the ioctl. It
->   is 0 for the MC (entity IDs are always > 0 for entities).
-> 
-> This is IMHO simple, consistent, and it will work for any media entity.
+I specifically only tested on 4.2, with the entire tree. No attempt
+was made to backport or otherwise test in environments outside on
+prior kernels.
 
-As discussed over IRC, I'd prefer adding the entity ID back to the querycap 
-ioctl, and skipping the MEDIA_IOC_DEVICE_INFO changes for now. The reason is 
-that our only current use case is v4l2-compliance which, albeit a real use 
-case, doesn't seem enough to me to design two new ioctls.
-
-I'm fine with a VIDIOC_SUBDEV_QUERYCAP ioctl as it mimics the V4L2 video 
-device nodes API and is generally useful, and I believe it should be enough to 
-fulfill v4l2-compliance's use cases if we add the entity ID.
-
-> PS: I have not tested the DVB changes yet. I hope I got those right.
-> 
-> Hans Verkuil (8):
->   v4l2-subdev: add VIDIOC_SUBDEV_QUERYCAP ioctl
->   DocBook/media: document VIDIOC_SUBDEV_QUERYCAP
->   videodev2.h: add V4L2_CAP_ENTITY to querycap
->   media: add major/minor/entity_id to struct media_device_info
->   v4l2-subdev: add MEDIA_IOC_DEVICE_INFO
->   v4l2-ioctl: add MEDIA_IOC_DEVICE_INFO
->   dvb: add MEDIA_IOC_DEVICE_INFO
->   DocBook/media: document the new media_device_info fields.
-> 
->  .../DocBook/media/v4l/media-ioc-device-info.xml    |  35 +++++-
->  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->  .../DocBook/media/v4l/vidioc-querycap.xml          |   6 +
->  .../DocBook/media/v4l/vidioc-subdev-querycap.xml   | 125 ++++++++++++++++++
->  drivers/media/dvb-core/dmxdev.c                    |  24 +++-
->  drivers/media/dvb-core/dvb_ca_en50221.c            |  11 ++
->  drivers/media/dvb-core/dvb_net.c                   |  11 ++
->  drivers/media/media-device.c                       |  29 +++--
->  drivers/media/media-devnode.c                      |   5 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c               |  43 ++++++-
->  drivers/media/v4l2-core/v4l2-subdev.c              |  26 +++++
->  include/media/media-device.h                       |   3 +
->  include/media/media-devnode.h                      |   1 +
->  include/uapi/linux/media.h                         |   5 +-
->  include/uapi/linux/v4l2-subdev.h                   |  10 ++
->  include/uapi/linux/videodev2.h                     |   1 +
->  16 files changed, 316 insertions(+), 20 deletions(-)
->  create mode 100644
-> Documentation/DocBook/media/v4l/vidioc-subdev-querycap.xml
+- Steve
 
 -- 
-Regards,
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
 
-Laurent Pinchart
 
+>
+> Op 20-07-15 om 15:13 schreef Steven Toth:
+>>
+>> On Sun, Jul 19, 2015 at 3:34 AM, Tycho Lürsen <tycholursen@gmail.com>
+>> wrote:
+>>>
+>>> Hi Steven,
+>>>
+>>> Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using
+>>> European DVB-C
+>>> Since MythTV can't handle multistandard frontends (yet), I've disabled
+>>> DVB-T/T2 like this (I always do that):
+>>>
+>>> sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/'
+>>> drivers/media/dvb-frontends/si2168.c
+>>>
+>>> Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no
+>>> lock,
+>>> no tune.
+>>>
+>>> Regards,
+>>> Tycho.
+>>>
+>>> Op 19-07-15 om 00:21 schreef Steven Toth:
+>>>>
+>>>> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
+>>>>
+>>>> Patches above are available for test.
+>>>>
+>>>> Antti, note the change to SI2168 to add support for enabling and
+>>>> disabling the SI2168 transport bus dynamically.
+>>>>
+>>>> I've tested with a combo card, switching back and forward between QAM
+>>>> and DVB-T, this works fine, just remember to select a different
+>>>> frontend as we have two frontends on the same adapter,
+>>>> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
+>>>>
+>>>> If any testers have the ATSC or DVB-T, I'd expect these to work
+>>>> equally well, replease report feedback here.
+>>>>
+>>>> Thanks,
+>>>>
+>>>> - Steve
+>>
+>> Interesting, although I'm slightly confused.
+>>
+>> My patch mere added the ability for dvb-core to tri-state the tsport
+>> out bus, similar to other digital demodulator drivers in the tree....
+>> and testing with both azap and tzap (and dvbtraffic) showed no tuning,
+>> lock or other issues.
+>>
+>> What happens if you tzap/czap a known good frequency, before and after
+>> my patch, without your sed replacement, leaving T/T2 and A fully
+>> enabled?
+>>
+>> - Steve
+>>
+>
