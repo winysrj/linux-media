@@ -1,36 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:33546 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752623AbbGMNVv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 09:21:51 -0400
-Date: Mon, 13 Jul 2015 07:21:50 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Rodolfo Giometti <giometti@enneenne.com>
-Cc: Masanari Iida <standby24x7@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Doc: pps: Fix file name in pps.txt
-Message-ID: <20150713072150.74690b4a@lwn.net>
-In-Reply-To: <20150713062314.GF4931@enneenne.com>
-References: <1436758151-17073-1-git-send-email-standby24x7@gmail.com>
-	<20150713062314.GF4931@enneenne.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45897 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753018AbbGTNTe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 09:19:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/5] zoran: remove unnecessary memset
+Date: Mon, 20 Jul 2015 15:18:18 +0200
+Message-Id: <1437398302-6211-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437398302-6211-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437398302-6211-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 13 Jul 2015 08:23:15 +0200
-Rodolfo Giometti <giometti@enneenne.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Mon, Jul 13, 2015 at 12:29:11PM +0900, Masanari Iida wrote:
-> > This patch fix a file name of example code.
-> > 
-> > Signed-off-by: Masanari Iida <standby24x7@gmail.com>  
-> 
-> Signed-off-by: Rodolfo Giometti <giometti@enneenne.com>
+There is no need to zero the v4l2_capability struct, the v4l2 core has done
+that already.
 
-Why Signed-off-by?  Did you maybe mean Acked-by here?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/zoran/zoran_driver.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thanks,
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index 2b25d31..25cd18b 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -1523,7 +1523,6 @@ static int zoran_querycap(struct file *file, void *__fh, struct v4l2_capability
+ 	struct zoran_fh *fh = __fh;
+ 	struct zoran *zr = fh->zr;
+ 
+-	memset(cap, 0, sizeof(*cap));
+ 	strncpy(cap->card, ZR_DEVNAME(zr), sizeof(cap->card)-1);
+ 	strncpy(cap->driver, "zoran", sizeof(cap->driver)-1);
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+-- 
+2.1.4
 
-jon
