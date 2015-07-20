@@ -1,84 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:35076 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbbGFLko (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2015 07:40:44 -0400
-Received: by wgjx7 with SMTP id x7so137576332wgj.2
-        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2015 04:40:41 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, treding@nvidia.com, sumit.semwal@linaro.org,
-	tom.cooksey@arm.com
-Cc: tom.gall@linaro.org, linaro-mm-sig@lists.linaro.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 0/2] RFC: Secure Memory Allocation Framework
-Date: Mon,  6 Jul 2015 13:40:25 +0200
-Message-Id: <1436182827-6218-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44636 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755488AbbGTNA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 09:00:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/12] usbvision: the radio device node has wrong caps
+Date: Mon, 20 Jul 2015 14:59:32 +0200
+Message-Id: <1437397178-5013-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 2 changes:
- - Add one ioctl to allow allocator selection from userspace.
-   This is required for the uses case where the first user of
-   the buffer is a software IP which can't perform dma_buf attachement.
- - Add name and ranking to allocator structure to be able to sort them.
- - Create a tiny library to test SMAF:
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - Fix one issue when try to secure buffer without secure module registered
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The outcome of the previous RFC about how do secure data path was the need
-of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
+The radio device node had the same caps as the video node. Fix this.
 
-SMAF goal is to provide a framework that allow allocating and securing
-memory by using dma_buf. Each platform have it own way to perform those two
-features so SMAF design allow to register helper modules to perform them.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/usbvision/usbvision-video.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-To be sure to select the best allocation method for devices SMAF implement
-deferred allocation mechanism: memory allocation is only done when the first
-device effectively required it.
-Allocator modules have to implement a match() to let SMAF know if they are
-compatibles with devices needs.
-This patch set provide an example of allocator module which use
-dma_{alloc/free/mmap}_attrs() and check if at least one device have
-coherent_dma_mask set to DMA_BIT_MASK(32) in match function. 
-I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if 
-a better name could be found for this file.
-
-Secure modules are responsibles of granting and revoking devices access rights
-on the memory. Secure module is also called to check if CPU map memory into
-kernel and user address spaces.
-An example of secure module implementation can be found here:
-http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-This code isn't yet part of the patch set because it depends on generic TEE
-which is still under discussion (https://lwn.net/Articles/644646/)
-
-For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-constraint aware allocator.
-
-Benjamin Gaignard (2):
-  create SMAF module
-  SMAF: add CMA allocator
-
- drivers/Kconfig                |   2 +
- drivers/Makefile               |   1 +
- drivers/smaf/Kconfig           |  11 +
- drivers/smaf/Makefile          |   2 +
- drivers/smaf/smaf-cma.c        | 200 +++++++++++
- drivers/smaf/smaf-core.c       | 751 +++++++++++++++++++++++++++++++++++++++++
- include/linux/smaf-allocator.h |  54 +++
- include/linux/smaf-secure.h    |  62 ++++
- include/uapi/linux/smaf.h      |  61 ++++
- 9 files changed, 1144 insertions(+)
- create mode 100644 drivers/smaf/Kconfig
- create mode 100644 drivers/smaf/Makefile
- create mode 100644 drivers/smaf/smaf-cma.c
- create mode 100644 drivers/smaf/smaf-core.c
- create mode 100644 include/linux/smaf-allocator.h
- create mode 100644 include/linux/smaf-secure.h
- create mode 100644 include/uapi/linux/smaf.h
-
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index 15a1ebf..f526712 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -487,17 +487,24 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *vc)
+ {
+ 	struct usb_usbvision *usbvision = video_drvdata(file);
++	struct video_device *vdev = video_devdata(file);
+ 
+ 	strlcpy(vc->driver, "USBVision", sizeof(vc->driver));
+ 	strlcpy(vc->card,
+ 		usbvision_device_data[usbvision->dev_model].model_string,
+ 		sizeof(vc->card));
+ 	usb_make_path(usbvision->dev, vc->bus_info, sizeof(vc->bus_info));
+-	vc->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_READWRITE |
+-		V4L2_CAP_STREAMING |
+-		(usbvision->have_tuner ? V4L2_CAP_TUNER : 0);
+-	vc->capabilities = vc->device_caps | V4L2_CAP_DEVICE_CAPS;
++	vc->device_caps = usbvision->have_tuner ? V4L2_CAP_TUNER : 0;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		vc->device_caps |= V4L2_CAP_VIDEO_CAPTURE |
++			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	else
++		vc->device_caps |= V4L2_CAP_RADIO;
++
++	vc->capabilities = vc->device_caps | V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
++	if (usbvision_device_data[usbvision->dev_model].radio)
++		vc->capabilities |= V4L2_CAP_RADIO;
+ 	return 0;
+ }
+ 
 -- 
-1.9.1
+2.1.4
 
