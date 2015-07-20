@@ -1,57 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:37728 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbbGFSGv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2015 14:06:51 -0400
-Received: by wiclp1 with SMTP id lp1so28838302wic.0
-        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2015 11:06:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <559A915B.20305@vanguardiasur.com.ar>
-References: <m3bnftphea.fsf@t19.piap.pl>
-	<m37fqhpe35.fsf@t19.piap.pl>
-	<559A915B.20305@vanguardiasur.com.ar>
-Date: Mon, 6 Jul 2015 15:06:50 -0300
-Message-ID: <CAAEAJfA7hPzZ3vHUUMhHvosoGzPWq1HCcKURHMp=w+B7siex5w@mail.gmail.com>
-Subject: Re: [PATCH] [MEDIA] Add support for TW686[4589]-based frame grabbers.
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>,
-	linux-media <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58815 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755127AbbGTNKt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2015 09:10:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Anatolij Gustschin <agust@denx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/6] fsl-viu: add control event support.
+Date: Mon, 20 Jul 2015 15:09:31 +0200
+Message-Id: <1437397773-5752-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437397773-5752-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437397773-5752-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 July 2015 at 11:31, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> wrote:
-> Hi Krzysztof,
->
-> First of all: thanks a lot for the good work!
-> The driver looks very clean and promising.
->
-> I've been playing with it a lot and have quite a bit
-> of feedback.
->
-> First of all, I've noticed you only supported TOP, BOTTOM
-> and SEQUENTIAL fields. Is there no way to get an interlaced
-> frame out of the driver?
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Answering my own question, Krzysztof already replied about
-this on another thread:
+Convert the driver to use v4l2_fh in order to support control events.
 
-http://www.spinics.net/lists/linux-media/msg91470.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/fsl-viu.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-Quoting him:
-
-""
-These (tw686x) chips aren't ideal - but they work.
-For example, in DMA SG mode, they can't produce a single continuous
-interlaced frame in memory - they can only make two separate fields.
-A limitation of their DMA engine, since in non-SG mode they can make
-(pseudo)-progressive frames.
-""
-
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 7d0e360..906442e 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -29,6 +29,8 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ #include <media/videobuf-dma-contig.h>
+ 
+ #define DRV_NAME		"fsl_viu"
+@@ -154,6 +156,8 @@ struct viu_dev {
+ };
+ 
+ struct viu_fh {
++	/* must remain the first field of this struct */
++	struct v4l2_fh		fh;
+ 	struct viu_dev		*dev;
+ 
+ 	/* video capture */
+@@ -1199,6 +1203,7 @@ static int viu_open(struct file *file)
+ 		return -ENOMEM;
+ 	}
+ 
++	v4l2_fh_init(&fh->fh, vdev);
+ 	file->private_data = fh;
+ 	fh->dev = dev;
+ 
+@@ -1234,6 +1239,7 @@ static int viu_open(struct file *file)
+ 				       fh->type, V4L2_FIELD_INTERLACED,
+ 				       sizeof(struct viu_buf), fh,
+ 				       &fh->dev->lock);
++	v4l2_fh_add(&fh->fh);
+ 	mutex_unlock(&dev->lock);
+ 	return 0;
+ }
+@@ -1266,13 +1272,17 @@ static unsigned int viu_poll(struct file *file, struct poll_table_struct *wait)
+ 	struct viu_fh *fh = file->private_data;
+ 	struct videobuf_queue *q = &fh->vb_vidq;
+ 	struct viu_dev *dev = fh->dev;
+-	unsigned int res;
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned int res = v4l2_ctrl_poll(file, wait);
+ 
+ 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
+ 		return POLLERR;
+ 
++	if (!(req_events & (POLLIN | POLLRDNORM)))
++		return res;
++
+ 	mutex_lock(&dev->lock);
+-	res = videobuf_poll_stream(file, q, wait);
++	res |= videobuf_poll_stream(file, q, wait);
+ 	mutex_unlock(&dev->lock);
+ 	return res;
+ }
+@@ -1287,6 +1297,8 @@ static int viu_release(struct file *file)
+ 	viu_stop_dma(dev);
+ 	videobuf_stop(&fh->vb_vidq);
+ 	videobuf_mmap_free(&fh->vb_vidq);
++	v4l2_fh_del(&fh->fh);
++	v4l2_fh_exit(&fh->fh);
+ 	mutex_unlock(&dev->lock);
+ 
+ 	kfree(fh);
+@@ -1367,6 +1379,9 @@ static const struct v4l2_ioctl_ops viu_ioctl_ops = {
+ 	.vidioc_s_input       = vidioc_s_input,
+ 	.vidioc_streamon      = vidioc_streamon,
+ 	.vidioc_streamoff     = vidioc_streamoff,
++	.vidioc_log_status    = v4l2_ctrl_log_status,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ static struct video_device viu_template = {
+@@ -1468,7 +1483,7 @@ static int viu_of_probe(struct platform_device *op)
+ 		goto err_vdev;
+ 	}
+ 
+-	memcpy(vdev, &viu_template, sizeof(viu_template));
++	*vdev = viu_template;
+ 
+ 	vdev->v4l2_dev = &viu_dev->v4l2_dev;
+ 
 -- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+2.1.4
+
