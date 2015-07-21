@@ -1,163 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:44387 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753079AbbGVWm7 (ORCPT
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:34278 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308AbbGUNMw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:59 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 16/19] media: Change v4l-core to check for tuner availability
-Date: Wed, 22 Jul 2015 16:42:17 -0600
-Message-Id: <690e2d0882325f1f4b67688a42bb8056f46dec7e.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+	Tue, 21 Jul 2015 09:12:52 -0400
+Received: by qgeu79 with SMTP id u79so31444986qge.1
+        for <linux-media@vger.kernel.org>; Tue, 21 Jul 2015 06:12:51 -0700 (PDT)
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH v2] tw68: Move PCI vendor and device IDs to pci_ids.h
+Date: Tue, 21 Jul 2015 10:09:10 -0300
+Message-Id: <1437484150-3751-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change s_input, s_fmt, s_tuner, s_frequency, querystd,
-s_hw_freq_seek, and vb2_streamon interfaces that alter
-the tuner configuration to check for tuner availability
-by calling v4l_enable_media_tuner(). If tuner isn't free,
-return -EBUSY.
+This commits moves the Intersil/Techwell PCI vendor ID, and
+the device IDs for the TW68 PCI video capture cards.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+This will allow to support future Intersil/Techwell devices
+without duplicating the IDs.
+
+Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c     | 29 +++++++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-core.c |  5 +++++
- 2 files changed, 34 insertions(+)
+v2:
+ * Fixed three additional uses of the defines I missed on v1.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 85de455..deffc1b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1035,6 +1035,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
-+
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
- }
+ drivers/media/pci/tw68/tw68-core.c | 21 +++++++++++----------
+ drivers/media/pci/tw68/tw68.h      | 16 ----------------
+ include/linux/pci_ids.h            |  9 +++++++++
+ 3 files changed, 20 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index c135165..04706cc 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -37,6 +37,7 @@
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <linux/dma-mapping.h>
++#include <linux/pci_ids.h>
+ #include <linux/pm.h>
  
-@@ -1433,6 +1439,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	v4l_sanitize_format(p);
- 
- 	switch (p->type) {
-@@ -1612,7 +1621,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_tuner *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	return ops->vidioc_s_tuner(file, fh, p);
-@@ -1650,7 +1663,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
- 		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
-@@ -1705,7 +1722,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	norm = id & vfd->tvnorms;
- 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
- 		return -EINVAL;
-@@ -1719,7 +1740,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/*
- 	 * If no signal is detected, then the driver should return
- 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
-@@ -1738,7 +1763,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_hw_freq_seek *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/* s_hw_freq_seek is not supported for SDR for now */
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index d835814..f2711e4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2300,10 +2300,15 @@ EXPORT_SYMBOL_GPL(vb2_queue_error);
+ #include <media/v4l2-dev.h>
+@@ -70,13 +71,13 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
+  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
   */
- int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- {
-+	int ret;
-+
- 	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "file io in progress\n");
- 		return -EBUSY;
+ static const struct pci_device_id tw68_pci_tbl[] = {
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6800)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6801)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6804)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_1)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_2)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_3)},
+-	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_6816_4)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6800)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6801)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6804)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_1)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_2)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_3)},
++	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6816_4)},
+ 	{0,}
+ };
+ 
+@@ -263,15 +264,15 @@ static int tw68_initdev(struct pci_dev *pci_dev,
  	}
-+	ret = v4l_enable_media_tuner(q->owner->vdev);
-+	if (ret)
-+		return ret;
- 	return vb2_internal_streamon(q, type);
- }
- EXPORT_SYMBOL_GPL(vb2_streamon);
+ 
+ 	switch (pci_id->device) {
+-	case PCI_DEVICE_ID_6800:	/* TW6800 */
++	case PCI_DEVICE_ID_TECHWELL_6800:	/* TW6800 */
+ 		dev->vdecoder = TW6800;
+ 		dev->board_virqmask = TW68_VID_INTS;
+ 		break;
+-	case PCI_DEVICE_ID_6801:	/* Video decoder for TW6802 */
++	case PCI_DEVICE_ID_TECHWELL_6801:	/* Video decoder for TW6802 */
+ 		dev->vdecoder = TW6801;
+ 		dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
+ 		break;
+-	case PCI_DEVICE_ID_6804:	/* Video decoder for TW6804 */
++	case PCI_DEVICE_ID_TECHWELL_6804:	/* Video decoder for TW6804 */
+ 		dev->vdecoder = TW6804;
+ 		dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
+ 		break;
+diff --git a/drivers/media/pci/tw68/tw68.h b/drivers/media/pci/tw68/tw68.h
+index 93f2335..ef51e4d 100644
+--- a/drivers/media/pci/tw68/tw68.h
++++ b/drivers/media/pci/tw68/tw68.h
+@@ -42,22 +42,6 @@
+ 
+ #define	UNSET	(-1U)
+ 
+-/* system vendor and device ID's */
+-#define	PCI_VENDOR_ID_TECHWELL	0x1797
+-#define	PCI_DEVICE_ID_6800	0x6800
+-#define	PCI_DEVICE_ID_6801	0x6801
+-#define	PCI_DEVICE_ID_AUDIO2	0x6802
+-#define	PCI_DEVICE_ID_TS3	0x6803
+-#define	PCI_DEVICE_ID_6804	0x6804
+-#define	PCI_DEVICE_ID_AUDIO5	0x6805
+-#define	PCI_DEVICE_ID_TS6	0x6806
+-
+-/* tw6816 based cards */
+-#define	PCI_DEVICE_ID_6816_1   0x6810
+-#define	PCI_DEVICE_ID_6816_2   0x6811
+-#define	PCI_DEVICE_ID_6816_3   0x6812
+-#define	PCI_DEVICE_ID_6816_4   0x6813
+-
+ #define TW68_NORMS ( \
+ 	V4L2_STD_NTSC    | V4L2_STD_PAL       | V4L2_STD_SECAM    | \
+ 	V4L2_STD_PAL_M   | V4L2_STD_PAL_Nc    | V4L2_STD_PAL_60)
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index fcff8f8..d9ba49c 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -2332,6 +2332,15 @@
+ 
+ #define PCI_VENDOR_ID_CAVIUM		0x177d
+ 
++#define PCI_VENDOR_ID_TECHWELL		0x1797
++#define PCI_DEVICE_ID_TECHWELL_6800	0x6800
++#define PCI_DEVICE_ID_TECHWELL_6801	0x6801
++#define PCI_DEVICE_ID_TECHWELL_6804	0x6804
++#define PCI_DEVICE_ID_TECHWELL_6816_1	0x6810
++#define PCI_DEVICE_ID_TECHWELL_6816_2	0x6811
++#define PCI_DEVICE_ID_TECHWELL_6816_3	0x6812
++#define PCI_DEVICE_ID_TECHWELL_6816_4	0x6813
++
+ #define PCI_VENDOR_ID_BELKIN		0x1799
+ #define PCI_DEVICE_ID_BELKIN_F5D7010V7	0x701f
+ 
 -- 
-2.1.4
+2.4.3
 
