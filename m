@@ -1,77 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41946 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752304AbbGVV20 (ORCPT
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:33712 "EHLO
+	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752439AbbGVWnA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 17:28:26 -0400
-Date: Thu, 23 Jul 2015 00:27:50 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Bjornar Salberg <bsalberg@cisco.com>
-Subject: Re: [RFC] How to get current position/status of
- iris/focus/pan/tilt/zoom?
-Message-ID: <20150722212750.GB12092@valkosipuli.retiisi.org.uk>
-References: <559527D7.1030408@xs4all.nl>
- <20150722082147.GA12092@valkosipuli.retiisi.org.uk>
- <55AF5986.5080106@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55AF5986.5080106@xs4all.nl>
+	Wed, 22 Jul 2015 18:43:00 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 17/19] media: dvb-frontend change to check for tuner availability from open
+Date: Wed, 22 Jul 2015 16:42:18 -0600
+Message-Id: <0d159793e88737e4b1774ebcb4eb8a1d2f8ed1a0.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Checking for tuner availability from frontend thread start
+disrupts video stream. Change to check for tuner and start
+pipeline from frontend open instead and stop pipeline from
+frontend release.
 
-On Wed, Jul 22, 2015 at 10:51:18AM +0200, Hans Verkuil wrote:
-> On 07/22/15 10:21, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Thu, Jul 02, 2015 at 02:00:23PM +0200, Hans Verkuil wrote:
-> >> When using V4L2_CID_IRIS/FOCUS/PAN/TILT/ZOOM_ABSOLUTE/RELATIVE, how do you know
-> >> when the new position has been reached? If this is controlled through a motor,
-> >> then it may take some time and ideally you would like to be able to get the
-> >> current absolute position (if the hardware knows) and whether the final position
-> >> has been reached or not.
-> > 
-> > On voice coil lenses it's also not possible to know when the position has
-> > been reached, however you can estimate when it has happened based on the
-> > intended movement and algorithm used to move the lens. This is far from
-> > trivial though.
-> > 
-> > For low-level lends drivers knowing where the lens is is not feasible IMO at
-> > the moment.
-> > 
-> >>
-> >> In addition, it should be possible to raise fault conditions.
-> > 
-> > Do you know of hardware that can do this? The only non-buffer related
-> > devices that can do this I'm aware of are flash controllers.
-> 
-> If a motor is involved to move things around, then that motor can cause
-> failures that you want to signal. For example if something is blocking the
-> motor from moving any further, overheating, whatever. I hate moving parts :-)
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 43 ++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-I don't argue about whether or not to tell it to the user, but can the
-hardware tell that to the driver? If it can, naturally the user should be
-told.
-
-What I think would be nice to pay closer attention to at some point would be
-voice coil lens controls. These are typically cheap and difficult to control
-devices, as you apply a current that's going to move a lens rather than
-telling it to be moved to a certain position. The higher level control is,
-in my understanding, often more or less tightly coupled with the AF
-algorithms. At the very least the existing drivers are quite low level
-drivers. We should look what are the commonalities among those. But that'd
-be a new topic likely requiring multiple RFCs...
-
-This will quite probably look at least somewhat different in terms of
-controls compared to current manual focus controls.
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 842b9c8..b394e1e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -694,10 +694,6 @@ static int dvb_frontend_thread(void *data)
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	enum fe_status s;
+ 	enum dvbfe_algo algo;
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	int ret;
+-#endif
+-
+ 	bool re_tune = false;
+ 	bool semheld = false;
+ 
+@@ -710,20 +706,6 @@ static int dvb_frontend_thread(void *data)
+ 	fepriv->wakeup = 0;
+ 	fepriv->reinitialise = 0;
+ 
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	ret = dvb_enable_media_tuner(fe);
+-	if (ret) {
+-		/* FIXME: return an error if it fails */
+-		dev_info(fe->dvb->device,
+-			"proceeding with FE task\n");
+-	} else if (fepriv->pipe_start_entity) {
+-		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
+-						  &fepriv->pipe);
+-		if (ret)
+-			return ret;
+-	}
+-#endif
+-
+ 	dvb_frontend_init(fe);
+ 
+ 	set_freezable();
+@@ -833,12 +815,6 @@ restart:
+ 		}
+ 	}
+ 
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	if (fepriv->pipe_start_entity)
+-		media_entity_pipeline_stop(fepriv->pipe_start_entity);
+-	fepriv->pipe_start_entity = NULL;
+-#endif
+-
+ 	if (dvb_powerdown_on_sleep) {
+ 		if (fe->ops.set_voltage)
+ 			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
+@@ -2616,6 +2592,20 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+ 		fepriv->tone = -1;
+ 		fepriv->voltage = -1;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		ret = dvb_enable_media_tuner(fe);
++		if (ret) {
++			dev_err(fe->dvb->device,
++				"Tuner is busy. Error %d\n", ret);
++			goto err1;
++		} else if (fepriv->pipe_start_entity) {
++			ret = media_entity_pipeline_start(
++						fepriv->pipe_start_entity,
++						&fepriv->pipe);
++			if (ret)
++				goto err1;
++		}
++#endif
+ 		ret = dvb_frontend_start (fe);
+ 		if (ret)
+ 			goto err2;
+@@ -2659,6 +2649,11 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
+ 		wake_up(&fepriv->wait_queue);
+ 		if (fe->exit != DVB_FE_NO_EXIT)
+ 			wake_up(&dvbdev->wait_queue);
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		if (fepriv->pipe_start_entity)
++			media_entity_pipeline_stop(fepriv->pipe_start_entity);
++		fepriv->pipe_start_entity = NULL;
++#endif
+ 		if (fe->ops.ts_bus_ctrl)
+ 			fe->ops.ts_bus_ctrl(fe, 0);
+ 	}
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
