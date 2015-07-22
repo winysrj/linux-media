@@ -1,166 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39853 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752233AbbG0LWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 07:22:46 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/6] mt2060: add i2c bindings
-Date: Mon, 27 Jul 2015 14:22:05 +0300
-Message-Id: <1437996130-23735-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1437996130-23735-1-git-send-email-crope@iki.fi>
-References: <1437996130-23735-1-git-send-email-crope@iki.fi>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42637 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751836AbbGVGJx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 02:09:53 -0400
+Message-ID: <55AF3367.5040503@xs4all.nl>
+Date: Wed, 22 Jul 2015 08:08:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	horms@verge.net.au, magnus.damm@gmail.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com, mchehab@osg.samsung.com
+CC: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
+	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 0/3] R-Car JPEG Processing Unit
+References: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+In-Reply-To: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add proper i2c driver model bindings.
+Hi Mikhail,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/mt2060.h      | 20 +++++++++
- drivers/media/tuners/mt2060_priv.h |  2 +
- 3 files changed, 105 insertions(+)
+Just one small thing, see below...
 
-diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
-index b87b254..aa8280a 100644
---- a/drivers/media/tuners/mt2060.c
-+++ b/drivers/media/tuners/mt2060.c
-@@ -397,6 +397,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
- }
- EXPORT_SYMBOL(mt2060_attach);
- 
-+static int mt2060_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct mt2060_platform_data *pdata = client->dev.platform_data;
-+	struct dvb_frontend *fe;
-+	struct mt2060_priv *dev;
-+	int ret;
-+	u8 chip_id;
-+
-+	dev_dbg(&client->dev, "\n");
-+
-+	if (!pdata) {
-+		dev_err(&client->dev, "Cannot proceed without platform data\n");
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
-+	if (!dev) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	fe = pdata->dvb_frontend;
-+	dev->config.i2c_address = client->addr;
-+	dev->config.clock_out = pdata->clock_out;
-+	dev->cfg = &dev->config;
-+	dev->i2c = client->adapter;
-+	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
-+	dev->client = client;
-+
-+	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
-+	if (ret) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
-+
-+	if (chip_id != PART_REV) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
-+	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
-+	fe->ops.tuner_ops.release = NULL;
-+	fe->tuner_priv = dev;
-+	i2c_set_clientdata(client, dev);
-+
-+	mt2060_calibrate(dev);
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int mt2060_remove(struct i2c_client *client)
-+{
-+	dev_dbg(&client->dev, "\n");
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id mt2060_id_table[] = {
-+	{"mt2060", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
-+
-+static struct i2c_driver mt2060_driver = {
-+	.driver = {
-+		.name = "mt2060",
-+		.suppress_bind_attrs = true,
-+	},
-+	.probe		= mt2060_probe,
-+	.remove		= mt2060_remove,
-+	.id_table	= mt2060_id_table,
-+};
-+
-+module_i2c_driver(mt2060_driver);
-+
- MODULE_AUTHOR("Olivier DANET");
- MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
-index 6efed35..05c0d55 100644
---- a/drivers/media/tuners/mt2060.h
-+++ b/drivers/media/tuners/mt2060.h
-@@ -25,6 +25,26 @@
- struct dvb_frontend;
- struct i2c_adapter;
- 
-+/*
-+ * I2C address
-+ * 0x60, ...
-+ */
-+
-+/**
-+ * struct mt2060_platform_data - Platform data for the mt2060 driver
-+ * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
-+ * @if1: First IF used [MHz]. 0 defaults to 1220.
-+ * @dvb_frontend: DVB frontend.
-+ */
-+
-+struct mt2060_platform_data {
-+	u8 clock_out;
-+	u16 if1;
-+	struct dvb_frontend *dvb_frontend;
-+};
-+
-+
-+/* configuration struct for mt2060_attach() */
- struct mt2060_config {
- 	u8 i2c_address;
- 	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
-diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
-index 2b60de6..dfc4a06 100644
---- a/drivers/media/tuners/mt2060_priv.h
-+++ b/drivers/media/tuners/mt2060_priv.h
-@@ -95,6 +95,8 @@
- struct mt2060_priv {
- 	struct mt2060_config *cfg;
- 	struct i2c_adapter   *i2c;
-+	struct i2c_client *client;
-+	struct mt2060_config config;
- 
- 	u32 frequency;
- 	u16 if1_freq;
--- 
-http://palosaari.fi/
+On 07/21/2015 04:00 AM, Mikhail Ulyanov wrote:
+> This series of patches contains a driver for the JPEG codec integrated
+> peripheral found in the Renesas R-Car SoCs and associated DT documentation.
+> 
+> This series of patches is against the 'master' branch of
+> linuxtv.org/media_tree.git
+> 
+> v4l2-compliance -s
+> 
+> Driver Info:
+>         Driver name   : rcar_jpu
+>         Card type     : rcar_jpu encoder
+>         Bus info      : platform:fe980000.jpu
+>         Driver version: 4.2.0
+>         Capabilities  : 0x84204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>                 test VIDIOC_QUERYCTRL: OK
+>                 test VIDIOC_G/S_CTRL: OK
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 2 Private Controls: 0
+> 
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>         Buffer ioctls:
+>                 warn: v4l2-test-buffers.cpp(542): VIDIOC_CREATE_BUFS not supported
+>                 warn: v4l2-test-buffers.cpp(542): VIDIOC_CREATE_BUFS not supported
 
+Can you add support for this? There is a v4l2_m2m_ioctl_create_bufs helper function,
+so all you need to do is stick in that helper and have jpu_queue_setup verify and
+user fmt->fmt.imagesize as the size if fmt is non-NULL.
+
+Please run v4l2-compliance again after it's been added.
+
+I plan on reviewing and hopefully making a pull request for this on Friday.
+
+Regards,
+
+	Hans
