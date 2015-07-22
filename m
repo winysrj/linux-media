@@ -1,101 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38859 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754972AbbGYWml (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2015 18:42:41 -0400
-Date: Sun, 26 Jul 2015 01:42:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/7] v4l2-fh: add v4l2_fh_open_is_first and
- v4l2_fh_release_is_last
-Message-ID: <20150725224239.GA15270@valkosipuli.retiisi.org.uk>
-References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
- <1437733296-38198-4-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:53952 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750779AbbGVV6R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 17:58:17 -0400
+Date: Wed, 22 Jul 2015 18:58:11 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: Joe Perches <joe@perches.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X
+ tuner.
+Message-ID: <20150722185811.2d718baa@recife.lan>
+In-Reply-To: <1435195057.9377.18.camel@perches.com>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+	<1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
+	<1435195057.9377.18.camel@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1437733296-38198-4-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 24 Jun 2015 18:17:37 -0700
+Joe Perches <joe@perches.com> escreveu:
 
-On Fri, Jul 24, 2015 at 12:21:32PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
+> > This is used in conjunction with the STV0367 demodulator on
+> > the STV0367-NIM-V1.0 NIM card which can be used with the STi
+> > STB SoC's.
 > 
-> Add new helper functions that report back if this was the first open
-> or last close.
+> Barely associated to this specific patch, but for
+> dvb-pll.c, another thing that seems possible is to
+> convert the struct dvb_pll_desc uses to const and
+> change the "entries" fixed array size from 12 to []
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> It'd save a couple KB overall and remove ~5KB of data.
+> 
+> $ size drivers/media/dvb-frontends/dvb-pll.o*
+>    text	   data	    bss	    dec	    hex	filename
+>    8520	   1552	   2120	  12192	   2fa0	drivers/media/dvb-frontends/dvb-pll.o.new
+>    5624	   6363	   2120	  14107	   371b	drivers/media/dvb-frontends/dvb-pll.o.old
+
+Peter,
+
+Please add this patch on the next patch series you submit.
+
+Regards,
+Mauro
+
 > ---
-
-...
-
-> @@ -65,11 +65,23 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
+>  drivers/media/dvb-frontends/dvb-pll.c | 50 +++++++++++++++++------------------
+>  1 file changed, 25 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+> index 6d8fe88..53089e1 100644
+> --- a/drivers/media/dvb-frontends/dvb-pll.c
+> +++ b/drivers/media/dvb-frontends/dvb-pll.c
+> @@ -34,7 +34,7 @@ struct dvb_pll_priv {
+>  	struct i2c_adapter *i2c;
+>  
+>  	/* the PLL descriptor */
+> -	struct dvb_pll_desc *pll_desc;
+> +	const struct dvb_pll_desc *pll_desc;
+>  
+>  	/* cached frequency/bandwidth */
+>  	u32 frequency;
+> @@ -57,7 +57,7 @@ MODULE_PARM_DESC(id, "force pll id to use (DEBUG ONLY)");
+>  /* ----------------------------------------------------------- */
+>  
+>  struct dvb_pll_desc {
+> -	char *name;
+> +	const char *name;
+>  	u32  min;
+>  	u32  max;
+>  	u32  iffreq;
+> @@ -71,13 +71,13 @@ struct dvb_pll_desc {
+>  		u32 stepsize;
+>  		u8  config;
+>  		u8  cb;
+> -	} entries[12];
+> +	} entries[];
+>  };
+>  
+>  /* ----------------------------------------------------------- */
+>  /* descriptions                                                */
+>  
+> -static struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
+> +static const struct dvb_pll_desc dvb_pll_thomson_dtt7579 = {
+>  	.name  = "Thomson dtt7579",
+>  	.min   = 177000000,
+>  	.max   = 858000000,
+> @@ -99,7 +99,7 @@ static void thomson_dtt759x_bw(struct dvb_frontend *fe, u8 *buf)
+>  		buf[3] |= 0x10;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
+> +static const struct dvb_pll_desc dvb_pll_thomson_dtt759x = {
+>  	.name  = "Thomson dtt759x",
+>  	.min   = 177000000,
+>  	.max   = 896000000,
+> @@ -123,7 +123,7 @@ static void thomson_dtt7520x_bw(struct dvb_frontend *fe, u8 *buf)
+>  		buf[3] ^= 0x10;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
+> +static const struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
+>  	.name  = "Thomson dtt7520x",
+>  	.min   = 185000000,
+>  	.max   = 900000000,
+> @@ -141,7 +141,7 @@ static struct dvb_pll_desc dvb_pll_thomson_dtt7520x = {
+>  	},
+>  };
+>  
+> -static struct dvb_pll_desc dvb_pll_lg_z201 = {
+> +static const struct dvb_pll_desc dvb_pll_lg_z201 = {
+>  	.name  = "LG z201",
+>  	.min   = 174000000,
+>  	.max   = 862000000,
+> @@ -157,7 +157,7 @@ static struct dvb_pll_desc dvb_pll_lg_z201 = {
+>  	},
+>  };
+>  
+> -static struct dvb_pll_desc dvb_pll_unknown_1 = {
+> +static const struct dvb_pll_desc dvb_pll_unknown_1 = {
+>  	.name  = "unknown 1", /* used by dntv live dvb-t */
+>  	.min   = 174000000,
+>  	.max   = 862000000,
+> @@ -179,7 +179,7 @@ static struct dvb_pll_desc dvb_pll_unknown_1 = {
+>  /* Infineon TUA6010XS
+>   * used in Thomson Cable Tuner
 >   */
->  bool v4l2_fh_add(struct v4l2_fh *fh);
->  /*
-> + * It allocates a v4l2_fh and inits and adds it to the video_device associated
-> + * with the file pointer. In addition it returns true if this was the first
-> + * open and false otherwise. The error code is returned in *err.
-> + */
-> +bool v4l2_fh_open_is_first(struct file *filp, int *err);
-
-The new interface functions look a tad clumsy to me.
-
-What would you think of returning the singularity value from v4l2_fh_open()
-straight away? Negative integers are errors, so zero and positive values are
-free.
-
-A few drivers just check if the value is non-zero and then return that
-value, but there are just a handful of those.
-
-> +/*
->   * Can be used as the open() op of v4l2_file_operations.
->   * It allocates a v4l2_fh and inits and adds it to the video_device associated
->   * with the file pointer.
+> -static struct dvb_pll_desc dvb_pll_tua6010xs = {
+> +static const struct dvb_pll_desc dvb_pll_tua6010xs = {
+>  	.name  = "Infineon TUA6010XS",
+>  	.min   =  44250000,
+>  	.max   = 858000000,
+> @@ -193,7 +193,7 @@ static struct dvb_pll_desc dvb_pll_tua6010xs = {
+>  };
+>  
+>  /* Panasonic env57h1xd5 (some Philips PLL ?) */
+> -static struct dvb_pll_desc dvb_pll_env57h1xd5 = {
+> +static const struct dvb_pll_desc dvb_pll_env57h1xd5 = {
+>  	.name  = "Panasonic ENV57H1XD5",
+>  	.min   =  44250000,
+>  	.max   = 858000000,
+> @@ -217,7 +217,7 @@ static void tda665x_bw(struct dvb_frontend *fe, u8 *buf)
+>  		buf[3] |= 0x08;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_tda665x = {
+> +static const struct dvb_pll_desc dvb_pll_tda665x = {
+>  	.name  = "Philips TDA6650/TDA6651",
+>  	.min   =  44250000,
+>  	.max   = 858000000,
+> @@ -251,7 +251,7 @@ static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+>  		buf[3] |= 0x08;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_tua6034 = {
+> +static const struct dvb_pll_desc dvb_pll_tua6034 = {
+>  	.name  = "Infineon TUA6034",
+>  	.min   =  44250000,
+>  	.max   = 858000000,
+> @@ -275,7 +275,7 @@ static void tded4_bw(struct dvb_frontend *fe, u8 *buf)
+>  		buf[3] |= 0x04;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_tded4 = {
+> +static const struct dvb_pll_desc dvb_pll_tded4 = {
+>  	.name = "ALPS TDED4",
+>  	.min = 47000000,
+>  	.max = 863000000,
+> @@ -293,7 +293,7 @@ static struct dvb_pll_desc dvb_pll_tded4 = {
+>  /* ALPS TDHU2
+>   * used in AverTVHD MCE A180
 >   */
-> -int v4l2_fh_open(struct file *filp);
-> +static inline int v4l2_fh_open(struct file *filp)
-> +{
-> +	int err;
-> +
-> +	v4l2_fh_open_is_first(filp, &err);
-> +	return err;
-> +}
->  /*
->   * Remove file handle from the list of file handles. Must be called in
->   * v4l2_file_operations->release() handler if the driver uses v4l2_fh.
-> @@ -86,12 +98,23 @@ bool v4l2_fh_del(struct v4l2_fh *fh);
+> -static struct dvb_pll_desc dvb_pll_tdhu2 = {
+> +static const struct dvb_pll_desc dvb_pll_tdhu2 = {
+>  	.name = "ALPS TDHU2",
+>  	.min = 54000000,
+>  	.max = 864000000,
+> @@ -310,7 +310,7 @@ static struct dvb_pll_desc dvb_pll_tdhu2 = {
+>  /* Samsung TBMV30111IN / TBMV30712IN1
+>   * used in Air2PC ATSC - 2nd generation (nxt2002)
 >   */
->  void v4l2_fh_exit(struct v4l2_fh *fh);
+> -static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
+> +static const struct dvb_pll_desc dvb_pll_samsung_tbmv = {
+>  	.name = "Samsung TBMV30111IN / TBMV30712IN1",
+>  	.min = 54000000,
+>  	.max = 860000000,
+> @@ -329,7 +329,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmv = {
 >  /*
-> + * It deletes and exits the v4l2_fh associated with the file pointer and
-> + * frees it. It will do nothing if filp->private_data (the pointer to the
-> + * v4l2_fh struct) is NULL. This function returns true if this was the
-> + * last open file handle and false otherwise.
-> + */
-> +bool v4l2_fh_release_is_last(struct file *filp);
-> +/*
->   * Can be used as the release() op of v4l2_file_operations.
->   * It deletes and exits the v4l2_fh associated with the file pointer and
->   * frees it. It will do nothing if filp->private_data (the pointer to the
->   * v4l2_fh struct) is NULL. This function always returns 0.
+>   * Philips SD1878 Tuner.
 >   */
-> -int v4l2_fh_release(struct file *filp);
-> +static inline int v4l2_fh_release(struct file *filp)
-> +{
-> +	v4l2_fh_release_is_last(filp);
-> +	return 0;
-> +}
->  /*
->   * Returns true if this filehandle is the only filehandle opened for the
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> -static struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
+> +static const struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 = {
+>  	.name  = "Philips SD1878",
+>  	.min   =  950000,
+>  	.max   = 2150000,
+> @@ -395,7 +395,7 @@ static void opera1_bw(struct dvb_frontend *fe, u8 *buf)
+>  	return;
+>  }
+>  
+> -static struct dvb_pll_desc dvb_pll_opera1 = {
+> +static const struct dvb_pll_desc dvb_pll_opera1 = {
+>  	.name  = "Opera Tuner",
+>  	.min   =  900000,
+>  	.max   = 2250000,
+> @@ -442,7 +442,7 @@ static void samsung_dtos403ih102a_set(struct dvb_frontend *fe, u8 *buf)
+>  }
+>  
+>  /* unknown pll used in Samsung DTOS403IH102A DVB-C tuner */
+> -static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
+> +static const struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
+>  	.name   = "Samsung DTOS403IH102A",
+>  	.min    =  44250000,
+>  	.max    = 858000000,
+> @@ -462,7 +462,7 @@ static struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a = {
+>  };
+>  
+>  /* Samsung TDTC9251DH0 DVB-T NIM, as used on AirStar 2 */
+> -static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
+> +static const struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
+>  	.name	= "Samsung TDTC9251DH0",
+>  	.min	=  48000000,
+>  	.max	= 863000000,
+> @@ -476,7 +476,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 = {
+>  };
+>  
+>  /* Samsung TBDU18132 DVB-S NIM with TSA5059 PLL, used in SkyStar2 DVB-S 2.3 */
+> -static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
+> +static const struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
+>  	.name = "Samsung TBDU18132",
+>  	.min	=  950000,
+>  	.max	= 2150000, /* guesses */
+> @@ -497,7 +497,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbdu18132 = {
+>  };
+>  
+>  /* Samsung TBMU24112 DVB-S NIM with SL1935 zero-IF tuner */
+> -static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
+> +static const struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
+>  	.name = "Samsung TBMU24112",
+>  	.min	=  950000,
+>  	.max	= 2150000, /* guesses */
+> @@ -518,7 +518,7 @@ static struct dvb_pll_desc dvb_pll_samsung_tbmu24112 = {
+>   * 153 - 430   0  *  0   0   0   0   1   0   0x02
+>   * 430 - 822   0  *  0   0   1   0   0   0   0x08
+>   * 822 - 862   1  *  0   0   1   0   0   0   0x88 */
+> -static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+> +static const struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+>  	.name = "ALPS TDEE4",
+>  	.min	=  47000000,
+>  	.max	= 862000000,
+> @@ -534,7 +534,7 @@ static struct dvb_pll_desc dvb_pll_alps_tdee4 = {
+>  
+>  /* ----------------------------------------------------------- */
+>  
+> -static struct dvb_pll_desc *pll_list[] = {
+> +static const struct dvb_pll_desc *pll_list[] = {
+>  	[DVB_PLL_UNDEFINED]              = NULL,
+>  	[DVB_PLL_THOMSON_DTT7579]        = &dvb_pll_thomson_dtt7579,
+>  	[DVB_PLL_THOMSON_DTT759X]        = &dvb_pll_thomson_dtt759x,
+> @@ -564,7 +564,7 @@ static int dvb_pll_configure(struct dvb_frontend *fe, u8 *buf,
+>  			     const u32 frequency)
+>  {
+>  	struct dvb_pll_priv *priv = fe->tuner_priv;
+> -	struct dvb_pll_desc *desc = priv->pll_desc;
+> +	const struct dvb_pll_desc *desc = priv->pll_desc;
+>  	u32 div;
+>  	int i;
+>  
+> @@ -758,7 +758,7 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_frontend *fe, int pll_addr,
+>  			       .buf = b1, .len = 1 };
+>  	struct dvb_pll_priv *priv = NULL;
+>  	int ret;
+> -	struct dvb_pll_desc *desc;
+> +	const struct dvb_pll_desc *desc;
+>  
+>  	if ((id[dvb_pll_devcount] > DVB_PLL_UNDEFINED) &&
+>  	    (id[dvb_pll_devcount] < ARRAY_SIZE(pll_list)))
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
