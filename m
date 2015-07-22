@@ -1,141 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59981 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbbGCNyz (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:35706 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932256AbbGVHPJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2015 09:54:55 -0400
-Message-ID: <55969405.9090207@xs4all.nl>
-Date: Fri, 03 Jul 2015 15:54:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 22 Jul 2015 03:15:09 -0400
+Received: by wibxm9 with SMTP id xm9so149582332wib.0
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2015 00:15:07 -0700 (PDT)
+Message-ID: <55AF42F9.4020407@gmail.com>
+Date: Wed, 22 Jul 2015 09:15:05 +0200
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-CC: mchehab@osg.samsung.com
-Subject: Re: [PATCH v2 1/1] vb2: Only requeue buffers immediately once streaming
- is started
-References: <1435927676-24559-1-git-send-email-sakari.ailus@linux.intel.com> <55968A26.1010102@xs4all.nl> <55968E02.3060102@linux.intel.com>
-In-Reply-To: <55968E02.3060102@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: Steven Toth <stoth@kernellabs.com>
+CC: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants - testers
+ reqd.
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>	<55AB5320.8030100@gmail.com>	<CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>	<55AD1C77.6030208@gmail.com>	<CALzAhNVmmAy=4r0Vd=T82HPUrOzxK9Rg2-M=DQ8gUa-DXKsS6w@mail.gmail.com>	<55AE6F31.3050308@gmail.com>	<CALzAhNVuez1_byQe+FiOjZPdUpdgMg0q8CT2KPJ-rO8o8dohzw@mail.gmail.com>	<55AE8A73.9070802@gmail.com> <CALzAhNW9_S=gaT9ioytcpz1hBJ4qjdxaJN6E7ZPQ__8QPdQ=6w@mail.gmail.com>
+In-Reply-To: <CALzAhNW9_S=gaT9ioytcpz1hBJ4qjdxaJN6E7ZPQ__8QPdQ=6w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/2015 03:28 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Hans Verkuil wrote:
->> On 07/03/2015 02:47 PM, Sakari Ailus wrote:
->>> Buffers can be returned back to videobuf2 in driver's streamon handler. In
->>> this case vb2_buffer_done() with buffer state VB2_BUF_STATE_QUEUED will
->>> cause the driver's buf_queue vb2 operation to be called, queueing the same
->>> buffer again only to be returned to videobuf2 using vb2_buffer_done() and so
->>> on.
->>>
->>> Add a new buffer state VB2_BUF_STATE_REQUEUEING which, when used as the
->>
->> It's spelled as requeuing (no e). The verb is 'to queue', but the -ing form is
->> queuing. Check the dictionary: http://dictionary.reference.com/browse/queuing
-> 
-> My dictionary disagrees with yours. :-)
-> 
-> http://dictionary.cambridge.org/dictionary/british/queue?q=queueing
+Hi Steven,
+I'm happy to inform you that all failures have vanished.
 
-$ git grep -i queueing|wc
-    655    5660   54709
-$ git grep -i queuing|wc
-    650    5623   55249
+Summarizing:
+I compiled 4.2-RC3 with your patch and with
 
-That's not helpful either...
+/* Tri-state the TS bus */
+  si2168_set_ts_mode(fe, 0);
 
-On the other hand:
+changed the .delsys line in si2168.c to satisfy MythTV from
 
-$ git grep -i queuing drivers/media/|wc
-     19     200    1846
-$ git grep -i queueing drivers/media/|wc
-      2      25     203
+.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
 
-Within drivers/media there seems to be a clear preference for queuing :-)
+to
 
-But yes, both spellings are OK, but for me queueing has way too many vowels!
-And interestingly, my spellchecker thinks queueing is wrong.
+.delsys = {SYS_DVBC_ANNEX_A, SYS_DVBT, SYS_DVBT2},
 
-> 
->>
->>> state argument to vb2_buffer_done(), will result in buffers queued to the
->>> driver. Using VB2_BUF_STATE_QUEUED will leave the buffer to videobuf2, as it
->>> was before "[media] vb2: allow requeuing buffers while streaming".
->>>
->>> Fixes: ce0eff016f72 ("[media] vb2: allow requeuing buffers while streaming")
->>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> Cc: stable@vger.kernel.org # for v4.1
->>> ---
->>> since v1:
->>>
->>> - Instead of relying on q->start_streaming_called and q->streaming, add a
->>>    new buffer state VB2_BUF_STATE_REQUEUEING, as suggested by Hans. The
->>>    cobalt driver will need the new flag as it returns the buffer back to the
->>>    driver's queue, the rest will continue using VB2_BUF_STATE_QUEUED.
->>>
->>>   drivers/media/pci/cobalt/cobalt-irq.c    |  2 +-
->>>   drivers/media/v4l2-core/videobuf2-core.c | 15 +++++++++++----
->>>   include/media/videobuf2-core.h           |  2 ++
->>>   3 files changed, 14 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
->>> index e18f49e..2687cb0 100644
->>> --- a/drivers/media/pci/cobalt/cobalt-irq.c
->>> +++ b/drivers/media/pci/cobalt/cobalt-irq.c
->>> @@ -134,7 +134,7 @@ done:
->>>   	   also know about dropped frames. */
->>>   	cb->vb.v4l2_buf.sequence = s->sequence++;
->>>   	vb2_buffer_done(&cb->vb, (skip || s->unstable_frame) ?
->>> -			VB2_BUF_STATE_QUEUED : VB2_BUF_STATE_DONE);
->>> +			VB2_BUF_STATE_REQUEUEING : VB2_BUF_STATE_DONE);
->>>   }
->>>
->>>   irqreturn_t cobalt_irq_handler(int irq, void *dev_id)
->>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>> index 1a096a6..ca8c041 100644
->>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>> @@ -1182,7 +1182,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->>>
->>>   	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
->>>   		    state != VB2_BUF_STATE_ERROR &&
->>> -		    state != VB2_BUF_STATE_QUEUED))
->>> +		    state != VB2_BUF_STATE_QUEUED &&
->>> +		    state != VB2_BUF_STATE_REQUEUEING))
->>>   		state = VB2_BUF_STATE_ERROR;
->>>
->>>   #ifdef CONFIG_VIDEO_ADV_DEBUG
->>> @@ -1199,15 +1200,21 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->>>   	for (plane = 0; plane < vb->num_planes; ++plane)
->>>   		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
->>>
->>> -	/* Add the buffer to the done buffers list */
->>>   	spin_lock_irqsave(&q->done_lock, flags);
->>> -	vb->state = state;
->>> -	if (state != VB2_BUF_STATE_QUEUED)
->>> +	if (state == VB2_BUF_STATE_QUEUED ||
->>> +	    state == VB2_BUF_STATE_REQUEUEING) {
->>> +		vb->state = VB2_BUF_STATE_QUEUED;
->>> +	} else {
->>> +		/* Add the buffer to the done buffers list */
->>>   		list_add_tail(&vb->done_entry, &q->done_list);
->>> +		vb->state = state;
->>> +	}
->>>   	atomic_dec(&q->owned_by_drv_count);
->>>   	spin_unlock_irqrestore(&q->done_lock, flags);
->>>
->>>   	if (state == VB2_BUF_STATE_QUEUED) {
->>> +		return;
->>> +	} else if (state == VB2_BUF_STATE_REQUEUEING) {
->>
->> No 'else' is needed here since the 'if' just returns.
-> 
-> Will fix.
-> 
+added the dvbloopback module (for descrambling with MythTV) and saa716x 
+bridge driver (to support my TBS 6285 cards)
+
+Result: lock and tune is just fine in both TVheadend and MythTV with TBS 
+6285 as well as DVBSky T982 cards.
+
+TBS 6285: saa716x+si2168+si2157
+DVBSky T982: cx23885+si2168+si2157
 
 Regards,
+Tycho.
 
-	Hans
+Op 21-07-15 om 21:00 schreef Steven Toth:
+> On Tue, Jul 21, 2015 at 2:07 PM, Tycho Lürsen <tycholursen@gmail.com> wrote:
+>>
+>> Op 21-07-15 om 18:19 schreef Steven Toth:
+>>> On Tue, Jul 21, 2015 at 12:11 PM, Tycho Lürsen <tycholursen@gmail.com>
+>>> wrote:
+>>>> Hi Steven,
+>>>> I was too curious to wait for you and Antti to settle your differences,
+>>>> so I
+>>>> tested again against a 4.2-RC2
+>>>> I did not disable DVB-T/T2, instead I reordered the lot. MythTV just sees
+>>>> the first system in the .delsys line in si2168.c,
+>>>> so when it looks like this:
+>>>> SYS_DVBC_ANNEX_A, SYS_DVBT, SYS_DVBT2
+>>>> I'm good.
+>>> We have no differences, its Antti's si2168 driver. If Antti doesn't
+>>> like the approach for tri-stating, he's free to suggest and
+>>> alternative. I suggested two alternatives yesterday.
+>>>
+>>>> Result:
+>>>> With your patch both MythTV and Tvheadend still can't tune. Without it,
+>>>> everything is ok.
+>>>>
+>>>> I'm not very interested in czap results, only in real use cases. For me
+>>>> that's MythTV, but just to be sure I also tested with TVheadend.
+>>> That's pretty bizarre results, although thank you for testing. :)
+>>>
+>>> When you say it can't tune, do you mean the signal does not lock, or
+>>> that no video appears?
+>>>
+>> No lock, or partial lock.
+> Thanks.
+>
+> That's even worse than expected, given that the patch adjusts the TS
+> interface, and has nothing to do with tuning, lock, rf or signal
+> status. It still feels like something else is going on, some other
+> unexpected race for example.
+>
+> I can't reproduce that behavior, but given that you can.... Can you
+> please try this? in si2168.c, change:
+>
+>   /* Tri-state the TS bus */
+>   si2168_set_ts_mode(fe, 1);
+>
+> to
+>
+>   /* Tri-state the TS bus */
+>   si2168_set_ts_mode(fe, 0);
+>
+> ... recompile and retest?
+>
+> Thx.
+>
+
