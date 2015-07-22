@@ -1,169 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61460 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525AbbGJGT4 (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:36180 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934149AbbGVLXi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:19:56 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 1/7] [media] dvb-frontends: Drop owner assignment from
- i2c_driver
-Date: Fri, 10 Jul 2015 15:19:42 +0900
-Message-id: <1436509188-23320-2-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
-References: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+	Wed, 22 Jul 2015 07:23:38 -0400
+Received: by lagw2 with SMTP id w2so135887647lag.3
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2015 04:23:36 -0700 (PDT)
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: hverkuil@xs4all.nl, horms@verge.net.au, magnus.damm@gmail.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	mchehab@osg.samsung.com
+Cc: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
+	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Subject: [PATCH 0/3] R-Car JPEG Processing Unit
+Date: Wed, 22 Jul 2015 14:23:02 +0300
+Message-Id: <1437564185-13593-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_driver does not need to set an owner because i2c_register_driver()
-will set it.
+This series of patches contains a driver for the JPEG codec integrated
+peripheral found in the Renesas R-Car SoCs and associated DT documentation.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+This series of patches is against the 'master' branch of
+linuxtv.org/media_tree.git
 
----
+v4l2-compliance -s
 
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
----
- drivers/media/dvb-frontends/a8293.c          | 1 -
- drivers/media/dvb-frontends/af9033.c         | 1 -
- drivers/media/dvb-frontends/au8522_decoder.c | 1 -
- drivers/media/dvb-frontends/m88ds3103.c      | 1 -
- drivers/media/dvb-frontends/rtl2830.c        | 1 -
- drivers/media/dvb-frontends/rtl2832.c        | 1 -
- drivers/media/dvb-frontends/si2168.c         | 1 -
- drivers/media/dvb-frontends/sp2.c            | 1 -
- drivers/media/dvb-frontends/tda10071.c       | 1 -
- drivers/media/dvb-frontends/ts2020.c         | 1 -
- 10 files changed, 10 deletions(-)
+Driver Info:
+        Driver name   : rcar_jpu
+        Card type     : rcar_jpu encoder
+        Bus info      : platform:fe980000.jpu
+        Driver version: 4.2.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
 
-diff --git a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
-index 97ecbe01034c..df3c9758a903 100644
---- a/drivers/media/dvb-frontends/a8293.c
-+++ b/drivers/media/dvb-frontends/a8293.c
-@@ -234,7 +234,6 @@ MODULE_DEVICE_TABLE(i2c, a8293_id_table);
- 
- static struct i2c_driver a8293_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "a8293",
- 		.suppress_bind_attrs = true,
- 	},
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 59018afaa95f..bc35206a0821 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -1387,7 +1387,6 @@ MODULE_DEVICE_TABLE(i2c, af9033_id_table);
- 
- static struct i2c_driver af9033_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "af9033",
- 	},
- 	.probe		= af9033_probe,
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 33aa9410b624..28d7dc2fee34 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -820,7 +820,6 @@ MODULE_DEVICE_TABLE(i2c, au8522_id);
- 
- static struct i2c_driver au8522_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "au8522",
- 	},
- 	.probe		= au8522_probe,
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index e9b2d2b69b1d..ff31e7a01ca9 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1495,7 +1495,6 @@ MODULE_DEVICE_TABLE(i2c, m88ds3103_id_table);
- 
- static struct i2c_driver m88ds3103_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "m88ds3103",
- 		.suppress_bind_attrs = true,
- 	},
-diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
-index 3d01f4f22aca..b792f305cf15 100644
---- a/drivers/media/dvb-frontends/rtl2830.c
-+++ b/drivers/media/dvb-frontends/rtl2830.c
-@@ -915,7 +915,6 @@ MODULE_DEVICE_TABLE(i2c, rtl2830_id_table);
- 
- static struct i2c_driver rtl2830_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "rtl2830",
- 	},
- 	.probe		= rtl2830_probe,
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 822ea4b7a7ff..78b87b260d74 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -1319,7 +1319,6 @@ MODULE_DEVICE_TABLE(i2c, rtl2832_id_table);
- 
- static struct i2c_driver rtl2832_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "rtl2832",
- 	},
- 	.probe		= rtl2832_probe,
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 25e238c370e5..81788c5a44d8 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -757,7 +757,6 @@ MODULE_DEVICE_TABLE(i2c, si2168_id_table);
- 
- static struct i2c_driver si2168_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "si2168",
- 	},
- 	.probe		= si2168_probe,
-diff --git a/drivers/media/dvb-frontends/sp2.c b/drivers/media/dvb-frontends/sp2.c
-index 8fd42767e263..43d47dfcc7b8 100644
---- a/drivers/media/dvb-frontends/sp2.c
-+++ b/drivers/media/dvb-frontends/sp2.c
-@@ -426,7 +426,6 @@ MODULE_DEVICE_TABLE(i2c, sp2_id);
- 
- static struct i2c_driver sp2_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "sp2",
- 	},
- 	.probe		= sp2_probe,
-diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-index f6dc6307d35a..2b7d6ca69945 100644
---- a/drivers/media/dvb-frontends/tda10071.c
-+++ b/drivers/media/dvb-frontends/tda10071.c
-@@ -1409,7 +1409,6 @@ MODULE_DEVICE_TABLE(i2c, tda10071_id_table);
- 
- static struct i2c_driver tda10071_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "tda10071",
- 		.suppress_bind_attrs = true,
- 	},
-diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
-index f61b143a0052..7979e5d6498b 100644
---- a/drivers/media/dvb-frontends/ts2020.c
-+++ b/drivers/media/dvb-frontends/ts2020.c
-@@ -726,7 +726,6 @@ MODULE_DEVICE_TABLE(i2c, ts2020_id_table);
- 
- static struct i2c_driver ts2020_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "ts2020",
- 	},
- 	.probe		= ts2020_probe,
--- 
-1.9.1
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 2 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK (Not Supported)
+        test MMAP: OK
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 45, Succeeded: 45, Failed: 0, Warnings: 0
+
+Mikhail Ulyanov (3):
+  V4L2: platform: Add Renesas R-Car JPEG codec driver.
+  devicetree: bindings: Document Renesas JPEG Processing Unit
+  MAINTAINERS: V4L2: PLATFORM: Add entry for Renesas JPEG Processing
+    Unit driver
+
+ .../devicetree/bindings/media/renesas,jpu.txt      |   24 +
+ MAINTAINERS                                        |    6 +
+ drivers/media/platform/Kconfig                     |   12 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rcar_jpu.c                  | 1794 ++++++++++++++++++++
+ 5 files changed, 1837 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,jpu.txt
+ create mode 100644 drivers/media/platform/rcar_jpu.c
+
+--
+2.1.4
 
