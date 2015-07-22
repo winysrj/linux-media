@@ -1,133 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:53722 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbbG1HqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 03:46:08 -0400
-Date: Tue, 28 Jul 2015 09:45:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
-In-Reply-To: <55B73232.9080906@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1507280945050.18223@axis700.grange>
-References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
- <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
- <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl>
- <Pine.LNX.4.64.1506220920280.13683@axis700.grange> <5587B93C.1030106@xs4all.nl>
- <55B24650.5090401@xs4all.nl> <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
- <55B73232.9080906@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:47084 "EHLO
+	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752541AbbGVWmm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 18:42:42 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 06/19] media: platform exynos4-is: Update graph_mutex to graph_lock spinlock
+Date: Wed, 22 Jul 2015 16:42:07 -0600
+Message-Id: <5a8cfe7719b00195cfca2d140ff1030eca5e9fbd.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 28 Jul 2015, Hans Verkuil wrote:
+Update graph_mutex to graph_lock spinlock to be in sync with
+the Media Conttroller change for the same.
 
-> On 07/26/2015 12:00 PM, Guennadi Liakhovetski wrote:
-> > Hi Hans,
-> > 
-> > On Fri, 24 Jul 2015, Hans Verkuil wrote:
-> > 
-> >> Guennadi,
-> >>
-> >> I want to make a pull request for this patch series. This patch is the only
-> >> outstanding one.
-> > 
-> > Right, sorry for the delay. Replying to your explanation below:
-> > 
-> >> Or do you have to review more patches? I only got Acks for patches 1 and 
-> >> 2.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >> On 06/22/2015 09:29 AM, Hans Verkuil wrote:
-> >>> On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
-> >>>> Hi Hans,
-> >>>>
-> >>>> On Mon, 22 Jun 2015, Hans Verkuil wrote:
-> >>>>
-> >>>>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
-> >>>>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
-> >>>>>>
-> >>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>>>>
-> >>>>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>>>> ---
-> >>>>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
-> >>>>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
-> >>>>>>>
-> >>>>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>>>> index df66417..e939c24 100644
-> >>>>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
-> >>>>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
-> >>>>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
-> >>>>>>>  
-> >>>>>>>  	priv->norm = V4L2_STD_NTSC;
-> >>>>>>> +	priv->scale = &tw9910_ntsc_scales[0];
-> >>>>>>
-> >>>>>> Why do you need this? So far everywhere in the code priv->scale is either 
-> >>>>>> checked or set before use. Don't see why an additional initialisation is 
-> >>>>>> needed.
-> >>>>>
-> >>>>> If you just start streaming without explicitly setting up formats (which is
-> >>>>> allowed), then priv->scale is still NULL.
-> >>>>
-> >>>> Yes, it can well be NULL, but it is also unused. Before it is used it will 
-> >>>> be set, while it is unused it is allowed to stay NULL.
-> >>>
-> >>> No. If you start streaming without the set_fmt op having been called, then
-> >>> s_stream will return an error since priv->scale is NULL. This is wrong. Since
-> >>> this driver defaults to NTSC the initial setup should be for NTSC and it should
-> >>> be ready for streaming.
-> >>>
-> >>> So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
-> >>> E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
-> >>> case. It's how I found this bug.
-> >>>
-> >>> It's a trivial one liner to ensure a valid priv->scale pointer.
-> > 
-> > Yes, you're right, now I see how this can happen. But there's also another 
-> > possibility: if S_FMT fails priv->scale will be set to NULL. If you then 
-> > directly start streaming wouldn't the same problem arise? Or is it valid 
-> > to fail STREAMON after a failed S_FMT? If it is, then of course
-> 
-> The only way S_FMT (or really tw9910_set_frame) can fail is if there are I/O errors.
-> And then it is OK for STREAMON to fail (you're typically in deep shit anyway if this
-> happens).
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  8 ++++----
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  8 ++++----
+ drivers/media/platform/exynos4-is/media-dev.c      | 14 +++++++-------
+ drivers/media/platform/exynos4-is/media-dev.h      |  4 ++--
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-Ok, then my ack holds:)
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index 76b6b4d..5ff0a54 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -288,7 +288,7 @@ static int isp_video_open(struct file *file)
+ 		goto rel_fh;
+ 
+ 	if (v4l2_fh_is_singular_file(file)) {
+-		mutex_lock(&me->parent->graph_mutex);
++		spin_lock(&me->parent->graph_lock);
+ 
+ 		ret = fimc_pipeline_call(ve, open, me, true);
+ 
+@@ -296,7 +296,7 @@ static int isp_video_open(struct file *file)
+ 		if (ret == 0)
+ 			me->use_count++;
+ 
+-		mutex_unlock(&me->parent->graph_mutex);
++		spin_unlock(&me->parent->graph_lock);
+ 	}
+ 	if (!ret)
+ 		goto unlock;
+@@ -326,9 +326,9 @@ static int isp_video_release(struct file *file)
+ 	if (v4l2_fh_is_singular_file(file)) {
+ 		fimc_pipeline_call(&ivc->ve, close);
+ 
+-		mutex_lock(&mdev->graph_mutex);
++		spin_lock(&mdev->graph_lock);
+ 		entity->use_count--;
+-		mutex_unlock(&mdev->graph_mutex);
++		spin_unlock(&mdev->graph_lock);
+ 	}
+ 
+ 	pm_runtime_put(&isp->pdev->dev);
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index ca6261a..cb1ea29 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -500,7 +500,7 @@ static int fimc_lite_open(struct file *file)
+ 	    atomic_read(&fimc->out_path) != FIMC_IO_DMA)
+ 		goto unlock;
+ 
+-	mutex_lock(&me->parent->graph_mutex);
++	spin_lock(&me->parent->graph_lock);
+ 
+ 	ret = fimc_pipeline_call(&fimc->ve, open, me, true);
+ 
+@@ -508,7 +508,7 @@ static int fimc_lite_open(struct file *file)
+ 	if (ret == 0)
+ 		me->use_count++;
+ 
+-	mutex_unlock(&me->parent->graph_mutex);
++	spin_unlock(&me->parent->graph_lock);
+ 
+ 	if (!ret) {
+ 		fimc_lite_clear_event_counters(fimc);
+@@ -541,9 +541,9 @@ static int fimc_lite_release(struct file *file)
+ 		fimc_pipeline_call(&fimc->ve, close);
+ 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+ 
+-		mutex_lock(&entity->parent->graph_mutex);
++		spin_lock(&entity->parent->graph_lock);
+ 		entity->use_count--;
+-		mutex_unlock(&entity->parent->graph_mutex);
++		spin_unlock(&entity->parent->graph_lock);
+ 	}
+ 
+ 	_vb2_fop_release(file, NULL);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 4f5586a..3e296e8 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1046,7 +1046,7 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
+ 	return ret;
+ }
+ 
+-/* Locking: called with entity->parent->graph_mutex mutex held. */
++/* Locking: called with entity->parent->graph_lock lock held. */
+ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+ {
+ 	struct media_entity *entity_err = entity;
+@@ -1305,7 +1305,7 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+ 	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
+ 	int ret;
+ 
+-	mutex_lock(&fmd->media_dev.graph_mutex);
++	spin_lock(&fmd->media_dev.graph_lock);
+ 
+ 	ret = fimc_md_create_links(fmd);
+ 	if (ret < 0)
+@@ -1313,7 +1313,7 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+ unlock:
+-	mutex_unlock(&fmd->media_dev.graph_mutex);
++	spin_unlock(&fmd->media_dev.graph_lock);
+ 	return ret;
+ }
+ 
+@@ -1371,21 +1371,21 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, fmd);
+ 
+ 	/* Protect the media graph while we're registering entities */
+-	mutex_lock(&fmd->media_dev.graph_mutex);
++	spin_lock(&fmd->media_dev.graph_lock);
+ 
+ 	ret = fimc_md_register_platform_entities(fmd, dev->of_node);
+ 	if (ret) {
+-		mutex_unlock(&fmd->media_dev.graph_mutex);
++		spin_unlock(&fmd->media_dev.graph_lock);
+ 		goto err_clk;
+ 	}
+ 
+ 	ret = fimc_md_register_sensor_entities(fmd);
+ 	if (ret) {
+-		mutex_unlock(&fmd->media_dev.graph_mutex);
++		spin_unlock(&fmd->media_dev.graph_lock);
+ 		goto err_m_ent;
+ 	}
+ 
+-	mutex_unlock(&fmd->media_dev.graph_mutex);
++	spin_unlock(&fmd->media_dev.graph_lock);
+ 
+ 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	if (ret)
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 0321454..91edd9b 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -175,12 +175,12 @@ static inline struct fimc_md *notifier_to_fimc_md(struct v4l2_async_notifier *n)
+ 
+ static inline void fimc_md_graph_lock(struct exynos_video_entity *ve)
+ {
+-	mutex_lock(&ve->vdev.entity.parent->graph_mutex);
++	spin_lock(&ve->vdev.entity.parent->graph_lock);
+ }
+ 
+ static inline void fimc_md_graph_unlock(struct exynos_video_entity *ve)
+ {
+-	mutex_unlock(&ve->vdev.entity.parent->graph_mutex);
++	spin_unlock(&ve->vdev.entity.parent->graph_lock);
+ }
+ 
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+-- 
+2.1.4
 
-Thanks
-Guennadi
-
-> Regards,
-> 
-> 	Hans
-> 
-> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > 
-> > If that's invalid, then maybe a more extensive fix is needed?
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> >>> Regards,
-> >>>
-> >>> 	Hans
-> >>>
-> >>>>
-> >>>> Thanks
-> >>>> Guennadi
-> >>>>
-> >>>>> V4L2 always assumes that there is some initial format configured, and this line
-> >>>>> enables that for this driver (NTSC).
-> >>>>>
-> >>>>> Regards,
-> >>>>>
-> >>>>> 	Hans
