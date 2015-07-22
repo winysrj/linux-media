@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34503 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750883AbbG1ICy (ORCPT
+Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:47084 "EHLO
+	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752524AbbGVWms (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 04:02:54 -0400
-Message-ID: <55B73724.4040500@xs4all.nl>
-Date: Tue, 28 Jul 2015 10:02:44 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH] [media] v4l2: export videobuf2 trace points
-References: <1438070104-24084-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1438070104-24084-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Jul 2015 18:42:48 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 09/19] media: platform vsp1: Update graph_mutex to graph_lock spinlock
+Date: Wed, 22 Jul 2015 16:42:10 -0600
+Message-Id: <9a7ee207c921530df11f50903ab812fd4d25a3e1.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/2015 09:55 AM, Philipp Zabel wrote:
-> If videobuf2-core is built as a module, the vb2 trace points must be
-> exported from videodev.o to avoid errors when linking videobuf2-core.
+Update graph_mutex to graph_lock spinlock to be in sync with
+the Media Conttroller change for the same.
 
-I'm no tracepoint expert, so I'll just ask: if the tracepoint functionality
-is disabled in the kernel, will this still compile OK?
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-That is, will the EXPORT_TRACEPOINT_SYMBOL_GPL() code disappear in that
-case or will it point to absent code/data?
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 85de455..e8b78ae 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2784,3 +2784,8 @@ long video_ioctl2(struct file *file,
->  	return video_usercopy(file, cmd, arg, __video_do_ioctl);
->  }
->  EXPORT_SYMBOL(video_ioctl2);
-> +
-> +EXPORT_TRACEPOINT_SYMBOL_GPL(vb2_buf_done);
-> +EXPORT_TRACEPOINT_SYMBOL_GPL(vb2_buf_queue);
-> +EXPORT_TRACEPOINT_SYMBOL_GPL(vb2_dqbuf);
-> +EXPORT_TRACEPOINT_SYMBOL_GPL(vb2_qbuf);
-> 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d91f19a..c012fb8 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -413,7 +413,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 	unsigned int i;
+ 	int ret;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->graph_lock);
+ 
+ 	/* Walk the graph to locate the entities and video nodes. */
+ 	media_entity_graph_walk_start(&graph, entity);
+@@ -447,7 +447,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 		}
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->graph_lock);
+ 
+ 	/* We need one output and at least one input. */
+ 	if (pipe->num_inputs == 0 || !pipe->output) {
+-- 
+2.1.4
 
