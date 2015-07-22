@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:36617 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417AbbGTNwZ (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46046 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934075AbbGVAlL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 09:52:25 -0400
-Received: by lbbqi7 with SMTP id qi7so15286977lbb.3
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 06:52:24 -0700 (PDT)
+	Tue, 21 Jul 2015 20:41:11 -0400
+Date: Wed, 22 Jul 2015 09:41:05 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Cc: hverkuil@xs4all.nl, magnus.damm@gmail.com, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
+	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 0/3] R-Car JPEG Processing Unit
+Message-ID: <20150722004105.GD25644@verge.net.au>
+References: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <55ACF994.3010101@xs4all.nl>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com>
- <1434127598-11719-3-git-send-email-ricardo.ribalda@gmail.com> <55ACF994.3010101@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 20 Jul 2015 15:52:04 +0200
-Message-ID: <CAPybu_2a+z6ZVY=-ZXE6Usmoe0nsLjUzw3AE5=K9vQ6OCDgKaw@mail.gmail.com>
-Subject: Re: [RFC v3 02/19] media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Hi Mikhail,
 
-I have no preference over the two implementations, but I see an issue
-with this suggestion.
+On Tue, Jul 21, 2015 at 05:00:19AM +0300, Mikhail Ulyanov wrote:
+> This series of patches contains a driver for the JPEG codec integrated
+> peripheral found in the Renesas R-Car SoCs and associated DT documentation.
 
-
-What happens to out out tree drivers, or drivers that don't support
-this functionality?
-
-With the ioctl, the user receives a -ENOTTY. So he knows there is
-something wrong with the driver.
-
-With this class, the driver might interpret this a simple G_VAL and
-return he current value with no way for the user to know what is going
-on.
-
-
-Regarding the new implementation.... I can make some code next week,
-this week I am 120% busy :)
-
-
-What do you think?
+I am wondering if you have any plans to post patches to integrate this
+change on any Reneas boards - by which I mean patches to update dts and/or
+dtsi files. I would be very happy to see such patches submitted for review.
