@@ -1,46 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61652 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752243AbbGWMVs (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39647 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753422AbbGVCww (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:21:48 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 09/13] media: soc_camera: soc_scale_crop: Use correct pad number in try_fmt
-Date: Thu, 23 Jul 2015 13:21:39 +0100
-Message-Id: <1437654103-26409-10-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+	Tue, 21 Jul 2015 22:52:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 118E92A008D
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2015 04:51:43 +0200 (CEST)
+Date: Wed, 22 Jul 2015 04:51:43 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150722025143.118E92A008D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Taylor <rob.taylor@codethink.co.uk>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Fix calls to subdev try_fmt function to use valid pad numbers, fixing
-the case where subdevs (eg. ADV7612) have valid pad numbers that are
-non-zero.
+Results of the daily build of media_tree:
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
----
- drivers/media/platform/soc_camera/soc_scale_crop.c |    1 +
- 1 file changed, 1 insertion(+)
+date:		Wed Jul 22 04:00:20 CEST 2015
+git branch:	test
+git hash:	6727d4fce95586e60922bdaf57b8a0eb99482557
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index bda29bc..2772215 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -225,6 +225,7 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	bool host_1to1;
- 	int ret;
- 
-+	format->pad = icd->src_pad_idx;
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev,
- 					 soc_camera_grp_id(icd), pad,
- 					 set_fmt, NULL, format);
--- 
-1.7.10.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
