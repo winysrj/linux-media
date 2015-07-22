@@ -1,101 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:1907 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877AbbGaCz6 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46149 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755322AbbGVBlA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 22:55:58 -0400
-Message-ID: <55BAE37F.6050705@atmel.com>
-Date: Fri, 31 Jul 2015 10:54:55 +0800
-From: Josh Wu <josh.wu@atmel.com>
+	Tue, 21 Jul 2015 21:41:00 -0400
+Date: Wed, 22 Jul 2015 10:40:56 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	mchehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"j.anaszewski" <j.anaszewski@samsung.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 0/3] R-Car JPEG Processing Unit
+Message-ID: <20150722014056.GA28467@verge.net.au>
+References: <1437444022-28916-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+ <20150722004105.GD25644@verge.net.au>
+ <CALi4nhrJcDV6gLKVOtt8Y9CBqstAmg=HL5-60EQaem6gC4qhYA@mail.gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
-References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALi4nhrJcDV6gLKVOtt8Y9CBqstAmg=HL5-60EQaem6gC4qhYA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, list
+Hi Mikhail,
 
-Ping..., any feedback for this series?
+On Wed, Jul 22, 2015 at 04:19:53AM +0300, Mikhail Ulyanov wrote:
+> Hi Simon,
+> 
+> 2015-07-22 3:41 GMT+03:00 Simon Horman <horms@verge.net.au>:
+> > Hi Mikhail,
+> >
+> > On Tue, Jul 21, 2015 at 05:00:19AM +0300, Mikhail Ulyanov wrote:
+> >> This series of patches contains a driver for the JPEG codec integrated
+> >> peripheral found in the Renesas R-Car SoCs and associated DT documentation.
+> >
+> > I am wondering if you have any plans to post patches to integrate this
+> > change on any Reneas boards - by which I mean patches to update dts and/or
+> > dtsi files. I would be very happy to see such patches submitted for review.
+> Yes, i have such plans. I suppose it was already (partially)reviewed.
+> https://www.marc.info/?l=linux-sh&m=140867246726948&w=4
+> As soon as driver patches will be accepted i will resubmit this patches.
 
-Best Regards,
-Josh Wu
-
-On 6/17/2015 6:39 PM, Josh Wu wrote:
-> In the function configure_geometry(), we will setup the ISI CFG2
-> according to the sensor output format.
->
-> It make no sense to just read back the CFG2 register and just set part
-> of it.
->
-> So just set up this register directly makes things simpler.
-> Currently only support YUV format from camera sensor.
->
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->
->   drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
->   1 file changed, 7 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index 9070172..8bc40ca 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->   static int configure_geometry(struct atmel_isi *isi, u32 width,
->   			u32 height, u32 code)
->   {
-> -	u32 cfg2, cr;
-> +	u32 cfg2;
->   
-> +	/* According to sensor's output format to set cfg2 */
->   	switch (code) {
->   	/* YUV, including grey */
->   	case MEDIA_BUS_FMT_Y8_1X8:
-> -		cr = ISI_CFG2_GRAYSCALE;
-> +		cfg2 = ISI_CFG2_GRAYSCALE;
->   		break;
->   	case MEDIA_BUS_FMT_VYUY8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_3;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
->   		break;
->   	case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_2;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
->   		break;
->   	case MEDIA_BUS_FMT_YVYU8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_MODE_1;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
->   		break;
->   	case MEDIA_BUS_FMT_YUYV8_2X8:
-> -		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
-> +		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
->   		break;
->   	/* RGB, TODO */
->   	default:
-> @@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
->   	}
->   
->   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> -
-> -	cfg2 = isi_readl(isi, ISI_CFG2);
-> -	/* Set YCC swap mode */
-> -	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
-> -	cfg2 |= cr;
->   	/* Set width */
-> -	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
->   	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
->   			ISI_CFG2_IM_HSIZE_MASK;
->   	/* Set height */
-> -	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
->   	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
->   			& ISI_CFG2_IM_VSIZE_MASK;
->   	isi_writel(isi, ISI_CFG2, cfg2);
-
+Excellent. Sorry for forgetting about having seen the patch at the URL above.
