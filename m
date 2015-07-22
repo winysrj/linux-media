@@ -1,53 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57170 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756526AbbGTOav (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 10:30:51 -0400
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-To: Steven Toth <stoth@kernellabs.com>, tonyc@wincomm.com.tw
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <55AD0617.7060007@iki.fi>
-Date: Mon, 20 Jul 2015 17:30:47 +0300
-MIME-Version: 1.0
-In-Reply-To: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:45659 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752704AbbGVWo7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 18:44:59 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 10/19] media: platform xilinx: Update graph_mutex to graph_lock spinlock
+Date: Wed, 22 Jul 2015 16:42:11 -0600
+Message-Id: <845e6c9ee33c7d81a4e2ab428f4b03f8328a4d86.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/19/2015 01:21 AM, Steven Toth wrote:
-> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
->
-> Patches above are available for test.
->
-> Antti, note the change to SI2168 to add support for enabling and
-> disabling the SI2168 transport bus dynamically.
->
-> I've tested with a combo card, switching back and forward between QAM
-> and DVB-T, this works fine, just remember to select a different
-> frontend as we have two frontends on the same adapter,
-> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
->
-> If any testers have the ATSC or DVB-T, I'd expect these to work
-> equally well, replease report feedback here.
+Update graph_mutex to graph_lock spinlock to be in sync with
+the Media Conttroller change for the same.
 
-That does not work. I added debug to see what it does and result is that 
-whole si2168_set_ts_mode() function is called only once - when frontend 
-is opened first time. I used dvbv5-scan.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I am not sure why you even want to that. Is it because of 2 demods are 
-connected to same TS bus? So you want disable always another? Or is is 
-just power-management, as leaving TS active leaks potentially some current.
-
-Anyway, if you want control TS as runtime why you just don't add TS 
-disable to si2168_sleep()? If you enable TS on si2168_init() then 
-correct place to disable it is si2168_sleep().
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 98e50e4..784f7a4 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -185,7 +185,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	unsigned int num_inputs = 0;
+ 	unsigned int num_outputs = 0;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->graph_lock);
+ 
+ 	/* Walk the graph to locate the video nodes. */
+ 	media_entity_graph_walk_start(&graph, entity);
+@@ -206,7 +206,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 		}
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->graph_lock);
+ 
+ 	/* We need exactly one output and zero or one input. */
+ 	if (num_outputs != 1 || num_inputs > 1)
 -- 
-http://palosaari.fi/
+2.1.4
+
