@@ -1,102 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55147 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753787AbbG3QUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 12:20:30 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>,
-	linux-iio@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-leds@vger.kernel.org,
-	Sebastian Reichel <sre@kernel.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	lm-sensors@lm-sensors.org,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	linux-input@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jean Delvare <jdelvare@suse.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
-	linux-pm@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Takashi Iwai <tiwai@suse.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
-	Lee Jones <lee.jones@linaro.org>,
-	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
-	linux-spi@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Tony Lindgren <tony@atomide.com>,
-	MyungJoo Ham <myungjoo.ham@samsung.com>,
-	linuxppc-dev@lists.ozlabs.org
-Subject: [PATCH 27/27] i2c: (RFC, don't apply) report OF style modalias when probing using DT
-Date: Thu, 30 Jul 2015 18:18:52 +0200
-Message-Id: <1438273132-20926-28-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
-References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41946 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752304AbbGVV20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 17:28:26 -0400
+Date: Thu, 23 Jul 2015 00:27:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Bjornar Salberg <bsalberg@cisco.com>
+Subject: Re: [RFC] How to get current position/status of
+ iris/focus/pan/tilt/zoom?
+Message-ID: <20150722212750.GB12092@valkosipuli.retiisi.org.uk>
+References: <559527D7.1030408@xs4all.nl>
+ <20150722082147.GA12092@valkosipuli.retiisi.org.uk>
+ <55AF5986.5080106@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55AF5986.5080106@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An I2C driver that supports both OF and legacy platforms, will have
-both a OF and I2C ID table. This means that when built as a module,
-the aliases will be filled from both tables but currently always an
-alias of the form i2c:<deviceId> is reported, e.g:
+Hi Hans,
 
-$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
-i2c:maxtouch
+On Wed, Jul 22, 2015 at 10:51:18AM +0200, Hans Verkuil wrote:
+> On 07/22/15 10:21, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Thu, Jul 02, 2015 at 02:00:23PM +0200, Hans Verkuil wrote:
+> >> When using V4L2_CID_IRIS/FOCUS/PAN/TILT/ZOOM_ABSOLUTE/RELATIVE, how do you know
+> >> when the new position has been reached? If this is controlled through a motor,
+> >> then it may take some time and ideally you would like to be able to get the
+> >> current absolute position (if the hardware knows) and whether the final position
+> >> has been reached or not.
+> > 
+> > On voice coil lenses it's also not possible to know when the position has
+> > been reached, however you can estimate when it has happened based on the
+> > intended movement and algorithm used to move the lens. This is far from
+> > trivial though.
+> > 
+> > For low-level lends drivers knowing where the lens is is not feasible IMO at
+> > the moment.
+> > 
+> >>
+> >> In addition, it should be possible to raise fault conditions.
+> > 
+> > Do you know of hardware that can do this? The only non-buffer related
+> > devices that can do this I'm aware of are flash controllers.
+> 
+> If a motor is involved to move things around, then that motor can cause
+> failures that you want to signal. For example if something is blocking the
+> motor from moving any further, overheating, whatever. I hate moving parts :-)
 
-So if a device is probed by matching its compatible string, udev can
-get a MODALIAS uevent env var that doesn't match with one of the valid
-aliases so the module won't be auto-loaded.
+I don't argue about whether or not to tell it to the user, but can the
+hardware tell that to the driver? If it can, naturally the user should be
+told.
 
-This patch changes the I2C core to report a OF related MODALIAS uevent
-(of:N*T*C) env var instead so the module can be auto-loaded and also
-report the correct alias using sysfs:
+What I think would be nice to pay closer attention to at some point would be
+voice coil lens controls. These are typically cheap and difficult to control
+devices, as you apply a current that's going to move a lens rather than
+telling it to be moved to a certain position. The higher level control is,
+in my understanding, often more or less tightly coupled with the AF
+algorithms. At the very least the existing drivers are quite low level
+drivers. We should look what are the commonalities among those. But that'd
+be a new topic likely requiring multiple RFCs...
 
-$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
-of:NtrackpadT<NULL>Catmel,maxtouch
+This will quite probably look at least somewhat different in terms of
+controls compared to current manual focus controls.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-
-
----
-
- drivers/i2c/i2c-core.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 92dddfeb3f39..c0668c2ed9da 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -489,6 +489,10 @@ static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
- 	struct i2c_client	*client = to_i2c_client(dev);
- 	int rc;
- 
-+	rc = of_device_uevent_modalias(dev, env);
-+	if (rc != -ENODEV)
-+		return rc;
-+
- 	rc = acpi_device_uevent_modalias(dev, env);
- 	if (rc != -ENODEV)
- 		return rc;
-@@ -726,6 +730,10 @@ show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
- 	struct i2c_client *client = to_i2c_client(dev);
- 	int len;
- 
-+	len = of_device_get_modalias(dev, buf, PAGE_SIZE - 1);
-+	if (len != -ENODEV)
-+		return len;
-+
- 	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
- 	if (len != -ENODEV)
- 		return len;
 -- 
-2.4.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
