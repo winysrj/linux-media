@@ -1,97 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:43561 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752524AbbGVWmp (ORCPT
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:34760 "EHLO
+	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756AbbGVMz7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:45 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 07/19] media: platform omap3isp: Update graph_mutex to graph_lock spinlock
-Date: Wed, 22 Jul 2015 16:42:08 -0600
-Message-Id: <37d1b3c4cfa07bd17daa30e649c500671153280a.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+	Wed, 22 Jul 2015 08:55:59 -0400
+Received: by qkfc129 with SMTP id c129so109489252qkf.1
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2015 05:55:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <55AF42F9.4020407@gmail.com>
+References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
+	<55AB5320.8030100@gmail.com>
+	<CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>
+	<55AD1C77.6030208@gmail.com>
+	<CALzAhNVmmAy=4r0Vd=T82HPUrOzxK9Rg2-M=DQ8gUa-DXKsS6w@mail.gmail.com>
+	<55AE6F31.3050308@gmail.com>
+	<CALzAhNVuez1_byQe+FiOjZPdUpdgMg0q8CT2KPJ-rO8o8dohzw@mail.gmail.com>
+	<55AE8A73.9070802@gmail.com>
+	<CALzAhNW9_S=gaT9ioytcpz1hBJ4qjdxaJN6E7ZPQ__8QPdQ=6w@mail.gmail.com>
+	<55AF42F9.4020407@gmail.com>
+Date: Wed, 22 Jul 2015 08:55:58 -0400
+Message-ID: <CALzAhNVjCK4sHQFpR3hS99PDiKVg=OdmL8HAVx1AM++9GjuFtQ@mail.gmail.com>
+Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
+ testers reqd.
+From: Steven Toth <stoth@kernellabs.com>
+To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
+Cc: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update graph_mutex to graph_lock spinlock to be in sync with
-the Media Conttroller change for the same.
+On Wed, Jul 22, 2015 at 3:15 AM, Tycho Lürsen <tycholursen@gmail.com> wrote:
+> Hi Steven,
+> I'm happy to inform you that all failures have vanished.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/platform/omap3isp/isp.c      | 4 ++--
- drivers/media/platform/omap3isp/ispvideo.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Thanks.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 18d0a87..a6e7f92 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -789,7 +789,7 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
- 	int change = use ? 1 : -1;
- 	int ret;
- 
--	mutex_lock(&entity->parent->graph_mutex);
-+	spin_lock(&entity->parent->graph_lock);
- 
- 	/* Apply use count to node. */
- 	entity->use_count += change;
-@@ -800,7 +800,7 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
- 	if (ret < 0)
- 		entity->use_count -= change;
- 
--	mutex_unlock(&entity->parent->graph_mutex);
-+	spin_unlock(&entity->parent->graph_lock);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index d285af1..9ec3bb7 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -229,7 +229,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 	struct media_device *mdev = entity->parent;
- 	struct isp_video *far_end = NULL;
- 
--	mutex_lock(&mdev->graph_mutex);
-+	spin_lock(&mdev->graph_lock);
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-@@ -251,7 +251,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 			far_end = __video;
- 	}
- 
--	mutex_unlock(&mdev->graph_mutex);
-+	spin_unlock(&mdev->graph_lock);
- 
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
- 		pipe->input = far_end;
+>
+> Summarizing:
+> I compiled 4.2-RC3 with your patch and with
+>
+> /* Tri-state the TS bus */
+>  si2168_set_ts_mode(fe, 0);
+
+What happens if you revert this back to the code from my original
+patch, and include your changes listed below?
+
+IE:
+   /* Tri-state the TS bus */
+   si2168_set_ts_mode(fe, 1);
+
+1) Do you still lock no signal lock issues.
+2) Do you see normal video as you'd typically expect?
+
+Thanks for helping! :)
+
 -- 
-2.1.4
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
