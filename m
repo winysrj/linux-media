@@ -1,92 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52088 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbbGMMLl (ORCPT
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:43561 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752869AbbGVWm4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 08:11:41 -0400
-Message-ID: <55A3AABF.4030403@xs4all.nl>
-Date: Mon, 13 Jul 2015 14:10:39 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v3 04/19] media/usb/uvc: Implement vivioc_g_def_ext_ctrls
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1434127598-11719-5-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Jul 2015 18:42:56 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 14/19] media: Add enable_source handler field to struct media_device
+Date: Wed, 22 Jul 2015 16:42:15 -0600
+Message-Id: <352c24377393df058cf5e72dc988a02029e3bbda.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
+Add a new field to enable_source handler to find source entity
+for the sink entity and check if it is available, and activate
+the link using media_entity_setup_link() interface. Bridge driver
+is expected to implement and set the handler when media_device is
+registered or when bridge driver finds the media_device during
+probe. This is to enable the use-case to find tuner entity
+connected to the decoder entity and check if it is available,
+and activate the using media_entity_setup_link() if it is available.
+This hanlder can be invoked from media core (v4l-core, dvb-core)
+as well as other drivers such as ALSA that control the media device.
 
-Can you review/ack this since it touches on uvc?
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ include/media/media-device.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Thanks!
-
-	Hans
-
-On 06/12/2015 06:46 PM, Ricardo Ribalda Delgado wrote:
-> Callback needed by ioctl VIDIOC_G_DEF_EXT_CTRLS as this driver does not
-> use the controller framework.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index 2764f43607c1..e2698a77138a 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -1001,6 +1001,35 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
->  	return uvc_ctrl_rollback(handle);
->  }
->  
-> +static int uvc_ioctl_g_def_ext_ctrls(struct file *file, void *fh,
-> +				     struct v4l2_ext_controls *ctrls)
-> +{
-> +	struct uvc_fh *handle = fh;
-> +	struct uvc_video_chain *chain = handle->chain;
-> +	struct v4l2_ext_control *ctrl = ctrls->controls;
-> +	unsigned int i;
-> +	int ret;
-> +	struct v4l2_queryctrl qc;
-> +
-> +	ret = uvc_ctrl_begin(chain);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-> +		qc.id = ctrl->id;
-> +		ret = uvc_query_v4l2_ctrl(chain, &qc);
-> +		if (ret < 0) {
-> +			ctrls->error_idx = i;
-> +			return ret;
-> +		}
-> +		ctrl->value = qc.default_value;
-> +	}
-> +
-> +	ctrls->error_idx = 0;
-> +
-> +	return 0;
-> +}
-> +
->  static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
->  				     struct v4l2_ext_controls *ctrls,
->  				     bool commit)
-> @@ -1500,6 +1529,7 @@ const struct v4l2_ioctl_ops uvc_ioctl_ops = {
->  	.vidioc_g_ctrl = uvc_ioctl_g_ctrl,
->  	.vidioc_s_ctrl = uvc_ioctl_s_ctrl,
->  	.vidioc_g_ext_ctrls = uvc_ioctl_g_ext_ctrls,
-> +	.vidioc_g_def_ext_ctrls = uvc_ioctl_g_def_ext_ctrls,
->  	.vidioc_s_ext_ctrls = uvc_ioctl_s_ext_ctrls,
->  	.vidioc_try_ext_ctrls = uvc_ioctl_try_ext_ctrls,
->  	.vidioc_querymenu = uvc_ioctl_querymenu,
-> 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index e73642c..377102b 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -84,6 +84,18 @@ struct media_device {
+ 	/* Serializes graph operations. */
+ 	spinlock_t graph_lock;
+ 
++	/* Handler to find source entity for the sink entity and
++	 * check if it is available, and activate the link using
++	 * media_entity_setup_link() interface.
++	 * Bridge driver is expected to implement and set the
++	 * handler when media_device is registered or when
++	 * bridge driver finds the media_device during probe.
++	 *
++	 * Use-case: find tuner entity connected to the decoder
++	 * entity and check if it is available, and activate the
++	 * using media_entity_setup_link() if it is available.
++	*/
++	int (*enable_source)(struct media_entity *sink);
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
+ };
+-- 
+2.1.4
 
