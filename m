@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42236 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752594AbbGILsx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jul 2015 07:48:53 -0400
-Date: Thu, 9 Jul 2015 13:48:48 +0200
-From: Jan Kara <jack@suse.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Jan Kara <jack@suse.cz>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 0/10 v6] Helper to abstract vma handling in media layer
-Message-ID: <20150709114848.GA9189@quack.suse.cz>
-References: <1434636520-25116-1-git-send-email-jack@suse.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1434636520-25116-1-git-send-email-jack@suse.cz>
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:32946 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752041AbbGVWmj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2015 18:42:39 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 03/19] media: Add ALSA Media Controller devnodes
+Date: Wed, 22 Jul 2015 16:42:04 -0600
+Message-Id: <78cb5dd3bb7d5e531c66384c48ee35aa89903b75.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello,
+Add ALSA Media Controller capture, playback, and mixer
+devnode defines.
 
-  Hans, did you have a chance to look at these patches? I have tested them
-with the vivid driver but it would be good if you could run them through
-your standard testing procedure as well. Andrew has updated the patches in
-his tree but some ack from you would be welcome...
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ include/uapi/linux/media.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-								Honza
-On Thu 18-06-15 16:08:30, Jan Kara wrote:
->   Hello,
-> 
-> I'm sending the sixth version of my patch series to abstract vma handling from
-> the various media drivers. Since the previous version I have added a patch to
-> move mm helpers into a separate file and behind a config option. I also
-> changed patch pushing mmap_sem down in videobuf2 core to avoid lockdep warning
-> and NULL dereference Hans found in his testing. I've also included small
-> fixups Andrew was carrying.
-> 
-> After this patch set drivers have to know much less details about vmas, their
-> types, and locking. Also quite some code is removed from them. As a bonus
-> drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
-> this series is to remove knowledge about mmap_sem locking from as many places a
-> possible so that we can change it with reasonable effort.
-> 
-> The core of the series is the new helper get_vaddr_frames() which is given a
-> virtual address and it fills in PFNs / struct page pointers (depending on VMA
-> type) into the provided array. If PFNs correspond to normal pages it also grabs
-> references to these pages. The difference from get_user_pages() is that this
-> function can also deal with pfnmap, and io mappings which is what the media
-> drivers need.
-> 
-> I have tested the patches with vivid driver so at least vb2 code got some
-> exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
-> exynos driver which is only for Samsung platform is completely untested).
-> 
-> Andrew, can you please update the patches in mm three? Thanks!
-> 
-> 								Honza
-> 
-> Changes since v5:
-> * Moved mm helper into a separate file and behind a config option
-> * Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
->   possible deadlock
-> 
-> Changes since v4:
-> * Minor cleanups and fixes pointed out by Mel and Vlasta
-> * Added Acked-by tags
-> 
-> Changes since v3:
-> * Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
-> * Fixed error path for exynos driver
-> 
-> Changes since v2:
-> * Renamed functions and structures as Mel suggested
-> * Other minor changes suggested by Mel
-> * Rebased on top of 4.1-rc2
-> * Changed functions to get pointer to array of pages / pfns to perform
->   conversion if necessary. This fixes possible issue in the omap I may have
->   introduced in v2 and generally makes the API less errorprone.
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4e816be..4a30ea3 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -49,12 +49,17 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
+ #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
++/* Legacy ALSA symbol. Keep it to avoid userspace compilation breakages */
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+ #define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+ #define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+ #define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+ #define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+ #define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
++/* ALSA devnodes */
++#define MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE	(MEDIA_ENT_T_DEVNODE + 9)
++#define MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK	(MEDIA_ENT_T_DEVNODE + 10)
++#define MEDIA_ENT_T_DEVNODE_ALSA_MIXER		(MEDIA_ENT_T_DEVNODE + 11)
+ 
+ /* Legacy symbol. Use it to avoid userspace compilation breakages */
+ #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
 -- 
-Jan Kara <jack@suse.cz>
-SUSE Labs, CR
+2.1.4
+
