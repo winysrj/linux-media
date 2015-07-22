@@ -1,64 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9120 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752776AbbGJGUH (ORCPT
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:43561 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752041AbbGVWmg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:20:07 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 4/7] [media] platform: Drop owner assignment from i2c_driver
-Date: Fri, 10 Jul 2015 15:19:45 +0900
-Message-id: <1436509188-23320-5-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
-References: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+	Wed, 22 Jul 2015 18:42:36 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
+	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
+	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
+	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, agoode@google.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
+	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
+	takamichiho@gmail.com, normalperson@yhbt.net,
+	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
+	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
+	soren.brinkmann@xilinx.com, pawel@osciak.com,
+	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
+	skd08@gmail.com, nsekhar@ti.com,
+	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
+	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2 02/19] media: Media Controller register/unregister entity_notify API
+Date: Wed, 22 Jul 2015 16:42:03 -0600
+Message-Id: <21da4006a0f95ec7aad81539e58df5ef04a173cb.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
+References: <cover.1437599281.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_driver does not need to set an owner because i2c_register_driver()
-will set it.
+Add new interfaces to register and unregister entity_notify
+hook to media device to allow drivers to take appropriate
+actions when as new entities get added to the shared media
+device.When a new entity is registered, all registered
+entity_notify hooks are invoked to allow drivers or modules
+that registered hook to take appropriate action. For example,
+ALSA driver registers an entity_notify hook to parse the list
+of registered entities to determine if decoder has been linked
+to ALSA entity. au0828 bridge driver registers an entity_notify
+hook to create media graph for the device.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
+ drivers/media/media-device.c | 45 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h | 23 ++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
 
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
----
- drivers/media/platform/s5p-tv/hdmiphy_drv.c | 1 -
- drivers/media/platform/s5p-tv/sii9234_drv.c | 1 -
- 2 files changed, 2 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-index c2f2e35642f2..aae652351aa8 100644
---- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-@@ -315,7 +315,6 @@ MODULE_DEVICE_TABLE(i2c, hdmiphy_id);
- static struct i2c_driver hdmiphy_driver = {
- 	.driver = {
- 		.name	= "s5p-hdmiphy",
--		.owner	= THIS_MODULE,
- 	},
- 	.probe		= hdmiphy_probe,
- 	.remove		= hdmiphy_remove,
-diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
-index db8c17bb4aaa..8d171310af8f 100644
---- a/drivers/media/platform/s5p-tv/sii9234_drv.c
-+++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
-@@ -397,7 +397,6 @@ MODULE_DEVICE_TABLE(i2c, sii9234_id);
- static struct i2c_driver sii9234_driver = {
- 	.driver = {
- 		.name	= "sii9234",
--		.owner	= THIS_MODULE,
- 		.pm = &sii9234_pm_ops,
- 	},
- 	.probe		= sii9234_probe,
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c55ab50..22565a8 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
++	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 
+@@ -411,9 +412,12 @@ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
++	struct media_entity_notify *notify, *nextp;
+ 
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, list)
+ 		media_device_unregister_entity(entity);
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		media_device_unregister_entity_notify(mdev, notify);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	media_devnode_unregister(&mdev->devnode);
+@@ -421,6 +425,39 @@ void media_device_unregister(struct media_device *mdev)
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+ /**
++ * media_device_register_entity_notify - Register a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:	The media device
++ * @nptr:	The media_entity_notify
++ */
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	spin_unlock(&mdev->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/**
++ * media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:	The media device
++ * @nptr:	The media_entity_notify
++ */
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_del(&nptr->list);
++	spin_unlock(&mdev->lock);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
++
++/**
+  * media_device_register_entity - Register an entity with a media device
+  * @mdev:	The media device
+  * @entity:	The entity
+@@ -428,6 +465,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity_notify *notify, *next;
++
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->parent != NULL);
+ 	entity->parent = mdev;
+@@ -440,6 +479,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	list_add_tail(&entity->list, &mdev->entities);
+ 	spin_unlock(&mdev->lock);
+ 
++	/* invoke entity_notify callbacks */
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
++		(notify)->notify(entity, notify->notify_data);
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity);
+@@ -462,6 +506,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
++	/* invoke entity_notify callbacks to handle entity removal?? */
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index a44f18f..a3854f6 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -32,6 +32,12 @@
+ 
+ struct device;
+ 
++struct media_entity_notify {
++	struct list_head list;
++	void *notify_data;
++	void (*notify)(struct media_entity *entity, void *notify_data);
++};
++
+ /**
+  * struct media_device - Media device
+  * @dev:	Parent device
+@@ -70,6 +76,8 @@ struct media_device {
+ 
+ 	u32 entity_id;
+ 	struct list_head entities;
++	/* notify callback list invoked when a new entity is registered */
++	struct list_head entity_notify;
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
+@@ -94,6 +102,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+ #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
+ void media_device_unregister(struct media_device *mdev);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity);
+ void media_device_unregister_entity(struct media_entity *entity);
+@@ -112,6 +124,17 @@ static inline int media_device_register(struct media_device *mdev)
+ static inline void media_device_unregister(struct media_device *mdev)
+ {
+ }
++static inline int media_device_register_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++}
+ static inline int media_device_register_entity(struct media_device *mdev,
+ 						struct media_entity *entity)
+ {
 -- 
-1.9.1
+2.1.4
 
