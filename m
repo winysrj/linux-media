@@ -1,82 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:37452 "EHLO mx02.posteo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757449AbbGGQZv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jul 2015 12:25:51 -0400
-Date: Tue, 7 Jul 2015 18:25:41 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Peter Fassberg <pf@leissner.se>
-Cc: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-Message-ID: <20150707182541.0960177f@lappi3.parrot.biz>
-In-Reply-To: <alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se>
-	<20150705184449.0017f114@lappi3.parrot.biz>
-	<alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se>
-	<20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com>
-	<alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61650 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752127AbbGWMVs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 08/13] media: rcar_vin: Use correct pad number in try_fmt
+Date: Thu, 23 Jul 2015 13:21:38 +0100
+Message-Id: <1437654103-26409-9-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Jul 2015 17:38:25 +0200 (SST)
-Peter Fassberg <pf@leissner.se> wrote:
+Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
+the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
 
-> On Tue, 7 Jul 2015, Patrick Boettcher wrote:
-> 
-> >> I installed the 32-bit version of the same OS (Debian 8, kernel 3.16.0, i386) and the result was a bit suprising.
-> >>
-> >> In 32-bit I couldn't even scan a DVT-T transponder!  dvbv5-scan did Lock, but it didn't find any PSI PIDs.  So there is for sure a problem with 32-bit platforms.  And the DVT-T2 transponders didn't work either.
-> >>
-> >> Maybe the Raspberry problem can be a Endianess problem?
-> >
-> > No, rpi (arm) is little-endian as Intel.
-> >
-> > Which drivers is your device using again?
-> 
-> [    7.245815] em28xx: New device PCTV PCTV 292e @ 480 Mbps (2013:025f, interface 0, class 0)
-> [    7.256731] em28xx: DVB interface 0 found: isoc
-> [    7.262712] em28xx: chip ID is em28178
-> [    9.258341] em28178 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x5110ff04
-> [    9.267163] em28178 #0: EEPROM info:
-> [    9.272644] em28178 #0:      microcode start address = 0x0004, boot configuration = 0x01
-> [    9.291418] em28178 #0:      AC97 audio (5 sample rates)
-> [    9.298231] em28178 #0:      500mA max power
-> [    9.303993] em28178 #0:      Table at offset 0x27, strings=0x146a, 0x1888, 0x0a7e
-> [    9.313288] em28178 #0: Identified as PCTV tripleStick (292e) (card=94)
-> [    9.321852] em28178 #0: dvb set to isoc mode.
-> [    9.328536] usbcore: registered new interface driver em28xx
-> [    9.357476] em28178 #0: Binding DVB extension
-> [    9.380909] i2c i2c-1: Added multiplexed i2c bus 2
-> [    9.389469] si2168 1-0064: Silicon Labs Si2168 successfully attached
-> [    9.410263] si2157 2-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
-> [    9.422419] DVB: registering new adapter (em28178 #0)
-> [    9.428929] usb 1-1.4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
-> [    9.442954] em28178 #0: DVB extension successfully initialized
-> [    9.450692] em28xx: Registered (Em28xx dvb Extension) extension
-> [    9.482115] em28178 #0: Registering input extension
-> [    9.563907] em28178 #0: Input extension successfully initalized
-> [    9.571364] em28xx: Registered (Em28xx Input Extension) extension
-> [  297.703612] si2168 1-0064: found a 'Silicon Labs Si2168-B40'
-> [  300.998391] si2168 1-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-> [  301.275434] si2168 1-0064: firmware version: 4.0.4 [  301.284625] si2157 2-0060: found a 'Silicon Labs Si2157-A30'
-> [  301.340643] si2157 2-0060: firmware version: 3.0.5
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/rcar_vin.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-Just reading quickly the changes made to the si2157 and si2168 driver
-since 3.16 up to 4.1 makes me think that it is worth a try. 
-
-Plenty of things have changed regarding buffers and memcpy. Though I
-haven't found (yet) a 64bit and 32bit mix up yet in the 3.16 version.
-
-Might be the RF frequency that is truncated on 32bit platforms
-somewhere. That could explain that there is no crash but simply not
-tuning.
-
-Can you easily try more recent kernels or media_trees?
---
-Patrick.
-
-
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 00c1034..dab729a 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1697,7 +1697,7 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct v4l2_subdev_pad_config pad_cfg;
++	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = V4L2_SUBDEV_FORMAT_TRY,
+ 	};
+@@ -1706,6 +1706,10 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	int width, height;
+ 	int ret;
+ 
++	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
++	if (pad_cfg == NULL)
++		return -ENOMEM;
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+ 	if (!xlate) {
+ 		xlate = icd->current_fmt;
+@@ -1734,10 +1738,11 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 	mf->code = xlate->code;
+ 	mf->colorspace = pix->colorspace;
+ 
++	format.pad = icd->src_pad_idx;
+ 	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+-					 pad, set_fmt, &pad_cfg, &format);
++					 pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0)
+-		return ret;
++		goto cleanup;
+ 
+ 	/* Adjust only if VIN cannot scale */
+ 	if (pix->width > mf->width * 2)
+@@ -1761,12 +1766,12 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 			mf->height = VIN_MAX_HEIGHT;
+ 			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+ 							 soc_camera_grp_id(icd),
+-							 pad, set_fmt, &pad_cfg,
++							 pad, set_fmt, pad_cfg,
+ 							 &format);
+ 			if (ret < 0) {
+ 				dev_err(icd->parent,
+ 					"client try_fmt() = %d\n", ret);
+-				return ret;
++				goto cleanup;
+ 			}
+ 		}
+ 		/* We will scale exactly */
+@@ -1776,6 +1781,8 @@ static int rcar_vin_try_fmt(struct soc_camera_device *icd,
+ 			pix->height = height;
+ 	}
+ 
++cleanup:
++	v4l2_subdev_free_pad_config(pad_cfg);
+ 	return ret;
+ }
+ 
+-- 
+1.7.10.4
 
