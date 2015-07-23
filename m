@@ -1,43 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:36271 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751757AbbGMXgu (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61640 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752088AbbGWMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 19:36:50 -0400
-From: Masanari Iida <standby24x7@gmail.com>
-To: mchehab@osg.samsung.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, corbet@lwn.net
-Cc: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] [media] DocBook: Fix typo in intro.xml
-Date: Tue, 14 Jul 2015 08:36:50 +0900
-Message-Id: <1436830610-19316-1-git-send-email-standby24x7@gmail.com>
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 06/13] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+Date: Thu, 23 Jul 2015 13:21:36 +0100
+Message-Id: <1437654103-26409-7-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix spelling typos in intro.xml.
-This xml file is not created from comments within source,
-I fix the xml file.
+This adds V4L2_MBUS_FMT_RGB888_1X24 input format support
+which is used by the ADV7612 chip.
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+
+Modified to use MEDIA_BUS_FMT_* constants
+
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/dvb/intro.xml | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/soc_camera/rcar_vin.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/dvb/intro.xml b/Documentation/DocBook/media/dvb/intro.xml
-index bcc72c2..4abf6d9 100644
---- a/Documentation/DocBook/media/dvb/intro.xml
-+++ b/Documentation/DocBook/media/dvb/intro.xml
-@@ -163,8 +163,8 @@ are called:</para>
- <para>where N enumerates the DVB PCI cards in a system starting
- from&#x00A0;0, and M enumerates the devices of each type within each
- adapter, starting from&#x00A0;0, too. We will omit the &#8220;
--<constant>/dev/dvb/adapterN/</constant>&#8221; in the further dicussion
--of these devices. The naming scheme for the devices is the same wheter
-+<constant>/dev/dvb/adapterN/</constant>&#8221; in the further discussion
-+of these devices. The naming scheme for the devices is the same whether
- devfs is used or not.</para>
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index db7700b..16352a8 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -98,6 +98,7 @@
+ #define VNMC_INF_YUV10_BT656	(2 << 16)
+ #define VNMC_INF_YUV10_BT601	(3 << 16)
+ #define VNMC_INF_YUV16		(5 << 16)
++#define VNMC_INF_RGB888		(6 << 16)
+ #define VNMC_VUP		(1 << 10)
+ #define VNMC_IM_ODD		(0 << 3)
+ #define VNMC_IM_ODD_EVEN	(1 << 3)
+@@ -589,7 +590,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	struct soc_camera_device *icd = priv->ici.icd;
+ 	struct rcar_vin_cam *cam = icd->host_priv;
+ 	u32 vnmc, dmr, interrupts;
+-	bool progressive = false, output_is_yuv = false;
++	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
  
- <para>More details about the data structures and function calls of all
+ 	switch (priv->field) {
+ 	case V4L2_FIELD_TOP:
+@@ -623,16 +624,22 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
++		input_is_yuv = true;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vnmc |= VNMC_INF_RGB888;
+ 		break;
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+ 		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
++		input_is_yuv = true;
+ 		break;
+ 	default:
+ 		break;
+@@ -676,7 +683,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	vnmc |= VNMC_VUP;
+ 
+ 	/* If input and output use the same colorspace, use bypass mode */
+-	if (output_is_yuv)
++	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
+ 	/* progressive or interlaced mode */
+@@ -1423,6 +1430,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_YUYV10_2X10:
++	case MEDIA_BUS_FMT_RGB888_1X24:
+ 		if (cam->extra_fmt)
+ 			break;
+ 
 -- 
-2.5.0.rc1
+1.7.10.4
 
