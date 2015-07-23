@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58858 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbbGPQZM (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61668 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752175AbbGWMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 12:25:12 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: David Airlie <airlied@linux.ie>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 3/5] gpu: ipu-v3: Register scaler platform device
-Date: Thu, 16 Jul 2015 18:24:41 +0200
-Message-Id: <1437063883-23981-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
-References: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 12/13] media: rcar_vin: fill in bus_info field
+Date: Thu, 23 Jul 2015 13:21:42 +0100
+Message-Id: <1437654103-26409-13-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch registers the scaler device using the IC post-processing task,
-to be handled by a mem2mem scaler driver.
+From: Rob Taylor <rob.taylor@codethink.co.uk>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Adapt rcar_vin_querycap() so that cap->bus_info is populated with
+something meaningful/unique.
+
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
 ---
- drivers/gpu/ipu-v3/ipu-common.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/soc_camera/rcar_vin.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
-index 6d2f39d..9846cec 100644
---- a/drivers/gpu/ipu-v3/ipu-common.c
-+++ b/drivers/gpu/ipu-v3/ipu-common.c
-@@ -1026,6 +1026,8 @@ static const struct ipu_platform_reg client_reg[] = {
- 		},
- 		.reg_offset = IPU_CM_CSI1_REG_OFS,
- 		.name = "imx-ipuv3-camera",
-+	}, {
-+		.name = "imx-ipuv3-scaler",
- 	},
- };
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index dab729a..93e20d6 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1799,6 +1799,7 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
+ 	strlcpy(cap->card, "R_Car_VIN", sizeof(cap->card));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s%d", DRV_NAME, ici->nr);
  
+ 	return 0;
+ }
 -- 
-2.1.4
+1.7.10.4
 
