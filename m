@@ -1,77 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60300 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750975AbbGXKXA (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61645 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752241AbbGWMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 06:23:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 5/7] vb2: _vb2_fop_release returns if this was the last fh.
-Date: Fri, 24 Jul 2015 12:21:34 +0200
-Message-Id: <1437733296-38198-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 01/13] ARM: shmobile: lager dts: Add entries for VIN HDMI input support
+Date: Thu, 23 Jul 2015 13:21:31 +0100
+Message-Id: <1437654103-26409-2-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add DT entries for vin0, vin0_pins, and adv7612
 
-_vb2_fop_release now returns true if this was the last open fh.
-This will simplify drivers that call it and that need to check if it
-was the last close.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 7 ++++---
- include/media/videobuf2-core.h           | 2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/r8a7790-lager.dts |   41 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b866a6b..f348b8a 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -3452,7 +3452,7 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
- }
- EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index e02b523..aec7db6 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -378,7 +378,12 @@
+ 		renesas,function = "usb2";
+ 	};
  
--int _vb2_fop_release(struct file *file, struct mutex *lock)
-+bool _vb2_fop_release(struct file *file, struct mutex *lock)
- {
- 	struct video_device *vdev = video_devdata(file);
+-	vin1_pins: vin {
++	vin0_pins: vin0 {
++		renesas,groups = "vin0_data24", "vin0_sync", "vin0_field", "vin0_clkenb", "vin0_clk";
++		renesas,function = "vin0";
++	};
++
++	vin1_pins: vin1 {
+ 		renesas,groups = "vin1_data8", "vin1_clk";
+ 		renesas,function = "vin1";
+ 	};
+@@ -539,6 +544,18 @@
+ 		reg = <0x12>;
+ 	};
  
-@@ -3464,7 +3464,7 @@ int _vb2_fop_release(struct file *file, struct mutex *lock)
- 	}
- 	if (lock)
- 		mutex_unlock(lock);
--	return v4l2_fh_release(file);
-+	return v4l2_fh_release_is_last(file);
- }
- EXPORT_SYMBOL_GPL(_vb2_fop_release);
++	hdmi-in@4c {
++		compatible = "adi,adv7612";
++		reg = <0x4c>;
++		remote = <&vin0>;
++
++		port {
++			hdmi_in_ep: endpoint {
++				remote-endpoint = <&vin0ep0>;
++			};
++		};
++	};
++
+ 	composite-in@20 {
+ 		compatible = "adi,adv7180";
+ 		reg = <0x20>;
+@@ -654,6 +671,28 @@
+ 	status = "okay";
+ };
  
-@@ -3473,7 +3473,8 @@ int vb2_fop_release(struct file *file)
- 	struct video_device *vdev = video_devdata(file);
- 	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
- 
--	return _vb2_fop_release(file, lock);
-+	_vb2_fop_release(file, lock);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_fop_release);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 22a44c2..7ed4c37 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -644,7 +644,7 @@ int vb2_ioctl_expbuf(struct file *file, void *priv,
- 
- int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma);
- int vb2_fop_release(struct file *file);
--int _vb2_fop_release(struct file *file, struct mutex *lock);
-+bool _vb2_fop_release(struct file *file, struct mutex *lock);
- ssize_t vb2_fop_write(struct file *file, const char __user *buf,
- 		size_t count, loff_t *ppos);
- ssize_t vb2_fop_read(struct file *file, char __user *buf,
++/* HDMI video input */
++&vin0 {
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	status = "ok";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin0ep0: endpoint {
++			remote-endpoint = <&hdmi_in_ep>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
++
+ /* composite video input */
+ &vin1 {
+ 	pinctrl-0 = <&vin1_pins>;
 -- 
-2.1.4
+1.7.10.4
 
