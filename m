@@ -1,121 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39334 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172AbbGNKKK (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61639 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752172AbbGWMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 06:10:10 -0400
-Message-ID: <1436868605.3793.24.camel@pengutronix.de>
-Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kernel@pengutronix.de
-Date: Tue, 14 Jul 2015 12:10:05 +0200
-In-Reply-To: <55A39982.3030006@xs4all.nl>
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>
-	 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>
-	 <55A39982.3030006@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 07/13] media: soc_camera pad-aware driver initialisation
+Date: Thu, 23 Jul 2015 13:21:37 +0100
+Message-Id: <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add detection of source pad number for drivers aware of the media
+controller API, so that the combination of soc_camera and rcar_vin
+can create device nodes to support modern drivers such as adv7604.c
+(for HDMI on Lager) and the converted adv7180.c (for composite)
+underneath.
 
-Am Montag, den 13.07.2015, 12:57 +0200 schrieb Hans Verkuil:
-[...]
-> > @@ -69,6 +72,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
-> >  
-> >  struct tc358743_state {
-> >  	struct tc358743_platform_data pdata;
-> > +	struct v4l2_of_bus_mipi_csi2 bus;
-> 
-> Where is this bus struct set?
+Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+line with requirements for building the drivers associated with it.
 
-Uh-oh, I have accidentally dropped setting the bus struct when switching
-to v4l2_of_alloc_parse_endpoint.
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/Kconfig      |    1 +
+ drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
+ drivers/media/platform/soc_camera/soc_camera.c |   36 ++++++++++++++++++++++++
+ include/media/soc_camera.h                     |    1 +
+ 4 files changed, 39 insertions(+)
 
-[...]
-> > @@ -700,7 +706,8 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
-> >  			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
-> >  			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
-> >  
-> > -	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
-> > +	i2c_wr32(sd, TXOPTIONCNTRL, (state->bus.flags &
-> > +		 V4L2_MBUS_CSI2_CONTINUOUS_CLOCK) ? MASK_CONTCLKMODE : 0);
-> 
-> It's used here.
-> 
-> BTW, since I don't see state->bus being set, that means bus.flags == 0 and
-> so this register is now set to 0 instead of MASK_CONTCLKMODE.
-> 
-> When using platform data I guess bus.flags should be set to
-> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK to prevent breakage.
-
-Ok.
-
-[..]
-> > +	/*
-> > +	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
-> > +	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
-> > +	 */
-> > +	bps_pr_lane = 2 * endpoint->link_frequencies[0];
-> > +	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
-> > +		dev_err(dev, "unsupported bps per lane: %u bps\n", bps_pr_lane);
-> > +		goto disable_clk;
-> > +	}
-> > +
-> > +	/* The CSI speed per lane is refclk / pll_prd * pll_fbd */
-> > +	state->pdata.pll_fbd = bps_pr_lane /
-> > +			       state->pdata.refclk_hz * state->pdata.pll_prd;
-> > +
-> > +	/*
-> > +	 * FIXME: These timings are from REF_02 for 594 Mbps per lane (297 MHz
-> > +	 * link frequency). In principle it should be possible to calculate
-> > +	 * them based on link frequency and resolution.
-> > +	 */
-> > +	if (bps_pr_lane != 594000000U)
-> > +		dev_warn(dev, "untested bps per lane: %u bps\n", bps_pr_lane);
-> > +	state->pdata.lineinitcnt = 0xe80;
-> > +	state->pdata.lptxtimecnt = 0x003;
-> > +	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
-> > +	state->pdata.tclk_headercnt = 0x1403;
-> > +	state->pdata.tclk_trailcnt = 0x00;
-> > +	/* ths-preparecnt: 3, ths-zerocnt: 1 */
-> > +	state->pdata.ths_headercnt = 0x0103;
-> > +	state->pdata.twakeup = 0x4882;
-> > +	state->pdata.tclk_postcnt = 0x008;
-> > +	state->pdata.ths_trailcnt = 0x2;
-> > +	state->pdata.hstxvregcnt = 0;
-
-Do you have any suggestion how to handle this? AFAIK REF_02 is not
-public, and I do not know the formulas it uses internally to calculate
-these timings. I wouldn't want to add all the timing parameters to the
-device tree just because of that.
-
-[...]
-> > @@ -1658,14 +1794,19 @@ static int tc358743_probe(struct i2c_client *client,
-> >  	if (!state)
-> >  		return -ENOMEM;
-> >  
-> > +	state->i2c_client = client;
-> > +
-> >  	/* platform data */
-> > -	if (!pdata) {
-> > -		v4l_err(client, "No platform data!\n");
-> > -		return -ENODEV;
-> > +	if (pdata) {
-> > +		state->pdata = *pdata;
-> > +	} else {
-> > +		err = tc358743_probe_of(state);
-> > +		if (err == -ENODEV)
-> > +			v4l_err(client, "No platform data!\n");
-> 
-> I'd replace this with "No device tree data!" or something like that.
-
-I'll do that, thank you.
-
-regards
-Philipp
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index f2776cd..5c45c83 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
+ 	depends on VIDEO_DEV && SOC_CAMERA
+ 	depends on ARCH_SHMOBILE || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on MEDIA_CONTROLLER
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 16352a8..00c1034 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+ 		struct device *dev = icd->parent;
+ 		int shift;
+ 
++		fmt.pad = icd->src_pad_idx;
+ 		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+ 		if (ret < 0)
+ 			return ret;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index d708df4..8d4d20c 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1293,6 +1293,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+ 	};
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
+ 	int ret;
+ 
+ 	sd->grp_id = soc_camera_grp_id(icd);
+@@ -1310,8 +1313,33 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
++	icd->src_pad_idx = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* At this point client .probe() should have run already */
++	ret = media_entity_init(&icd->vdev->entity, 1, &pad, 0);
++	if (ret < 0) {
++		goto eusrfmt;
++	} else {
++		int pad_idx;
++
++		for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++			if (sd->entity.pads[pad_idx].flags
++					== MEDIA_PAD_FL_SOURCE)
++				break;
++		if (pad_idx >= sd->entity.num_pads)
++			goto eusrfmt;
++
++		icd->src_pad_idx = pad_idx;
++		ret = soc_camera_init_user_formats(icd);
++		if (ret < 0) {
++			icd->src_pad_idx = -1;
++			goto eusrfmt;
++		}
++	}
++#else
+ 	ret = soc_camera_init_user_formats(icd);
++#endif
++
+ 	if (ret < 0)
+ 		goto eusrfmt;
+ 
+@@ -1335,6 +1363,9 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ evidstart:
+ 	soc_camera_free_user_formats(icd);
+ eusrfmt:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&icd->vdev->entity);
++#endif
+ 	soc_camera_remove_device(icd);
+ 
+ 	return ret;
+@@ -1856,6 +1887,11 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ 	if (icd->num_user_formats)
+ 		soc_camera_free_user_formats(icd);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (icd->vdev->entity.num_pads)
++		media_entity_cleanup(&icd->vdev->entity);
++#endif
++
+ 	if (icd->clk) {
+ 		/* For the synchronous case */
+ 		v4l2_clk_unregister(icd->clk);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..30193cf 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -42,6 +42,7 @@ struct soc_camera_device {
+ 	unsigned char devnum;		/* Device number per host */
+ 	struct soc_camera_sense *sense;	/* See comment in struct definition */
+ 	struct video_device *vdev;
++	int src_pad_idx;		/* For media-controller drivers */
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	const struct soc_camera_format_xlate *current_fmt;
+ 	struct soc_camera_format_xlate *user_formats;
+-- 
+1.7.10.4
 
