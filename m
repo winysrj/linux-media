@@ -1,88 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54396 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754857AbbG1AuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 20:50:20 -0400
-Subject: Re: [PATCHv2 8/9] hackrf: add support for transmitter
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
- <1437030298-20944-9-git-send-email-crope@iki.fi> <55A91474.4000801@xs4all.nl>
- <55B692D3.2070601@iki.fi> <55B696D0.2000700@xs4all.nl>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <55B6D1C9.30807@iki.fi>
-Date: Tue, 28 Jul 2015 03:50:17 +0300
-MIME-Version: 1.0
-In-Reply-To: <55B696D0.2000700@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61641 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752214AbbGWMVs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 04/13] media: adv7604: reduce support to first (digital) input
+Date: Thu, 23 Jul 2015 13:21:34 +0100
+Message-Id: <1437654103-26409-5-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/27/2015 11:38 PM, Hans Verkuil wrote:
-> On 07/27/2015 10:21 PM, Antti Palosaari wrote:
->> On 07/17/2015 05:43 PM, Hans Verkuil wrote:
->>> On 07/16/2015 09:04 AM, Antti Palosaari wrote:
->>>> HackRF SDR device has both receiver and transmitter. There is limitation
->>>> that receiver and transmitter cannot be used at the same time
->>>> (half-duplex operation). That patch implements transmitter support to
->>>> existing receiver only driver.
->>>>
->>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>>> ---
->>>>    drivers/media/usb/hackrf/hackrf.c | 787 +++++++++++++++++++++++++++-----------
->>>>    1 file changed, 572 insertions(+), 215 deletions(-)
->>>>
->>>
->>>
->>>> @@ -611,8 +751,15 @@ static int hackrf_queue_setup(struct vb2_queue *vq,
->>>>    		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
->>>>    {
->>>>    	struct hackrf_dev *dev = vb2_get_drv_priv(vq);
->>>> +	struct usb_interface *intf = dev->intf;
->>>> +	int ret;
->>>>
->>>> -	dev_dbg(dev->dev, "nbuffers=%d\n", *nbuffers);
->>>> +	dev_dbg(&intf->dev, "nbuffers=%d\n", *nbuffers);
->>>> +
->>>> +	if (test_and_set_bit(QUEUE_SETUP, &dev->flags)) {
->>>> +		ret = -EBUSY;
->>>> +		goto err;
->>>> +	}
->>>
->>> This doesn't work. The bit is only cleared when start_streaming fails or
->>> stop_streaming is called. But the application can also call REQBUFS again
->>> or just close the file handle, and then QUEUE_SETUP should also be cleared.
->>>
->>> But why is this here in the first place? It doesn't seem to do anything
->>> useful (except mess up the v4l2-compliance tests).
->>>
->>> I've removed it and it now seems to work OK.
->>
->> It is there to block simultaneous use of receiver and transmitter.
->> Device could operate only single mode at the time - receiving or
->> transmitting. Driver shares streaming buffers.
->>
->> Any idea how I can easily implement correct blocking?
->
-> Since each video_device struct has its own vb2_queue I wouldn't put the check
-> here. Instead, put the check in the start_streaming callback. And the check
-> is easy enough: if you want to start capturing, then call
-> vb2_is_streaming(&tx_vb2_queue). If you want to start output, then call
-> vb2_is_streaming(&rx_vb2_queue). If the other 'side' is streaming, then
-> return EBUSY.
->
-> It's perfectly valid to allocate the buffers, but actually streaming is an
-> exclusive operation.
+Using adv7611_read_cable_det() for ADV7612 means that full
+support for '.max_port = ADV7604_PAD_HDMI_PORT_B,' isn't available
+due to the need for multiple port reads to determine cable detection,
+and an agreed mechanism for communicating the separate statuses.
 
-Currently there is two queues, but only single buffer. If I do check on 
-start_streaming() it is too late as buffers are queue during buf_queue() 
-which is called earlier (and now both sides are added to same 
-queued_bufs lists, which messes up).
+This patch replaces adv7611_read_cable_det() with a functionally
+identical copy, commented appropriately.
 
+Earlier submissions [leading to commit 8331d30b] also set .cp_csc,
+which is used in a cp_read() call within adv76xx_log_status().
 
-regards
-Antti
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/i2c/adv7604.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 0587d27..2524184 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -877,6 +877,16 @@ static unsigned int adv7611_read_cable_det(struct v4l2_subdev *sd)
+ 	return value & 1;
+ }
+ 
++static unsigned int adv7612_read_cable_det(struct v4l2_subdev *sd)
++{
++	/*  Reads CABLE_DET_A_RAW. For input B support, need to
++	 *  account for bit 7 [MSB] of 0x6a (ie. CABLE_DET_B_RAW)
++	 */
++	u8 value = io_read(sd, 0x6f);
++
++	return value & 1;
++}
++
+ static int adv76xx_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+@@ -2728,20 +2738,21 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
+ 	[ADV7612] = {
+ 		.type = ADV7612,
+ 		.has_afe = false,
+-		.max_port = ADV7604_PAD_HDMI_PORT_B,
+-		.num_dv_ports = 2,
++		.max_port = ADV76XX_PAD_HDMI_PORT_A,	/* B not supported */
++		.num_dv_ports = 1,			/* normally 2 */
+ 		.edid_enable_reg = 0x74,
+ 		.edid_status_reg = 0x76,
+ 		.lcf_reg = 0xa3,
+ 		.tdms_lock_mask = 0x43,
+ 		.cable_det_mask = 0x01,
+ 		.fmt_change_digital_mask = 0x03,
++		.cp_csc = 0xf4,
+ 		.formats = adv7612_formats,
+ 		.nformats = ARRAY_SIZE(adv7612_formats),
+ 		.set_termination = adv7611_set_termination,
+ 		.setup_irqs = adv7612_setup_irqs,
+ 		.read_hdmi_pixelclock = adv7611_read_hdmi_pixelclock,
+-		.read_cable_det = adv7611_read_cable_det,
++		.read_cable_det = adv7612_read_cable_det,
+ 		.recommended_settings = {
+ 		    [1] = adv7612_recommended_settings_hdmi,
+ 		},
 -- 
-http://palosaari.fi/
+1.7.10.4
+
