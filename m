@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f175.google.com ([209.85.220.175]:36815 "EHLO
-	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752272AbbGTMiX convert rfc822-to-8bit (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61663 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752252AbbGWMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 08:38:23 -0400
-Received: by qkdv3 with SMTP id v3so110703891qkd.3
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 05:38:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1454427BAA91444C85615ABB9382A2DE@wincomm.com.tw>
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-	<1454427BAA91444C85615ABB9382A2DE@wincomm.com.tw>
-Date: Mon, 20 Jul 2015 08:38:22 -0400
-Message-ID: <CALzAhNX-NYGnhBMVwohZcir0oZ1a3BW9zP7xNdcYaSfpQPZRmA@mail.gmail.com>
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-From: Steven Toth <stoth@kernellabs.com>
-To: tonyc@wincomm.com.tw
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Jerry Chen <jerry_chen@hauppauge.com.tw>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 10/13] media: soc_camera: Fill std field in enum_input
+Date: Thu, 23 Jul 2015 13:21:40 +0100
+Message-Id: <1437654103-26409-11-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 20, 2015 at 2:00 AM, Tony Chang(Wincomm)
-<tonyc@wincomm.com.tw> wrote:
-> Dear : Steven
->
-> Sorry for my poor english !! I don’t know how to install it
->
-> According your feedback..
->
-> diff --git a/drivers/media/pci/cx23885/Kconfig
-> b/drivers/media/pci/cx23885/Kconfigindex 2e1b88c..3e6398f 100644
->
-> I don't how to use diff -- because can't see any drivers/media/....
->
-> Please reference attached picture
->
-> Is kernel not support ?
->
-> Best Regards
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tony / Jerry,
+Fill in the std field from the video_device tvnorms field in
+enum_input.
 
-You need to download the entire tree, based on branch hvr-1275, commit
-#91bd0a5bbbc3759bb3fd6516d8c322b030620b46, compile and install the
-entire kernel (which is a 4.2 rc).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Its available for download from here: >
-http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
-
-After that it should be fine.
-
-The pictures you have show we're using the same hardware, but you're
-not running the newer kernel (including the new patches).
-
-- Steve
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 8d4d20c..7971388 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -309,11 +309,14 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+ static int soc_camera_enum_input(struct file *file, void *priv,
+ 				 struct v4l2_input *inp)
+ {
++	struct soc_camera_device *icd = file->private_data;
++
+ 	if (inp->index != 0)
+ 		return -EINVAL;
+ 
+ 	/* default is camera */
+ 	inp->type = V4L2_INPUT_TYPE_CAMERA;
++	inp->std = icd->vdev->tvnorms;
+ 	strcpy(inp->name, "Camera");
+ 
+ 	return 0;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
