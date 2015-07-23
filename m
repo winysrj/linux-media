@@ -1,62 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:43183 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754082AbbGXNKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 09:10:44 -0400
-Date: Fri, 24 Jul 2015 15:10:38 +0200
-From: Jonathan Corbet <corbet@lwn.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Masanari Iida <standby24x7@gmail.com>, mchehab@osg.samsung.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] DocBook: Fix typo in intro.xml
-Message-ID: <20150724151038.1b9e9981@lwn.net>
-In-Reply-To: <55B1F86F.8010304@xs4all.nl>
-References: <1436830610-19316-1-git-send-email-standby24x7@gmail.com>
-	<20150714123806.4a97894c@lwn.net>
-	<55B1F86F.8010304@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:61646 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751844AbbGWMVs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jul 2015 08:21:48 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 05/13] v4l: subdev: Add pad config allocator and init
+Date: Thu, 23 Jul 2015 13:21:35 +0100
+Message-Id: <1437654103-26409-6-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 24 Jul 2015 10:33:51 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-> Jon, would you mind if I take this patch and let it go through the media
-> tree? I'd like to apply a patch on top of this one that removes the mention of
-> devfs.
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
-Fine, I'll drop it.
-
-> It makes more sense in general to take patches to Documentation/DocBook/media
-> via the media route.
-
-OK.  I'll stick the following into MAINTAINERS so I'm not tempted to grab
-them from you :)
-
-jon
-
-MAINTAINERS: Direct Documentation/DocBook/media properly
-
-The media maintainers want DocBook changes to go through their tree;
-document that wish accordingly.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
 ---
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           | 10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b9b91566380e..11e2516c2712 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3440,6 +3440,7 @@ X:	Documentation/devicetree/
- X:	Documentation/acpi
- X:	Documentation/power
- X:	Documentation/spi
-+X:	Documentation/DocBook/media
- T:	git git://git.lwn.net/linux-2.6.git docs-next
+Changes since v1:
+
+- Added v4l2_subdev_free_pad_config
+---
+ drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           |   10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 83615b8..951a9cf 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	v4l2_subdev_call(sd, pad, init_cfg, cfg);
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
  
- DOUBLETALK DRIVER
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 370fc38..a03b600 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -486,6 +486,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	void (*init_cfg)(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -680,7 +682,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++
++static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
 -- 
-2.4.3
+1.7.10.4
 
