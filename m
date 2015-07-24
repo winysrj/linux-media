@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:29889 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbbGLRgB (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49571 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751052AbbGXKWu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2015 13:36:01 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/4] media: pxa_camera: conversion to dmaengine
-References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
-	<1436120872-24484-5-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.1507121859030.32193@axis700.grange>
-Date: Sun, 12 Jul 2015 19:33:09 +0200
-In-Reply-To: <Pine.LNX.4.64.1507121859030.32193@axis700.grange> (Guennadi
-	Liakhovetski's message of "Sun, 12 Jul 2015 19:05:49 +0200 (CEST)")
-Message-ID: <87y4iljn6y.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 24 Jul 2015 06:22:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com
+Subject: [RFC PATCH 0/7] Simplify first open/last close checks
+Date: Fri, 24 Jul 2015 12:21:29 +0200
+Message-Id: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->>  		/* init DMA for Y channel */
->
-> How about taking the loop over the sg list out of pxa_init_dma_channel() 
-> to avoid having to iterate it from the beginning each time? Then you would 
-> be able to split it into channels inside that global loop? Would that 
-> work? Of course you might need to rearrange functions to avoid too deep 
-> code nesting.
+This patch series makes a number of API improvements to simplify checking
+if an open or close of a filehandle was the first or last.
 
-Ok, will try that.
-The more I think of it, the more it looks to me like a generic thing : take an
-sglist, and an array of sizes, and split the sglist into several sglists, each
-of the defined size in the array.
+Regards,
 
-Or more code-like speaking :
-  - sglist_split(struct scatterlist *sg_int, size_t *sizes, int nb_sizes,
-                 struct scatterlist **sg_out)
-  - and sg_out is an array of nb_sizes (struct scatterlist *sg)
+	Hans
 
-So I will try that out. Maybe if that works out for pxa_camera, Jens or Russell
-would accept that into lib/scatterlist.c.
+Hans Verkuil (7):
+  v4l2-fh: change int to bool for v4l2_fh_is_singular(_file)
+  v4l2-fh: v4l2_fh_add/del now return whether it was the first or last
+    fh.
+  v4l2-fh: add v4l2_fh_open_is_first and v4l2_fh_release_is_last
+  am437x-vpfe/fimc-capture: always return 0 on close
+  vb2: _vb2_fop_release returns if this was the last fh.
+  am437x/exynos4-is/marvell-ccic/sh_vou: simplify release()
+  cpia2/si470x: simplify open
 
-Cheers.
+ drivers/media/platform/am437x/am437x-vpfe.c      | 16 ++------
+ drivers/media/platform/exynos4-is/fimc-capture.c |  8 +---
+ drivers/media/platform/marvell-ccic/mcam-core.c  |  5 +--
+ drivers/media/platform/sh_vou.c                  |  5 +--
+ drivers/media/radio/si470x/radio-si470x-i2c.c    | 21 ++++-------
+ drivers/media/usb/cpia2/cpia2_v4l.c              |  5 +--
+ drivers/media/v4l2-core/v4l2-fh.c                | 41 +++++++++++++--------
+ drivers/media/v4l2-core/videobuf2-core.c         |  7 ++--
+ include/media/v4l2-fh.h                          | 47 ++++++++++++++++++------
+ include/media/videobuf2-core.h                   |  2 +-
+ 10 files changed, 82 insertions(+), 75 deletions(-)
 
---
-Robert
+-- 
+2.1.4
+
