@@ -1,74 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:32946 "EHLO
-	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752041AbbGVWmj (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46310 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752850AbbGXN00 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:42:39 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de,
-	sakari.ailus@linux.intel.com, perex@perex.cz, crope@iki.fi,
-	arnd@arndb.de, stefanr@s5r6.in-berlin.de,
-	ruchandani.tina@gmail.com, chehabrafael@gmail.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, agoode@google.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, daniel@zonque.org, vladcatoi@gmail.com,
-	misterpib@gmail.com, damien@zamaudio.com, pmatilai@laiskiainen.org,
-	takamichiho@gmail.com, normalperson@yhbt.net,
-	bugzilla.frnkcg@spamgourmet.com, joe@oampo.co.uk,
-	calcprogrammer1@gmail.com, jussi@sonarnerd.net,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, hyun.kwon@xilinx.com, michal.simek@xilinx.com,
-	soren.brinkmann@xilinx.com, pawel@osciak.com,
-	m.szyprowski@samsung.com, gregkh@linuxfoundation.org,
-	skd08@gmail.com, nsekhar@ti.com,
-	boris.brezillon@free-electrons.com, Julia.Lawall@lip6.fr,
-	elfring@users.sourceforge.net, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Subject: [PATCH v2 03/19] media: Add ALSA Media Controller devnodes
-Date: Wed, 22 Jul 2015 16:42:04 -0600
-Message-Id: <78cb5dd3bb7d5e531c66384c48ee35aa89903b75.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1437599281.git.shuahkh@osg.samsung.com>
-References: <cover.1437599281.git.shuahkh@osg.samsung.com>
+	Fri, 24 Jul 2015 09:26:26 -0400
+Message-ID: <55B23CB7.2040200@xs4all.nl>
+Date: Fri, 24 Jul 2015 15:25:11 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Masanari Iida <standby24x7@gmail.com>, mchehab@osg.samsung.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] DocBook: Fix typo in intro.xml
+References: <1436830610-19316-1-git-send-email-standby24x7@gmail.com>	<20150714123806.4a97894c@lwn.net>	<55B1F86F.8010304@xs4all.nl> <20150724151038.1b9e9981@lwn.net>
+In-Reply-To: <20150724151038.1b9e9981@lwn.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ALSA Media Controller capture, playback, and mixer
-devnode defines.
+On 07/24/2015 03:10 PM, Jonathan Corbet wrote:
+> On Fri, 24 Jul 2015 10:33:51 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+>> Jon, would you mind if I take this patch and let it go through the media
+>> tree? I'd like to apply a patch on top of this one that removes the mention of
+>> devfs.
+> 
+> Fine, I'll drop it.
+> 
+>> It makes more sense in general to take patches to Documentation/DocBook/media
+>> via the media route.
+> 
+> OK.  I'll stick the following into MAINTAINERS so I'm not tempted to grab
+> them from you :)
+> 
+> jon
+> 
+> MAINTAINERS: Direct Documentation/DocBook/media properly
+> 
+> The media maintainers want DocBook changes to go through their tree;
+> document that wish accordingly.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- include/uapi/linux/media.h | 5 +++++
- 1 file changed, 5 insertions(+)
+Thank you very much!
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4e816be..4a30ea3 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -49,12 +49,17 @@ struct media_device_info {
- #define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
- #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
-+/* Legacy ALSA symbol. Keep it to avoid userspace compilation breakages */
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
- #define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
- #define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
- #define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
- #define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
- #define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
-+/* ALSA devnodes */
-+#define MEDIA_ENT_T_DEVNODE_ALSA_CAPTURE	(MEDIA_ENT_T_DEVNODE + 9)
-+#define MEDIA_ENT_T_DEVNODE_ALSA_PLAYBACK	(MEDIA_ENT_T_DEVNODE + 10)
-+#define MEDIA_ENT_T_DEVNODE_ALSA_MIXER		(MEDIA_ENT_T_DEVNODE + 11)
- 
- /* Legacy symbol. Use it to avoid userspace compilation breakages */
- #define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
--- 
-2.1.4
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b9b91566380e..11e2516c2712 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3440,6 +3440,7 @@ X:	Documentation/devicetree/
+>  X:	Documentation/acpi
+>  X:	Documentation/power
+>  X:	Documentation/spi
+> +X:	Documentation/DocBook/media
+>  T:	git git://git.lwn.net/linux-2.6.git docs-next
+>  
+>  DOUBLETALK DRIVER
+> 
 
