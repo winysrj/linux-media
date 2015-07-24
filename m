@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:38043 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230AbbGSHfA (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49571 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752797AbbGXKW6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2015 03:35:00 -0400
-Received: by wibxm9 with SMTP id xm9so1383212wib.1
-        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2015 00:34:58 -0700 (PDT)
-Message-ID: <55AB5320.8030100@gmail.com>
-Date: Sun, 19 Jul 2015 09:34:56 +0200
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>, tonyc@wincomm.com.tw,
-	Antti Palosaari <crope@iki.fi>
-CC: Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants - testers
- reqd.
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-In-Reply-To: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Jul 2015 06:22:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/7] am437x-vpfe/fimc-capture: always return 0 on close
+Date: Fri, 24 Jul 2015 12:21:33 +0200
+Message-Id: <1437733296-38198-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steven,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using 
-European DVB-C
-Since MythTV can't handle multistandard frontends (yet), I've disabled 
-DVB-T/T2 like this (I always do that):
+When the filehandle is closed always return 0 and ignore the return
+code from _vb2_fop_release().
 
-sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/' 
-drivers/media/dvb-frontends/si2168.c
+Currently _vb2_fop_release() always returns 0, but this will change in
+the next patch where _vb2_fop_release() will return a boolean telling the
+caller if this was the last open filehandle that is closed.
 
-Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no 
-lock, no tune.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/am437x/am437x-vpfe.c      | 5 ++---
+ drivers/media/platform/exynos4-is/fimc-capture.c | 5 ++---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-Regards,
-Tycho.
-
-Op 19-07-15 om 00:21 schreef Steven Toth:
-> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
->
-> Patches above are available for test.
->
-> Antti, note the change to SI2168 to add support for enabling and
-> disabling the SI2168 transport bus dynamically.
->
-> I've tested with a combo card, switching back and forward between QAM
-> and DVB-T, this works fine, just remember to select a different
-> frontend as we have two frontends on the same adapter,
-> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
->
-> If any testers have the ATSC or DVB-T, I'd expect these to work
-> equally well, replease report feedback here.
->
-> Thanks,
->
-> - Steve
->
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index c8447fa..210c779 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -1187,7 +1187,6 @@ static int vpfe_release(struct file *file)
+ {
+ 	struct vpfe_device *vpfe = video_drvdata(file);
+ 	bool fh_singular;
+-	int ret;
+ 
+ 	mutex_lock(&vpfe->lock);
+ 
+@@ -1195,7 +1194,7 @@ static int vpfe_release(struct file *file)
+ 	fh_singular = v4l2_fh_is_singular_file(file);
+ 
+ 	/* the release helper will cleanup any on-going streaming */
+-	ret = _vb2_fop_release(file, NULL);
++	_vb2_fop_release(file, NULL);
+ 
+ 	/*
+ 	 * If this was the last open file.
+@@ -1206,7 +1205,7 @@ static int vpfe_release(struct file *file)
+ 
+ 	mutex_unlock(&vpfe->lock);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index cfebf29..f4458b0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -538,7 +538,6 @@ static int fimc_capture_release(struct file *file)
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_vid_cap *vc = &fimc->vid_cap;
+ 	bool close = v4l2_fh_is_singular_file(file);
+-	int ret;
+ 
+ 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
+ 
+@@ -549,7 +548,7 @@ static int fimc_capture_release(struct file *file)
+ 		vc->streaming = false;
+ 	}
+ 
+-	ret = _vb2_fop_release(file, NULL);
++	_vb2_fop_release(file, NULL);
+ 
+ 	if (close) {
+ 		clear_bit(ST_CAPT_BUSY, &fimc->state);
+@@ -564,7 +563,7 @@ static int fimc_capture_release(struct file *file)
+ 	pm_runtime_put_sync(&fimc->pdev->dev);
+ 	mutex_unlock(&fimc->lock);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static const struct v4l2_file_operations fimc_capture_fops = {
+-- 
+2.1.4
 
