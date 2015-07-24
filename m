@@ -1,143 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36327 "EHLO mail.kapsi.fi"
+Received: from tex.lwn.net ([70.33.254.29]:43183 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741AbbGIEGz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jul 2015 00:06:55 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/12] a8293: remove legacy media attach
-Date: Thu,  9 Jul 2015 07:06:22 +0300
-Message-Id: <1436414792-9716-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1436414792-9716-1-git-send-email-crope@iki.fi>
-References: <1436414792-9716-1-git-send-email-crope@iki.fi>
+	id S1754082AbbGXNKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jul 2015 09:10:44 -0400
+Date: Fri, 24 Jul 2015 15:10:38 +0200
+From: Jonathan Corbet <corbet@lwn.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Masanari Iida <standby24x7@gmail.com>, mchehab@osg.samsung.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] DocBook: Fix typo in intro.xml
+Message-ID: <20150724151038.1b9e9981@lwn.net>
+In-Reply-To: <55B1F86F.8010304@xs4all.nl>
+References: <1436830610-19316-1-git-send-email-standby24x7@gmail.com>
+	<20150714123806.4a97894c@lwn.net>
+	<55B1F86F.8010304@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove legacy media attach as all users are on I2C bindings now.
+On Fri, 24 Jul 2015 10:33:51 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Jon, would you mind if I take this patch and let it go through the media
+> tree? I'd like to apply a patch on top of this one that removes the mention of
+> devfs.
+
+Fine, I'll drop it.
+
+> It makes more sense in general to take patches to Documentation/DocBook/media
+> via the media route.
+
+OK.  I'll stick the following into MAINTAINERS so I'm not tempted to grab
+them from you :)
+
+jon
+
+MAINTAINERS: Direct Documentation/DocBook/media properly
+
+The media maintainers want DocBook changes to go through their tree;
+document that wish accordingly.
 ---
- drivers/media/dvb-frontends/a8293.c | 63 +------------------------------------
- drivers/media/dvb-frontends/a8293.h | 18 -----------
- 2 files changed, 1 insertion(+), 80 deletions(-)
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/a8293.c b/drivers/media/dvb-frontends/a8293.c
-index 97ecbe0..522b0d1 100644
---- a/drivers/media/dvb-frontends/a8293.c
-+++ b/drivers/media/dvb-frontends/a8293.c
-@@ -18,7 +18,6 @@
-  *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-  */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b9b91566380e..11e2516c2712 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3440,6 +3440,7 @@ X:	Documentation/devicetree/
+ X:	Documentation/acpi
+ X:	Documentation/power
+ X:	Documentation/spi
++X:	Documentation/DocBook/media
+ T:	git git://git.lwn.net/linux-2.6.git docs-next
  
--#include "dvb_frontend.h"
- #include "a8293.h"
- 
- struct a8293_priv {
-@@ -105,68 +104,8 @@ err:
- 	return ret;
- }
- 
--static void a8293_release_sec(struct dvb_frontend *fe)
--{
--	a8293_set_voltage(fe, SEC_VOLTAGE_OFF);
--
--	kfree(fe->sec_priv);
--	fe->sec_priv = NULL;
--}
--
--struct dvb_frontend *a8293_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct a8293_config *cfg)
--{
--	int ret;
--	struct a8293_priv *priv = NULL;
--	u8 buf[2];
--
--	/* allocate memory for the internal priv */
--	priv = kzalloc(sizeof(struct a8293_priv), GFP_KERNEL);
--	if (priv == NULL) {
--		ret = -ENOMEM;
--		goto err;
--	}
--
--	/* setup the priv */
--	priv->i2c = i2c;
--	priv->i2c_addr = cfg->i2c_addr;
--	fe->sec_priv = priv;
--
--	/* check if the SEC is there */
--	ret = a8293_rd(priv, buf, 2);
--	if (ret)
--		goto err;
--
--	/* ENB=0 */
--	priv->reg[0] = 0x10;
--	ret = a8293_wr(priv, &priv->reg[0], 1);
--	if (ret)
--		goto err;
--
--	/* TMODE=0, TGATE=1 */
--	priv->reg[1] = 0x82;
--	ret = a8293_wr(priv, &priv->reg[1], 1);
--	if (ret)
--		goto err;
--
--	fe->ops.release_sec = a8293_release_sec;
--
--	/* override frontend ops */
--	fe->ops.set_voltage = a8293_set_voltage;
--
--	dev_info(&priv->i2c->dev, "%s: Allegro A8293 SEC attached\n",
--			KBUILD_MODNAME);
--
--	return fe;
--err:
--	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
--	kfree(priv);
--	return NULL;
--}
--EXPORT_SYMBOL(a8293_attach);
--
- static int a8293_probe(struct i2c_client *client,
--			const struct i2c_device_id *id)
-+		       const struct i2c_device_id *id)
- {
- 	struct a8293_priv *dev;
- 	struct a8293_platform_data *pdata = client->dev.platform_data;
-diff --git a/drivers/media/dvb-frontends/a8293.h b/drivers/media/dvb-frontends/a8293.h
-index aff3653..aa07b68 100644
---- a/drivers/media/dvb-frontends/a8293.h
-+++ b/drivers/media/dvb-frontends/a8293.h
-@@ -22,7 +22,6 @@
- #define A8293_H
- 
- #include "dvb_frontend.h"
--#include <linux/kconfig.h>
- 
- /*
-  * I2C address
-@@ -37,21 +36,4 @@ struct a8293_platform_data {
- 	struct dvb_frontend *dvb_frontend;
- };
- 
--
--struct a8293_config {
--	u8 i2c_addr;
--};
--
--#if IS_REACHABLE(CONFIG_DVB_A8293)
--extern struct dvb_frontend *a8293_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct a8293_config *cfg);
--#else
--static inline struct dvb_frontend *a8293_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct a8293_config *cfg)
--{
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif
--
- #endif /* A8293_H */
+ DOUBLETALK DRIVER
 -- 
-http://palosaari.fi/
+2.4.3
 
