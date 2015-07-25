@@ -1,77 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33106 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbbG0LNQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38798 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755034AbbGYWO3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 07:13:16 -0400
-Message-ID: <1437995577.3239.20.camel@pengutronix.de>
-Subject: Re: [PATCH v3 3/3] [media] videobuf2: add trace events
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Sat, 25 Jul 2015 18:14:29 -0400
+Date: Sun, 26 Jul 2015 01:13:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de
-Date: Mon, 27 Jul 2015 13:12:57 +0200
-In-Reply-To: <55B4C1FD.80201@xs4all.nl>
-References: <1436536166-3307-1-git-send-email-p.zabel@pengutronix.de>
-	 <1436536166-3307-3-git-send-email-p.zabel@pengutronix.de>
-	 <55B4C1FD.80201@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/7] v4l2-fh: v4l2_fh_add/del now return whether it
+ was the first or last fh.
+Message-ID: <20150725221358.GG12092@valkosipuli.retiisi.org.uk>
+References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+ <1437733296-38198-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1437733296-38198-3-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Am Sonntag, den 26.07.2015, 13:18 +0200 schrieb Hans Verkuil:
-> Hi Philipp,
-[...]
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 93b3154..b866a6b 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -30,6 +30,8 @@
-> >  #include <media/v4l2-common.h>
-> >  #include <media/videobuf2-core.h>
-> > 
+On Fri, Jul 24, 2015 at 12:21:31PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Shouldn't there be a #define CREATE_TRACE_POINTS added before the include? That's
-> what is done in v4l2-ioctl.c as well.
-
-Documentation/trace/tracepoints.txt says
-   "if you use the header in multiple source files,
-    #define CREATE_TRACE_POINTS should appear only in one source file."
-
-> I updated my kernel on my laptop to the latest media master and without this line it
-> gives me link errors:
+> Simplify driver code by letting v4l2_fh_add/del return true if the
+> filehandle was the first open or the last close.
 > 
-> ERROR: "__tracepoint_vb2_qbuf" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
-> ERROR: "__tracepoint_vb2_buf_done" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
-> ERROR: "__tracepoint_vb2_buf_queue" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
-> ERROR: "__tracepoint_vb2_dqbuf" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
-> scripts/Makefile.modpost:90: recipe for target '__modpost' failed
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Since drivers/media/v4l2-core/v4l2-ioctl.c is built with the trace
-points whenever CONFIG_VIDEO_V4L2 is enabled, the symbols will currently
-end up in drivers/media/v4l2-core/v4l2-ioctl.o, but they are not
-exported.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> I'm not sure why I didn't see this anywhere else, but can you take a look at this?
-
-I didn't notice because I hadn't built kernels with VIDEO_V4L2 and
-VIDEOBUF2_CORE as modules on x86. I'm not sure why I don't get these
-errors on ARM, but I suppose this issue is a reason to split the vb2
-tracepoints out of include/trace/event/v4l2.h into their own header
-anyway. The vb2 tracepoint implementation should reside in the
-videobuf2-core module.
-
-regards
-Philipp
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
