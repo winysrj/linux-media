@@ -1,256 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50125 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753508AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:05:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 4/9] v4l2: add support for SDR transmitter
-Date: Thu, 16 Jul 2015 10:04:53 +0300
-Message-Id: <1437030298-20944-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38859 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754972AbbGYWml (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2015 18:42:41 -0400
+Date: Sun, 26 Jul 2015 01:42:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 3/7] v4l2-fh: add v4l2_fh_open_is_first and
+ v4l2_fh_release_is_last
+Message-ID: <20150725224239.GA15270@valkosipuli.retiisi.org.uk>
+References: <1437733296-38198-1-git-send-email-hverkuil@xs4all.nl>
+ <1437733296-38198-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1437733296-38198-4-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New IOCTL ops:
-vidioc_enum_fmt_sdr_out
-vidioc_g_fmt_sdr_out
-vidioc_s_fmt_sdr_out
-vidioc_try_fmt_sdr_out
+Hi Hans,
 
-New vb2 buffertype:
-V4L2_BUF_TYPE_SDR_OUTPUT
+On Fri, Jul 24, 2015 at 12:21:32PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Add new helper functions that report back if this was the first open
+> or last close.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
 
-New v4l2 capability:
-V4L2_CAP_SDR_OUTPUT
+...
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c      | 14 ++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c    | 25 +++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf-core.c |  4 +++-
- include/media/v4l2-ioctl.h              |  8 ++++++++
- include/trace/events/v4l2.h             |  1 +
- include/uapi/linux/videodev2.h          |  5 ++++-
- 6 files changed, 53 insertions(+), 4 deletions(-)
+> @@ -65,11 +65,23 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
+>   */
+>  bool v4l2_fh_add(struct v4l2_fh *fh);
+>  /*
+> + * It allocates a v4l2_fh and inits and adds it to the video_device associated
+> + * with the file pointer. In addition it returns true if this was the first
+> + * open and false otherwise. The error code is returned in *err.
+> + */
+> +bool v4l2_fh_open_is_first(struct file *filp, int *err);
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 71a1b93..6b1eaed 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -637,8 +637,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_try_fmt_sliced_vbi_out)))
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
--	} else if (is_sdr) {
--		/* SDR specific ioctls */
-+	} else if (is_sdr && is_rx) {
-+		/* SDR receiver specific ioctls */
- 		if (ops->vidioc_enum_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
- 		if (ops->vidioc_g_fmt_sdr_cap)
-@@ -647,6 +647,16 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
- 		if (ops->vidioc_try_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-+	} else if (is_sdr && is_tx) {
-+		/* SDR transmitter specific ioctls */
-+		if (ops->vidioc_enum_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-+		if (ops->vidioc_g_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-+		if (ops->vidioc_s_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-+		if (ops->vidioc_try_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 	}
- 
- 	if (is_vid || is_vbi || is_sdr) {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ef42474..21e9598 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -154,6 +154,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
- 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
-+	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-@@ -327,6 +328,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 				sliced->service_lines[1][i]);
- 		break;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		sdr = &p->fmt.sdr;
- 		pr_cont(", pixelformat=%c%c%c%c\n",
- 			(sdr->pixelformat >>  0) & 0xff,
-@@ -975,6 +977,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (is_sdr && is_tx && ops->vidioc_g_fmt_sdr_out)
-+			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1324,6 +1330,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_enum_fmt_sdr_out))
-+			break;
-+		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, arg);
-+		break;
- 	}
- 	if (ret == 0)
- 		v4l_fill_fmtdesc(p);
-@@ -1418,6 +1429,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
- 			break;
- 		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_g_fmt_sdr_out))
-+			break;
-+		return ops->vidioc_g_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1497,6 +1512,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_s_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1576,6 +1596,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_try_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_try_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index 926836d..6c02989 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -576,7 +576,8 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
- 		}
- 		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
- 		    || q->type == V4L2_BUF_TYPE_VBI_OUTPUT
--		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
-+		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT
-+		    || q->type == V4L2_BUF_TYPE_SDR_OUTPUT) {
- 			buf->size = b->bytesused;
- 			buf->field = b->field;
- 			buf->ts = b->timestamp;
-@@ -1154,6 +1155,7 @@ unsigned int videobuf_poll_stream(struct file *file,
- 			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 			case V4L2_BUF_TYPE_VBI_OUTPUT:
- 			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			case V4L2_BUF_TYPE_SDR_OUTPUT:
- 				rc = POLLOUT | POLLWRNORM;
- 				break;
- 			default:
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 8fbbd76..017ffb2 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -36,6 +36,8 @@ struct v4l2_ioctl_ops {
- 					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_sdr_out)     (struct file *file, void *fh,
-+					    struct v4l2_fmtdesc *f);
- 
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -60,6 +62,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_g_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
- 
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_s_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
- 
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -108,6 +114,8 @@ struct v4l2_ioctl_ops {
- 					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
- 					  struct v4l2_format *f);
-+	int (*vidioc_try_fmt_sdr_out)    (struct file *file, void *fh,
-+					  struct v4l2_format *f);
- 
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index 89d0497..29d64e4 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -27,6 +27,7 @@
- 	EM( V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" ) \
- 	EM( V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" )	\
- 	EM( V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" )		\
-+	EM( V4L2_BUF_TYPE_SDR_OUTPUT,           "SDR_OUTPUT" )		\
- 	EMe(V4L2_BUF_TYPE_PRIVATE,		"PRIVATE" )
- 
- SHOW_TYPE
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 467816cb..70f06c9 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -145,6 +145,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
-+	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -159,7 +160,8 @@ enum v4l2_buf_type {
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
- 	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
--	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
-+	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT		\
-+	 || (type) == V4L2_BUF_TYPE_SDR_OUTPUT)
- 
- enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
-@@ -426,6 +428,7 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
- #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
-+#define V4L2_CAP_SDR_OUTPUT		0x00400000  /* Is a SDR output device */
- 
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+The new interface functions look a tad clumsy to me.
+
+What would you think of returning the singularity value from v4l2_fh_open()
+straight away? Negative integers are errors, so zero and positive values are
+free.
+
+A few drivers just check if the value is non-zero and then return that
+value, but there are just a handful of those.
+
+> +/*
+>   * Can be used as the open() op of v4l2_file_operations.
+>   * It allocates a v4l2_fh and inits and adds it to the video_device associated
+>   * with the file pointer.
+>   */
+> -int v4l2_fh_open(struct file *filp);
+> +static inline int v4l2_fh_open(struct file *filp)
+> +{
+> +	int err;
+> +
+> +	v4l2_fh_open_is_first(filp, &err);
+> +	return err;
+> +}
+>  /*
+>   * Remove file handle from the list of file handles. Must be called in
+>   * v4l2_file_operations->release() handler if the driver uses v4l2_fh.
+> @@ -86,12 +98,23 @@ bool v4l2_fh_del(struct v4l2_fh *fh);
+>   */
+>  void v4l2_fh_exit(struct v4l2_fh *fh);
+>  /*
+> + * It deletes and exits the v4l2_fh associated with the file pointer and
+> + * frees it. It will do nothing if filp->private_data (the pointer to the
+> + * v4l2_fh struct) is NULL. This function returns true if this was the
+> + * last open file handle and false otherwise.
+> + */
+> +bool v4l2_fh_release_is_last(struct file *filp);
+> +/*
+>   * Can be used as the release() op of v4l2_file_operations.
+>   * It deletes and exits the v4l2_fh associated with the file pointer and
+>   * frees it. It will do nothing if filp->private_data (the pointer to the
+>   * v4l2_fh struct) is NULL. This function always returns 0.
+>   */
+> -int v4l2_fh_release(struct file *filp);
+> +static inline int v4l2_fh_release(struct file *filp)
+> +{
+> +	v4l2_fh_release_is_last(filp);
+> +	return 0;
+> +}
+>  /*
+>   * Returns true if this filehandle is the only filehandle opened for the
+
 -- 
-http://palosaari.fi/
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
