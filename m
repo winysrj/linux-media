@@ -1,48 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46749 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752150AbbGPGPp (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:49632 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753738AbbGYGFG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 02:15:45 -0400
-Message-ID: <55A74BD3.1030506@xs4all.nl>
-Date: Thu, 16 Jul 2015 08:14:43 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"j.anaszewski" <j.anaszewski@samsung.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v4 1/1] V4L2: platform: Add Renesas R-Car JPEG codec driver.
-References: <1435318645-20565-1-git-send-email-mikhail.ulyanov@cogentembedded.com> <CALi4nhrbYb9Mo+vgQuhDUN2YA+16kcQgLojf-a8_yZne_X3iTA@mail.gmail.com>
-In-Reply-To: <CALi4nhrbYb9Mo+vgQuhDUN2YA+16kcQgLojf-a8_yZne_X3iTA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sat, 25 Jul 2015 02:05:06 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NS100I3Y4WDV560@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 25 Jul 2015 15:05:01 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] Samsung SoC media driver updates for 4.3
+Date: Sat, 25 Jul 2015 08:04:02 +0200
+Message-id: <1437804242-29656-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2015 01:17 AM, Mikhail Ulyanov wrote:
-> Hello,
-> 
-> If you have any comments or suggestion, please let me know :)
-> Asking because it seems stuck for nearly a 3 weeks...
+Hi Mauro,
 
-I was hoping to review this last Monday but I ran out of time. It's on the top
-of my TODO list so you should have a review by mid-next week at the latest. I
-actually hope I can do it tomorrow.
+The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
 
+  [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.3/media/next-1
+
+for you to fetch changes up to 689b0b369a78dc85cb7b8cdaa412cee455b0c650:
+
+  s5p-jpeg: Eliminate double kfree() (2015-07-25 07:12:31 +0200)
+
+----------------------------------------------------------------
+Andrzej Pietrasiewicz (1):
+      s5p-jpeg: Eliminate double kfree()
+
+Krzysztof Kozlowski (1):
+      s5p-tv: Drop owner assignment from i2c_driver
+
+Marek Szyprowski (2):
+      s5p-mfc: add return value check in mfc_sys_init_cmd
+      s5p-mfc: add additional check for incorrect memory configuration
+
+Nicholas Mc Guire (1):
+      s5p-tv: fix wait_event_timeout return handling
+
+Seung-Woo Kim (1):
+      s5p-mfc: fix state check from encoder queue_setup
+
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     |   14 ++++----------
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    6 +++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    9 +++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |   11 +++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |   12 +++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 +++++---
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c     |    1 -
+ drivers/media/platform/s5p-tv/mixer_reg.c       |   12 +++++-------
+ drivers/media/platform/s5p-tv/sii9234_drv.c     |    1 -
+ 10 files changed, 41 insertions(+), 35 deletions(-)
+
+--
 Regards,
-
-	Hans
-
-> 
-> 
-> 2015-06-26 14:37 GMT+03:00 Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>:
->> Here's the driver for the Renesas R-Car JPEG processing unit.
-> 
-> [snip]
-> 
+Sylwester
 
