@@ -1,91 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.leissner.se ([212.3.1.210]:50959 "EHLO
-	mailgate.leissner.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757586AbbGGQov (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 12:44:51 -0400
-Date: Tue, 7 Jul 2015 18:44:36 +0200 (SST)
-From: Peter Fassberg <pf@leissner.se>
-To: Patrick Boettcher <patrick.boettcher@posteo.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: PCTV Triplestick and Raspberry Pi B+
-In-Reply-To: <20150707183108.3afee7e6@lappi3.parrot.biz>
-Message-ID: <alpine.BSF.2.20.1507071840580.72900@nic-i.leissner.se>
-References: <alpine.BSF.2.20.1507041303560.12057@nic-i.leissner.se> <20150705184449.0017f114@lappi3.parrot.biz> <alpine.BSF.2.20.1507071722280.72900@nic-i.leissner.se> <20150707173500.21041ab3@dibcom294.coe.adi.dibcom.com> <alpine.BSF.2.20.1507071736350.72900@nic-i.leissner.se>
- <20150707182541.0960177f@lappi3.parrot.biz> <20150707183108.3afee7e6@lappi3.parrot.biz>
+Received: from mout.gmx.net ([212.227.15.18]:62828 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753074AbbGZKBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jul 2015 06:01:04 -0400
+Date: Sun, 26 Jul 2015 12:00:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+In-Reply-To: <55B24650.5090401@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+ <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl>
+ <Pine.LNX.4.64.1506220920280.13683@axis700.grange> <5587B93C.1030106@xs4all.nl>
+ <55B24650.5090401@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-> Patrick Boettcher <patrick.boettcher@posteo.de> wrote:
->
->>> [  301.275434] si2168 1-0064: firmware version: 4.0.4 [  301.284625] si2157 2-0060: found a 'Silicon Labs Si2157-A30'
->>> [  301.340643] si2157 2-0060: firmware version: 3.0.5
->
->> Can you easily try more recent kernels or media_trees?
->
-> It seems you are already using a more recent version of the
-> si21xx-drivers than provided with 3.16. (in 3.16.0 there is no firmware
-> version-print in si2157)
+On Fri, 24 Jul 2015, Hans Verkuil wrote:
 
-Yes, I did an upgrade to the latest I could find before I gave up.
+> Guennadi,
+> 
+> I want to make a pull request for this patch series. This patch is the only
+> outstanding one.
 
-This is in use:
+Right, sorry for the delay. Replying to your explanation below:
 
-root@raspberrypi:~# uname -a
-Linux raspberrypi 4.0.6-v7+ #798 SMP PREEMPT Tue Jun 23 18:06:01 BST 2015 armv7l GNU/Linux
+> Or do you have to review more patches? I only got Acks for patches 1 and 
+> 2.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 06/22/2015 09:29 AM, Hans Verkuil wrote:
+> > On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
+> >> Hi Hans,
+> >>
+> >> On Mon, 22 Jun 2015, Hans Verkuil wrote:
+> >>
+> >>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+> >>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
+> >>>>
+> >>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>>
+> >>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
+> >>>>>
+> >>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>> ---
+> >>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+> >>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
+> >>>>>
+> >>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>> index df66417..e939c24 100644
+> >>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+> >>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+> >>>>>  
+> >>>>>  	priv->norm = V4L2_STD_NTSC;
+> >>>>> +	priv->scale = &tw9910_ntsc_scales[0];
+> >>>>
+> >>>> Why do you need this? So far everywhere in the code priv->scale is either 
+> >>>> checked or set before use. Don't see why an additional initialisation is 
+> >>>> needed.
+> >>>
+> >>> If you just start streaming without explicitly setting up formats (which is
+> >>> allowed), then priv->scale is still NULL.
+> >>
+> >> Yes, it can well be NULL, but it is also unused. Before it is used it will 
+> >> be set, while it is unused it is allowed to stay NULL.
+> > 
+> > No. If you start streaming without the set_fmt op having been called, then
+> > s_stream will return an error since priv->scale is NULL. This is wrong. Since
+> > this driver defaults to NTSC the initial setup should be for NTSC and it should
+> > be ready for streaming.
+> > 
+> > So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
+> > E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
+> > case. It's how I found this bug.
+> > 
+> > It's a trivial one liner to ensure a valid priv->scale pointer.
 
-root@raspberrypi:~# modinfo si2157
-filename:       /lib/modules/4.0.6-v7+/kernel/drivers/media/tuners/si2157.ko
-firmware:       dvb-tuner-si2158-a20-01.fw
-author:         Antti Palosaari <crope@iki.fi>
-description:    Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver
-srcversion:     397E31D773FD172EA0CE7F6
+Yes, you're right, now I see how this can happen. But there's also another 
+possibility: if S_FMT fails priv->scale will be set to NULL. If you then 
+directly start streaming wouldn't the same problem arise? Or is it valid 
+to fail STREAMON after a failed S_FMT? If it is, then of course
 
-root@raspberrypi:~# modinfo si2168
-filename:       /lib/modules/4.0.6-v7+/kernel/drivers/media/dvb-frontends/si2168.ko
-firmware:       dvb-demod-si2168-b40-01.fw
-firmware:       dvb-demod-si2168-a30-01.fw
-firmware:       dvb-demod-si2168-a20-01.fw
-description:    Silicon Labs Si2168 DVB-T/T2/C demodulator driver
-author:         Antti Palosaari <crope@iki.fi>
-srcversion:     12127041CAEFE39931DE3A1
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-root@raspberrypi:~# modinfo em28xx
-filename:       /lib/modules/4.0.6-v7+/kernel/drivers/media/usb/em28xx/em28xx.ko
-version:        0.2.1
-description:    Empia em28xx device driver
-author:         Ludovico Cavedon <cavedon@sssup.it>, Markus Rechberger <mrechberger@gmail.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Sascha Sommer <saschasommer@freenet.de>
-srcversion:     1E6C5892B8BEB1E429BECC7
-vermagic:       4.0.6-v7 SMP preempt mod_unload modversions ARMv7
-parm:           tuner:tuner type (int)
-parm:           disable_ir:disable infrared remote support (int)
-parm:           disable_usb_speed_check:override min bandwidth requirement of 480M bps (int)
-parm:           card:card type (array of int)
-parm:           usb_xfer_mode:USB transfer mode for frame data (-1 = auto, 0 = prefer isoc, 1 = prefer bulk) (int)
-parm:           i2c_scan:scan i2c bus at insmod time (int)
-parm:           i2c_debug:i2c debug message level (1: normal debug, 2: show I2C transfers) (int)
-parm:           core_debug:enable debug messages [core] (int)
-parm:           reg_debug:enable debug messages [URB reg] (int)
+If that's invalid, then maybe a more extensive fix is needed?
 
-root@raspberrypi:~# modinfo em28xx_dvb
-filename:       /lib/modules/4.0.6-v7+/kernel/drivers/media/usb/em28xx/em28xx-dvb.ko
-version:        0.2.1
-description:    Empia em28xx device driver - digital TV interface
-author:         Mauro Carvalho Chehab <mchehab@infradead.org>
-srcversion:     60267D5DE16B950E37CD3FF
-vermagic:       4.0.6-v7 SMP preempt mod_unload modversions ARMv7
-parm:           debug:enable debug messages [dvb] (int)
-parm:           adapter_nr:DVB adapter numbers (array of short)
+Thanks
+Guennadi
 
-root@raspberrypi:~# modinfo em28xx_rc
-filename:       /lib/modules/4.0.6-v7+/kernel/drivers/media/usb/em28xx/em28xx-rc.ko
-version:        0.2.1
-description:    Empia em28xx device driver - input interface
-author:         Mauro Carvalho Chehab
-srcversion:     C0534469E29D3F7AEB3353A
-depends:        em28xx,rc-core
-vermagic:       4.0.6-v7 SMP preempt mod_unload modversions ARMv7
-parm:           ir_debug:enable debug messages [IR] (int)
-
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> >>
+> >> Thanks
+> >> Guennadi
+> >>
+> >>> V4L2 always assumes that there is some initial format configured, and this line
+> >>> enables that for this driver (NTSC).
+> >>>
+> >>> Regards,
+> >>>
+> >>> 	Hans
