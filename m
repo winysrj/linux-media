@@ -1,123 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37041 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751929AbbGNCv4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 22:51:56 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D9FD02A066F
-	for <linux-media@vger.kernel.org>; Tue, 14 Jul 2015 04:50:58 +0200 (CEST)
-Date: Tue, 14 Jul 2015 04:50:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150714025058.D9FD02A066F@tschai.lan>
+Received: from mail.kapsi.fi ([217.30.184.167]:36431 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751756AbbG0L6u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2015 07:58:50 -0400
+Received: from 85-23-164-218.bb.dnainternet.fi ([85.23.164.218] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1ZJh3Q-0003P9-Tr
+	for linux-media@vger.kernel.org; Mon, 27 Jul 2015 14:58:48 +0300
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL] a8293 & tda10071 improvements
+Message-ID: <55B61CF8.7080905@iki.fi>
+Date: Mon, 27 Jul 2015 14:58:48 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
 
-Results of the daily build of media_tree:
+   [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 
+13:32:21 -0300)
 
-date:		Tue Jul 14 04:00:16 CEST 2015
-git branch:	test
-git hash:	8783b9c50400c6279d7c3b716637b98e83d3c933
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-44-g40791b9
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+are available in the git repository at:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+   git://linuxtv.org/anttip/media_tree.git tda10071_a8293
 
-Detailed results are available here:
+for you to fetch changes up to 2505ec5f7a1bb40fa1a86184779884c32a619473:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+   tda10071: implement DVBv5 statistics (2015-07-27 14:32:23 +0300)
 
-Full logs are available here:
+----------------------------------------------------------------
+Antti Palosaari (12):
+       em28xx: remove unused a8293 SEC config
+       a8293: remove legacy media attach
+       a8293: use i2c_master_send / i2c_master_recv for I2C I/O
+       a8293: improve LNB register programming logic
+       a8293: coding style issues
+       tda10071: remove legacy media attach
+       tda10071: rename device state struct to dev
+       tda10071: convert to regmap I2C API
+       tda10071: use jiffies when poll firmware status
+       tda10071: protect firmware command exec with mutex
+       tda10071: do not get_frontend() when not ready
+       tda10071: implement DVBv5 statistics
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+  drivers/media/dvb-frontends/Kconfig         |   1 +
+  drivers/media/dvb-frontends/a8293.c         | 167 
+++++++--------------------------
+  drivers/media/dvb-frontends/a8293.h         |  22 -----
+  drivers/media/dvb-frontends/tda10071.c      | 835 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------------------------
+  drivers/media/dvb-frontends/tda10071.h      |  63 +-----------
+  drivers/media/dvb-frontends/tda10071_priv.h |  20 ++--
+  drivers/media/usb/em28xx/em28xx-dvb.c       |   4 -
+  7 files changed, 385 insertions(+), 727 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
