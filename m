@@ -1,102 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:50042 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbbGLPOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jul 2015 11:14:08 -0400
-Date: Sun, 12 Jul 2015 17:13:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org, Daniel Mack <zonque@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@intel.com>
-Subject: Re: [PATCH 1/4] media: pxa_camera: fix the buffer free path (fwd)
-Message-ID: <Pine.LNX.4.64.1507121712310.32193@axis700.grange>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36913 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752909AbbG0Mfe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2015 08:35:34 -0400
+Date: Mon, 27 Jul 2015 13:35:28 +0100 (BST)
+From: William Towle <william.towle@codethink.co.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 07/13] media: soc_camera pad-aware driver
+ initialisation
+In-Reply-To: <55B24941.1040803@xs4all.nl>
+Message-ID: <alpine.DEB.2.02.1507271333570.4745@xk120.dyn.ducie.codethink.co.uk>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-8-git-send-email-william.towle@codethink.co.uk> <55B24941.1040803@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+On Fri, 24 Jul 2015, Hans Verkuil wrote:
+> Why would you want to init vdev->entity? soc-camera doesn't create a media controller
+> device, so there is no point in doing this.
 
-No idea why this mail hasn't been delivered... Sorry, resending.
+   Thanks, I hadn't quite understood that about the code I was
+transplanting to/from. Please find an update below.
 
-Thanks
-Guennadi
+Cheers,
+   Wills.
 
----------- Forwarded message ----------
-Date: Sun, 31 May 2015 21:34:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/4] media: pxa_camera: fix the buffer free path
 
-Hi Robert,
+...
+Subject: [PATCH] media: soc_camera pad-aware driver initialisation
 
-Thanks for the patch.
+Add detection of source pad number for drivers aware of the media
+controller API, so that the combination of soc_camera and rcar_vin
+can create device nodes to support modern drivers such as adv7604.c
+(for HDMI on Lager) and the converted adv7180.c (for composite)
+underneath.
 
-On Sun, 22 Mar 2015, Robert Jarzmik wrote:
+Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+line with requirements for building the drivers associated with it.
 
-> From: Robert Jarzmik <robert.jarzmik@intel.com>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+---
+  drivers/media/platform/soc_camera/Kconfig      |    1 +
+  drivers/media/platform/soc_camera/rcar_vin.c   |    1 +
+  drivers/media/platform/soc_camera/soc_camera.c |   20 +++++++++++++++++++-
+  include/media/soc_camera.h                     |    1 +
+  4 files changed, 22 insertions(+), 1 deletion(-)
 
-free_buffer() is called from two locations: from the .buf_release() 
-callback and on the error path in .buf_prepare(). In the first case it 
-does the complete freeing of the buffers and DMA channels, in the latter 
-case the error path, including buffer freeing can _only_ be entered if 
-buffer allocation has been attempted, i.e. buffer state is 
-VIDEOBUF_NEEDS_INIT. Which is exactly the case you're catching below. 
-Following your patch, in this case free_buffer() shouldn't be called at 
-all, because videobuf_waiton() isn't needed either. That can be achieved 
-easier:
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index f2776cd..5c45c83 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -38,6 +38,7 @@ config VIDEO_RCAR_VIN
+  	depends on VIDEO_DEV && SOC_CAMERA
+  	depends on ARCH_SHMOBILE || COMPILE_TEST
+  	depends on HAS_DMA
++	depends on MEDIA_CONTROLLER
+  	select VIDEOBUF2_DMA_CONTIG
+  	select SOC_CAMERA_SCALE_CROP
+  	---help---
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 16352a8..00c1034 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1359,6 +1359,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+  		struct device *dev = icd->parent;
+  		int shift;
 
- fail_u:
- 	dma_free_coherent(dev, buf->dmas[0].sg_size,
- 			  buf->dmas[0].sg_cpu, buf->dmas[0].sg_dma);
--fail:
--	free_buffer(vq, buf);
- out:
- 	buf->inwork = 0;
- 	return ret;
++		fmt.pad = icd->src_pad_idx;
+  		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+  		if (ret < 0)
+  			return ret;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index d708df4..82d3ebe 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1293,6 +1293,10 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+  	};
+  	struct v4l2_mbus_framefmt *mf = &fmt.format;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++	int pad_idx;
++#endif
+  	int ret;
 
-But tbh I don't understand why videobuf_dma_free() and 
-videobuf_dma_unmap() shouldn't be called if videobuf_iolock() was 
-successful, are you sure about that?
+  	sd->grp_id = soc_camera_grp_id(icd);
+@@ -1311,9 +1315,23 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+  	}
 
-Thanks
-Guennadi
+  	/* At this point client .probe() should have run already */
++	icd->src_pad_idx = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags
++				== MEDIA_PAD_FL_SOURCE)
++			break;
++	if (pad_idx >= sd->entity.num_pads)
++		goto eusrfmt;
++
++	icd->src_pad_idx = pad_idx;
++#endif
++
+  	ret = soc_camera_init_user_formats(icd);
+-	if (ret < 0)
++	if (ret < 0) {
++		icd->src_pad_idx = -1;
+  		goto eusrfmt;
++	}
 
-> Fix the error path where the video buffer wasn't allocated nor
-> mapped. In this case, in the driver free path don't try to unmap memory
-> which was not mapped in the first place.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/platform/soc_camera/pxa_camera.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> index 8d6e343..3ca33f0 100644
-> --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> @@ -272,8 +272,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  	 * longer in STATE_QUEUED or STATE_ACTIVE
->  	 */
->  	videobuf_waiton(vq, &buf->vb, 0, 0);
-> -	videobuf_dma_unmap(vq->dev, dma);
-> -	videobuf_dma_free(dma);
-> +	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
-> +		return;
->  
->  	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
->  		if (buf->dmas[i].sg_cpu)
-> @@ -283,6 +283,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  					  buf->dmas[i].sg_dma);
->  		buf->dmas[i].sg_cpu = NULL;
->  	}
-> +	videobuf_dma_unmap(vq->dev, dma);
-> +	videobuf_dma_free(dma);
->  
->  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
-> -- 
-> 2.1.4
-> 
+  	icd->field = V4L2_FIELD_ANY;
+
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..30193cf 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -42,6 +42,7 @@ struct soc_camera_device {
+  	unsigned char devnum;		/* Device number per host */
+  	struct soc_camera_sense *sense;	/* See comment in struct definition */
+  	struct video_device *vdev;
++	int src_pad_idx;		/* For media-controller drivers */
+  	struct v4l2_ctrl_handler ctrl_handler;
+  	const struct soc_camera_format_xlate *current_fmt;
+  	struct soc_camera_format_xlate *user_formats;
+-- 
+1.7.10.4
+
