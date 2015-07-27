@@ -1,57 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:37915 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbbGGGxl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2015 02:53:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <20150707004417.GM7021@wotan.suse.de>
-References: <1435166600-11956-1-git-send-email-mcgrof@do-not-panic.com>
- <1435166600-11956-3-git-send-email-mcgrof@do-not-panic.com>
- <20150625065147.GB5339@gmail.com> <20150625173847.GH3005@wotan.suse.de>
- <20150626084546.GD26303@gmail.com> <1435322161.2713.10.camel@localhost>
- <20150629065505.GB17509@gmail.com> <57337D5A-7486-4D01-8316-DFAF4CAF3DA7@md.metrocast.net>
- <20150707004417.GM7021@wotan.suse.de>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Mon, 6 Jul 2015 23:53:20 -0700
-Message-ID: <CAB=NE6WzpSLREPkLt0k1_42V5DGKYQx3cqMnGeOFwv1-wkxVhg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] x86/mm/pat, drivers/media/ivtv: move pat warn and
- replace WARN() with pr_warn()
-To: Andy Lutomirski <luto@amacapital.net>,
-	Ingo Molnar <mingo@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Andy Walls <andy@silverblocksystems.net>,
-	Toshi Kani <toshi.kani@hp.com>, Hyong-Youb Kim <hkim@cspi.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Borislav Petkov <bp@suse.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Doug Ledford <dledford@redhat.com>,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	linux-media@vger.kernel.org, linux-rdma@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:39853 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752233AbbG0LWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2015 07:22:46 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/6] mt2060: add i2c bindings
+Date: Mon, 27 Jul 2015 14:22:05 +0300
+Message-Id: <1437996130-23735-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1437996130-23735-1-git-send-email-crope@iki.fi>
+References: <1437996130-23735-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 6, 2015 at 5:44 PM, Luis R. Rodriguez <mcgrof@suse.com> wrote:
-> If we really wanted to we could consider arch_phys_wc_add()
+Add proper i2c driver model bindings.
 
-I mean adding a __arch_phys_wc_add() which does not check for pat_enabled().
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/mt2060.h      | 20 +++++++++
+ drivers/media/tuners/mt2060_priv.h |  2 +
+ 3 files changed, 105 insertions(+)
 
-> and
-> deal with that this will not check for pat_enabled() and forces MTRR...
-> I think Andy Luto won't like that very much though ? I at least don't
-> like it since we did all this work to finally leave only 1 piece of
-> code with direct MTRR access... Seems a bit sad. Since ipath will
-> be removed we'd have only ivtv driver using this API, I am not sure if
-> its worth it.
+diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+index b87b254..aa8280a 100644
+--- a/drivers/media/tuners/mt2060.c
++++ b/drivers/media/tuners/mt2060.c
+@@ -397,6 +397,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
+ }
+ EXPORT_SYMBOL(mt2060_attach);
+ 
++static int mt2060_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct mt2060_platform_data *pdata = client->dev.platform_data;
++	struct dvb_frontend *fe;
++	struct mt2060_priv *dev;
++	int ret;
++	u8 chip_id;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (!pdata) {
++		dev_err(&client->dev, "Cannot proceed without platform data\n");
++		ret = -EINVAL;
++		goto err;
++	}
++
++	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	fe = pdata->dvb_frontend;
++	dev->config.i2c_address = client->addr;
++	dev->config.clock_out = pdata->clock_out;
++	dev->cfg = &dev->config;
++	dev->i2c = client->adapter;
++	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
++	dev->client = client;
++
++	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
++	if (ret) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
++
++	if (chip_id != PART_REV) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
++	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
++	fe->ops.tuner_ops.release = NULL;
++	fe->tuner_priv = dev;
++	i2c_set_clientdata(client, dev);
++
++	mt2060_calibrate(dev);
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mt2060_remove(struct i2c_client *client)
++{
++	dev_dbg(&client->dev, "\n");
++
++	return 0;
++}
++
++static const struct i2c_device_id mt2060_id_table[] = {
++	{"mt2060", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
++
++static struct i2c_driver mt2060_driver = {
++	.driver = {
++		.name = "mt2060",
++		.suppress_bind_attrs = true,
++	},
++	.probe		= mt2060_probe,
++	.remove		= mt2060_remove,
++	.id_table	= mt2060_id_table,
++};
++
++module_i2c_driver(mt2060_driver);
++
+ MODULE_AUTHOR("Olivier DANET");
+ MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
+index 6efed35..05c0d55 100644
+--- a/drivers/media/tuners/mt2060.h
++++ b/drivers/media/tuners/mt2060.h
+@@ -25,6 +25,26 @@
+ struct dvb_frontend;
+ struct i2c_adapter;
+ 
++/*
++ * I2C address
++ * 0x60, ...
++ */
++
++/**
++ * struct mt2060_platform_data - Platform data for the mt2060 driver
++ * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
++ * @if1: First IF used [MHz]. 0 defaults to 1220.
++ * @dvb_frontend: DVB frontend.
++ */
++
++struct mt2060_platform_data {
++	u8 clock_out;
++	u16 if1;
++	struct dvb_frontend *dvb_frontend;
++};
++
++
++/* configuration struct for mt2060_attach() */
+ struct mt2060_config {
+ 	u8 i2c_address;
+ 	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
+index 2b60de6..dfc4a06 100644
+--- a/drivers/media/tuners/mt2060_priv.h
++++ b/drivers/media/tuners/mt2060_priv.h
+@@ -95,6 +95,8 @@
+ struct mt2060_priv {
+ 	struct mt2060_config *cfg;
+ 	struct i2c_adapter   *i2c;
++	struct i2c_client *client;
++	struct mt2060_config config;
+ 
+ 	u32 frequency;
+ 	u16 if1_freq;
+-- 
+http://palosaari.fi/
 
-Since ipath is going away soon we'd just have one driver with the icky
-#ifdef code. I'd rather see that and then require semantics / grammer
-rules to require ioremap_wc() when used with arch_phys_wc_add(). I
-don't think ivtv is worth to consider breaking the semantics and
-requirements.
-
-> Thoughts?
-
- Luis
