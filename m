@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58855 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbbG1JUU (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54031 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754972AbbG0BcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 05:20:20 -0400
-Message-ID: <55B7494B.40209@xs4all.nl>
-Date: Tue, 28 Jul 2015 11:20:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: HDMI and Composite capture on Lager, for kernel 4.1, version
- 5
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 26 Jul 2015 21:32:12 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	media-workshop@linuxtv.org
+Subject: [PATCH_RFC 0/2] Media Controller: add support for control elements
+Date: Sun, 26 Jul 2015 22:32:04 -0300
+Message-Id: <cover.1437960099.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+This series is actually food for our meetings at the Media Controller
+Summit ;)
 
-On 07/23/2015 02:21 PM, William Towle wrote:
->   Version 5. Some successful upstreaming and some further modification
-> means this obsoletes version 4, as seen at:
-> 	http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/92832
-> 
->   This version of the patch series contains a fix for probing the
-> ADV7611/ADV7612 chips, a reduced (and renamed) "chip info and formats"
-> patch intended to pave the way for better ADV7612 support, and updates
-> to rcar_vin_try_fmt() in line with the latest feedback.
-> 
-> Cheers,
->   Wills.
+It contains two patches that allows reusing the current media functions
+for control pipelines with should have entities, links, pads too, in
+a similar way to what's done to epresent the data pipeline.
 
-I've merged patches 3-13 (patches 10 and 11 are marked superseded since I'm
-using versions I posted as part of another patch series).
+I'm borrowing the ITU-T/IEEE nomenclature to describe the control
+elements. On ITU-T documents (also used by IETF on several Internet
+RFCs), there are 3 planes. We're actually using two of them:
 
-But you need to repost patches 1 and 2 with a CC to linux-sh@vger.kernel.org
-so Simon Horman can either pull them in or Ack them and then I'll merge these
-patches. It probably makes more sense that Simon merges them since I believe
-these two patches are independent of the others.
+- data plane: contains elements, functions and pipelines that handle
+  the data traffic/streams;
 
-Regards,
+- control plane:  contains elements, functions and pipelines that 
+  handle the control of the elements of some infrastructure.
 
-	Hans
+The approach taken is to add an extra field at the Kernel internal
+field specifying if an element/pad/link belongs to either data or
+control plane (or both).
 
-> 
-> To follow:
-> 	[PATCH 01/13] ARM: shmobile: lager dts: Add entries for VIN HDMI
-> 	[PATCH 02/13] ARM: shmobile: lager dts: specify default-input for
-> 	[PATCH 03/13] media: adv7604: fix probe of ADV7611/7612
-> 	[PATCH 04/13] media: adv7604: reduce support to first (digital)
-> 	[PATCH 05/13] v4l: subdev: Add pad config allocator and init
-> 	[PATCH 06/13] media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888
-> 	[PATCH 07/13] media: soc_camera pad-aware driver initialisation
-> 	[PATCH 08/13] media: rcar_vin: Use correct pad number in try_fmt
-> 	[PATCH 09/13] media: soc_camera: soc_scale_crop: Use correct pad
-> 	[PATCH 10/13] media: soc_camera: Fill std field in enum_input
-> 	[PATCH 11/13] media: soc_camera: Fix error reporting in expbuf
-> 	[PATCH 12/13] media: rcar_vin: fill in bus_info field
-> 	[PATCH 13/13] media: rcar_vin: Reject videobufs that are too small
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Please notice that this RFC patches don't touch at the userspace API.
+There are several options that were discussed since December, 2014.
+Whatever done, we'll need to create support at MC. With this approach,
+the changes internally will be minimum and independent of whatever
+API we decide.
+
+Please also notice that this is compile-tested only. Futher tests
+are needed.
+
+Mauro Carvalho Chehab (2):
+  media: add support for control entities/links/pads at MC
+  media: Allow usage media_entity_graph_walk_next for control elements
+
+ drivers/media/media-device.c                    | 54 ++++++++++++++++---------
+ drivers/media/media-entity.c                    | 32 +++++++++++----
+ drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
+ drivers/media/platform/omap3isp/isp.c           |  6 +--
+ drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c        |  2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c      |  2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |  6 +--
+ drivers/staging/media/omap4iss/iss.c            |  6 +--
+ drivers/staging/media/omap4iss/iss_video.c      |  4 +-
+ include/media/media-entity.h                    | 54 ++++++++++++++++++++++++-
+ 11 files changed, 130 insertions(+), 42 deletions(-)
+
+-- 
+2.4.3
 
