@@ -1,79 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:36441 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131AbbGTNNd convert rfc822-to-8bit (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43840 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755058AbbG0Cvf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 09:13:33 -0400
-Received: by qgy5 with SMTP id 5so72054792qgy.3
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 06:13:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <55AB5320.8030100@gmail.com>
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-	<55AB5320.8030100@gmail.com>
-Date: Mon, 20 Jul 2015 09:13:32 -0400
-Message-ID: <CALzAhNX1Hs7vx9mF_nW08LcbW3Aa2UY0sNEDOi117NfhpCLK-A@mail.gmail.com>
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-From: Steven Toth <stoth@kernellabs.com>
-To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>
-Cc: tonyc@wincomm.com.tw, Antti Palosaari <crope@iki.fi>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sun, 26 Jul 2015 22:51:35 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8031C2A0081
+	for <linux-media@vger.kernel.org>; Mon, 27 Jul 2015 04:51:28 +0200 (CEST)
+Date: Mon, 27 Jul 2015 04:51:28 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150727025128.8031C2A0081@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 19, 2015 at 3:34 AM, Tycho Lürsen <tycholursen@gmail.com> wrote:
-> Hi Steven,
->
-> Tested your si2186 patch with my DVBSky T982 and TBS 6285 cards using
-> European DVB-C
-> Since MythTV can't handle multistandard frontends (yet), I've disabled
-> DVB-T/T2 like this (I always do that):
->
-> sed -i 's/SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_A/'
-> drivers/media/dvb-frontends/si2168.c
->
-> Result: both DVBSky T982 and TBS 6285 drivers are broken, meaning no lock,
-> no tune.
->
-> Regards,
-> Tycho.
->
-> Op 19-07-15 om 00:21 schreef Steven Toth:
->>
->> http://git.linuxtv.org/cgit.cgi/stoth/hvr1275.git/log/?h=hvr-1275
->>
->> Patches above are available for test.
->>
->> Antti, note the change to SI2168 to add support for enabling and
->> disabling the SI2168 transport bus dynamically.
->>
->> I've tested with a combo card, switching back and forward between QAM
->> and DVB-T, this works fine, just remember to select a different
->> frontend as we have two frontends on the same adapter,
->> adapter0/frontend0 is QAM/8SVB, adapter0/frontend1 is DVB-T/T2.
->>
->> If any testers have the ATSC or DVB-T, I'd expect these to work
->> equally well, replease report feedback here.
->>
->> Thanks,
->>
->> - Steve
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Interesting, although I'm slightly confused.
+Results of the daily build of media_tree:
 
-My patch mere added the ability for dvb-core to tri-state the tsport
-out bus, similar to other digital demodulator drivers in the tree....
-and testing with both azap and tzap (and dvbtraffic) showed no tuning,
-lock or other issues.
+date:		Mon Jul 27 04:00:17 CEST 2015
+git branch:	test
+git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-What happens if you tzap/czap a known good frequency, before and after
-my patch, without your sed replacement, leaving T/T2 and A fully
-enabled?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-- Steve
+Detailed results are available here:
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
