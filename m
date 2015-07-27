@@ -1,53 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:36365 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976AbbGNXyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 19:54:39 -0400
-Received: by ykay190 with SMTP id y190so22458653yka.3
-        for <linux-media@vger.kernel.org>; Tue, 14 Jul 2015 16:54:38 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:34448 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbbG0QUC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jul 2015 12:20:02 -0400
+Subject: Re: [PATCHv2 8/9] hackrf: add support for transmitter
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+ <1437030298-20944-9-git-send-email-crope@iki.fi> <55A90E16.5040104@xs4all.nl>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55B65A2E.8020104@iki.fi>
+Date: Mon, 27 Jul 2015 19:19:58 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAFP0Ok97sA5bOVczsy_zmr5v+rqxKKMzRX8Ed8yK1U3MQVyRNg@mail.gmail.com>
-References: <CAFP0Ok97sA5bOVczsy_zmr5v+rqxKKMzRX8Ed8yK1U3MQVyRNg@mail.gmail.com>
-Date: Tue, 14 Jul 2015 16:54:38 -0700
-Message-ID: <CAFP0Ok9xsXwyok+40vDh7Ps8P5DzCZxQ2jGyW6GJkgdY-RwZeg@mail.gmail.com>
-Subject: Re: file permissions for a video device
-From: karthik poduval <karthik.poduval@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <55A90E16.5040104@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Never mind, it worked after adding the following entry into ueventd.rc.
+On 07/17/2015 05:15 PM, Hans Verkuil wrote:
+> On 07/16/2015 09:04 AM, Antti Palosaari wrote:
+>> HackRF SDR device has both receiver and transmitter. There is limitation
+>> that receiver and transmitter cannot be used at the same time
+>> (half-duplex operation). That patch implements transmitter support to
+>> existing receiver only driver.
+>>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/usb/hackrf/hackrf.c | 787 +++++++++++++++++++++++++++-----------
+>>   1 file changed, 572 insertions(+), 215 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+>> index 5bd291b..97de9cb6 100644
+>> --- a/drivers/media/usb/hackrf/hackrf.c
+>> +++ b/drivers/media/usb/hackrf/hackrf.c
+>> @@ -731,15 +889,19 @@ static int hackrf_querycap(struct file *file, void *fh,
+>>   		struct v4l2_capability *cap)
+>>   {
+>>   	struct hackrf_dev *dev = video_drvdata(file);
+>> +	struct video_device *vdev = video_devdata(file);
+>>
+>>   	dev_dbg(dev->dev, "\n");
+>>
+>> +	if (vdev->vfl_dir == VFL_DIR_RX)
+>> +		cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
+>> +	else
+>> +		cap->device_caps = V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR;
+>> +	cap->device_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+>> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>
+> The capabilities are those of the whole device, so you should OR this with
+> V4L2_CAP_SDR_CAPTURE | V4L2_CAP_SDR_OUTPUT |
+> V4L2_CAP_TUNER | V4L2_CAP_MODULATOR
+>
+>>   	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+>> -	strlcpy(cap->card, dev->vdev.name, sizeof(cap->card));
+>> +	strlcpy(cap->card, dev->rx_vdev.name, sizeof(cap->card));
+>>   	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+>> -	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
+>> -			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
+>> -	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>>
+>>   	return 0;
+>>   }
 
-#camera
-/dev/video*               0660   system     camera
+Just to be sure, is it correct that:
+**) cap->device_caps == capabilities of whole device, including all the 
+character nodes
 
-On Mon, Jul 13, 2015 at 8:51 PM, karthik poduval
-<karthik.poduval@gmail.com> wrote:
-> Hi All,
->
-> I was working with a USB camera. As soon as I plug it into the host,
-> it probes and video device node gets created with the following
-> permission.
-> # ll /dev/video0
-> crw------- root     root      81,   0 2015-07-13 20:39 video0
->
->
-> However it grants permissions to only a root user. I need to be able
-> to access this device node from a daemon (running in a non root user
-> account).
->
-> I can ofcourse chmod the devnode, but was wondering if there is a way
-> this can be done from the kernel itself ? Is there some place in the
-> uvc code which sets the created the devnode file permissions ?
->
-> --
-> Regards,
-> Karthik Poduval
+**) cap->capabilities == capabilities of single character node
 
+
+Here is how v4l2-ctl now reports:
+
+[crope@localhost v4l2-ctl]$ ./v4l2-ctl -d /dev/swradio0 --info
+Driver Info (not using libv4l2):
+	Driver name   : hackrf
+	Card type     : HackRF One
+	Bus info      : usb-0000:00:13.2-2
+	Driver version: 4.2.0
+	Capabilities  : 0x85310000
+		SDR Capture
+		Tuner
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x05790000
+		SDR Capture
+		SDR Output
+		Tuner
+		Modulator
+		Read/Write
+		Streaming
+		Extended Pix Format
+[crope@localhost v4l2-ctl]$ ./v4l2-ctl -d /dev/swradio1 --info
+Driver Info (not using libv4l2):
+	Driver name   : hackrf
+	Card type     : HackRF One
+	Bus info      : usb-0000:00:13.2-2
+	Driver version: 4.2.0
+	Capabilities  : 0x85680000
+		SDR Output
+		Modulator
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x05790000
+		SDR Capture
+		SDR Output
+		Tuner
+		Modulator
+		Read/Write
+		Streaming
+		Extended Pix Format
+[crope@localhost v4l2-ctl]$
+
+
+regards
+Antti
 
 
 -- 
-Regards,
-Karthik Poduval
+http://palosaari.fi/
