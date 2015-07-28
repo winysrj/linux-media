@@ -1,51 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35272 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052AbbGTQzA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 12:55:00 -0400
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
- <55AD0617.7060007@iki.fi>
- <CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
- <55AD234E.5010904@iki.fi>
- <CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
-Cc: Steven Toth <stoth@kernellabs.com>, tonyc@wincomm.com.tw,
-	Linux-Media <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <55AD27E0.6080102@iki.fi>
-Date: Mon, 20 Jul 2015 19:54:56 +0300
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:33815 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbbG1H5C convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 03:57:02 -0400
+Received: by lbbzr7 with SMTP id zr7so69133863lbb.1
+        for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 00:57:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <da0dde9a302342e5a13ce7ac3069419e@MBX05B-IAD3.mex08.mlsrvr.com>
+References: <1436531290-23191-1-git-send-email-benjamin.gaignard@linaro.org>
+	<CA+M3ks7X++to23mXjRaB_wUJUo0TDLFh2hMbziEGeMDkVBx-7w@mail.gmail.com>
+	<da0dde9a302342e5a13ce7ac3069419e@MBX05B-IAD3.mex08.mlsrvr.com>
+Date: Tue, 28 Jul 2015 09:56:59 +0200
+Message-ID: <CA+M3ks5TUEQi2iv9aPsQT7Tsf63kaJh7enoSN=oV12M-33zoLA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH v3 0/2] RFC: Secure Memory Allocation Framework
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: Xiaoquan Li <xiaoquan.li@vivantecorp.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Cooksey <tom.cooksey@arm.com>,
+	Daniel Stone <daniel.stone@collabora.com>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/20/2015 07:45 PM, Devin Heitmueller wrote:
->> Look at the em28xx driver and you will probably see why it does not work as
->> expected. For my eyes, according to em28xx driver, it looks like that bus
->> control is aimed for bridge driver. You or em28xx is wrong.
+There is an API to do the same operation on kernel side than on userland.
+You can get an dmabuf handle, select the allocator if required, and
+secure it on kernel side.
+
+Your question makes me realize that I have forget to add an
+EXPORT_SYMBOL for smaf_create_handle function, I will fix that.
+
+Benjamin
+
+2015-07-28 4:22 GMT+02:00 Xiaoquan Li <xiaoquan.li@vivantecorp.com>:
+> Hi Benjamin,
 >
-> Neither are wrong.  In some cases the call needs to be intercepted by
-> the frontend in order to disable its TS output.  In other cases it
-> needs to be intercepted by the bridge to control a MUX chip which
-> dictates which demodulator's TS output to route from (typically by
-> toggling a GPIO).
+> It looks like this framework only allows user space client to talk with trust application, it there a plan to provide kernel side APIs for kernel space client?
+>
+> Please correct me if my understanding is wrong.
+>
+> Thanks
+>
+> Xiaoquan
+>
+> -----Original Message-----
+> From: Linaro-mm-sig [mailto:linaro-mm-sig-bounces@lists.linaro.org] On Behalf Of Benjamin Gaignard
+> Sent: Monday, July 27, 2015 6:12 PM
+> To: linux-media@vger.kernel.org; Linux Kernel Mailing List; dri-devel@lists.freedesktop.org; Hans Verkuil; Laurent Pinchart; Daniel Vetter; Rob Clark; Thierry Reding; Sumit Semwal; Tom Cooksey; Daniel Stone
+> Cc: Linaro MM SIG Mailman List
+> Subject: Re: [Linaro-mm-sig] [PATCH v3 0/2] RFC: Secure Memory Allocation Framework
+>
+> Hi all,
+>
+> This thread doesn't get any feedback...
+>
+> What would be great is to know if this framework proposal fir with
+> your platform needs.
+>
+> Maybe I haven't copy the good mailing lists so if you think there is
+> better ones do not hesitate to forward.
+>
+> Regards,
+> Benjamin
+>
+>
+> 2015-07-10 14:28 GMT+02:00 Benjamin Gaignard <benjamin.gaignard@linaro.org>:
+>> version 3 changes:
+>>  - Remove ioctl for allocator selection instead provide the name of
+>>    the targeted allocator with allocation request.
+>>    Selecting allocator from userland isn't the prefered way of working
+>>    but is needed when the first user of the buffer is a software component.
+>>  - Fix issues in case of error while creating smaf handle.
+>>  - Fix module license.
+>>  - Update libsmaf and tests to care of the SMAF API evolution
+>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>
+>> version 2 changes:
+>>  - Add one ioctl to allow allocator selection from userspace.
+>>    This is required for the uses case where the first user of
+>>    the buffer is a software IP which can't perform dma_buf attachement.
+>>  - Add name and ranking to allocator structure to be able to sort them.
+>>  - Create a tiny library to test SMAF:
+>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>  - Fix one issue when try to secure buffer without secure module registered
+>>
+>> The outcome of the previous RFC about how do secure data path was the need
+>> of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
+>>
+>> SMAF goal is to provide a framework that allow allocating and securing
+>> memory by using dma_buf. Each platform have it own way to perform those two
+>> features so SMAF design allow to register helper modules to perform them.
+>>
+>> To be sure to select the best allocation method for devices SMAF implement
+>> deferred allocation mechanism: memory allocation is only done when the first
+>> device effectively required it.
+>> Allocator modules have to implement a match() to let SMAF know if they are
+>> compatibles with devices needs.
+>> This patch set provide an example of allocator module which use
+>> dma_{alloc/free/mmap}_attrs() and check if at least one device have
+>> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
+>> I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if
+>> a better name could be found for this file.
+>>
+>> Secure modules are responsibles of granting and revoking devices access rights
+>> on the memory. Secure module is also called to check if CPU map memory into
+>> kernel and user address spaces.
+>> An example of secure module implementation can be found here:
+>> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+>> This code isn't yet part of the patch set because it depends on generic TEE
+>> which is still under discussion (https://lwn.net/Articles/644646/)
+>>
+>> For allocation part of SMAF code I get inspirated by Sumit Semwal work about
+>> constraint aware allocator.
+>>
+>> Benjamin Gaignard (2):
+>>   create SMAF module
+>>   SMAF: add CMA allocator
+>>
+>>  drivers/Kconfig                |   2 +
+>>  drivers/Makefile               |   1 +
+>>  drivers/smaf/Kconfig           |  11 +
+>>  drivers/smaf/Makefile          |   2 +
+>>  drivers/smaf/smaf-cma.c        | 200 +++++++++++
+>>  drivers/smaf/smaf-core.c       | 735 +++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/smaf-allocator.h |  54 +++
+>>  include/linux/smaf-secure.h    |  62 ++++
+>>  include/uapi/linux/smaf.h      |  52 +++
+>>  9 files changed, 1119 insertions(+)
+>>  create mode 100644 drivers/smaf/Kconfig
+>>  create mode 100644 drivers/smaf/Makefile
+>>  create mode 100644 drivers/smaf/smaf-cma.c
+>>  create mode 100644 drivers/smaf/smaf-core.c
+>>  create mode 100644 include/linux/smaf-allocator.h
+>>  create mode 100644 include/linux/smaf-secure.h
+>>  create mode 100644 include/uapi/linux/smaf.h
+>>
+>> --
+>> 1.9.1
+>>
+>
+>
+>
+> --
+> Benjamin Gaignard
+>
+> Graphic Working Group
+>
+> Linaro.org │ Open source software for ARM SoCs
+>
+> Follow Linaro: Facebook | Twitter | Blog
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
 
-Quickly looking the existing use cases and I found only lgdt3306a demod 
-which uses that callback to control its TS interface. All the rest seems 
-to be somehow more related to bridge driver, mostly changing bridge TS 
-IF or leds etc.
 
-I don't simply see that correct solution for disabling demod TS IF - 
-there is sleep() for this kind of things - and as I pointed out it does 
-not even work for me em28xx based device because em28xx uses that 
-routine to switch own TS mode.
-
-regards
-Antti
 
 -- 
-http://palosaari.fi/
+Benjamin Gaignard
+
+Graphic Working Group
+
+Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
