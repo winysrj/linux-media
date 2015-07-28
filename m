@@ -1,55 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33759 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56629 "EHLO
 	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753672AbbGXOPy (ORCPT
+	by vger.kernel.org with ESMTP id S1754006AbbG1KAJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 10:15:54 -0400
-Message-ID: <55B24852.2010200@xs4all.nl>
-Date: Fri, 24 Jul 2015 16:14:42 +0200
+	Tue, 28 Jul 2015 06:00:09 -0400
+Message-ID: <55B752A0.9060301@xs4all.nl>
+Date: Tue, 28 Jul 2015 12:00:00 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 12/13] media: rcar_vin: fill in bus_info field
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-13-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-13-git-send-email-william.towle@codethink.co.uk>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org
+CC: pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v10.1] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2015 02:21 PM, William Towle wrote:
-> From: Rob Taylor <rob.taylor@codethink.co.uk>
+On 06/19/2015 09:31 AM, Jacek Anaszewski wrote:
+> This patch adds helper functions for registering/unregistering
+> LED Flash class devices as V4L2 sub-devices. The functions should
+> be called from the LED subsystem device driver. In case the
+> support for V4L2 Flash sub-devices is disabled in the kernel
+> config the functions' empty versions will be used.
 > 
-> Adapt rcar_vin_querycap() so that cap->bus_info is populated with
-> something meaningful/unique.
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> - fixed possible NULL fled_cdev pointer dereference
+>   in the v4l2_flash_init function
 > 
-> Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-> Signed-off-by: William Towle <william.towle@codethink.co.uk>
+>  drivers/media/v4l2-core/Kconfig                |   11 +
+>  drivers/media/v4l2-core/Makefile               |    2 +
+>  drivers/media/v4l2-core/v4l2-flash-led-class.c |  710 ++++++++++++++++++++++++
+>  include/media/v4l2-flash-led-class.h           |  148 +++++
+>  4 files changed, 871 insertions(+)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
+>  create mode 100644 include/media/v4l2-flash-led-class.h
+> 
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+<snip>
+
+> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> new file mode 100644
+> index 0000000..5bdfb8d
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+
+<snip>
+
+> +static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
+> +	.queryctrl = v4l2_subdev_queryctrl,
+> +	.querymenu = v4l2_subdev_querymenu,
+
+Why are these here? This should not be necessary. As long as the sd.ctrl_handler
+pointer is set, this is handled automatically.
+
+> +};
+> +
+> +static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
+> +	.core = &v4l2_flash_core_ops,
+> +};
+> +
+
+And if v4l2_flash_core_ops goes away, then this can go away as well.
+
+I know this driver has been merged, but I just noticed this while looking at
+something else.
 
 Regards,
 
 	Hans
-
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index dab729a..93e20d6 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1799,6 +1799,7 @@ static int rcar_vin_querycap(struct soc_camera_host *ici,
->  	strlcpy(cap->card, "R_Car_VIN", sizeof(cap->card));
->  	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s%d", DRV_NAME, ici->nr);
->  
->  	return 0;
->  }
-> 
-
