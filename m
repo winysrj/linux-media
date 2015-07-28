@@ -1,354 +1,698 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:58024 "EHLO mout.gmx.net"
+Received: from www.netup.ru ([77.72.80.15]:56753 "EHLO imap.netup.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752107AbbGZLhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jul 2015 07:37:15 -0400
-Date: Sun, 26 Jul 2015 13:36:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/4] media: pxa_camera: conversion to dmaengine
-In-Reply-To: <87a8utgjfc.fsf@belgarion.home>
-Message-ID: <Pine.LNX.4.64.1507261235250.32754@axis700.grange>
-References: <1436120872-24484-1-git-send-email-robert.jarzmik@free.fr>
- <1436120872-24484-5-git-send-email-robert.jarzmik@free.fr>
- <Pine.LNX.4.64.1507121859030.32193@axis700.grange> <87y4iljn6y.fsf@belgarion.home>
- <87a8utgjfc.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1755570AbbG1O5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 10:57:32 -0400
+From: serjk@netup.ru
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
+	Kozlov Sergey <serjk@netup.ru>
+Subject: [PATCH v3 2/5] [media] ascot2e: Sony Ascot2e DVB-C/T/T2 tuner driver
+Date: Tue, 28 Jul 2015 17:33:01 +0300
+Message-Id: <a7e33f73337e633131fca23e08c82eaec428a289.1438090209.git.serjk@netup.ru>
+In-Reply-To: <cover.1438090209.git.serjk@netup.ru>
+References: <cover.1438090209.git.serjk@netup.ru>
+In-Reply-To: <cover.1438090209.git.serjk@netup.ru>
+References: <cover.1438090209.git.serjk@netup.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+From: Kozlov Sergey <serjk@netup.ru>
 
-On Sun, 19 Jul 2015, Robert Jarzmik wrote:
+Add DVB-T/T2/C frontend driver for Sony Ascot2e (CXD2861ER) chip.
 
-> Robert Jarzmik <robert.jarzmik@free.fr> writes:
-> 
-> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> >
-> >>>  		/* init DMA for Y channel */
-> >>
-> >> How about taking the loop over the sg list out of pxa_init_dma_channel() 
-> >> to avoid having to iterate it from the beginning each time? Then you would 
-> >> be able to split it into channels inside that global loop? Would that 
-> >> work? Of course you might need to rearrange functions to avoid too deep 
-> >> code nesting.
-> >
-> > Ok, will try that.
-> > The more I think of it, the more it looks to me like a generic thing : take an
-> > sglist, and an array of sizes, and split the sglist into several sglists, each
-> > of the defined size in the array.
-> >
-> > Or more code-like speaking :
-> >   - sglist_split(struct scatterlist *sg_int, size_t *sizes, int nb_sizes,
-> >                  struct scatterlist **sg_out)
-> >   - and sg_out is an array of nb_sizes (struct scatterlist *sg)
-> >
-> > So I will try that out. Maybe if that works out for pxa_camera, Jens or Russell
-> > would accept that into lib/scatterlist.c.
-> Ok, I made the code ... and I hate it.
-> It's in [1], which is an incremental patch over patch 4/4.
+Changes in version 3:
+    - fix DVB-C bandwidth frequency handling
+    - use IS_REACHABLE() macro instead of IS_ENABLED()
 
-It would've been easier to review, if it were on top of the mainline, 
-resp. your patches 1-3 from this series.
+Signed-off-by: Kozlov Sergey <serjk@netup.ru>
+---
+ MAINTAINERS                           |    9 +
+ drivers/media/dvb-frontends/Kconfig   |    7 +
+ drivers/media/dvb-frontends/Makefile  |    1 +
+ drivers/media/dvb-frontends/ascot2e.c |  540 +++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/ascot2e.h |   58 ++++
+ 5 files changed, 615 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/ascot2e.c
+ create mode 100644 drivers/media/dvb-frontends/ascot2e.h
 
-> If that's what you had in mind, tell me.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 57726b1..bc82b91 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6344,6 +6344,15 @@ W:	http://linuxtv.org
+ S:	Maintained
+ F:	drivers/media/radio/radio-maxiradio*
+ 
++MEDIA DRIVERS FOR ASCOT2E
++M:	Sergey Kozlov <serjk@netup.ru>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org
++W:	http://netup.tv/
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	drivers/media/dvb-frontends/ascot2e*
++
+ MEDIA DRIVERS FOR HORUS3A
+ M:	Sergey Kozlov <serjk@netup.ru>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index 17cf7e3..3bdc357 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -813,6 +813,13 @@ config DVB_HORUS3A
+ 	help
+ 	  Say Y when you want to support this frontend.
+ 
++config DVB_ASCOT2E
++	tristate "Sony Ascot2E tuner"
++	depends on DVB_CORE && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Say Y when you want to support this frontend.
++
+ comment "Tools to develop new frontends"
+ 
+ config DVB_DUMMY_FE
+diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+index 8b523cd..74b729e 100644
+--- a/drivers/media/dvb-frontends/Makefile
++++ b/drivers/media/dvb-frontends/Makefile
+@@ -118,3 +118,4 @@ obj-$(CONFIG_DVB_AF9033) += af9033.o
+ obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
+ obj-$(CONFIG_DVB_TC90522) += tc90522.o
+ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
++obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
+diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
+new file mode 100644
+index 0000000..ae7e463
+--- /dev/null
++++ b/drivers/media/dvb-frontends/ascot2e.c
+@@ -0,0 +1,540 @@
++/*
++ * ascot2e.c
++ *
++ * Sony Ascot3E DVB-T/T2/C/C2 tuner driver
++ *
++ * Copyright 2012 Sony Corporation
++ * Copyright (C) 2014 NetUP Inc.
++ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
++ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++  */
++
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/dvb/frontend.h>
++#include <linux/types.h>
++#include "ascot2e.h"
++#include "dvb_frontend.h"
++
++enum ascot2e_state {
++	STATE_UNKNOWN,
++	STATE_SLEEP,
++	STATE_ACTIVE
++};
++
++struct ascot2e_priv {
++	u32			frequency;
++	u8			i2c_address;
++	struct i2c_adapter	*i2c;
++	enum ascot2e_state	state;
++	void			*set_tuner_data;
++	int			(*set_tuner)(void *, int);
++};
++
++enum ascot2e_tv_system_t {
++	ASCOT2E_DTV_DVBT_5,
++	ASCOT2E_DTV_DVBT_6,
++	ASCOT2E_DTV_DVBT_7,
++	ASCOT2E_DTV_DVBT_8,
++	ASCOT2E_DTV_DVBT2_1_7,
++	ASCOT2E_DTV_DVBT2_5,
++	ASCOT2E_DTV_DVBT2_6,
++	ASCOT2E_DTV_DVBT2_7,
++	ASCOT2E_DTV_DVBT2_8,
++	ASCOT2E_DTV_DVBC_6,
++	ASCOT2E_DTV_DVBC_8,
++	ASCOT2E_DTV_DVBC2_6,
++	ASCOT2E_DTV_DVBC2_8,
++	ASCOT2E_DTV_UNKNOWN
++};
++
++struct ascot2e_band_sett {
++	u8	if_out_sel;
++	u8	agc_sel;
++	u8	mix_oll;
++	u8	rf_gain;
++	u8	if_bpf_gc;
++	u8	fif_offset;
++	u8	bw_offset;
++	u8	bw;
++	u8	rf_oldet;
++	u8	if_bpf_f0;
++};
++
++#define ASCOT2E_AUTO		0xff
++#define ASCOT2E_OFFSET(ofs)	((u8)(ofs) & 0x1F)
++#define ASCOT2E_BW_6		0x00
++#define ASCOT2E_BW_7		0x01
++#define ASCOT2E_BW_8		0x02
++#define ASCOT2E_BW_1_7		0x03
++
++static struct ascot2e_band_sett ascot2e_sett[] = {
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_7,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-4), ASCOT2E_OFFSET(-2), ASCOT2E_BW_8,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	ASCOT2E_OFFSET(-10), ASCOT2E_OFFSET(-16), ASCOT2E_BW_1_7, 0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-8), ASCOT2E_OFFSET(-6), ASCOT2E_BW_6,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_7,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x06,
++	  ASCOT2E_OFFSET(-4), ASCOT2E_OFFSET(-2), ASCOT2E_BW_8,  0x0B, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x02, ASCOT2E_AUTO, 0x03,
++	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-8), ASCOT2E_BW_6,  0x09, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x02, ASCOT2E_AUTO, 0x03,
++	  ASCOT2E_OFFSET(-2), ASCOT2E_OFFSET(-1), ASCOT2E_BW_8,  0x09, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x01,
++	  ASCOT2E_OFFSET(-6), ASCOT2E_OFFSET(-4), ASCOT2E_BW_6,  0x09, 0x00 },
++	{ ASCOT2E_AUTO, ASCOT2E_AUTO, 0x03, ASCOT2E_AUTO, 0x01,
++	  ASCOT2E_OFFSET(-2), ASCOT2E_OFFSET(2),  ASCOT2E_BW_8,  0x09, 0x00 }
++};
++
++static void ascot2e_i2c_debug(struct ascot2e_priv *priv,
++			      u8 reg, u8 write, const u8 *data, u32 len)
++{
++	dev_dbg(&priv->i2c->dev, "ascot2e: I2C %s reg 0x%02x size %d\n",
++		(write == 0 ? "read" : "write"), reg, len);
++	print_hex_dump_bytes("ascot2e: I2C data: ",
++		DUMP_PREFIX_OFFSET, data, len);
++}
++
++static int ascot2e_write_regs(struct ascot2e_priv *priv,
++			      u8 reg, const u8 *data, u32 len)
++{
++	int ret;
++	u8 buf[len+1];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = priv->i2c_address,
++			.flags = 0,
++			.len = sizeof(buf),
++			.buf = buf,
++		}
++	};
++
++	ascot2e_i2c_debug(priv, reg, 1, data, len);
++	buf[0] = reg;
++	memcpy(&buf[1], data, len);
++	ret = i2c_transfer(priv->i2c, msg, 1);
++	if (ret >= 0 && ret != 1)
++		ret = -EREMOTEIO;
++	if (ret < 0) {
++		dev_warn(&priv->i2c->dev,
++			"%s: i2c wr failed=%d reg=%02x len=%d\n",
++			KBUILD_MODNAME, ret, reg, len);
++		return ret;
++	}
++	return 0;
++}
++
++static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
++{
++	return ascot2e_write_regs(priv, reg, &val, 1);
++}
++
++static int ascot2e_read_regs(struct ascot2e_priv *priv,
++			     u8 reg, u8 *val, u32 len)
++{
++	int ret;
++	struct i2c_msg msg[2] = {
++		{
++			.addr = priv->i2c_address,
++			.flags = 0,
++			.len = 1,
++			.buf = &reg,
++		}, {
++			.addr = priv->i2c_address,
++			.flags = I2C_M_RD,
++			.len = len,
++			.buf = val,
++		}
++	};
++
++	ret = i2c_transfer(priv->i2c, &msg[0], 1);
++	if (ret >= 0 && ret != 1)
++		ret = -EREMOTEIO;
++	if (ret < 0) {
++		dev_warn(&priv->i2c->dev,
++			"%s: I2C rw failed=%d addr=%02x reg=%02x\n",
++			KBUILD_MODNAME, ret, priv->i2c_address, reg);
++		return ret;
++	}
++	ret = i2c_transfer(priv->i2c, &msg[1], 1);
++	if (ret >= 0 && ret != 1)
++		ret = -EREMOTEIO;
++	if (ret < 0) {
++		dev_warn(&priv->i2c->dev,
++			"%s: i2c rd failed=%d addr=%02x reg=%02x\n",
++			KBUILD_MODNAME, ret, priv->i2c_address, reg);
++		return ret;
++	}
++	ascot2e_i2c_debug(priv, reg, 0, val, len);
++	return 0;
++}
++
++static int ascot2e_read_reg(struct ascot2e_priv *priv, u8 reg, u8 *val)
++{
++	return ascot2e_read_regs(priv, reg, val, 1);
++}
++
++static int ascot2e_set_reg_bits(struct ascot2e_priv *priv,
++				u8 reg, u8 data, u8 mask)
++{
++	int res;
++	u8 rdata;
++
++	if (mask != 0xff) {
++		res = ascot2e_read_reg(priv, reg, &rdata);
++		if (res != 0)
++			return res;
++		data = ((data & mask) | (rdata & (mask ^ 0xFF)));
++	}
++	return ascot2e_write_reg(priv, reg, data);
++}
++
++static int ascot2e_enter_power_save(struct ascot2e_priv *priv)
++{
++	u8 data[2];
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	if (priv->state == STATE_SLEEP)
++		return 0;
++	data[0] = 0x00;
++	data[1] = 0x04;
++	ascot2e_write_regs(priv, 0x14, data, 2);
++	ascot2e_write_reg(priv, 0x50, 0x01);
++	priv->state = STATE_SLEEP;
++	return 0;
++}
++
++static int ascot2e_leave_power_save(struct ascot2e_priv *priv)
++{
++	u8 data[2] = { 0xFB, 0x0F };
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	if (priv->state == STATE_ACTIVE)
++		return 0;
++	ascot2e_write_regs(priv, 0x14, data, 2);
++	ascot2e_write_reg(priv, 0x50, 0x00);
++	priv->state = STATE_ACTIVE;
++	return 0;
++}
++
++static int ascot2e_init(struct dvb_frontend *fe)
++{
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	return ascot2e_leave_power_save(priv);
++}
++
++static int ascot2e_release(struct dvb_frontend *fe)
++{
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	kfree(fe->tuner_priv);
++	fe->tuner_priv = NULL;
++	return 0;
++}
++
++static int ascot2e_sleep(struct dvb_frontend *fe)
++{
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
++	ascot2e_enter_power_save(priv);
++	return 0;
++}
++
++static enum ascot2e_tv_system_t ascot2e_get_tv_system(struct dvb_frontend *fe)
++{
++	enum ascot2e_tv_system_t system = ASCOT2E_DTV_UNKNOWN;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	if (p->delivery_system == SYS_DVBT) {
++		if (p->bandwidth_hz <= 5000000)
++			system = ASCOT2E_DTV_DVBT_5;
++		else if (p->bandwidth_hz <= 6000000)
++			system = ASCOT2E_DTV_DVBT_6;
++		else if (p->bandwidth_hz <= 7000000)
++			system = ASCOT2E_DTV_DVBT_7;
++		else if (p->bandwidth_hz <= 8000000)
++			system = ASCOT2E_DTV_DVBT_8;
++		else {
++			system = ASCOT2E_DTV_DVBT_8;
++			p->bandwidth_hz = 8000000;
++		}
++	} else if (p->delivery_system == SYS_DVBT2) {
++		if (p->bandwidth_hz <= 5000000)
++			system = ASCOT2E_DTV_DVBT2_5;
++		else if (p->bandwidth_hz <= 6000000)
++			system = ASCOT2E_DTV_DVBT2_6;
++		else if (p->bandwidth_hz <= 7000000)
++			system = ASCOT2E_DTV_DVBT2_7;
++		else if (p->bandwidth_hz <= 8000000)
++			system = ASCOT2E_DTV_DVBT2_8;
++		else {
++			system = ASCOT2E_DTV_DVBT2_8;
++			p->bandwidth_hz = 8000000;
++		}
++	} else if (p->delivery_system == SYS_DVBC_ANNEX_A) {
++		if (p->bandwidth_hz <= 6000000)
++			system = ASCOT2E_DTV_DVBC_6;
++		else if (p->bandwidth_hz <= 8000000)
++			system = ASCOT2E_DTV_DVBC_8;
++	}
++	dev_dbg(&priv->i2c->dev,
++		"%s(): ASCOT2E DTV system %d (delsys %d, bandwidth %d)\n",
++		__func__, (int)system, p->delivery_system, p->bandwidth_hz);
++	return system;
++}
++
++static int ascot2e_set_params(struct dvb_frontend *fe)
++{
++	u8 data[10];
++	u32 frequency;
++	enum ascot2e_tv_system_t tv_system;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	dev_dbg(&priv->i2c->dev, "%s(): tune frequency %dkHz\n",
++		__func__, p->frequency / 1000);
++	tv_system = ascot2e_get_tv_system(fe);
++
++	if (tv_system == ASCOT2E_DTV_UNKNOWN) {
++		dev_dbg(&priv->i2c->dev, "%s(): unknown DTV system\n",
++			__func__);
++		return -EINVAL;
++	}
++	if (priv->set_tuner)
++		priv->set_tuner(priv->set_tuner_data, 1);
++	frequency = roundup(p->frequency / 1000, 25);
++	if (priv->state == STATE_SLEEP)
++		ascot2e_leave_power_save(priv);
++
++	/* IF_OUT_SEL / AGC_SEL setting */
++	data[0] = 0x00;
++	if (ascot2e_sett[tv_system].agc_sel != ASCOT2E_AUTO) {
++		/* AGC pin setting from parameter table */
++		data[0] |= (u8)(
++			(ascot2e_sett[tv_system].agc_sel & 0x03) << 3);
++	}
++	if (ascot2e_sett[tv_system].if_out_sel != ASCOT2E_AUTO) {
++		/* IFOUT pin setting from parameter table */
++		data[0] |= (u8)(
++			(ascot2e_sett[tv_system].if_out_sel & 0x01) << 2);
++	}
++	/* Set bit[4:2] only */
++	ascot2e_set_reg_bits(priv, 0x05, data[0], 0x1c);
++	/* 0x06 - 0x0F */
++	/* REF_R setting (0x06) */
++	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
++			tv_system == ASCOT2E_DTV_DVBC_8) {
++		/* xtal, xtal*2 */
++		data[0] = (frequency > 500000) ? 16 : 32;
++	} else {
++		/* xtal/8, xtal/4 */
++		data[0] = (frequency > 500000) ? 2 : 4;
++	}
++	/* XOSC_SEL=100uA */
++	data[1] = 0x04;
++	/* KBW setting (0x08), KC0 setting (0x09), KC1 setting (0x0A) */
++	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
++			tv_system == ASCOT2E_DTV_DVBC_8) {
++		data[2] = 18;
++		data[3] = 120;
++		data[4] = 20;
++	} else {
++		data[2] = 48;
++		data[3] = 10;
++		data[4] = 30;
++	}
++	/* ORDER/R2_RANGE/R2_BANK/C2_BANK setting (0x0B) */
++	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
++			tv_system == ASCOT2E_DTV_DVBC_8)
++		data[5] = (frequency > 500000) ? 0x08 : 0x0c;
++	else
++		data[5] = (frequency > 500000) ? 0x30 : 0x38;
++	/* Set MIX_OLL (0x0C) value from parameter table */
++	data[6] = ascot2e_sett[tv_system].mix_oll;
++	/* Set RF_GAIN (0x0D) setting from parameter table */
++	if (ascot2e_sett[tv_system].rf_gain == ASCOT2E_AUTO) {
++		/* RF_GAIN auto control enable */
++		ascot2e_write_reg(priv, 0x4E, 0x01);
++		/* RF_GAIN Default value */
++		data[7] = 0x00;
++	} else {
++		/* RF_GAIN auto control disable */
++		ascot2e_write_reg(priv, 0x4E, 0x00);
++		data[7] = ascot2e_sett[tv_system].rf_gain;
++	}
++	/* Set IF_BPF_GC/FIF_OFFSET (0x0E) value from parameter table */
++	data[8] = (u8)((ascot2e_sett[tv_system].fif_offset << 3) |
++		(ascot2e_sett[tv_system].if_bpf_gc & 0x07));
++	/* Set BW_OFFSET (0x0F) value from parameter table */
++	data[9] = ascot2e_sett[tv_system].bw_offset;
++	ascot2e_write_regs(priv, 0x06, data, 10);
++	/*
++	 * 0x45 - 0x47
++	 * LNA optimization setting
++	 * RF_LNA_DIST1-5, RF_LNA_CM
++	 */
++	if (tv_system == ASCOT2E_DTV_DVBC_6 ||
++			tv_system == ASCOT2E_DTV_DVBC_8) {
++		data[0] = 0x0F;
++		data[1] = 0x00;
++		data[2] = 0x01;
++	} else {
++		data[0] = 0x0F;
++		data[1] = 0x00;
++		data[2] = 0x03;
++	}
++	ascot2e_write_regs(priv, 0x45, data, 3);
++	/* 0x49 - 0x4A
++	 Set RF_OLDET_ENX/RF_OLDET_OLL value from parameter table */
++	data[0] = ascot2e_sett[tv_system].rf_oldet;
++	/* Set IF_BPF_F0 value from parameter table */
++	data[1] = ascot2e_sett[tv_system].if_bpf_f0;
++	ascot2e_write_regs(priv, 0x49, data, 2);
++	/*
++	 * Tune now
++	 * RFAGC fast mode / RFAGC auto control enable
++	 * (set bit[7], bit[5:4] only)
++	 * vco_cal = 1, set MIX_OL_CPU_EN
++	 */
++	ascot2e_set_reg_bits(priv, 0x0c, 0x90, 0xb0);
++	/* Logic wake up, CPU wake up */
++	data[0] = 0xc4;
++	data[1] = 0x40;
++	ascot2e_write_regs(priv, 0x03, data, 2);
++	/* 0x10 - 0x14 */
++	data[0] = (u8)(frequency & 0xFF);         /* 0x10: FRF_L */
++	data[1] = (u8)((frequency >> 8) & 0xFF);  /* 0x11: FRF_M */
++	data[2] = (u8)((frequency >> 16) & 0x0F); /* 0x12: FRF_H (bit[3:0]) */
++	/* 0x12: BW (bit[5:4]) */
++	data[2] |= (u8)(ascot2e_sett[tv_system].bw << 4);
++	data[3] = 0xFF; /* 0x13: VCO calibration enable */
++	data[4] = 0xFF; /* 0x14: Analog block enable */
++	/* Tune (Burst write) */
++	ascot2e_write_regs(priv, 0x10, data, 5);
++	msleep(50);
++	/* CPU deep sleep */
++	ascot2e_write_reg(priv, 0x04, 0x00);
++	/* Logic sleep */
++	ascot2e_write_reg(priv, 0x03, 0xC0);
++	/* RFAGC normal mode (set bit[5:4] only) */
++	ascot2e_set_reg_bits(priv, 0x0C, 0x00, 0x30);
++	priv->frequency = frequency;
++	return 0;
++}
++
++static int ascot2e_get_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	struct ascot2e_priv *priv = fe->tuner_priv;
++
++	*frequency = priv->frequency * 1000;
++	return 0;
++}
++
++static struct dvb_tuner_ops ascot2e_tuner_ops = {
++	.info = {
++		.name = "Sony ASCOT2E",
++		.frequency_min = 1000000,
++		.frequency_max = 1200000000,
++		.frequency_step = 25000,
++	},
++	.init = ascot2e_init,
++	.release = ascot2e_release,
++	.sleep = ascot2e_sleep,
++	.set_params = ascot2e_set_params,
++	.get_frequency = ascot2e_get_frequency,
++};
++
++struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
++				    const struct ascot2e_config *config,
++				    struct i2c_adapter *i2c)
++{
++	u8 data[4];
++	struct ascot2e_priv *priv = NULL;
++
++	priv = kzalloc(sizeof(struct ascot2e_priv), GFP_KERNEL);
++	if (priv == NULL)
++		return NULL;
++	priv->i2c_address = (config->i2c_address >> 1);
++	priv->i2c = i2c;
++	priv->set_tuner_data = config->set_tuner_priv;
++	priv->set_tuner = config->set_tuner_callback;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	/* 16 MHz xTal frequency */
++	data[0] = 16;
++	/* VCO current setting */
++	data[1] = 0x06;
++	/* Logic wake up, CPU boot */
++	data[2] = 0xC4;
++	data[3] = 0x40;
++	ascot2e_write_regs(priv, 0x01, data, 4);
++	/* RFVGA optimization setting (RF_DIST0 - RF_DIST2) */
++	data[0] = 0x10;
++	data[1] = 0x3F;
++	data[2] = 0x25;
++	ascot2e_write_regs(priv, 0x22, data, 3);
++	/* PLL mode setting */
++	ascot2e_write_reg(priv, 0x28, 0x1e);
++	/* RSSI setting */
++	ascot2e_write_reg(priv, 0x59, 0x04);
++	/* TODO check CPU HW error state here */
++	msleep(80);
++	/* Xtal oscillator current control setting */
++	ascot2e_write_reg(priv, 0x4c, 0x01);
++	/* XOSC_SEL=100uA */
++	ascot2e_write_reg(priv, 0x07, 0x04);
++	/* CPU deep sleep */
++	ascot2e_write_reg(priv, 0x04, 0x00);
++	/* Logic sleep */
++	ascot2e_write_reg(priv, 0x03, 0xc0);
++	/* Power save setting */
++	data[0] = 0x00;
++	data[1] = 0x04;
++	ascot2e_write_regs(priv, 0x14, data, 2);
++	ascot2e_write_reg(priv, 0x50, 0x01);
++	priv->state = STATE_SLEEP;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	memcpy(&fe->ops.tuner_ops, &ascot2e_tuner_ops,
++				sizeof(struct dvb_tuner_ops));
++	fe->tuner_priv = priv;
++	dev_info(&priv->i2c->dev,
++		"Sony ASCOT2E attached on addr=%x at I2C adapter %p\n",
++		priv->i2c_address, priv->i2c);
++	return fe;
++}
++EXPORT_SYMBOL(ascot2e_attach);
++
++MODULE_DESCRIPTION("Sony ASCOT2E terr/cab tuner driver");
++MODULE_AUTHOR("info@netup.ru");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/ascot2e.h b/drivers/media/dvb-frontends/ascot2e.h
+new file mode 100644
+index 0000000..6da4ae6
+--- /dev/null
++++ b/drivers/media/dvb-frontends/ascot2e.h
+@@ -0,0 +1,58 @@
++/*
++ * ascot2e.h
++ *
++ * Sony Ascot3E DVB-T/T2/C/C2 tuner driver
++ *
++ * Copyright 2012 Sony Corporation
++ * Copyright (C) 2014 NetUP Inc.
++ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
++ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++  */
++
++#ifndef __DVB_ASCOT2E_H__
++#define __DVB_ASCOT2E_H__
++
++#include <linux/kconfig.h>
++#include <linux/dvb/frontend.h>
++#include <linux/i2c.h>
++
++/**
++ * struct ascot2e_config - the configuration of Ascot2E tuner driver
++ * @i2c_address:	I2C address of the tuner
++ * @xtal_freq_mhz:	Oscillator frequency, MHz
++ * @set_tuner_priv:	Callback function private context
++ * @set_tuner_callback:	Callback function that notifies the parent driver
++ *			which tuner is active now
++ */
++struct ascot2e_config {
++	u8	i2c_address;
++	u8	xtal_freq_mhz;
++	void	*set_tuner_priv;
++	int	(*set_tuner_callback)(void *, int);
++};
++
++#if IS_REACHABLE(CONFIG_DVB_ASCOT2E)
++extern struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
++					const struct ascot2e_config *config,
++					struct i2c_adapter *i2c);
++#else
++static inline struct dvb_frontend *ascot2e_attach(struct dvb_frontend *fe,
++					const struct ascot2e_config *config,
++					struct i2c_adapter *i2c)
++{
++	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	return NULL;
++}
++#endif
++
++#endif
+-- 
+1.7.10.4
 
-In principle, yes, it doesn't look all that horrible to me. You first 
-split the global SG list into up to 3 per-channel ones, then you 
-initialise your channels, what's wrong with that? Just have to add some 
-polish to it here and there... This is a preliminary review, I'll do a 
-proper one, once you fix these and send me anew version, not based on top 
-of patch 4/4.
-
-> Cheers.
-> 
-> --
-> Robert
-> 
-> [1] The despised patch
-> ---<8---
-> commit 43bbb9a4e3ac
-> Author: Robert Jarzmik <robert.jarzmik@free.fr>
-> Date:   Tue Jul 14 20:17:51 2015 +0200
-> 
->     tmp: pxa_camera: working on sg_split
->     
->     Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> 
-> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> index 26a66b9ff570..83efd284e976 100644
-> --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> @@ -287,64 +287,110 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  		&buf->vb, buf->vb.baddr, buf->vb.bsize);
->  }
->  
-> -static struct scatterlist *videobuf_sg_cut(struct scatterlist *sglist,
-> -					   int sglen, int offset, int size,
-> -					   int *new_sg_len)
-> +
-> +struct sg_splitter {
-> +	struct scatterlist *in_sg0;
-> +	int nents;
-> +	off_t skip_sg0;
-> +	size_t len_last_sg;
-> +	struct scatterlist *out_sg;
-> +};
-> +
-> +static struct sg_splitter *
-> +sg_calculate_split(struct scatterlist *in, off_t skip,
-
-You don't need "skip," you only call this function once with skip == 0. 
-Besides I usually prefer all the keywords before the function name, the 
-function name, the opening parenthesis and at least the first argument on 
-the same line. So far pxa_camera.c follows this, let's keep it this way. 
-It makes grepping for functions easier. And no, I don't care about 80 
-chars...
-
-> +		   const size_t *sizes, int nb_splits, gfp_t gfp_mask)
->  {
-> -	struct scatterlist *sg0, *sg, *sg_first = NULL;
-> -	int i, dma_len, dropped_xfer_len, dropped_remain, remain;
-> -	int nfirst = -1, nfirst_offset = 0, xfer_len;
-> -
-> -	*new_sg_len = 0;
-> -	dropped_remain = offset;
-> -	remain = size;
-> -	for_each_sg(sglist, sg, sglen, i) {
-> -		dma_len = sg_dma_len(sg);
-> -		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
-> -		dropped_xfer_len = roundup(min(dma_len, dropped_remain), 8);
-> -		if (dropped_remain)
-> -			dropped_remain -= dropped_xfer_len;
-> -		xfer_len = dma_len - dropped_xfer_len;
-> -
-> -		if (nfirst < 0 && xfer_len > 0) {
-> -			sg_first = sg;
-> -			nfirst = i;
-> -			nfirst_offset = dropped_xfer_len;
-> +	int i, nents;
-> +	size_t size, len;
-> +	struct sg_splitter *splitters, *curr;
-> +	struct scatterlist *sg;
-> +
-> +	splitters = kcalloc(nb_splits, sizeof(*splitters), gfp_mask);
-
-This is an array of at most 3 elements, 20 bytes each. I'd just allocate 
-it on stack in the calling function and avoid this kcalloc(). Then you can 
-make this function return the total number of sg elements, which is 
-actually at most original number of elements + 2, right? Then you can use 
-that total number to allocate all new sg elements in one go to reduce the 
-number of allocations.
-
-> +	if (!splitters)
-> +		return NULL;
-> +
-> +	nents = 0;
-
-I would put these in initialisation:
-
-+	int i, nents = 0;
-+	size_t size = sizes[0], len;
-
-etc.
-
-> +	size = *sizes;
-> +	curr = splitters;
-> +	for_each_sg(in, sg, sg_nents(in), i) {
-> +		if (skip > sg_dma_len(sg)) {
-> +			skip -= sg_dma_len(sg);
-> +			continue;
-> +		}
-> +		len = min_t(size_t, size, sg_dma_len(sg) - skip);
-> +		if (!curr->in_sg0) {
-> +			curr->in_sg0 = sg;
-> +			curr->skip_sg0 = sg_dma_len(sg) - len;
->  		}
-> -		if (xfer_len > 0) {
-> -			(*new_sg_len)++;
-> -			remain -= xfer_len;
-> +		size -= len;
-> +		nents++;
-> +		if (!size) {
-> +			curr->nents = nents;
-> +			curr->len_last_sg = len;
-> +			nents = 0;
-> +			size = *(++sizes);
-> +
-> +			if (!--nb_splits)
-> +				break;
-
-This break won't be needed, because:
-
-> +
-> +			if (len < curr->len_last_sg) {
-
-How is this possible? You just did
-
-+			curr->len_last_sg = len;
-
-> +				(splitters + 1)->in_sg0 = sg;
-
-In general I like pointer arithmetics and use it always when I need a 
-_pointer_, but in such cases I'd normally just write splitters[1].in_sg0, 
-don't you think that would look better? Ditto everywhere below.
-
-> +				(splitters + 1)->skip_sg0 = 0;
-> +			}
-> +			curr++;
->  		}
-> -		if (remain <= 0)
-> -			break;
->  	}
-> -	WARN_ON(nfirst >= sglen);
->  
-> -	sg0 = kmalloc_array(*new_sg_len, sizeof(struct scatterlist),
-> -			    GFP_KERNEL);
-> -	if (!sg0)
-> -		return NULL;
-> +	return splitters;
-> +}
->  
-> -	remain = size;
-> -	for_each_sg(sg_first, sg, *new_sg_len, i) {
-> -		dma_len = sg_dma_len(sg);
-> -		sg0[i] = *sg;
-> +static int sg_split(struct scatterlist *in, const int nb_splits,
-> +		    const size_t *split_sizes, struct scatterlist **out,
-> +		    gfp_t gfp_mask)
-> +{
-> +	int i, j;
-> +	struct scatterlist *in_sg, *out_sg;
-> +	struct sg_splitter *splitters, *split;
->  
-> -		sg0[i].offset = nfirst_offset;
-> -		nfirst_offset = 0;
-> +	splitters = sg_calculate_split(in, 0, split_sizes, nb_splits, gfp_mask);
-> +	if (!splitters)
-> +		return -ENOMEM;
->  
-> -		xfer_len = min_t(int, remain, dma_len - sg0[i].offset);
-> -		xfer_len = roundup(xfer_len, 8);
-> -		sg_dma_len(&sg0[i]) = xfer_len;
-> +	for (i = 0; i < nb_splits; i++) {
-> +		(splitters + i)->out_sg =
-> +			kmalloc_array((splitters + i)->nents,
-> +				      sizeof(struct scatterlist), gfp_mask);
-> +		if (!(splitters + i)->out_sg)
-> +			goto err;
-> +	}
->  
-> -		remain -= xfer_len;
-> -		if (remain <= 0) {
-> -			sg_mark_end(&sg0[i]);
-> -			break;
-> +	for (i = 0; i < nb_splits; i++) {
-
-Maybe
-
-+	for (i = 0, split = splitters; i < nb_splits; i++, split++) {
-
-> +		split = splitters + i;
-> +		in_sg = split->in_sg0;
-> +		out_sg = split->out_sg;
-> +		out[i] = out_sg;
-> +		for (j = 0; j < split->nents; j++) {
-
-+		for (j = 0; j < split->nents; j++, out_sg++) {
-
-> +			out_sg[j] = *in_sg;
-
-+			*out_sg = *in_sg;
-
-> +			if (!j) {
-> +				out_sg[j].offset = split->skip_sg0;
-> +				sg_dma_len(&out_sg[j]) -= split->skip_sg0;
-
-+				out_sg->offset = split->skip_sg0;
-+				sg_dma_len(out_sg) -= split->skip_sg0;
-
-etc.
-
-> +			} else {
-> +				out_sg[j].offset = 0;
-> +			}
-> +			in_sg = sg_next(in_sg);
->  		}
-> +		sg_dma_len(out_sg + split->nents - 1) = split->len_last_sg;
-> +		sg_mark_end(out_sg + split->nents - 1);
->  	}
->  
-> -	return sg0;
-> +	kfree(splitters);
-> +	return 0;
-> +
-> +err:
-> +	for (i = 0; i < nb_splits; i++)
-> +		kfree((splitters + i)->out_sg);
-> +	kfree(splitters);
-> +	return -ENOMEM;
->  }
->  
->  static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
-> @@ -391,14 +437,11 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
->  				int cibr, int size, int offset)
->  {
->  	struct dma_chan *dma_chan = pcdev->dma_chans[channel];
-> -	struct scatterlist *sg;
-> +	struct scatterlist *sg = buf->sg[channel];
->  	int sglen;
->  	struct dma_async_tx_descriptor *tx;
->  
-> -	sg = videobuf_sg_cut(dma->sglist, dma->sglen, offset, size, &sglen);
-> -	if (!sg)
-> -		goto fail;
-> -
-> +	sglen = sg_nents(sg);
->  	tx = dmaengine_prep_slave_sg(dma_chan, sg, sglen, DMA_DEV_TO_MEM,
->  				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
->  	if (!tx) {
-> @@ -421,7 +464,6 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
->  	}
->  
->  	buf->descs[channel] = tx;
-> -	buf->sg[channel] = sg;
->  	buf->sg_len[channel] = sglen;
->  	return 0;
->  fail:
-> @@ -458,6 +500,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
->  	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
->  	int ret;
->  	int size_y, size_u = 0, size_v = 0;
-> +	size_t sizes[3];
->  
->  	dev_dbg(dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
->  		vb, vb->baddr, vb->bsize);
-> @@ -513,6 +556,16 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
->  			size_y = size;
->  		}
->  
-> +		sizes[0] = size_y;
-> +		sizes[1] = size_u;
-> +		sizes[2] = size_v;
-> +		ret = sg_split(dma->sglist, pcdev->channels, sizes, buf->sg,
-> +			       GFP_KERNEL);
-> +		if (ret) {
-
-In most places pxa_camera.c checks for (ret < 0), but no longer in all 
-anyway.
-
-Thanks
-Guennadi
-
-> +			dev_err(dev, "sg_split failed: %d\n", ret);
-> +			goto fail;
-> +		}
-> +
->  		/* init DMA for Y channel */
->  		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0,
->  					   size_y, 0);
-> 
