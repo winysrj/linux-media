@@ -1,120 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39159 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:43784 "EHLO
 	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754229AbbGXON4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751176AbbG1HGV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 10:13:56 -0400
-Message-ID: <55B247DC.4080606@xs4all.nl>
-Date: Fri, 24 Jul 2015 16:12:44 +0200
+	Tue, 28 Jul 2015 03:06:21 -0400
+Message-ID: <55B729E4.1070501@xs4all.nl>
+Date: Tue, 28 Jul 2015 09:06:12 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 05/13] v4l: subdev: Add pad config allocator and init
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-6-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-6-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 8/9] hackrf: add support for transmitter
+References: <1437030298-20944-1-git-send-email-crope@iki.fi> <1437030298-20944-9-git-send-email-crope@iki.fi> <55A91474.4000801@xs4all.nl> <55B692D3.2070601@iki.fi> <55B696D0.2000700@xs4all.nl> <55B6D1C9.30807@iki.fi>
+In-Reply-To: <55B6D1C9.30807@iki.fi>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2015 02:21 PM, William Towle wrote:
-> From: Laurent Pinchart <laurent.pinchart@linaro.org>
+On 07/28/2015 02:50 AM, Antti Palosaari wrote:
+> On 07/27/2015 11:38 PM, Hans Verkuil wrote:
+>> On 07/27/2015 10:21 PM, Antti Palosaari wrote:
+>>> On 07/17/2015 05:43 PM, Hans Verkuil wrote:
+>>>> On 07/16/2015 09:04 AM, Antti Palosaari wrote:
+>>>>> HackRF SDR device has both receiver and transmitter. There is limitation
+>>>>> that receiver and transmitter cannot be used at the same time
+>>>>> (half-duplex operation). That patch implements transmitter support to
+>>>>> existing receiver only driver.
+>>>>>
+>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>>> ---
+>>>>>    drivers/media/usb/hackrf/hackrf.c | 787 +++++++++++++++++++++++++++-----------
+>>>>>    1 file changed, 572 insertions(+), 215 deletions(-)
+>>>>>
+>>>>
+>>>>
+>>>>> @@ -611,8 +751,15 @@ static int hackrf_queue_setup(struct vb2_queue *vq,
+>>>>>    		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
+>>>>>    {
+>>>>>    	struct hackrf_dev *dev = vb2_get_drv_priv(vq);
+>>>>> +	struct usb_interface *intf = dev->intf;
+>>>>> +	int ret;
+>>>>>
+>>>>> -	dev_dbg(dev->dev, "nbuffers=%d\n", *nbuffers);
+>>>>> +	dev_dbg(&intf->dev, "nbuffers=%d\n", *nbuffers);
+>>>>> +
+>>>>> +	if (test_and_set_bit(QUEUE_SETUP, &dev->flags)) {
+>>>>> +		ret = -EBUSY;
+>>>>> +		goto err;
+>>>>> +	}
+>>>>
+>>>> This doesn't work. The bit is only cleared when start_streaming fails or
+>>>> stop_streaming is called. But the application can also call REQBUFS again
+>>>> or just close the file handle, and then QUEUE_SETUP should also be cleared.
+>>>>
+>>>> But why is this here in the first place? It doesn't seem to do anything
+>>>> useful (except mess up the v4l2-compliance tests).
+>>>>
+>>>> I've removed it and it now seems to work OK.
+>>>
+>>> It is there to block simultaneous use of receiver and transmitter.
+>>> Device could operate only single mode at the time - receiving or
+>>> transmitting. Driver shares streaming buffers.
+>>>
+>>> Any idea how I can easily implement correct blocking?
+>>
+>> Since each video_device struct has its own vb2_queue I wouldn't put the check
+>> here. Instead, put the check in the start_streaming callback. And the check
+>> is easy enough: if you want to start capturing, then call
+>> vb2_is_streaming(&tx_vb2_queue). If you want to start output, then call
+>> vb2_is_streaming(&rx_vb2_queue). If the other 'side' is streaming, then
+>> return EBUSY.
+>>
+>> It's perfectly valid to allocate the buffers, but actually streaming is an
+>> exclusive operation.
 > 
-> Add a new subdev operation to initialize a subdev pad config array, and
-> a helper function to allocate and initialize the array. This can be used
-> by bridge drivers to implement try format based on subdev pad
-> operations.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-> Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+> Currently there is two queues, but only single buffer. If I do check on 
+> start_streaming() it is too late as buffers are queue during buf_queue() 
+> which is called earlier (and now both sides are added to same 
+> queued_bufs lists, which messes up).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+It's not that you have a single buffer, it is that you have a single buffer list.
+I'd say that you should make two buffer lists and use the appropriate one. They
+really are independent, it's just that VIDIOC_STREAMON can run only one queue
+at a time.
 
 Regards,
 
 	Hans
-
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
->  include/media/v4l2-subdev.h           | 10 ++++++++++
->  2 files changed, 28 insertions(+), 1 deletion(-)
-> 
-> Changes since v1:
-> 
-> - Added v4l2_subdev_free_pad_config
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c |   19 ++++++++++++++++++-
->  include/media/v4l2-subdev.h           |   10 ++++++++++
->  2 files changed, 28 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 83615b8..951a9cf 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -35,7 +35,7 @@
->  static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
->  {
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> -	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-> +	fh->pad = v4l2_subdev_alloc_pad_config(sd);
->  	if (fh->pad == NULL)
->  		return -ENOMEM;
->  #endif
-> @@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
->  		sink, link, &source_fmt, &sink_fmt);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-> +
-> +struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-> +{
-> +	struct v4l2_subdev_pad_config *cfg;
-> +
-> +	if (!sd->entity.num_pads)
-> +		return NULL;
-> +
-> +	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-> +	if (!cfg)
-> +		return NULL;
-> +
-> +	v4l2_subdev_call(sd, pad, init_cfg, cfg);
-> +
-> +	return cfg;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
->  #endif /* CONFIG_MEDIA_CONTROLLER */
->  
->  void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 370fc38..a03b600 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -486,6 +486,8 @@ struct v4l2_subdev_pad_config {
->   *                  may be adjusted by the subdev driver to device capabilities.
->   */
->  struct v4l2_subdev_pad_ops {
-> +	void (*init_cfg)(struct v4l2_subdev *sd,
-> +			 struct v4l2_subdev_pad_config *cfg);
->  	int (*enum_mbus_code)(struct v4l2_subdev *sd,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_mbus_code_enum *code);
-> @@ -680,7 +682,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
->  				      struct v4l2_subdev_format *source_fmt,
->  				      struct v4l2_subdev_format *sink_fmt);
->  int v4l2_subdev_link_validate(struct media_link *link);
-> +
-> +struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-> +
-> +static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-> +{
-> +	kfree(cfg);
-> +}
->  #endif /* CONFIG_MEDIA_CONTROLLER */
-> +
->  void v4l2_subdev_init(struct v4l2_subdev *sd,
->  		      const struct v4l2_subdev_ops *ops);
->  
-> 
 
