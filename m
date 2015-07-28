@@ -1,97 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59079 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbbGaOhN (ORCPT
+Received: from smtp74.iad3a.emailsrvr.com ([173.203.187.74]:59595 "EHLO
+	smtp74.iad3a.emailsrvr.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754333AbbG1Cbk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2015 10:37:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: atmel-isi: move configure_geometry() to start_streaming()
-Date: Fri, 31 Jul 2015 17:37:52 +0300
-Message-ID: <1972518.SdailnKCEF@avalon>
-In-Reply-To: <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
-References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com> <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
+	Mon, 27 Jul 2015 22:31:40 -0400
+From: Xiaoquan Li <xiaoquan.li@vivantecorp.com>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"Hans Verkuil" <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	"Sumit Semwal" <sumit.semwal@linaro.org>,
+	Tom Cooksey <tom.cooksey@arm.com>,
+	"Daniel Stone" <daniel.stone@collabora.com>
+CC: Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>
+Subject: RE: [Linaro-mm-sig] [PATCH v3 0/2] RFC: Secure Memory Allocation
+	Framework
+Date: Tue, 28 Jul 2015 02:22:37 +0000
+Message-ID: <da0dde9a302342e5a13ce7ac3069419e@MBX05B-IAD3.mex08.mlsrvr.com>
+References: <1436531290-23191-1-git-send-email-benjamin.gaignard@linaro.org>
+ <CA+M3ks7X++to23mXjRaB_wUJUo0TDLFh2hMbziEGeMDkVBx-7w@mail.gmail.com>
+In-Reply-To: <CA+M3ks7X++to23mXjRaB_wUJUo0TDLFh2hMbziEGeMDkVBx-7w@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
-
-Thank you for the patch.
-
-On Wednesday 17 June 2015 18:39:39 Josh Wu wrote:
-> As in set_fmt() function we only need to know which format is been set,
-> we don't need to access the ISI hardware in this moment.
-> 
-> So move the configure_geometry(), which access the ISI hardware, to
-> start_streaming() will make code more consistent and simpler.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
->  1 file changed, 5 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index 8bc40ca..b01086d
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq,
-> unsigned int count) /* Disable all interrupts */
->  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> 
-> +	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-> +				icd->current_fmt->code);
-
-I would also make configure_geometry a void function, as the only failure case 
-really can't occur.
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	spin_lock_irq(&isi->lock);
->  	/* Clear any pending interrupt */
->  	isi_readl(isi, ISI_STATUS);
-> @@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
-> static int isi_camera_set_fmt(struct soc_camera_device *icd,
->  			      struct v4l2_format *f)
->  {
-> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> -	struct atmel_isi *isi = ici->priv;
->  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->  	const struct soc_camera_format_xlate *xlate;
->  	struct v4l2_pix_format *pix = &f->fmt.pix;
-> @@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device
-> *icd, if (mf->code != xlate->code)
->  		return -EINVAL;
-> 
-> -	/* Enable PM and peripheral clock before operate isi registers */
-> -	pm_runtime_get_sync(ici->v4l2_dev.dev);
-> -
-> -	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
-> -
-> -	pm_runtime_put(ici->v4l2_dev.dev);
-> -
-> -	if (ret < 0)
-> -		return ret;
-> -
->  	pix->width		= mf->width;
->  	pix->height		= mf->height;
->  	pix->field		= mf->field;
-
--- 
-Regards,
-
-Laurent Pinchart
-
+SGkgQmVuamFtaW4sDQoNCkl0IGxvb2tzIGxpa2UgdGhpcyBmcmFtZXdvcmsgb25seSBhbGxvd3Mg
+dXNlciBzcGFjZSBjbGllbnQgdG8gdGFsayB3aXRoIHRydXN0IGFwcGxpY2F0aW9uLCBpdCB0aGVy
+ZSBhIHBsYW4gdG8gcHJvdmlkZSBrZXJuZWwgc2lkZSBBUElzIGZvciBrZXJuZWwgc3BhY2UgY2xp
+ZW50Pw0KDQpQbGVhc2UgY29ycmVjdCBtZSBpZiBteSB1bmRlcnN0YW5kaW5nIGlzIHdyb25nLg0K
+DQpUaGFua3MNCg0KWGlhb3F1YW4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206
+IExpbmFyby1tbS1zaWcgW21haWx0bzpsaW5hcm8tbW0tc2lnLWJvdW5jZXNAbGlzdHMubGluYXJv
+Lm9yZ10gT24gQmVoYWxmIE9mIEJlbmphbWluIEdhaWduYXJkDQpTZW50OiBNb25kYXksIEp1bHkg
+MjcsIDIwMTUgNjoxMiBQTQ0KVG86IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgTGludXgg
+S2VybmVsIE1haWxpbmcgTGlzdDsgZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZzsgSGFu
+cyBWZXJrdWlsOyBMYXVyZW50IFBpbmNoYXJ0OyBEYW5pZWwgVmV0dGVyOyBSb2IgQ2xhcms7IFRo
+aWVycnkgUmVkaW5nOyBTdW1pdCBTZW13YWw7IFRvbSBDb29rc2V5OyBEYW5pZWwgU3RvbmUNCkNj
+OiBMaW5hcm8gTU0gU0lHIE1haWxtYW4gTGlzdA0KU3ViamVjdDogUmU6IFtMaW5hcm8tbW0tc2ln
+XSBbUEFUQ0ggdjMgMC8yXSBSRkM6IFNlY3VyZSBNZW1vcnkgQWxsb2NhdGlvbiBGcmFtZXdvcmsN
+Cg0KSGkgYWxsLA0KDQpUaGlzIHRocmVhZCBkb2Vzbid0IGdldCBhbnkgZmVlZGJhY2suLi4NCg0K
+V2hhdCB3b3VsZCBiZSBncmVhdCBpcyB0byBrbm93IGlmIHRoaXMgZnJhbWV3b3JrIHByb3Bvc2Fs
+IGZpciB3aXRoDQp5b3VyIHBsYXRmb3JtIG5lZWRzLg0KDQpNYXliZSBJIGhhdmVuJ3QgY29weSB0
+aGUgZ29vZCBtYWlsaW5nIGxpc3RzIHNvIGlmIHlvdSB0aGluayB0aGVyZSBpcw0KYmV0dGVyIG9u
+ZXMgZG8gbm90IGhlc2l0YXRlIHRvIGZvcndhcmQuDQoNClJlZ2FyZHMsDQpCZW5qYW1pbg0KDQoN
+CjIwMTUtMDctMTAgMTQ6MjggR01UKzAyOjAwIEJlbmphbWluIEdhaWduYXJkIDxiZW5qYW1pbi5n
+YWlnbmFyZEBsaW5hcm8ub3JnPjoNCj4gdmVyc2lvbiAzIGNoYW5nZXM6DQo+ICAtIFJlbW92ZSBp
+b2N0bCBmb3IgYWxsb2NhdG9yIHNlbGVjdGlvbiBpbnN0ZWFkIHByb3ZpZGUgdGhlIG5hbWUgb2YN
+Cj4gICAgdGhlIHRhcmdldGVkIGFsbG9jYXRvciB3aXRoIGFsbG9jYXRpb24gcmVxdWVzdC4NCj4g
+ICAgU2VsZWN0aW5nIGFsbG9jYXRvciBmcm9tIHVzZXJsYW5kIGlzbid0IHRoZSBwcmVmZXJlZCB3
+YXkgb2Ygd29ya2luZw0KPiAgICBidXQgaXMgbmVlZGVkIHdoZW4gdGhlIGZpcnN0IHVzZXIgb2Yg
+dGhlIGJ1ZmZlciBpcyBhIHNvZnR3YXJlIGNvbXBvbmVudC4NCj4gIC0gRml4IGlzc3VlcyBpbiBj
+YXNlIG9mIGVycm9yIHdoaWxlIGNyZWF0aW5nIHNtYWYgaGFuZGxlLg0KPiAgLSBGaXggbW9kdWxl
+IGxpY2Vuc2UuDQo+ICAtIFVwZGF0ZSBsaWJzbWFmIGFuZCB0ZXN0cyB0byBjYXJlIG9mIHRoZSBT
+TUFGIEFQSSBldm9sdXRpb24NCj4gICAgaHR0cHM6Ly9naXQubGluYXJvLm9yZy9wZW9wbGUvYmVu
+amFtaW4uZ2FpZ25hcmQvbGlic21hZi5naXQNCj4NCj4gdmVyc2lvbiAyIGNoYW5nZXM6DQo+ICAt
+IEFkZCBvbmUgaW9jdGwgdG8gYWxsb3cgYWxsb2NhdG9yIHNlbGVjdGlvbiBmcm9tIHVzZXJzcGFj
+ZS4NCj4gICAgVGhpcyBpcyByZXF1aXJlZCBmb3IgdGhlIHVzZXMgY2FzZSB3aGVyZSB0aGUgZmly
+c3QgdXNlciBvZg0KPiAgICB0aGUgYnVmZmVyIGlzIGEgc29mdHdhcmUgSVAgd2hpY2ggY2FuJ3Qg
+cGVyZm9ybSBkbWFfYnVmIGF0dGFjaGVtZW50Lg0KPiAgLSBBZGQgbmFtZSBhbmQgcmFua2luZyB0
+byBhbGxvY2F0b3Igc3RydWN0dXJlIHRvIGJlIGFibGUgdG8gc29ydCB0aGVtLg0KPiAgLSBDcmVh
+dGUgYSB0aW55IGxpYnJhcnkgdG8gdGVzdCBTTUFGOg0KPiAgICBodHRwczovL2dpdC5saW5hcm8u
+b3JnL3Blb3BsZS9iZW5qYW1pbi5nYWlnbmFyZC9saWJzbWFmLmdpdA0KPiAgLSBGaXggb25lIGlz
+c3VlIHdoZW4gdHJ5IHRvIHNlY3VyZSBidWZmZXIgd2l0aG91dCBzZWN1cmUgbW9kdWxlIHJlZ2lz
+dGVyZWQNCj4NCj4gVGhlIG91dGNvbWUgb2YgdGhlIHByZXZpb3VzIFJGQyBhYm91dCBob3cgZG8g
+c2VjdXJlIGRhdGEgcGF0aCB3YXMgdGhlIG5lZWQNCj4gb2YgYSBzZWN1cmUgbWVtb3J5IGFsbG9j
+YXRvciAoaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTUvNS81LzU1MSkNCj4NCj4gU01BRiBnb2Fs
+IGlzIHRvIHByb3ZpZGUgYSBmcmFtZXdvcmsgdGhhdCBhbGxvdyBhbGxvY2F0aW5nIGFuZCBzZWN1
+cmluZw0KPiBtZW1vcnkgYnkgdXNpbmcgZG1hX2J1Zi4gRWFjaCBwbGF0Zm9ybSBoYXZlIGl0IG93
+biB3YXkgdG8gcGVyZm9ybSB0aG9zZSB0d28NCj4gZmVhdHVyZXMgc28gU01BRiBkZXNpZ24gYWxs
+b3cgdG8gcmVnaXN0ZXIgaGVscGVyIG1vZHVsZXMgdG8gcGVyZm9ybSB0aGVtLg0KPg0KPiBUbyBi
+ZSBzdXJlIHRvIHNlbGVjdCB0aGUgYmVzdCBhbGxvY2F0aW9uIG1ldGhvZCBmb3IgZGV2aWNlcyBT
+TUFGIGltcGxlbWVudA0KPiBkZWZlcnJlZCBhbGxvY2F0aW9uIG1lY2hhbmlzbTogbWVtb3J5IGFs
+bG9jYXRpb24gaXMgb25seSBkb25lIHdoZW4gdGhlIGZpcnN0DQo+IGRldmljZSBlZmZlY3RpdmVs
+eSByZXF1aXJlZCBpdC4NCj4gQWxsb2NhdG9yIG1vZHVsZXMgaGF2ZSB0byBpbXBsZW1lbnQgYSBt
+YXRjaCgpIHRvIGxldCBTTUFGIGtub3cgaWYgdGhleSBhcmUNCj4gY29tcGF0aWJsZXMgd2l0aCBk
+ZXZpY2VzIG5lZWRzLg0KPiBUaGlzIHBhdGNoIHNldCBwcm92aWRlIGFuIGV4YW1wbGUgb2YgYWxs
+b2NhdG9yIG1vZHVsZSB3aGljaCB1c2UNCj4gZG1hX3thbGxvYy9mcmVlL21tYXB9X2F0dHJzKCkg
+YW5kIGNoZWNrIGlmIGF0IGxlYXN0IG9uZSBkZXZpY2UgaGF2ZQ0KPiBjb2hlcmVudF9kbWFfbWFz
+ayBzZXQgdG8gRE1BX0JJVF9NQVNLKDMyKSBpbiBtYXRjaCBmdW5jdGlvbi4NCj4gSSBoYXZlIG5h
+bWVkIHNtYWYtY21hLmMgbGlrZSBpdCBpcyBkb25lIGZvciBkcm1fZ2VtX2NtYV9oZWxwZXIuYyBl
+dmVuIGlmDQo+IGEgYmV0dGVyIG5hbWUgY291bGQgYmUgZm91bmQgZm9yIHRoaXMgZmlsZS4NCj4N
+Cj4gU2VjdXJlIG1vZHVsZXMgYXJlIHJlc3BvbnNpYmxlcyBvZiBncmFudGluZyBhbmQgcmV2b2tp
+bmcgZGV2aWNlcyBhY2Nlc3MgcmlnaHRzDQo+IG9uIHRoZSBtZW1vcnkuIFNlY3VyZSBtb2R1bGUg
+aXMgYWxzbyBjYWxsZWQgdG8gY2hlY2sgaWYgQ1BVIG1hcCBtZW1vcnkgaW50bw0KPiBrZXJuZWwg
+YW5kIHVzZXIgYWRkcmVzcyBzcGFjZXMuDQo+IEFuIGV4YW1wbGUgb2Ygc2VjdXJlIG1vZHVsZSBp
+bXBsZW1lbnRhdGlvbiBjYW4gYmUgZm91bmQgaGVyZToNCj4gaHR0cDovL2dpdC5saW5hcm8ub3Jn
+L3Blb3BsZS9iZW5qYW1pbi5nYWlnbmFyZC9vcHRlZS1zZHAuZ2l0DQo+IFRoaXMgY29kZSBpc24n
+dCB5ZXQgcGFydCBvZiB0aGUgcGF0Y2ggc2V0IGJlY2F1c2UgaXQgZGVwZW5kcyBvbiBnZW5lcmlj
+IFRFRQ0KPiB3aGljaCBpcyBzdGlsbCB1bmRlciBkaXNjdXNzaW9uIChodHRwczovL2x3bi5uZXQv
+QXJ0aWNsZXMvNjQ0NjQ2LykNCj4NCj4gRm9yIGFsbG9jYXRpb24gcGFydCBvZiBTTUFGIGNvZGUg
+SSBnZXQgaW5zcGlyYXRlZCBieSBTdW1pdCBTZW13YWwgd29yayBhYm91dA0KPiBjb25zdHJhaW50
+IGF3YXJlIGFsbG9jYXRvci4NCj4NCj4gQmVuamFtaW4gR2FpZ25hcmQgKDIpOg0KPiAgIGNyZWF0
+ZSBTTUFGIG1vZHVsZQ0KPiAgIFNNQUY6IGFkZCBDTUEgYWxsb2NhdG9yDQo+DQo+ICBkcml2ZXJz
+L0tjb25maWcgICAgICAgICAgICAgICAgfCAgIDIgKw0KPiAgZHJpdmVycy9NYWtlZmlsZSAgICAg
+ICAgICAgICAgIHwgICAxICsNCj4gIGRyaXZlcnMvc21hZi9LY29uZmlnICAgICAgICAgICB8ICAx
+MSArDQo+ICBkcml2ZXJzL3NtYWYvTWFrZWZpbGUgICAgICAgICAgfCAgIDIgKw0KPiAgZHJpdmVy
+cy9zbWFmL3NtYWYtY21hLmMgICAgICAgIHwgMjAwICsrKysrKysrKysrDQo+ICBkcml2ZXJzL3Nt
+YWYvc21hZi1jb3JlLmMgICAgICAgfCA3MzUgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysNCj4gIGluY2x1ZGUvbGludXgvc21hZi1hbGxvY2F0b3IuaCB8ICA1NCArKysN
+Cj4gIGluY2x1ZGUvbGludXgvc21hZi1zZWN1cmUuaCAgICB8ICA2MiArKysrDQo+ICBpbmNsdWRl
+L3VhcGkvbGludXgvc21hZi5oICAgICAgfCAgNTIgKysrDQo+ICA5IGZpbGVzIGNoYW5nZWQsIDEx
+MTkgaW5zZXJ0aW9ucygrKQ0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvc21hZi9LY29u
+ZmlnDQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9zbWFmL01ha2VmaWxlDQo+ICBjcmVh
+dGUgbW9kZSAxMDA2NDQgZHJpdmVycy9zbWFmL3NtYWYtY21hLmMNCj4gIGNyZWF0ZSBtb2RlIDEw
+MDY0NCBkcml2ZXJzL3NtYWYvc21hZi1jb3JlLmMNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNs
+dWRlL2xpbnV4L3NtYWYtYWxsb2NhdG9yLmgNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRl
+L2xpbnV4L3NtYWYtc2VjdXJlLmgNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL3VhcGkv
+bGludXgvc21hZi5oDQo+DQo+IC0tDQo+IDEuOS4xDQo+DQoNCg0KDQotLSANCkJlbmphbWluIEdh
+aWduYXJkDQoNCkdyYXBoaWMgV29ya2luZyBHcm91cA0KDQpMaW5hcm8ub3JnIOKUgiBPcGVuIHNv
+dXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MNCg0KRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBU
+d2l0dGVyIHwgQmxvZw0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18NCkxpbmFyby1tbS1zaWcgbWFpbGluZyBsaXN0DQpMaW5hcm8tbW0tc2lnQGxpc3RzLmxp
+bmFyby5vcmcNCmh0dHBzOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbmFy
+by1tbS1zaWcNCg==
