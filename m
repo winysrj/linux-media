@@ -1,155 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56368 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262AbbGIKKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2015 06:10:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 07/10] [media] coda: drop custom list of pixel format descriptions
-Date: Thu,  9 Jul 2015 12:10:18 +0200
-Message-Id: <1436436621-12291-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
-References: <1436436621-12291-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40014 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752996AbbG1Hlr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 03:41:47 -0400
+Message-ID: <55B73232.9080906@xs4all.nl>
+Date: Tue, 28 Jul 2015 09:41:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl> <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl> <Pine.LNX.4.64.1506220920280.13683@axis700.grange> <5587B93C.1030106@xs4all.nl> <55B24650.5090401@xs4all.nl> <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit ba3002045f80 ("[media] v4l2-ioctl: fill in the description
-for VIDIOC_ENUM_FMT"), all pixel formats are assigned their description
-in a central place. We can now drop the custom list.
+On 07/26/2015 12:00 PM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Fri, 24 Jul 2015, Hans Verkuil wrote:
+> 
+>> Guennadi,
+>>
+>> I want to make a pull request for this patch series. This patch is the only
+>> outstanding one.
+> 
+> Right, sorry for the delay. Replying to your explanation below:
+> 
+>> Or do you have to review more patches? I only got Acks for patches 1 and 
+>> 2.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> On 06/22/2015 09:29 AM, Hans Verkuil wrote:
+>>> On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Mon, 22 Jun 2015, Hans Verkuil wrote:
+>>>>
+>>>>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+>>>>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
+>>>>>>
+>>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>>
+>>>>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
+>>>>>>>
+>>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>>> ---
+>>>>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+>>>>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+>>>>>>> index df66417..e939c24 100644
+>>>>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
+>>>>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+>>>>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+>>>>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+>>>>>>>  
+>>>>>>>  	priv->norm = V4L2_STD_NTSC;
+>>>>>>> +	priv->scale = &tw9910_ntsc_scales[0];
+>>>>>>
+>>>>>> Why do you need this? So far everywhere in the code priv->scale is either 
+>>>>>> checked or set before use. Don't see why an additional initialisation is 
+>>>>>> needed.
+>>>>>
+>>>>> If you just start streaming without explicitly setting up formats (which is
+>>>>> allowed), then priv->scale is still NULL.
+>>>>
+>>>> Yes, it can well be NULL, but it is also unused. Before it is used it will 
+>>>> be set, while it is unused it is allowed to stay NULL.
+>>>
+>>> No. If you start streaming without the set_fmt op having been called, then
+>>> s_stream will return an error since priv->scale is NULL. This is wrong. Since
+>>> this driver defaults to NTSC the initial setup should be for NTSC and it should
+>>> be ready for streaming.
+>>>
+>>> So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
+>>> E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
+>>> case. It's how I found this bug.
+>>>
+>>> It's a trivial one liner to ensure a valid priv->scale pointer.
+> 
+> Yes, you're right, now I see how this can happen. But there's also another 
+> possibility: if S_FMT fails priv->scale will be set to NULL. If you then 
+> directly start streaming wouldn't the same problem arise? Or is it valid 
+> to fail STREAMON after a failed S_FMT? If it is, then of course
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 75 +++----------------------------
- 1 file changed, 7 insertions(+), 68 deletions(-)
+The only way S_FMT (or really tw9910_set_frame) can fail is if there are I/O errors.
+And then it is OK for STREAMON to fail (you're typically in deep shit anyway if this
+happens).
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 8b91bda..b265edd 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -61,11 +61,6 @@ int coda_debug;
- module_param(coda_debug, int, 0644);
- MODULE_PARM_DESC(coda_debug, "Debug level (0-2)");
- 
--struct coda_fmt {
--	char *name;
--	u32 fourcc;
--};
--
- void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- {
- 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
-@@ -111,40 +106,6 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
- 	coda_write(ctx->dev, base_cr, reg_y + 8);
- }
- 
--/*
-- * Array of all formats supported by any version of Coda:
-- */
--static const struct coda_fmt coda_formats[] = {
--	{
--		.name = "YUV 4:2:0 Planar, YCbCr",
--		.fourcc = V4L2_PIX_FMT_YUV420,
--	},
--	{
--		.name = "YUV 4:2:0 Planar, YCrCb",
--		.fourcc = V4L2_PIX_FMT_YVU420,
--	},
--	{
--		.name = "YUV 4:2:0 Partial interleaved Y/CbCr",
--		.fourcc = V4L2_PIX_FMT_NV12,
--	},
--	{
--		.name = "YUV 4:2:2 Planar, YCbCr",
--		.fourcc = V4L2_PIX_FMT_YUV422P,
--	},
--	{
--		.name = "H264 Encoded Stream",
--		.fourcc = V4L2_PIX_FMT_H264,
--	},
--	{
--		.name = "MPEG4 Encoded Stream",
--		.fourcc = V4L2_PIX_FMT_MPEG4,
--	},
--	{
--		.name = "JPEG Encoded Images",
--		.fourcc = V4L2_PIX_FMT_JPEG,
--	},
--};
--
- #define CODA_CODEC(mode, src_fourcc, dst_fourcc, max_w, max_h) \
- 	{ mode, src_fourcc, dst_fourcc, max_w, max_h }
- 
-@@ -261,40 +222,23 @@ static const struct coda_video_device *coda9_video_devices[] = {
- 	&coda_bit_decoder,
- };
- 
--static bool coda_format_is_yuv(u32 fourcc)
-+/*
-+ * Normalize all supported YUV 4:2:0 formats to the value used in the codec
-+ * tables.
-+ */
-+static u32 coda_format_normalize_yuv(u32 fourcc)
- {
- 	switch (fourcc) {
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV422P:
--		return true;
-+		return V4L2_PIX_FMT_YUV420;
- 	default:
--		return false;
-+		return fourcc;
- 	}
- }
- 
--static const char *coda_format_name(u32 fourcc)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(coda_formats); i++) {
--		if (coda_formats[i].fourcc == fourcc)
--			return coda_formats[i].name;
--	}
--
--	return NULL;
--}
--
--/*
-- * Normalize all supported YUV 4:2:0 formats to the value used in the codec
-- * tables.
-- */
--static u32 coda_format_normalize_yuv(u32 fourcc)
--{
--	return coda_format_is_yuv(fourcc) ? V4L2_PIX_FMT_YUV420 : fourcc;
--}
--
- static const struct coda_codec *coda_find_codec(struct coda_dev *dev,
- 						int src_fourcc, int dst_fourcc)
- {
-@@ -396,7 +340,6 @@ static int coda_enum_fmt(struct file *file, void *priv,
- 	struct video_device *vdev = video_devdata(file);
- 	const struct coda_video_device *cvd = to_coda_video_device(vdev);
- 	const u32 *formats;
--	const char *name;
- 
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		formats = cvd->src_formats;
-@@ -408,11 +351,7 @@ static int coda_enum_fmt(struct file *file, void *priv,
- 	if (f->index >= CODA_MAX_FORMATS || formats[f->index] == 0)
- 		return -EINVAL;
- 
--	name = coda_format_name(formats[f->index]);
--	strlcpy(f->description, name, sizeof(f->description));
- 	f->pixelformat = formats[f->index];
--	if (!coda_format_is_yuv(formats[f->index]))
--		f->flags |= V4L2_FMT_FLAG_COMPRESSED;
- 
- 	return 0;
- }
--- 
-2.1.4
+Regards,
+
+	Hans
+
+> 
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> If that's invalid, then maybe a more extensive fix is needed?
+> 
+> Thanks
+> Guennadi
+> 
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>>>
+>>>> Thanks
+>>>> Guennadi
+>>>>
+>>>>> V4L2 always assumes that there is some initial format configured, and this line
+>>>>> enables that for this driver (NTSC).
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
