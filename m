@@ -1,354 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:45060 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757860AbbGQK3f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 06:29:35 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Message-id: <55A8D903.2080102@samsung.com>
-Date: Fri, 17 Jul 2015 19:29:23 +0900
-From: Inki Dae <inki.dae@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Jan Kara <jack@suse.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 9/9] drm/exynos: Convert g2d_userptr_get_dma_addr() to use
- get_vaddr_frames()
-References: <1436799351-21975-1-git-send-email-jack@suse.com>
- <1436799351-21975-10-git-send-email-jack@suse.com> <55A8D700.9080203@xs4all.nl>
-In-reply-to: <55A8D700.9080203@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.22]:53722 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751000AbbG1HqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 03:46:08 -0400
+Date: Tue, 28 Jul 2015 09:45:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, william.towle@codethink.co.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 04/14] tw9910: init priv->scale and update standard
+In-Reply-To: <55B73232.9080906@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1507280945050.18223@axis700.grange>
+References: <1434368021-7467-1-git-send-email-hverkuil@xs4all.nl>
+ <1434368021-7467-5-git-send-email-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1506211855010.7745@axis700.grange> <5587B39A.4050805@xs4all.nl>
+ <Pine.LNX.4.64.1506220920280.13683@axis700.grange> <5587B93C.1030106@xs4all.nl>
+ <55B24650.5090401@xs4all.nl> <Pine.LNX.4.64.1507261150030.32754@axis700.grange>
+ <55B73232.9080906@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015년 07월 17일 19:20, Hans Verkuil wrote:
-> On 07/13/2015 04:55 PM, Jan Kara wrote:
->> From: Jan Kara <jack@suse.cz>
->>
->> Convert g2d_userptr_get_dma_addr() to pin pages using get_vaddr_frames().
->> This removes the knowledge about vmas and mmap_sem locking from exynos
->> driver. Also it fixes a problem that the function has been mapping user
->> provided address without holding mmap_sem.
+On Tue, 28 Jul 2015, Hans Verkuil wrote:
+
+> On 07/26/2015 12:00 PM, Guennadi Liakhovetski wrote:
+> > Hi Hans,
+> > 
+> > On Fri, 24 Jul 2015, Hans Verkuil wrote:
+> > 
+> >> Guennadi,
+> >>
+> >> I want to make a pull request for this patch series. This patch is the only
+> >> outstanding one.
+> > 
+> > Right, sorry for the delay. Replying to your explanation below:
+> > 
+> >> Or do you have to review more patches? I only got Acks for patches 1 and 
+> >> 2.
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >> On 06/22/2015 09:29 AM, Hans Verkuil wrote:
+> >>> On 06/22/2015 09:21 AM, Guennadi Liakhovetski wrote:
+> >>>> Hi Hans,
+> >>>>
+> >>>> On Mon, 22 Jun 2015, Hans Verkuil wrote:
+> >>>>
+> >>>>> On 06/21/2015 07:23 PM, Guennadi Liakhovetski wrote:
+> >>>>>> On Mon, 15 Jun 2015, Hans Verkuil wrote:
+> >>>>>>
+> >>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>>>>
+> >>>>>>> When the standard changes the VACTIVE and VDELAY values need to be updated.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>>>> ---
+> >>>>>>>  drivers/media/i2c/soc_camera/tw9910.c | 29 ++++++++++++++++++++++++++++-
+> >>>>>>>  1 file changed, 28 insertions(+), 1 deletion(-)
+> >>>>>>>
+> >>>>>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>>>> index df66417..e939c24 100644
+> >>>>>>> --- a/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>>>> +++ b/drivers/media/i2c/soc_camera/tw9910.c
+> >>>>>>> @@ -820,6 +846,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+> >>>>>>>  		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+> >>>>>>>  
+> >>>>>>>  	priv->norm = V4L2_STD_NTSC;
+> >>>>>>> +	priv->scale = &tw9910_ntsc_scales[0];
+> >>>>>>
+> >>>>>> Why do you need this? So far everywhere in the code priv->scale is either 
+> >>>>>> checked or set before use. Don't see why an additional initialisation is 
+> >>>>>> needed.
+> >>>>>
+> >>>>> If you just start streaming without explicitly setting up formats (which is
+> >>>>> allowed), then priv->scale is still NULL.
+> >>>>
+> >>>> Yes, it can well be NULL, but it is also unused. Before it is used it will 
+> >>>> be set, while it is unused it is allowed to stay NULL.
+> >>>
+> >>> No. If you start streaming without the set_fmt op having been called, then
+> >>> s_stream will return an error since priv->scale is NULL. This is wrong. Since
+> >>> this driver defaults to NTSC the initial setup should be for NTSC and it should
+> >>> be ready for streaming.
+> >>>
+> >>> So priv->scale *is* used: in s_stream. And it is not necessarily set before use.
+> >>> E.g. if you load the driver and run 'v4l2-ctl --stream-out-mmap' you will hit this
+> >>> case. It's how I found this bug.
+> >>>
+> >>> It's a trivial one liner to ensure a valid priv->scale pointer.
+> > 
+> > Yes, you're right, now I see how this can happen. But there's also another 
+> > possibility: if S_FMT fails priv->scale will be set to NULL. If you then 
+> > directly start streaming wouldn't the same problem arise? Or is it valid 
+> > to fail STREAMON after a failed S_FMT? If it is, then of course
 > 
-> I'd like to see an Ack from one of the exynos drm driver maintainers before
-> I merge this.
-> 
-> Inki, Marek?
+> The only way S_FMT (or really tw9910_set_frame) can fail is if there are I/O errors.
+> And then it is OK for STREAMON to fail (you're typically in deep shit anyway if this
+> happens).
 
-I already gave Ack but it seems that Jan missed it while updating.
+Ok, then my ack holds:)
 
-Anyway,
-Acked-by: Inki Dae <inki.dae@samsung.com>
+Thanks
+Guennadi
 
-Thanks,
-Inki Dae
-
-> 
 > Regards,
 > 
 > 	Hans
 > 
->>
->> Signed-off-by: Jan Kara <jack@suse.cz>
->> ---
->>  drivers/gpu/drm/exynos/Kconfig          |  1 +
->>  drivers/gpu/drm/exynos/exynos_drm_g2d.c | 91 ++++++++++---------------------
->>  drivers/gpu/drm/exynos/exynos_drm_gem.c | 97 ---------------------------------
->>  3 files changed, 30 insertions(+), 159 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
->> index 43003c4ad80b..b364562dc6c1 100644
->> --- a/drivers/gpu/drm/exynos/Kconfig
->> +++ b/drivers/gpu/drm/exynos/Kconfig
->> @@ -77,6 +77,7 @@ config DRM_EXYNOS_VIDI
->>  config DRM_EXYNOS_G2D
->>  	bool "Exynos DRM G2D"
->>  	depends on DRM_EXYNOS && !VIDEO_SAMSUNG_S5P_G2D
->> +	select FRAME_VECTOR
->>  	help
->>  	  Choose this option if you want to use Exynos G2D for DRM.
->>  
->> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
->> index 81a250830808..1d8d9a508373 100644
->> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
->> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
->> @@ -190,10 +190,8 @@ struct g2d_cmdlist_userptr {
->>  	dma_addr_t		dma_addr;
->>  	unsigned long		userptr;
->>  	unsigned long		size;
->> -	struct page		**pages;
->> -	unsigned int		npages;
->> +	struct frame_vector	*vec;
->>  	struct sg_table		*sgt;
->> -	struct vm_area_struct	*vma;
->>  	atomic_t		refcount;
->>  	bool			in_pool;
->>  	bool			out_of_list;
->> @@ -363,6 +361,7 @@ static void g2d_userptr_put_dma_addr(struct drm_device *drm_dev,
->>  {
->>  	struct g2d_cmdlist_userptr *g2d_userptr =
->>  					(struct g2d_cmdlist_userptr *)obj;
->> +	struct page **pages;
->>  
->>  	if (!obj)
->>  		return;
->> @@ -382,19 +381,21 @@ out:
->>  	exynos_gem_unmap_sgt_from_dma(drm_dev, g2d_userptr->sgt,
->>  					DMA_BIDIRECTIONAL);
->>  
->> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
->> -					g2d_userptr->npages,
->> -					g2d_userptr->vma);
->> +	pages = frame_vector_pages(g2d_userptr->vec);
->> +	if (!IS_ERR(pages)) {
->> +		int i;
->>  
->> -	exynos_gem_put_vma(g2d_userptr->vma);
->> +		for (i = 0; i < frame_vector_count(g2d_userptr->vec); i++)
->> +			set_page_dirty_lock(pages[i]);
->> +	}
->> +	put_vaddr_frames(g2d_userptr->vec);
->> +	frame_vector_destroy(g2d_userptr->vec);
->>  
->>  	if (!g2d_userptr->out_of_list)
->>  		list_del_init(&g2d_userptr->list);
->>  
->>  	sg_free_table(g2d_userptr->sgt);
->>  	kfree(g2d_userptr->sgt);
->> -
->> -	drm_free_large(g2d_userptr->pages);
->>  	kfree(g2d_userptr);
->>  }
->>  
->> @@ -408,9 +409,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
->>  	struct exynos_drm_g2d_private *g2d_priv = file_priv->g2d_priv;
->>  	struct g2d_cmdlist_userptr *g2d_userptr;
->>  	struct g2d_data *g2d;
->> -	struct page **pages;
->>  	struct sg_table	*sgt;
->> -	struct vm_area_struct *vma;
->>  	unsigned long start, end;
->>  	unsigned int npages, offset;
->>  	int ret;
->> @@ -456,65 +455,38 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
->>  		return ERR_PTR(-ENOMEM);
->>  
->>  	atomic_set(&g2d_userptr->refcount, 1);
->> +	g2d_userptr->size = size;
->>  
->>  	start = userptr & PAGE_MASK;
->>  	offset = userptr & ~PAGE_MASK;
->>  	end = PAGE_ALIGN(userptr + size);
->>  	npages = (end - start) >> PAGE_SHIFT;
->> -	g2d_userptr->npages = npages;
->> -
->> -	pages = drm_calloc_large(npages, sizeof(struct page *));
->> -	if (!pages) {
->> -		DRM_ERROR("failed to allocate pages.\n");
->> -		ret = -ENOMEM;
->> +	g2d_userptr->vec = frame_vector_create(npages);
->> +	if (!g2d_userptr->vec)
->>  		goto err_free;
->> -	}
->>  
->> -	down_read(&current->mm->mmap_sem);
->> -	vma = find_vma(current->mm, userptr);
->> -	if (!vma) {
->> -		up_read(&current->mm->mmap_sem);
->> -		DRM_ERROR("failed to get vm region.\n");
->> +	ret = get_vaddr_frames(start, npages, true, true, g2d_userptr->vec);
->> +	if (ret != npages) {
->> +		DRM_ERROR("failed to get user pages from userptr.\n");
->> +		if (ret < 0)
->> +			goto err_destroy_framevec;
->>  		ret = -EFAULT;
->> -		goto err_free_pages;
->> +		goto err_put_framevec;
->>  	}
->> -
->> -	if (vma->vm_end < userptr + size) {
->> -		up_read(&current->mm->mmap_sem);
->> -		DRM_ERROR("vma is too small.\n");
->> +	if (frame_vector_to_pages(g2d_userptr->vec) < 0) {
->>  		ret = -EFAULT;
->> -		goto err_free_pages;
->> +		goto err_put_framevec;
->>  	}
->>  
->> -	g2d_userptr->vma = exynos_gem_get_vma(vma);
->> -	if (!g2d_userptr->vma) {
->> -		up_read(&current->mm->mmap_sem);
->> -		DRM_ERROR("failed to copy vma.\n");
->> -		ret = -ENOMEM;
->> -		goto err_free_pages;
->> -	}
->> -
->> -	g2d_userptr->size = size;
->> -
->> -	ret = exynos_gem_get_pages_from_userptr(start & PAGE_MASK,
->> -						npages, pages, vma);
->> -	if (ret < 0) {
->> -		up_read(&current->mm->mmap_sem);
->> -		DRM_ERROR("failed to get user pages from userptr.\n");
->> -		goto err_put_vma;
->> -	}
->> -
->> -	up_read(&current->mm->mmap_sem);
->> -	g2d_userptr->pages = pages;
->> -
->>  	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
->>  	if (!sgt) {
->>  		ret = -ENOMEM;
->> -		goto err_free_userptr;
->> +		goto err_put_framevec;
->>  	}
->>  
->> -	ret = sg_alloc_table_from_pages(sgt, pages, npages, offset,
->> -					size, GFP_KERNEL);
->> +	ret = sg_alloc_table_from_pages(sgt,
->> +					frame_vector_pages(g2d_userptr->vec),
->> +					npages, offset, size, GFP_KERNEL);
->>  	if (ret < 0) {
->>  		DRM_ERROR("failed to get sgt from pages.\n");
->>  		goto err_free_sgt;
->> @@ -549,16 +521,11 @@ err_sg_free_table:
->>  err_free_sgt:
->>  	kfree(sgt);
->>  
->> -err_free_userptr:
->> -	exynos_gem_put_pages_to_userptr(g2d_userptr->pages,
->> -					g2d_userptr->npages,
->> -					g2d_userptr->vma);
->> -
->> -err_put_vma:
->> -	exynos_gem_put_vma(g2d_userptr->vma);
->> +err_put_framevec:
->> +	put_vaddr_frames(g2d_userptr->vec);
->>  
->> -err_free_pages:
->> -	drm_free_large(pages);
->> +err_destroy_framevec:
->> +	frame_vector_destroy(g2d_userptr->vec);
->>  
->>  err_free:
->>  	kfree(g2d_userptr);
->> diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
->> index 0d5b9698d384..47068ae44ced 100644
->> --- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
->> +++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
->> @@ -378,103 +378,6 @@ int exynos_drm_gem_get_ioctl(struct drm_device *dev, void *data,
->>  	return 0;
->>  }
->>  
->> -struct vm_area_struct *exynos_gem_get_vma(struct vm_area_struct *vma)
->> -{
->> -	struct vm_area_struct *vma_copy;
->> -
->> -	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
->> -	if (!vma_copy)
->> -		return NULL;
->> -
->> -	if (vma->vm_ops && vma->vm_ops->open)
->> -		vma->vm_ops->open(vma);
->> -
->> -	if (vma->vm_file)
->> -		get_file(vma->vm_file);
->> -
->> -	memcpy(vma_copy, vma, sizeof(*vma));
->> -
->> -	vma_copy->vm_mm = NULL;
->> -	vma_copy->vm_next = NULL;
->> -	vma_copy->vm_prev = NULL;
->> -
->> -	return vma_copy;
->> -}
->> -
->> -void exynos_gem_put_vma(struct vm_area_struct *vma)
->> -{
->> -	if (!vma)
->> -		return;
->> -
->> -	if (vma->vm_ops && vma->vm_ops->close)
->> -		vma->vm_ops->close(vma);
->> -
->> -	if (vma->vm_file)
->> -		fput(vma->vm_file);
->> -
->> -	kfree(vma);
->> -}
->> -
->> -int exynos_gem_get_pages_from_userptr(unsigned long start,
->> -						unsigned int npages,
->> -						struct page **pages,
->> -						struct vm_area_struct *vma)
->> -{
->> -	int get_npages;
->> -
->> -	/* the memory region mmaped with VM_PFNMAP. */
->> -	if (vma_is_io(vma)) {
->> -		unsigned int i;
->> -
->> -		for (i = 0; i < npages; ++i, start += PAGE_SIZE) {
->> -			unsigned long pfn;
->> -			int ret = follow_pfn(vma, start, &pfn);
->> -			if (ret)
->> -				return ret;
->> -
->> -			pages[i] = pfn_to_page(pfn);
->> -		}
->> -
->> -		if (i != npages) {
->> -			DRM_ERROR("failed to get user_pages.\n");
->> -			return -EINVAL;
->> -		}
->> -
->> -		return 0;
->> -	}
->> -
->> -	get_npages = get_user_pages(current, current->mm, start,
->> -					npages, 1, 1, pages, NULL);
->> -	get_npages = max(get_npages, 0);
->> -	if (get_npages != npages) {
->> -		DRM_ERROR("failed to get user_pages.\n");
->> -		while (get_npages)
->> -			put_page(pages[--get_npages]);
->> -		return -EFAULT;
->> -	}
->> -
->> -	return 0;
->> -}
->> -
->> -void exynos_gem_put_pages_to_userptr(struct page **pages,
->> -					unsigned int npages,
->> -					struct vm_area_struct *vma)
->> -{
->> -	if (!vma_is_io(vma)) {
->> -		unsigned int i;
->> -
->> -		for (i = 0; i < npages; i++) {
->> -			set_page_dirty_lock(pages[i]);
->> -
->> -			/*
->> -			 * undo the reference we took when populating
->> -			 * the table.
->> -			 */
->> -			put_page(pages[i]);
->> -		}
->> -	}
->> -}
->> -
->>  int exynos_gem_map_sgt_with_dma(struct drm_device *drm_dev,
->>  				struct sg_table *sgt,
->>  				enum dma_data_direction dir)
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > 
+> > If that's invalid, then maybe a more extensive fix is needed?
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> >>> Regards,
+> >>>
+> >>> 	Hans
+> >>>
+> >>>>
+> >>>> Thanks
+> >>>> Guennadi
+> >>>>
+> >>>>> V4L2 always assumes that there is some initial format configured, and this line
+> >>>>> enables that for this driver (NTSC).
+> >>>>>
+> >>>>> Regards,
+> >>>>>
+> >>>>> 	Hans
