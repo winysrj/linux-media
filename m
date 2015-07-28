@@ -1,136 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37896 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754976AbbGNKRZ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54781 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279AbbG1Hxf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 06:17:25 -0400
-Message-ID: <55A4E154.8020309@xs4all.nl>
-Date: Tue, 14 Jul 2015 12:15:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Mats Randgaard <matrandg@cisco.com>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 3/5] [media] tc358743: support probe from device tree
-References: <1436533897-3060-1-git-send-email-p.zabel@pengutronix.de>	 <1436533897-3060-3-git-send-email-p.zabel@pengutronix.de>	 <55A39982.3030006@xs4all.nl> <1436868605.3793.24.camel@pengutronix.de>
-In-Reply-To: <1436868605.3793.24.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
+	Tue, 28 Jul 2015 03:53:35 -0400
+Message-ID: <1438070000.3193.2.camel@pengutronix.de>
+Subject: Re: [PATCH v3 3/3] [media] videobuf2: add trace events
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de
+Date: Tue, 28 Jul 2015 09:53:20 +0200
+In-Reply-To: <1437995577.3239.20.camel@pengutronix.de>
+References: <1436536166-3307-1-git-send-email-p.zabel@pengutronix.de>
+	 <1436536166-3307-3-git-send-email-p.zabel@pengutronix.de>
+	 <55B4C1FD.80201@xs4all.nl> <1437995577.3239.20.camel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/14/15 12:10, Philipp Zabel wrote:
+Am Montag, den 27.07.2015, 13:12 +0200 schrieb Philipp Zabel:
 > Hi Hans,
 > 
-> Am Montag, den 13.07.2015, 12:57 +0200 schrieb Hans Verkuil:
+> Am Sonntag, den 26.07.2015, 13:18 +0200 schrieb Hans Verkuil:
+> > Hi Philipp,
 > [...]
->>> @@ -69,6 +72,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
->>>  
->>>  struct tc358743_state {
->>>  	struct tc358743_platform_data pdata;
->>> +	struct v4l2_of_bus_mipi_csi2 bus;
->>
->> Where is this bus struct set?
+> > > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > > index 93b3154..b866a6b 100644
+> > > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > > @@ -30,6 +30,8 @@
+> > >  #include <media/v4l2-common.h>
+> > >  #include <media/videobuf2-core.h>
+> > > 
+> > 
+> > Shouldn't there be a #define CREATE_TRACE_POINTS added before the include? That's
+> > what is done in v4l2-ioctl.c as well.
 > 
-> Uh-oh, I have accidentally dropped setting the bus struct when switching
-> to v4l2_of_alloc_parse_endpoint.
+> Documentation/trace/tracepoints.txt says
+>    "if you use the header in multiple source files,
+>     #define CREATE_TRACE_POINTS should appear only in one source file."
 > 
-> [...]
->>> @@ -700,7 +706,8 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
->>>  			((lanes > 2) ? MASK_D2M_HSTXVREGEN : 0x0) |
->>>  			((lanes > 3) ? MASK_D3M_HSTXVREGEN : 0x0));
->>>  
->>> -	i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
->>> +	i2c_wr32(sd, TXOPTIONCNTRL, (state->bus.flags &
->>> +		 V4L2_MBUS_CSI2_CONTINUOUS_CLOCK) ? MASK_CONTCLKMODE : 0);
->>
->> It's used here.
->>
->> BTW, since I don't see state->bus being set, that means bus.flags == 0 and
->> so this register is now set to 0 instead of MASK_CONTCLKMODE.
->>
->> When using platform data I guess bus.flags should be set to
->> V4L2_MBUS_CSI2_CONTINUOUS_CLOCK to prevent breakage.
+> > I updated my kernel on my laptop to the latest media master and without this line it
+> > gives me link errors:
+> > 
+> > ERROR: "__tracepoint_vb2_qbuf" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
+> > ERROR: "__tracepoint_vb2_buf_done" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
+> > ERROR: "__tracepoint_vb2_buf_queue" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
+> > ERROR: "__tracepoint_vb2_dqbuf" [drivers/media/v4l2-core/videobuf2-core.ko] undefined!
+> > scripts/Makefile.modpost:90: recipe for target '__modpost' failed
 > 
-> Ok.
+> Since drivers/media/v4l2-core/v4l2-ioctl.c is built with the trace
+> points whenever CONFIG_VIDEO_V4L2 is enabled, the symbols will currently
+> end up in drivers/media/v4l2-core/v4l2-ioctl.o, but they are not
+> exported.
 > 
-> [..]
->>> +	/*
->>> +	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
->>> +	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
->>> +	 */
->>> +	bps_pr_lane = 2 * endpoint->link_frequencies[0];
->>> +	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
->>> +		dev_err(dev, "unsupported bps per lane: %u bps\n", bps_pr_lane);
->>> +		goto disable_clk;
->>> +	}
->>> +
->>> +	/* The CSI speed per lane is refclk / pll_prd * pll_fbd */
->>> +	state->pdata.pll_fbd = bps_pr_lane /
->>> +			       state->pdata.refclk_hz * state->pdata.pll_prd;
->>> +
->>> +	/*
->>> +	 * FIXME: These timings are from REF_02 for 594 Mbps per lane (297 MHz
->>> +	 * link frequency). In principle it should be possible to calculate
->>> +	 * them based on link frequency and resolution.
->>> +	 */
->>> +	if (bps_pr_lane != 594000000U)
->>> +		dev_warn(dev, "untested bps per lane: %u bps\n", bps_pr_lane);
->>> +	state->pdata.lineinitcnt = 0xe80;
->>> +	state->pdata.lptxtimecnt = 0x003;
->>> +	/* tclk-preparecnt: 3, tclk-zerocnt: 20 */
->>> +	state->pdata.tclk_headercnt = 0x1403;
->>> +	state->pdata.tclk_trailcnt = 0x00;
->>> +	/* ths-preparecnt: 3, ths-zerocnt: 1 */
->>> +	state->pdata.ths_headercnt = 0x0103;
->>> +	state->pdata.twakeup = 0x4882;
->>> +	state->pdata.tclk_postcnt = 0x008;
->>> +	state->pdata.ths_trailcnt = 0x2;
->>> +	state->pdata.hstxvregcnt = 0;
+> > I'm not sure why I didn't see this anywhere else, but can you take a look at this?
 > 
-> Do you have any suggestion how to handle this? AFAIK REF_02 is not
-> public, and I do not know the formulas it uses internally to calculate
-> these timings. I wouldn't want to add all the timing parameters to the
-> device tree just because of that.
+> I didn't notice because I hadn't built kernels with VIDEO_V4L2 and
+> VIDEOBUF2_CORE as modules on x86. I'm not sure why I don't get these
+> errors on ARM, but I suppose this issue is a reason to split the vb2
+> tracepoints out of include/trace/event/v4l2.h into their own header
+> anyway. The vb2 tracepoint implementation should reside in the
+> videobuf2-core module.
 
-As you said, it's not public and without the formulas there is nothing you
-can do but hardcode it.
+I tried this yesterday and failed to figure out a satisfactory way to do
+it since the vb2 trace point macros reuse the v4l2 enum definitions and
+__print_symbolic/flags macros. The alternative would be to just export
+the vb2 trace points from videodev.
 
-If I understand this correctly these values depend on the link frequency,
-so the DT should contain the link frequency and the driver can hardcode the
-values based on that. Which means that if someone needs to support a new
-link frequency the driver needs to be extended for that frequency.
+regards
+Philipp
 
-As long as Toshiba keeps the formulas under NDA there isn't much else you can
-do.
-
-Regards,
-
-	Hans
-
-> 
-> [...]
->>> @@ -1658,14 +1794,19 @@ static int tc358743_probe(struct i2c_client *client,
->>>  	if (!state)
->>>  		return -ENOMEM;
->>>  
->>> +	state->i2c_client = client;
->>> +
->>>  	/* platform data */
->>> -	if (!pdata) {
->>> -		v4l_err(client, "No platform data!\n");
->>> -		return -ENODEV;
->>> +	if (pdata) {
->>> +		state->pdata = *pdata;
->>> +	} else {
->>> +		err = tc358743_probe_of(state);
->>> +		if (err == -ENODEV)
->>> +			v4l_err(client, "No platform data!\n");
->>
->> I'd replace this with "No device tree data!" or something like that.
-> 
-> I'll do that, thank you.
-> 
-> regards
-> Philipp
-> 
