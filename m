@@ -1,78 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37549 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432AbbG3RJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2015 13:09:08 -0400
-Received: by wibud3 with SMTP id ud3so637466wib.0
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:07 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	m.krufky@samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	hugues.fruchet@st.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, joe@perches.com
-Subject: [PATCH v2 01/11] [media] stv0367: Refine i2c error trace to include i2c address
-Date: Thu, 30 Jul 2015 18:08:51 +0100
-Message-Id: <1438276141-16902-2-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
-References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:33054 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750915AbbG1XEm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 19:04:42 -0400
+Subject: Re: [PATCHv2 8/9] hackrf: add support for transmitter
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+ <1437030298-20944-9-git-send-email-crope@iki.fi> <55A91474.4000801@xs4all.nl>
+ <55B692D3.2070601@iki.fi> <55B696D0.2000700@xs4all.nl>
+ <55B6D1C9.30807@iki.fi> <55B729E4.1070501@xs4all.nl>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55B80A87.6090206@iki.fi>
+Date: Wed, 29 Jul 2015 02:04:39 +0300
+MIME-Version: 1.0
+In-Reply-To: <55B729E4.1070501@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using stv0367 demodulator with STi STB platforms,
-we can have easily have four or more stv0367 demods running
-in the system at one time.
+On 07/28/2015 10:06 AM, Hans Verkuil wrote:
+> On 07/28/2015 02:50 AM, Antti Palosaari wrote:
+>> On 07/27/2015 11:38 PM, Hans Verkuil wrote:
+>>> On 07/27/2015 10:21 PM, Antti Palosaari wrote:
+>>>> On 07/17/2015 05:43 PM, Hans Verkuil wrote:
+>>>>> On 07/16/2015 09:04 AM, Antti Palosaari wrote:
+>>>>>> HackRF SDR device has both receiver and transmitter. There is limitation
+>>>>>> that receiver and transmitter cannot be used at the same time
+>>>>>> (half-duplex operation). That patch implements transmitter support to
+>>>>>> existing receiver only driver.
+>>>>>>
+>>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>>>> ---
+>>>>>>     drivers/media/usb/hackrf/hackrf.c | 787 +++++++++++++++++++++++++++-----------
+>>>>>>     1 file changed, 572 insertions(+), 215 deletions(-)
+>>>>>>
+>>>>>
+>>>>>
+>>>>>> @@ -611,8 +751,15 @@ static int hackrf_queue_setup(struct vb2_queue *vq,
+>>>>>>     		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
+>>>>>>     {
+>>>>>>     	struct hackrf_dev *dev = vb2_get_drv_priv(vq);
+>>>>>> +	struct usb_interface *intf = dev->intf;
+>>>>>> +	int ret;
+>>>>>>
+>>>>>> -	dev_dbg(dev->dev, "nbuffers=%d\n", *nbuffers);
+>>>>>> +	dev_dbg(&intf->dev, "nbuffers=%d\n", *nbuffers);
+>>>>>> +
+>>>>>> +	if (test_and_set_bit(QUEUE_SETUP, &dev->flags)) {
+>>>>>> +		ret = -EBUSY;
+>>>>>> +		goto err;
+>>>>>> +	}
+>>>>>
+>>>>> This doesn't work. The bit is only cleared when start_streaming fails or
+>>>>> stop_streaming is called. But the application can also call REQBUFS again
+>>>>> or just close the file handle, and then QUEUE_SETUP should also be cleared.
+>>>>>
+>>>>> But why is this here in the first place? It doesn't seem to do anything
+>>>>> useful (except mess up the v4l2-compliance tests).
+>>>>>
+>>>>> I've removed it and it now seems to work OK.
+>>>>
+>>>> It is there to block simultaneous use of receiver and transmitter.
+>>>> Device could operate only single mode at the time - receiving or
+>>>> transmitting. Driver shares streaming buffers.
+>>>>
+>>>> Any idea how I can easily implement correct blocking?
+>>>
+>>> Since each video_device struct has its own vb2_queue I wouldn't put the check
+>>> here. Instead, put the check in the start_streaming callback. And the check
+>>> is easy enough: if you want to start capturing, then call
+>>> vb2_is_streaming(&tx_vb2_queue). If you want to start output, then call
+>>> vb2_is_streaming(&rx_vb2_queue). If the other 'side' is streaming, then
+>>> return EBUSY.
+>>>
+>>> It's perfectly valid to allocate the buffers, but actually streaming is an
+>>> exclusive operation.
+>>
+>> Currently there is two queues, but only single buffer. If I do check on
+>> start_streaming() it is too late as buffers are queue during buf_queue()
+>> which is called earlier (and now both sides are added to same
+>> queued_bufs lists, which messes up).
+>
+> It's not that you have a single buffer, it is that you have a single buffer list.
+> I'd say that you should make two buffer lists and use the appropriate one. They
+> really are independent, it's just that VIDIOC_STREAMON can run only one queue
+> at a time.
 
-As typically the b2120 reference design ships with a b2004a daughter
-board, which can accept two dvb NIM cards, and each b2100A NIM
-has 2x stv0367 demods and 2x NXPs tuner on it.
+I have done too looong day about that dual buffer list implementation. 
+There is some very strange behavior, which makes it almost impossible. 
+If I try return receiver buffers with status VB2_BUF_STATE_QUEUED and 
+EBUSY from start_streaming() it does not stop, but starts wildly calling 
+buf_queue() in a endless loop eating all the CPU and so. For transmitter 
+it seems to work as I expected.
 
-In such circumstances it is useful to print the i2c address
-on error messages to know which one is failing due to I2C issues.
+You could repeat that same issue using vivid:
+# modprobe vivid
+# v4l2-ctl -d /dev/video0 -C inject_vidioc_streamon_error
+# cat /dev/video0 > /dev/null
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- drivers/media/dvb-frontends/stv0367.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+and it does not stop with ctrl-C
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index ec3e18e..9a49db1 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -791,11 +791,13 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
- 	memcpy(buf + 2, data, len);
- 
- 	if (i2cdebug)
--		printk(KERN_DEBUG "%s: %02x: %02x\n", __func__, reg, buf[2]);
-+		printk(KERN_DEBUG "%s: [%02x] %02x: %02x\n", __func__,
-+			state->config->demod_address, reg, buf[2]);
- 
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 	if (ret != 1)
--		printk(KERN_ERR "%s: i2c write error!\n", __func__);
-+		printk(KERN_ERR "%s: i2c write error! ([%02x] %02x: %02x)\n",
-+			__func__, state->config->demod_address, reg, buf[2]);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -829,10 +831,12 @@ static u8 stv0367_readreg(struct stv0367_state *state, u16 reg)
- 
- 	ret = i2c_transfer(state->i2c, msg, 2);
- 	if (ret != 2)
--		printk(KERN_ERR "%s: i2c read error\n", __func__);
-+		printk(KERN_ERR "%s: i2c read error ([%02x] %02x: %02x)\n",
-+			__func__, state->config->demod_address, reg, b1[0]);
- 
- 	if (i2cdebug)
--		printk(KERN_DEBUG "%s: %02x: %02x\n", __func__, reg, b1[0]);
-+		printk(KERN_DEBUG "%s: [%02x] %02x: %02x\n", __func__,
-+			state->config->demod_address, reg, b1[0]);
- 
- 	return b1[0];
- }
+regards
+Antti
+
 -- 
-1.9.1
-
+http://palosaari.fi/
