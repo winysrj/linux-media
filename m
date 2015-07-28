@@ -1,108 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.data-modul.de ([212.184.205.171]:40713 "EHLO
-	mail2.data-modul.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758655AbbGHNoj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jul 2015 09:44:39 -0400
-From: Zahari Doychev <zahari.doychev@linux.com>
-To: linux-media@vger.kernel.org, p.zabel@pengutronix.de,
-	mchehab@osg.samsung.com, k.debski@samsung.com,
-	hans.verkuil@cisco.com
-Subject: [PATCH 2/2] [media] m2m: fix bad unlock balance
-Date: Wed,  8 Jul 2015 15:37:20 +0200
-Message-Id: <ccf89324d232ddb3861bde57379d044bc587e5d5.1436361987.git.zahari.doychev@linux.com>
-In-Reply-To: <cover.1436361987.git.zahari.doychev@linux.com>
-References: <cover.1436361987.git.zahari.doychev@linux.com>
-In-Reply-To: <cover.1436361987.git.zahari.doychev@linux.com>
-References: <cover.1436361987.git.zahari.doychev@linux.com>
+Received: from www.netup.ru ([77.72.80.15]:56754 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755627AbbG1O5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jul 2015 10:57:32 -0400
+From: serjk@netup.ru
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
+	Kozlov Sergey <serjk@netup.ru>
+Subject: [PATCH v3 0/5] [media] NetUP Universal DVB PCIe card support
+Date: Tue, 28 Jul 2015 17:32:59 +0300
+Message-Id: <cover.1438090209.git.serjk@netup.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit fixes bad unlock balance when polling. v4l2_m2m_poll is called
-with mutex hold but the function releases the mutex and returns.
-This leads to the bad unlock because after the  call of v4l2_m2m_poll in
-v4l2_m2m_fop_poll the mutex is again unlocked. This patch makes sure that
-the v4l2_m2m_poll returns always with balanced locks.
+From: Kozlov Sergey <serjk@netup.ru>
 
-[  144.990873] =====================================
-[  144.995584] [ BUG: bad unlock balance detected! ]
-[  145.000301] 4.1.0-00137-ga105070 #98 Tainted: G        W
-[  145.006140] -------------------------------------
-[  145.010851] demux:sink/487 is trying to release lock (&dev->dev_mutex) at:
-[  145.017785] [<808cc578>] mutex_unlock+0x18/0x1c
-[  145.022322] but there are no more locks to release!
-[  145.027205]
-[  145.027205] other info that might help us debug this:
-[  145.033741] no locks held by demux:sink/487.
-[  145.038015]
-[  145.038015] stack backtrace:
-[  145.042385] CPU: 2 PID: 487 Comm: demux:sink Tainted: G        W       4.1.0-00137-ga105070 #98
-[  145.051089] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-[  145.057622] Backtrace:
-[  145.060102] [<80014a4c>] (dump_backtrace) from [<80014cc4>] (show_stack+0x20/0x24)
-[  145.067679]  r6:80cedf78 r5:00000000 r4:00000000 r3:00000000
-[  145.073421] [<80014ca4>] (show_stack) from [<808c61e0>] (dump_stack+0x8c/0xa4)
-[  145.080661] [<808c6154>] (dump_stack) from [<80072b64>] (print_unlock_imbalance_bug+0xb8/0xe8)
-[  145.089277]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000001
-[  145.095020] [<80072aac>] (print_unlock_imbalance_bug) from [<80077db4>] (lock_release+0x1a4/0x250)
-[  145.103983]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000000
-[  145.109728] [<80077c10>] (lock_release) from [<808cc470>] (__mutex_unlock_slowpath+0xc4/0x1b4)
-[  145.118344]  r9:acb27a41 r8:00000000 r7:81553814 r6:808cc578 r5:60030013 r4:ac6cd01c
-[  145.126190] [<808cc3ac>] (__mutex_unlock_slowpath) from [<808cc578>] (mutex_unlock+0x18/0x1c)
-[  145.134720]  r7:00000000 r6:aced7cd4 r5:00000041 r4:acb87800
-[  145.140468] [<808cc560>] (mutex_unlock) from [<805a98b8>] (v4l2_m2m_fop_poll+0x5c/0x64)
-[  145.148494] [<805a985c>] (v4l2_m2m_fop_poll) from [<805955a0>] (v4l2_poll+0x6c/0xa0)
-[  145.156243]  r6:aced7bec r5:00000000 r4:ac6cc380 r3:805a985c
-[  145.161991] [<80595534>] (v4l2_poll) from [<80156edc>] (do_sys_poll+0x230/0x4c0)
-[  145.169391]  r5:00000000 r4:aced7be4
-[  145.173013] [<80156cac>] (do_sys_poll) from [<801574a8>] (SyS_ppoll+0x1d4/0x1fc)
-[  145.180414]  r10:00000000 r9:aced6000 r8:00000000 r7:00000000 r6:75c04538 r5:00000002
-[  145.188338]  r4:00000000
-[  145.190906] [<801572d4>] (SyS_ppoll) from [<800108c0>] (ret_fast_syscall+0x0/0x54)
-[  145.198481]  r8:80010aa4 r7:00000150 r6:75c04538 r5:00000002 r4:00000008
+Add support for NetUP Universal Dual DVB-CI PCIe board.
+The board has:
 
-Signed-off-by: Zahari Doychev <zahari.doychev@linux.com>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+    - two CI slots
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index dc853e5..5392fb4 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -583,16 +583,8 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 
- 	if (list_empty(&src_q->done_list))
- 		poll_wait(file, &src_q->done_wq, wait);
--	if (list_empty(&dst_q->done_list)) {
--		/*
--		 * If the last buffer was dequeued from the capture queue,
--		 * return immediately. DQBUF will return -EPIPE.
--		 */
--		if (dst_q->last_buffer_dequeued)
--			return rc | POLLIN | POLLRDNORM;
--
-+	if (list_empty(&dst_q->done_list) && !dst_q->last_buffer_dequeued)
- 		poll_wait(file, &dst_q->done_wq, wait);
--	}
- 
- 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
- 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-@@ -603,6 +595,15 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 		}
- 	}
- 
-+	if (list_empty(&dst_q->done_list) && dst_q->last_buffer_dequeued) {
-+		/*
-+		 * If the last buffer was dequeued from the capture queue,
-+		 * return immediately. DQBUF will return -EPIPE.
-+		 */
-+		rc |= POLLIN | POLLRDNORM;
-+		goto end;
-+	}
-+
- 	spin_lock_irqsave(&src_q->done_lock, flags);
- 	if (!list_empty(&src_q->done_list))
- 		src_vb = list_first_entry(&src_q->done_list, struct vb2_buffer,
+    - Altera FPGA-based PCIe bridge
+
+    - two independent multistandard DTV demodulators based on
+      Sony CXD2841ER chip
+
+    - two Sony Horus3a DVB-S/S2 tuner chips
+
+    - two Sony Ascot2e DVB-T/T2/C/C2 tuner chips
+
+    - two LNBH25 SEC controller chips
+
+DVB-C2 is supported by hardware but not yet implemented in the driver.
+Product webpages are
+http://www.netup.tv/en-EN/netup-universal-dual-dvb-ci (official)
+http://linuxtv.org/wiki/index.php/NetUP_Dual_Universal_CI (LinuxTV WIKI)
+
+Kozlov Sergey (5):
+  [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
+  [media] ascot2e: Sony Ascot2e DVB-C/T/T2 tuner driver
+  [media] lnbh25: LNBH25 SEC controller driver
+  [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
+  [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card
+    driver
+
+ MAINTAINERS                                        |   45 +
+ drivers/media/dvb-frontends/Kconfig                |   29 +
+ drivers/media/dvb-frontends/Makefile               |    4 +
+ drivers/media/dvb-frontends/ascot2e.c              |  540 ++++
+ drivers/media/dvb-frontends/ascot2e.h              |   58 +
+ drivers/media/dvb-frontends/cxd2841er.c            | 2719 ++++++++++++++++++++
+ drivers/media/dvb-frontends/cxd2841er.h            |   65 +
+ drivers/media/dvb-frontends/cxd2841er_priv.h       |   43 +
+ drivers/media/dvb-frontends/horus3a.c              |  421 +++
+ drivers/media/dvb-frontends/horus3a.h              |   58 +
+ drivers/media/dvb-frontends/lnbh25.c               |  189 ++
+ drivers/media/dvb-frontends/lnbh25.h               |   56 +
+ drivers/media/pci/Kconfig                          |    1 +
+ drivers/media/pci/Makefile                         |    3 +-
+ drivers/media/pci/netup_unidvb/Kconfig             |   12 +
+ drivers/media/pci/netup_unidvb/Makefile            |    9 +
+ drivers/media/pci/netup_unidvb/netup_unidvb.h      |  133 +
+ drivers/media/pci/netup_unidvb/netup_unidvb_ci.c   |  248 ++
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 1001 +++++++
+ drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c  |  381 +++
+ drivers/media/pci/netup_unidvb/netup_unidvb_spi.c  |  252 ++
+ 21 files changed, 6266 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/dvb-frontends/ascot2e.c
+ create mode 100644 drivers/media/dvb-frontends/ascot2e.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2841er.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2841er.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2841er_priv.h
+ create mode 100644 drivers/media/dvb-frontends/horus3a.c
+ create mode 100644 drivers/media/dvb-frontends/horus3a.h
+ create mode 100644 drivers/media/dvb-frontends/lnbh25.c
+ create mode 100644 drivers/media/dvb-frontends/lnbh25.h
+ create mode 100644 drivers/media/pci/netup_unidvb/Kconfig
+ create mode 100644 drivers/media/pci/netup_unidvb/Makefile
+ create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb.h
+ create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_ci.c
+ create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+ create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_i2c.c
+ create mode 100644 drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
+
 -- 
-2.4.5
+1.7.10.4
 
