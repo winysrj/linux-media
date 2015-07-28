@@ -1,58 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42738 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755503AbbGTNBG (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50207 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751873AbbG1IeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 09:01:06 -0400
+	Tue, 28 Jul 2015 04:34:05 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A0E1B2A0089
+	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 10:33:55 +0200 (CEST)
+Message-ID: <55B73E73.2050006@xs4all.nl>
+Date: Tue, 28 Jul 2015 10:33:55 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 11/12] usbvision: fix standards for S-Video/Composite inputs.
-Date: Mon, 20 Jul 2015 14:59:37 +0200
-Message-Id: <1437397178-5013-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
-References: <1437397178-5013-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] mt9v032: fix uninitialized variable warning
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+drivers/media/i2c/mt9v032.c: In function ‘mt9v032_probe’:
+  CC [M]  drivers/media/i2c/s5k4ecgx.o
+drivers/media/i2c/mt9v032.c:996:20: warning: ‘pdata’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  if (pdata && pdata->link_freqs) {
+                    ^
 
-The standards supported by S-Video and Composite inputs are not
-limited by PAL, so make it more generic.
+It can indeed be uninitialized in one corner case. Initialize to NULL.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/usbvision/usbvision-video.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/i2c/mt9v032.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index a5e82c0..6ad3d56 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -540,7 +540,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 			strcpy(vi->name, "Green Video Input");
- 		else
- 			strcpy(vi->name, "Composite Video Input");
--		vi->std = V4L2_STD_PAL;
-+		vi->std = USBVISION_NORMS;
- 		break;
- 	case 2:
- 		vi->type = V4L2_INPUT_TYPE_CAMERA;
-@@ -548,12 +548,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 			strcpy(vi->name, "Yellow Video Input");
- 		else
- 			strcpy(vi->name, "S-Video Input");
--		vi->std = V4L2_STD_PAL;
-+		vi->std = USBVISION_NORMS;
- 		break;
- 	case 3:
- 		vi->type = V4L2_INPUT_TYPE_CAMERA;
- 		strcpy(vi->name, "Red Video Input");
--		vi->std = V4L2_STD_PAL;
-+		vi->std = USBVISION_NORMS;
- 		break;
- 	}
- 	return 0;
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 977f400..a68ce94 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -882,7 +882,7 @@ static const struct regmap_config mt9v032_regmap_config = {
+ static struct mt9v032_platform_data *
+ mt9v032_get_pdata(struct i2c_client *client)
+ {
+-	struct mt9v032_platform_data *pdata;
++	struct mt9v032_platform_data *pdata = NULL;
+ 	struct v4l2_of_endpoint endpoint;
+ 	struct device_node *np;
+ 	struct property *prop;
 -- 
 2.1.4
 
