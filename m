@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42338 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757964AbbGQPhX (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58790 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754745AbbG1HOT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2015 11:37:23 -0400
-Message-ID: <55A920F5.2030407@xs4all.nl>
-Date: Fri, 17 Jul 2015 17:36:21 +0200
+	Tue, 28 Jul 2015 03:14:19 -0400
+Message-ID: <55B72BBE.8050902@xs4all.nl>
+Date: Tue, 28 Jul 2015 09:14:06 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>, kernel@pengutronix.de,
+To: Mike Looijmans <mike.looijmans@topic.nl>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] [media] tc358743: allow event subscription
-References: <1437145614-4313-1-git-send-email-p.zabel@pengutronix.de>	 <55A91B47.10308@xs4all.nl> <1437146322.3254.12.camel@pengutronix.de>
-In-Reply-To: <1437146322.3254.12.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
+CC: dragos.bogdan@analog.com, mchehab@osg.samsung.com, lars@metafoo.de
+Subject: Re: [PATCH] [media] imageon-bridge: Add module license information
+References: <1438061985-2786-1-git-send-email-mike.looijmans@topic.nl>
+In-Reply-To: <1438061985-2786-1-git-send-email-mike.looijmans@topic.nl>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/17/2015 05:18 PM, Philipp Zabel wrote:
-> Am Freitag, den 17.07.2015, 17:12 +0200 schrieb Hans Verkuil:
->> On 07/17/2015 05:06 PM, Philipp Zabel wrote:
->>> This is useful to subscribe to HDMI hotplug events via the
->>> V4L2_CID_DV_RX_POWER_PRESENT control.
->>
->> Very quick, but it doesn't apply. You need to combine the original
->> "[PATCH 5/5] [media] tc358743: allow event subscription" together with
->> this patch.
+On 07/28/2015 07:39 AM, Mike Looijmans wrote:
+> Comment header specifies GPL-2, so add a MODULE_LICENSE("GPL v2").
+> This fixes the driver failing to load when built as module:
+>   imageon_bridge: module license 'unspecified' taints kernel.
+>   imageon_bridge: Unknown symbol ...
+> As an extra service, also add a description.
 > 
-> I clearly shouldn't be allowed to send patches today. I'll merge these
-> and then I'll take my hands off the keyboard.
+> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
+> ---
+>  drivers/media/platform/imageon-bridge.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/imageon-bridge.c b/drivers/media/platform/imageon-bridge.c
+> index 9550695..a69b6da 100644
+> --- a/drivers/media/platform/imageon-bridge.c
+> +++ b/drivers/media/platform/imageon-bridge.c
+> @@ -317,3 +317,6 @@ static struct platform_driver imageon_bridge_driver = {
+>  	.remove = imageon_bridge_remove,
+>  };
+>  module_platform_driver(imageon_bridge_driver);
+> +
+> +MODULE_DESCRIPTION("Imageon video bridge");
+> +MODULE_LICENSE("GPL v2");
+> 
 
-Thanks for the v3, I've reposted my pull request to include this patch as
-well.
+Lovely, but unfortunately the imageon driver is not part of the official linux kernel.
 
-The weekend starts, so this is a pretty good time to take your hands off the
-keyboard. In fact, I think I'll join you :-)
+So we can't do anything with this patch.
 
 Regards,
 
