@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57654 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753421AbbGXOUt (ORCPT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:33944 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136AbbG2PVs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2015 10:20:49 -0400
-Message-ID: <55B24978.1080109@xs4all.nl>
-Date: Fri, 24 Jul 2015 16:19:36 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Jul 2015 11:21:48 -0400
+Received: by wibud3 with SMTP id ud3so225426250wib.1
+        for <linux-media@vger.kernel.org>; Wed, 29 Jul 2015 08:21:47 -0700 (PDT)
 MIME-Version: 1.0
-To: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 03/13] media: adv7604: fix probe of ADV7611/7612
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk> <1437654103-26409-4-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1437654103-26409-4-git-send-email-william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <559A915B.20305@vanguardiasur.com.ar>
+References: <m3bnftphea.fsf@t19.piap.pl>
+	<m37fqhpe35.fsf@t19.piap.pl>
+	<559A915B.20305@vanguardiasur.com.ar>
+Date: Wed, 29 Jul 2015 12:21:47 -0300
+Message-ID: <CAAEAJfDP6YpEAgjyn83pq3-7YjdQpHsj79cE6k=+2YrwMYBPow@mail.gmail.com>
+Subject: Re: [PATCH] [MEDIA] Add support for TW686[4589]-based frame grabbers.
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2015 02:21 PM, William Towle wrote:
-> Prior to commit f862f57d ("[media] media: i2c: ADV7604: Migrate to
-> regmap"), the local variable 'val' contained the combined register
-> reads used in the chipset version ID test. Restore this expectation
-> so that the comparison works as it used to.
-> ---
->  drivers/media/i2c/adv7604.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index bfb0b6a..0587d27 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -3108,7 +3108,7 @@ static int adv76xx_probe(struct i2c_client *client,
->  			v4l2_err(sd, "Error %d reading IO Regmap\n", err);
->  			return -ENODEV;
->  		}
-> -		val2 |= val;
-> +		val |= val2;
->  		if ((state->info->type == ADV7611 && val != 0x2051) ||
->  			(state->info->type == ADV7612 && val != 0x2041)) {
->  			v4l2_err(sd, "not an adv761x on address 0x%x\n",
-> 
+Hi everyone,
 
-Oops. Added to my TODO list, I'll probably pick this up on Tuesday for a pull
-request.
+In case anyone is interested in this device, I'm maintaining an
+out-of-tree driver:
 
-Regards,
+https://bitbucket.org/vanguardiasur/tw686x/
 
-	Hans
+It supports audio and DMA frame/S-G modes (with a module parameter).
+
+Testing and bug reports are welcome :-)
+-- 
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
