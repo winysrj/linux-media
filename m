@@ -1,95 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58582 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176AbbG1JWX (ORCPT
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:36501 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753378AbbG2Tmo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 05:22:23 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2CDC62A0089
-	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 11:22:15 +0200 (CEST)
-Message-ID: <55B749C7.4070005@xs4all.nl>
-Date: Tue, 28 Jul 2015 11:22:15 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.3] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Jul 2015 15:42:44 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@intel.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v3 1/4] media: pxa_camera: fix the buffer free path
+Date: Wed, 29 Jul 2015 21:39:01 +0200
+Message-Id: <1438198744-6150-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1438198744-6150-1-git-send-email-robert.jarzmik@free.fr>
+References: <1438198744-6150-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request contains a pile of fixes/enhancements, mostly soc-camera
-related.
+From: Robert Jarzmik <robert.jarzmik@intel.com>
 
-Regards,
+Fix the error path where the video buffer wasn't allocated nor
+mapped. In this case, in the driver free path don't try to unmap memory
+which was not mapped in the first place.
 
-	Hans
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index fcb942de0c7f..aa304950bb98 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -272,8 +272,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 	 * longer in STATE_QUEUED or STATE_ACTIVE
+ 	 */
+ 	videobuf_waiton(vq, &buf->vb, 0, 0);
+-	videobuf_dma_unmap(vq->dev, dma);
+-	videobuf_dma_free(dma);
++	if (buf->vb.state == VIDEOBUF_NEEDS_INIT)
++		return;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
+ 		if (buf->dmas[i].sg_cpu)
+@@ -283,6 +283,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 					  buf->dmas[i].sg_dma);
+ 		buf->dmas[i].sg_cpu = NULL;
+ 	}
++	videobuf_dma_unmap(vq->dev, dma);
++	videobuf_dma_free(dma);
+ 
+ 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+ }
+-- 
+2.1.4
 
-  [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.3e
-
-for you to fetch changes up to 9a400ca65ee917dc438cb9b553c11580269b4460:
-
-  v4l2: export videobuf2 trace points (2015-07-28 11:15:04 +0200)
-
-----------------------------------------------------------------
-Ezequiel Garcia (1):
-      tw68: Move PCI vendor and device IDs to pci_ids.h
-
-Hans Verkuil (13):
-      sh-veu: initialize timestamp_flags and copy timestamp info
-      tw9910: don't use COLORSPACE_JPEG
-      tw9910: init priv->scale and update standard
-      ak881x: simplify standard checks
-      mt9t112: JPEG -> SRGB
-      sh_mobile_ceu_camera: fix querycap
-      sh_mobile_ceu_camera: set field to FIELD_NONE
-      soc_camera: fix enum_input
-      soc_camera: fix expbuf support
-      soc_camera: compliance fixes
-      soc_camera: pass on streamoff error
-      soc_camera: always release queue for queue owner
-      mt9v032: fix uninitialized variable warning
-
-Laurent Pinchart (1):
-      v4l: subdev: Add pad config allocator and init
-
-Philipp Zabel (1):
-      v4l2: export videobuf2 trace points
-
-Rob Taylor (3):
-      media: soc_camera: soc_scale_crop: Use correct pad number in try_fmt
-      media: rcar_vin: fill in bus_info field
-      media: rcar_vin: Reject videobufs that are too small for current format
-
-William Towle (5):
-      media: adv7604: fix probe of ADV7611/7612
-      media: adv7604: reduce support to first (digital) input
-      media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
-      media: soc_camera pad-aware driver initialisation
-      media: rcar_vin: Use correct pad number in try_fmt
-
- drivers/media/i2c/adv7604.c                              | 19 +++++++++++++++----
- drivers/media/i2c/ak881x.c                               |  8 ++++----
- drivers/media/i2c/mt9v032.c                              |  2 +-
- drivers/media/i2c/soc_camera/mt9t112.c                   |  8 ++++----
- drivers/media/i2c/soc_camera/tw9910.c                    | 35 +++++++++++++++++++++++++++++++----
- drivers/media/pci/tw68/tw68-core.c                       | 21 +++++++++++----------
- drivers/media/pci/tw68/tw68.h                            | 16 ----------------
- drivers/media/platform/sh_veu.c                          |  8 ++++++++
- drivers/media/platform/soc_camera/Kconfig                |  1 +
- drivers/media/platform/soc_camera/rcar_vin.c             | 34 +++++++++++++++++++++++++++-------
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |  3 +++
- drivers/media/platform/soc_camera/soc_camera.c           | 67 +++++++++++++++++++++++++++++++++++++++++++++++--------------------
- drivers/media/platform/soc_camera/soc_scale_crop.c       |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c                     |  5 +++++
- drivers/media/v4l2-core/v4l2-subdev.c                    | 19 ++++++++++++++++++-
- include/linux/pci_ids.h                                  |  9 +++++++++
- include/media/soc_camera.h                               |  1 +
- include/media/v4l2-subdev.h                              | 11 +++++++++++
- 18 files changed, 197 insertions(+), 71 deletions(-)
