@@ -1,123 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43678 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754333AbbG1CwS (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:38221 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802AbbG3Oel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 22:52:18 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 53DC92A00AE
-	for <linux-media@vger.kernel.org>; Tue, 28 Jul 2015 04:52:09 +0200 (CEST)
-Date: Tue, 28 Jul 2015 04:52:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150728025209.53DC92A00AE@tschai.lan>
+	Thu, 30 Jul 2015 10:34:41 -0400
+Received: by wibxm9 with SMTP id xm9so71620590wib.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 07:34:40 -0700 (PDT)
+Date: Thu, 30 Jul 2015 15:34:37 +0100
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Joe Perches <joe@perches.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media <linux-media@vger.kernel.org>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X
+ tuner.
+Message-ID: <20150730143437.GB22196@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+ <1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
+ <1435195057.9377.18.camel@perches.com>
+ <20150722185811.2d718baa@recife.lan>
+ <20150730094738.GD488@griffinp-ThinkPad-X1-Carbon-2nd>
+ <1438250928.2677.10.camel@perches.com>
+ <CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
+ <CAOcJUbwVBVxmaP-vNkw0n8Cf3-=Fn8Aou8FG81Ajab1B2h4Z4A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOcJUbwVBVxmaP-vNkw0n8Cf3-=Fn8Aou8FG81Ajab1B2h4Z4A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Michael,
 
-Results of the daily build of media_tree:
+On Thu, 30 Jul 2015, Michael Ira Krufky wrote:
 
-date:		Tue Jul 28 04:00:41 CEST 2015
-git branch:	test
-git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+> On Thu, Jul 30, 2015 at 7:14 AM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+> > On Thu, Jul 30, 2015 at 6:08 AM, Joe Perches <joe@perches.com> wrote:
+> >> On Thu, 2015-07-30 at 10:47 +0100, Peter Griffin wrote:
+> >>> Hi Mauro / Joe,
+> >>>
+> >>> On Wed, 22 Jul 2015, Mauro Carvalho Chehab wrote:
+> >>>
+> >>> > Em Wed, 24 Jun 2015 18:17:37 -0700
+> >>> > Joe Perches <joe@perches.com> escreveu:
+> >>> >
+> >>> > > On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
+> >>> > > > This is used in conjunction with the STV0367 demodulator on
+> >>> > > > the STV0367-NIM-V1.0 NIM card which can be used with the STi
+> >>> > > > STB SoC's.
+> >>> > >
+> >>> > > Barely associated to this specific patch, but for
+> >>> > > dvb-pll.c, another thing that seems possible is to
+> >>> > > convert the struct dvb_pll_desc uses to const and
+> >>> > > change the "entries" fixed array size from 12 to []
+> >>> > >
+> >>> > > It'd save a couple KB overall and remove ~5KB of data.
+> >>> > >
+> >>> > > $ size drivers/media/dvb-frontends/dvb-pll.o*
+> >>> > >    text      data     bss     dec     hex filename
+> >>> > >    8520      1552    2120   12192    2fa0 drivers/media/dvb-frontends/dvb-pll.o.new
+> >>> > >    5624      6363    2120   14107    371b drivers/media/dvb-frontends/dvb-pll.o.old
+> >>> >
+> >>> > Peter,
+> >>> >
+> >>> > Please add this patch on the next patch series you submit.
+> >>>
+> >>> Ok will do, I've added this patch with a slightly updated commit message
+> >>> to my series.
+> >>>
+> >>> Joe - Can I add your signed-off-by?
+> >>
+> >> Signed-off-by: Joe Perches <joe@perches.com>
+> >
+> > Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
+> >
+> > Joe, nice optimization - thanks for that.
+> >
+> > With regards to Peter's patch, is this a digital-only tuner, or is it
+> > a hybrid tuner?
+> >
+> > The 5th byte that you send to the THOMSON DTT7546X seems to resemble
+> > the 'auxiliary byte' that gets set in tuner-simple.c
+> >
+> > I'm not sure that dvb-pll is the right place for this tuner
+> > definition, if this is the case.  Maybe this definition belongs in
+> > tuner-simple instead, if the pattern matches better there.
+> >
+> > Mauro, can we hold off on merging Peter's patch until we resolve this?
+> 
+> This code block, specifically, I would rather not see added into dvb-pll:
+> 
+> +static int dvb_pll_get_num_regs(struct dvb_pll_priv *priv)
+> +{
+> +       int num_regs = 4;
+> +
+> +       if (strncmp(priv->pll_desc->name, "Thomson dtt7546x", 16) == 0)
+> +               num_regs = 5;
+> +
+> +       return num_regs;
+> +}
+> +
+> 
+> tuner-simple provides an infrastructure that allows this tuner to be
+> added in a more elegant way without the need to add special cases to
+> otherwise generic code, as done in the above.
+> 
+> I'm sorry, Peter.  Can you take a look at tuner-simple and consider
+> sending a new patch?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Yes sure. I wasn't actually aware that tuner-simple existed. From what I
+can see briefly looking at it, it does look a more suitable way of adding
+support for this tuner.
 
-Detailed results are available here:
+The dtt7546x is a dual tuner in that it supports dvb-t and dvb-c, however
+I have only tested it with DVB-T as that is the only feed I have to my home office.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+As I have a V2 incorporating all of Mauro's changes ready to send, and I'm 
+on holiday for 3 weeks from Friday, I will temporarily drop support for this
+tuner and NIM card in V2, and migrate over to the new driver when I return end
+of August.
 
-Full logs are available here:
+regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Peter.
