@@ -1,138 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43890 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203AbbGPQTt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 12:19:49 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <kamil@wypas.org>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 3/3] [media] coda: make NV12 format default
-Date: Thu, 16 Jul 2015 18:19:39 +0200
-Message-Id: <1437063579-10064-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1437063579-10064-1-git-send-email-p.zabel@pengutronix.de>
-References: <1437063579-10064-1-git-send-email-p.zabel@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:55147 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753787AbbG3QUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 12:20:30 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>,
+	linux-iio@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-leds@vger.kernel.org,
+	Sebastian Reichel <sre@kernel.org>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	lm-sensors@lm-sensors.org,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	linux-input@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jean Delvare <jdelvare@suse.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
+	linux-pm@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Takashi Iwai <tiwai@suse.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
+	Lee Jones <lee.jones@linaro.org>,
+	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	linuxppc-dev@lists.ozlabs.org
+Subject: [PATCH 27/27] i2c: (RFC, don't apply) report OF style modalias when probing using DT
+Date: Thu, 30 Jul 2015 18:18:52 +0200
+Message-Id: <1438273132-20926-28-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
+References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The chroma interleaved NV12 format has higher memory bandwidth efficiency
-because the chroma planes can be read/written with longer burst lengths.
-Use NV12 as default format if available and consistently sort it first.
+An I2C driver that supports both OF and legacy platforms, will have
+both a OF and I2C ID table. This means that when built as a module,
+the aliases will be filled from both tables but currently always an
+alias of the form i2c:<deviceId> is reported, e.g:
 
-This patch also shortens the NV12 format name to fit into the fixed
-length string.
+$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
+i2c:maxtouch
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+So if a device is probed by matching its compatible string, udev can
+get a MODALIAS uevent env var that doesn't match with one of the valid
+aliases so the module won't be auto-loaded.
+
+This patch changes the I2C core to report a OF related MODALIAS uevent
+(of:N*T*C) env var instead so the module can be auto-loaded and also
+report the correct alias using sysfs:
+
+$ cat /sys/class/i2c-adapter/i2c-8/8-004b/modalias
+of:NtrackpadT<NULL>Catmel,maxtouch
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+
+
 ---
- drivers/media/platform/coda/coda-common.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index d62b828..04310cd 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -90,17 +90,17 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
- 	u32 base_cb, base_cr;
+ drivers/i2c/i2c-core.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 92dddfeb3f39..c0668c2ed9da 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -489,6 +489,10 @@ static int i2c_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 	struct i2c_client	*client = to_i2c_client(dev);
+ 	int rc;
  
- 	switch (q_data->fourcc) {
--	case V4L2_PIX_FMT_YVU420:
--		/* Switch Cb and Cr for YVU420 format */
--		base_cr = base_y + q_data->bytesperline * q_data->height;
--		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
--		break;
--	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_YUV420:
- 	default:
- 		base_cb = base_y + q_data->bytesperline * q_data->height;
- 		base_cr = base_cb + q_data->bytesperline * q_data->height / 4;
- 		break;
-+	case V4L2_PIX_FMT_YVU420:
-+		/* Switch Cb and Cr for YVU420 format */
-+		base_cr = base_y + q_data->bytesperline * q_data->height;
-+		base_cb = base_cr + q_data->bytesperline * q_data->height / 4;
-+		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 		base_cb = base_y + q_data->bytesperline * q_data->height;
- 		base_cr = base_cb + q_data->bytesperline * q_data->height / 2;
-@@ -156,9 +156,9 @@ static const struct coda_video_device coda_bit_encoder = {
- 	.type = CODA_INST_ENCODER,
- 	.ops = &coda_bit_encode_ops,
- 	.src_formats = {
-+		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
--		V4L2_PIX_FMT_NV12,
- 	},
- 	.dst_formats = {
- 		V4L2_PIX_FMT_H264,
-@@ -171,9 +171,9 @@ static const struct coda_video_device coda_bit_jpeg_encoder = {
- 	.type = CODA_INST_ENCODER,
- 	.ops = &coda_bit_encode_ops,
- 	.src_formats = {
-+		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
--		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV422P,
- 	},
- 	.dst_formats = {
-@@ -190,9 +190,9 @@ static const struct coda_video_device coda_bit_decoder = {
- 		V4L2_PIX_FMT_MPEG4,
- 	},
- 	.dst_formats = {
-+		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
--		V4L2_PIX_FMT_NV12,
- 	},
- };
++	rc = of_device_uevent_modalias(dev, env);
++	if (rc != -ENODEV)
++		return rc;
++
+ 	rc = acpi_device_uevent_modalias(dev, env);
+ 	if (rc != -ENODEV)
+ 		return rc;
+@@ -726,6 +730,10 @@ show_modalias(struct device *dev, struct device_attribute *attr, char *buf)
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	int len;
  
-@@ -204,9 +204,9 @@ static const struct coda_video_device coda_bit_jpeg_decoder = {
- 		V4L2_PIX_FMT_JPEG,
- 	},
- 	.dst_formats = {
-+		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
--		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV422P,
- 	},
- };
-@@ -234,9 +234,9 @@ static const struct coda_video_device *coda9_video_devices[] = {
- static u32 coda_format_normalize_yuv(u32 fourcc)
- {
- 	switch (fourcc) {
-+	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
--	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV422P:
- 		return V4L2_PIX_FMT_YUV420;
- 	default:
-@@ -448,9 +448,9 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
- 			      S_ALIGN);
- 
- 	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
--	case V4L2_PIX_FMT_NV12:
- 		/*
- 		 * Frame stride must be at least multiple of 8,
- 		 * but multiple of 16 for h.264 or JPEG 4:2:x
-@@ -1099,8 +1099,8 @@ static void set_default_params(struct coda_ctx *ctx)
- 	ctx->params.framerate = 30;
- 
- 	/* Default formats for output and input queues */
--	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->codec->src_fourcc;
--	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->codec->dst_fourcc;
-+	ctx->q_data[V4L2_M2M_SRC].fourcc = ctx->cvd->src_formats[0];
-+	ctx->q_data[V4L2_M2M_DST].fourcc = ctx->cvd->dst_formats[0];
- 	ctx->q_data[V4L2_M2M_SRC].width = max_w;
- 	ctx->q_data[V4L2_M2M_SRC].height = max_h;
- 	ctx->q_data[V4L2_M2M_DST].width = max_w;
++	len = of_device_get_modalias(dev, buf, PAGE_SIZE - 1);
++	if (len != -ENODEV)
++		return len;
++
+ 	len = acpi_device_modalias(dev, buf, PAGE_SIZE -1);
+ 	if (len != -ENODEV)
+ 		return len;
 -- 
-2.1.4
+2.4.3
 
