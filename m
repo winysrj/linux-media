@@ -1,35 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.data-modul.de ([212.184.205.171]:46572 "EHLO
-	mail2.data-modul.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758653AbbGHNoi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jul 2015 09:44:38 -0400
-From: Zahari Doychev <zahari.doychev@linux.com>
-To: linux-media@vger.kernel.org, p.zabel@pengutronix.de,
-	mchehab@osg.samsung.com, k.debski@samsung.com,
-	hans.verkuil@cisco.com
-Subject: [PATCH 0/2] RFC: m2m device fixes
-Date: Wed,  8 Jul 2015 15:37:18 +0200
-Message-Id: <cover.1436361987.git.zahari.doychev@linux.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:37590 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754880AbbG3RJK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 13:09:10 -0400
+Received: by wibud3 with SMTP id ud3so638634wib.0
+        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:09 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	m.krufky@samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, joe@perches.com
+Subject: [PATCH v2 02/11] [media] stv0367: Add support for 16Mhz reference clock
+Date: Thu, 30 Jul 2015 18:08:52 +0100
+Message-Id: <1438276141-16902-3-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The B2100A dvb NIM card from ST has 2x stv0367 demodulators
+and 2x TDA18212 silicon tuners, with a 16Mhz crystal. To
+get this working properly with the upstream driver we need
+to add support for the 16Mhz reference clock.
 
-These patches fix some problems that I am experiencing when decoding video
-using the coda driver. The first one fixes the video playback termination and
-the second a kernel bug due to mutex unlock balance.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ drivers/media/dvb-frontends/stv0367.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Regards
-Zahari
-
-Zahari Doychev (2):
-  [media] coda: fix sequence counter increment
-  [media] m2m: fix bad unlock balance
-
- drivers/media/platform/coda/coda-bit.c |  3 ++-
- drivers/media/v4l2-core/v4l2-mem2mem.c | 19 ++++++++++---------
- 2 files changed, 12 insertions(+), 10 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 9a49db1..44cb73f 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1554,6 +1554,11 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ 
+ 	switch (state->config->xtal) {
+ 		/*set internal freq to 53.125MHz */
++	case 16000000:
++		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
++		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
++		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
++		break;
+ 	case 25000000:
+ 		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
+ 		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
 -- 
-2.4.5
+1.9.1
 
