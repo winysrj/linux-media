@@ -1,580 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:56755 "EHLO imap.netup.ru"
+Received: from lists.s-osg.org ([54.187.51.154]:55023 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755227AbbG1O5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2015 10:57:32 -0400
-From: serjk@netup.ru
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, aospan1@gmail.com,
-	Kozlov Sergey <serjk@netup.ru>
-Subject: [PATCH v3 1/5] [media] horus3a: Sony Horus3A DVB-S/S2 tuner driver
-Date: Tue, 28 Jul 2015 17:33:00 +0300
-Message-Id: <06518b09aad4048f0bf00aa94127aef3a8b7ad7c.1438090209.git.serjk@netup.ru>
-In-Reply-To: <cover.1438090209.git.serjk@netup.ru>
-References: <cover.1438090209.git.serjk@netup.ru>
-In-Reply-To: <cover.1438090209.git.serjk@netup.ru>
-References: <cover.1438090209.git.serjk@netup.ru>
+	id S1752508AbbG3QTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 12:19:39 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>,
+	linux-iio@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-leds@vger.kernel.org,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	lm-sensors@lm-sensors.org, Sebastian Reichel <sre@kernel.org>,
+	linux-input@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jean Delvare <jdelvare@suse.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
+	linux-pm@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Takashi Iwai <tiwai@suse.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
+	Lee Jones <lee.jones@linaro.org>,
+	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	linuxppc-dev@lists.ozlabs.org
+Subject: [PATCH 00/27] Export I2C and OF module aliases in missing drivers
+Date: Thu, 30 Jul 2015 18:18:25 +0200
+Message-Id: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kozlov Sergey <serjk@netup.ru>
+Hello,
 
-Add DVB-S/S2 frontend driver for Sony Horus3A (CXD2832AER) chip
+Short version:
 
-Changes in version 3:
-    - fix DVB-S2 roll-off handling
-    - fix coding style
-    - use IS_REACHABLE macro instead of IS_ENABLED
+This series add the missing MODULE_DEVICE_TABLE() for OF and I2C tables
+to export that information so modules have the correct aliases built-in
+and autoloading works correctly.
 
-Signed-off-by: Kozlov Sergey <serjk@netup.ru>
----
- MAINTAINERS                           |    9 +
- drivers/media/dvb-frontends/Kconfig   |    7 +
- drivers/media/dvb-frontends/Makefile  |    1 +
- drivers/media/dvb-frontends/horus3a.c |  421 +++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/horus3a.h |   58 +++++
- 5 files changed, 496 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/horus3a.c
- create mode 100644 drivers/media/dvb-frontends/horus3a.h
+Longer version:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index af802b3..57726b1 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6344,6 +6344,15 @@ W:	http://linuxtv.org
- S:	Maintained
- F:	drivers/media/radio/radio-maxiradio*
- 
-+MEDIA DRIVERS FOR HORUS3A
-+M:	Sergey Kozlov <serjk@netup.ru>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://netup.tv/
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Supported
-+F:	drivers/media/dvb-frontends/horus3a*
-+
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
- P:	LinuxTV.org Project
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 97c151d..17cf7e3 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -806,6 +806,13 @@ config DVB_AF9033
- 	depends on DVB_CORE && I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 
-+config DVB_HORUS3A
-+	tristate "Sony Horus3A tuner"
-+	depends on DVB_CORE && I2C
-+	default m if !MEDIA_SUBDRV_AUTOSELECT
-+	help
-+	  Say Y when you want to support this frontend.
-+
- comment "Tools to develop new frontends"
- 
- config DVB_DUMMY_FE
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index 23d399b..8b523cd 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -117,3 +117,4 @@ obj-$(CONFIG_DVB_M88RS2000) += m88rs2000.o
- obj-$(CONFIG_DVB_AF9033) += af9033.o
- obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
- obj-$(CONFIG_DVB_TC90522) += tc90522.o
-+obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
-diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
-new file mode 100644
-index 0000000..46a82dc
---- /dev/null
-+++ b/drivers/media/dvb-frontends/horus3a.c
-@@ -0,0 +1,421 @@
-+/*
-+ * horus3a.h
-+ *
-+ * Sony Horus3A DVB-S/S2 tuner driver
-+ *
-+ * Copyright 2012 Sony Corporation
-+ * Copyright (C) 2014 NetUP Inc.
-+ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
-+ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/dvb/frontend.h>
-+#include <linux/types.h>
-+#include "horus3a.h"
-+#include "dvb_frontend.h"
-+
-+enum horus3a_state {
-+	STATE_UNKNOWN,
-+	STATE_SLEEP,
-+	STATE_ACTIVE
-+};
-+
-+struct horus3a_priv {
-+	u32			frequency;
-+	u8			i2c_address;
-+	struct i2c_adapter	*i2c;
-+	enum horus3a_state	state;
-+	void			*set_tuner_data;
-+	int			(*set_tuner)(void *, int);
-+};
-+
-+static void horus3a_i2c_debug(struct horus3a_priv *priv,
-+			      u8 reg, u8 write, const u8 *data, u32 len)
-+{
-+	dev_dbg(&priv->i2c->dev, "horus3a: I2C %s reg 0x%02x size %d\n",
-+		(write == 0 ? "read" : "write"), reg, len);
-+	print_hex_dump_bytes("horus3a: I2C data: ",
-+		DUMP_PREFIX_OFFSET, data, len);
-+}
-+
-+static int horus3a_write_regs(struct horus3a_priv *priv,
-+			      u8 reg, const u8 *data, u32 len)
-+{
-+	int ret;
-+	u8 buf[len+1];
-+	struct i2c_msg msg[1] = {
-+		{
-+			.addr = priv->i2c_address,
-+			.flags = 0,
-+			.len = sizeof(buf),
-+			.buf = buf,
-+		}
-+	};
-+
-+	horus3a_i2c_debug(priv, reg, 1, data, len);
-+	buf[0] = reg;
-+	memcpy(&buf[1], data, len);
-+	ret = i2c_transfer(priv->i2c, msg, 1);
-+	if (ret >= 0 && ret != 1)
-+		ret = -EREMOTEIO;
-+	if (ret < 0) {
-+		dev_warn(&priv->i2c->dev,
-+			"%s: i2c wr failed=%d reg=%02x len=%d\n",
-+			KBUILD_MODNAME, ret, reg, len);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
-+{
-+	return horus3a_write_regs(priv, reg, &val, 1);
-+}
-+
-+static int horus3a_enter_power_save(struct horus3a_priv *priv)
-+{
-+	u8 data[2];
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	if (priv->state == STATE_SLEEP)
-+		return 0;
-+	/* IQ Generator disable */
-+	horus3a_write_reg(priv, 0x2a, 0x79);
-+	/* MDIV_EN = 0 */
-+	horus3a_write_reg(priv, 0x29, 0x70);
-+	/* VCO disable preparation */
-+	horus3a_write_reg(priv, 0x28, 0x3e);
-+	/* VCO buffer disable */
-+	horus3a_write_reg(priv, 0x2a, 0x19);
-+	/* VCO calibration disable */
-+	horus3a_write_reg(priv, 0x1c, 0x00);
-+	/* Power save setting (xtal is not stopped) */
-+	data[0] = 0xC0;
-+	/* LNA is Disabled */
-+	data[1] = 0xA7;
-+	/* 0x11 - 0x12 */
-+	horus3a_write_regs(priv, 0x11, data, sizeof(data));
-+	priv->state = STATE_SLEEP;
-+	return 0;
-+}
-+
-+static int horus3a_leave_power_save(struct horus3a_priv *priv)
-+{
-+	u8 data[2];
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	if (priv->state == STATE_ACTIVE)
-+		return 0;
-+	/* Leave power save */
-+	data[0] = 0x00;
-+	/* LNA is Disabled */
-+	data[1] = 0xa7;
-+	/* 0x11 - 0x12 */
-+	horus3a_write_regs(priv, 0x11, data, sizeof(data));
-+	/* VCO buffer enable */
-+	horus3a_write_reg(priv, 0x2a, 0x79);
-+	/* VCO calibration enable */
-+	horus3a_write_reg(priv, 0x1c, 0xc0);
-+	/* MDIV_EN = 1 */
-+	horus3a_write_reg(priv, 0x29, 0x71);
-+	usleep_range(5000, 7000);
-+	priv->state = STATE_ACTIVE;
-+	return 0;
-+}
-+
-+static int horus3a_init(struct dvb_frontend *fe)
-+{
-+	struct horus3a_priv *priv = fe->tuner_priv;
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	return 0;
-+}
-+
-+static int horus3a_release(struct dvb_frontend *fe)
-+{
-+	struct horus3a_priv *priv = fe->tuner_priv;
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	kfree(fe->tuner_priv);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+static int horus3a_sleep(struct dvb_frontend *fe)
-+{
-+	struct horus3a_priv *priv = fe->tuner_priv;
-+
-+	dev_dbg(&priv->i2c->dev, "%s()\n", __func__);
-+	horus3a_enter_power_save(priv);
-+	return 0;
-+}
-+
-+static int horus3a_set_params(struct dvb_frontend *fe)
-+{
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	struct horus3a_priv *priv = fe->tuner_priv;
-+	u32 frequency = p->frequency;
-+	u32 symbol_rate = p->symbol_rate/1000;
-+	u8 mixdiv = 0;
-+	u8 mdiv = 0;
-+	u32 ms = 0;
-+	u8 f_ctl = 0;
-+	u8 g_ctl = 0;
-+	u8 fc_lpf = 0;
-+	u8 data[5];
-+
-+	dev_dbg(&priv->i2c->dev, "%s(): frequency %dkHz symbol_rate %dksps\n",
-+		__func__, frequency, symbol_rate);
-+	if (priv->set_tuner)
-+		priv->set_tuner(priv->set_tuner_data, 0);
-+	if (priv->state == STATE_SLEEP)
-+		horus3a_leave_power_save(priv);
-+
-+	/* frequency should be X MHz (X : integer) */
-+	frequency = DIV_ROUND_CLOSEST(frequency, 1000) * 1000;
-+	if (frequency <= 1155000) {
-+		mixdiv = 4;
-+		mdiv = 1;
-+	} else {
-+		mixdiv = 2;
-+		mdiv = 0;
-+	}
-+	/* Assumed that fREF == 1MHz (1000kHz) */
-+	ms = DIV_ROUND_CLOSEST((frequency * mixdiv) / 2, 1000);
-+	if (ms > 0x7FFF) { /* 15 bit */
-+		dev_err(&priv->i2c->dev, "horus3a: invalid frequency %d\n",
-+			frequency);
-+		return -EINVAL;
-+	}
-+	if (frequency < 975000) {
-+		/* F_CTL=11100 G_CTL=001 */
-+		f_ctl = 0x1C;
-+		g_ctl = 0x01;
-+	} else if (frequency < 1050000) {
-+		/* F_CTL=11000 G_CTL=010 */
-+		f_ctl = 0x18;
-+		g_ctl = 0x02;
-+	} else if (frequency < 1150000) {
-+		/* F_CTL=10100 G_CTL=010 */
-+		f_ctl = 0x14;
-+		g_ctl = 0x02;
-+	} else if (frequency < 1250000) {
-+		/* F_CTL=10000 G_CTL=011 */
-+		f_ctl = 0x10;
-+		g_ctl = 0x03;
-+	} else if (frequency < 1350000) {
-+		/* F_CTL=01100 G_CTL=100 */
-+		f_ctl = 0x0C;
-+		g_ctl = 0x04;
-+	} else if (frequency < 1450000) {
-+		/* F_CTL=01010 G_CTL=100 */
-+		f_ctl = 0x0A;
-+		g_ctl = 0x04;
-+	} else if (frequency < 1600000) {
-+		/* F_CTL=00111 G_CTL=101 */
-+		f_ctl = 0x07;
-+		g_ctl = 0x05;
-+	} else if (frequency < 1800000) {
-+		/* F_CTL=00100 G_CTL=010 */
-+		f_ctl = 0x04;
-+		g_ctl = 0x02;
-+	} else if (frequency < 2000000) {
-+		/* F_CTL=00010 G_CTL=001 */
-+		f_ctl = 0x02;
-+		g_ctl = 0x01;
-+	} else {
-+		/* F_CTL=00000 G_CTL=000 */
-+		f_ctl = 0x00;
-+		g_ctl = 0x00;
-+	}
-+	/* LPF cutoff frequency setting */
-+	if (p->delivery_system == SYS_DVBS) {
-+		/*
-+		 * rolloff = 0.35
-+		 * SR <= 4.3
-+		 * fc_lpf = 5
-+		 * 4.3 < SR <= 10
-+		 * fc_lpf = SR * (1 + rolloff) / 2 + SR / 2 =
-+		 *	SR * 1.175 = SR * (47/40)
-+		 * 10 < SR
-+		 * fc_lpf = SR * (1 + rolloff) / 2 + 5 =
-+		 *	SR * 0.675 + 5 = SR * (27/40) + 5
-+		 * NOTE: The result should be round up.
-+		 */
-+		if (symbol_rate <= 4300)
-+			fc_lpf = 5;
-+		else if (symbol_rate <= 10000)
-+			fc_lpf = (u8)DIV_ROUND_UP(symbol_rate * 47, 40000);
-+		else
-+			fc_lpf = (u8)DIV_ROUND_UP(symbol_rate * 27, 40000) + 5;
-+		/* 5 <= fc_lpf <= 36 */
-+		if (fc_lpf > 36)
-+			fc_lpf = 36;
-+	} else if (p->delivery_system == SYS_DVBS2) {
-+		int rolloff;
-+
-+		switch (p->rolloff) {
-+		case ROLLOFF_35:
-+			rolloff = 35;
-+			break;
-+		case ROLLOFF_25:
-+			rolloff = 25;
-+			break;
-+		case ROLLOFF_20:
-+			rolloff = 20;
-+			break;
-+		case ROLLOFF_AUTO:
-+			dev_err(&priv->i2c->dev,
-+				"horus3a: auto roll-off is not supported\n");
-+			return -EINVAL;
-+		}
-+		/*
-+		 * SR <= 4.5:
-+		 * fc_lpf = 5
-+		 * 4.5 < SR <= 10:
-+		 * fc_lpf = SR * (1 + rolloff) / 2 + SR / 2
-+		 * 10 < SR:
-+		 * fc_lpf = SR * (1 + rolloff) / 2 + 5
-+		 * NOTE: The result should be round up.
-+		 */
-+		if (symbol_rate <= 4500)
-+			fc_lpf = 5;
-+		else if (symbol_rate <= 10000)
-+			fc_lpf = (u8)DIV_ROUND_UP(
-+				symbol_rate * (200 + rolloff), 200000);
-+		else
-+			fc_lpf = (u8)DIV_ROUND_UP(
-+				symbol_rate * (100 + rolloff), 200000) + 5;
-+		/* 5 <= fc_lpf <= 36 is valid */
-+		if (fc_lpf > 36)
-+			fc_lpf = 36;
-+	} else {
-+		dev_err(&priv->i2c->dev,
-+			"horus3a: invalid delivery system %d\n",
-+			p->delivery_system);
-+		return -EINVAL;
-+	}
-+	/* 0x00 - 0x04 */
-+	data[0] = (u8)((ms >> 7) & 0xFF);
-+	data[1] = (u8)((ms << 1) & 0xFF);
-+	data[2] = 0x00;
-+	data[3] = 0x00;
-+	data[4] = (u8)(mdiv << 7);
-+	horus3a_write_regs(priv, 0x00, data, sizeof(data));
-+	/* Write G_CTL, F_CTL */
-+	horus3a_write_reg(priv, 0x09, (u8)((g_ctl << 5) | f_ctl));
-+	/* Write LPF cutoff frequency */
-+	horus3a_write_reg(priv, 0x37, (u8)(0x80 | (fc_lpf << 1)));
-+	/* Start Calibration */
-+	horus3a_write_reg(priv, 0x05, 0x80);
-+	/* IQ Generator enable */
-+	horus3a_write_reg(priv, 0x2a, 0x7b);
-+	/* tuner stabilization time */
-+	msleep(60);
-+	/* Store tuned frequency to the struct */
-+	priv->frequency = ms * 2 * 1000 / mixdiv;
-+	return 0;
-+}
-+
-+static int horus3a_get_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct horus3a_priv *priv = fe->tuner_priv;
-+
-+	*frequency = priv->frequency;
-+	return 0;
-+}
-+
-+static struct dvb_tuner_ops horus3a_tuner_ops = {
-+	.info = {
-+		.name = "Sony Horus3a",
-+		.frequency_min = 950000,
-+		.frequency_max = 2150000,
-+		.frequency_step = 1000,
-+	},
-+	.init = horus3a_init,
-+	.release = horus3a_release,
-+	.sleep = horus3a_sleep,
-+	.set_params = horus3a_set_params,
-+	.get_frequency = horus3a_get_frequency,
-+};
-+
-+struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
-+				    const struct horus3a_config *config,
-+				    struct i2c_adapter *i2c)
-+{
-+	u8 buf[3], val;
-+	struct horus3a_priv *priv = NULL;
-+
-+	priv = kzalloc(sizeof(struct horus3a_priv), GFP_KERNEL);
-+	if (priv == NULL)
-+		return NULL;
-+	priv->i2c_address = (config->i2c_address >> 1);
-+	priv->i2c = i2c;
-+	priv->set_tuner_data = config->set_tuner_priv;
-+	priv->set_tuner = config->set_tuner_callback;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	/* wait 4ms after power on */
-+	usleep_range(4000, 6000);
-+	/* IQ Generator disable */
-+	horus3a_write_reg(priv, 0x2a, 0x79);
-+	/* REF_R = Xtal Frequency */
-+	buf[0] = config->xtal_freq_mhz;
-+	buf[1] = config->xtal_freq_mhz;
-+	buf[2] = 0;
-+	/* 0x6 - 0x8 */
-+	horus3a_write_regs(priv, 0x6, buf, 3);
-+	/* IQ Out = Single Ended */
-+	horus3a_write_reg(priv, 0x0a, 0x40);
-+	switch (config->xtal_freq_mhz) {
-+	case 27:
-+		val = 0x1f;
-+		break;
-+	case 24:
-+		val = 0x10;
-+		break;
-+	case 16:
-+		val = 0xc;
-+		break;
-+	default:
-+		val = 0;
-+		dev_warn(&priv->i2c->dev,
-+			"horus3a: invalid xtal frequency %dMHz\n",
-+			config->xtal_freq_mhz);
-+		break;
-+	}
-+	val <<= 2;
-+	horus3a_write_reg(priv, 0x0e, val);
-+	horus3a_enter_power_save(priv);
-+	usleep_range(3000, 5000);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	memcpy(&fe->ops.tuner_ops, &horus3a_tuner_ops,
-+				sizeof(struct dvb_tuner_ops));
-+	fe->tuner_priv = priv;
-+	dev_info(&priv->i2c->dev,
-+		"Sony HORUS3A attached on addr=%x at I2C adapter %p\n",
-+		priv->i2c_address, priv->i2c);
-+	return fe;
-+}
-+EXPORT_SYMBOL(horus3a_attach);
-+
-+MODULE_DESCRIPTION("Sony HORUS3A sattelite tuner driver");
-+MODULE_AUTHOR("Sergey Kozlov <serjk@netup.ru>");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/horus3a.h b/drivers/media/dvb-frontends/horus3a.h
-new file mode 100644
-index 0000000..b055319
---- /dev/null
-+++ b/drivers/media/dvb-frontends/horus3a.h
-@@ -0,0 +1,58 @@
-+/*
-+ * horus3a.h
-+ *
-+ * Sony Horus3A DVB-S/S2 tuner driver
-+ *
-+ * Copyright 2012 Sony Corporation
-+ * Copyright (C) 2014 NetUP Inc.
-+ * Copyright (C) 2014 Sergey Kozlov <serjk@netup.ru>
-+ * Copyright (C) 2014 Abylay Ospan <aospan@netup.ru>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+  */
-+
-+#ifndef __DVB_HORUS3A_H__
-+#define __DVB_HORUS3A_H__
-+
-+#include <linux/kconfig.h>
-+#include <linux/dvb/frontend.h>
-+#include <linux/i2c.h>
-+
-+/**
-+ * struct horus3a_config - the configuration of Horus3A tuner driver
-+ * @i2c_address:    I2C address of the tuner
-+ * @xtal_freq_mhz:  Oscillator frequency, MHz
-+ * @set_tuner_priv: Callback function private context
-+ * @set_tuner_callback: Callback function that notifies the parent driver
-+ *          which tuner is active now
-+ */
-+struct horus3a_config {
-+	u8	i2c_address;
-+	u8	xtal_freq_mhz;
-+	void	*set_tuner_priv;
-+	int	(*set_tuner_callback)(void *, int);
-+};
-+
-+#if IS_REACHABLE(CONFIG_DVB_HORUS3A)
-+extern struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
-+					const struct horus3a_config *config,
-+					struct i2c_adapter *i2c);
-+#else
-+static inline struct dvb_frontend *horus3a_attach(
-+					const struct cxd2820r_config *config,
-+					struct i2c_adapter *i2c)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif
-+
-+#endif
+Currently it's mandatory for I2C drivers to have an I2C device ID table
+regardless if the device was registered using platform data or OF. This
+is because the I2C core needs an I2C device ID table for two reasons:
+
+1) Match the I2C client with a I2C device ID so a struct i2c_device_id
+   is passed to the I2C driver probe() function.
+
+2) Export the module aliases from the I2C device ID table so userspace
+   can auto-load the correct module. This is because i2c_device_uevent
+   always reports a MODALIAS of the form i2c:<client->name>.
+
+Lee Jones posted a patch series [0] to solve 1) by allowing the I2C
+drivers to have a probe() function that does not get a i2c_device_id.
+
+The problem is that his series didn't take into account 2) so if that
+was merged and the I2C ID table is removed from all the drivers that
+don't needed it, module auto-loading will break for those.
+
+But even now there are many I2C drivers were module auto-loading is
+not working because of the fact that the I2C core always reports the
+MODALIAS as i2c:<client->name> and many developers didn't expect this.
+
+I've identified I2C drivers with 3 types of different issues:
+
+a) Those that have an i2c_table but are not exported. The match works
+   and the correct i2c_device_id is passed on probe but since the ID
+   table is not exported, module auto-load won't work.
+
+b) Those that have a of_table but are not exported. This is currently
+   not an issue since even when the of_table is used to match the dev
+   with the driver, an OF modalias is not reported by the I2C core.
+   But if the I2C core is changed to report the MODALIAS of the form
+   of:N*T*C as it's made by other subsystems, then module auto-load
+   will break for these drivers.
+
+c) Those that don't have a of_table but should since are OF drivers
+   with DT bindings doc for them. Since the I2C core does not report
+   a OF modalias and since i2c_device_match() fallbacks to match the
+   device part of the compatible string with the I2C device ID table,
+   many OF drivers don't have an of_table to match. After all having
+   a I2C device ID table is mandatory so it works without a of_table.
+
+So, in order to not make mandatory to have a I2C device ID table, at
+least a) and b) needs to be addressed, this series does that.
+
+c) should be fixed too since it seems wrong that a driver with a DT
+binding document, does not have a OF table and export it to modules.
+
+Also stripping the vendor part from the compatible string to match
+with the I2C devices ID table and reporting only the device name to
+user-space doesn't seem to be correct. I've identified at least two
+drivers that have the same name on their I2C device ID table so the
+manufacturer prefix is important. But I've not tried to fix c) yet
+since that is not so easy to automate due drivers not having all the
+information (i.e: the device name can match a documented compatible
+string device part but without the vendor prefix is hard to tell).
+
+I split the changes so the patches in this series are independent and
+can be picked individually by subsystem maintainers. Patch #27 changes
+the logic of i2c_device_uevent() to report an OF modalias if the device
+was registered using OF. But this patch is included in the series only
+as an RFC for illustration purposes since changing that without fixing
+c) will break module auto-loading for the drivers of devices registered
+with OF but that don't have a of_match_table.
+
+Although arguably, those drivers were relying on the assumption that a
+MODALIAS=i2c:<foo> would always be reported even for the OF case which
+is not the true on other subsystems.
+
+[0]: https://lkml.org/lkml/2014/8/28/283
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (27):
+  mfd: stw481x: Export I2C module alias information
+  spi: xcomm: Export I2C module alias information
+  iio: Export I2C module alias information in missing drivers
+  [media] Export I2C module alias information in missing drivers
+  macintosh: therm_windtunnel: Export I2C module alias information
+  misc: eeprom: Export I2C module alias information in missing drivers
+  Input: Export I2C module alias information in missing drivers
+  power: Export I2C module alias information in missing drivers
+  i2c: core: Export I2C module alias information in dummy driver
+  backlight: tosa: Export I2C module alias information
+  [media] staging: media: lirc: Export I2C module alias information
+  usb: phy: isp1301: Export I2C module alias information
+  ALSA: ppc: keywest: Export I2C module alias information
+  hwmon: (nct7904) Export I2C module alias information
+  regulator: fan53555: Export I2C module alias information
+  mfd: Export OF module alias information in missing drivers
+  iio: Export OF module alias information in missing drivers
+  hwmon: (g762) Export OF module alias information
+  extcon: Export OF module alias information in missing drivers
+  ASoC: Export OF module alias information in missing codec drivers
+  rtc: Export OF module alias information in missing drivers
+  macintosh: therm_windtunnel: Export OF module alias information
+  leds: Export OF module alias information in missing drivers
+  [media] smiapp: Export OF module alias information
+  Input: touchscreen - Export OF module alias information
+  regulator: isl9305: Export OF module alias information
+  i2c: (RFC, don't apply) report OF style modalias when probing using DT
+
+ drivers/extcon/extcon-rt8973a.c         | 1 +
+ drivers/extcon/extcon-sm5502.c          | 1 +
+ drivers/hwmon/g762.c                    | 1 +
+ drivers/hwmon/nct7904.c                 | 1 +
+ drivers/i2c/i2c-core.c                  | 9 +++++++++
+ drivers/iio/accel/mma8452.c             | 1 +
+ drivers/iio/accel/stk8312.c             | 1 +
+ drivers/iio/accel/stk8ba50.c            | 1 +
+ drivers/iio/light/cm32181.c             | 1 +
+ drivers/iio/light/cm3232.c              | 1 +
+ drivers/iio/light/cm36651.c             | 1 +
+ drivers/iio/light/gp2ap020a00f.c        | 1 +
+ drivers/iio/light/stk3310.c             | 1 +
+ drivers/input/misc/gp2ap002a00f.c       | 1 +
+ drivers/input/touchscreen/egalax_ts.c   | 1 +
+ drivers/input/touchscreen/goodix.c      | 1 +
+ drivers/input/touchscreen/mms114.c      | 1 +
+ drivers/leds/leds-pca963x.c             | 1 +
+ drivers/leds/leds-tca6507.c             | 1 +
+ drivers/macintosh/therm_windtunnel.c    | 2 ++
+ drivers/media/i2c/ir-kbd-i2c.c          | 1 +
+ drivers/media/i2c/s5k6a3.c              | 1 +
+ drivers/media/i2c/smiapp/smiapp-core.c  | 1 +
+ drivers/mfd/rt5033.c                    | 1 +
+ drivers/mfd/stw481x.c                   | 1 +
+ drivers/mfd/tps65217.c                  | 1 +
+ drivers/mfd/tps65218.c                  | 1 +
+ drivers/misc/eeprom/eeprom.c            | 1 +
+ drivers/misc/eeprom/max6875.c           | 1 +
+ drivers/power/bq24190_charger.c         | 1 +
+ drivers/power/rt5033_battery.c          | 2 +-
+ drivers/regulator/fan53555.c            | 1 +
+ drivers/regulator/isl9305.c             | 1 +
+ drivers/rtc/rtc-ab-b5ze-s3.c            | 1 +
+ drivers/rtc/rtc-isl12022.c              | 1 +
+ drivers/rtc/rtc-isl12057.c              | 1 +
+ drivers/spi/spi-xcomm.c                 | 1 +
+ drivers/staging/media/lirc/lirc_zilog.c | 1 +
+ drivers/usb/phy/phy-isp1301.c           | 1 +
+ drivers/video/backlight/tosa_bl.c       | 1 +
+ sound/ppc/keywest.c                     | 1 +
+ sound/soc/codecs/da9055.c               | 1 +
+ sound/soc/codecs/wm8510.c               | 1 +
+ sound/soc/codecs/wm8523.c               | 1 +
+ sound/soc/codecs/wm8580.c               | 1 +
+ 45 files changed, 54 insertions(+), 1 deletion(-)
+
 -- 
-1.7.10.4
+2.4.3
 
