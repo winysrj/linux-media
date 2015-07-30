@@ -1,168 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46681 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbbGMOz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 10:55:59 -0400
-From: Jan Kara <jack@suse.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36779 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194AbbG3OdJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 10:33:09 -0400
+Received: by wicgb10 with SMTP id gb10so246818635wic.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 07:33:08 -0700 (PDT)
+Date: Thu, 30 Jul 2015 15:33:04 +0100
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Joe Perches <joe@perches.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 1/9] [media] vb2: Push mmap_sem down to memops
-Date: Mon, 13 Jul 2015 16:55:43 +0200
-Message-Id: <1436799351-21975-2-git-send-email-jack@suse.com>
-In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
-References: <1436799351-21975-1-git-send-email-jack@suse.com>
+	linux-arm-kernel@lists.infradead.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media <linux-media@vger.kernel.org>,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH 02/12] [media] dvb-pll: Add support for THOMSON DTT7546X
+ tuner.
+Message-ID: <20150730143304.GA22196@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1435158670-7195-1-git-send-email-peter.griffin@linaro.org>
+ <1435158670-7195-3-git-send-email-peter.griffin@linaro.org>
+ <1435195057.9377.18.camel@perches.com>
+ <20150722185811.2d718baa@recife.lan>
+ <20150730094738.GD488@griffinp-ThinkPad-X1-Carbon-2nd>
+ <1438250928.2677.10.camel@perches.com>
+ <CAOcJUbw5hSmPdrz6rPPYU6iMBHnvOZc1p3f+4WhEYq2-XmAPVw@mail.gmail.com>
+ <CAOcJUbzhL2LXro9cwazZxtH=-=FndNARi7TSsFi+DGCPP3uEdA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOcJUbzhL2LXro9cwazZxtH=-=FndNARi7TSsFi+DGCPP3uEdA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jan Kara <jack@suse.cz>
+Hi Michael,
 
-Currently vb2 core acquires mmap_sem just around call to
-__qbuf_userptr(). However since commit f035eb4e976ef5 (videobuf2: fix
-lockdep warning) it isn't necessary to acquire it so early as we no
-longer have to drop queue mutex before acquiring mmap_sem. So push
-acquisition of mmap_sem down into .get_userptr memop so that the
-semaphore is acquired for a shorter time and it is clearer what it is
-needed for.
+On Thu, 30 Jul 2015, Michael Ira Krufky wrote:
 
-Note that we also need mmap_sem in .put_userptr memop since that ends up
-calling vb2_put_vma() which calls vma->vm_ops->close() which should be
-called with mmap_sem held. However we didn't hold mmap_sem in some code
-paths anyway (e.g. when called via vb2_ioctl_reqbufs() ->
-__vb2_queue_free() -> vb2_dma_sg_put_userptr()) and getting mmap_sem in
-put_userptr() introduces a lock inversion with queue->mmap_lock in the
-above mentioned call path.
+> On Thu, Jul 30, 2015 at 7:14 AM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+> > On Thu, Jul 30, 2015 at 6:08 AM, Joe Perches <joe@perches.com> wrote:
+> >> On Thu, 2015-07-30 at 10:47 +0100, Peter Griffin wrote:
+> >>> Hi Mauro / Joe,
+> >>>
+> >>> On Wed, 22 Jul 2015, Mauro Carvalho Chehab wrote:
+> >>>
+> >>> > Em Wed, 24 Jun 2015 18:17:37 -0700
+> >>> > Joe Perches <joe@perches.com> escreveu:
+> >>> >
+> >>> > > On Wed, 2015-06-24 at 16:11 +0100, Peter Griffin wrote:
+> >>> > > > This is used in conjunction with the STV0367 demodulator on
+> >>> > > > the STV0367-NIM-V1.0 NIM card which can be used with the STi
+> >>> > > > STB SoC's.
+> >>> > >
+> >>> > > Barely associated to this specific patch, but for
+> >>> > > dvb-pll.c, another thing that seems possible is to
+> >>> > > convert the struct dvb_pll_desc uses to const and
+> >>> > > change the "entries" fixed array size from 12 to []
+> >>> > >
+> >>> > > It'd save a couple KB overall and remove ~5KB of data.
+> >>> > >
+> >>> > > $ size drivers/media/dvb-frontends/dvb-pll.o*
+> >>> > >    text      data     bss     dec     hex filename
+> >>> > >    8520      1552    2120   12192    2fa0 drivers/media/dvb-frontends/dvb-pll.o.new
+> >>> > >    5624      6363    2120   14107    371b drivers/media/dvb-frontends/dvb-pll.o.old
+> >>> >
+> >>> > Peter,
+> >>> >
+> >>> > Please add this patch on the next patch series you submit.
+> >>>
+> >>> Ok will do, I've added this patch with a slightly updated commit message
+> >>> to my series.
+> >>>
+> >>> Joe - Can I add your signed-off-by?
+> >>
+> >> Signed-off-by: Joe Perches <joe@perches.com>
+> >
+> > Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
+> >
+> > Joe, nice optimization - thanks for that.
+> >
+> > With regards to Peter's patch, is this a digital-only tuner, or is it
+> > a hybrid tuner?
+> >
+> > The 5th byte that you send to the THOMSON DTT7546X seems to resemble
+> > the 'auxiliary byte' that gets set in tuner-simple.c
+> >
+> > I'm not sure that dvb-pll is the right place for this tuner
+> > definition, if this is the case.  Maybe this definition belongs in
+> > tuner-simple instead, if the pattern matches better there.
+> >
+> > Mauro, can we hold off on merging Peter's patch until we resolve this?
+> >
+> > -Michael Ira Krufky
+> 
+> eek!  I mispelled my own email address.
+> 
+> 
+> With regards to Joe's patch - I'd like to see that merged.  ...and
+> here is my correctly spelled email address:
+> 
+> 
+> Reviewed-by: Michael Ira Krufky <m.krufky@samsung.com>
 
-Luckily this whole locking mess will get resolved once we convert
-videobuf2 core to the new mm helper which avoids the need for mmap_sem
-in .put_userptr memop altogether.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-core.c       | 2 --
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++++
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c    | 4 +++-
- 4 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 93b315459098..4df6dfc47fc8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1675,9 +1675,7 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = __qbuf_mmap(vb, b);
- 		break;
- 	case V4L2_MEMORY_USERPTR:
--		down_read(&current->mm->mmap_sem);
- 		ret = __qbuf_userptr(vb, b);
--		up_read(&current->mm->mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 94c1e6455d36..c548ce425701 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -616,6 +616,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		goto fail_buf;
- 	}
- 
-+	down_read(&current->mm->mmap_sem);
- 	/* current->mm->mmap_sem is taken by videobuf2 core */
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
-@@ -642,6 +643,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (ret) {
- 		unsigned long pfn;
- 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-+			up_read(&current->mm->mmap_sem);
- 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
- 			buf->size = size;
- 			kfree(pages);
-@@ -651,6 +653,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		pr_err("failed to get user pages\n");
- 		goto fail_vma;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
-@@ -713,10 +716,12 @@ fail_get_user_pages:
- 		while (n_pages)
- 			put_page(pages[--n_pages]);
- 
-+	down_read(&current->mm->mmap_sem);
- fail_vma:
- 	vb2_put_vma(buf->vma);
- 
- fail_pages:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(pages); /* kfree is NULL-proof */
- 
- fail_buf:
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 7289b81bd7b7..d2cf113d1933 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -264,6 +264,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf->pages)
- 		goto userptr_fail_alloc_pages;
- 
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (!vma) {
- 		dprintk(1, "no vma for address %lu\n", vaddr);
-@@ -302,6 +303,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-+	up_read(&current->mm->mmap_sem);
- 
- 	if (num_pages_from_user != buf->num_pages)
- 		goto userptr_fail_get_user_pages;
-@@ -331,8 +333,10 @@ userptr_fail_get_user_pages:
- 	if (!vma_is_io(buf->vma))
- 		while (--num_pages_from_user >= 0)
- 			put_page(buf->pages[num_pages_from_user]);
-+	down_read(&current->mm->mmap_sem);
- 	vb2_put_vma(buf->vma);
- userptr_fail_find_vma:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf->pages);
- userptr_fail_alloc_pages:
- 	kfree(buf);
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 2fe4c27f524a..63bef959623e 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -89,7 +89,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--
-+	down_read(&current->mm->mmap_sem);
- 	vma = find_vma(current->mm, vaddr);
- 	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
- 		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-@@ -121,6 +121,7 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		if (!buf->vaddr)
- 			goto fail_get_user_pages;
- 	}
-+	up_read(&current->mm->mmap_sem);
- 
- 	buf->vaddr += offset;
- 	return buf;
-@@ -133,6 +134,7 @@ fail_get_user_pages:
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
-+	up_read(&current->mm->mmap_sem);
- 	kfree(buf);
- 
- 	return NULL;
--- 
-2.1.4
-
+Ok I will add your reviewed-by and include it in my v2.
