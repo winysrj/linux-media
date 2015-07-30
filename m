@@ -1,145 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:36837 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784AbbGWQjw (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:52065 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101AbbG3Ubx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2015 12:39:52 -0400
-Received: by lbbqi7 with SMTP id qi7so81198129lbb.3
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2015 09:39:50 -0700 (PDT)
+	Thu, 30 Jul 2015 16:31:53 -0400
+Date: Thu, 30 Jul 2015 21:31:38 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Jens Axboe <axboe@kernel.dk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] lib: scatterlist: add sg splitting function
+Message-ID: <20150730203138.GT7557@n2100.arm.linux.org.uk>
+References: <1438282935-3448-1-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <55AE430A.8040300@samsung.com>
-References: <1435572900-56998-1-git-send-email-hans.verkuil@cisco.com>
-	<1435572900-56998-15-git-send-email-hans.verkuil@cisco.com>
-	<55A7AD20.3080703@xs4all.nl>
-	<55AE430A.8040300@samsung.com>
-Date: Thu, 23 Jul 2015 18:39:50 +0200
-Message-ID: <CAP3TMiF-swEQU7KJWaA5NXgbkf1u8o_7vmjXf9QFuHj83MmDyw@mail.gmail.com>
-Subject: Re: [PATCHv7 14/15] cec: s5p-cec: Add s5p-cec driver
-From: Kamil Debski <kamil@wypas.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1438282935-3448-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Jul 30, 2015 at 09:02:15PM +0200, Robert Jarzmik wrote:
+> Sometimes a scatter-gather has to be split into several chunks, or sub scatter
+> lists. This happens for example if a scatter list will be handled by multiple
+> DMA channels, each one filling a part of it.
+> 
+> A concrete example comes with the media V4L2 API, where the scatter list is
+> allocated from userspace to hold an image, regardless of the knowledge of how
+> many DMAs will fill it :
+>  - in a simple RGB565 case, one DMA will pump data from the camera ISP to memory
+>  - in the trickier YUV422 case, 3 DMAs will pump data from the camera ISP pipes,
+>    one for pipe Y, one for pipe U and one for pipe V
+> 
+> For these cases, it is necessary to split the original scatter list into
+> multiple scatter lists, which is the purpose of this patch.
+> 
+> The guarantees that are required for this patch are :
+>  - the intersection of spans of any couple of resulting scatter lists is empty
+>  - the union of spans of all resulting scatter lists is a subrange of the span
+>    of the original scatter list
+>  - if streaming DMA API operations (mapping, unmapping) should not happen both
+>    on both the resulting and the original scatter list. It's either the first or
+>    the later ones.
 
-On 21 July 2015 at 15:03, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> Hello,
->
-> On 2015-07-16 15:09, Hans Verkuil wrote:
->>
->> Marek, Kamil,
->>
->> On 06/29/15 12:14, Hans Verkuil wrote:
->>>
->>> From: Kamil Debski <kamil@wypas.org>
->>>
->>> Add CEC interface driver present in the Samsung Exynos range of
->>> SoCs.
->>>
->>> The following files were based on work by SangPil Moon:
->>> - exynos_hdmi_cec.h
->>> - exynos_hdmi_cecctl.c
->>>
->>> Signed-off-by: Kamil Debski <kamil@wypas.org>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>
->> <snip>
->>
->>> diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c
->>> b/drivers/media/platform/s5p-cec/s5p_cec.c
->>> new file mode 100644
->>> index 0000000..0f16d00
->>> --- /dev/null
->>> +++ b/drivers/media/platform/s5p-cec/s5p_cec.c
->>> @@ -0,0 +1,283 @@
->>> +/* drivers/media/platform/s5p-cec/s5p_cec.c
->>> + *
->>> + * Samsung S5P CEC driver
->>> + *
->>> + * Copyright (c) 2014 Samsung Electronics Co., Ltd.
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License as published by
->>> + * the Free Software Foundation; either version 2 of the License, or
->>> + * (at your option) any later version.
->>> + *
->>> + * This driver is based on the "cec interface driver for exynos soc" by
->>> + * SangPil Moon.
->>> + */
->>> +
->>> +#include <linux/clk.h>
->>> +#include <linux/interrupt.h>
->>> +#include <linux/kernel.h>
->>> +#include <linux/mfd/syscon.h>
->>> +#include <linux/module.h>
->>> +#include <linux/of.h>
->>> +#include <linux/platform_device.h>
->>> +#include <linux/pm_runtime.h>
->>> +#include <linux/timer.h>
->>> +#include <linux/version.h>
->>> +#include <linux/workqueue.h>
->>> +#include <media/cec.h>
->>> +
->>> +#include "exynos_hdmi_cec.h"
->>> +#include "regs-cec.h"
->>> +#include "s5p_cec.h"
->>> +
->>> +#define CEC_NAME       "s5p-cec"
->>> +
->>> +static int debug;
->>> +module_param(debug, int, 0644);
->>> +MODULE_PARM_DESC(debug, "debug level (0-2)");
->>> +
->>> +static int s5p_cec_enable(struct cec_adapter *adap, bool enable)
->>> +{
->>> +       struct s5p_cec_dev *cec = container_of(adap, struct s5p_cec_dev,
->>> adap);
->>> +       int ret;
->>> +
->>> +       if (enable) {
->>> +               ret = pm_runtime_get_sync(cec->dev);
->>> +
->>> +               adap->phys_addr = 0x100b;
->>
->> This is a bogus physical address. The actual physical address has to be
->> derived
->> from the EDID that is read by the HDMI transmitter.
->>
->> I think in the case of this driver it will have to be userspace that
->> assigns
->> the physical address after reading the EDID from drm/kms?
->>
->> How did you test this, Kamil?
->
->
-> If I remember correctly, physical address has been derived from EDID in the
-> userspace (it is available in /sys/class/drm/*) and passed to s5p-cec driver
-> by
-> appropriate ioctl.
->
-> I don't know what is the reason for the above 'adap->phys_addr = 0x100b'
-> assignment.
+Hmm.
 
-At some point there was an idea to read the address from the EDID in
-kernel. This static address was a hack until the code that reads the
-EDID is written. As you say, it is much better to leave the address to
-be set by the userspace. So this assignment serves no purpose anymore.
+What happens if...
 
->
-> Best regards
-> --
-> Marek Szyprowski, PhD
-> Samsung R&D Institute Poland
->
+	n = dma_map_sg(dev, sg, nents, dir);
 
-Best wishes,
-Kamil
+where n < nents (which can happen if you have an IOMMU and it coalesces
+the entries)?
+
+This also means that sg_dma_len(sg) may not be equal to sg->length, nor
+may sg_dma_address(sg) correspond with sg_phys() etc.
+
+> +	for_each_sg(in, sg, sg_nents(in), i) {
+> +		if (skip > sg_dma_len(sg)) {
+> +			skip -= sg_dma_len(sg);
+
+sg_dma_len() is undefined before the scatterlist is mapped.  Above, you
+say that dma map should not happen on both the initial or the subsequently
+split scatterlists, but this requires the original to be DMA-mapped.
+
+Also, as I mention above, the number of scatterlist entries to process
+is given by 'n' above, not 'nents'.  I'm not sure that there's any
+requirement for dma_map_sg() to mark the new end of the scatterlist as
+that'd result in information loss when subsequently unmapping.
+
+> +	for (i = 0, split = splitters; i < nb_splits; i++, split++) {
+> +		in_sg = split->in_sg0;
+> +		out_sg = split->out_sg;
+> +		out[i] = out_sg;
+> +		for (j = 0; j < split->nents; j++, out_sg++) {
+> +			*out_sg = *in_sg;
+> +			if (!j) {
+> +				out_sg->offset = split->skip_sg0;
+> +				sg_dma_len(out_sg) -= split->skip_sg0;
+> +			} else {
+> +				out_sg->offset = 0;
+> +			}
+> +			in_sg = sg_next(in_sg);
+> +		}
+> +		sg_dma_len(--out_sg) = split->len_last_sg;
+
+Hmm, I'm not sure this is good enough.  If we're talking about a mapped
+scatterlist, this won't touch the value returned by sg_dma_address() at
+all, which will end up being incorrect.
+
+If this is the state of the code in the media subsystem, then it's very
+buggy, and in need of fixing.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
+according to speedtest.net.
