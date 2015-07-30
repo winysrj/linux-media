@@ -1,65 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39855 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753498AbbGPHFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 03:05:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2 2/9] v4l2: add RF gain control
-Date: Thu, 16 Jul 2015 10:04:51 +0300
-Message-Id: <1437030298-20944-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1437030298-20944-1-git-send-email-crope@iki.fi>
-References: <1437030298-20944-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37549 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753432AbbG3RJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 13:09:08 -0400
+Received: by wibud3 with SMTP id ud3so637466wib.0
+        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:07 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	m.krufky@samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, joe@perches.com
+Subject: [PATCH v2 01/11] [media] stv0367: Refine i2c error trace to include i2c address
+Date: Thu, 30 Jul 2015 18:08:51 +0100
+Message-Id: <1438276141-16902-2-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new RF tuner gain control named RF Gain. That is aimed for first
-amplifier chip right after antenna connector.
-There is existing LNA Gain control, which is quite same, but it is
-aimed for cases amplifier is integrated to tuner chip. Some designs
-have both, as almost all recent tuner silicons has integrated LNA/RF
-amplifier in any case.
+When using stv0367 demodulator with STi STB platforms,
+we can have easily have four or more stv0367 demods running
+in the system at one time.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+As typically the b2120 reference design ships with a b2004a daughter
+board, which can accept two dvb NIM cards, and each b2100A NIM
+has 2x stv0367 demods and 2x NXPs tuner on it.
+
+In such circumstances it is useful to print the i2c address
+on error messages to know which one is failing due to I2C issues.
+
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 2 ++
- include/uapi/linux/v4l2-controls.h   | 1 +
- 2 files changed, 3 insertions(+)
+ drivers/media/dvb-frontends/stv0367.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6b7dcc..d18462c 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -888,6 +888,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
- 	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_RF_TUNER_RF_GAIN:		return "RF Gain";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:	return "LNA Gain, Auto";
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:	return "LNA Gain";
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:	return "Mixer Gain, Auto";
-@@ -1161,6 +1162,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_RF_TUNER_RF_GAIN:
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
- 	case V4L2_CID_RF_TUNER_IF_GAIN:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 9f6e108..efb47cd 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -932,6 +932,7 @@ enum v4l2_deemphasis {
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index ec3e18e..9a49db1 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -791,11 +791,13 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
+ 	memcpy(buf + 2, data, len);
  
- #define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
- #define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
-+#define V4L2_CID_RF_TUNER_RF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 32)
- #define V4L2_CID_RF_TUNER_LNA_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
- #define V4L2_CID_RF_TUNER_LNA_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
- #define V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
+ 	if (i2cdebug)
+-		printk(KERN_DEBUG "%s: %02x: %02x\n", __func__, reg, buf[2]);
++		printk(KERN_DEBUG "%s: [%02x] %02x: %02x\n", __func__,
++			state->config->demod_address, reg, buf[2]);
+ 
+ 	ret = i2c_transfer(state->i2c, &msg, 1);
+ 	if (ret != 1)
+-		printk(KERN_ERR "%s: i2c write error!\n", __func__);
++		printk(KERN_ERR "%s: i2c write error! ([%02x] %02x: %02x)\n",
++			__func__, state->config->demod_address, reg, buf[2]);
+ 
+ 	return (ret != 1) ? -EREMOTEIO : 0;
+ }
+@@ -829,10 +831,12 @@ static u8 stv0367_readreg(struct stv0367_state *state, u16 reg)
+ 
+ 	ret = i2c_transfer(state->i2c, msg, 2);
+ 	if (ret != 2)
+-		printk(KERN_ERR "%s: i2c read error\n", __func__);
++		printk(KERN_ERR "%s: i2c read error ([%02x] %02x: %02x)\n",
++			__func__, state->config->demod_address, reg, b1[0]);
+ 
+ 	if (i2cdebug)
+-		printk(KERN_DEBUG "%s: %02x: %02x\n", __func__, reg, b1[0]);
++		printk(KERN_DEBUG "%s: [%02x] %02x: %02x\n", __func__,
++			state->config->demod_address, reg, b1[0]);
+ 
+ 	return b1[0];
+ }
 -- 
-http://palosaari.fi/
+1.9.1
 
