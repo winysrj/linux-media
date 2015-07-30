@@ -1,119 +1,384 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61452 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbbGJGTx (ORCPT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:38647 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754932AbbG3RJV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:19:53 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH] Drop owner assignment from i2c_driver (and platform left-overs)
-Date: Fri, 10 Jul 2015 15:19:41 +0900
-Message-id: <1436509188-23320-1-git-send-email-k.kozlowski@samsung.com>
+	Thu, 30 Jul 2015 13:09:21 -0400
+Received: by wibxm9 with SMTP id xm9so591585wib.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2015 10:09:20 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	m.krufky@samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, joe@perches.com
+Subject: [PATCH v2 07/11] [media] c8sectpfe: Add LDVB helper functions.
+Date: Thu, 30 Jul 2015 18:08:57 +0100
+Message-Id: <1438276141-16902-8-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
+References: <1438276141-16902-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+These functions are used by the core code for creating the LDVB
+devices and adapter.
 
+Addtionally some older SoC's (and potentially newer ones) have different
+frontend HW which would allow those devices to be easily supported
+in the future by keeping the code specific to the IP separate from the
+more generic code.
 
-The i2c drivers also do not have to set 'owner' field because
-i2c_register_driver() will do it instead.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ .../platform/sti/c8sectpfe/c8sectpfe-common.c      | 265 +++++++++++++++++++++
+ .../platform/sti/c8sectpfe/c8sectpfe-common.h      |  64 +++++
+ 2 files changed, 329 insertions(+)
+ create mode 100644 drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
+ create mode 100644 drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.h
 
-'owner' is removed from i2c drivers, which I was able to compile
-with allyesconfig (arm, arm64, i386, x86_64, ppc64).
-Only compile-tested.
-
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
-
-
-Best regards,
-Krzysztof
-
-Krzysztof Kozlowski (7):
-  [media] dvb-frontends: Drop owner assignment from i2c_driver
-  [media] dvb-frontends: Drop owner assignment from platform_driver
-  [media] i2c: Drop owner assignment from i2c_driver
-  [media] platform: Drop owner assignment from i2c_driver
-  [media] radio: Drop owner assignment from i2c_driver
-  [media] tuners: Drop owner assignment from i2c_driver
-  [media] Drop owner assignment from i2c_driver
-
- drivers/media/dvb-frontends/a8293.c          | 1 -
- drivers/media/dvb-frontends/af9033.c         | 1 -
- drivers/media/dvb-frontends/au8522_decoder.c | 1 -
- drivers/media/dvb-frontends/m88ds3103.c      | 1 -
- drivers/media/dvb-frontends/rtl2830.c        | 1 -
- drivers/media/dvb-frontends/rtl2832.c        | 1 -
- drivers/media/dvb-frontends/rtl2832_sdr.c    | 1 -
- drivers/media/dvb-frontends/si2168.c         | 1 -
- drivers/media/dvb-frontends/sp2.c            | 1 -
- drivers/media/dvb-frontends/tda10071.c       | 1 -
- drivers/media/dvb-frontends/ts2020.c         | 1 -
- drivers/media/i2c/adv7170.c                  | 1 -
- drivers/media/i2c/adv7175.c                  | 1 -
- drivers/media/i2c/adv7180.c                  | 1 -
- drivers/media/i2c/adv7343.c                  | 1 -
- drivers/media/i2c/adv7511.c                  | 1 -
- drivers/media/i2c/adv7604.c                  | 1 -
- drivers/media/i2c/adv7842.c                  | 1 -
- drivers/media/i2c/bt819.c                    | 1 -
- drivers/media/i2c/bt856.c                    | 1 -
- drivers/media/i2c/bt866.c                    | 1 -
- drivers/media/i2c/cs5345.c                   | 1 -
- drivers/media/i2c/cs53l32a.c                 | 1 -
- drivers/media/i2c/cx25840/cx25840-core.c     | 1 -
- drivers/media/i2c/ks0127.c                   | 1 -
- drivers/media/i2c/m52790.c                   | 1 -
- drivers/media/i2c/msp3400-driver.c           | 1 -
- drivers/media/i2c/mt9v011.c                  | 1 -
- drivers/media/i2c/ov7640.c                   | 1 -
- drivers/media/i2c/ov7670.c                   | 1 -
- drivers/media/i2c/saa6588.c                  | 1 -
- drivers/media/i2c/saa6752hs.c                | 1 -
- drivers/media/i2c/saa7110.c                  | 1 -
- drivers/media/i2c/saa7115.c                  | 1 -
- drivers/media/i2c/saa7127.c                  | 1 -
- drivers/media/i2c/saa717x.c                  | 1 -
- drivers/media/i2c/saa7185.c                  | 1 -
- drivers/media/i2c/sony-btf-mpx.c             | 1 -
- drivers/media/i2c/tda7432.c                  | 1 -
- drivers/media/i2c/tda9840.c                  | 1 -
- drivers/media/i2c/tea6415c.c                 | 1 -
- drivers/media/i2c/tea6420.c                  | 1 -
- drivers/media/i2c/ths7303.c                  | 1 -
- drivers/media/i2c/tvaudio.c                  | 1 -
- drivers/media/i2c/tvp5150.c                  | 1 -
- drivers/media/i2c/tw9903.c                   | 1 -
- drivers/media/i2c/tw9906.c                   | 1 -
- drivers/media/i2c/upd64031a.c                | 1 -
- drivers/media/i2c/upd64083.c                 | 1 -
- drivers/media/i2c/vp27smpx.c                 | 1 -
- drivers/media/i2c/vpx3220.c                  | 1 -
- drivers/media/i2c/wm8739.c                   | 1 -
- drivers/media/i2c/wm8775.c                   | 1 -
- drivers/media/platform/s5p-tv/hdmiphy_drv.c  | 1 -
- drivers/media/platform/s5p-tv/sii9234_drv.c  | 1 -
- drivers/media/radio/radio-tea5764.c          | 1 -
- drivers/media/radio/saa7706h.c               | 1 -
- drivers/media/radio/tef6862.c                | 1 -
- drivers/media/tuners/e4000.c                 | 1 -
- drivers/media/tuners/fc2580.c                | 1 -
- drivers/media/tuners/it913x.c                | 1 -
- drivers/media/tuners/m88rs6000t.c            | 1 -
- drivers/media/tuners/si2157.c                | 1 -
- drivers/media/tuners/tda18212.c              | 1 -
- drivers/media/tuners/tua9001.c               | 1 -
- drivers/media/usb/go7007/s2250-board.c       | 1 -
- drivers/media/v4l2-core/tuner-core.c         | 1 -
- 67 files changed, 67 deletions(-)
-
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
+new file mode 100644
+index 0000000..95223ab
+--- /dev/null
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
+@@ -0,0 +1,265 @@
++/*
++ * c8sectpfe-common.c - C8SECTPFE STi DVB driver
++ *
++ * Copyright (c) STMicroelectronics 2015
++ *
++ *   Author: Peter Griffin <peter.griffin@linaro.org>
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License as
++ *      published by the Free Software Foundation; either version 2 of
++ *      the License, or (at your option) any later version.
++ */
++#include <linux/completion.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/dvb/dmx.h>
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/ioport.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/wait.h>
++
++#include "dmxdev.h"
++#include "dvbdev.h"
++#include "dvb_demux.h"
++#include "dvb_frontend.h"
++#include "dvb_net.h"
++
++#include "c8sectpfe-common.h"
++#include "c8sectpfe-core.h"
++#include "c8sectpfe-dvb.h"
++
++static int register_dvb(struct stdemux *demux, struct dvb_adapter *adap,
++				void *start_feed, void *stop_feed,
++				struct c8sectpfei *fei)
++{
++	int result;
++
++	demux->dvb_demux.dmx.capabilities = DMX_TS_FILTERING |
++					DMX_SECTION_FILTERING |
++					DMX_MEMORY_BASED_FILTERING;
++
++	demux->dvb_demux.priv = demux;
++	demux->dvb_demux.filternum = C8SECTPFE_MAXCHANNEL;
++	demux->dvb_demux.feednum = C8SECTPFE_MAXCHANNEL;
++
++	demux->dvb_demux.start_feed = start_feed;
++	demux->dvb_demux.stop_feed = stop_feed;
++	demux->dvb_demux.write_to_decoder = NULL;
++
++	result = dvb_dmx_init(&demux->dvb_demux);
++	if (result < 0) {
++		dev_err(fei->dev, "dvb_dmx_init failed (errno = %d)\n",
++			result);
++		goto err_dmx;
++	}
++
++	demux->dmxdev.filternum = demux->dvb_demux.filternum;
++	demux->dmxdev.demux = &demux->dvb_demux.dmx;
++	demux->dmxdev.capabilities = 0;
++
++	result = dvb_dmxdev_init(&demux->dmxdev, adap);
++	if (result < 0) {
++		dev_err(fei->dev, "dvb_dmxdev_init failed (errno = %d)\n",
++			result);
++
++		goto err_dmxdev;
++	}
++
++	demux->hw_frontend.source = DMX_FRONTEND_0 + demux->tsin_index;
++
++	result = demux->dvb_demux.dmx.add_frontend(&demux->dvb_demux.dmx,
++						&demux->hw_frontend);
++	if (result < 0) {
++		dev_err(fei->dev, "add_frontend failed (errno = %d)\n", result);
++		goto err_fe_hw;
++	}
++
++	demux->mem_frontend.source = DMX_MEMORY_FE;
++	result = demux->dvb_demux.dmx.add_frontend(&demux->dvb_demux.dmx,
++						&demux->mem_frontend);
++	if (result < 0) {
++		dev_err(fei->dev, "add_frontend failed (%d)\n", result);
++		goto err_fe_mem;
++	}
++
++	result = demux->dvb_demux.dmx.connect_frontend(&demux->dvb_demux.dmx,
++							&demux->hw_frontend);
++	if (result < 0) {
++		dev_err(fei->dev, "connect_frontend (%d)\n", result);
++		goto err_fe_con;
++	}
++
++	return 0;
++
++err_fe_con:
++	demux->dvb_demux.dmx.remove_frontend(&demux->dvb_demux.dmx,
++						     &demux->mem_frontend);
++err_fe_mem:
++	demux->dvb_demux.dmx.remove_frontend(&demux->dvb_demux.dmx,
++						     &demux->hw_frontend);
++err_fe_hw:
++	dvb_dmxdev_release(&demux->dmxdev);
++err_dmxdev:
++	dvb_dmx_release(&demux->dvb_demux);
++err_dmx:
++	return result;
++
++}
++
++static void unregister_dvb(struct stdemux *demux)
++{
++
++	demux->dvb_demux.dmx.remove_frontend(&demux->dvb_demux.dmx,
++						     &demux->mem_frontend);
++
++	demux->dvb_demux.dmx.remove_frontend(&demux->dvb_demux.dmx,
++						     &demux->hw_frontend);
++
++	dvb_dmxdev_release(&demux->dmxdev);
++
++	dvb_dmx_release(&demux->dvb_demux);
++}
++
++static struct c8sectpfe *c8sectpfe_create(struct c8sectpfei *fei,
++				void *start_feed,
++				void *stop_feed)
++{
++	struct c8sectpfe *c8sectpfe;
++	int result;
++	int i, j;
++
++	short int ids[] = { -1 };
++
++	c8sectpfe = kzalloc(sizeof(struct c8sectpfe), GFP_KERNEL);
++	if (!c8sectpfe)
++		goto err1;
++
++	mutex_init(&c8sectpfe->lock);
++
++	c8sectpfe->device = fei->dev;
++
++	result = dvb_register_adapter(&c8sectpfe->adapter, "STi c8sectpfe",
++					THIS_MODULE, fei->dev, ids);
++	if (result < 0) {
++		dev_err(fei->dev, "dvb_register_adapter failed (errno = %d)\n",
++			result);
++		goto err2;
++	}
++
++	c8sectpfe->adapter.priv = fei;
++
++	for (i = 0; i < fei->tsin_count; i++) {
++
++		c8sectpfe->demux[i].tsin_index = i;
++		c8sectpfe->demux[i].c8sectpfei = fei;
++
++		result = register_dvb(&c8sectpfe->demux[i], &c8sectpfe->adapter,
++				start_feed, stop_feed, fei);
++		if (result < 0) {
++			dev_err(fei->dev,
++				"register_dvb feed=%d failed (errno = %d)\n",
++				result, i);
++
++			/* we take a all or nothing approach */
++			for (j = 0; j < i; j++)
++				unregister_dvb(&c8sectpfe->demux[j]);
++			goto err3;
++		}
++	}
++
++	c8sectpfe->num_feeds = fei->tsin_count;
++
++	return c8sectpfe;
++err3:
++	dvb_unregister_adapter(&c8sectpfe->adapter);
++err2:
++	kfree(c8sectpfe);
++err1:
++	return NULL;
++};
++
++static void c8sectpfe_delete(struct c8sectpfe *c8sectpfe)
++{
++	int i;
++
++	if (!c8sectpfe)
++		return;
++
++	for (i = 0; i < c8sectpfe->num_feeds; i++)
++		unregister_dvb(&c8sectpfe->demux[i]);
++
++	dvb_unregister_adapter(&c8sectpfe->adapter);
++
++	kfree(c8sectpfe);
++};
++
++void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
++					struct c8sectpfei *fei)
++{
++	int n;
++	struct channel_info *tsin;
++
++	for (n = 0; n < fei->tsin_count; n++) {
++
++		tsin = fei->channel_data[n];
++
++		if (tsin && tsin->frontend) {
++			dvb_unregister_frontend(tsin->frontend);
++			dvb_frontend_detach(tsin->frontend);
++		}
++
++		if (tsin && tsin->i2c_adapter)
++			i2c_put_adapter(tsin->i2c_adapter);
++
++		if (tsin && tsin->i2c_client) {
++			if (tsin->i2c_client->dev.driver->owner)
++				module_put(tsin->i2c_client->dev.driver->owner);
++			i2c_unregister_device(tsin->i2c_client);
++		}
++	}
++
++	c8sectpfe_delete(c8sectpfe);
++};
++
++int c8sectpfe_tuner_register_frontend(struct c8sectpfe **c8sectpfe,
++				struct c8sectpfei *fei,
++				void *start_feed,
++				void *stop_feed)
++{
++	struct channel_info *tsin;
++	struct dvb_frontend *frontend;
++	int n, res;
++
++	*c8sectpfe = c8sectpfe_create(fei, start_feed, stop_feed);
++	if (!*c8sectpfe)
++		return -ENOMEM;
++
++	for (n = 0; n < fei->tsin_count; n++) {
++		tsin = fei->channel_data[n];
++
++		res = c8sectpfe_frontend_attach(&frontend, *c8sectpfe, tsin, n);
++		if (res)
++			goto err;
++
++		res = dvb_register_frontend(&c8sectpfe[0]->adapter, frontend);
++		if (res < 0) {
++			dev_err(fei->dev, "dvb_register_frontend failed (%d)\n",
++				res);
++			goto err;
++		}
++
++		tsin->frontend = frontend;
++	}
++
++	return 0;
++
++err:
++	c8sectpfe_tuner_unregister_frontend(*c8sectpfe, fei);
++	return res;
++}
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.h b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.h
+new file mode 100644
+index 0000000..da21c0a
+--- /dev/null
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.h
+@@ -0,0 +1,64 @@
++/*
++ * c8sectpfe-common.h - C8SECTPFE STi DVB driver
++ *
++ * Copyright (c) STMicroelectronics 2015
++ *
++ *   Author: Peter Griffin <peter.griffin@linaro.org>
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License as
++ *      published by the Free Software Foundation; either version 2 of
++ *      the License, or (at your option) any later version.
++ */
++#ifndef _C8SECTPFE_COMMON_H_
++#define _C8SECTPFE_COMMON_H_
++
++#include <linux/dvb/dmx.h>
++#include <linux/dvb/frontend.h>
++#include <linux/gpio.h>
++#include <linux/version.h>
++
++#include "dmxdev.h"
++#include "dvb_demux.h"
++#include "dvb_frontend.h"
++#include "dvb_net.h"
++
++/* Maximum number of channels */
++#define C8SECTPFE_MAXADAPTER (4)
++#define C8SECTPFE_MAXCHANNEL 64
++#define STPTI_MAXCHANNEL 64
++
++#define MAX_INPUTBLOCKS 7
++
++struct c8sectpfe;
++struct stdemux;
++
++struct stdemux {
++	struct dvb_demux	dvb_demux;
++	struct dmxdev		dmxdev;
++	struct dmx_frontend	hw_frontend;
++	struct dmx_frontend	mem_frontend;
++	int			tsin_index;
++	int			running_feed_count;
++	struct			c8sectpfei *c8sectpfei;
++};
++
++struct c8sectpfe {
++	struct stdemux demux[MAX_INPUTBLOCKS];
++	struct mutex lock;
++	struct dvb_adapter adapter;
++	struct device *device;
++	int mapping;
++	int num_feeds;
++};
++
++/* Channel registration */
++int c8sectpfe_tuner_register_frontend(struct c8sectpfe **c8sectpfe,
++					struct c8sectpfei *fei,
++					void *start_feed,
++					void *stop_feed);
++
++void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
++						struct c8sectpfei *fei);
++
++#endif
 -- 
 1.9.1
 
