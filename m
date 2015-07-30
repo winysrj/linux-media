@@ -1,108 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:49004 "EHLO
-	resqmta-po-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751209AbbGOAeS (ORCPT
+Received: from mail-pd0-f193.google.com ([209.85.192.193]:36142 "EHLO
+	mail-pd0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbbG3QfY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 20:34:18 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
-	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
-	chehabrafael@gmail.com, dan.carpenter@oracle.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
-	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
-	pmatilai@laiskiainen.org, takamichiho@gmail.com,
-	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
-	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 0/7] Update ALSA, and au0828 drivers to use Managed Media Controller API 
-Date: Tue, 14 Jul 2015 18:33:58 -0600
-Message-Id: <cover.1436917513.git.shuahkh@osg.samsung.com>
+	Thu, 30 Jul 2015 12:35:24 -0400
+Date: Thu, 30 Jul 2015 09:35:17 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	Mark Brown <broonie@kernel.org>, linux-iio@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-leds@vger.kernel.org,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Chanwoo Choi <cw00.choi@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	lm-sensors@lm-sensors.org, Sebastian Reichel <sre@kernel.org>,
+	linux-input@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jean Delvare <jdelvare@suse.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	linux-media@vger.kernel.org, rtc-linux@googlegroups.com,
+	linux-pm@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Takashi Iwai <tiwai@suse.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Sjoerd Simons <sjoerd.simons@collabora.co.uk>,
+	Lee Jones <lee.jones@linaro.org>,
+	Bryan Wu <cooloney@gmail.com>, linux-omap@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-usb@vger.kernel.org,
+	linux-spi@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+	MyungJoo Ham <myungjoo.ham@samsung.com>,
+	linuxppc-dev@lists.ozlabs.org
+Subject: Re: [PATCH 00/27] Export I2C and OF module aliases in missing drivers
+Message-ID: <20150730163517.GA13165@dtor-ws>
+References: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1438273132-20926-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s patch series updates ALSA driver, and au0828 core driver to
-use Managed Media controller API to share tuner. Please note that
-Managed Media Controller API and DVB and V4L2 drivers updates to
-use Media Controller API have been added in a prior patch series.
+Hi Javier,
 
-Media Controller API is enhanced with two new interfaces to
-register and unregister entity_notify hooks to allow drivers
-to take appropriate actions when as new entities get added to
-the shared media device.
+On Thu, Jul 30, 2015 at 06:18:25PM +0200, Javier Martinez Canillas wrote:
+> Hello,
+> 
+> Short version:
+> 
+> This series add the missing MODULE_DEVICE_TABLE() for OF and I2C tables
+> to export that information so modules have the correct aliases built-in
+> and autoloading works correctly.
+> 
+> Longer version:
+> 
+> Currently it's mandatory for I2C drivers to have an I2C device ID table
+> regardless if the device was registered using platform data or OF. This
+> is because the I2C core needs an I2C device ID table for two reasons:
+> 
+> 1) Match the I2C client with a I2C device ID so a struct i2c_device_id
+>    is passed to the I2C driver probe() function.
+> 
+> 2) Export the module aliases from the I2C device ID table so userspace
+>    can auto-load the correct module. This is because i2c_device_uevent
+>    always reports a MODALIAS of the form i2c:<client->name>.
 
-Tested exclusion between digital, analog, and audio to ensure
-when tuner has an active link to DVB FE, analog, and audio will
-detect and honor the tuner busy conditions and vice versa.
+Why are we not fixing this? We emit specially carved uevent for
+ACPI-based devices, why not the same for OF? Platform bus does this...
 
-This patch series has been updated to address comments from
-3 previous versions of this series. Link to v3 below for
-reference.
-
-https://www.mail-archive.com/linux-media%40vger.kernel.org/msg89491.html
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg89492.html
-https://www.mail-archive.com/linux-media%40vger.kernel.org/msg89493.html
-
-Open Issues:
-
-ALSA has makes media_entity_pipeline_start() call in irq
-path. I am seeing warnings that the graph_mutex is unsafe
-irq lock. Media Controller API updates to start/stop pipeline
-to be irq safe might be necessary. Maybe there are other MC
-interfaces that need to be irq safe, but I haven't seen any
-problems with my testing.
-
-So as per options, graph_mutex could be changed to a spinlock.
-It looks like drivers hold this lock and it isn't abstracted to
-MC API. Unfortunate, this would require changes to drivers that
-directly hold the lock for graph walks if this mutex is changed
-to spinlock. This issue needs to be resolved.
-
-Note: This series includes a revert to a patch that added media
-controller entity framework enhancements that implemented entity
-ops for entity_notify functionality. Entity ops for entity_notify
-doesn't handle and cover entity create ordering variations that
-could occur during boot. entity_notify list has been moved to media
-device level which makes the entity_notify calls to work correctly.
-
-Shuah Khan (7):
-  Revert "[media] media: media controller entity framework enhancements
-    for ALSA"
-  media: Media Controller register/unregister entity_notify API
-  media: Add ALSA Media Controller devnodes
-  media: change dvb-frontend to honor MC tuner enable error
-  media: au8522 change to create MC pad for ALSA Audio Out
-  media: au0828 change to use Managed Media Controller API
-  sound/usb: Update ALSA driver to use Managed Media Controller API
-
- drivers/media/dvb-core/dvb_frontend.c        |   5 +-
- drivers/media/dvb-frontends/au8522.h         |   8 +
- drivers/media/dvb-frontends/au8522_decoder.c |   1 +
- drivers/media/dvb-frontends/au8522_priv.h    |   8 -
- drivers/media/media-device.c                 |  46 ++++-
- drivers/media/usb/au0828/au0828-core.c       | 132 ++++++++------
- drivers/media/usb/au0828/au0828.h            |   5 +
- include/media/media-device.h                 |  23 +++
- include/media/media-entity.h                 |   4 -
- include/uapi/linux/media.h                   |   5 +
- sound/usb/Makefile                           |  15 +-
- sound/usb/card.c                             |   5 +
- sound/usb/card.h                             |   1 +
- sound/usb/media.c                            | 260 +++++++++++++++++++++++++++
- sound/usb/media.h                            |  52 ++++++
- sound/usb/pcm.c                              |  15 +-
- sound/usb/quirks-table.h                     |   1 +
- sound/usb/quirks.c                           |   9 +-
- sound/usb/stream.c                           |   2 +
- sound/usb/usbaudio.h                         |   1 +
- 20 files changed, 523 insertions(+), 75 deletions(-)
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
+Thanks.
 
 -- 
-2.1.4
-
+Dmitry
