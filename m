@@ -1,93 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56354 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751031AbbGMPA0 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59079 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbbGaOhN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2015 11:00:26 -0400
-Message-ID: <55A3D24F.6090208@xs4all.nl>
-Date: Mon, 13 Jul 2015 16:59:27 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jan Kara <jack@suse.com>
-CC: linux-media@vger.kernel.org,
+	Fri, 31 Jul 2015 10:37:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org, linux-mm@kvack.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/9 v7] Helper to abstract vma handling in media layer
-References: <1436799351-21975-1-git-send-email-jack@suse.com>
-In-Reply-To: <1436799351-21975-1-git-send-email-jack@suse.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: atmel-isi: move configure_geometry() to start_streaming()
+Date: Fri, 31 Jul 2015 17:37:52 +0300
+Message-ID: <1972518.SdailnKCEF@avalon>
+In-Reply-To: <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
+References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com> <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/13/2015 04:55 PM, Jan Kara wrote:
-> From: Jan Kara <jack@suse.cz>
-> 
->   Hello,
-> 
-> I'm sending the seventh version of my patch series to abstract vma handling
-> from the various media drivers. Since the previous version there are just
-> minor cleanups and fixes (see detailed changelog at the end of the email).
-> 
-> After this patch set drivers have to know much less details about vmas, their
-> types, and locking. Also quite some code is removed from them. As a bonus
-> drivers get automatically VM_FAULT_RETRY handling. The primary motivation for
-> this series is to remove knowledge about mmap_sem locking from as many places a
-> possible so that we can change it with reasonable effort.
-> 
-> The core of the series is the new helper get_vaddr_frames() which is given a
-> virtual address and it fills in PFNs / struct page pointers (depending on VMA
-> type) into the provided array. If PFNs correspond to normal pages it also grabs
-> references to these pages. The difference from get_user_pages() is that this
-> function can also deal with pfnmap, and io mappings which is what the media
-> drivers need.
-> 
-> I have tested the patches with vivid driver so at least vb2 code got some
-> exposure. Conversion of other drivers was just compile-tested (for x86 so e.g.
-> exynos driver which is only for Samsung platform is completely untested).
-> 
-> Hans, can you please pull the changes? Thanks!
+Hi Josh,
 
-Scheduled for Friday or the following Monday!
+Thank you for the patch.
 
-Thanks,
+On Wednesday 17 June 2015 18:39:39 Josh Wu wrote:
+> As in set_fmt() function we only need to know which format is been set,
+> we don't need to access the ISI hardware in this moment.
+> 
+> So move the configure_geometry(), which access the ISI hardware, to
+> start_streaming() will make code more consistent and simpler.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
+>  1 file changed, 5 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> b/drivers/media/platform/soc_camera/atmel-isi.c index 8bc40ca..b01086d
+> 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq,
+> unsigned int count) /* Disable all interrupts */
+>  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+> 
+> +	ret = configure_geometry(isi, icd->user_width, icd->user_height,
+> +				icd->current_fmt->code);
 
-	Hans
+I would also make configure_geometry a void function, as the only failure case 
+really can't occur.
 
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	spin_lock_irq(&isi->lock);
+>  	/* Clear any pending interrupt */
+>  	isi_readl(isi, ISI_STATUS);
+> @@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+> static int isi_camera_set_fmt(struct soc_camera_device *icd,
+>  			      struct v4l2_format *f)
+>  {
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> -	struct atmel_isi *isi = ici->priv;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	const struct soc_camera_format_xlate *xlate;
+>  	struct v4l2_pix_format *pix = &f->fmt.pix;
+> @@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device
+> *icd, if (mf->code != xlate->code)
+>  		return -EINVAL;
 > 
-> 								Honza
-> 
-> Changes since v6:
-> * Fixed compilation error introduced into exynos driver
-> * Folded patch allowing get_vaddr_pfn() code to be selected by a config option
->   into previous patches
-> * Rebased on top of linux-media tree
-> 
-> Changes since v5:
-> * Moved mm helper into a separate file and behind a config option
-> * Changed the first patch pushing mmap_sem down in videobuf2 core to avoid
->   possible deadlock
-> 
-> Changes since v4:
-> * Minor cleanups and fixes pointed out by Mel and Vlasta
-> * Added Acked-by tags
-> 
-> Changes since v3:
-> * Added include <linux/vmalloc.h> into mm/gup.c as it's needed for some archs
-> * Fixed error path for exynos driver
-> 
-> Changes since v2:
-> * Renamed functions and structures as Mel suggested
-> * Other minor changes suggested by Mel
-> * Rebased on top of 4.1-rc2
-> * Changed functions to get pointer to array of pages / pfns to perform
->   conversion if necessary. This fixes possible issue in the omap I may have
->   introduced in v2 and generally makes the API less errorprone.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> -	/* Enable PM and peripheral clock before operate isi registers */
+> -	pm_runtime_get_sync(ici->v4l2_dev.dev);
+> -
+> -	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
+> -
+> -	pm_runtime_put(ici->v4l2_dev.dev);
+> -
+> -	if (ret < 0)
+> -		return ret;
+> -
+>  	pix->width		= mf->width;
+>  	pix->height		= mf->height;
+>  	pix->field		= mf->field;
+
+-- 
+Regards,
+
+Laurent Pinchart
 
