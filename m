@@ -1,149 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57324 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363AbbG0RTz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2015 13:19:55 -0400
-Message-ID: <55B66832.3030306@xs4all.nl>
-Date: Mon, 27 Jul 2015 19:19:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 8/9] hackrf: add support for transmitter
-References: <1437030298-20944-1-git-send-email-crope@iki.fi> <1437030298-20944-9-git-send-email-crope@iki.fi> <55A90E16.5040104@xs4all.nl> <55B65A2E.8020104@iki.fi>
-In-Reply-To: <55B65A2E.8020104@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:34168 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752234AbbGaCLL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 22:11:11 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv3 05/13] DocBook: document SDR transmitter
+Date: Fri, 31 Jul 2015 05:10:42 +0300
+Message-Id: <1438308650-2702-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-1-git-send-email-crope@iki.fi>
+References: <1438308650-2702-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/27/2015 06:19 PM, Antti Palosaari wrote:
-> On 07/17/2015 05:15 PM, Hans Verkuil wrote:
->> On 07/16/2015 09:04 AM, Antti Palosaari wrote:
->>> HackRF SDR device has both receiver and transmitter. There is limitation
->>> that receiver and transmitter cannot be used at the same time
->>> (half-duplex operation). That patch implements transmitter support to
->>> existing receiver only driver.
->>>
->>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>> ---
->>>   drivers/media/usb/hackrf/hackrf.c | 787 +++++++++++++++++++++++++++-----------
->>>   1 file changed, 572 insertions(+), 215 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
->>> index 5bd291b..97de9cb6 100644
->>> --- a/drivers/media/usb/hackrf/hackrf.c
->>> +++ b/drivers/media/usb/hackrf/hackrf.c
->>> @@ -731,15 +889,19 @@ static int hackrf_querycap(struct file *file, void *fh,
->>>   		struct v4l2_capability *cap)
->>>   {
->>>   	struct hackrf_dev *dev = video_drvdata(file);
->>> +	struct video_device *vdev = video_devdata(file);
->>>
->>>   	dev_dbg(dev->dev, "\n");
->>>
->>> +	if (vdev->vfl_dir == VFL_DIR_RX)
->>> +		cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER;
->>> +	else
->>> +		cap->device_caps = V4L2_CAP_SDR_OUTPUT | V4L2_CAP_MODULATOR;
->>> +	cap->device_caps |= V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
->>> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->>
->> The capabilities are those of the whole device, so you should OR this with
->> V4L2_CAP_SDR_CAPTURE | V4L2_CAP_SDR_OUTPUT |
->> V4L2_CAP_TUNER | V4L2_CAP_MODULATOR
->>
->>>   	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
->>> -	strlcpy(cap->card, dev->vdev.name, sizeof(cap->card));
->>> +	strlcpy(cap->card, dev->rx_vdev.name, sizeof(cap->card));
->>>   	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
->>> -	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
->>> -			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
->>> -	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->>>
->>>   	return 0;
->>>   }
-> 
-> Just to be sure, is it correct that:
-> **) cap->device_caps == capabilities of whole device, including all the 
-> character nodes
-> 
-> **) cap->capabilities == capabilities of single character node
-> 
+Add documentation for V4L SDR transmitter (output) devices.
 
-cap->device_caps are the caps of the char device node that the filehandle
-belongs to.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |  4 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 30 +++++++++++++++-------
+ Documentation/DocBook/media/v4l/io.xml             | 10 ++++++--
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +-
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  2 +-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |  6 +++++
+ 7 files changed, 42 insertions(+), 13 deletions(-)
 
-cap->capabilities is the union of the capabilities of all char device nodes
-created by the driver + the V4L2_CAP_DEVICE_CAPS capability.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index eb091c7..f534fc5 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2604,6 +2604,10 @@ and &v4l2-mbus-framefmt;.
+ 	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
+ RF Tuner control.</para>
+ 	</listitem>
++	<listitem>
++	  <para>Added transmitter support for Software Defined Radio (SDR)
++Interface.</para>
++	</listitem>
+       </orderedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index 3344921..a659771 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -28,6 +28,16 @@ Devices supporting the SDR receiver interface set the
+ <structfield>capabilities</structfield> field of &v4l2-capability;
+ returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
+ Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
++    </para>
++    <para>
++Devices supporting the SDR transmitter interface set the
++<constant>V4L2_CAP_SDR_OUTPUT</constant> and
++<constant>V4L2_CAP_MODULATOR</constant> flag in the
++<structfield>capabilities</structfield> field of &v4l2-capability;
++returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
++Digital to Analog Converter (DAC), which is a mandatory element for the SDR transmitter.
++    </para>
++    <para>
+ At least one of the read/write, streaming or asynchronous I/O methods must
+ be supported.
+     </para>
+@@ -39,14 +49,15 @@ be supported.
+     <para>
+ SDR devices can support <link linkend="control">controls</link>, and must
+ support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
+-for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
+-frequency.
++for setting the ADC/DAC sampling rate (sampling frequency) and the possible
++radio frequency (RF).
+     </para>
+ 
+     <para>
+-The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+-the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for setting SDR
++device ADC/DAC frequency, and the <constant>V4L2_TUNER_RF</constant>
++tuner type is used for setting radio frequency.
++The tuner index of the RF tuner (if any) must always follow the SDR tuner index.
+ Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
+ 
+@@ -59,9 +70,9 @@ The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
+     <title>Data Format Negotiation</title>
+ 
+     <para>
+-The SDR capture device uses the <link linkend="format">format</link> ioctls to
+-select the capture format. Both the sampling resolution and the data streaming
+-format are bound to that selectable format. In addition to the basic
++The SDR device uses the <link linkend="format">format</link> ioctls to
++select the capture and output format. Both the sampling resolution and the data
++streaming format are bound to that selectable format. In addition to the basic
+ <link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
+ must be supported as well.
+     </para>
+@@ -69,7 +80,8 @@ must be supported as well.
+     <para>
+ To use the <link linkend="format">format</link> ioctls applications set the
+ <structfield>type</structfield> field of a &v4l2-format; to
+-<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
++<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> or
++<constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant> and use the &v4l2-sdr-format;
+ <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
+ union as needed per the desired operation.
+ Currently there is two fields, <structfield>pixelformat</structfield> and
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7bbc2a4..da65403 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1006,8 +1006,14 @@ must set this to 0.</entry>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
+ 	    <entry>11</entry>
+-	    <entry>Buffer for Software Defined Radio (SDR), see <xref
+-		linkend="sdr" />.</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) capture stream, see
++		<xref linkend="sdr" />.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_TYPE_SDR_OUTPUT</constant></entry>
++	    <entry>12</entry>
++	    <entry>Buffer for Software Defined Radio (SDR) output stream, see
++		<xref linkend="sdr" />.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 965ea91..02aac95 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1623,7 +1623,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+   <section id="sdr-formats">
+     <title>SDR Formats</title>
+ 
+-    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
++    <para>These formats are used for <link linkend="sdr">SDR</link>
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index ab9fca4..ed870fb 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -157,6 +157,7 @@ applications. -->
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+ Added V4L2_CID_RF_TUNER_RF_GAIN control.
++Added transmitter support for Software Defined Radio (SDR) Interface.
+ 	</revremark>
+       </revision>
+ 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index 4fe19a7a..ffcb448 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -175,7 +175,7 @@ capture and output devices.</entry>
+ 	    <entry>&v4l2-sdr-format;</entry>
+ 	    <entry><structfield>sdr</structfield></entry>
+ 	    <entry>Definition of a data format, see
+-<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
++<xref linkend="pixfmt" />, used by SDR capture and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index 20fda75..cd82148 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -308,6 +308,12 @@ modulator programming see
+ fields.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CAP_SDR_OUTPUT</constant></entry>
++	    <entry>0x00400000</entry>
++	    <entry>The device supports the
++<link linkend="sdr">SDR Output</link> interface.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
+ 	    <entry>0x01000000</entry>
+ 	    <entry>The device supports the <link
+-- 
+http://palosaari.fi/
 
-> 
-> Here is how v4l2-ctl now reports:
-> 
-> [crope@localhost v4l2-ctl]$ ./v4l2-ctl -d /dev/swradio0 --info
-> Driver Info (not using libv4l2):
-> 	Driver name   : hackrf
-> 	Card type     : HackRF One
-> 	Bus info      : usb-0000:00:13.2-2
-> 	Driver version: 4.2.0
-> 	Capabilities  : 0x85310000
-> 		SDR Capture
-> 		Tuner
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x05790000
-> 		SDR Capture
-> 		SDR Output
-> 		Tuner
-> 		Modulator
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> [crope@localhost v4l2-ctl]$ ./v4l2-ctl -d /dev/swradio1 --info
-> Driver Info (not using libv4l2):
-> 	Driver name   : hackrf
-> 	Card type     : HackRF One
-> 	Bus info      : usb-0000:00:13.2-2
-> 	Driver version: 4.2.0
-> 	Capabilities  : 0x85680000
-> 		SDR Output
-> 		Modulator
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x05790000
-> 		SDR Capture
-> 		SDR Output
-> 		Tuner
-> 		Modulator
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> [crope@localhost v4l2-ctl]$
-
-You mixed up device_caps and capabilities looking at this.
-
-Quick history: device_caps is a relatively new addition. Before that it was never
-clearly defined which capabilities the 'capabilities' field actually exposed: that
-of the device node, or the capabilities of the device as a whole.
-
-So by adding device_caps you now have both.
-
-Originally when the V4L2 API was designed the intention was that you could use
-video ioctls with vbi nodes and vice versa. The video and vbi device nodes were
-basically aliases of one another. That also meant that the capabilities exposed by
-each were identical since both device nodes could do the same things.
-
-In practice though for most (and eventually all) drivers you could only do video
-ioctls with a video node and vbi ioctls with a vbi node and the whole '/dev/vbi is
-an alias of /dev/video' idea was just too complex. As a result the meaning of the
-capabilities field became ambiguous which was solved by the addition of the
-device_caps field.
-
-Regards,
-
-	Hans
