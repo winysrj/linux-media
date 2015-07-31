@@ -1,944 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47961 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbbGPQZL (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:47033 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751972AbbGaIoq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2015 12:25:11 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: David Airlie <airlied@linux.ie>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Lucas Stach <l.stach@pengutronix.de>
-Subject: [PATCH v3 2/5] gpu: ipu-v3: Add mem2mem image conversion support to IC
-Date: Thu, 16 Jul 2015 18:24:40 +0200
-Message-Id: <1437063883-23981-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
-References: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 31 Jul 2015 04:44:46 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NSC01YJ5GAFL240@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 Jul 2015 17:44:39 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, jh1009.sung@samsung.com
+Subject: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
+Date: Fri, 31 Jul 2015 17:44:32 +0900
+Message-id: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for mem2mem scaling and colorspace conversion
-using the IC module's post-processing task.
+Hello everybody,
 
-Scaling images larger than 1024x1024 is supported by tiling over multiple
-IC scaling runs. Since the IDMAC and IC units have interesting and
-different alignment limitations for buffer base addresses (left edges)
-and burst size (row lengths), depending on input and output pixel formats,
-the tile rectangles and scaling coefficients are chosen to minimize
-distortion. Due to possible overlap, the tiles have to be rendered right
-to left and bottom to top. Up to 7 pixels (depending on frame sizes and
-scaling factor) have to be available after the end of the frame if the
-width is not burst size aligned. The tiling code has a parameter to
-optionally round frame sizes up or down and avoid overdraw in
-compositing scenarios.
+This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
+The purpose of this patch series is to separate existing VB2 framework
+into core part and V4L2 specific part. So that not only V4L2 but also other
+frameworks can use them to manage buffer and utilize queue.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v2:
- - Limit downscaling to 4:1
- - Dropped currently unused rotator and deinterlacer channels
----
- drivers/gpu/ipu-v3/ipu-ic.c | 754 +++++++++++++++++++++++++++++++++++++++++++-
- include/video/imx-ipu-v3.h  |  34 +-
- 2 files changed, 771 insertions(+), 17 deletions(-)
+Why do we try to make the VB2 framework to be common?
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index 1dcb96c..7a79e46 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -15,6 +15,7 @@
- #include <linux/errno.h>
- #include <linux/spinlock.h>
- #include <linux/bitrev.h>
-+#include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/err.h>
- #include "ipu-prv.h"
-@@ -96,6 +97,11 @@ struct ic_task_bitfields {
- 	u32 ic_cmb_galpha_bit;
- };
- 
-+struct ic_task_channels {
-+	u8 in;
-+	u8 out;
-+};
-+
- static const struct ic_task_regoffs ic_task_reg[IC_NUM_TASKS] = {
- 	[IC_TASK_ENCODER] = {
- 		.rsc = IC_PRP_ENC_RSC,
-@@ -138,12 +144,41 @@ static const struct ic_task_bitfields ic_task_bit[IC_NUM_TASKS] = {
- 	},
- };
- 
-+static const struct ic_task_channels ic_task_ch[IC_NUM_TASKS] = {
-+	[IC_TASK_ENCODER] = {
-+		.in = IPUV3_CHANNEL_MEM_IC_PRP_VF,
-+		.out = IPUV3_CHANNEL_IC_PRP_ENC_MEM,
-+	},
-+	[IC_TASK_VIEWFINDER] = {
-+		.in = IPUV3_CHANNEL_MEM_VDI_CUR,
-+		.out = IPUV3_CHANNEL_IC_PRP_VF_MEM,
-+	},
-+	[IC_TASK_POST_PROCESSOR] = {
-+		.in = IPUV3_CHANNEL_MEM_IC_PP,
-+		.out = IPUV3_CHANNEL_IC_PP_MEM,
-+	},
-+};
-+
-+struct image_convert_ctx {
-+	void (*complete)(void *ctx, int err);
-+	void *complete_context;
-+
-+	struct list_head list;
-+	struct ipu_image in;
-+	struct ipu_image out;
-+
-+	void *freep;
-+
-+	u32 rsc;
-+};
-+
- struct ipu_ic_priv;
- 
- struct ipu_ic {
- 	enum ipu_ic_task task;
- 	const struct ic_task_regoffs *reg;
- 	const struct ic_task_bitfields *bit;
-+	const struct ic_task_channels *ch;
- 
- 	enum ipu_color_space in_cs, g_in_cs;
- 	enum ipu_color_space out_cs;
-@@ -152,6 +187,15 @@ struct ipu_ic {
- 	bool in_use;
- 
- 	struct ipu_ic_priv *priv;
-+
-+	struct ipuv3_channel *input_channel;
-+	struct ipuv3_channel *output_channel;
-+
-+	struct list_head image_list;
-+
-+	struct workqueue_struct *workqueue;
-+	struct work_struct work;
-+	struct completion complete;
- };
- 
- struct ipu_ic_priv {
-@@ -168,7 +212,8 @@ static inline u32 ipu_ic_read(struct ipu_ic *ic, unsigned offset)
- 	return readl(ic->priv->base + offset);
- }
- 
--static inline void ipu_ic_write(struct ipu_ic *ic, u32 value, unsigned offset)
-+static inline void ipu_ic_write(struct ipu_ic *ic, u32 value,
-+				unsigned offset)
- {
- 	writel(value, ic->priv->base + offset);
- }
-@@ -446,32 +491,35 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 		     int in_width, int in_height,
- 		     int out_width, int out_height,
- 		     enum ipu_color_space in_cs,
--		     enum ipu_color_space out_cs)
-+		     enum ipu_color_space out_cs,
-+		     u32 rsc)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
--	u32 reg, downsize_coeff, resize_coeff;
-+	u32 downsize_coeff, resize_coeff;
- 	unsigned long flags;
- 	int ret = 0;
- 
--	/* Setup vertical resizing */
--	ret = calc_resize_coeffs(ic, in_height, out_height,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+	if (!rsc) {
-+		/* Setup vertical resizing */
-+		ret = calc_resize_coeffs(ic, in_height, out_height,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
- 
--	reg = (downsize_coeff << 30) | (resize_coeff << 16);
-+		rsc = (downsize_coeff << 30) | (resize_coeff << 16);
- 
--	/* Setup horizontal resizing */
--	ret = calc_resize_coeffs(ic, in_width, out_width,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+		/* Setup horizontal resizing */
-+		ret = calc_resize_coeffs(ic, in_width, out_width,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
- 
--	reg |= (downsize_coeff << 14) | resize_coeff;
-+		rsc |= (downsize_coeff << 14) | resize_coeff;
-+	}
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
--	ipu_ic_write(ic, reg, ic->reg->rsc);
-+	ipu_ic_write(ic, rsc, ic->reg->rsc);
- 
- 	/* Setup color space conversion */
- 	ic->in_cs = in_cs;
-@@ -629,6 +677,673 @@ unlock:
- }
- EXPORT_SYMBOL_GPL(ipu_ic_task_idma_init);
- 
-+static struct image_convert_ctx *ipu_image_convert_next(struct ipu_ic *ic)
-+{
-+	struct ipu_ic_priv *priv = ic->priv;
-+	struct ipuv3_channel *ch_in = ic->input_channel;
-+	struct ipuv3_channel *ch_out = ic->output_channel;
-+	struct image_convert_ctx *ctx;
-+	struct ipu_image *in, *out;
-+	int ret;
-+	unsigned long flags;
-+	unsigned int inburst, outburst;
-+	unsigned int in_height;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	if (list_empty(&ic->image_list)) {
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+		return NULL;
-+	}
-+
-+	ctx = list_first_entry(&ic->image_list, struct image_convert_ctx, list);
-+
-+	list_del(&ctx->list);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	in = &ctx->in;
-+	out = &ctx->out;
-+
-+	ipu_cpmem_zero(ch_in);
-+	ipu_cpmem_zero(ch_out);
-+
-+	inburst = in->rect.width & 0xf ? 8 : 16;
-+	outburst = out->rect.width & 0xf ? 8 : 16;
-+
-+	ipu_ic_enable(ic);
-+
-+	ipu_ic_task_idma_init(ic, ic->input_channel, in->rect.width,
-+			      in->rect.height, inburst, IPU_ROTATE_NONE);
-+	ipu_ic_task_idma_init(ic, ic->output_channel, out->rect.width,
-+			      out->rect.height, outburst, IPU_ROTATE_NONE);
-+
-+	ipu_cpmem_set_image(ch_in, &ctx->in);
-+	ipu_cpmem_set_image(ch_out, &ctx->out);
-+
-+	ipu_cpmem_set_burstsize(ch_in, inburst);
-+	ipu_cpmem_set_burstsize(ch_out, outburst);
-+
-+	in_height = in->rect.height;
-+
-+	dev_dbg(priv->ipu->dev, "%s: %dx%d(%dx%d@%d,%d) -> %dx%d(%dx%d@%d,%d)\n",
-+		__func__, in->pix.width, in->pix.height,
-+		in->rect.width, in->rect.height, in->rect.left, in->rect.top,
-+		out->pix.width, out->pix.height,
-+		out->rect.width, out->rect.height,
-+		out->rect.left, out->rect.top);
-+
-+	dev_dbg(priv->ipu->dev,
-+		"%s: hscale: >>%d, *8192/%d vscale: >>%d, *8192/%d\n",
-+		__func__, (ctx->rsc >> 14) & 0x3, (ctx->rsc & 0x3fff),
-+		ctx->rsc >> 30, (ctx->rsc >> 16) & 0x3fff);
-+
-+	ret = ipu_ic_task_init(ic, in->rect.width, in_height,
-+			out->rect.width, out->rect.height,
-+			ipu_pixelformat_to_colorspace(in->pix.pixelformat),
-+			ipu_pixelformat_to_colorspace(out->pix.pixelformat),
-+			ctx->rsc);
-+	if (ret) {
-+		ipu_ic_disable(ic);
-+		return ERR_PTR(ret);
-+	}
-+
-+	ipu_idmac_enable_channel(ic->input_channel);
-+	ipu_idmac_enable_channel(ic->output_channel);
-+
-+	ipu_ic_task_enable(ic);
-+
-+	ipu_idmac_select_buffer(ic->input_channel, 0);
-+	ipu_idmac_select_buffer(ic->output_channel, 0);
-+
-+	return ctx;
-+}
-+
-+static void ipu_image_convert_work(struct work_struct *work)
-+{
-+	struct ipu_ic *ic = container_of(work, struct ipu_ic, work);
-+	struct image_convert_ctx *ctx;
-+	int ret;
-+
-+	while (1) {
-+		int task_error = 0;
-+
-+		ctx = ipu_image_convert_next(ic);
-+		if (!ctx)
-+			return;
-+
-+		if (IS_ERR(ctx)) {
-+			task_error = PTR_ERR(ctx);
-+		} else {
-+			ret = wait_for_completion_interruptible_timeout(
-+						&ic->complete, 100 * HZ);
-+			if (!ret)
-+				task_error = -ETIMEDOUT;
-+		}
-+
-+		ipu_ic_task_disable(ic);
-+		ipu_ic_disable(ic);
-+
-+		if (ctx->complete)
-+			ctx->complete(ctx->complete_context, task_error);
-+		kfree(ctx->freep);
-+	}
-+}
-+
-+static irqreturn_t ipu_image_convert_handler(int irq, void *context)
-+{
-+	struct ipu_ic *ic = context;
-+
-+	complete(&ic->complete);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+
-+/*
-+ * IDMAC base addresses are 8-byte aligned
-+ */
-+static int ipu_image_halign(u32 pixfmt)
-+{
-+	switch (pixfmt) {
-+	/* 2 RGB32 pixels correspond to 8 bytes */
-+	case V4L2_PIX_FMT_RGB32:
-+	case V4L2_PIX_FMT_BGR32:
-+		return 2;
-+	/* 4 RGB565 or YUYV pixels correspond to 8 bytes */
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_YUYV:
-+		return 4;
-+	/*
-+	 * 8 RGB24 pixels correspond to 24 bytes,
-+	 * 8 NV12 pixels correspond to 8 bytes, both in luma and chroma
-+	 */
-+	case V4L2_PIX_FMT_RGB24:
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_NV12:
-+		return 8;
-+	/* 16 YUV420 pixels correspond to 16 bytes in luma, 8 bytes in chroma */
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+	case V4L2_PIX_FMT_YUV422P:
-+		return 16;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+/*
-+ * Vertically chroma-subsampled formats are limited to even heights and vertical
-+ * positions
-+ */
-+static int ipu_image_valign(u32 pixfmt)
-+{
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_RGB24:
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_RGB32:
-+	case V4L2_PIX_FMT_BGR32:
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YUV422P:
-+		return 1;
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		return 2;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+#define round_closest(x, y) round_down((x) + (y)/2, (y))
-+
-+struct image_convert_ctx *ipu_image_convert_prepare(struct ipu_soc *ipu,
-+		struct ipu_image *in, struct ipu_image *out,
-+		enum ipu_image_scale_ctrl ctrl, int *num_tiles)
-+{
-+	struct image_convert_ctx *ctx, *c;
-+	int htiles, vtiles;
-+	int in_valign, in_halign, in_burst, out_valign, out_halign, out_burst;
-+	int left, top;
-+	int x, y;
-+	int h_resize_opt, v_resize_opt;
-+	u32 v_downsize_coeff = 0, h_downsize_coeff = 0;
-+	u32 v_resize_coeff, h_resize_coeff;
-+
-+	/* validate input */
-+	if (in->rect.width < 16 || out->rect.width < 16 ||
-+	    (in->rect.width / 4) > out->rect.width ||
-+	    (in->rect.height / 4) > out->rect.height)
-+		return ERR_PTR(-EINVAL);
-+
-+	/* tile setup */
-+	htiles = DIV_ROUND_UP(out->rect.width, 1024);
-+	vtiles = DIV_ROUND_UP(out->rect.height, 1024);
-+
-+	in_valign = ipu_image_valign(in->pix.pixelformat);
-+	in_halign = ipu_image_halign(in->pix.pixelformat);
-+	out_valign = ipu_image_valign(out->pix.pixelformat);
-+	out_halign = ipu_image_halign(out->pix.pixelformat);
-+
-+	/* IC bursts are limited to either 8 or 16 pixels */
-+	in_burst = 8;
-+	out_burst = 8;
-+
-+	if (in_valign < 0 || in_halign < 0 ||
-+	    out_valign < 0 || out_halign < 0) {
-+		dev_err(ipu->dev, "unsupported in/out format\n");
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	/* compute static decimator coefficients */
-+	while ((in->rect.width >> h_downsize_coeff) > out->rect.width)
-+		h_downsize_coeff++;
-+	while ((in->rect.height >> v_downsize_coeff) > out->rect.height)
-+		v_downsize_coeff++;
-+
-+	/* move and crop the output image according to IDMAC limitations */
-+	switch (ctrl) {
-+	case IPU_IMAGE_SCALE_ROUND_DOWN:
-+		left = round_up(in->rect.left, in_halign);
-+		top = round_up(in->rect.top, in_valign);
-+		in->rect.width = in->rect.width - (left - in->rect.left);
-+		in->rect.height = in->rect.height - (top - in->rect.top);
-+		in->rect.left = left;
-+		in->rect.top = top;
-+		left = round_up(out->rect.left, out_halign);
-+		top = round_up(out->rect.top, out_valign);
-+		out->rect.width = round_down(out->rect.width - (left -
-+					     out->rect.left), out_burst);
-+		out->rect.height = round_down(out->rect.height - (top -
-+					      out->rect.top), out_valign);
-+		break;
-+	case IPU_IMAGE_SCALE_ROUND_UP:
-+		left = round_down(in->rect.left, in_halign);
-+		top = round_down(in->rect.top, in_valign);
-+		in->rect.width = in->rect.width + in->rect.left - left;
-+		in->rect.height = in->rect.height + in->rect.top - top;
-+		in->rect.left = left;
-+		in->rect.top = top;
-+		left = round_down(out->rect.left, out_halign);
-+		top = round_down(out->rect.top, out_valign);
-+		out->rect.width = round_up(out->rect.width + out->rect.left -
-+					   left, out_burst);
-+		out->rect.height = round_up(out->rect.height + out->rect.top -
-+					    top, out_valign);
-+		break;
-+	case IPU_IMAGE_SCALE_PIXELPERFECT:
-+		left = round_down(in->rect.left, in_halign);
-+		top = round_down(in->rect.top, in_valign);
-+		in->rect.width = in->rect.width + in->rect.left - left;
-+		in->rect.height = in->rect.height + in->rect.top - top;
-+		in->rect.left = left;
-+		in->rect.top = top;
-+		left = round_down(out->rect.left + out_halign / 2, out_halign);
-+		top = round_down(out->rect.top + out_valign / 2, out_valign);
-+		/*
-+		 * don't round width and height to burst size / pixel format
-+		 * limitations yet, we do it after determining the scaling
-+		 * coefficients
-+		 */
-+		out->rect.width = out->rect.width + out->rect.left - left;
-+		out->rect.height = out->rect.height + out->rect.top - top;
-+		break;
-+	default:
-+		return ERR_PTR(-EINVAL);
-+	}
-+	out->rect.left = left;
-+	out->rect.top = top;
-+
-+	/* Round input width and height according to decimation */
-+	in->rect.width = round_down(in->rect.width, 1 << h_downsize_coeff);
-+	in->rect.height = round_down(in->rect.height, 1 << v_downsize_coeff);
-+
-+	dev_dbg(ipu->dev,
-+		"%s: in: %dx%d(%dx%d@%d,%d) -> out: %dx%d(%dx%d@%d,%d)\n",
-+		__func__, in->pix.width, in->pix.height, in->rect.width,
-+		in->rect.height, in->rect.left, in->rect.top, out->pix.width,
-+		out->pix.height, out->rect.width, out->rect.height,
-+		out->rect.left, out->rect.top);
-+
-+	/*
-+	 * Compute the bilinear resizing coefficients that can/could be used if
-+	 * scaling using a single tile. The bottom right pixel should sample the
-+	 * input as close as possible to but not beyond the bottom right input
-+	 * pixel out of the decimator:
-+	 *
-+	 * (out->rect.width - 1) * h_resize / 8192.0 <= (in->rect.width >>
-+	 *						 h_downsize_coeff) - 1
-+	 * (out->rect.height - 1) * v_resize / 8192.0 <= (in->rect.height >>
-+	 *						  v_downsize_coeff) - 1
-+	 */
-+	h_resize_opt = 8192 * ((in->rect.width >> h_downsize_coeff) - 1) /
-+		       (out->rect.width - 1);
-+	v_resize_opt = 8192 * ((in->rect.height >> v_downsize_coeff) - 1) /
-+		       (out->rect.height - 1);
-+
-+	dev_dbg(ipu->dev,
-+		"%s: hscale: >>%d, *8192/%d vscale: >>%d, *8192/%d, %dx%d tiles\n",
-+		__func__, h_downsize_coeff, h_resize_opt, v_downsize_coeff,
-+		v_resize_opt, htiles, vtiles);
-+
-+	ctx = kcalloc(htiles * vtiles, sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return ERR_PTR(-ENOMEM);
-+
-+	c = ctx;
-+
-+	for (x = htiles - 1; x >= 0; x--) {
-+		int in_right, out_right;
-+
-+		/*
-+		 * Since we render tiles right to left, the right edge
-+		 * is already known. Depending on tile position and
-+		 * scaling mode, we may overshoot it.
-+		 */
-+		if (x == htiles - 1) {
-+			out_right = out->rect.left + out->rect.width;
-+			in_right = in->rect.left + in->rect.width;
-+		} else {
-+			struct image_convert_ctx *c_right = c - vtiles;
-+
-+			out_right = c_right->out.rect.left;
-+			in_right = c_right->in.rect.left;
-+		}
-+
-+		/* Now determine the left edge of this tile column */
-+		if (x == 0) {
-+			/* For the leftmost column this is trivial */
-+			c->out.rect.left = out->rect.left;
-+			c->in.rect.left = in->rect.left;
-+		} else {
-+			int best_left, best_in_left;
-+			int min_left, max_left;
-+			int min_diff = INT_MAX;
-+
-+			/*
-+			 * Find the best possible left edge. It must be adjusted
-+			 * according to IDMAC limitations, and should be
-+			 * chosen so that
-+			 * (in->rect.left + (c->out.rect.left - out->rect.left)
-+			 *  * h_resize_opt / (8192 >> h_downsize_coeff))
-+			 * is as close as possible to a valid left edge in the
-+			 * input.
-+			 */
-+			min_left = max(0,
-+				       round_up(out_right - 1024, out_halign));
-+			max_left = min(round_down(out_right, out_halign),
-+				       x * 1024);
-+			best_left = min_left;
-+			best_in_left = (best_left - out->rect.left) *
-+				       h_resize_opt;
-+			for (left = min_left; left < max_left;
-+			     left += out_halign) {
-+				int diff, in_left;
-+
-+				/*
-+				 * In ROUND_UP and ROUND_DOWN modes, for the
-+				 * rightmost column, only consider left edges
-+				 * that are a multiple of the burst size away
-+				 * from the right edge.
-+				 */
-+				if ((ctrl != IPU_IMAGE_SCALE_PIXELPERFECT) &&
-+				    (x == htiles - 1) &&
-+				    ((out_right - left) % out_burst))
-+					continue;
-+				in_left = in->rect.left +
-+					  (((left - out->rect.left) *
-+					    h_resize_opt) << h_downsize_coeff);
-+				diff = abs(in_left -
-+					   round_closest(in_left,
-+							 8192 * in_halign));
-+
-+				if (diff < min_diff) {
-+					min_diff = diff;
-+					best_left = left;
-+					best_in_left = in_left;
-+				}
-+			}
-+
-+			c->out.rect.left = best_left;
-+			c->in.rect.left = DIV_ROUND_CLOSEST(best_in_left, 8192);
-+
-+			dev_dbg(ipu->dev,
-+				"%s: tile(%d,y):\tleft: %d -> %d (instead of %d.%04d -> %d)",
-+				__func__, x, c->in.rect.left,
-+				c->out.rect.left, best_in_left / 8192,
-+				(best_in_left % 8192) * 10000 / 8192,
-+				out->rect.left +
-+				DIV_ROUND_CLOSEST((c->in.rect.left -
-+						   in->rect.left) *
-+						  (8192 >> h_downsize_coeff),
-+						  h_resize_opt));
-+		}
-+
-+		/* Determine tile width from left and right edges */
-+		c->out.rect.width = out_right - c->out.rect.left;
-+		c->in.rect.width = in_right - c->in.rect.left;
-+
-+		/* Now we can determine the actual per-tile scaling factor */
-+		if (x == htiles - 1) {
-+			/*
-+			 * Round down for the right column, since we
-+			 * don't want to read beyond the right edge.
-+			 */
-+			h_resize_coeff = 8192 * ((c->in.rect.width >>
-+						 h_downsize_coeff) - 1) /
-+					 (c->out.rect.width - 1);
-+		} else {
-+			/*
-+			 * Round to closest for seams between tiles for
-+			 * minimal distortion.
-+			 */
-+			h_resize_coeff = DIV_ROUND_CLOSEST(8192 *
-+							   (c->in.rect.width >>
-+							    h_downsize_coeff),
-+							   c->out.rect.width);
-+		}
-+
-+		/*
-+		 * With the scaling factor known, round up output width
-+		 * to burst size. In ROUND_UP and ROUND_DOWN scaling mode
-+		 * this is a no-op for the right column.
-+		 */
-+		c->out.rect.width = round_up(c->out.rect.width, out_burst);
-+
-+		/*
-+		 * Calculate input width from the last accessed input pixel
-+		 * given output width and scaling coefficients. Round to
-+		 * burst size.
-+		 */
-+		c->in.rect.width = (DIV_ROUND_UP((c->out.rect.width - 1) *
-+						 h_resize_coeff, 8192) + 1)
-+				   << h_downsize_coeff;
-+		c->in.rect.width = round_up(c->in.rect.width, in_burst);
-+
-+		for (y = vtiles - 1; y >= 0; y--) {
-+			int in_bottom, out_bottom;
-+
-+			memcpy(&c->in.pix, &in->pix,
-+			      sizeof(struct v4l2_pix_format));
-+
-+			if (y == vtiles - 1) {
-+				out_bottom = out->rect.top + out->rect.height;
-+				in_bottom = in->rect.top + in->rect.height;
-+			} else {
-+				struct image_convert_ctx *c_below = c - 1;
-+
-+				out_bottom = c_below->out.rect.top;
-+				in_bottom = c_below->in.rect.top;
-+
-+				/*
-+				 * Copy horizontal parameters from the tile
-+				 * below
-+				 */
-+				c->out.rect.left = c_below->out.rect.left;
-+				c->out.rect.width = c_below->out.rect.width;
-+				c->in.rect.left = c_below->in.rect.left;
-+				c->in.rect.width = c_below->in.rect.width;
-+			}
-+
-+			if (y == 0) {
-+				c->out.rect.top = out->rect.top;
-+				c->in.rect.top = in->rect.top;
-+			} else {
-+				int best_top, best_in_top;
-+				int min_top, max_top;
-+				int min_diff = INT_MAX;
-+
-+				/*
-+				 * Find the best possible top edge. It must be
-+				 * adjusted according to IDMAC limitations, and
-+				 * should be chosen so that
-+				 * (in->rect.top + (c->out.rect.top -
-+				 *  out->rect.top) * v_resize_opt /
-+				 * (8192 >> v_downsize_coeff))
-+				 * is as close as possible to a valid top edge
-+				 * in the input.
-+				 */
-+				min_top = max(0,
-+					      round_up(out_bottom - 1024,
-+						       out_valign));
-+				max_top = min(round_down(out_bottom,
-+							 out_halign), y * 1024);
-+				best_top = min_top;
-+				best_in_top = (best_top - out->rect.top) *
-+					       v_resize_opt;
-+				for (top = min_top; top < max_top;
-+				     top += out_valign) {
-+					int diff, in_top;
-+
-+					in_top = in->rect.top +
-+						 (((top - out->rect.top) *
-+						   v_resize_opt) <<
-+						  v_downsize_coeff);
-+					diff = abs(in_top -
-+						   round_closest(in_top, 8192 *
-+								 in_valign));
-+
-+					if (diff < min_diff) {
-+						min_diff = diff;
-+						best_top = top;
-+						best_in_top = in_top;
-+					}
-+				}
-+
-+				c->out.rect.top = best_top;
-+				c->in.rect.top = DIV_ROUND_CLOSEST(best_in_top,
-+								   8192);
-+
-+				dev_dbg(ipu->dev,
-+					"%s: tile(%d,%d):\ttop: %d -> %d (instead of %d.%04d -> %d)",
-+					__func__, x, y, c->in.rect.top,
-+					c->out.rect.top, best_in_top / 8192,
-+					(best_in_top % 8192) * 10000 / 8192,
-+					out->rect.top +
-+					DIV_ROUND_CLOSEST((c->in.rect.top -
-+							   in->rect.top) * (8192
-+							  >> v_downsize_coeff),
-+							  v_resize_opt));
-+			}
-+
-+			/* Determine tile height from top and bottom edges */
-+			c->out.rect.height = out_bottom - c->out.rect.top;
-+			c->in.rect.height = in_bottom - c->in.rect.top;
-+
-+			/*
-+			 * Now we can determine the actual vertical per-tile
-+			 * scaling factor
-+			 */
-+			if (y == vtiles - 1) {
-+				/*
-+				 * Round down for the bottom row, since we
-+				 * don't want to read beyond the lower border.
-+				 */
-+				v_resize_coeff = 8192 * ((c->in.rect.height >>
-+							 v_downsize_coeff) - 1)
-+						 / (c->out.rect.height - 1);
-+			} else {
-+				/*
-+				 * Round to closest for seams between tiles for
-+				 * minimal distortion.
-+				 */
-+				v_resize_coeff = DIV_ROUND_CLOSEST(8192 *
-+							(c->in.rect.height >>
-+							 v_downsize_coeff),
-+							c->out.rect.height);
-+			}
-+
-+			/*
-+			 * With the scaling factor known, round up output height
-+			 * to IDMAC limitations
-+			 */
-+			c->out.rect.height = round_up(c->out.rect.height,
-+						      out_valign);
-+
-+			/*
-+			 * Calculate input height from the last accessed input
-+			 * line given output height and scaling coefficients.
-+			 */
-+			c->in.rect.height = (DIV_ROUND_UP(
-+						(c->out.rect.height - 1) *
-+						v_resize_coeff, 8192) + 1)
-+					    << v_downsize_coeff;
-+
-+			/* align height according to IDMAC restrictions */
-+			c->in.rect.height = round_up(c->in.rect.height,
-+				in_valign);
-+
-+			memcpy(&c->out.pix, &out->pix,
-+			       sizeof(struct v4l2_pix_format));
-+
-+			dev_dbg(ipu->dev,
-+				"%s: tile(%d,%d): %dx%d(%dx%d@%d,%d) -> %dx%d(%dx%d@%d,%d), resize: %dx%d\n",
-+				__func__, x, y,
-+				c->in.pix.width, c->in.pix.height,
-+				c->in.rect.width, c->in.rect.height,
-+				c->in.rect.left, c->in.rect.top,
-+				c->out.pix.width, c->out.pix.height,
-+				c->out.rect.width, c->out.rect.height,
-+				c->out.rect.left, c->out.rect.top,
-+				h_resize_coeff, v_resize_coeff);
-+
-+			c->rsc = (v_downsize_coeff << 30) |
-+				 (v_resize_coeff << 16) |
-+				 (h_downsize_coeff << 14) |
-+				 h_resize_coeff;
-+
-+			c++;
-+		}
-+	}
-+
-+	*num_tiles = htiles * vtiles;
-+
-+	return ctx;
-+}
-+EXPORT_SYMBOL_GPL(ipu_image_convert_prepare);
-+
-+int ipu_image_convert_run(struct ipu_soc *ipu, struct ipu_image *in,
-+			  struct ipu_image *out, struct image_convert_ctx *ctx,
-+			  int num_tiles, void (*complete)(void *ctx, int err),
-+			  void *complete_context, bool free_ctx)
-+{
-+	struct ipu_ic_priv *priv = ipu->ic_priv;
-+	struct ipu_ic *ic = &priv->task[IC_TASK_POST_PROCESSOR];
-+	unsigned long flags;
-+	int i;
-+
-+	for (i = 0; i < num_tiles; i++) {
-+		ctx[i].in.phys0 = in->phys0;
-+		ctx[i].out.phys0 = out->phys0;
-+	}
-+	ctx[num_tiles - 1].complete = complete;
-+	ctx[num_tiles - 1].complete_context = complete_context;
-+	if (free_ctx)
-+		ctx[num_tiles - 1].freep = ctx;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	for (i = 0; i < num_tiles; i++)
-+		list_add_tail(&ctx[i].list, &ic->image_list);
-+
-+	queue_work(ic->workqueue, &ic->work);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ipu_image_convert_run);
-+
-+static int ipu_image_convert_init(struct device *dev, struct ipu_soc *ipu,
-+		struct ipu_ic_priv *priv)
-+{
-+	int ret;
-+	struct ipu_ic *ic = ipu_ic_get(ipu, IC_TASK_POST_PROCESSOR);
-+	int irq = ipu_idmac_channel_irq(ipu, ic->output_channel,
-+					IPU_IRQ_EOF);
-+
-+	ic->workqueue = create_singlethread_workqueue(dev_name(ipu->dev));
-+	if (!ic->workqueue)
-+		return -ENOMEM;
-+
-+	INIT_WORK(&ic->work, ipu_image_convert_work);
-+	init_completion(&ic->complete);
-+
-+	ret = devm_request_threaded_irq(dev, irq, NULL,
-+				ipu_image_convert_handler,
-+				IRQF_ONESHOT, "IC PP", ic);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	destroy_workqueue(ic->workqueue);
-+	return ret;
-+}
-+
- int ipu_ic_enable(struct ipu_ic *ic)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
-@@ -736,12 +1451,20 @@ int ipu_ic_init(struct ipu_soc *ipu, struct device *dev,
- 	priv->ipu = ipu;
- 
- 	for (i = 0; i < IC_NUM_TASKS; i++) {
-+		INIT_LIST_HEAD(&priv->task[i].image_list);
- 		priv->task[i].task = i;
- 		priv->task[i].priv = priv;
- 		priv->task[i].reg = &ic_task_reg[i];
- 		priv->task[i].bit = &ic_task_bit[i];
-+
-+		priv->task[i].input_channel = ipu_idmac_get(ipu,
-+							ic_task_ch[i].in);
-+		priv->task[i].output_channel = ipu_idmac_get(ipu,
-+							ic_task_ch[i].out);
- 	}
- 
-+	ipu_image_convert_init(dev, ipu, priv);
-+
- 	return 0;
- }
- 
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 0cf0a51..ecf2a74 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -316,7 +316,8 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 		     int in_width, int in_height,
- 		     int out_width, int out_height,
- 		     enum ipu_color_space in_cs,
--		     enum ipu_color_space out_cs);
-+		     enum ipu_color_space out_cs,
-+		     u32 rsc);
- int ipu_ic_task_graphics_init(struct ipu_ic *ic,
- 			      enum ipu_color_space in_g_cs,
- 			      bool galpha_en, u32 galpha,
-@@ -362,4 +363,35 @@ struct ipu_client_platformdata {
- 	int dma[2];
- };
- 
-+enum ipu_image_scale_ctrl {
-+	IPU_IMAGE_SCALE_ROUND_DOWN,
-+	IPU_IMAGE_SCALE_PIXELPERFECT,
-+	IPU_IMAGE_SCALE_ROUND_UP,
-+};
-+
-+struct image_convert_ctx;
-+
-+struct image_convert_ctx *ipu_image_convert_prepare(struct ipu_soc *ipu,
-+		struct ipu_image *in, struct ipu_image *out,
-+		enum ipu_image_scale_ctrl ctrl, int *num_tiles);
-+int ipu_image_convert_run(struct ipu_soc *ipu, struct ipu_image *in,
-+		struct ipu_image *out, struct image_convert_ctx *ctx,
-+		int num_tiles, void (*complete)(void *ctx, int err),
-+		void *complete_context, bool free_ctx);
-+
-+static inline int ipu_image_convert(struct ipu_soc *ipu, struct ipu_image *in,
-+		struct ipu_image *out, void (*complete)(void *ctx, int err),
-+		void *complete_context, enum ipu_image_scale_ctrl ctrl)
-+{
-+	struct image_convert_ctx *ctx;
-+	int num_tiles;
-+
-+	ctx = ipu_image_convert_prepare(ipu, in, out, ctrl, &num_tiles);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
-+
-+	return ipu_image_convert_run(ipu, in, out, ctx, num_tiles, complete,
-+				     complete_context, true);
-+}
-+
- #endif /* __DRM_IPU_H__ */
+As you may know, current DVB framework uses ringbuffer mechanism to demux
+MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+extra memory copy because DVB framework provides only read() system call for
+application - read() system call copies the kernel data to user-space buffer.
+So if we can use VB2 framework which supports streaming I/O and buffer
+sharing mechanism, then we could enhance existing DVB framework by removing
+the extra memory copy - with VB2 framework, application can access the kernel
+data directly through mmap system call.
+
+We have a plan for this work as follows:
+1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
+   Of course, this change will not affect other v4l2-based
+   device drivers. This patch series corresponds to this step.
+
+2. Add and implement new APIs for DVB streaming I/O.
+   We can remove unnecessary memory copy between kernel-space and user-space
+   by using these new APIs. However, we leaves legacy interfaces as-is
+   for backward compatibility.
+
+This patch series is the first step for it.
+The previous version of this patch series can be found at [1].
+
+[1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+
+Changes since v1:
+1. Divide patch set into more pieces
+v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
+list with size problem - over 300kb. So I have divided the patch set into five
+pieces and refined them neatly, which was pointed by Hans.
+
+2. Add shell scripts for renaming patch
+In case of renaming patch, shell scripts are included inside the body of the
+patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
+be used by reviewers or maintainers to regenerate big patch file if something
+goes wrong during patch apply.
+
+3. Remove dependency on v4l2 from videobuf2
+In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
+e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
+from using videobuf2 independently and made them forced to include
+v4l2-specific stuff.
+In this version, these dependent stuffs are replaced with VB2 own stuffs.
+e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
+required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
+will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
+backward compatibility.
+
+4. Unify duplicated definitions
+VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
+duplicated macro functions that invoke callback functions implemented in vb2
+backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
+callbacks of device drivers.
+In previous patch set, these macro functions were defined
+in both videobuf2-core.c and videobuf2-v4l2.c.
+
+This patch series is base on media_tree.git [2] by Mauro & Hans's request.
+And I applied this patches to my own git [3] which can be helpful to review.
+My test boards are ubuntu PC(Intel i7-3770) and odroid-xu3(exynos5422). And
+basic oprerations, e.g. reqbuf, querybuf, qbuf, dqbuf, are tested with
+v4l-utils. But, more tests for the all ioctls will be required on many other
+targets.
+
+[2] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
+[3] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
+
+Any suggestions and comments are welcome.
+
+Regards,
+Junghak
+
+Junghak Sung (5):
+  media: videobuf2: Rename videobuf2-core to videobuf2-v4l2
+  media: videobuf2: Restructurng struct vb2_buffer for common use.
+  media: videobuf2: Divide videobuf2-core into 2 parts
+  media: videobuf2: Define vb2_buf_type and vb2_memory
+  media: videobuf2: Modify prefix for VB2 functions
+
+ drivers/input/touchscreen/sur40.c                  |   23 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |   19 +-
+ drivers/media/pci/cobalt/cobalt-alsa-pcm.c         |    4 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |    8 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |   15 +-
+ drivers/media/pci/cx23885/cx23885-core.c           |   10 +-
+ drivers/media/pci/cx23885/cx23885-dvb.c            |   13 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |   17 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |   23 +-
+ drivers/media/pci/cx23885/cx23885.h                |    2 +-
+ drivers/media/pci/cx25821/cx25821-video.c          |   22 +-
+ drivers/media/pci/cx25821/cx25821.h                |    3 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |   17 +-
+ drivers/media/pci/cx88/cx88-core.c                 |    2 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |   15 +-
+ drivers/media/pci/cx88/cx88-mpeg.c                 |    8 +-
+ drivers/media/pci/cx88/cx88-vbi.c                  |   17 +-
+ drivers/media/pci/cx88/cx88-video.c                |   21 +-
+ drivers/media/pci/cx88/cx88.h                      |    2 +-
+ drivers/media/pci/dt3155/dt3155.c                  |   23 +-
+ drivers/media/pci/dt3155/dt3155.h                  |    2 +-
+ drivers/media/pci/saa7134/saa7134-core.c           |    9 +-
+ drivers/media/pci/saa7134/saa7134-dvb.c            |    6 +-
+ drivers/media/pci/saa7134/saa7134-empress.c        |    4 +-
+ drivers/media/pci/saa7134/saa7134-ts.c             |   30 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |   24 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   43 +-
+ drivers/media/pci/saa7134/saa7134.h                |    9 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   35 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   20 +-
+ drivers/media/pci/solo6x10/solo6x10.h              |    4 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |   35 +-
+ drivers/media/pci/tw68/tw68-video.c                |   22 +-
+ drivers/media/pci/tw68/tw68.h                      |    2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   40 +-
+ drivers/media/platform/am437x/am437x-vpfe.h        |    2 +-
+ drivers/media/platform/blackfin/bfin_capture.c     |   42 +-
+ drivers/media/platform/coda/coda-bit.c             |   62 +-
+ drivers/media/platform/coda/coda-common.c          |   30 +-
+ drivers/media/platform/coda/coda-jpeg.c            |    6 +-
+ drivers/media/platform/coda/coda.h                 |    6 +-
+ drivers/media/platform/coda/trace.h                |    2 +-
+ drivers/media/platform/davinci/vpbe_display.c      |   16 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   43 +-
+ drivers/media/platform/davinci/vpif_capture.h      |    2 +-
+ drivers/media/platform/davinci/vpif_display.c      |   49 +-
+ drivers/media/platform/davinci/vpif_display.h      |    2 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c       |   10 +-
+ drivers/media/platform/exynos-gsc/gsc-core.h       |    6 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |   16 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   30 +-
+ drivers/media/platform/exynos4-is/fimc-core.c      |   12 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |    6 +-
+ drivers/media/platform/exynos4-is/fimc-is.h        |    2 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |   22 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.h |    2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |    4 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |   25 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |   18 +-
+ drivers/media/platform/m2m-deinterlace.c           |   26 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   40 +-
+ drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
+ drivers/media/platform/mx2_emmaprp.c               |   25 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |   47 +-
+ drivers/media/platform/omap3isp/ispvideo.h         |    4 +-
+ drivers/media/platform/s3c-camif/camif-capture.c   |   49 +-
+ drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
+ drivers/media/platform/s3c-camif/camif-core.h      |    4 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |   22 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |   57 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   42 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   63 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  120 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |   28 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   28 +-
+ drivers/media/platform/s5p-tv/mixer.h              |    4 +-
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c    |    2 +-
+ drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c        |   33 +-
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c     |    5 +-
+ drivers/media/platform/sh_veu.c                    |   38 +-
+ drivers/media/platform/sh_vou.c                    |    8 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |   32 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |   44 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |   39 +-
+ drivers/media/platform/soc_camera/rcar_vin.c       |   38 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   49 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   24 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |    8 +-
+ drivers/media/platform/ti-vpe/vpe.c                |   39 +-
+ drivers/media/platform/vim2m.c                     |   39 +-
+ drivers/media/platform/vivid/vivid-core.c          |   10 +-
+ drivers/media/platform/vivid/vivid-core.h          |    4 +-
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |   20 +-
+ drivers/media/platform/vivid/vivid-kthread-out.c   |   14 +-
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |   24 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |   23 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c       |   19 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |   25 +-
+ drivers/media/platform/vivid/vivid-vid-out.c       |   20 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |   26 +-
+ drivers/media/platform/vsp1/vsp1_video.h           |    6 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         |    6 +-
+ drivers/media/platform/xilinx/xilinx-dma.h         |    2 +-
+ drivers/media/usb/airspy/airspy.c                  |   22 +-
+ drivers/media/usb/au0828/au0828-vbi.c              |   15 +-
+ drivers/media/usb/au0828/au0828-video.c            |   55 +-
+ drivers/media/usb/au0828/au0828.h                  |    3 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c              |   17 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |   33 +-
+ drivers/media/usb/em28xx/em28xx.h                  |    3 +-
+ drivers/media/usb/go7007/go7007-driver.c           |    4 +-
+ drivers/media/usb/go7007/go7007-priv.h             |    4 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |   20 +-
+ drivers/media/usb/hackrf/hackrf.c                  |   20 +-
+ drivers/media/usb/msi2500/msi2500.c                |   23 +-
+ drivers/media/usb/pwc/pwc-if.c                     |   28 +-
+ drivers/media/usb/pwc/pwc-uncompress.c             |    8 +-
+ drivers/media/usb/pwc/pwc.h                        |    3 +-
+ drivers/media/usb/s2255/s2255drv.c                 |   26 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |   17 +-
+ drivers/media/usb/stk1160/stk1160-video.c          |    4 +-
+ drivers/media/usb/stk1160/stk1160.h                |    4 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |   24 +-
+ drivers/media/usb/usbtv/usbtv.h                    |    3 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |   56 +-
+ drivers/media/usb/uvc/uvcvideo.h                   |    4 +-
+ drivers/media/v4l2-core/Makefile                   |    2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   30 +-
+ drivers/media/v4l2-core/videobuf2-core.c           | 2393 +++-----------------
+ drivers/media/v4l2-core/videobuf2-dvb.c            |    2 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           | 1970 ++++++++++++++++
+ drivers/usb/gadget/function/uvc_queue.c            |   46 +-
+ drivers/usb/gadget/function/uvc_queue.h            |    4 +-
+ include/media/soc_camera.h                         |    2 +-
+ include/media/v4l2-mem2mem.h                       |   10 +-
+ include/media/videobuf2-core.h                     |  430 ++--
+ include/media/videobuf2-dvb.h                      |    2 +-
+ include/media/videobuf2-v4l2.h                     |  186 ++
+ include/trace/events/v4l2.h                        |   38 +-
+ 143 files changed, 4185 insertions(+), 3462 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
+ create mode 100644 include/media/videobuf2-v4l2.h
+
 -- 
-2.1.4
+1.7.9.5
 
