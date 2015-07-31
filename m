@@ -1,81 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9716 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752236AbbGJGel (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2015 02:34:41 -0400
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Lars-Peter Clausen <lars@metafoo.de>,
-	Michael Hennerich <Michael.Hennerich@analog.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Antti Palosaari <crope@iki.fi>, linux-iio@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 2/3] staging: media: Drop owner assignment from i2c_driver
-Date: Fri, 10 Jul 2015 15:34:27 +0900
-Message-id: <1436510068-5284-3-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
-References: <1436510068-5284-1-git-send-email-k.kozlowski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47772 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752218AbbGaCLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jul 2015 22:11:10 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv3 03/13] DocBook: document tuner RF gain control
+Date: Fri, 31 Jul 2015 05:10:40 +0300
+Message-Id: <1438308650-2702-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-1-git-send-email-crope@iki.fi>
+References: <1438308650-2702-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i2c_driver does not need to set an owner because i2c_register_driver()
-will set it.
+Add brief description for tuner RF gain control.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
+ Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+ Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+ 3 files changed, 19 insertions(+)
 
-The coccinelle script which generated the patch was sent here:
-http://www.spinics.net/lists/kernel/msg2029903.html
----
- drivers/staging/media/lirc/lirc_zilog.c | 1 -
- drivers/staging/media/mn88472/mn88472.c | 1 -
- drivers/staging/media/mn88473/mn88473.c | 1 -
- 3 files changed, 3 deletions(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
-index 261e27d6b054..d032745081ee 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -1367,7 +1367,6 @@ static const struct i2c_device_id ir_transceiver_id[] = {
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index f56faf5..eb091c7 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+ <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+ 	  </para>
+ 	</listitem>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
++RF Tuner control.</para>
++	</listitem>
+       </orderedlist>
+     </section>
  
- static struct i2c_driver driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "Zilog/Hauppauge i2c IR",
- 	},
- 	.probe		= ir_probe,
-diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-index a8d45f44765c..cf2e96bcf395 100644
---- a/drivers/staging/media/mn88472/mn88472.c
-+++ b/drivers/staging/media/mn88472/mn88472.c
-@@ -561,7 +561,6 @@ MODULE_DEVICE_TABLE(i2c, mn88472_id_table);
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 6e1667b..7cae933 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">The RF amplifier is the very first
++amplifier on the receiver signal path, just right after the antenna input.
++The difference between the LNA gain and the RF gain in this document is that
++the LNA gain is integrated in the tuner chip while the RF gain is a separate
++chip. There may be both RF and LNA gain controls in the same device.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+               <entry>integer</entry>
+             </row>
+@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">LNA (low noise amplifier) gain is first
+ gain stage on the RF tuner signal path. It is located very close to tuner
+ antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
++See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
++and LNA gain differs from the each others.
+ The range and step are driver-specific.</entry>
+             </row>
+             <row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index c9eedc1..ab9fca4 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -156,6 +156,7 @@ applications. -->
+ 	<date>2015-05-26</date>
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++Added V4L2_CID_RF_TUNER_RF_GAIN control.
+ 	</revremark>
+       </revision>
  
- static struct i2c_driver mn88472_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "mn88472",
- 	},
- 	.probe		= mn88472_probe,
-diff --git a/drivers/staging/media/mn88473/mn88473.c b/drivers/staging/media/mn88473/mn88473.c
-index f9146a146d07..a222e99935d2 100644
---- a/drivers/staging/media/mn88473/mn88473.c
-+++ b/drivers/staging/media/mn88473/mn88473.c
-@@ -507,7 +507,6 @@ MODULE_DEVICE_TABLE(i2c, mn88473_id_table);
- 
- static struct i2c_driver mn88473_driver = {
- 	.driver = {
--		.owner	= THIS_MODULE,
- 		.name	= "mn88473",
- 	},
- 	.probe		= mn88473_probe,
 -- 
-1.9.1
+http://palosaari.fi/
 
