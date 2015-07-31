@@ -1,58 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:34298 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbbGTTE7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59057 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826AbbGaObx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2015 15:04:59 -0400
-Received: by qkfc129 with SMTP id c129so75616733qkf.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2015 12:04:58 -0700 (PDT)
+	Fri, 31 Jul 2015 10:31:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
+Date: Fri, 31 Jul 2015 17:32:28 +0300
+Message-ID: <5801982.V6EPzmjqi1@avalon>
+In-Reply-To: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <55AD2FA5.6000309@iki.fi>
-References: <CALzAhNXQe7AtkwymcUeakVouMBmw7pG79-TeEjBMiK5ysXze_g@mail.gmail.com>
-	<55AD0617.7060007@iki.fi>
-	<CALzAhNVFBgEBJ8448h1WL3iDZ4zkR_k5And0-mtJ6vu97RZLTQ@mail.gmail.com>
-	<55AD234E.5010904@iki.fi>
-	<CAGoCfiy5Fy26EJzRPYEk_kgH0YESTXiR-E=83Rur6PWZjyi8jQ@mail.gmail.com>
-	<55AD27E0.6080102@iki.fi>
-	<CALzAhNV6mq6V-jYdjjwrYqtwkKQTgvAFOUhxBvHuAK0jAXZ7gQ@mail.gmail.com>
-	<55AD2FA5.6000309@iki.fi>
-Date: Mon, 20 Jul 2015 15:04:58 -0400
-Message-ID: <CALzAhNWZPCF+0FAJkjEsqhNc3iowYWc0PdnCJZ9r-3VHxbSCbQ@mail.gmail.com>
-Subject: Re: Adding support for three new Hauppauge HVR-1275 variants -
- testers reqd.
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	tonyc@wincomm.com.tw, Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> We can agree or disagree about whether a part should be tri-stated in
->> init/sleep() and under what circumstances, but why bother when someone
->> has gone to the trouble of declaring a perfectly good tr-state
->> interface in dvb-core, taht automatically asserts and de-asserts any
->> dvb_frontend device from the bus, optionally.
->
->
-> Because I simply don't want to any new demod users for that callback unless
-> needed for some strange reason.
+Hi Josh,
 
-I see, I understand your concern, perhaps you should have raised this
-in your first response. Are you the maintainer for dvb-core now?
+Thank you for the patch.
 
-So two options come to mind:
+On Wednesday 17 June 2015 18:39:38 Josh Wu wrote:
+> In the function configure_geometry(), we will setup the ISI CFG2
+> according to the sensor output format.
+> 
+> It make no sense to just read back the CFG2 register and just set part
+> of it.
+> 
+> So just set up this register directly makes things simpler.
+> Currently only support YUV format from camera sensor.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
 
-1. The si2168_init() brings the part onto the bus, and _sleep() takes
-the device off the bus, regardless? Any by default, the device is not
-on the bus after attach takes place.
+The default value of the register is all 0 so this should be good.
 
-2. The bridge specifically calls ts_bus_control() on the si2168 fe
-ops, as and when the bridge requires it? This feels like a reasonable
-middle-ground approach.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Your thoughts?
+> ---
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
+>  1 file changed, 7 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> b/drivers/media/platform/soc_camera/atmel-isi.c index 9070172..8bc40ca
+> 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>  static int configure_geometry(struct atmel_isi *isi, u32 width,
+>  			u32 height, u32 code)
+>  {
+> -	u32 cfg2, cr;
+> +	u32 cfg2;
+> 
+> +	/* According to sensor's output format to set cfg2 */
+>  	switch (code) {
+>  	/* YUV, including grey */
+>  	case MEDIA_BUS_FMT_Y8_1X8:
+> -		cr = ISI_CFG2_GRAYSCALE;
+> +		cfg2 = ISI_CFG2_GRAYSCALE;
+>  		break;
+>  	case MEDIA_BUS_FMT_VYUY8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_3;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_2;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
+>  		break;
+>  	case MEDIA_BUS_FMT_YVYU8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_1;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+>  		break;
+>  	/* RGB, TODO */
+>  	default:
+> @@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi,
+> u32 width, }
+> 
+>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> -
+> -	cfg2 = isi_readl(isi, ISI_CFG2);
+> -	/* Set YCC swap mode */
+> -	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
+> -	cfg2 |= cr;
+>  	/* Set width */
+> -	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
+>  	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
+>  			ISI_CFG2_IM_HSIZE_MASK;
+>  	/* Set height */
+> -	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
+>  	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+>  			& ISI_CFG2_IM_VSIZE_MASK;
+>  	isi_writel(isi, ISI_CFG2, cfg2);
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
